@@ -6,6 +6,10 @@
 // #define gencode_ast_hook(a,b,c) (printf("%s:%d\n", __FILE__, __LINE__), gencode_ast(a,b,c))
 #define gencode_ast_hook(a,b,c) (gencode_ast(a,b,c))
 #define last_op(ctx) vector_last(get_block(ctx->block)->code).op
+#define last_stvx(ctx, l, i) ((vector_size(get_block(ctx->block)->code) > 0) &&\
+    last_op(ctx) == KX_STOREVX &&\
+    (vector_last(get_block(ctx->block)->code).value1.idx == l) && (vector_last(get_block(ctx->block)->code).value2.idx == i))\
+/**/
 #define add_pop(ctx) \
     if (last_op(ctx) == KX_STORE) {\
         last_op(ctx) = KX_STOREX;\
@@ -168,7 +172,11 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         if (lvalue) {
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVL, .value1 = { .idx = node->lexical }, .value2 = { .idx = node->index } }));
         } else {
-            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVV, .value1 = { .idx = node->lexical }, .value2 = { .idx = node->index } }));
+            if (last_stvx(ctx, node->lexical, node->index)) {
+                last_op(ctx) = KX_STOREV;
+            } else {
+                vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVV, .value1 = { .idx = node->lexical }, .value2 = { .idx = node->index } }));
+            }
         }
         break;
     }
@@ -687,6 +695,10 @@ static void append_ret(kx_function_t *function)
         int op = vector_last(block->code).op;
         switch (op) {
         case KX_RET:
+        case KX_RETI:
+        case KX_RETD:
+        case KX_RETS:
+        case KX_RETV:
         case KX_RET_N:
             break;
         default:

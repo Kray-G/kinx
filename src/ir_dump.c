@@ -36,6 +36,9 @@ static void ir_code_dump(kx_code_t *code)
     if (!code) {
         return;
     }
+    if (code->op == KX_ENTER && code->value1.i == 0) {
+        return;
+    }
 
     printf(KX_CODE_INDENT);
     switch (code->op) {
