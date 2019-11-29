@@ -1,0 +1,59 @@
+
+var a = false, x = 10;
+if (a) {
+    var x = 5;
+    var b = a = 10;
+    var c = true;
+    b = b * 3;
+    var n = "aaaaaa";
+    n = n + " " + b;
+    n = n + "bbbbbb";
+    ++b;
+    x = a++;
+}
+if (x) {
+    a = 2;
+}
+
+function xml_parse() {
+    return 10;
+}
+
+function xml_parse2() {
+    return;
+}
+
+class BaseClassName(i, j, k) {
+    this.x = 10;
+    var n_ = [1,[2,4,[5],[]],3];
+    public method1(i) {
+        return n_[i];
+    }
+    public method2(i, n) {
+        this.x = n;
+    }
+}
+
+class ClassName(j,k) : BaseClassName(1, j, k) {
+    var n_, v_;
+    public get() {
+        return n_;
+    }
+    private set(n, v) {
+        try {
+            n_ = n;
+        } catch (e) {
+            n_ = 0;
+        } finally {
+            v_ = v;
+        }
+    }
+    protected add(i) {
+        return n_ + i + x;
+    }
+}
+
+function fib(n) {
+    if (n < 3) return n;
+    return fib(n-2) + fib(n-1);
+}
