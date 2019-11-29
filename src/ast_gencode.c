@@ -288,10 +288,10 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         get_block(block)->tf[0] = cond;
         ctx->block = cond;
         gencode_ast_hook(node->lhs, ctx, 0);
-        get_block(cond)->tf[0] = assign;
+        get_block(ctx->block)->tf[0] = assign;
         ctx->block = alt;
         gencode_ast_hook(node->rhs, ctx, 0);
-        get_block(alt)->tf[0] = assign;
+        get_block(ctx->block)->tf[0] = assign;
 
         ctx->block = assign;
         gencode_ast_hook(node->lhs, ctx, 1);
@@ -314,10 +314,10 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         get_block(block)->tf[0] = cond;
         ctx->block = cond;
         gencode_ast_hook(node->lhs, ctx, 0);
-        get_block(cond)->tf[0] = assign;
+        get_block(ctx->block)->tf[0] = assign;
         ctx->block = alt;
         gencode_ast_hook(node->rhs, ctx, 0);
-        get_block(alt)->tf[0] = assign;
+        get_block(ctx->block)->tf[0] = assign;
 
         ctx->block = assign;
         gencode_ast_hook(node->lhs, ctx, 1);
@@ -347,10 +347,10 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         get_block(block)->tf[0] = cond;
         ctx->block = cond;
         gencode_ast_hook(node->lhs, ctx, 0);
-        get_block(cond)->tf[0] = out;
+        get_block(ctx->block)->tf[0] = out;
         ctx->block = alt;
         gencode_ast_hook(node->rhs, ctx, 0);
-        get_block(alt)->tf[0] = out;
+        get_block(ctx->block)->tf[0] = out;
 
         ctx->block = out;
         break;
@@ -367,6 +367,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         get_block(block)->tf[0] = cond;
         ctx->block = cond;
         gencode_ast_hook(node->lhs, ctx, 0);
+        get_block(ctx->block)->tf[0] = out;
         ctx->block = alt;
         gencode_ast_hook(node->rhs, ctx, 0);
         ctx->block = out;
@@ -417,11 +418,13 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
             get_block(cond)->tf[0] = th;
             ctx->block = th;
             gencode_ast_hook(node->rhs, ctx, 0);
+            th = ctx->block;
         }
         if (node->ex) {
             get_block(cond)->tf[1] = el;
             ctx->block = el;
             gencode_ast_hook(node->ex, ctx, 0);
+            el = ctx->block;
         }
 
         out = new_block(ctx);
@@ -476,11 +479,13 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
             get_block(cond)->tf[0] = th;
             ctx->block = th;
             gencode_ast_hook(node->rhs, ctx, 0);
+            th = ctx->block;
         }
         if (node->ex) {
             get_block(cond)->tf[1] = el;
             ctx->block = el;
             gencode_ast_hook(node->ex, ctx, 0);
+            el = ctx->block;
         }
 
         out = new_block(ctx);
@@ -511,7 +516,6 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         }
 
         get_block(block)->tf[0] = try;
-        get_block(try)->tf[2] = 1;
         ctx->block = try;
         if (node->rhs) {
             catch = new_block(ctx);
@@ -519,12 +523,14 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         }
         gencode_ast_hook(node->lhs, ctx, 0);
         do_finally(ctx);
+        try = ctx->block;
 
         if (node->rhs) {
             ctx->block = catch;
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_POP_C }));
             gencode_ast_hook(node->rhs, ctx, 0);
             do_finally(ctx);
+            catch = ctx->block;
         }
         if (node->ex) {
             vector_pop(kx_finallies);
@@ -653,15 +659,7 @@ static void append_jmp(kx_block_t *block)
     if (jmp) {
         int next = block->tf[0];
         int othw = block->tf[1];
-        if (block->tf[2]) {
-            if (next && !othw) {    // 'catch' exists.
-                if (get_block(next)->index != block->index + 1) {
-                    vector_push(block->code, ((kx_code_t){ .op = KX_JMP, .value1 = { .i = get_block(next)->index } }));
-                }
-            } else {
-                /* no 'catch' */
-            }
-        } else if (next && othw) {
+        if (next && othw) {
             if (get_block(next)->index == block->index + 1) {
                 vector_push(block->code, ((kx_code_t){ .op = KX_JZ, .value1 = { .i = get_block(othw)->index } }));
             } else {

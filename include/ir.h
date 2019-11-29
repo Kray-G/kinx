@@ -82,14 +82,12 @@ typedef struct kx_block_ {
     vector_decl_of_(kx_code_t, code);
     int             index;
     int64_t         addr;
-    int             tf[3];
+    int             tf[2];
     /*
         branch:
             tf[0]: if true, tf[1]: otherwise
         connect:
             tf[0]: jmp
-        try-catch-finally:
-            tf[0]: try, tf[1]: catch, tf[2]: 1
         return:
             NULL for tf[*]
     */
