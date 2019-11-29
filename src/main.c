@@ -19,7 +19,7 @@ int main(int ac, char **av)
         return r;
     }
     start_analyze_ast(kx_ast_root);
-    start_display_ast(kx_ast_root);
+    // start_display_ast(kx_ast_root);
     kx_function_t *funclist = start_gencode_ast(kx_ast_root);
     ir_dump(funclist);
     return 0;

@@ -47,7 +47,7 @@ static void ir_code_dump(kx_code_t *code)
         break;
 
     case KX_ENTER:
-        printf("enter");
+        printf("%-23s %lld", "enter", code->value1.i);
         break;
     case KX_CALL:
         printf("call");
@@ -104,6 +104,14 @@ static void ir_code_dump(kx_code_t *code)
 
     case KX_PUSH_F:
         printf("push_false");
+        break;
+
+    case KX_PUSH_C:
+        printf("%-23s .L%lld", "pushc", code->value1.i);
+        break;
+
+    case KX_POP_C:
+        printf("popc");
         break;
 
     case KX_POP:
@@ -206,7 +214,7 @@ static void ir_function_dump(kx_function_t *func)
         return;
     }
 
-    printf(KX_FUNCTION_INDENT "%s (pushes:%d):\n", func->name, func->pushes);
+    printf(KX_FUNCTION_INDENT "%s:\n", func->name);
     int len = vector_size(func->block);
     for (int i = 0; i < len; ++i) {
         int block = vector_at(func->block, i);

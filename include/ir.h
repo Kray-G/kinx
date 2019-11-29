@@ -26,6 +26,8 @@ enum irop {
     KX_PUSH_N,
     KX_PUSH_T,
     KX_PUSH_F,
+    KX_PUSH_C,
+    KX_POP_C,
     KX_POP,
     KX_STORE,
     KX_STOREV,
@@ -80,14 +82,14 @@ typedef struct kx_block_ {
     vector_decl_of_(kx_code_t, code);
     int             index;
     int64_t         addr;
-    int             tf[4];
+    int             tf[3];
     /*
         branch:
             tf[0]: if true, tf[1]: otherwise
         connect:
             tf[0]: jmp
         try-catch-finally:
-            tf[0]: try, tf[1]: catch, tf[2]: finally, tf[3]: 1
+            tf[0]: try, tf[1]: catch, tf[2]: 1
         return:
             NULL for tf[*]
     */
