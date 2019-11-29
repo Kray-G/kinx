@@ -101,10 +101,10 @@ kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx
     return kx_gen_obj(type, 0, lhs, rhs, ex);
 }
 
-kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *lhs, kx_object_t *ex)
+kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block, kx_object_t *ex)
 {
-    kx_object_t *obj = kx_gen_obj(type, 0, lhs, NULL, ex);
-    obj->value.s = name;
+    kx_object_t *decl = kx_gen_bassign_object(KXOP_DECL, kx_gen_var_object(name), NULL);
+    kx_object_t *obj = kx_gen_obj(type, 0, decl, block, ex);
     return obj;
 }
 

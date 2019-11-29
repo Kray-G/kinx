@@ -49,7 +49,14 @@ class ClassName(j,k) : BaseClassName(1, j, k) {
         }
     }
     protected add(i) {
-        return n_ + i + x;
+        try {
+            if (n_ > 0) {
+                return 1;
+            }
+            return n_ + i + x;
+        } finally {
+            n_ = 0;
+        }
     }
 }
 
