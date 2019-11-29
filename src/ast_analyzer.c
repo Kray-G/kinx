@@ -207,10 +207,11 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->ex, ctx);
         vector_shrinkto(table->list, size);
         break;
-    case KXST_CATCH:      /* lhs: name: rhs: block */
+    case KXST_CATCH: {    /* lhs: name: rhs: block */
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
         break;
+    }
     case KXST_RET:        /* lhs: expr */
         analyze_ast(node->lhs, ctx);
         break;
