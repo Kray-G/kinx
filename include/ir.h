@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <vector.h>
 
-#define KX_DEF_PUSH(cmd)  cmd ## I, cmd ## D, cmd ## S, cmd ## F, cmd ## VV, cmd ## VL
+#define KX_DEF_PUSH(cmd)  cmd ## I, cmd ## D, cmd ## S, cmd ## F, cmd ## VV, cmd ## VL, cmd ## _NULL, cmd ## _TRUE, cmd ## _FALSE, cmd ## _C
 #define KX_DEF_IR(cmd)  cmd, cmd ## I, cmd ## D, cmd ## S, cmd ## V
 
 enum irop {
@@ -14,28 +14,28 @@ enum irop {
     KX_ENTER,
     KX_CALL,
     KX_CALLV,
+    KX_CALLVL,
+    KX_CALLVL1,
+    KX_CALLBLTIN,
     KX_DEF_IR(KX_RET),
-    KX_RET_N,
+    KX_RETVL,
+    KX_RETVL1,
+    KX_RET_NULL,
     KX_THROW,
+    KX_THROWE,
     KX_CATCH,
     KX_JMP,
     KX_JZ,
     KX_JNZ,
 
     KX_DEF_PUSH(KX_PUSH),
-    KX_PUSH_N,
-    KX_PUSH_T,
-    KX_PUSH_F,
-    KX_PUSH_C,
+    KX_PUSHVVL,
     KX_POP_C,
     KX_POP,
     KX_STORE,
     KX_STOREV,
     KX_STOREX,
     KX_STOREVX,
-    KX_DEF_IR(KX_APPEND),
-    KX_APPLYV,
-    KX_APPLYL,
 
     KX_NOT,
     KX_NEG,
@@ -47,6 +47,9 @@ enum irop {
     KX_DECP,
     KX_MKARY,
 
+    KX_APPLYV,
+    KX_APPLYL,
+    KX_DEF_IR(KX_APPEND),
     KX_DEF_IR(KX_ADD),
     KX_DEF_IR(KX_SUB),
     KX_DEF_IR(KX_MUL),
@@ -69,6 +72,9 @@ enum irop {
 };
 
 typedef struct kx_code_ {
+    struct kx_code_ *next;
+    uint32_t addr;
+    uint32_t count;
     int op;
     union {
         int             idx;

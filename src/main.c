@@ -21,6 +21,11 @@ int main(int ac, char **av)
     start_analyze_ast(kx_ast_root);
     // start_display_ast(kx_ast_root);
     kx_function_t *funclist = start_gencode_ast(kx_ast_root);
-    ir_dump(funclist);
+
+    vector_of_(uint32_t, labels);
+    vector_of_(kx_code_t *, fixcode);
+    fixcode = ir_fix_code(&labels, fixcode, funclist);
+    ir_dump(labels, funclist);
+    // ir_dump_fixed_code(labels, fixcode);
     return 0;
 }

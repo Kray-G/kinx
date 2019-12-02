@@ -73,6 +73,13 @@ kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs)
 
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
+    if (type == KXOP_CALL && lhs && lhs->lhs && lhs->rhs) {
+        if (lhs->lhs->type == KX_VAR && !strcmp(lhs->lhs->value.s, "System")) {
+            if (!strcmp(lhs->rhs->value.s, "println")) {
+                return kx_gen_obj(KXOP_BLTIN, 0, kx_gen_str_object("System.println"), rhs, NULL);
+            }
+        }
+    }
     return kx_gen_obj(type, 0, lhs, rhs, NULL);
 }
 

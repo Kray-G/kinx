@@ -243,7 +243,7 @@ PostfixExpression
     : Factor IncDec_Opt { $$ = (($2 < 0) ? $1 : kx_gen_uexpr_object($2, $1)); }
     | Factor '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | Factor '.' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, kx_gen_str_object($3)); }
-    | Factor '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
+    | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
 
 IncDec_Opt

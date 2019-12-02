@@ -6,6 +6,7 @@
 // #define gencode_ast_hook(a,b,c) (printf("%s:%d\n", __FILE__, __LINE__), gencode_ast(a,b,c))
 #define gencode_ast_hook(a,b,c) (gencode_ast(a,b,c))
 #define last_op(ctx) vector_last(get_block(ctx->block)->code).op
+#define last_lexical(ctx) vector_last(get_block(ctx->block)->code).value1.idx
 #define last_stvx(ctx, l, i) ((vector_size(get_block(ctx->block)->code) > 0) &&\
     last_op(ctx) == KX_STOREVX &&\
     (vector_last(get_block(ctx->block)->code).value1.idx == l) && (vector_last(get_block(ctx->block)->code).value2.idx == i))\
@@ -32,6 +33,7 @@
         last_op(ctx) = KX_##CMD##S;\
         break;\
     case KX_PUSHVV:\
+    case KX_PUSHVVL:\
         last_op(ctx) = KX_##CMD##V;\
         break;\
     default:\
@@ -88,8 +90,8 @@ static int new_block(kx_context_t *ctx)
 
 static int count_pushes(kx_function_t *function)
 {
-    int pushes = 0;
-    function->pushes = 0;
+    int pushes = 1;
+    function->pushes = 1;
     int len = vector_size(function->block);
     for (int i = 0; i < len; ++i) {
         kx_block_t *block = get_block(vector_at(function->block, i));
@@ -102,10 +104,11 @@ static int count_pushes(kx_function_t *function)
             case KX_PUSHS:
             case KX_PUSHF:
             case KX_PUSHVV:
+            case KX_PUSHVVL:
             case KX_PUSHVL:
-            case KX_PUSH_N:
-            case KX_PUSH_T:
-            case KX_PUSH_F:
+            case KX_PUSH_NULL:
+            case KX_PUSH_TRUE:
+            case KX_PUSH_FALSE:
             case KX_PUSH_C:
                 pushes++;
                 break;
@@ -122,9 +125,7 @@ static void do_finally(kx_context_t *ctx)
     }
     int len = vector_size(kx_finallies);
     if (len > 0) {
-        for (int i = len-1; i >= 0; --i) {
-            gencode_ast_hook(vector_at(kx_finallies, i), ctx, 0);
-        }
+        gencode_ast_hook(vector_last(kx_finallies), ctx, 0);
     }
 }
 
@@ -140,6 +141,31 @@ static void apply_array(kx_object_t *node, kx_context_t *ctx)
         gencode_ast_hook(node, ctx, 0);
         KX_DEF_BINCHKCMD(APPEND);
     }
+}
+
+static int count_args(kx_object_t *node)
+{
+    int count = 0;
+    if (!node) {
+        return 0;
+    }
+    if (node->type == KXST_EXPRLIST) {
+        count += count_args(node->lhs);
+        count += count_args(node->rhs);
+        return count;
+    }
+    return 1;
+}
+
+static void push_vv(kx_object_t *node, kx_context_t *ctx)
+{
+    if (!node) {
+        return;
+    }
+    vector_push(get_block(ctx->block)->code,
+        ((kx_code_t){ .op = node->lexical == 0 ? KX_PUSHVVL : KX_PUSHVV,
+        .value1 = { .idx = node->lexical },
+        .value2 = { .idx = node->index } }));
 }
 
 static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
@@ -159,13 +185,13 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHS, .value1 = { .s = strdup(node->value.s) } }));
         break;
     case KXVL_NULL:
-        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_N }));
+        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_NULL }));
         break;
     case KXVL_TRUE:
-        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_T }));
+        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_TRUE }));
         break;
     case KXVL_FALSE:
-        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_F }));
+        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_FALSE }));
         break;
 
     case KX_VAR: {
@@ -175,7 +201,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
             if (last_stvx(ctx, node->lexical, node->index)) {
                 last_op(ctx) = KX_STOREV;
             } else {
-                vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVV, .value1 = { .idx = node->lexical }, .value2 = { .idx = node->index } }));
+                push_vv(node, ctx);
             }
         }
         break;
@@ -191,7 +217,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
     case KXOP_INC: {
         if (node->lhs->type == KX_VAR) {
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_INCV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
-            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            push_vv(node->lhs, ctx);
         } else {
             gencode_ast_hook(node->lhs, ctx, 1);
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_INC }));
@@ -201,7 +227,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
     case KXOP_DEC: {
         if (node->lhs->type == KX_VAR) {
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_DECV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
-            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            push_vv(node->lhs, ctx);
         } else {
             gencode_ast_hook(node->lhs, ctx, 1);
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_DEC }));
@@ -210,7 +236,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
     }
     case KXOP_INCP: {     /* postfix */
         if (node->lhs->type == KX_VAR) {
-            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            push_vv(node->lhs, ctx);
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_INCV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(node->lhs, ctx, 1);
@@ -220,7 +246,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
     }
     case KXOP_DECP: {     /* postfix */
         if (node->lhs->type == KX_VAR) {
-            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHVV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            push_vv(node->lhs, ctx);
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_DECV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(node->lhs, ctx, 1);
@@ -391,13 +417,32 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
     KX_DEF_BINCMD(GT);
     KX_DEF_BINCMD(LGE);
     case KXOP_CALL: {
-        gencode_ast_hook(node->rhs, ctx, 0);
+        int count = count_args(node->rhs);
+        if (node->rhs) {
+            gencode_ast_hook(node->rhs, ctx, 0);
+        }
         gencode_ast_hook(node->lhs, ctx, 0);
-        if (last_op(ctx) == KX_PUSHVV) {
-            last_op(ctx) = KX_CALLV;
+        if (last_op(ctx) == KX_PUSHVV || last_op(ctx) == KX_PUSHVVL) {
+            if (last_lexical(ctx) == 0) {
+                last_op(ctx) = KX_CALLVL;
+            } else if (last_lexical(ctx) == 1) {
+                last_op(ctx) = KX_CALLVL1;
+            } else {
+                last_op(ctx) = KX_CALLV;
+            }
         } else {
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_CALL }));
         }
+        vector_last(get_block(ctx->block)->code).count = count;
+        break;
+    }
+    case KXOP_BLTIN: {
+        int count = count_args(node->rhs);
+        if (node->rhs) {
+            gencode_ast_hook(node->rhs, ctx, 0);
+        }
+        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_CALLBLTIN, .value1 = { .s = strdup(node->lhs->value.s) } }));
+        vector_last(get_block(ctx->block)->code).count = count;
         break;
     }
 
@@ -511,27 +556,29 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         int block = ctx->block;
         int try, catch, out;
         try = new_block(ctx);
+        catch = new_block(ctx);
         if (node->ex) {
             vector_push(kx_finallies, node->ex);
         }
 
         get_block(block)->tf[0] = try;
         ctx->block = try;
-        if (node->rhs) {
-            catch = new_block(ctx);
-            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_C, .value1 = { .i = get_block(catch)->index } }));
-        }
+        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_C, .value1 = { .i = get_block(catch)->index } }));
         gencode_ast_hook(node->lhs, ctx, 0);
         do_finally(ctx);
         try = ctx->block;
 
+        ctx->block = catch;
         if (node->rhs) {
-            ctx->block = catch;
             vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_POP_C }));
             gencode_ast_hook(node->rhs, ctx, 0);
             do_finally(ctx);
-            catch = ctx->block;
+        } else {
+            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_POP_C }));
+            do_finally(ctx);
+            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_THROW }));
         }
+        catch = ctx->block;
         if (node->ex) {
             vector_pop(kx_finallies);
         }
@@ -571,7 +618,10 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
                 break;
             case KX_VAR:
                 do_finally(ctx);
-                vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_RETV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+                vector_push(get_block(ctx->block)->code,
+                    ((kx_code_t){ .op = node->lhs->lexical == 0 ? KX_RETVL : (node->lhs->lexical == 1 ? KX_RETVL1 : KX_RETV),
+                    .value1 = { .idx = node->lhs->lexical },
+                    .value2 = { .idx = node->lhs->index } }));
                 break;
             default:
                 gencode_ast_hook(node->lhs, ctx, 0);
@@ -581,14 +631,19 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
             }
         } else {
             do_finally(ctx);
-            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_RET_N }));
+            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_RET_NULL }));
         }
         break;
     }
     case KXST_THROW: {    /* lhs: expr */
-        gencode_ast_hook(node->lhs, ctx, 0);
-        do_finally(ctx);
-        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_THROW }));
+        if (node->lhs) {
+            gencode_ast_hook(node->lhs, ctx, 0);
+            do_finally(ctx);
+            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_THROWE }));
+        } else {
+            do_finally(ctx);
+            vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_THROW }));
+        }
         break;
     }
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
@@ -602,9 +657,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         ctx->block = block;
         int enter = vector_size(get_block(block)->code);
         vector_push(get_block(block)->code, ((kx_code_t){ .op = KX_ENTER }));
-        // if (node->lhs) {
-        //     gencode_ast_hook(node->lhs, ctx, 0);
-        // }
+        int count = count_args(node->lhs);
         if (node->ex) {
             gencode_ast_hook(node->ex, ctx, 0);
             add_pop(ctx);
@@ -614,6 +667,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         vector_push(get_block(block)->code, ((kx_code_t){ .op = KX_RET }));
         int pushes = count_pushes(get_function(cur));
         vector_at(get_block(block)->code, enter).value1.i = pushes;
+        vector_at(get_block(block)->code, enter).value2.i = count;
         ctx->block = old;
         ctx->function = func;
         ctx->def_func = cur;
@@ -630,12 +684,11 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         ctx->block = block;
         int enter = vector_size(get_block(block)->code);
         vector_push(get_block(block)->code, ((kx_code_t){ .op = KX_ENTER }));
-        // if (node->lhs) {
-        //     gencode_ast_hook(node->lhs, ctx, 0);
-        // }
+        int count = count_args(node->lhs);
         gencode_ast_hook(node->rhs, ctx, 0);
         int pushes = count_pushes(get_function(cur));
         vector_at(get_block(block)->code, enter).value1.i = pushes;
+        vector_at(get_block(block)->code, enter).value2.i = count;
         ctx->block = old;
         ctx->function = func;
         ctx->def_func = cur;
@@ -697,15 +750,16 @@ static void append_ret(kx_function_t *function)
         case KX_RETD:
         case KX_RETS:
         case KX_RETV:
-        case KX_RET_N:
+        case KX_RET_NULL:
             break;
         default:
-            vector_push(block->code, ((kx_code_t){ .op = KX_RET_N }));
+            vector_push(block->code, ((kx_code_t){ .op = KX_RET_NULL }));
             break;
         }
     } else {
-        vector_push(block->code, ((kx_code_t){ .op = KX_RET_N }));
+        vector_push(block->code, ((kx_code_t){ .op = KX_RET_NULL }));
     }
+    vector_push(block->code, ((kx_code_t){ .op = KX_HALT }));
 }
 
 static void append_ret_all(kx_function_t *funclist)
