@@ -44,7 +44,7 @@ typedef struct {
     ((VECTOR) ? vector_meta(VECTOR)->used : 0)
 
 #define vector_at(VECTOR, i) \
-    (VECTOR[i])
+    ((VECTOR)[i])
 
 #define vector_last_by(VECTOR, i) \
     (VECTOR[vector_meta(VECTOR)->used - i])

@@ -48,7 +48,7 @@ class ClassName(j,k) : BaseClassName(1, j, k) {
             v_ = v;
         }
     }
-    protected add(i) {
+    public add(i) {
         try {
             if (n_ > 0) {
                 return 1;

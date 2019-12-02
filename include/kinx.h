@@ -112,6 +112,7 @@ enum opecode {
     KXOP_GT,
     KXOP_LGE,
     KXOP_CALL,
+    KXOP_BLTIN,
 
     /* ternary expression */
     KXOP_TER,
@@ -196,6 +197,8 @@ extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name,
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
 extern kx_function_t *start_gencode_ast(kx_object_t *node);
-extern void ir_dump(kx_function_t *funclist);
+extern void ir_dump(uint32_t *labels, kx_function_t *funclist);
+extern void ir_dump_fixed_code(uint32_t *labels, kx_code_t **code);
+extern kx_code_t **ir_fix_code(uint32_t **abels, kx_code_t **fixcode, kx_function_t *funclist);
 
 #endif /* KX_KINX_H */
