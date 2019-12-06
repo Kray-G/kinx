@@ -80,7 +80,7 @@ typedef struct kx_code_ {
         int             idx;
         int64_t         i;
         double          d;
-        char            *s;
+        const char      *s;
     } value1, value2;
 } kx_code_t;
 
@@ -119,5 +119,7 @@ extern vector_decl_of_(kx_function_t, kx_functions);
 extern vector_decl_of_(kx_block_t, kx_blocks);
 #define get_function(i) (&vector_at(kx_functions, i))
 #define get_block(i) (&vector_at(kx_blocks, i))
+
+extern void free_ir_info(void);
 
 #endif /* KX_IR_H */

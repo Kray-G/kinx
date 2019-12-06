@@ -40,11 +40,8 @@ static void ir_fix_jmp_function(uint32_t **labels, kx_function_t *func)
         int block = vector_at(func->block, i);
         ir_fix_jmp(labels, get_block(block));
     }
-
-    int llen = vector_size(*labels);
-    for (int i = 0; i < llen; ++i) {
-            }
 }
+
 static kx_code_t **ir_fix_block(kx_code_t **fixcode, kx_block_t *block)
 {
     if (!block) {
@@ -56,9 +53,8 @@ static kx_code_t **ir_fix_block(kx_code_t **fixcode, kx_block_t *block)
         kx_code_t *code = &vector_at(block->code, i);
         vector_push(fixcode, code);
     }
-        return fixcode;
+    return fixcode;
 }
-
 
 static kx_code_t **ir_fix_function(uint32_t **labels, kx_code_t **fixcode, kx_function_t *func)
 {

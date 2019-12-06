@@ -60,11 +60,12 @@
     }\
 /**/
 
-static kx_block_t kx_empty_block = {0};
-static kx_function_t kx_empty_func = {0};
-static vector_of_(kx_object_t*, kx_finallies);
 vector_of_(kx_function_t, kx_functions);
 vector_of_(kx_block_t, kx_blocks);
+
+static const kx_block_t kx_empty_block = {0};
+static const kx_function_t kx_empty_func = {0};
+static vector_of_(kx_object_t*, kx_finallies);
 static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue);
 
 static int new_function(kx_context_t *ctx)
@@ -182,7 +183,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHD, .value1 = { .d = node->value.d } }));
         break;
     case KXVL_STR:
-        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHS, .value1 = { .s = strdup(node->value.s) } }));
+        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHS, .value1 = { .s = alloc_string(node->value.s) } }));
         break;
     case KXVL_NULL:
         vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSH_NULL }));
@@ -281,7 +282,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
             gencode_ast_hook(node->rhs, ctx, 0);
             if (ctx->def_func >= 0) {
                 kx_function_t *func = get_function(ctx->def_func);
-                vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHF, .value1 = { .s = strdup(func->name) }, .value2 = { .idx = get_block(vector_head(func->block))->index } }));
+                vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_PUSHF, .value1 = { .s = alloc_string(func->name) }, .value2 = { .idx = get_block(vector_head(func->block))->index } }));
             }
             ctx->def_func = def_func;
             gencode_ast_hook(node->lhs, ctx, 1);
@@ -441,7 +442,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         if (node->rhs) {
             gencode_ast_hook(node->rhs, ctx, 0);
         }
-        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_CALLBLTIN, .value1 = { .s = strdup(node->lhs->value.s) } }));
+        vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_CALLBLTIN, .value1 = { .s = alloc_string(node->lhs->value.s) } }));
         vector_last(get_block(ctx->block)->code).count = count;
         break;
     }
@@ -614,7 +615,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
                 break;
             case KXVL_STR:
                 do_finally(ctx);
-                vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_RETS, .value1 = { .s = strdup(node->value.s) } }));
+                vector_push(get_block(ctx->block)->code, ((kx_code_t){ .op = KX_RETS, .value1 = { .s = alloc_string(node->value.s) } }));
                 break;
             case KX_VAR:
                 do_finally(ctx);
@@ -650,8 +651,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         int func = vector_last(ctx->funclist);
         int cur = new_function(ctx);
         ctx->function = cur;
-        get_function(cur)->name = strdup(node->value.s);
-        get_function(cur)->refs = node->lexical_refs;
+        get_function(cur)->name = alloc_string(node->value.s);
         int old = ctx->block;
         int block = new_block(ctx);
         ctx->block = block;
@@ -667,7 +667,8 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         vector_push(get_block(block)->code, ((kx_code_t){ .op = KX_RET }));
         int pushes = count_pushes(get_function(cur));
         vector_at(get_block(block)->code, enter).value1.i = pushes;
-        vector_at(get_block(block)->code, enter).value2.i = count;
+        vector_at(get_block(block)->code, enter).value2.i = node->lexical_refs;
+        vector_at(get_block(block)->code, enter).count = count;
         ctx->block = old;
         ctx->function = func;
         ctx->def_func = cur;
@@ -677,8 +678,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         int func = vector_last(ctx->funclist);
         int cur = new_function(ctx);
         ctx->function = cur;
-        get_function(cur)->name = strdup(node->value.s);
-        get_function(cur)->refs = node->lexical_refs;
+        get_function(cur)->name = alloc_string(node->value.s);
         int old = ctx->block;
         int block = new_block(ctx);
         ctx->block = block;
@@ -688,7 +688,8 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         gencode_ast_hook(node->rhs, ctx, 0);
         int pushes = count_pushes(get_function(cur));
         vector_at(get_block(block)->code, enter).value1.i = pushes;
-        vector_at(get_block(block)->code, enter).value2.i = count;
+        vector_at(get_block(block)->code, enter).value2.i = node->lexical_refs;
+        vector_at(get_block(block)->code, enter).count = count;
         ctx->block = old;
         ctx->function = func;
         ctx->def_func = cur;
@@ -780,7 +781,7 @@ kx_function_t *start_gencode_ast(kx_object_t *node)
     kx_context_t ctx = {0};
     int func = new_function(&ctx);
     ctx.function = func;
-    get_function(func)->name = strdup("_main");
+    get_function(func)->name = alloc_string("_main");
     int block = new_block(&ctx);
     ctx.block = block;
     int enter = vector_size(get_block(block)->code);
@@ -789,7 +790,26 @@ kx_function_t *start_gencode_ast(kx_object_t *node)
     int pushes = count_pushes(get_function(func));
     vector_at(get_block(block)->code, enter).value1.i = pushes;
     append_ret_all(kx_functions);
+
+    vec_delete(ctx.funclist);
     return kx_functions;
+}
+
+void free_ir_info(void)
+{
+    int len = vector_size(kx_blocks);
+    for (int i = 0; i < len; ++i) {
+        kx_block_t *block = &vector_at(kx_blocks, i);
+        vec_delete(block->code);
+    }
+    len = vector_size(kx_functions);
+    for (int i = 0; i < len; ++i) {
+        kx_function_t *func = &vector_at(kx_functions, i);
+        vec_delete(func->block);
+    }
+    vec_delete(kx_finallies);
+    vec_delete(kx_blocks);
+    vec_delete(kx_functions);
 }
 
 #undef KX_DEF_ASSIGNCMD

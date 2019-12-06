@@ -27,5 +27,11 @@ int main(int ac, char **av)
     fixcode = ir_fix_code(&labels, fixcode, funclist);
     ir_dump(labels, funclist);
     // ir_dump_fixed_code(labels, fixcode);
+
+    vec_delete(fixcode);
+    vec_delete(labels);
+    free_ir_info();
+    free_nodes();
+    free_string();
     return 0;
 }
