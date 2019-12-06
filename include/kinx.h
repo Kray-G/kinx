@@ -137,7 +137,7 @@ enum opecode {
 struct kx_object_;
 
 typedef struct kxana_symbol_ {
-    char *name;
+    const char *name;
     int index;
     int local_index;
     int lexical_index;
@@ -179,6 +179,9 @@ typedef struct kx_object_ {
 #define KX_BUF_MAX (2048)
 extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
+
+extern const char *alloc_string(const char *str);
+extern void free_string(void);
 
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name);
