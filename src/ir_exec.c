@@ -200,54 +200,47 @@ typedef struct kxval_context_ {
     } while (0);\
 /**/
 
-#include "code/halt.inc"
-#include "code/nop.inc"
+#include "code/halt_nop.inc"
 #include "code/enter.inc"
 #include "code/call.inc"
-#include "code/callv.inc"
-#include "code/callvl.inc"
-#include "code/callvl1.inc"
-#include "code/callbltin.inc"
 #include "code/ret.inc"
-#include "code/reti.inc"
-#include "code/retd.inc"
-#include "code/rets.inc"
-#include "code/retv.inc"
-#include "code/retvl.inc"
-#include "code/retvl1.inc"
 #include "code/throw.inc"
-#include "code/throwe.inc"
 #include "code/catch.inc"
 #include "code/jmp.inc"
-#include "code/jz.inc"
-#include "code/jnz.inc"
-#include "code/pushi.inc"
-#include "code/pushd.inc"
-#include "code/pushs.inc"
-#include "code/pushf.inc"
-#include "code/pushvv.inc"
-#include "code/pushvvl.inc"
-#include "code/pushvl.inc"
-#include "code/push_null.inc"
-#include "code/push_true.inc"
-#include "code/push_false.inc"
-#include "code/push_c.inc"
-#include "code/pop_c.inc"
+#include "code/push.inc"
 #include "code/pop.inc"
 #include "code/store.inc"
-#include "code/storev.inc"
-#include "code/storex.inc"
-#include "code/storevx.inc"
-
-#include "code/lti.inc"
+#include "code/not.inc"
+#include "code/neg.inc"
+#include "code/inc.inc"
+#include "code/dec.inc"
+#include "code/mkary.inc"
+#include "code/append.inc"
+#include "code/add.inc"
+#include "code/sub.inc"
+#include "code/mul.inc"
+#include "code/div.inc"
+#include "code/mod.inc"
+#include "code/and.inc"
+#include "code/or.inc"
+#include "code/xor.inc"
+#include "code/shl.inc"
+#include "code/shr.inc"
+#include "code/eqeq.inc"
+#include "code/neq.inc"
+#include "code/le.inc"
+#include "code/lt.inc"
+#include "code/ge.inc"
+#include "code/gt.inc"
+#include "code/lge.inc"
 
 static void ir_exec_impl(kx_code_t **fixcode)
 {
     vector_of_(kxval_t, kx_stack);
     kxval_context_t ctx = {0};
     int frm, lex, args;
-    kxval_t *frmv = NULL;
-    kxval_t *lexv = NULL;
+    kxval_frm_t *frmv = NULL;
+    kxval_frm_t *lexv = NULL;
 
     KX_CASE_SETUP(fixcode);
 

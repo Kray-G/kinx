@@ -15,6 +15,17 @@ kx_object_t *kx_obj_alloc(void)
     return obj;
 }
 
+void free_nodes(void)
+{
+    kx_object_t *obj = kx_obj_mgr;
+    while (obj) {
+        kx_object_t *next = obj->nxt;
+        vec_delete(obj->symbols.list);
+        free(obj);
+        obj = next;
+    }
+}
+
 kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     kx_object_t *obj = kx_obj_alloc();

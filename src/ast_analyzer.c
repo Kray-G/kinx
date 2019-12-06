@@ -9,21 +9,7 @@ typedef struct kxana_context_ {
     kx_object_t *func;
     vector_decl_of_(kxana_symbol_t, symbols);
 } kxana_context_t;
-static kxana_symbol_t kx_empty_symbols = {0};
-
-static int count_lexical_refs(kxana_context_t *ctx)
-{
-    int count = 0;
-    kxana_symbol_t* table = &(vector_last(ctx->symbols));
-    int size = vector_size(table->list);
-    for (int j = 1; j <= size; ++j) {
-        kxana_symbol_t *sym = &vector_last_by(table->list, j);
-        if (sym->lexical_index > 0) {
-            ++count;
-        }
-    }
-    return count;
-}
+static const kxana_symbol_t kx_empty_symbols = {0};
 
 static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, kxana_context_t *ctx)
 {
@@ -36,9 +22,6 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
                 kxana_symbol_t *sym = &vector_last_by(table->list, j);
                 if (!strcmp(name, sym->name)) {
                     sym->lexical_index = i - 1;
-                    if (sym->lexical_index > 0) {
-                        sym->base->lexical_refs++;
-                    }
                     return sym;
                 }
             }
@@ -47,7 +30,7 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
     if (ctx->decl || ctx->lvalue) {
         kxana_symbol_t* table = &(vector_last(ctx->symbols));
         kxana_symbol_t sym = {0};
-        sym.name = strdup(name);
+        sym.name = alloc_string(name);
         sym.local_index = vector_size(table->list);
         sym.lexical_index = 0;
         sym.base = node;
@@ -225,6 +208,11 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         assert(sym);
         ctx->lvalue = lvalue;
 
+        if (ctx->func) {
+            ctx->func->lexical_refs = 1;
+        }
+        kx_object_t *func = ctx->func;
+        ctx->func = node;
         vector_push(ctx->symbols, kx_empty_symbols);
         vector_last(ctx->symbols).index = vector_size(ctx->symbols) - 1;
         int decl = ctx->decl;
@@ -239,7 +227,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             analyze_ast(node->ex, ctx);
         }
         analyze_ast(node->rhs, ctx);
-        node->lexical_refs = count_lexical_refs(ctx);
+        ctx->func = func;
         node->symbols = vector_last(ctx->symbols);
         vector_pop(ctx->symbols);
         break;
@@ -251,6 +239,11 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         assert(sym);
         ctx->lvalue = lvalue;
 
+        if (ctx->func) {
+            ctx->func->lexical_refs = 1;
+        }
+        kx_object_t *func = ctx->func;
+        ctx->func = node;
         vector_push(ctx->symbols, kx_empty_symbols);
         vector_last(ctx->symbols).index = vector_size(ctx->symbols) - 1;
         int decl = ctx->decl;
@@ -260,7 +253,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         ctx->decl = decl;
         analyze_ast(node->rhs, ctx);
-        node->lexical_refs = count_lexical_refs(ctx);
+        ctx->func = func;
         node->symbols = vector_last(ctx->symbols);
         vector_pop(ctx->symbols);
         break;
@@ -275,4 +268,6 @@ void start_analyze_ast(kx_object_t *node)
     kxana_context_t ctx = {0};
     vector_push(ctx.symbols, kx_empty_symbols);
     analyze_ast(node, &ctx);
+
+    vec_delete(ctx.symbols);
 }

@@ -61,7 +61,7 @@ int kx_lex_make_string()
     }
     if (kx_ctx.ch == '"') {
         kx_lex_next(kx_ctx);
-        kx_yylval.strval = strdup("");
+        kx_yylval.strval = alloc_string("");
         return STR;
     }
 
@@ -78,7 +78,7 @@ int kx_lex_make_string()
     }
 
     kx_strbuf[pos] = 0;
-    kx_yylval.strval = strdup(kx_strbuf);
+    kx_yylval.strval = alloc_string(kx_strbuf);
     kx_lex_next(kx_ctx);
     return STR;
 }
@@ -234,7 +234,7 @@ int kx_yylex()
             kx_lex_next(kx_ctx);
         }
         kx_strbuf[pos] = 0;
-        kx_yylval.strval = strdup(kx_strbuf);
+        kx_yylval.strval = alloc_string(kx_strbuf);
         return get_keyword_token(kx_strbuf);
 
     case '0':

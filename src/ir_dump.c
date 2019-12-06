@@ -68,7 +68,7 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
         break;
 
     case KX_ENTER:
-        printf("%-23s extend(%lld), args(%lld)", "enter", code->value1.i, code->value2.i);
+        printf("%-23s %lld, refs(%lld), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
         break;
     case KX_CALL:
         printf("%-23s %d", "call", code->count);
@@ -145,9 +145,6 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
     case KX_PUSHVV:
         printf("%-23s %s", "pushv", gen_varloc(code));
         break;
-    case KX_PUSHVVL:
-        printf("%-23s %s", "pushvl", gen_varloc_local(code));
-        break;
     case KX_PUSHVL:
         printf("%-23s %s", "pushl", gen_varloc(code));
         break;
@@ -155,17 +152,19 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
     case KX_PUSH_NULL:
         printf("push_null");
         break;
-
     case KX_PUSH_TRUE:
         printf("push_true");
         break;
-
     case KX_PUSH_FALSE:
         printf("push_false");
         break;
 
     case KX_PUSH_C:
         printf("%-23s .L%lld", "pushc", code->value1.i);
+        break;
+
+    case KX_PUSHVVL:
+        printf("%-23s %s", "pushvl", gen_varloc_local(code));
         break;
 
     case KX_POP_C:

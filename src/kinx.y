@@ -16,7 +16,7 @@
     int         type;
     int64_t     intval;
     double      dblval;
-    char        *strval;
+    const char  *strval;
 }
 
 %token ERROR
