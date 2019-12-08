@@ -35,8 +35,6 @@
 
 #define KX_PUSHF_CODE() \
 { \
-    vector_push_uncheck(kx_stack, { .type = KXVAL_FNC, .value.fnc = { adr = cur->value1.i, .lex = lex } }); \
-    cur = cur->next; \
 } \
 /**/
 
@@ -52,7 +50,5 @@
 
 #define KX_PUSHVVL_CODE() \
 { \
-    vector_push_uncheck(kx_stack, vector_at(frmv->v, cur->value2.i)); \
-    cur = cur->next; \
 } \
 /**/
