@@ -3,17 +3,16 @@
 #include <ir.h>
 
 #define KX_CASE_SETUP(fixcode) \
-    struct kx_code_ *cur = vector_head(fixcode); \
     int len = vector_size(fixcode) - 1; \
     for (int i = 0; i < len; ++i) { \
         vector_at(fixcode, i)->next = vector_at(fixcode, i+1); \
     } \
 /**/
 
-#define KX_CASE_BEGIN() LBL_KX_BEGIN_OF_CODE: ;
+#define KX_CASE_BEGIN(cur) LBL_KX_BEGIN_OF_CODE: KX_GOTO(cur);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_CASE_(OPCODE) LBL_##OPCODE: OPCODE##_CODE();
-#define KX_BREAK(cur) \
+#define KX_GOTO(cur) \
     switch (cur->op) { \
     case KX_HALT: goto LBL_KX_END_OF_CODE; \
     case KX_NOP: goto LBL_KX_NOP; \
@@ -158,540 +157,498 @@
     } \
 /**/
 
-typedef enum kxval_type_ {
-    KXVAL_I,
-    KXVAL_D,
-    KXVAL_S,
-    KXVAL_O,
-    KXVAL_FNC,
-    KXVAL_FRM,
-} kxval_type_t;
-
-typedef struct kxval_frm_ {
-    vector_decl_of_(struct kxval_ *, v);
-    struct kxval_frm_ *lex;
-} kxval_frm_t;
-
-typedef struct kxval_fnc_ {
-    int adr;
-    int lex;
-} kxval_fnc_t;
-
-typedef struct kxval_ {
-    int type;
-    union {
-        int64_t i;
-        double d;
-        char *s;
-        kxval_frm_t *frm;
-        kxval_fnc_t fnc;
-    } value;
-} kxval_t;
-
-typedef struct kxval_context_ {
-    vector_decl_of_(kxval_frm_t *, frms);
-} kxval_context_t;
-
-#define alloc_frm(var) \
-    do { \
-        kxval_frm_t *f = ((kxval_frm_t *)malloc(sizeof(kxval_frm_t))) \
-        vector_push(ctx->frms, f); \
-        var = f; \
-    } while (0);\
-/**/
-
-#include "code/halt_nop.inc"
-#include "code/enter.inc"
-#include "code/call.inc"
-#include "code/ret.inc"
-#include "code/throw.inc"
-#include "code/catch.inc"
-#include "code/jmp.inc"
-#include "code/push.inc"
-#include "code/pop.inc"
-#include "code/store.inc"
-#include "code/not.inc"
-#include "code/neg.inc"
-#include "code/inc.inc"
-#include "code/dec.inc"
-#include "code/mkary.inc"
-#include "code/append.inc"
-#include "code/add.inc"
-#include "code/sub.inc"
-#include "code/mul.inc"
-#include "code/div.inc"
-#include "code/mod.inc"
-#include "code/and.inc"
-#include "code/or.inc"
-#include "code/xor.inc"
-#include "code/shl.inc"
-#include "code/shr.inc"
-#include "code/eqeq.inc"
-#include "code/neq.inc"
-#include "code/le.inc"
-#include "code/lt.inc"
-#include "code/ge.inc"
-#include "code/gt.inc"
-#include "code/lge.inc"
+#include "exec/code/haltnop.inc"
+#include "exec/code/enter.inc"
+#include "exec/code/call.inc"
+#include "exec/code/ret.inc"
+#include "exec/code/throw.inc"
+#include "exec/code/catch.inc"
+#include "exec/code/jmp.inc"
+#include "exec/code/push.inc"
+#include "exec/code/pop.inc"
+#include "exec/code/store.inc"
+#include "exec/code/not.inc"
+#include "exec/code/neg.inc"
+#include "exec/code/inc.inc"
+#include "exec/code/dec.inc"
+#include "exec/code/mkary.inc"
+#include "exec/code/append.inc"
+#include "exec/code/add.inc"
+#include "exec/code/sub.inc"
+#include "exec/code/mul.inc"
+#include "exec/code/div.inc"
+#include "exec/code/mod.inc"
+#include "exec/code/and.inc"
+#include "exec/code/or.inc"
+#include "exec/code/xor.inc"
+#include "exec/code/shl.inc"
+#include "exec/code/shr.inc"
+#include "exec/code/eqeq.inc"
+#include "exec/code/neq.inc"
+#include "exec/code/le.inc"
+#include "exec/code/lt.inc"
+#include "exec/code/ge.inc"
+#include "exec/code/gt.inc"
+#include "exec/code/lge.inc"
 
 static void ir_exec_impl(kx_code_t **fixcode)
 {
-    vector_of_(kxval_t, kx_stack);
-    kxval_context_t ctx = {0};
-    int frm, lex, args;
-    kxval_frm_t *frmv = NULL;
-    kxval_frm_t *lexv = NULL;
+    struct kx_code_ *cur = vector_head(fixcode);
+    kex_context_t ctx = {0};
+    kex_frm_t *frmv = NULL;
+    kex_frm_t *lexv = NULL;
+    vector_of_(kex_fnc_t *, fncv);
 
     KX_CASE_SETUP(fixcode);
 
-    KX_CASE_BEGIN() {
+    KX_CASE_BEGIN(cur) {
 
     KX_CASE_(KX_HALT) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_NOP) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_ENTER) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_CALL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_CALLV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_CALLVL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_CALLVL1) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_CALLBLTIN) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RET) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RETI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RETD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RETS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RETV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RETVL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RETVL1) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_RET_NULL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_THROW) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_THROWE) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_CATCH) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_JMP) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_JZ) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_JNZ) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_PUSHI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSHD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSHS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSHF) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSHVV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSHVVL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSHVL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_PUSH_NULL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSH_TRUE) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_PUSH_FALSE) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_PUSH_C) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_POP_C) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_POP) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_STORE) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_STOREV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_STOREX) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_STOREVX) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_NOT) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_NEG) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_INC) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_DEC) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_INCV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_DECV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_INCP) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_DECP) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MKARY) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_APPLYV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_APPLYL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_APPEND) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_APPENDI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_APPENDD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_APPENDS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_APPENDV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_ADD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ADDI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ADDD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ADDS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ADDV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_SUB) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SUBI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SUBD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SUBS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SUBV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_MUL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MULI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MULD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MULS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MULV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_DIV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_DIVI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_DIVD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_DIVS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_DIVV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_MOD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MODI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MODD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MODS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_MODV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_AND) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ANDI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ANDD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ANDS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ANDV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_OR) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ORI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ORD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ORS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_ORV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_XOR) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_XORI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_XORD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_XORS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_XORV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_SHL) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHLI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHLD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHLS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHLV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_SHR) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHRI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHRD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHRS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_SHRV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_EQEQ) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_EQEQI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_EQEQD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_EQEQS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_EQEQV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_NEQ) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_NEQI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_NEQD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_NEQS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_NEQV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_LE) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LEI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LED) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LES) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LEV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_LT) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LTI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LTD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LTS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LTV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_GE) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GEI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GED) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GES) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GEV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_GT) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GTI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GTD) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GTS) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_GTV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     KX_CASE_(KX_LGE) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LGEI) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LGED) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LGES) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
     KX_CASE_(KX_LGEV) {
-        KX_BREAK(cur);
+        KX_GOTO(cur);
     }
 
     } // END
