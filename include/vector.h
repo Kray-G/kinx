@@ -30,6 +30,9 @@ typedef struct {
 #define vector_push_uncheck(VECTOR, VALUE) \
     ((VECTOR)[vector_meta(VECTOR)->used++] = (VALUE))
 
+#define vector_push_undefp(VECTOR) \
+    ((VECTOR)[vector_meta(VECTOR)->used++])
+
 /* Unshift front [VALUE] into [VECTOR] */
 #define vector_unshift(VECTOR, VALUE) \
     (\
