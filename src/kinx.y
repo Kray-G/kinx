@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <vector.h>
+#include <kvec.h>
 #include <kinx.h>
 
 // #define YYDEBUG 1
@@ -41,6 +41,7 @@
 %type<obj> ForStatement
 %type<obj> TryCatchStatement
 %type<obj> CatchStatement_Opt
+%type<obj> FinallyStatement_Opt
 %type<obj> ReturnStatement
 %type<obj> ThrowStatement
 %type<obj> ExpressionStatement
@@ -133,12 +134,17 @@ ForStatement
     ;
 
 TryCatchStatement
-    : TRY BlockStatement CatchStatement_Opt FINALLY BlockStatement { $$ = kx_gen_stmt_object(KXST_TRY, $2, $3, $5); }
+    : TRY BlockStatement CatchStatement_Opt FinallyStatement_Opt { $$ = kx_gen_stmt_object(KXST_TRY, $2, $3, $4); }
     ;
 
 CatchStatement_Opt
     : { $$ = NULL; }
     | CATCH '(' NAME ')' BlockStatement { $$ = kx_gen_catch_object(KXST_CATCH, $3, $5, NULL); }
+    ;
+
+FinallyStatement_Opt
+    : { $$ = NULL; }
+    | FINALLY BlockStatement { $$ = $2; }
     ;
 
 ReturnStatement

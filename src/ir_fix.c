@@ -1,27 +1,27 @@
 #include <stdio.h>
-#include <vector.h>
+#include <kvec.h>
 #include <ir.h>
 
-static void ir_fix_jmp(uint32_t **labels, kx_block_t *block)
+static void ir_fix_jmp(kvec_t(uint32_t) *labels, kx_block_t *block)
 {
     if (!block) {
         return;
     }
 
-    int len = vector_size(block->code);
+    int len = kv_size(block->code);
     for (int i = 0; i < len; ++i) {
-        kx_code_t *code = &vector_at(block->code, i);
+        kx_code_t *code = &kv_A(block->code, i);
         switch (code->op) {
         case KX_PUSHF:
-            code->addr = vector_at(*labels, code->value2.i);
+            code->addr = kv_A(*labels, code->value2.i);
             break;
         case KX_PUSH_C:
-            code->addr = vector_at(*labels, code->value1.i);
+            code->addr = kv_A(*labels, code->value1.i);
             break;
         case KX_JMP:
         case KX_JZ:
         case KX_JNZ:
-            code->addr = vector_at(*labels, code->value1.i);
+            code->addr = kv_A(*labels, code->value1.i);
             break;
         default:
             break;
@@ -29,70 +29,86 @@ static void ir_fix_jmp(uint32_t **labels, kx_block_t *block)
     }
 }
 
-static void ir_fix_jmp_function(uint32_t **labels, kx_function_t *func)
+static void ir_fix_jmp_function(kvec_t(uint32_t) *labels, kx_function_t *func)
 {
     if (!func) {
         return;
     }
 
-    int len = vector_size(func->block);
+    int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
-        int block = vector_at(func->block, i);
+        int block = kv_A(func->block, i);
         ir_fix_jmp(labels, get_block(block));
     }
 }
 
-static kx_code_t **ir_fix_block(kx_code_t **fixcode, kx_block_t *block)
+static void ir_fix_block(kvec_pt(kx_code_t) *fixcode, kx_block_t *block)
 {
     if (!block) {
-        return fixcode;
+        return;
     }
 
-    int len = vector_size(block->code);
+    int len = kv_size(block->code);
     for (int i = 0; i < len; ++i) {
-        kx_code_t *code = &vector_at(block->code, i);
-        vector_push(fixcode, code);
+        kx_code_t *code = &kv_A(block->code, i);
+        kv_push(kx_code_t *, *fixcode, code);
     }
-    return fixcode;
 }
 
-static kx_code_t **ir_fix_function(uint32_t **labels, kx_code_t **fixcode, kx_function_t *func)
+static void ir_fix_function(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kx_function_t *func)
 {
     if (!func) {
-        return fixcode;
+        return;
     }
 
-    int len = vector_size(func->block);
+    int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
-        int block = vector_at(func->block, i);
-        int index = get_block(block)->index;
-        int size = vector_size(*labels);
-        if (size <= index) {
-            vector_resize(*labels, index - size + 1);
-        }
-        vector_at(*labels, index) = vector_size(fixcode);
-        fixcode = ir_fix_block(fixcode, get_block(block));
+        int block = kv_A(func->block, i);
+        uint32_t index = get_block(block)->index;
+        kv_a(uint32_t, *labels, index) = kv_size(*fixcode);
+        ir_fix_block(fixcode, get_block(block));
     }
-
-    return fixcode;
 }
 
-kx_code_t **ir_fix_code(uint32_t **labels, kx_code_t **fixcode, kx_function_t *funclist)
+static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode)
 {
-    vector_push(*labels, 0);
-    if (!funclist) {
-        return fixcode;
+    if (!fixcode) {
+        return;
     }
 
-    int len = vector_size(funclist);
+    int i, j = 0;
+    int len = kv_size(*fixcode);
+    for (i = 0; i < len; ++i) {
+        kx_code_t *code = kv_A(*fixcode, i);
+        if (code->op == KX_JMP && code->addr == (i+1)) {
+            continue;
+        }
+        if (i != j) {
+            kv_A(*fixcode, j) = code;
+        }
+        ++j;
+    }
+    if (i != j) {
+        kv_shrinkto(*fixcode, j);
+    }
+}
+
+void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(kx_function_t) *funclist)
+{
+    kv_push(uint32_t, *labels, 0);
+    if (!funclist) {
+        return;
+    }
+
+    int len = kv_size(*funclist);
     for (int i = 0; i < len; ++i) {
-        kx_function_t *func = &vector_at(funclist, i);
-        fixcode = ir_fix_function(labels, fixcode, func);
+        kx_function_t *func = &kv_A(*funclist, i);
+        ir_fix_function(labels, fixcode, func);
     }
     for (int i = 0; i < len; ++i) {
-        kx_function_t *func = &vector_at(funclist, i);
+        kx_function_t *func = &kv_A(*funclist, i);
         ir_fix_jmp_function(labels, func);
     }
 
-    return fixcode;
+    ir_remove_jmp(fixcode);
 }
