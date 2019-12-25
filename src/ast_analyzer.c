@@ -1,25 +1,25 @@
 #include <string.h>
 #include <assert.h>
 #include <parser.h>
-#include <vector.h>
+#include <kvec.h>
 
 typedef struct kxana_context_ {
     int lvalue;
     int decl;
     kx_object_t *func;
-    vector_decl_of_(kxana_symbol_t, symbols);
+    kvec_t(kxana_symbol_t) symbols;
 } kxana_context_t;
 static const kxana_symbol_t kx_empty_symbols = {0};
 
 static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, kxana_context_t *ctx)
 {
     if (!(ctx->decl)) {
-        int stack = vector_size(ctx->symbols);
+        int stack = kv_size(ctx->symbols);
         for (int i = 1; i <= stack; ++i) {
-            kxana_symbol_t* table = &(vector_last_by(ctx->symbols, i));
-            int size = vector_size(table->list);
+            kxana_symbol_t* table = &(kv_last_by(ctx->symbols, i));
+            int size = kv_size(table->list);
             for (int j = 1; j <= size; ++j) {
-                kxana_symbol_t *sym = &vector_last_by(table->list, j);
+                kxana_symbol_t *sym = &kv_last_by(table->list, j);
                 if (!strcmp(name, sym->name)) {
                     sym->lexical_index = i - 1;
                     return sym;
@@ -28,14 +28,15 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
         }
     }
     if (ctx->decl || ctx->lvalue) {
-        kxana_symbol_t* table = &(vector_last(ctx->symbols));
+        kxana_symbol_t* table = &(kv_last(ctx->symbols));
         kxana_symbol_t sym = {0};
         sym.name = alloc_string(name);
-        sym.local_index = vector_size(table->list);
+        sym.local_index = ctx->func->local_vars;
+        ++(ctx->func->local_vars);
         sym.lexical_index = 0;
         sym.base = node;
-        vector_push(table->list, sym);
-        return &vector_last(table->list);
+        kv_push(kxana_symbol_t, table->list, sym);
+        return &kv_last(table->list);
     }
     return NULL;
 }
@@ -157,22 +158,22 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     case KXST_IF: {       /* lhs: cond, rhs: then-block: ex: else-block */
         analyze_ast(node->lhs, ctx);
-        kxana_symbol_t* table = &(vector_last(ctx->symbols));
-        int size = vector_size(table->list);
+        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        int size = kv_size(table->list);
         analyze_ast(node->rhs, ctx);
-        vector_shrinkto(table->list, size);
+        kv_shrinkto(table->list, size);
         analyze_ast(node->ex, ctx);
-        vector_shrinkto(table->list, size);
+        kv_shrinkto(table->list, size);
         break;
     }
     case KXST_WHILE:      /* lhs: cond: rhs: block */
     case KXST_DO:         /* lhs: cond: rhs: block */
     case KXST_FOR: {      /* lhs: forcond: rhs: block */
-        kxana_symbol_t* table = &(vector_last(ctx->symbols));
-        int size = vector_size(table->list);
+        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        int size = kv_size(table->list);
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
-        vector_shrinkto(table->list, size);
+        kv_shrinkto(table->list, size);
         break;
     }
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
@@ -181,14 +182,14 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->ex, ctx);
         break;
     case KXST_TRY:        /* lhs: try, rhs: catch: ex: finally */
-        kxana_symbol_t* table = &(vector_last(ctx->symbols));
-        int size = vector_size(table->list);
+        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        int size = kv_size(table->list);
         analyze_ast(node->lhs, ctx);
-        vector_shrinkto(table->list, size);
+        kv_shrinkto(table->list, size);
         analyze_ast(node->rhs, ctx);
-        vector_shrinkto(table->list, size);
+        kv_shrinkto(table->list, size);
         analyze_ast(node->ex, ctx);
-        vector_shrinkto(table->list, size);
+        kv_shrinkto(table->list, size);
         break;
     case KXST_CATCH: {    /* lhs: name: rhs: block */
         analyze_ast(node->lhs, ctx);
@@ -213,8 +214,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         kx_object_t *func = ctx->func;
         ctx->func = node;
-        vector_push(ctx->symbols, kx_empty_symbols);
-        vector_last(ctx->symbols).index = vector_size(ctx->symbols) - 1;
+        kv_push(kxana_symbol_t, ctx->symbols, kx_empty_symbols);
+        kv_last(ctx->symbols).index = kv_size(ctx->symbols) - 1;
         int decl = ctx->decl;
         ctx->decl = 1;
         sym = search_symbol_table(node, "this", ctx);
@@ -228,8 +229,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         analyze_ast(node->rhs, ctx);
         ctx->func = func;
-        node->symbols = vector_last(ctx->symbols);
-        vector_pop(ctx->symbols);
+        node->symbols = kv_last(ctx->symbols);
+        kv_remove_last(ctx->symbols);
         break;
     }
     case KXST_FUNCTION: { /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
@@ -244,8 +245,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         kx_object_t *func = ctx->func;
         ctx->func = node;
-        vector_push(ctx->symbols, kx_empty_symbols);
-        vector_last(ctx->symbols).index = vector_size(ctx->symbols) - 1;
+        kv_push(kxana_symbol_t, ctx->symbols, kx_empty_symbols);
+        kv_last(ctx->symbols).index = kv_size(ctx->symbols) - 1;
         int decl = ctx->decl;
         ctx->decl = 1;
         if (node->lhs) {
@@ -254,8 +255,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         ctx->decl = decl;
         analyze_ast(node->rhs, ctx);
         ctx->func = func;
-        node->symbols = vector_last(ctx->symbols);
-        vector_pop(ctx->symbols);
+        node->symbols = kv_last(ctx->symbols);
+        kv_remove_last(ctx->symbols);
         break;
     }
     default:
@@ -266,8 +267,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
 void start_analyze_ast(kx_object_t *node)
 {
     kxana_context_t ctx = {0};
-    vector_push(ctx.symbols, kx_empty_symbols);
+    kv_push(kxana_symbol_t, ctx.symbols, kx_empty_symbols);
+    ctx.func = node;
     analyze_ast(node, &ctx);
 
-    vec_delete(ctx.symbols);
+    kv_destroy(ctx.symbols);
 }

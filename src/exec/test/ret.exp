@@ -1,0 +1,1840 @@
+--------
+       0:   jmp                     .L0(18)
+gc-start.
+  * stack: 5
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 0, buf(0)
+  * stack: 5
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 0, buf(0)
+gc-done.
+capacity = 5, size = 5
+frmv = -1, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      18:   enter                   6, vars(3), args(0)
+gc-start.
+  * stack: 5
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 0, buf(0)
+  * stack: 5
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 0, buf(0)
+gc-done.
+capacity = 11, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (und) null
+   * (und) null
+   * (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      19:   pushf                   (null) => .L0(14)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 11, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (fnc) adr:20, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1a:   storevx                 $(0,0)
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 11, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (und) null
+   * (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1b:   pushs                   "lexical value"
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 11, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (und) null
+   * (und) null
+[ 6] (cstr) lexical value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1c:   storevx                 $(0,1)
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 11, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1d:   pushf                   (null) => .L0(1)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 11, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (und) null
+[ 6] (fnc) adr:1, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1e:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 11, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (und) null
+[ 6] (fnc) adr:1, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 31
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       1:   enter                   10, vars(0), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (und) null
+[ 6] (fnc) adr:1, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 31
+[ 9] (frm:9, vars:0) -> lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       2:   pushi                   100
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 11
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (und) null
+[ 6] (fnc) adr:1, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 31
+[ 9] (frm:9, vars:0) -> lex:(frm:5)
+[10] (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       3:   ret                    
+gc-start.
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (und) null
+[ 6] (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1f:   storevx                 $(0,2)
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      20:   pushf                   (null) => .L0(4)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:4, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      21:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:4, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 34
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       4:   enter                   10, vars(0), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:4, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 34
+[ 9] (frm:9, vars:0) -> lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       5:   reti                    200
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (int) 200
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      22:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      23:   pushf                   (null) => .L0(6)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:6, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      24:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:6, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 37
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       6:   enter                   10, vars(0), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:6, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 37
+[ 9] (frm:9, vars:0) -> lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       7:   retd                    1.500000
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (dbl) 1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      25:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      26:   pushf                   (null) => .L0(8)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:8, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      27:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:8, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 40
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       8:   enter                   10, vars(0), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:8, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 40
+[ 9] (frm:9, vars:0) -> lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       9:   rets                    "aaaa"
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (cstr) aaaa
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      28:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      29:   pushf                   (null) => .L0(a)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:10, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2a:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:10, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 43
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       a:   enter                   10, vars(1), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:10, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 43
+[ 9] (frm:9, vars:1) -> lex:(frm:5)
+   * (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       b:   pushs                   "return value"
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 11
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:10, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 43
+[ 9] (frm:9, vars:1) -> lex:(frm:5)
+   * (und) null
+[10] (cstr) return value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       c:   storevx                 $(0,0)
+gc-start.
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:10, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 43
+[ 9] (frm:9, vars:1) -> lex:(frm:5)
+   * (cstr) return value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       d:   retv                    $(0,0)
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (cstr) return value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2b:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2c:   pushf                   (null) => .L0(e)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:14, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2d:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:14, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 46
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       e:   enter                   10, vars(0), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:14, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 46
+[ 9] (frm:9, vars:0) -> lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       f:   ret                     null
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2e:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2f:   pushf                   (null) => .L0(10)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:16, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      30:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:16, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 49
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      10:   enter                   10, vars(1), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:16, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 49
+[ 9] (frm:9, vars:1) -> lex:(frm:5)
+   * (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      11:   pushs                   "return local value"
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 11
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:16, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 49
+[ 9] (frm:9, vars:1) -> lex:(frm:5)
+   * (und) null
+[10] (cstr) return local value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      12:   storevx                 $(0,0)
+gc-start.
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:16, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 49
+[ 9] (frm:9, vars:1) -> lex:(frm:5)
+   * (cstr) return local value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      13:   retvl                   $0(0)
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (cstr) return local value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      31:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      32:   pushv                   $(0,2)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      33:   pushf                   (null) => .L0(16)
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 8
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (int) 100
+[ 7] (fnc) adr:22, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      34:   call                    1
+gc-start.
+  * stack: 8
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 8
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 19, size = 10
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (int) 100
+[ 7] (fnc) adr:22, lex:(frm:5)
+[ 8] (int) 1
+[ 9] (adr) 53
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      16:   enter                   10, vars(1), args(1)
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 20, size = 11
+frmv = 10, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (int) 100
+[ 7] (fnc) adr:22, lex:(frm:5)
+[ 8] (int) 1
+[ 9] (adr) 53
+[10] (frm:10, vars:1) -> lex:(frm:5)
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      17:   retvl                   $0(0)
+gc-start.
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 11
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 20, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      35:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 3, buf(0)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 20, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      36:   pushv                   $(0,0)
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 20, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:20, lex:(frm:5)
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      37:   call                    0
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 20, size = 9
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:20, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 56
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      14:   enter                   10, vars(1), args(0)
+gc-start.
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 9
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 20, size = 10
+frmv = 9, lexv = 5
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (fnc) adr:20, lex:(frm:5)
+[ 7] (int) 0
+[ 8] (adr) 56
+[ 9] (frm:9, vars:1) -> lex:(frm:5)
+   * (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      15:   retvl1                  $1(1)
+gc-start.
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 2, buf(0)
+  * stack: 10
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 2, buf(0)
+gc-done.
+capacity = 20, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+[ 6] (cstr) lexical value
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      38:   pop
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 2, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.
+capacity = 20, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 58
+[ 5] (frm:5, vars:3)
+   * (fnc) adr:20, lex:(frm:5)
+   * (cstr) lexical value
+   * (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      39:   halt
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 2, buf(1)
+    alive(frm) = 1, buf(1)
+gc-done.

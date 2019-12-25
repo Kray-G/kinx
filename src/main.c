@@ -18,18 +18,20 @@ int main(int ac, char **av)
         printf("parse failed: %d\n", r);
         return r;
     }
+
     start_analyze_ast(kx_ast_root);
     // start_display_ast(kx_ast_root);
-    kx_function_t *funclist = start_gencode_ast(kx_ast_root);
+    kvec_t(kx_function_t) *funclist = start_gencode_ast(kx_ast_root);
 
-    vector_of_(uint32_t, labels);
-    vector_of_(kx_code_t *, fixcode);
-    fixcode = ir_fix_code(&labels, fixcode, funclist);
-    ir_dump(labels, funclist);
-    // ir_dump_fixed_code(labels, fixcode);
+    kvec_t(uint32_t) labels = {0};
+    kv_resize(uint32_t, labels, 1024);
+    kvec_pt(kx_code_t) fixcode = {0};
+    ir_fix_code(&labels, &fixcode, funclist);
+    ir_dump(&labels, funclist);
+    // ir_dump_fixed_code(&fixcode);
 
-    vec_delete(fixcode);
-    vec_delete(labels);
+    kv_destroy(fixcode);
+    kv_destroy(labels);
     free_ir_info();
     free_nodes();
     free_string();

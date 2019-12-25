@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <vector.h>
+#include <kvec.h>
 #include <ir.h>
 
 #define KX_FUNCTION_INDENT  ""
@@ -24,6 +24,9 @@ case KX_##CMD##V:\
     break;\
 /**/
 
+kvec_t(kx_function_t) kx_functions = {0};
+kvec_t(kx_block_t) kx_blocks = {0};
+
 static const char *gen_varloc(kx_code_t *code)
 {
     static char buf[256];
@@ -45,7 +48,7 @@ static const char *gen_varloc_lexical1(kx_code_t *code)
     return buf;
 }
 
-static void ir_code_dump(int blockadr, int i, kx_code_t *code)
+void ir_code_dump_one(int addr, kx_code_t *code)
 {
     if (!code) {
         return;
@@ -54,8 +57,8 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
         return;
     }
 
-    if (blockadr >= 0) {
-        printf("%8x:   ", blockadr + i);
+    if (addr >= 0) {
+        printf("%8x:   ", addr);
     } else {
         printf(KX_CODE_INDENT);
     }
@@ -68,7 +71,7 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
         break;
 
     case KX_ENTER:
-        printf("%-23s %lld, refs(%lld), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
+        printf("%-23s %lld, vars(%lld), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
         break;
     case KX_CALL:
         printf("%-23s %d", "call", code->count);
@@ -99,7 +102,7 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
         printf("throw");
         break;
     case KX_THROWE:
-        printf("%-23s %s", "throw", "(stack-top)");
+        printf("%-23s %s", "throwe", "(stack-top)");
         break;
     case KX_CATCH:
         printf("%-23s %s", "catch", gen_varloc(code));
@@ -160,11 +163,14 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
         break;
 
     case KX_PUSH_C:
-        printf("%-23s .L%lld", "pushc", code->value1.i);
+        printf("%-23s .L%lld(%x)", "pushc", code->value1.i, code->addr);
         break;
 
     case KX_PUSHVVL:
         printf("%-23s %s", "pushvl", gen_varloc_local(code));
+        break;
+    case KX_PUSHVVL1:
+        printf("%-23s %s", "pushvl1", gen_varloc_lexical1(code));
         break;
 
     case KX_POP_C:
@@ -250,22 +256,27 @@ static void ir_code_dump(int blockadr, int i, kx_code_t *code)
     printf("\n");
 }
 
-static void ir_block_dump(int llen, uint32_t *labels, kx_block_t *block)
+static void ir_code_dump(int blockadr, int i, kx_code_t *code)
+{
+    ir_code_dump_one(blockadr >= 0 ? (blockadr+i) : -1, code);
+}
+
+static void ir_block_dump(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
 {
     if (!block) {
         return;
     }
 
-    int len = vector_size(block->code);
-    int blockadr = (llen > 0 && block->index < llen) ? vector_at(labels, block->index) : -1;
+    int len = kv_size(block->code);
+    int blockadr = (llen > 0 && block->index < llen) ? kv_A(*labels, block->index) : -1;
     printf(KX_BLOCK_INDENT ".L%d\n", block->index);
     for (int i = 0; i < len; ++i) {
-        kx_code_t *code = &vector_at(block->code, i);
+        kx_code_t *code = &kv_A(block->code, i);
         ir_code_dump(blockadr, i, code);
     }
 }
 
-static void ir_function_dump(int llen, uint32_t *labels, kx_function_t *func)
+static void ir_function_dump(int llen, kvec_t(uint32_t) *labels, kx_function_t *func)
 {
     if (!func) {
         return;
@@ -273,36 +284,35 @@ static void ir_function_dump(int llen, uint32_t *labels, kx_function_t *func)
 
     printf("\n");
     printf(KX_FUNCTION_INDENT "%s:\n", func->name);
-    int len = vector_size(func->block);
+    int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
-        int block = vector_at(func->block, i);
+        int block = kv_A(func->block, i);
         ir_block_dump(llen, labels, get_block(block));
     }
 }
 
-void ir_dump(uint32_t *labels, kx_function_t *funclist)
+void ir_dump(kvec_t(uint32_t) *labels, kvec_t(kx_function_t) *funclist)
 {
     if (!funclist) {
         return;
     }
 
-    int llen = vector_size(labels);
-    int len = vector_size(funclist);
+    int llen = kv_size(*labels);
+    int len = kv_size(*funclist);
     for (int i = 0; i < len; ++i) {
-        kx_function_t *func = &vector_at(funclist, i);
+        kx_function_t *func = &kv_A(*funclist, i);
         ir_function_dump(llen, labels, func);
     }
 }
 
-void ir_dump_fixed_code(uint32_t *labels, kx_code_t **code)
+void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode)
 {
-    if (!code) {
+    if (!fixcode) {
         return;
     }
 
-    int llen = vector_size(labels);
-    int len = vector_size(code);
+    int len = kv_size(*fixcode);
     for (int i = 0; i < len; ++i) {
-        ir_code_dump(0, i, vector_at(code, i));
+        ir_code_dump(0, i, kv_A(*fixcode, i));
     }
 }

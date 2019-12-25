@@ -1,0 +1,245 @@
+--------
+       0:   enter                   100, vars(10), args(10)
+gc-start.
+  * stack: 5
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 0, buf(0)
+  * stack: 5
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 0, buf(0)
+gc-done.
+capacity = 105, size = 6
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 7
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       1:   pushi                   9223372036854775807
+gc-start.
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 6
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 7
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       2:   addi                    2
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 7
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (bigint) 9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       3:   pushi                   -9223372036854775808
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 8
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 7
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (bigint) 9223372036854775809
+[ 7] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       4:   addi                    -1
+gc-start.
+  * stack: 8
+    alive(str) = 0, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 8
+    alive(str) = 0, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 8
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 7
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (bigint) 9223372036854775809
+[ 7] (bigint) -9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       5:   add                    
+gc-start.
+  * stack: 8
+    alive(str) = 0, buf(0)
+    alive(big) = 2, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 8
+    alive(str) = 0, buf(0)
+    alive(big) = 2, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 7
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 0
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       6:   halt
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 2, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.

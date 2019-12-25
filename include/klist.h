@@ -127,8 +127,11 @@
 		return 0;														\
 	}
 
+#define kl_nofree(x)
 #define KLIST_INIT(name, kltype_t, kmpfree_t)							\
 	KLIST_INIT2(static inline klib_unused, name, kltype_t, kmpfree_t)
+#define KLIST_INIT_NOALLOC(name, kltype_t)								\
+	KLIST_INIT2(static inline klib_unused, name, kltype_t, kl_nofree)
 
 #define kliter_t(name) kl1_##name
 #define klist_t(name) kl_##name##_t
