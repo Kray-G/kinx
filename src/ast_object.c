@@ -20,7 +20,7 @@ void free_nodes(void)
     kx_object_t *obj = kx_obj_mgr;
     while (obj) {
         kx_object_t *next = obj->nxt;
-        vec_delete(obj->symbols.list);
+        kv_destroy(obj->symbols.list);
         free(obj);
         obj = next;
     }
@@ -128,15 +128,19 @@ kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block,
 
 kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
+    kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
+    rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
+
     kx_object_t *obj = kx_gen_obj(type, optional, lhs, rhs, ex);
     obj->value.s = name;
     kx_object_t *assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name), obj);
     kx_object_t *stmt;
     switch (optional) {
     case KX_FUNCTION:
-    case KX_PRIVATE:
+    case KX_PRIVATE: {
         stmt = kx_gen_stmt_object(KXST_EXPR, assign, NULL, NULL);
         break;
+    }
     case KX_PROTECTED:
     case KX_PUBLIC: {
         kx_object_t *prop = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object(name));

@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <vector.h>
+#include <limits.h>
+#include <kvec.h>
 #include <ir.h>
 
 extern int kx_yylex();
@@ -139,11 +140,13 @@ struct kx_object_;
 typedef struct kxana_symbol_ {
     const char *name;
     int index;
+    int start;
     int local_index;
     int lexical_index;
     struct kx_object_ *base;
-    vector_decl_of_(struct kxana_symbol_, list);
+    kvec_nt(struct kxana_symbol_) list;
 } kxana_symbol_t;
+kvec_init_t(kxana_symbol_t);
 
 typedef struct kx_object_ {
     /* for object management */
@@ -172,9 +175,12 @@ typedef struct kx_object_ {
     int index;
     int pushes;
     int lexical_refs;
+    int local_vars;
 
     kxana_symbol_t symbols;
 } kx_object_t;
+kvec_init_t(kx_object_t);
+kvec_init_pt(kx_object_t);
 
 #define KX_BUF_MAX (2048)
 extern kx_object_t *kx_obj_mgr;
@@ -199,9 +205,11 @@ extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name,
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
-extern kx_function_t *start_gencode_ast(kx_object_t *node);
-extern void ir_dump(uint32_t *labels, kx_function_t *funclist);
-extern void ir_dump_fixed_code(uint32_t *labels, kx_code_t **code);
-extern kx_code_t **ir_fix_code(uint32_t **abels, kx_code_t **fixcode, kx_function_t *funclist);
+extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node);
+extern void ir_code_dump_one(int addr, kx_code_t *code);
+extern void ir_dump(kvec_t(uint32_t) *labels, kvec_t(kx_function_t) *funclist);
+extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
+extern void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(kx_function_t) *funclist);
+extern void ir_exec(kvec_pt(kx_code_t) *fixcode);
 
 #endif /* KX_KINX_H */
