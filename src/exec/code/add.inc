@@ -171,13 +171,13 @@
     } \
     case KEX_CSTR: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s%f", (v1)->value.pv, val); \
+        ks_appendf(s, "%s%g", (v1)->value.pv, val); \
         (v1)->value.sv = s; \
         (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_STR: { \
-        ks_appendf((v1)->value.sv, "%f", val); \
+        ks_appendf((v1)->value.sv, "%g", val); \
         break; \
     } \
     case KEX_LVAL: { \
@@ -232,7 +232,7 @@
     } \
     case KEX_DBL: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%f%s", (v1)->value.dv, val); \
+        ks_appendf(s, "%g%s", (v1)->value.dv, val); \
         (v1)->value.sv = s; \
         (v1)->type = KEX_STR; \
         break; \

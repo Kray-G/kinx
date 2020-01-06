@@ -60,40 +60,49 @@ int main()
         int call1 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 100 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_STOREVX, .value1.i = 0, .value2.i = 2 }));
         int call2 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 200 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
         int call3 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_DBL, .value2.d = 1.5 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
         int call4 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_CSTR, .value2.s = "aaaa" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
         int call5 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_CSTR, .value2.s = "return value" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
         int call6 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_UND }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
         int call7 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_CSTR, .value2.s = "return local value" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
 
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVV, .value1.i = 0, .value2.i = 2 }));
         int call9 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 100 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
 
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVV, .value1.i = 0, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_CSTR, .value2.s = "lexical value" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
 
     kv_A(code, start).addr = entry;
@@ -107,13 +116,12 @@ int main()
     kv_A(code, call8).addr = fnc8;
     kv_A(code, call9).addr = fnc9;
 
+    kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
     kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
     int l = kv_size(code);
     for (int i = 0; i < l; ++i) {
         kv_push(kx_code_t*, fixcode, &kv_A(code, i));
     }
 
-    ir_exec(&fixcode);
-
-    return 0;
+    return ir_exec(&fixcode);
 }

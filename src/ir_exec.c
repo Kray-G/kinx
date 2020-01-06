@@ -102,12 +102,14 @@ printf("print_stack done.\n"); fflush(stdout);
                             OPCODE##_CODE(); \
                             print_stack(&ctx, frmv, lexv); printf("goto next.\n");  fflush(stdout);
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
-#define KX_CASE_END() } LBL_KX_END_OF_CODE: ;
+#define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i(ctx.stack, 1);
+#define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() continue
 #else
 #if defined(KX_DIRECT_THREADING)
 #define KX_CASE_(OPCODE) LBL_##OPCODE: KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() LBL_KX_BEGIN_OF_CODE: KX_GOTO();
+#define KX_CASE_ERROR_END() LBL_KX_ERROR_END_OF_CODE: push_i(ctx.stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() \
     switch (cur->op) { \
@@ -252,12 +254,14 @@ printf("print_stack done.\n"); fflush(stdout);
     case KX_LGED: goto LBL_KX_LGED; \
     case KX_LGES: goto LBL_KX_LGES; \
     case KX_LGEV: goto LBL_KX_LGEV; \
+    case KX_CHKVAL: goto LBL_KX_CHKVAL; \
     } \
 /**/
 #else
 #define KX_CASE_(OPCODE) case OPCODE: KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
-#define KX_CASE_END() } LBL_KX_END_OF_CODE: ;
+#define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i(ctx.stack, 1);
+#define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() continue
 #endif
 #endif
@@ -299,7 +303,7 @@ printf("print_stack done.\n"); fflush(stdout);
 #include "exec/code/gt.inc"
 #include "exec/code/lge.inc"
 
-static void ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
+static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
 {
     KX_EXEC_SETUP(fixcode);
 
@@ -475,15 +479,27 @@ static void ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     KX_CASE_(KX_LGES) { KX_GOTO(); }
     KX_CASE_(KX_LGEV) { KX_GOTO(); }
 
+    KX_CASE_(KX_CHKVAL) { KX_GOTO(); }
+
     } // END
+    KX_CASE_ERROR_END();
     KX_CASE_END();
 
+    int ri = 0;
+    KEX_GET_STACK_TOP(rv);
+    switch (rv->type) {
+    case KEX_INT: ri = rv->value.iv; break;
+    case KEX_DBL: ri = (int)rv->value.dv; break;
+    case KEX_BIG: ri = -1; break;
+    }
+
     gc_object_cleanup(&ctx);
+    return ri;
 }
 
-void ir_exec(kvec_pt(kx_code_t) *fixcode)
+int ir_exec(kvec_pt(kx_code_t) *fixcode)
 {
     kx_code_t halt = (kx_code_t){ .op = KX_HALT };
     kv_push(kx_code_t*, *fixcode, &halt);
-    ir_exec_impl(fixcode);
+    return ir_exec_impl(fixcode);
 }

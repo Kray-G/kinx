@@ -15,6 +15,8 @@ int main()
         int call2 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 200 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
 
     int fnc1 = kv_size(code);
@@ -23,8 +25,10 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 10 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVVL1, .value1.i = 1, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 2 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 200 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 10 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALLVL1, .value1.i = 1, .value2.i = 0, .count = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 200 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RET }));
 
     int fnc2 = kv_size(code);
@@ -39,7 +43,5 @@ int main()
         kv_push(kx_code_t*, fixcode, &kv_A(code, i));
     }
 
-    ir_exec(&fixcode);
-
-    return 0;
+    return ir_exec(&fixcode);
 }

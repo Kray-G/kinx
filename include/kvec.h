@@ -72,6 +72,7 @@ int main() {
 
 #define kv_zero(type, v)  (memset((v).a, 0, sizeof(type) * (v).m))
 #define kv_resize(type, v, s)  ((v).m = (s), (v).a = ((v).a ? (type*)realloc((v).a, sizeof(type) * (v).m) : (type*)calloc((v).m, sizeof(type))))
+#define kv_resize_if(type, v, s)  ((v).m < (s) ? ((v).m = (s), (v).a = ((v).a ? (type*)realloc((v).a, sizeof(type) * (v).m) : (type*)calloc((v).m, sizeof(type)))) : 0)
 #define kv_expand(type, v, e)  ((v).m = ((v).n+(s)), (v).a = (type*)realloc((v).a, sizeof(type) * (v).m))
 #define kv_expand_if(type, v, e)  ((v).m < ((v).n+(e)) ? ((v).m = ((v).n+(e)), (v).a = (type*)realloc((v).a, sizeof(type) * (v).m)) : 0)
 
