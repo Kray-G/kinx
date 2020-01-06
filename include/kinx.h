@@ -210,6 +210,6 @@ extern void ir_code_dump_one(int addr, kx_code_t *code);
 extern void ir_dump(kvec_t(uint32_t) *labels, kvec_t(kx_function_t) *funclist);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
 extern void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(kx_function_t) *funclist);
-extern void ir_exec(kvec_pt(kx_code_t) *fixcode);
+extern int ir_exec(kvec_pt(kx_code_t) *fixcode);
 
 #endif /* KX_KINX_H */

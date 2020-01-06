@@ -146,10 +146,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         }
         break;
     case KX_PUSHVV:
-        printf("%-23s %s", "pushv", gen_varloc(code));
+        printf("%-23s %s", "pushvv", gen_varloc(code)); /* push variable value */
         break;
     case KX_PUSHVL:
-        printf("%-23s %s", "pushl", gen_varloc(code));
+        printf("%-23s %s", "pushvl", gen_varloc(code)); /* push variable l-value */
         break;
 
     case KX_PUSH_NULL:
@@ -167,10 +167,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
 
     case KX_PUSHVVL:
-        printf("%-23s %s", "pushvl", gen_varloc_local(code));
+        printf("%-23s %s", "pushvvl", gen_varloc_local(code)); /* push variable value of local */
         break;
     case KX_PUSHVVL1:
-        printf("%-23s %s", "pushvl1", gen_varloc_lexical1(code));
+        printf("%-23s %s", "pushvvl1", gen_varloc_lexical1(code)); /* push variable value of lexical level 1 */
         break;
 
     case KX_POP_C:
@@ -248,6 +248,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     KX_IROP(GE,   ge);
     KX_IROP(GT,   gt);
     KX_IROP(LGE,  lge);
+
+    case KX_CHKVAL:
+        printf("chkval");
+        break;
 
     default:
         printf("(((unknown)))");

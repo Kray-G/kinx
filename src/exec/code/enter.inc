@@ -62,7 +62,7 @@
     frm->prv = frmv; \
     frm->id = kv_size(ctx.stack); \
     int max_vars = cur->value2.i; \
-    kv_resize(kex_val_t, frm->v, max_vars); \
+    kv_resize_if(kex_val_t, frm->v, max_vars); \
     kv_shrinkto(frm->v, max_vars); \
     lexv = frm->lex = kv_last_by(ctx.stack, 3).value.fn->lex; \
     int max_args = cur->count; \

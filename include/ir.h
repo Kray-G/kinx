@@ -73,6 +73,7 @@ enum irop {
     KX_DEF_IR(KX_GT),
     KX_DEF_IR(KX_LGE),
 
+    KX_CHKVAL,  /* Checking the stack top value for testing. */
     KX_OPEND
 };
 
@@ -257,7 +258,7 @@ typedef struct kex_context_ {
 #define KEX_GC_TICK (1)
 #define KEX_DEFAULT_STACK (5)
 #else
-#define KEX_GC_TICK (8192)
+#define KEX_GC_TICK ((8192)*2)
 #define KEX_DEFAULT_STACK (1024)
 #endif
 
