@@ -57,26 +57,6 @@
         ks_appendf((v1)->value.sv, "%d", val); \
         break; \
     } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -124,26 +104,6 @@
         free(buf); \
         break; \
     } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -178,26 +138,6 @@
     } \
     case KEX_STR: { \
         ks_appendf((v1)->value.sv, "%g", val); \
-        break; \
-    } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
     } \
     default: \
@@ -248,26 +188,6 @@
         ks_appendf((v1)->value.sv, "%s", val); \
         break; \
     } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -275,46 +195,26 @@
 } \
 /**/
 #define KX_ADD_ADD_V(v1, v2) {\
-    if (v2->type == KEX_INT) { \
-        KX_ADD_ADD_I(v1, v2->value.iv); \
-    } else switch (v2->type) { \
+    if ((v2)->type == KEX_INT) { \
+        KX_ADD_ADD_I(v1, (v2)->value.iv); \
+    } else switch ((v2)->type) { \
     case KEX_UND: { \
         break; /* do nothing */ \
     } \
     case KEX_BIG: { \
-        KX_ADD_ADD_B(v1, v2->value.bv); \
+        KX_ADD_ADD_B(v1, (v2)->value.bv); \
         break; \
     } \
     case KEX_DBL: { \
-        KX_ADD_ADD_D(v1, v2->value.dv); \
+        KX_ADD_ADD_D(v1, (v2)->value.dv); \
         break; \
     } \
     case KEX_CSTR: { \
-        KX_ADD_ADD_S(v1, v2->value.pv); \
+        KX_ADD_ADD_S(v1, (v2)->value.pv); \
         break; \
     } \
     case KEX_STR: { \
-        KX_ADD_ADD_S(v1, ks_string(v2->value.sv)); \
-        break; \
-    } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
+        KX_ADD_ADD_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
     default: \
