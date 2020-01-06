@@ -4,3 +4,4 @@
 *.c.parser
 src/parser.c
 include/parser.tab.h
+timeit.dat

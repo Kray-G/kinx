@@ -46,34 +46,6 @@
         (v1)->value.dv -= (val); \
         break; \
     } \
-    case KEX_CSTR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_STR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -104,34 +76,6 @@
         (v1)->value.dv -= bigint_double(val); \
         break; \
     } \
-    case KEX_CSTR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_STR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -155,34 +99,6 @@
     } \
     case KEX_DBL: { \
         (v1)->value.dv -= (val); \
-        break; \
-    } \
-    case KEX_CSTR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_STR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
     } \
     default: \
@@ -216,26 +132,6 @@
     } \
     case KEX_STR: { \
         KX_SUB_SUB_S(v1, ks_string(v2->value.sv)); \
-        break; \
-    } \
-    case KEX_LVAL: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_OBJ: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FNC: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_FRM: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-    case KEX_ADR: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
     } \
     default: \
