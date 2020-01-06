@@ -70,6 +70,10 @@ static void ir_fix_function(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcod
     }
 }
 
+/*
+    There is no differences between KX_JMP and KX_NOP.
+*/
+/*
 static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode)
 {
     if (!fixcode) {
@@ -84,6 +88,7 @@ static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode)
         }
     }
 }
+*/
 
 void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(kx_function_t) *funclist)
 {
@@ -102,5 +107,5 @@ void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(k
         ir_fix_jmp_function(labels, func);
     }
 
-    ir_remove_jmp(fixcode);
+    /* ir_remove_jmp(fixcode); */
 }
