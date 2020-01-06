@@ -15,7 +15,8 @@ goto END
 
 :TEST_CODE
 REM call :TEST_EXEC add
-call :TEST_EXEC subx
+call :TEST_EXEC sub
+REM call :TEST_EXEC lt
 REM call :TEST_EXEC push
 REM call :TEST_EXEC store
 REM call :TEST_EXEC call
@@ -23,30 +24,26 @@ REM call :TEST_EXEC mkary
 REM call :TEST_EXEC ret
 REM call :TEST_EXEC haltnop
 REM call :TEST_EXEC trycatch
-del /q src\exec\test\*.res
+REM call :TEST_EXEC fib
 goto END
 
 :TEST_EXEC
-if not exist kstr.obj       cl -c -nologo -DKX_EXEC_DEBUG %CFLAGS% src/kstr.c
-if not exist bigint.obj     cl -c -nologo -DKX_EXEC_DEBUG %CFLAGS% src/bigint.c
-if not exist ir_exec.obj    cl -c -nologo -DKX_EXEC_DEBUG %CFLAGS% src/ir_exec.c
-if not exist ir_dump.obj    cl -c -nologo -DKX_EXEC_DEBUG %CFLAGS% src/ir_dump.c
-if not exist allocator.obj  cl -c -nologo -DKX_EXEC_DEBUG %CFLAGS% src/exec/allocator.c
-cl -nologo -DKX_EXEC_DEBUG %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_dump.obj allocator.obj kstr.obj bigint.obj
-echo Start testing... %1
-REM test.exe
-test.exe > src/exec/test/%1.exp
-test.exe > src/exec/test/%1.res
-fc src\exec\test\%1.exp src\exec\test\%1.res > NUL
+if not exist kstr.obj       timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/kstr.c
+if not exist bigint.obj     timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/bigint.c
+if not exist ir_exec.obj    timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/ir_exec.c
+if not exist ir_dump.obj    timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/ir_dump.c
+if not exist allocator.obj  timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/exec/allocator.c
+cl -nologo -DKX_EXEC_NODEBUG %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_dump.obj allocator.obj kstr.obj bigint.obj > NUL
+test.exe
 if ERRORLEVEL 1 goto FAIL
 echo Successful [%1]
 exit /b 0
 
 :END
-del /q kstr.obj bigint.obj ir_dump.obj allocator.obj
+REM del /q kstr.obj bigint.obj ir_dump.obj allocator.obj
+REM del /q ir_exec.obj
 exit /b 0
 
 :FAIL
 echo Failed [%1]
-fc src\exec\test\%1.exp src\exec\test\%1.res
 exit /b 0
