@@ -1,84 +1,60 @@
-#define KX_BIGINT_CHKINT(v) { \
-    bigint_t *bv = v->value.bv; \
-    if (bv->size == 0) { \
-        v->value.iv = 0; \
-        v->type = KEX_INT; \
-    } else if (bv->size <= 2) { \
-        uint64_t iv = bv->size == 1 ? bv->words[0] : (((uint64_t)(bv->words[1]) << (BIGINT_WORD_BITS)) | bv->words[0]); \
-        if (bv->neg) { \
-            if (iv <= 0x8000000000000000) { \
-                v->value.iv = -iv; \
-                v->type = KEX_INT; \
-            } \
-        } else { \
-            if (iv < 0x8000000000000000) { \
-                v->value.iv = iv; \
-                v->type = KEX_INT; \
-            } \
-        } \
-    } \
-} \
-/**/
 #define KX_ADD_ADD_I(v1, val) { \
-    if (v1->type == KEX_INT) { \
-        int64_t v1val = v1->value.iv; \
-        int64_t v2val = val; \
+    if ((v1)->type == KEX_INT) { \
+        int64_t v1val = (v1)->value.iv; \
+        int64_t v2val = (val); \
         if (v1val > 0 && v2val > 0) { \
-            int64_t v = v1->value.iv + val; \
+            int64_t v = (v1)->value.iv + v2val; \
             if (v < 0) { \
-                bigint_t b2[1] = {0}; \
+                bigint_t *b2 = allocate_big(ctx); \
                 bigint_from_int64(b2, v2val); \
                 bigint_t *bi = allocate_big(ctx); \
                 bigint_from_int64(bi, v1val); \
-                v1->value.bv = bigint_add(bi, bi, b2); \
-                bigint_free(b2); \
-                v1->type = KEX_BIG; \
+                (v1)->value.bv = bigint_add(bi, bi, b2); \
+                (v1)->type = KEX_BIG; \
             } else { \
-                v1->value.iv = v; \
+                (v1)->value.iv = v; \
             } \
         } else if (v1val < 0 && v2val < 0) { \
-            int64_t v = v1->value.iv + val; \
+            int64_t v = (v1)->value.iv + v2val; \
             if (v > 0) { \
-                bigint_t b2[1] = {0}; \
+                bigint_t *b2 = allocate_big(ctx); \
                 bigint_from_int64(b2, v2val); \
                 bigint_t *bi = allocate_big(ctx); \
                 bigint_from_int64(bi, v1val); \
-                v1->value.bv = bigint_add(bi, bi, b2); \
-                bigint_free(b2); \
-                v1->type = KEX_BIG; \
+                (v1)->value.bv = bigint_add(bi, bi, b2); \
+                (v1)->type = KEX_BIG; \
             } else { \
-                v1->value.iv = v; \
+                (v1)->value.iv = v; \
             } \
         } else { \
-            v1->value.iv += val; \
+            (v1)->value.iv += v2val; \
         } \
-    } else switch (v1->type) { \
+    } else switch ((v1)->type) { \
     case KEX_UND: { \
-        v1->value.iv = val; \
-        v1->type = KEX_INT; \
+        (v1)->value.iv = (val); \
+        (v1)->type = KEX_INT; \
         break; \
     } \
     case KEX_BIG: { \
-        bigint_t b2[1] = {0}; \
+        bigint_t *b2 = allocate_big(ctx); \
         bigint_from_int64(b2, val); \
-        bigint_add(v1->value.bv, v1->value.bv, b2); \
-        bigint_free(b2); \
+        bigint_add((v1)->value.bv, (v1)->value.bv, b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
     case KEX_DBL: { \
-        v1->value.dv += val; \
+        (v1)->value.dv += (val); \
         break; \
     } \
     case KEX_CSTR: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s%d", v1->value.pv, val); \
-        v1->value.sv = s; \
-        v1->type = KEX_STR; \
+        ks_appendf(s, "%s%d", (v1)->value.pv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_STR: { \
-        ks_appendf(v1->value.sv, "%d", val); \
+        ks_appendf((v1)->value.sv, "%d", val); \
         break; \
     } \
     case KEX_LVAL: { \
@@ -108,43 +84,43 @@
 } \
 /**/
 #define KX_ADD_ADD_B(v1, val) { \
-    if (v1->type == KEX_INT) { \
+    if ((v1)->type == KEX_INT) { \
         bigint_t *bi = allocate_big(ctx); \
-        bigint_from_int64(bi, v1->value.iv); \
-        v1->value.bv = bigint_add(bi, bi, val); \
-        v1->type = KEX_BIG; \
+        bigint_from_int64(bi, (v1)->value.iv); \
+        (v1)->value.bv = bigint_add(bi, bi, val); \
+        (v1)->type = KEX_BIG; \
         KX_BIGINT_CHKINT(v1); \
-    } else switch (v1->type) { \
+    } else switch ((v1)->type) { \
     case KEX_UND: { \
-        v1->value.bv = allocate_big(ctx); \
-        bigint_cpy(v1->value.bv, val); \
-        v1->type = KEX_BIG; \
+        (v1)->value.bv = allocate_big(ctx); \
+        bigint_cpy((v1)->value.bv, val); \
+        (v1)->type = KEX_BIG; \
         break; \
     } \
     case KEX_BIG: { \
-        bigint_add(v1->value.bv, v1->value.bv, val); \
-        v1->type = KEX_BIG; \
+        bigint_add((v1)->value.bv, (v1)->value.bv, val); \
+        (v1)->type = KEX_BIG; \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
     case KEX_DBL: { \
-        v1->value.dv += bigint_double(val); \
+        (v1)->value.dv += bigint_double(val); \
         break; \
     } \
     case KEX_CSTR: { \
         int n = bigint_write_size(val, 10); \
         char *buf = malloc(n); \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s%s", v1->value.pv, bigint_write(buf, n, val)); \
+        ks_appendf(s, "%s%s", (v1)->value.pv, bigint_write(buf, n, val)); \
         free(buf); \
-        v1->value.sv = s; \
-        v1->type = KEX_STR; \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_STR: { \
         int n = bigint_write_size(val, 10); \
         char *buf = malloc(n); \
-        ks_appendf(v1->value.sv, "%s", bigint_write(buf, n, val)); \
+        ks_appendf((v1)->value.sv, "%s", bigint_write(buf, n, val)); \
         free(buf); \
         break; \
     } \
@@ -175,32 +151,33 @@
 } \
 /**/
 #define KX_ADD_ADD_D(v1, val) { \
-    if (v1->type == KEX_INT) { \
-        v1->value.iv += val; \
-    } else switch (v1->type) { \
+    if ((v1)->type == KEX_INT) { \
+        (v1)->value.dv = (double)(v1)->value.iv + (val); \
+        (v1)->type = KEX_DBL; \
+    } else switch ((v1)->type) { \
     case KEX_UND: { \
-        v1->value.dv = val; \
-        v1->type = KEX_DBL; \
+        (v1)->value.dv = (val); \
+        (v1)->type = KEX_DBL; \
         break; \
     } \
     case KEX_BIG: { \
-        v1->value.dv = bigint_double(v1->value.bv) + val; \
-        v1->type = KEX_DBL; \
+        (v1)->value.dv = bigint_double((v1)->value.bv) + (val); \
+        (v1)->type = KEX_DBL; \
         break; \
     } \
     case KEX_DBL: { \
-        v1->value.dv += val; \
+        (v1)->value.dv += (val); \
         break; \
     } \
     case KEX_CSTR: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s%f", v1->value.pv, val); \
-        v1->value.sv = s; \
-        v1->type = KEX_STR; \
+        ks_appendf(s, "%s%f", (v1)->value.pv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_STR: { \
-        ks_appendf(v1->value.sv, "%f", val); \
+        ks_appendf((v1)->value.sv, "%f", val); \
         break; \
     } \
     case KEX_LVAL: { \
@@ -230,42 +207,45 @@
 } \
 /**/
 #define KX_ADD_ADD_S(v1, val) { \
-    if (v1->type == KEX_INT) { \
+    if ((v1)->type == KEX_INT) { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d%s", v1->value.iv, val); \
-        v1->value.sv = s; \
-        v1->type = KEX_STR; \
-    } else switch (v1->type) { \
+        ks_appendf(s, "%d%s", (v1)->value.iv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
+    } else switch ((v1)->type) { \
     case KEX_UND: { \
         kstr_t *s = allocate_str(ctx); \
         ks_appendf(s, "%s", val); \
-        v1->value.sv = s; \
-        v1->type = KEX_STR; \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_BIG: { \
-        int n = bigint_write_size(v1->value.bv, 10); \
+        kstr_t *s = allocate_str(ctx); \
+        int n = bigint_write_size((v1)->value.bv, 10); \
         char *buf = malloc(n); \
-        ks_prepend(v1->value.sv, bigint_write(buf, n, v1->value.bv)); \
+        ks_appendf(s, "%s%s", bigint_write(buf, n, (v1)->value.bv), val); \
         free(buf); \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_DBL: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%f%s", v1->value.dv, val); \
-        v1->value.sv = s; \
-        v1->type = KEX_STR; \
+        ks_appendf(s, "%f%s", (v1)->value.dv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_CSTR: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s%s", v1->value.pv, val); \
-        v1->value.sv = s; \
-        v1->type = KEX_STR; \
+        ks_appendf(s, "%s%s", (v1)->value.pv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KEX_STR; \
         break; \
     } \
     case KEX_STR: { \
-        ks_appendf(v1->value.sv, "%s", val); \
+        ks_appendf((v1)->value.sv, "%s", val); \
         break; \
     } \
     case KEX_LVAL: { \
@@ -298,9 +278,9 @@
     if (v2->type == KEX_INT) { \
         KX_ADD_ADD_I(v1, v2->value.iv); \
     } else switch (v2->type) { \
-    /* case KEX_UND: {  */ \
-    /*     break;       */ \
-    /* }                */ \
+    case KEX_UND: { \
+        break; /* do nothing */ \
+    } \
     case KEX_BIG: { \
         KX_ADD_ADD_B(v1, v2->value.bv); \
         break; \

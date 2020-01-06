@@ -339,7 +339,11 @@ typedef struct kex_context_ {
 #define push_value(st, v) \
     do {\
         kex_val_t *top = &kv_push_undef(st);\
-        if ((v).type == KEX_BIG) { \
+        if ((v).type == KEX_STR) { \
+            top->type = KEX_STR;\
+            top->value.sv = allocate_str(ctx); \
+            ks_append(top->value.sv, ks_string((v).value.sv)); \
+        } else if ((v).type == KEX_BIG) { \
             top->type = KEX_BIG;\
             top->value.bv = allocate_big(ctx); \
             bigint_cpy(top->value.bv, (v).value.bv); \
