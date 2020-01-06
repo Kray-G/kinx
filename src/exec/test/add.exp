@@ -20,7 +20,7 @@ frmv = 5, lexv = -1
 [ 1] (int) 2
 [ 2] (fnc) adr:0, lex:(none)
 [ 3] (int) 2
-[ 4] (adr) 7
+[ 4] (adr) 122
 [ 5] (frm:5, vars:10)
    * (int) 2
    * (int) 1
@@ -36,7 +36,7 @@ exception size = 0.
 print_stack done.
 goto next.
 --------
-       1:   pushi                   9223372036854775807
+       1:   pushv                   $(0,3)
 gc-start.
   * stack: 6
     alive(str) = 0, buf(0)
@@ -57,7 +57,45 @@ frmv = 5, lexv = -1
 [ 1] (int) 2
 [ 2] (fnc) adr:0, lex:(none)
 [ 3] (int) 2
-[ 4] (adr) 7
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       2:   addi                    9223372036854775807
+gc-start.
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 7
+    alive(str) = 0, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 7
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
 [ 5] (frm:5, vars:10)
    * (int) 2
    * (int) 1
@@ -74,7 +112,7 @@ exception size = 0.
 print_stack done.
 goto next.
 --------
-       2:   addi                    2
+       3:   pushv                   $(0,3)
 gc-start.
   * stack: 7
     alive(str) = 0, buf(0)
@@ -89,13 +127,13 @@ gc-start.
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
 gc-done.
-capacity = 105, size = 7
+capacity = 105, size = 8
 frmv = 5, lexv = -1
 [ 0] (int) 1
 [ 1] (int) 2
 [ 2] (fnc) adr:0, lex:(none)
 [ 3] (int) 2
-[ 4] (adr) 7
+[ 4] (adr) 122
 [ 5] (frm:5, vars:10)
    * (int) 2
    * (int) 1
@@ -107,22 +145,23 @@ frmv = 5, lexv = -1
    * (und) null
    * (und) null
    * (und) null
-[ 6] (bigint) 9223372036854775809
+[ 6] (int) 9223372036854775807
+[ 7] (und) null
 exception size = 0.
 print_stack done.
 goto next.
 --------
-       3:   pushi                   -9223372036854775808
+       4:   addd                    1.500000
 gc-start.
-  * stack: 7
+  * stack: 8
     alive(str) = 0, buf(0)
-    alive(big) = 1, buf(0)
+    alive(big) = 0, buf(0)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
-  * stack: 7
+  * stack: 8
     alive(str) = 0, buf(0)
-    alive(big) = 1, buf(0)
+    alive(big) = 0, buf(0)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
@@ -133,7 +172,7 @@ frmv = 5, lexv = -1
 [ 1] (int) 2
 [ 2] (fnc) adr:0, lex:(none)
 [ 3] (int) 2
-[ 4] (adr) 7
+[ 4] (adr) 122
 [ 5] (frm:5, vars:10)
    * (int) 2
    * (int) 1
@@ -145,34 +184,34 @@ frmv = 5, lexv = -1
    * (und) null
    * (und) null
    * (und) null
-[ 6] (bigint) 9223372036854775809
-[ 7] (int) -9223372036854775808
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
 exception size = 0.
 print_stack done.
 goto next.
 --------
-       4:   addi                    -1
+       5:   pushv                   $(0,3)
 gc-start.
   * stack: 8
     alive(str) = 0, buf(0)
-    alive(big) = 1, buf(0)
+    alive(big) = 0, buf(0)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
   * stack: 8
     alive(str) = 0, buf(0)
-    alive(big) = 1, buf(0)
+    alive(big) = 0, buf(0)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
 gc-done.
-capacity = 105, size = 8
+capacity = 105, size = 9
 frmv = 5, lexv = -1
 [ 0] (int) 1
 [ 1] (int) 2
 [ 2] (fnc) adr:0, lex:(none)
 [ 3] (int) 2
-[ 4] (adr) 7
+[ 4] (adr) 122
 [ 5] (frm:5, vars:10)
    * (int) 2
    * (int) 1
@@ -184,34 +223,35 @@ frmv = 5, lexv = -1
    * (und) null
    * (und) null
    * (und) null
-[ 6] (bigint) 9223372036854775809
-[ 7] (bigint) -9223372036854775809
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (und) null
 exception size = 0.
 print_stack done.
 goto next.
 --------
-       5:   add                    
+       6:   adds                    "undefined+string"
 gc-start.
-  * stack: 8
+  * stack: 9
     alive(str) = 0, buf(0)
-    alive(big) = 2, buf(0)
+    alive(big) = 0, buf(0)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
-  * stack: 8
+  * stack: 9
     alive(str) = 0, buf(0)
-    alive(big) = 2, buf(0)
+    alive(big) = 0, buf(0)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
 gc-done.
-capacity = 105, size = 7
+capacity = 105, size = 9
 frmv = 5, lexv = -1
 [ 0] (int) 1
 [ 1] (int) 2
 [ 2] (fnc) adr:0, lex:(none)
 [ 3] (int) 2
-[ 4] (adr) 7
+[ 4] (adr) 122
 [ 5] (frm:5, vars:10)
    * (int) 2
    * (int) 1
@@ -223,22 +263,6640 @@ frmv = 5, lexv = -1
    * (und) null
    * (und) null
    * (und) null
-[ 6] (int) 0
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
 exception size = 0.
 print_stack done.
 goto next.
 --------
-       6:   halt
+       7:   pushv                   $(0,3)
 gc-start.
-  * stack: 7
-    alive(str) = 0, buf(0)
+  * stack: 9
+    alive(str) = 1, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 9
+    alive(str) = 1, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 10
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (und) null
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       8:   pushs                   "undefined"
+gc-start.
+  * stack: 10
+    alive(str) = 1, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 10
+    alive(str) = 1, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 11
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (und) null
+[10] (cstr) undefined
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       9:   adds                    "+string"
+gc-start.
+  * stack: 11
+    alive(str) = 1, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 11
+    alive(str) = 1, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 11
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (und) null
+[10] (str) undefined+string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       a:   add                    
+gc-start.
+  * stack: 11
+    alive(str) = 2, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 11
+    alive(str) = 2, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 10
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       b:   pushi                   9223372036854775807
+gc-start.
+  * stack: 10
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 10
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 11
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       c:   addv                    $(0,3)
+gc-start.
+  * stack: 11
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 11
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 11
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       d:   pushd                   1.500000
+gc-start.
+  * stack: 11
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 11
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 12
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       e:   addv                    $(0,3)
+gc-start.
+  * stack: 12
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 12
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 12
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+       f:   pushs                   "undefined+string"
+gc-start.
+  * stack: 12
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 12
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 13
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      10:   addv                    $(0,3)
+gc-start.
+  * stack: 13
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 13
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 13
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      11:   pushs                   "undefined"
+gc-start.
+  * stack: 13
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 13
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 14
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (cstr) undefined
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      12:   adds                    "+string"
+gc-start.
+  * stack: 14
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 14
+    alive(str) = 2, buf(1)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 14
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      13:   addv                    $(0,3)
+gc-start.
+  * stack: 14
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 14
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 14
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      14:   pushi                   4611686018427387903
+gc-start.
+  * stack: 14
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 14
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 15
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 4611686018427387903
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      15:   addi                    4611686018427387903
+gc-start.
+  * stack: 15
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 15
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 15
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      16:   pushi                   9223372036854775807
+gc-start.
+  * stack: 15
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 15
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 16
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      17:   addi                    -1
+gc-start.
+  * stack: 16
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 16
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 16
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      18:   pushi                   -9223372036854775808
+gc-start.
+  * stack: 16
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 16
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 17
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      19:   addi                    1
+gc-start.
+  * stack: 17
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 17
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 17
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1a:   pushi                   -4611686018427387904
+gc-start.
+  * stack: 17
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 17
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 18
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -4611686018427387904
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1b:   addi                    -4611686018427387904
+gc-start.
+  * stack: 18
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 18
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 18
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1c:   pushi                   9223372036854775807
+gc-start.
+  * stack: 18
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 18
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 19
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1d:   addi                    1
+gc-start.
+  * stack: 19
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 19
+    alive(str) = 3, buf(0)
+    alive(big) = 0, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 19
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1e:   pushi                   -9223372036854775808
+gc-start.
+  * stack: 19
+    alive(str) = 3, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 19
+    alive(str) = 3, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 20
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      1f:   addi                    -1
+gc-start.
+  * stack: 20
+    alive(str) = 3, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 20
+    alive(str) = 3, buf(0)
+    alive(big) = 1, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 20
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      20:   pushi                   9223372036854775807
+gc-start.
+  * stack: 20
+    alive(str) = 3, buf(0)
     alive(big) = 2, buf(0)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
-  * stack: 7
-    alive(str) = 0, buf(0)
-    alive(big) = 0, buf(2)
+  * stack: 20
+    alive(str) = 3, buf(0)
+    alive(big) = 2, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 21
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      21:   addi                    1
+gc-start.
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 2, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 2, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 21
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      22:   pushi                   9223372036854775807
+gc-start.
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 3, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 3, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 9223372036854775808
+[21] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      23:   addi                    1
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 3, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 3, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 9223372036854775808
+[21] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      24:   add                    
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 21
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      25:   pushi                   9223372036854775807
+gc-start.
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 3, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      26:   addi                    1
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 3, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 3, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      27:   storevx                 $(0,2)
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 21
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      28:   pushi                   9223372036854775807
+gc-start.
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      29:   addi                    1
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 4, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2a:   storevx                 $(0,3)
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 5, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 5, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 21
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2b:   pushvl                  $0(2)
+gc-start.
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 5, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 21
+    alive(str) = 3, buf(0)
+    alive(big) = 5, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2c:   addv                    $(0,3)
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 22
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2d:   pushi                   9223372036854775807
+gc-start.
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 22
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 23
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2e:   addi                    1
+gc-start.
+  * stack: 23
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 23
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 23
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      2f:   pushi                   -9223372036854775808
+gc-start.
+  * stack: 23
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 23
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 24
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (bigint) 9223372036854775808
+[23] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      30:   addi                    -1
+gc-start.
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 24
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (bigint) 9223372036854775808
+[23] (bigint) -9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      31:   add                    
+gc-start.
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 8, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 8, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 23
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      32:   pushi                   9223372036854775807
+gc-start.
+  * stack: 23
+    alive(str) = 3, buf(0)
+    alive(big) = 8, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 23
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 24
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      33:   addi                    2
+gc-start.
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 24
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (bigint) 9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      34:   pushi                   -9223372036854775808
+gc-start.
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 25
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (bigint) 9223372036854775809
+[24] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      35:   addi                    -1
+gc-start.
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 25
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (bigint) 9223372036854775809
+[24] (bigint) -9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      36:   add                    
+gc-start.
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 8, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 8, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 24
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      37:   pushi                   9223372036854775807
+gc-start.
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 8, buf(0)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 24
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 25
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      38:   addi                    1
+gc-start.
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 25
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      39:   addi                    -1
+gc-start.
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 25
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      3a:   addi                    1
+gc-start.
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 25
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      3b:   addi                    -1
+gc-start.
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 25
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      3c:   pushi                   -9223372036854775808
+gc-start.
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 25
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 26
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      3d:   addi                    -1
+gc-start.
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 26
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (bigint) -9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      3e:   addi                    1
+gc-start.
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 26
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      3f:   addi                    -1
+gc-start.
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 26
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (bigint) -9223372036854775809
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      40:   addi                    1
+gc-start.
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 26
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      41:   pushs                   "string-"
+gc-start.
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 26
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 27
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      42:   addi                    100
+gc-start.
+  * stack: 27
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 27
+    alive(str) = 3, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 27
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      43:   pushs                   "string-"
+gc-start.
+  * stack: 27
+    alive(str) = 4, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 27
+    alive(str) = 4, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 28
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      44:   adds                    "next-"
+gc-start.
+  * stack: 28
+    alive(str) = 4, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 28
+    alive(str) = 4, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 28
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      45:   addi                    100
+gc-start.
+  * stack: 28
+    alive(str) = 5, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 28
+    alive(str) = 5, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 28
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      46:   pushi                   100
+gc-start.
+  * stack: 28
+    alive(str) = 5, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 28
+    alive(str) = 5, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 29
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      47:   adds                    "-string"
+gc-start.
+  * stack: 29
+    alive(str) = 5, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 29
+    alive(str) = 5, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 29
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      48:   pushi                   100
+gc-start.
+  * stack: 29
+    alive(str) = 6, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 29
+    alive(str) = 6, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 30
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      49:   pushs                   "-prev"
+gc-start.
+  * stack: 30
+    alive(str) = 6, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 30
+    alive(str) = 6, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 31
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (int) 100
+[30] (cstr) -prev
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      4a:   adds                    "-string"
+gc-start.
+  * stack: 31
+    alive(str) = 6, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 31
+    alive(str) = 6, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 31
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (int) 100
+[30] (str) -prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      4b:   add                    
+gc-start.
+  * stack: 31
+    alive(str) = 7, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 31
+    alive(str) = 7, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 30
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      4c:   pushs                   "string-"
+gc-start.
+  * stack: 30
+    alive(str) = 8, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 30
+    alive(str) = 7, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 31
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      4d:   pushi                   9223372036854775807
+gc-start.
+  * stack: 31
+    alive(str) = 7, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 31
+    alive(str) = 7, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 32
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (cstr) string-
+[31] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      4e:   addi                    1
+gc-start.
+  * stack: 32
+    alive(str) = 7, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 32
+    alive(str) = 7, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 32
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (cstr) string-
+[31] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      4f:   add                    
+gc-start.
+  * stack: 32
+    alive(str) = 7, buf(1)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 32
+    alive(str) = 7, buf(1)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 31
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      50:   pushs                   "string-"
+gc-start.
+  * stack: 31
+    alive(str) = 8, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 31
+    alive(str) = 8, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 32
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      51:   adds                    "next-"
+gc-start.
+  * stack: 32
+    alive(str) = 8, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 32
+    alive(str) = 8, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 32
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      52:   pushi                   9223372036854775807
+gc-start.
+  * stack: 32
+    alive(str) = 9, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 32
+    alive(str) = 9, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 33
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-
+[32] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      53:   addi                    1
+gc-start.
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 33
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-
+[32] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      54:   add                    
+gc-start.
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 32
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      55:   pushi                   9223372036854775807
+gc-start.
+  * stack: 32
+    alive(str) = 9, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 32
+    alive(str) = 9, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 33
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      56:   addi                    1
+gc-start.
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 33
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      57:   adds                    "-string"
+gc-start.
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 33
+    alive(str) = 9, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 33
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      58:   pushi                   9223372036854775807
+gc-start.
+  * stack: 33
+    alive(str) = 10, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 33
+    alive(str) = 10, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 34
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (int) 9223372036854775807
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      59:   addi                    1
+gc-start.
+  * stack: 34
+    alive(str) = 10, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 34
+    alive(str) = 10, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 34
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (bigint) 9223372036854775808
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      5a:   pushs                   "-prev"
+gc-start.
+  * stack: 34
+    alive(str) = 10, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 34
+    alive(str) = 10, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 35
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (bigint) 9223372036854775808
+[34] (cstr) -prev
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      5b:   adds                    "-string"
+gc-start.
+  * stack: 35
+    alive(str) = 10, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 35
+    alive(str) = 10, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 35
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (bigint) 9223372036854775808
+[34] (str) -prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      5c:   add                    
+gc-start.
+  * stack: 35
+    alive(str) = 11, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 35
+    alive(str) = 11, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 34
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      5d:   pushs                   "string-"
+gc-start.
+  * stack: 34
+    alive(str) = 12, buf(0)
+    alive(big) = 7, buf(1)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 34
+    alive(str) = 11, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 35
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      5e:   adds                    "next-"
+gc-start.
+  * stack: 35
+    alive(str) = 11, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 35
+    alive(str) = 11, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 35
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      5f:   pushs                   "-prev"
+gc-start.
+  * stack: 35
+    alive(str) = 12, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 35
+    alive(str) = 12, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next-
+[35] (cstr) -prev
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      60:   adds                    "-string"
+gc-start.
+  * stack: 36
+    alive(str) = 12, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 12, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next-
+[35] (str) -prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      61:   add                    
+gc-start.
+  * stack: 36
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 35
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      62:   pushs                   "string-"
+gc-start.
+  * stack: 35
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 35
+    alive(str) = 12, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      63:   adds                    "next-"
+gc-start.
+  * stack: 36
+    alive(str) = 12, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 12, buf(1)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (int) 1
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      64:   storevx                 $(0,1)
+gc-start.
+  * stack: 36
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 35
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      65:   pushs                   "-prev"
+gc-start.
+  * stack: 35
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 35
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (cstr) -prev
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      66:   adds                    "-string"
+gc-start.
+  * stack: 36
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 13, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (bigint) 9223372036854775808
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) -prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      67:   storevx                 $(0,2)
+gc-start.
+  * stack: 36
+    alive(str) = 14, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 14, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 35
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      68:   pushvl                  $0(1)
+gc-start.
+  * stack: 35
+    alive(str) = 14, buf(0)
+    alive(big) = 6, buf(2)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 35
+    alive(str) = 14, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      69:   addv                    $(0,2)
+gc-start.
+  * stack: 36
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 36
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      6a:   pushi                   100
+gc-start.
+  * stack: 36
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 36
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 37
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (int) 100
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      6b:   addd                    1.500000
+gc-start.
+  * stack: 37
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 37
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 37
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      6c:   pushd                   1.500000
+gc-start.
+  * stack: 37
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 37
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 38
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      6d:   addi                    100
+gc-start.
+  * stack: 38
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 38
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 38
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      6e:   pushs                   "string-"
+gc-start.
+  * stack: 38
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 38
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 39
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      6f:   addd                    1.500000
+gc-start.
+  * stack: 39
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 39
+    alive(str) = 15, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 39
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      70:   pushd                   1.500000
+gc-start.
+  * stack: 39
+    alive(str) = 16, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 39
+    alive(str) = 16, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 40
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (dbl) 1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      71:   adds                    "-string"
+gc-start.
+  * stack: 40
+    alive(str) = 16, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 40
+    alive(str) = 16, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 40
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      72:   pushs                   "string-"
+gc-start.
+  * stack: 40
+    alive(str) = 17, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 40
+    alive(str) = 17, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 41
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+[40] (cstr) string-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      73:   adds                    "next-"
+gc-start.
+  * stack: 41
+    alive(str) = 17, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 41
+    alive(str) = 17, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 41
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+[40] (str) string-next-
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      74:   addd                    1.500000
+gc-start.
+  * stack: 41
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 41
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 41
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+[40] (str) string-next-1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      75:   pushd                   1.500000
+gc-start.
+  * stack: 41
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 41
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 42
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+[40] (str) string-next-1.500000
+[41] (dbl) 1.500000
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      76:   pushs                   "-prev"
+gc-start.
+  * stack: 42
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 42
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 43
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+[40] (str) string-next-1.500000
+[41] (dbl) 1.500000
+[42] (cstr) -prev
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      77:   adds                    "-string"
+gc-start.
+  * stack: 43
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 43
+    alive(str) = 18, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 43
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+[40] (str) string-next-1.500000
+[41] (dbl) 1.500000
+[42] (str) -prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      78:   add                    
+gc-start.
+  * stack: 43
+    alive(str) = 19, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 43
+    alive(str) = 19, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+gc-done.
+capacity = 105, size = 42
+frmv = 5, lexv = -1
+[ 0] (int) 1
+[ 1] (int) 2
+[ 2] (fnc) adr:0, lex:(none)
+[ 3] (int) 2
+[ 4] (adr) 122
+[ 5] (frm:5, vars:10)
+   * (int) 2
+   * (str) string-next-
+   * (str) -prev-string
+   * (bigint) 9223372036854775808
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+   * (und) null
+[ 6] (int) 9223372036854775807
+[ 7] (dbl) 1.500000
+[ 8] (str) undefined+string
+[ 9] (str) undefined+string
+[10] (int) 9223372036854775807
+[11] (dbl) 1.500000
+[12] (cstr) undefined+string
+[13] (str) undefined+string
+[14] (int) 9223372036854775806
+[15] (int) 9223372036854775806
+[16] (int) -9223372036854775807
+[17] (int) -9223372036854775808
+[18] (bigint) 9223372036854775808
+[19] (bigint) -9223372036854775809
+[20] (bigint) 18446744073709551616
+[21] (bigint) 18446744073709551616
+[22] (int) -1
+[23] (int) 0
+[24] (int) 9223372036854775807
+[25] (int) -9223372036854775808
+[26] (str) string-100
+[27] (str) string-next-100
+[28] (str) 100-string
+[29] (str) 100-prev-string
+[30] (str) string-9223372036854775808
+[31] (str) string-next-9223372036854775808
+[32] (str) 9223372036854775808-string
+[33] (str) 9223372036854775808-prev-string
+[34] (str) string-next--prev-string
+[35] (str) string-next--prev-string
+[36] (dbl) 101.500000
+[37] (dbl) 101.500000
+[38] (str) string-1.500000
+[39] (str) 1.500000-string
+[40] (str) string-next-1.500000
+[41] (str) 1.500000-prev-string
+exception size = 0.
+print_stack done.
+goto next.
+--------
+      79:   halt
+gc-start.
+  * stack: 42
+    alive(str) = 20, buf(0)
+    alive(big) = 5, buf(3)
+    alive(obj) = 0, buf(0)
+    alive(fnc) = 1, buf(0)
+    alive(frm) = 1, buf(0)
+  * stack: 42
+    alive(str) = 19, buf(1)
+    alive(big) = 5, buf(3)
     alive(obj) = 0, buf(0)
     alive(fnc) = 1, buf(0)
     alive(frm) = 1, buf(0)
