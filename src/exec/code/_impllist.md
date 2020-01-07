@@ -21,9 +21,9 @@
 |  mkary  |   **done**    |
 |   mod   |               |
 |   mul   |               |
-|   neg   |               |
+|   neg   |   **done**    |
 |   neq   |   **done**    |
-|   not   |               |
+|   not   |   **done**    |
 |   or    |   **done**    |
 |   pop   |   **done**    |
 |  push   |   **done**    |
