@@ -1,7 +1,7 @@
 |  Name   | Implemetation |
 | :-----: | :-----------: |
 |   add   |   **done**    |
-|   and   |               |
+|   and   |   **done**    |
 | append  |               |
 |  apply  |               |
 |  call   |   **done**    |
@@ -24,7 +24,7 @@
 |   neg   |               |
 |   neq   |   **done**    |
 |   not   |               |
-|   or    |               |
+|   or    |   **done**    |
 |   pop   |   **done**    |
 |  push   |   **done**    |
 |   ret   |   **done**    |
