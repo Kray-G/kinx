@@ -116,6 +116,10 @@ bigint* bigint_add_word_signed(bigint *dst, const bigint *src_a, bigint_word b, 
 bigint* bigint_add_word(bigint *dst, const bigint *src_a, bigint_word b);
 bigint* bigint_sub_word(bigint *dst, const bigint *src_a, bigint_word b);
 
+bigint* bigint_and(bigint *dst, const bigint *a, const bigint *b);
+bigint* bigint_or(bigint *dst, const bigint *a, const bigint *b);
+bigint* bigint_xor(bigint *dst, const bigint *a, const bigint *b);
+
 char* bigint_write_base(
     char *dst,
     int *n_dst,

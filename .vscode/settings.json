@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.kc": "c",
+        "*.ksl": "llvm",
+        "*.inc": "c"
+    }
+}

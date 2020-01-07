@@ -24,7 +24,9 @@ REM call :TEST_EXEC lge
 REM call :TEST_EXEC gt
 REM call :TEST_EXEC ge
 REM call :TEST_EXEC eqeq
-call :TEST_EXEC neq
+REM call :TEST_EXEC neq
+REM call :TEST_EXEC and
+call :TEST_EXEC or
 REM call :TEST_EXEC push
 REM call :TEST_EXEC store
 REM call :TEST_EXEC call

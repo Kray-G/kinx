@@ -1267,3 +1267,30 @@ double bigint_double(const bigint *src){
     memcpy(&d, &x, sizeof(d));
     return src->neg ? -d : d;
 }
+
+bigint* bigint_and(bigint *dst, const bigint *a, const bigint *b){
+    int len = dst->size = a->size < b->size ? a->size : b->size;
+    for (int i = len - 1; i >= 0; --i) {
+        dst->words[i] = a->words[i] & b->words[i];
+    }
+    dst->size = bigint_raw_truncate(dst->words, dst->size);
+    return dst;
+}
+
+bigint* bigint_or(bigint *dst, const bigint *a, const bigint *b){
+    int len = dst->size = a->size > b->size ? a->size : b->size;
+    for (int i = len - 1; i >= 0; --i) {
+        dst->words[i] = (i < a->size ? a->words[i] : 0) | (i < b->size ? b->words[i] : 0);
+    }
+    dst->size = bigint_raw_truncate(dst->words, dst->size);
+    return dst;
+}
+
+bigint* bigint_xor(bigint *dst, const bigint *a, const bigint *b){
+    int len = dst->size = a->size > b->size ? a->size : b->size;
+    for (int i = len - 1; i >= 0; --i) {
+        dst->words[i] = (i < a->size ? a->words[i] : 0) ^ (i < b->size ? b->words[i] : 0);
+    }
+    dst->size = bigint_raw_truncate(dst->words, dst->size);
+    return dst;
+}

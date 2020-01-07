@@ -126,14 +126,6 @@
         KX_SUB_SUB_D(v1, v2->value.dv); \
         break; \
     } \
-    case KEX_CSTR: { \
-        KX_SUB_SUB_S(v1, v2->value.pv); \
-        break; \
-    } \
-    case KEX_STR: { \
-        KX_SUB_SUB_S(v1, ks_string(v2->value.sv)); \
-        break; \
-    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
