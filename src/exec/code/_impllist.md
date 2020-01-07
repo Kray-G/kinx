@@ -33,4 +33,4 @@
 |  store  |   **done**    |
 |   sub   |   **done**    |
 |  throw  |   **done**    |
-|   xor   |               |
+|   xor   |   **done**    |
