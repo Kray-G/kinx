@@ -11,50 +11,50 @@ int main()
         // und-int -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVV, .value1.i = 0, .value2.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = INT64_MAX }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = -INT64_MAX }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = -INT64_MAX }));
         // und-dbl -> dbl
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVV, .value1.i = 0, .value2.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBD, .value1.d = 1.5 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_DBL, .value2.d = -1.5 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_DBL, .value2.d = -1.5 }));
         // int-und -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBV, .value1.i = 0, .value2.i = 3 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = INT64_MAX }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = INT64_MAX }));
         // dbl-und -> dbl
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHD, .value1.d = 1.5 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBV, .value1.i = 0, .value2.i = 3 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_DBL, .value2.d = 1.5 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_DBL, .value2.d = 1.5 }));
         // int-int -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN/2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -(INT64_MIN/2) }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = (int64_t)(INT64_MIN/2)+(int64_t)(INT64_MIN/2) }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = (int64_t)(INT64_MIN/2)+(int64_t)(INT64_MIN/2) }));
         // int-(neg)int -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = INT64_MIN + 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = INT64_MIN + 1 }));
         // (neg)int-int -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = -(INT64_MAX) }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = INT64_MIN }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = INT64_MIN }));
         // (neg)int-(neg)int -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN/2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = INT64_MIN/2 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 0 }));
         // (neg)int-int -> big
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_BIG, .value2.s = "-9223372036854775809" }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_BIG, .value2.s = "-9223372036854775809" }));
         // int-(neg)int -> big
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_BIG, .value2.s = "9223372036854775808" }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_BIG, .value2.s = "9223372036854775808" }));
         // big-big -> big
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUB }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_BIG, .value2.s = "-18446744073709551617" }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_BIG, .value2.s = "-18446744073709551617" }));
         // big-big -> big
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
@@ -64,43 +64,43 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_STOREVX, .value1.i = 0, .value2.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVVL, .value1.i = 0, .value2.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBV, .value1.i = 0, .value2.i = 3 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_BIG, .value2.s = "-18446744073709551617" }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_BIG, .value2.s = "-18446744073709551617" }));
         // big-big -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUB }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = -1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = -1 }));
         // big-big -> int(0)
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUB }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 0 }));
         // big-int -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = INT64_MAX }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = INT64_MAX }));
         // (neg)big-int -> int
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = -1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = INT64_MIN }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = INT64_MIN }));
         // int-dbl -> dbl
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 100 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBD, .value1.d = 1.5 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_DBL, .value2.d = 98.5 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_DBL, .value2.d = 98.5 }));
         // dbl-int -> dbl
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHD, .value1.d = 1.5 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 100 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_DBL, .value2.d = -98.5 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_DBL, .value2.d = -98.5 }));
 
     kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
     kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));

@@ -54,7 +54,7 @@ int main()
         int call1 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 9227465 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 9227465 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 9227465 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
 

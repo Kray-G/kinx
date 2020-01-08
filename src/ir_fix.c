@@ -19,6 +19,18 @@ static void ir_fix_jmp(kvec_t(uint32_t) *labels, kx_block_t *block)
             code->addr = kv_A(*labels, code->value1.i);
             break;
         case KX_JMP:
+            if (code->value1.i == LABEL_BREAK) {
+                int i = get_block(get_block(code->label)->tf[2])->index;
+                code->value1.i = i;
+                code->addr = kv_A(*labels, i);
+            } else if (code->value1.i == LABEL_CONTINUE) {
+                int i = get_block(get_block(code->label)->tf[3])->index;
+                code->value1.i = i;
+                code->addr = kv_A(*labels, i);
+            } else {
+                code->addr = kv_A(*labels, code->value1.i);
+            }
+            break;
         case KX_JZ:
         case KX_JNZ:
             code->addr = kv_A(*labels, code->value1.i);

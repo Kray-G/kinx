@@ -1,5 +1,4 @@
 #include <parser.h>
-#include <vector.h>
 #include <ir.h>
 
 void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
@@ -55,6 +54,9 @@ void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
 
     case KXOP_TER:
 
+    case KXST_BREAK:
+    case KXST_CONTINUE:
+    case KXST_LABEL:      /* lhs: stmt */
     case KXST_EXPR:       /* lhs: expr */
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
@@ -69,6 +71,7 @@ void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
     case KXST_THROW:      /* lhs: expr */
     case KXST_CLASS:      /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
+
     default:
         break;
     }

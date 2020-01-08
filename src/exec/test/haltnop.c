@@ -10,9 +10,9 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_INT, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .value1.i = KEX_STR, .value2.s = "not executed here" }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_STR, .value2.s = "not executed here" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));

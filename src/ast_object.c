@@ -34,6 +34,8 @@ kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *r
     obj->ex = ex;
     obj->type = type;
     obj->optional = optional;
+    obj->file = const_str(kx_lex_ctx.file);
+    obj->line = kx_lex_ctx.line;
     return obj;
 }
 
@@ -117,6 +119,20 @@ kx_object_t *kx_gen_texpr_object(int type, kx_object_t *lhs, kx_object_t *rhs, k
 kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     return kx_gen_obj(type, 0, lhs, rhs, ex);
+}
+
+kx_object_t *kx_gen_break_object(int type, const char *name)
+{
+    kx_object_t *obj = kx_gen_obj(type, 0, NULL, NULL, NULL);
+    obj->value.s = name;
+    return obj;
+}
+
+kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs)
+{
+    kx_object_t *obj = kx_gen_obj(type, 0, lhs, NULL, NULL);
+    obj->value.s = name;
+    return obj;
 }
 
 kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block, kx_object_t *ex)
