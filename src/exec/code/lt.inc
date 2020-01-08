@@ -33,7 +33,7 @@
         (v1)->type = KEX_INT; \
     } else switch ((v1)->type) { \
     case KEX_UND: { \
-        (v1)->value.iv = !!((val)->neg); \
+        (v1)->value.iv = !((val)->neg); \
         (v1)->type = KEX_INT; \
         break; \
     } \
