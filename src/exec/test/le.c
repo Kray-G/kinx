@@ -48,6 +48,18 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHD, .value1.d = -1.5 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_LEV, .value1.i = 0, .value2.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 1 }));
+        // und <= big -> 1
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_LEV, .value1.i = 0, .value2.i = 3 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ADDI, .value1.i = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_LE }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 1 }));
+        // und <= (neg)big -> 0
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_LEV, .value1.i = 0, .value2.i = 3 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MIN }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_LE }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 0 }));
         // int <= int -> 1
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = INT64_MAX-1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_LEI, .value1.i = INT64_MAX }));
