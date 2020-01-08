@@ -66,8 +66,9 @@ function fib(n) {
 }
 
 try {
-    var n = 100;
-    throw n;
+    var ny = (100 && 2) && 1;
+    var nx = 200 || 2;
+    throw nx;
 } catch (e) {
     return e;
 }

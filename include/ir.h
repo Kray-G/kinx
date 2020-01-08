@@ -14,6 +14,7 @@
 enum irop {
     KX_HALT,
     KX_NOP,
+    KX_DUP,
 
     KX_ENTER,
     KX_CALL,
@@ -90,6 +91,7 @@ typedef struct kx_code_ {
     uint32_t i;
     uint32_t addr;
     uint32_t count;
+    uint32_t label; /* label block */
     int op;
     union {
         int idx;
@@ -97,31 +99,40 @@ typedef struct kx_code_ {
         double d;
         const char *s;
     } value1, value2;
+    const char *file;
+    uint32_t line;
 } kx_code_t;
 kvec_init_t(kx_code_t);
 kvec_init_pt(kx_code_t);
+#define LABEL_BREAK (-1)
+#define LABEL_CONTINUE (-2)
 
 typedef struct kx_block_ {
     kvec_t(kx_code_t) code;
     int index;
     int64_t addr;
-    int tf[2];
+    int tf[4];
     /*
         branch:
             tf[0]: if true, tf[1]: otherwise
         connect:
             tf[0]: jmp
         return:
-            NULL for tf[*]
+            NULL for tf[0]/tf[1]
+        label:
+            tf[2]: break, tf[3]: continue
     */
 } kx_block_t;
 kvec_init_t(kx_block_t);
+
+KHASH_MAP_INIT_STR(label, int)
 
 typedef struct kx_function_ {
     const char *name;
     int pushes;
     int64_t addr;
     kvec_t(int) block;
+    khash_t(label) *label;
 } kx_function_t;
 kvec_init_t(kx_function_t);
 
@@ -129,6 +140,8 @@ typedef struct kx_context_ {
     int def_func;
     int function;
     int block;
+    int label;     /* last break block */
+    int contblock; /* inside continue block if exists */
     int pushes;
     int in_try;
     kvec_t(int) funclist;

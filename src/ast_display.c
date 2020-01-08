@@ -1,6 +1,6 @@
 #include <parser.h>
 
-static void print_indent(int indent)
+static void print_indent(kx_object_t *node, int indent)
 {
     while (indent--) {
         printf("  ");
@@ -13,9 +13,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         return;
     }
 
-    int no_indent = node->type == KXST_EXPRLIST || node->type == KXST_STMTLIST;
+    int no_indent = node->type == KXST_EXPR || node->type == KXST_EXPRLIST || node->type == KXST_STMTLIST;
     if (!no_indent) {
-        print_indent(indent);
+        print_indent(node, indent);
     }
     switch (node->type) {
     case KXVL_UNKNOWN:
@@ -250,6 +250,24 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         display_ast(node->ex, indent + 1, 0);
         break;
 
+    case KXST_BREAK:
+        if (node->value.s) {
+            printf("(break) %s\n", node->value.s);
+        } else {
+            printf("(break)\n");
+        }
+        break;
+    case KXST_CONTINUE:
+        if (node->value.s) {
+            printf("(continue) %s\n", node->value.s);
+        } else {
+            printf("(continue)\n");
+        }
+        break;
+    case KXST_LABEL:
+        printf("(label) %s:\n", node->value.s);
+        display_ast(node->lhs, indent + 1, 0);
+        break;
     case KXST_EXPR:       /* lhs: expr */
         display_ast(node->lhs, indent, 0);
         break;
@@ -263,10 +281,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
     case KXST_IF:         /* lhs: cond, rhs: then-block: ex: else-block */
         printf("(if)\n");
-        print_indent(indent + 1);
+        print_indent(node, indent + 1);
         printf("(cond)\n");
         display_ast(node->lhs, indent + 2, 0);
-        print_indent(indent + 1);
+        print_indent(node, indent + 1);
         printf("(then)\n");
         display_ast(node->rhs, indent + 2, 0);
         if (node->ex) {
@@ -276,26 +294,26 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
     case KXST_WHILE:      /* lhs: cond: rhs: block */
         printf("(while)\n");
-        print_indent(indent + 1);
+        print_indent(node, indent + 1);
         printf("(cond)\n");
         display_ast(node->lhs, indent + 2, 0);
-        print_indent(indent + 1);
+        print_indent(node, indent + 1);
         printf("(block)\n");
         display_ast(node->rhs, indent + 2, 0);
         break;
     case KXST_DO:         /* lhs: cond: rhs: block */
         printf("(do)\n");
-        print_indent(indent + 1);
+        print_indent(node, indent + 1);
         printf("(block)\n");
         display_ast(node->rhs, indent + 2, 0);
-        print_indent(indent + 1);
+        print_indent(node, indent + 1);
         printf("(while-cond)\n");
         display_ast(node->lhs, indent + 2, 0);
         break;
     case KXST_FOR:        /* lhs: forcond: rhs: block */
         printf("(for)\n");
         display_ast(node->lhs, indent + 1, 0);
-        print_indent(indent + 1);
+        print_indent(node, indent + 1);
         printf("(block)\n");
         display_ast(node->rhs, indent + 2, 0);
         break;
@@ -313,7 +331,7 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         if (node->rhs) {
             display_ast(node->rhs, indent, 0);
         }
-        print_indent(indent);
+        print_indent(node, indent);
         printf("(finally)\n");
         display_ast(node->ex, indent + 1, 0);
         break;
@@ -332,12 +350,12 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXST_CLASS:      /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         printf("(class: %s) [refs:%d]\n", node->value.s, node->lexical_refs);
         if (node->lhs) {
-            print_indent(indent + 1);
+            print_indent(node, indent + 1);
             printf("(argument)\n");
             display_ast(node->lhs, indent + 2, 0);
         }
         if (node->ex) {
-            print_indent(indent + 1);
+            print_indent(node, indent + 1);
             printf("(inherit from)\n");
             display_ast(node->ex, indent + 2, 0);
         }
@@ -349,11 +367,14 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
             node->value.s,
             node->lexical_refs);
         if (node->lhs) {
-            print_indent(indent + 1);
+            print_indent(node, indent + 1);
             printf("(argument)\n");
             display_ast(node->lhs, indent + 2, 0);
         }
         display_ast(node->rhs, indent + 1, 0);
+        break;
+    default:
+        printf("\n");
         break;
     }
 }

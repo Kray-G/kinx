@@ -12,7 +12,10 @@ int main(int ac, char **av)
     #endif
     kx_yyin.fp = stdin;
     kx_yyin.str = NULL;
-    kx_lex_next(kx_ctx);
+    kx_yyin.file = "src.kx";
+    kx_lex_ctx.file = kx_yyin.file;
+    kx_lex_ctx.line = 1;
+    kx_lex_next(kx_lex_ctx);
     int r = kx_yyparse();
     if (r != 0) {
         printf("parse failed: %d\n", r);
@@ -20,7 +23,8 @@ int main(int ac, char **av)
     }
 
     start_analyze_ast(kx_ast_root);
-    // start_display_ast(kx_ast_root);
+    start_display_ast(kx_ast_root);
+
     kvec_t(kx_function_t) *funclist = start_gencode_ast(kx_ast_root);
 
     kvec_t(uint32_t) labels = {0};

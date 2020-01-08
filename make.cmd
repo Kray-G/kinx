@@ -11,47 +11,58 @@ REM kmyacc -v -b kx -m kmyacc.c.parser -p kx_yy -L c src/kinx.y
 move kx.tab.c src/parser.c
 move kx.tab.h include/parser.tab.h
 
-cl %CFLAGS% /Fekinx.exe src/string.c src/parser.c src/lexer.c src/ast_object.c src/ast_display.c src/ast_analyzer.c src/ast_gencode.c src/ir_fix.c src/ir_dump.c src/ir_exec.c src/main.c src/exec/allocator.c src/kstr.c src/bigint.c
+set OBJS=string.obj parser.obj lexer.obj ast_object.obj ast_display.obj ast_analyzer.obj ast_gencode.obj ir_fix.obj ir_dump.obj ir_exec.obj main.obj allocator.obj kstr.obj bigint.obj
+REM del %OBJS%
+call :COMPILE %OBJS%
+cl %CFLAGS% /Fekinx.exe %OBJS%
 goto END
 
 :TEST_CODE
 call :TEST_SETUP
-REM call :TEST_EXEC add
-REM call :TEST_EXEC sub
-REM call :TEST_EXEC lt
-REM call :TEST_EXEC le
-REM call :TEST_EXEC lge
-REM call :TEST_EXEC gt
-REM call :TEST_EXEC ge
-REM call :TEST_EXEC eqeq
-REM call :TEST_EXEC neq
-REM call :TEST_EXEC and
-REM call :TEST_EXEC or
-REM call :TEST_EXEC xor
-REM call :TEST_EXEC neg
+call :TEST_EXEC add
+call :TEST_EXEC sub
+call :TEST_EXEC lt
+call :TEST_EXEC le
+call :TEST_EXEC lge
+call :TEST_EXEC gt
+call :TEST_EXEC ge
+call :TEST_EXEC eqeq
+call :TEST_EXEC neq
+call :TEST_EXEC and
+call :TEST_EXEC or
+call :TEST_EXEC xor
+call :TEST_EXEC neg
 call :TEST_EXEC not
-REM call :TEST_EXEC push
-REM call :TEST_EXEC store
-REM call :TEST_EXEC call
-REM call :TEST_EXEC mkary
-REM call :TEST_EXEC ret
-REM call :TEST_EXEC haltnop
-REM call :TEST_EXEC trycatch
+call :TEST_EXEC push
+call :TEST_EXEC store
+call :TEST_EXEC call
+call :TEST_EXEC mkary
+call :TEST_EXEC ret
+call :TEST_EXEC haltnop
+call :TEST_EXEC trycatch
 call :TEST_EXEC fib
 goto END
 
+:COMPILE
+if "%1"=="" exit /b 0
+set OBJ=%1
+if not exist %OBJ% timeit cl -c -nologo %CFLAGS% src/%OBJ:.obj=.c%
+shift
+goto COMPILE
+
 :TEST_SETUP
+if not exist string.obj     timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/string.c
 if not exist kstr.obj       timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/kstr.c
 if not exist bigint.obj     timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/bigint.c
 if not exist ir_dump.obj    timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/ir_dump.c
-if not exist allocator.obj  timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/exec/allocator.c
+if not exist allocator.obj  timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/allocator.c
 if not exist ir_exec.obj    timeit cl -c -nologo -DKX_EXEC_NODEBUG %CFLAGS% src/ir_exec.c
 exit /b 0
 
 :TEST_EXEC
 call :MKDOTS %1
 set /P _DUMMY=Starting [%1] %DOTS% < NUL
-cl -nologo -DKX_EXEC_NODEBUG %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_dump.obj allocator.obj kstr.obj bigint.obj > NUL
+cl -nologo -DKX_EXEC_NODEBUG %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_dump.obj allocator.obj kstr.obj bigint.obj string.obj > NUL
 test.exe
 if ERRORLEVEL 1 goto FAILED
 echo Successful
