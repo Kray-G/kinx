@@ -1,14 +1,21 @@
 #include <string.h>
 #include <parser.h>
 
+kx_yyin_t kx_yyin;
+struct kx_lex_context kx_lex_ctx;
+
 static char kx_strbuf[KX_BUF_MAX] = {0};
 
 int get_keyword_token(const char *val)
 {
     switch (val[0]) {
+    case 'b':
+        if (strcmp(val, "break") == 0)      return BREAK;
+        break;
     case 'c':
         if (strcmp(val, "class") == 0)      return CLASS;
         if (strcmp(val, "catch") == 0)      return CATCH;
+        if (strcmp(val, "continue") == 0)   return CONTINUE;
         break;
     case 'd':
         if (strcmp(val, "do") == 0)         return DO;
@@ -56,44 +63,44 @@ int get_keyword_token(const char *val)
 
 int kx_lex_make_string()
 {
-    if (kx_ctx.ch == '"') {
-        kx_lex_next(kx_ctx);
+    if (kx_lex_ctx.ch == '"') {
+        kx_lex_next(kx_lex_ctx);
     }
-    if (kx_ctx.ch == '"') {
-        kx_lex_next(kx_ctx);
+    if (kx_lex_ctx.ch == '"') {
+        kx_lex_next(kx_lex_ctx);
         kx_yylval.strval = alloc_string("");
         return STR;
     }
 
-    kx_strbuf[0] = kx_ctx.ch;
-    kx_lex_next(kx_ctx);
+    kx_strbuf[0] = kx_lex_ctx.ch;
+    kx_lex_next(kx_lex_ctx);
 
     int pos = 1;
-    while (kx_ctx.ch != '"') {
-        if (kx_ctx.ch == '\\') {
-            kx_lex_next(kx_ctx);
+    while (kx_lex_ctx.ch != '"') {
+        if (kx_lex_ctx.ch == '\\') {
+            kx_lex_next(kx_lex_ctx);
         }
-        kx_strbuf[pos++] = kx_ctx.ch;
-        kx_lex_next(kx_ctx);
+        kx_strbuf[pos++] = kx_lex_ctx.ch;
+        kx_lex_next(kx_lex_ctx);
     }
 
     kx_strbuf[pos] = 0;
     kx_yylval.strval = alloc_string(kx_strbuf);
-    kx_lex_next(kx_ctx);
+    kx_lex_next(kx_lex_ctx);
     return STR;
 }
 
 int kx_yylex()
 {
-    while (kx_is_whitespace(kx_ctx)) {
-        kx_lex_next(kx_ctx);
+    while (kx_is_whitespace(kx_lex_ctx)) {
+        kx_lex_next(kx_lex_ctx);
     }
-    if (!kx_ctx.ch) {
+    if (!kx_lex_ctx.ch) {
         return 0;
     }
 
     int pos = 0, is_zero = 0;
-    switch (kx_ctx.ch) {
+    switch (kx_lex_ctx.ch) {
     case '{':
     case '}':
     case '[':
@@ -104,121 +111,121 @@ int kx_yylex()
     case ',':
     case '.':
     case ';': {
-        int ch = kx_ctx.ch;
-        kx_lex_next(kx_ctx);
+        int ch = kx_lex_ctx.ch;
+        kx_lex_next(kx_lex_ctx);
         return ch;
     }
     case '"':
         return kx_lex_make_string();
     case '=':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return EQEQ;
         }
         return '=';
     case '!':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return NEQ;
         }
         return '!';
     case '>':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return GE;
         }
         return '>';
     case '<':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
-            if (kx_ctx.ch == '>') {
-                kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
+            if (kx_lex_ctx.ch == '>') {
+                kx_lex_next(kx_lex_ctx);
                 return LGE;
             }
             return LE;
         }
         return '<';
     case '|':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '|') {
-            kx_lex_next(kx_ctx);
-            if (kx_ctx.ch == '=') {
-                kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '|') {
+            kx_lex_next(kx_lex_ctx);
+            if (kx_lex_ctx.ch == '=') {
+                kx_lex_next(kx_lex_ctx);
                 return LOREQ;
             }
             return LOR;
         }
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return OREQ;
         }
         return '|';
     case '&':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '&') {
-            kx_lex_next(kx_ctx);
-            if (kx_ctx.ch == '=') {
-                kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '&') {
+            kx_lex_next(kx_lex_ctx);
+            if (kx_lex_ctx.ch == '=') {
+                kx_lex_next(kx_lex_ctx);
                 return LANDEQ;
             }
             return LAND;
         }
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return ANDEQ;
         }
         return '&';
     case '^':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return XOREQ;
         }
         return '^';
     case '+':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '+') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '+') {
+            kx_lex_next(kx_lex_ctx);
             return INC;
         }
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return ADDEQ;
         }
         return '+';
     case '-':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '-') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '-') {
+            kx_lex_next(kx_lex_ctx);
             return DEC;
         }
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return SUBEQ;
         }
         return '-';
     case '*':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return MULEQ;
         }
         return '*';
     case '/':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return DIVEQ;
         }
         return '/';
     case '%':
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '=') {
-            kx_lex_next(kx_ctx);
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '=') {
+            kx_lex_next(kx_lex_ctx);
             return MODEQ;
         }
         return '%';
@@ -227,11 +234,11 @@ int kx_yylex()
     case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
     case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M':
     case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
-        kx_strbuf[pos++] = kx_ctx.ch;
-        kx_lex_next(kx_ctx);
-        while (kx_is_char(kx_ctx)) {
-            kx_strbuf[pos++] = kx_ctx.ch;
-            kx_lex_next(kx_ctx);
+        kx_strbuf[pos++] = kx_lex_ctx.ch;
+        kx_lex_next(kx_lex_ctx);
+        while (kx_is_char(kx_lex_ctx)) {
+            kx_strbuf[pos++] = kx_lex_ctx.ch;
+            kx_lex_next(kx_lex_ctx);
         }
         kx_strbuf[pos] = 0;
         kx_yylval.strval = alloc_string(kx_strbuf);
@@ -242,35 +249,35 @@ int kx_yylex()
         /* fall through */
     case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-        kx_strbuf[pos++] = kx_ctx.ch;
-        kx_lex_next(kx_ctx);
-        if (kx_ctx.ch == '.') {
-            kx_strbuf[pos++] = kx_ctx.ch;
-            kx_lex_next(kx_ctx);
-            while (kx_is_number(kx_ctx)) {
-                kx_strbuf[pos++] = kx_ctx.ch;
-                kx_lex_next(kx_ctx);
+        kx_strbuf[pos++] = kx_lex_ctx.ch;
+        kx_lex_next(kx_lex_ctx);
+        if (kx_lex_ctx.ch == '.') {
+            kx_strbuf[pos++] = kx_lex_ctx.ch;
+            kx_lex_next(kx_lex_ctx);
+            while (kx_is_number(kx_lex_ctx)) {
+                kx_strbuf[pos++] = kx_lex_ctx.ch;
+                kx_lex_next(kx_lex_ctx);
             }
             kx_strbuf[pos] = 0;
             kx_yylval.dblval = strtod(kx_strbuf, NULL);
             return DBL;
         } else if (is_zero) {
-            if (kx_ctx.ch == 'x') {
-                kx_strbuf[pos++] = kx_ctx.ch;
-                kx_lex_next(kx_ctx);
-                while (kx_is_hex_number(kx_ctx)) {
-                    kx_strbuf[pos++] = kx_ctx.ch;
-                    kx_lex_next(kx_ctx);
+            if (kx_lex_ctx.ch == 'x') {
+                kx_strbuf[pos++] = kx_lex_ctx.ch;
+                kx_lex_next(kx_lex_ctx);
+                while (kx_is_hex_number(kx_lex_ctx)) {
+                    kx_strbuf[pos++] = kx_lex_ctx.ch;
+                    kx_lex_next(kx_lex_ctx);
                 }
                 kx_strbuf[pos] = 0;
                 kx_yylval.intval = strtoll(kx_strbuf, NULL, 16);
                 return INT;
-            } else if (kx_is_oct_number(kx_ctx)) {
-                kx_strbuf[pos++] = kx_ctx.ch;
-                kx_lex_next(kx_ctx);
-                while (kx_is_hex_number(kx_ctx)) {
-                    kx_strbuf[pos++] = kx_ctx.ch;
-                    kx_lex_next(kx_ctx);
+            } else if (kx_is_oct_number(kx_lex_ctx)) {
+                kx_strbuf[pos++] = kx_lex_ctx.ch;
+                kx_lex_next(kx_lex_ctx);
+                while (kx_is_hex_number(kx_lex_ctx)) {
+                    kx_strbuf[pos++] = kx_lex_ctx.ch;
+                    kx_lex_next(kx_lex_ctx);
                 }
                 kx_strbuf[pos] = 0;
                 kx_yylval.intval = strtoll(kx_strbuf, NULL, 8);
@@ -281,9 +288,9 @@ int kx_yylex()
                 return INT;
             }
         } else {
-            while (kx_is_number(kx_ctx)) {
-                kx_strbuf[pos++] = kx_ctx.ch;
-                kx_lex_next(kx_ctx);
+            while (kx_is_number(kx_lex_ctx)) {
+                kx_strbuf[pos++] = kx_lex_ctx.ch;
+                kx_lex_next(kx_lex_ctx);
             }
             kx_strbuf[pos] = 0;
             kx_yylval.intval = strtoll(kx_strbuf, NULL, 10);

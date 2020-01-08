@@ -69,6 +69,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_NOP:
         printf("nop");
         break;
+    case KX_DUP:
+        printf("dup");
+        break;
 
     case KX_ENTER:
         printf("%-23s %lld, vars(%lld), args(%d)", "enter", code->value1.i, code->value2.i, code->count);

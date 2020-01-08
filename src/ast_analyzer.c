@@ -21,7 +21,9 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
             for (int j = 1; j <= size; ++j) {
                 kxana_symbol_t *sym = &kv_last_by(table->list, j);
                 if (!strcmp(name, sym->name)) {
-                    sym->lexical_index = i - 1;
+                    if (!sym->label) {
+                        sym->lexical_index = i - 1;
+                    }
                     return sym;
                 }
             }
@@ -30,7 +32,7 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
     if (ctx->decl || ctx->lvalue) {
         kxana_symbol_t* table = &(kv_last(ctx->symbols));
         kxana_symbol_t sym = {0};
-        sym.name = alloc_string(name);
+        sym.name = const_str(name);
         sym.local_index = ctx->func->local_vars;
         ++(ctx->func->local_vars);
         sym.lexical_index = 0;
@@ -148,6 +150,11 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->ex, ctx);
         break;
 
+    case KXST_BREAK:
+    case KXST_CONTINUE:
+    case KXST_LABEL:
+        analyze_ast(node->lhs, ctx);
+        break;
     case KXST_EXPR:       /* lhs: expr */
         analyze_ast(node->lhs, ctx);
         break;

@@ -312,6 +312,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
 
     KX_CASE_(KX_HALT) { KX_GOTO(); }
     KX_CASE_(KX_NOP) { KX_GOTO(); }
+    KX_CASE_(KX_DUP) { KX_GOTO(); }
 
     KX_CASE_(KX_ENTER) { KX_GOTO(); }
     KX_CASE_(KX_CALL) { KX_GOTO(); }

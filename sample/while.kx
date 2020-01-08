@@ -1,0 +1,22 @@
+
+var a, b, c;
+b = c = 1;
+while (b == c) {}
+
+while (b < 10) {
+    a = b * c;
+    ++b;
+}
+
+LABEL:
+while (1) {
+    while (b < 1) {
+        if (c == 10) {
+            break;
+        }
+        if (c == 11) {
+            break LABEL;
+        }
+        c++;
+    }
+}

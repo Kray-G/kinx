@@ -7,21 +7,30 @@
 #include <kvec.h>
 #include <ir.h>
 
-extern int kx_yylex();
-
 typedef struct kx_yyin_ {
     FILE       *fp;
     const char *str;
+    const char *file;
 } kx_yyin_t;
-kx_yyin_t kx_yyin;
 
 struct kx_lex_context {
     int ch;
+    int newline;
     int pos;
+    const char *file;
     int line;
-} kx_ctx;
+};
+
+extern kx_yyin_t kx_yyin;
+extern struct kx_lex_context kx_lex_ctx;
+extern int kx_yylex();
 
 #define kx_lex_next(ctx) \
+    if (ctx.newline) { \
+        ++ctx.line; \
+        ctx.pos = 0; \
+        ctx.newline = 0; \
+    } \
     if (kx_yyin.fp) { \
         ctx.ch = fgetc(kx_yyin.fp); \
         ++ctx.pos; \
@@ -29,15 +38,13 @@ struct kx_lex_context {
             ctx.ch = 0; \
         } \
         if (ctx.ch == '\n') { \
-            ++ctx.line; \
-            ctx.pos = 0; \
+            ctx.newline = 1; \
         } \
     } else { \
         ctx.ch = *kx_yyin.str++; \
         ++ctx.pos; \
         if (ctx.ch == '\n') { \
-            ++ctx.line; \
-            ctx.pos = 0; \
+            ctx.newline = 1; \
         } \
     } \
 /**/
@@ -122,6 +129,7 @@ enum opecode {
     KXST_EXPR,       /* lhs: expr */
     KXST_EXPRLIST,   /* lhs: expr1, rhs: expr2 */
     KXST_STMTLIST,   /* lhs: stmt1, rhs: stmt2 */
+    KXST_LABEL,      /* lhs: stmt */
     KXST_IF,         /* lhs: cond, rhs: then-block, ex: else-block */
     KXST_WHILE,      /* lhs: cond, rhs: block */
     KXST_DO,         /* lhs: cond, rhs: block */
@@ -133,6 +141,9 @@ enum opecode {
     KXST_THROW,      /* lhs: expr */
     KXST_CLASS,      /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
     KXST_FUNCTION,   /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
+
+    KXST_BREAK,
+    KXST_CONTINUE,
 };
 
 struct kx_object_;
@@ -140,6 +151,7 @@ struct kx_object_;
 typedef struct kxana_symbol_ {
     const char *name;
     int index;
+    int label;
     int start;
     int local_index;
     int lexical_index;
@@ -177,6 +189,9 @@ typedef struct kx_object_ {
     int lexical_refs;
     int local_vars;
 
+    const char *file;
+    uint32_t line;
+
     kxana_symbol_t symbols;
 } kx_object_t;
 kvec_init_t(kx_object_t);
@@ -188,6 +203,7 @@ extern kx_object_t *kx_ast_root;
 
 extern const char *alloc_string(const char *str);
 extern void free_string(void);
+const char *const_str(const char* name);
 
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name);
@@ -200,6 +216,8 @@ extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_texpr_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
+extern kx_object_t *kx_gen_break_object(int type, const char *name);
+extern kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs);
 extern kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *lhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 

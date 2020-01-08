@@ -20,7 +20,7 @@
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR TRY CATCH FINALLY
+%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE
 %token VAR FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ
@@ -45,6 +45,8 @@
 %type<obj> ReturnStatement
 %type<obj> ThrowStatement
 %type<obj> ExpressionStatement
+%type<obj> BreakStatement
+%type<obj> LabelStatement
 %type<obj> AssignExpression_Opt
 %type<obj> AssignExpression
 %type<obj> FunctionExpression
@@ -66,7 +68,6 @@
 %type<obj> AssignExpressionList
 %type<obj> KeyValueList
 %type<obj> KeyValue
-%type<strval> Key
 %type<obj> VarDeclStatement
 %type<obj> DeclAssignExpressionList
 %type<obj> DeclAssignExpression
@@ -103,16 +104,30 @@ Statement
     | ThrowStatement
     | ExpressionStatement
     | DefinitionStatement
+    | BreakStatement
+    | LabelStatement
     ;
 
 BlockStatement
-    : '{' StatementList '}' { $$ = $2; }
+    : '{' '}' { $$ = NULL; }
+    | '{' StatementList '}' { $$ = $2; }
     ;
 
 DefinitionStatement
     : VarDeclStatement
     | FunctionDeclStatement
     | ClassDeclStatement
+    ;
+
+BreakStatement
+    : BREAK ';' { $$ = kx_gen_break_object(KXST_BREAK, NULL); }
+    | BREAK NAME ';' { $$ = kx_gen_break_object(KXST_BREAK, $2); }
+    | CONTINUE ';' { $$ = kx_gen_break_object(KXST_CONTINUE, NULL); }
+    | CONTINUE NAME ';' { $$ = kx_gen_break_object(KXST_CONTINUE, $2); }
+    ;
+
+LabelStatement
+    : NAME ':' Statement { $$ = kx_gen_label_object(KXST_LABEL, $1, $3); }
     ;
 
 IfStatement
@@ -296,12 +311,8 @@ KeyValueList
     ;
 
 KeyValue
-    : Key ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
-    ;
-
-Key
-    : STR
-    | NAME
+    : STR ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     ;
 
 VarDeclStatement
@@ -372,5 +383,5 @@ CallArgumentList
 
 int yyerror(const char* msg)
 {
-    return printf("Error: %s at %d (pos:%d)\n", msg, kx_ctx.line, kx_ctx.pos);
+    return printf("Error: %s at %d (pos:%d)\n", msg, kx_lex_ctx.line, kx_lex_ctx.pos);
 }
