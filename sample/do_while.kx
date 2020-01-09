@@ -1,0 +1,16 @@
+
+var a, b, c;
+b = c = 1;
+
+LABEL1:
+do {
+    do {
+        a = b * c;
+        if (a > 100) break;
+        if (b > 5) break LABEL1;
+        ++b;
+    }
+    while (b < 10);
+    ++c;
+}
+while (c < 20);

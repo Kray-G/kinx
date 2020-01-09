@@ -126,21 +126,22 @@ enum opecode {
     KXOP_TER,
 
     /* statement object */
-    KXST_EXPR,       /* lhs: expr */
-    KXST_EXPRLIST,   /* lhs: expr1, rhs: expr2 */
-    KXST_STMTLIST,   /* lhs: stmt1, rhs: stmt2 */
-    KXST_LABEL,      /* lhs: stmt */
-    KXST_IF,         /* lhs: cond, rhs: then-block, ex: else-block */
-    KXST_WHILE,      /* lhs: cond, rhs: block */
-    KXST_DO,         /* lhs: cond, rhs: block */
-    KXST_FOR,        /* lhs: forcond, rhs: block */
-    KXST_FORCOND,    /* lhs: init, rhs: cond, ex: inc */
-    KXST_TRY,        /* lhs: try, rhs: catch, ex: finally */
-    KXST_CATCH,      /* lhs: name, rhs: block */
-    KXST_RET,        /* lhs: expr */
-    KXST_THROW,      /* lhs: expr */
-    KXST_CLASS,      /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
-    KXST_FUNCTION,   /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
+    KXST_EXPR,      /* lhs: expr */
+    KXST_EXPRLIST,  /* lhs: expr1, rhs: expr2 */
+    KXST_STMTLIST,  /* lhs: stmt1, rhs: stmt2 */
+    KXST_BLOCK,     /* lhs: block */
+    KXST_LABEL,     /* lhs: stmt */
+    KXST_IF,        /* lhs: cond, rhs: then-block, ex: else-block */
+    KXST_WHILE,     /* lhs: cond, rhs: block */
+    KXST_DO,        /* lhs: cond, rhs: block */
+    KXST_FOR,       /* lhs: forcond, rhs: block */
+    KXST_FORCOND,   /* lhs: init, rhs: cond, ex: inc */
+    KXST_TRY,       /* lhs: try, rhs: catch, ex: finally */
+    KXST_CATCH,     /* lhs: name, rhs: block */
+    KXST_RET,       /* lhs: expr */
+    KXST_THROW,     /* lhs: expr */
+    KXST_CLASS,     /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
+    KXST_FUNCTION,  /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
 
     KXST_BREAK,
     KXST_CONTINUE,
@@ -150,7 +151,7 @@ struct kx_object_;
 
 typedef struct kxana_symbol_ {
     const char *name;
-    int index;
+    int depth;
     int label;
     int start;
     int local_index;
@@ -211,6 +212,7 @@ extern kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value);
 extern kx_object_t *kx_gen_int_object(int64_t val);
 extern kx_object_t *kx_gen_dbl_object(double val);
 extern kx_object_t *kx_gen_str_object(const char *val);
+extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);

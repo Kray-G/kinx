@@ -2,6 +2,7 @@
     "files.associations": {
         "*.kc": "c",
         "*.ksl": "llvm",
-        "*.inc": "c"
+        "*.inc": "c",
+        "assert.h": "c"
     }
 }

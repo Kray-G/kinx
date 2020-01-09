@@ -539,8 +539,10 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         break;
     }
     case KXST_EXPR: {     /* lhs: expr */
-        gencode_ast_hook(node->lhs, ctx, 0);
-        add_pop(ctx);
+        if (node->lhs) {
+            gencode_ast_hook(node->lhs, ctx, 0);
+            add_pop(ctx);
+        }
         break;
     }
     case KXST_EXPRLIST: { /* lhs: expr1: rhs: expr2 */
@@ -557,6 +559,11 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         }
         break;
     }
+    case KXST_BLOCK:      /* lhs: block */
+        if (node->lhs) {
+            gencode_ast_hook(node->lhs, ctx, 0);
+        }
+        break;
     case KXST_IF: {       /* lhs: cond, rhs: then-block: ex: else-block */
         int block = ctx->block;
         int cond, th, el, out;
@@ -609,36 +616,133 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         }
 
         int cond = new_block(ctx);
-        if (node->lhs->type == KXVL_INT && node->lhs->value.i != 0) {
-            get_block(stmt)->tf[0] = thtop;
-        } else {
-            get_block(stmt)->tf[0] = cond;
-        }
         if (node->rhs) {
             get_block(thend)->tf[0] = cond;
             get_block(cond)->tf[0] = thtop;
+            if (node->lhs->type == KXVL_INT && node->lhs->value.i != 0) {
+                get_block(stmt)->tf[0] = thtop;
+            } else {
+                get_block(stmt)->tf[0] = cond;
+            }
         } else {
+            get_block(stmt)->tf[0] = cond;
             get_block(cond)->tf[0] = cond;
         }
         ctx->block = cond;
         gencode_ast_hook(node->lhs, ctx, 0);
+        cond = ctx->block;
 
         int out = new_block(ctx);
         get_block(cond)->tf[1] = out;
         get_block(stmt)->tf[2] = out;
         get_block(stmt)->tf[3] = cond;
+
         ctx->label = label;
         ctx->contblock = cond;
         ctx->block = out;
         break;
     }
     case KXST_DO:      {  /* lhs: cond: rhs: block */
+        int label = ctx->label;
+        int stmt = new_block(ctx);
+        ctx->label = stmt;
+
+        int thtop, thend;
+        if (node->rhs) {
+            thtop = new_block(ctx);
+            ctx->block = thtop;
+            gencode_ast_hook(node->rhs, ctx, 0);
+            thend = ctx->block;
+        }
+
+        int cond = new_block(ctx);
+        ctx->block = cond;
+        gencode_ast_hook(node->lhs, ctx, 0);
+        cond = ctx->block;
+        if (node->rhs) {
+            get_block(stmt)->tf[0] = thtop;
+            get_block(thend)->tf[0] = cond;
+            get_block(cond)->tf[0] = thtop;
+        } else {
+            get_block(stmt)->tf[0] = cond;
+            get_block(cond)->tf[0] = cond;
+        }
+
+        int out = new_block(ctx);
+        get_block(cond)->tf[1] = out;
+        get_block(stmt)->tf[2] = out;
+        get_block(stmt)->tf[3] = cond;
+
+        ctx->label = label;
+        ctx->contblock = cond;
+        ctx->block = out;
         break;
     }
     case KXST_FOR:     {  /* lhs: forcond: rhs: block */
+        int label = ctx->label;
+        int stmt = new_block(ctx);
+        kx_object_t *forcond = node->lhs;
+
+        if (forcond->lhs) {
+            int init = new_block(ctx);
+            ctx->block = init;
+            get_block(stmt)->tf[0] = init;
+            gencode_ast_hook(forcond->lhs, ctx, 0);
+            stmt = ctx->block;
+        }
+        ctx->label = stmt;
+
+        int thtop, thend;
+        if (node->rhs) {
+            thtop = new_block(ctx);
+            ctx->block = thtop;
+            gencode_ast_hook(node->rhs, ctx, 0);
+            thend = ctx->block;
+        }
+
+        int condtop, condend;
+        if (forcond->ex) {
+            condtop = new_block(ctx);
+            get_block(thend)->tf[0] = condtop;
+            ctx->block = condtop;
+            gencode_ast_hook(forcond->ex, ctx, 0);
+            condend = new_block(ctx);
+            get_block(ctx->block)->tf[0] = condend;
+        } else {
+            condtop = condend = new_block(ctx);
+        }
+
+        if (forcond->rhs) {
+            ctx->block = condend;
+            gencode_ast_hook(forcond->rhs, ctx, 0);
+            condend = ctx->block;
+        }
+        if (node->rhs) {
+            get_block(thend)->tf[0] = condtop;
+            get_block(condend)->tf[0] = thtop;
+            if (forcond->rhs && forcond->rhs->type == KXVL_INT && forcond->rhs->value.i != 0) {
+                get_block(stmt)->tf[0] = thtop;
+            } else {
+                get_block(stmt)->tf[0] = condend;
+            }
+        } else {
+            get_block(stmt)->tf[0] = condend;
+            get_block(condend)->tf[0] = condtop;
+        }
+
+        int out = new_block(ctx);
+        get_block(condend)->tf[1] = out;
+        get_block(stmt)->tf[2] = out;
+        get_block(stmt)->tf[3] = condtop;
+
+        ctx->label = label;
+        ctx->contblock = condtop;
+        ctx->block = out;
         break;
     }
     case KXST_FORCOND: {  /* lhs: init, rhs: cond: ex: inc */
+        /* do nothing, not comming here. */
+        assert(0);
         break;
     }
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */

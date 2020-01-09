@@ -56,21 +56,22 @@ void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
 
     case KXST_BREAK:
     case KXST_CONTINUE:
-    case KXST_LABEL:      /* lhs: stmt */
-    case KXST_EXPR:       /* lhs: expr */
-    case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
-    case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
-    case KXST_IF:         /* lhs: cond, rhs: then-block: ex: else-block */
-    case KXST_WHILE:      /* lhs: cond: rhs: block */
-    case KXST_DO:         /* lhs: cond: rhs: block */
-    case KXST_FOR:        /* lhs: forcond: rhs: block */
-    case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
-    case KXST_TRY:        /* lhs: try, rhs: catch: ex: finally */
-    case KXST_CATCH:      /* lhs: name: rhs: block */
-    case KXST_RET:        /* lhs: expr */
-    case KXST_THROW:      /* lhs: expr */
-    case KXST_CLASS:      /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
-    case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
+    case KXST_LABEL:    /* lhs: stmt */
+    case KXST_EXPR:     /* lhs: expr */
+    case KXST_EXPRLIST: /* lhs: expr1: rhs: expr2 */
+    case KXST_STMTLIST: /* lhs: stmt1: rhs: stmt2 */
+    case KXST_BLOCK:    /* lhs: block */
+    case KXST_IF:       /* lhs: cond, rhs: then-block: ex: else-block */
+    case KXST_WHILE:    /* lhs: cond: rhs: block */
+    case KXST_DO:       /* lhs: cond: rhs: block */
+    case KXST_FOR:      /* lhs: forcond: rhs: block */
+    case KXST_FORCOND:  /* lhs: init, rhs: cond: ex: inc */
+    case KXST_TRY:      /* lhs: try, rhs: catch: ex: finally */
+    case KXST_CATCH:    /* lhs: name: rhs: block */
+    case KXST_RET:      /* lhs: expr */
+    case KXST_THROW:    /* lhs: expr */
+    case KXST_CLASS:    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
+    case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
 
     default:
         break;
