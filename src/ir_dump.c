@@ -221,6 +221,18 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_DECP:
         printf("%-23s %s", "decp", gen_varloc(code));
         break;
+    case KX_INCVP:
+        printf("%-23s %s", "incvp", gen_varloc(code));
+        break;
+    case KX_DECVP:
+        printf("%-23s %s", "decvp", gen_varloc(code));
+        break;
+    case KX_INCVX:
+        printf("%-23s %s", "incvx", gen_varloc(code));
+        break;
+    case KX_DECVX:
+        printf("%-23s %s", "decvx", gen_varloc(code));
+        break;
     case KX_MKARY:
         printf("push(a)");
         break;

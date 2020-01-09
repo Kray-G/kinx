@@ -367,6 +367,10 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     KX_CASE_(KX_DECV) { KX_GOTO(); }
     KX_CASE_(KX_INCP) { KX_GOTO(); }
     KX_CASE_(KX_DECP) { KX_GOTO(); }
+    KX_CASE_(KX_INCVP) { KX_GOTO(); }
+    KX_CASE_(KX_DECVP) { KX_GOTO(); }
+    KX_CASE_(KX_INCVX) { KX_GOTO(); }
+    KX_CASE_(KX_DECVX) { KX_GOTO(); }
     KX_CASE_(KX_MKARY) { KX_GOTO(); }
 
     KX_CASE_(KX_APPLYV) { KX_GOTO(); }

@@ -51,6 +51,10 @@ enum irop {
     KX_DECV,
     KX_INCP,
     KX_DECP,
+    KX_INCVP,
+    KX_DECVP,
+    KX_INCVX,
+    KX_DECVX,
     KX_MKARY,
 
     KX_APPLYV,
@@ -414,7 +418,12 @@ typedef struct kex_context_ {
     for (int i = 0; i < len; ++i) { \
         kx_code_t *c = kv_A(*fixcode, i);\
         c->i = i; \
-        c->next = kv_A(*fixcode, i+1); \
+        int j = i + 1; \
+        kx_code_t *n = c->next = kv_A(*fixcode, j); \
+        while (n && n->op == KX_NOP) { \
+            n = kv_A(*fixcode, ++j); \
+            c->next = n; \
+        } \
         if (c->addr > 0) { \
             c->jmp = kv_A(*fixcode, c->addr); \
         } \
