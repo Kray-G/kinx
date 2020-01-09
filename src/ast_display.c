@@ -279,6 +279,12 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         display_ast(node->lhs, indent, 0);
         display_ast(node->rhs, indent, 0);
         break;
+    case KXST_BLOCK:      /* lhs: block */
+        printf("(block)\n");
+        if (node->lhs) {
+            display_ast(node->lhs, indent + 1, 0);
+        }
+        break;
     case KXST_IF:         /* lhs: cond, rhs: then-block: ex: else-block */
         printf("(if)\n");
         print_indent(node, indent + 1);

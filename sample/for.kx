@@ -1,0 +1,10 @@
+
+var a, b, c, i;
+b = c = 1;
+
+LABEL:
+for (var i = 0; i < 100; ++i) {
+    b = 1;
+    if (i < 10) continue LABEL;
+    if (i < 20) break;
+}
