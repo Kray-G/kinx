@@ -110,7 +110,7 @@ Statement
 
 BlockStatement
     : '{' '}' { $$ = NULL; }
-    | '{' StatementList '}' { $$ = $2; }
+    | '{' StatementList '}' { $$ = kx_gen_block_object($2); }
     ;
 
 DefinitionStatement
@@ -144,8 +144,12 @@ DoWhileStatement
     ;
 
 ForStatement
-    : FOR '(' AssignExpression_Opt ';' AssignExpression_Opt ';' AssignExpression_Opt ')' Statement
+    : FOR '(' VAR DeclAssignExpressionList ';' AssignExpression_Opt ';' AssignExpression_Opt ')' Statement
+        { $$ = kx_gen_stmt_object(KXST_FOR, kx_gen_stmt_object(KXST_FORCOND, $4, $6, $8), $10, NULL); }
+    | FOR '(' AssignExpression ';' AssignExpression_Opt ';' AssignExpression_Opt ')' Statement
         { $$ = kx_gen_stmt_object(KXST_FOR, kx_gen_stmt_object(KXST_FORCOND, $3, $5, $7), $9, NULL); }
+    | FOR '(' ';' AssignExpression_Opt ';' AssignExpression_Opt ')' Statement
+        { $$ = kx_gen_stmt_object(KXST_FOR, kx_gen_stmt_object(KXST_FORCOND, NULL, $4, $6), $8, NULL); }
     ;
 
 TryCatchStatement
