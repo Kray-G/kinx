@@ -19,7 +19,11 @@
     } else if (last_op(ctx) == KX_STOREV) {\
         last_op(ctx) = KX_STOREVX;\
     } else {\
-        if (last_op(ctx) != KX_INCV && last_op(ctx) != KX_DECV) {\
+        if (last_op(ctx) == KX_INCV || last_op(ctx) == KX_INCVP) {\
+            last_op(ctx) = KX_INCVX;\
+        } else if (last_op(ctx) == KX_DECV || last_op(ctx) == KX_DECVP) {\
+            last_op(ctx) = KX_DECVX;\
+        } else {\
             kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE, .op = KX_POP }));\
         }\
     }\
@@ -252,7 +256,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
     }
     case KXOP_INCP: {     /* postfix */
         if (node->lhs->type == KX_VAR) {
-            kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE, .op = KX_INCV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE, .op = KX_INCVP, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(node->lhs, ctx, 1);
             kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE, .op = KX_INCP }));
@@ -261,7 +265,7 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
     }
     case KXOP_DECP: {     /* postfix */
         if (node->lhs->type == KX_VAR) {
-            kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE, .op = KX_DECV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE, .op = KX_DECVP, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(node->lhs, ctx, 1);
             kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE, .op = KX_DECP }));
@@ -605,7 +609,11 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         }
 
         int cond = new_block(ctx);
-        get_block(stmt)->tf[0] = cond;
+        if (node->lhs->type == KXVL_INT && node->lhs->value.i != 0) {
+            get_block(stmt)->tf[0] = thtop;
+        } else {
+            get_block(stmt)->tf[0] = cond;
+        }
         if (node->rhs) {
             get_block(thend)->tf[0] = cond;
             get_block(cond)->tf[0] = thtop;
@@ -826,9 +834,19 @@ static void append_jmp(kx_block_t *block)
         int othw = block->tf[1];
         if (next && othw) {
             if (get_block(next)->index == block->index + 1) {
-                kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JZ, .value1 = { .i = get_block(othw)->index } }));
+                if (kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i == 0) {
+                    kv_last(block->code).op = KX_JMP;
+                    kv_last(block->code).value1.i = get_block(othw)->index;
+                } else {
+                    kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JZ, .value1 = { .i = get_block(othw)->index } }));
+                }
             } else {
-                kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JNZ, .value1 = { .i = get_block(next)->index } }));
+                if (kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i != 0) {
+                    kv_last(block->code).op = KX_JMP;
+                    kv_last(block->code).value1.i = get_block(next)->index;
+                } else {
+                    kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JNZ, .value1 = { .i = get_block(next)->index } }));
+                }
                 if (get_block(othw)->index != block->index + 1) {
                     kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JMP, .value1 = { .i = get_block(othw)->index } }));
                 }
