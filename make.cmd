@@ -19,27 +19,29 @@ goto END
 
 :TEST_CODE
 call :TEST_SETUP
-call :TEST_EXEC add
-call :TEST_EXEC sub
-call :TEST_EXEC lt
-call :TEST_EXEC le
-call :TEST_EXEC lge
-call :TEST_EXEC gt
-call :TEST_EXEC ge
-call :TEST_EXEC eqeq
-call :TEST_EXEC neq
-call :TEST_EXEC and
-call :TEST_EXEC or
-call :TEST_EXEC xor
-call :TEST_EXEC neg
-call :TEST_EXEC not
-call :TEST_EXEC push
-call :TEST_EXEC store
-call :TEST_EXEC call
-call :TEST_EXEC mkary
-call :TEST_EXEC ret
-call :TEST_EXEC haltnop
-call :TEST_EXEC trycatch
+REM call :TEST_EXEC add
+REM call :TEST_EXEC sub
+REM call :TEST_EXEC inc
+call :TEST_EXEC dec
+REM call :TEST_EXEC lt
+REM call :TEST_EXEC le
+REM call :TEST_EXEC lge
+REM call :TEST_EXEC gt
+REM call :TEST_EXEC ge
+REM call :TEST_EXEC eqeq
+REM call :TEST_EXEC neq
+REM call :TEST_EXEC and
+REM call :TEST_EXEC or
+REM call :TEST_EXEC xor
+REM call :TEST_EXEC neg
+REM call :TEST_EXEC not
+REM call :TEST_EXEC push
+REM call :TEST_EXEC store
+REM call :TEST_EXEC call
+REM call :TEST_EXEC mkary
+REM call :TEST_EXEC ret
+REM call :TEST_EXEC haltnop
+REM call :TEST_EXEC trycatch
 call :TEST_EXEC fib
 goto END
 

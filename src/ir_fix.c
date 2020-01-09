@@ -82,10 +82,6 @@ static void ir_fix_function(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcod
     }
 }
 
-/*
-    There is no differences between KX_JMP and KX_NOP.
-*/
-/*
 static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode)
 {
     if (!fixcode) {
@@ -100,7 +96,32 @@ static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode)
         }
     }
 }
-*/
+
+static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode)
+{
+    if (!fixcode) {
+        return;
+    }
+
+    int len = kv_size(*fixcode);
+    for (int i = 0; i < len; ++i) {
+        kx_code_t *code = kv_A(*fixcode, i);
+        if (code->op == KX_JMP) {
+            int idx = code->value1.i;
+            int addr = code->addr;
+            kx_code_t *dst = kv_A(*fixcode, addr);
+            if (dst->op == KX_JMP) {
+                do {
+                    idx = dst->value1.i;
+                    addr = dst->addr;
+                    dst = kv_A(*fixcode, addr);
+                } while (dst->op == KX_JMP);
+                code->addr = addr;
+                code->value1.i = idx;
+            }
+        }
+    }
+}
 
 void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(kx_function_t) *funclist)
 {
@@ -119,5 +140,6 @@ void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(k
         ir_fix_jmp_function(labels, func);
     }
 
-    /* ir_remove_jmp(fixcode); */
+    ir_remove_jmp(fixcode);
+    ir_otimize_jmp(fixcode);
 }

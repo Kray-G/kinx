@@ -23,7 +23,7 @@ int main(int ac, char **av)
     }
 
     start_analyze_ast(kx_ast_root);
-    start_display_ast(kx_ast_root);
+    // start_display_ast(kx_ast_root);
 
     kvec_t(kx_function_t) *funclist = start_gencode_ast(kx_ast_root);
 
