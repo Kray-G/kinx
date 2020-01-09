@@ -6,14 +6,14 @@
 |  apply  |               |
 |  call   |   **done**    |
 |  catch  |   **done**    |
-|   dec   |               |
+|   dec   |   **done**    |
 |   div   |               |
 |  enter  |   **done**    |
 |  eqeq   |   **done**    |
 |   ge    |   **done**    |
 |   gt    |   **done**    |
 | haltnop |   **done**    |
-|   inc   |               |
+|   inc   |   **done**    |
 |   jmp   |   **done**    |
 |   le    |   **done**    |
 |   lge   |   **done**    |
