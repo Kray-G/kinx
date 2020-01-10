@@ -23,7 +23,7 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ENTER, .value1.i = 10, .value2.i = 4, .count = 4 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 100 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 10 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVVL1, .value1.i = 1, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL1, .value1.i = 1, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 200 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 10 }));

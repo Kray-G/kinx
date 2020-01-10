@@ -64,7 +64,7 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_STOREVX, .value1.i = 0, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 34 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALLVL, .value1.i = 0, .value2.i = 0, .count = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALLVL0, .value1.i = 0, .value2.i = 0, .count = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RET }));
 
     int fib = kv_size(code);
@@ -72,19 +72,19 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ENTER, .value1.i = 25, .value2.i = 1, .count = 1 }));
 
         int l4 = kv_size(code);
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVVL, .value1.i = 0, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_LTI, .value1.i = 3 }));
         int jmp1 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_JZ, .addr = 0 }));
 
         int l5 = kv_size(code);
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL, .value1.i = 0, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL0, .value1.i = 0, .value2.i = 0 }));
 
         int l6 = kv_size(code);
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVVL, .value1.i = 0, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALLVL1, .value1.i = 1, .value2.i = 0, .count = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVVL, .value1.i = 0, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_SUBI, .value1.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALLVL1, .value1.i = 1, .value2.i = 0, .count = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ADD }));

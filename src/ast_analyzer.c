@@ -25,8 +25,7 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
                     if (sym->depth < ctx->depth) {
                         goto DECL_VAR;
                     }
-                    /* TODO: warning */
-                    printf("Warning, dup smbol.\n");
+                    /* No warning for the same level variable, use it. */
                 } else {
                     if (!sym->label) {
                         sym->lexical_index = i - 1;
@@ -37,8 +36,8 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
         }
     }
 
-DECL_VAR:
     if (ctx->decl || ctx->lvalue) {
+DECL_VAR:
         kxana_symbol_t* table = &(kv_last(ctx->symbols));
         kxana_symbol_t sym = {0};
         sym.name = const_str(name);
@@ -235,7 +234,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         int depth = ctx->depth;
-        ctx->depth = 0;
+        ++ctx->depth;
         int lvalue = ctx->lvalue;
         ctx->lvalue = 1;
         kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
@@ -268,7 +267,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     }
     case KXST_FUNCTION: { /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         int depth = ctx->depth;
-        ctx->depth = 0;
+        ++ctx->depth;
         int lvalue = ctx->lvalue;
         ctx->lvalue = 1;
         kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);

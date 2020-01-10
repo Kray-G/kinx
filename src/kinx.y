@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <kvec.h>
 #include <kinx.h>
+#include <parser.tab.h>
 
 // #define YYDEBUG 1
 
@@ -21,7 +22,7 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE
-%token VAR FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
+%token NEW VAR FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ
 %token NUL TRUE FALSE
@@ -266,8 +267,8 @@ PrefixExpression
 
 PostfixExpression
     : Factor IncDec_Opt { $$ = (($2 < 0) ? $1 : kx_gen_uexpr_object($2, $1)); }
-    | Factor '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
-    | Factor '.' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, kx_gen_str_object($3)); }
+    | PostfixExpression '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | PostfixExpression '.' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, kx_gen_str_object($3)); }
     | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
 
@@ -288,6 +289,7 @@ Factor
     | Array
     | Object
     | '(' AssignExpression ')' { $$ = $2; }
+    | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     ;
 
 Array

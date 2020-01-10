@@ -30,7 +30,7 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETI, .value1.i = 0 }));
     int l4 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CATCH, .value1.i = 0, .value2.i = 2 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL, .value1.i = 0, .value2.i = 2 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL0, .value1.i = 0, .value2.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RET_NULL }));
 
     kv_A(code, c0).addr = l2;

@@ -154,7 +154,13 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
 
     kx_object_t *obj = kx_gen_obj(type, optional, lhs, rhs, ex);
     obj->value.s = name;
-    kx_object_t *assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name), obj);
+    kx_object_t *assign;
+    if (type != KXST_CLASS) {
+        assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name), obj);
+    } else {
+        assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name), kx_gen_str_object("create"));
+        assign = kx_gen_bassign_object(KXOP_ASSIGN, assign, obj);
+    }
     kx_object_t *stmt;
     switch (optional) {
     case KX_FUNCTION:
@@ -170,7 +176,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
         break;
     }
     default:
-        stmt = assign;
+        stmt = kx_gen_stmt_object(KXST_EXPR, assign, NULL, NULL);
         break;
     }
     return stmt;

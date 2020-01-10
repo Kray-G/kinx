@@ -1043,11 +1043,17 @@ getdecls()
 		if (lineno > 0)
 			fprintf(fout, "#line %d \"%s\"\n", lineno, replace_sep(srca));
 		s = cpycode();
+		fprintf(fout, "#ifndef YYSTYPE_DECL\n");
+		fprintf(fout, "#define YYSTYPE_DECL\n");
 		fprintf(fout, replace_yy("typedef union %s " SMYY "union;\n"), s);
 		fprintf(fout, replace_yy("#define " LGYY "STYPE " SMYY "union\n"));
+		fprintf(fout, "#endif\n");
 		if (fhdr) {
+            fprintf(fhdr, "#ifndef YYSTYPE_DECL\n");
+            fprintf(fhdr, "#define YYSTYPE_DECL\n");
 			fprintf(fhdr, replace_yy("typedef union %s " SMYY "union;\n"), s);
 			fprintf(fhdr, replace_yy("#define " LGYY "STYPE " SMYY "union\n"));
+			fprintf(fhdr, "#endif\n");
 		}
 		free(s);
 		doty = 1;

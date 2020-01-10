@@ -40,7 +40,7 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ENTER, .value1.i = 10, .value2.i = 1, .count = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHS, .value1.s = "return local value" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_STOREVX, .value1.i = 0, .value2.i = 0 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL, .value1.i = 0, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL0, .value1.i = 0, .value2.i = 0 }));
 
     int fnc8 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ENTER, .value1.i = 10, .value2.i = 1, .count = 0 }));
@@ -48,7 +48,7 @@ int main()
 
     int fnc9 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ENTER, .value1.i = 10, .value2.i = 1, .count = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL, .value1.i = 0, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETVL0, .value1.i = 0, .value2.i = 0 }));
 
     int entry = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ENTER, .value1.i = 6, .value2.i = 3, .count = 0 }));
@@ -93,14 +93,14 @@ int main()
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_CSTR, .value2.s = "return local value" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
 
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVV, .value1.i = 0, .value2.i = 2 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHV, .value1.i = 0, .value2.i = 2 }));
         int call9 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_INT, .value2.i = 100 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
 
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVV, .value1.i = 0, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHV, .value1.i = 0, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KEX_CSTR, .value2.s = "lexical value" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));

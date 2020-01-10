@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <kinx.h>
 
+#ifdef YYDEBUG
 extern int kx_yydebug;
+#endif
 kx_object_t *kx_obj_mgr = NULL;
 kx_object_t *kx_ast_root = NULL;
 
