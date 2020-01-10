@@ -1,0 +1,15 @@
+
+class BaseClassName(i, j, k) {
+    this.x = 10;
+    var n_ = [1,[2,4,[5, 1],[]],3];
+    public method1(j) {
+        return n_[i];
+    }
+    public method2(i, n) {
+        this.x = n;
+        return method1(i);
+    }
+}
+
+var bc = new BaseClassName(0, 1, 2).method1(10);
+return bc;

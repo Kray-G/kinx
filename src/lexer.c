@@ -34,6 +34,7 @@ int get_keyword_token(const char *val)
         break;
     case 'n':
         if (strcmp(val, "null") == 0)       return NUL;
+        if (strcmp(val, "new") == 0)        return NEW;
         break;
     case 'p':
         if (strcmp(val, "public") == 0)     return PUBLIC;
@@ -68,7 +69,7 @@ int kx_lex_make_string()
     }
     if (kx_lex_ctx.ch == '"') {
         kx_lex_next(kx_lex_ctx);
-        kx_yylval.strval = alloc_string("");
+        kx_yylval.strval = const_str("");
         return STR;
     }
 
@@ -85,7 +86,7 @@ int kx_lex_make_string()
     }
 
     kx_strbuf[pos] = 0;
-    kx_yylval.strval = alloc_string(kx_strbuf);
+    kx_yylval.strval = const_str(kx_strbuf);
     kx_lex_next(kx_lex_ctx);
     return STR;
 }
@@ -241,7 +242,7 @@ int kx_yylex()
             kx_lex_next(kx_lex_ctx);
         }
         kx_strbuf[pos] = 0;
-        kx_yylval.strval = alloc_string(kx_strbuf);
+        kx_yylval.strval = const_str(kx_strbuf);
         return get_keyword_token(kx_strbuf);
 
     case '0':

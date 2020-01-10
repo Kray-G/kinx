@@ -169,6 +169,7 @@ static void gc_sweep(kex_context_t *ctx)
             kex_obj_t *v;
             kl_remove_next(obj, ctx->obj_alive, prevobj, &v);
             kv_push(kex_obj_t*, ctx->obj_dead, v);
+            kv_zero(kex_val_t, v->ary);
         }
     }
     kliter_t(fnc) *pfnc, *prevfnc = NULL, *nextfnc;

@@ -82,8 +82,8 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_CALLV:
         printf("%-23s %s, %d", "callv", gen_varloc(code), code->count);
         break;
-    case KX_CALLVL:
-        printf("%-23s %s, %d", "callvl", gen_varloc_local(code), code->count);
+    case KX_CALLVL0:
+        printf("%-23s %s, %d", "callvl0", gen_varloc_local(code), code->count);
         break;
     case KX_CALLVL1:
         printf("%-23s %s, %d", "callvl1", gen_varloc_lexical1(code), code->count);
@@ -92,8 +92,8 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("%-23s %s, %d", "callb", code->value1.s, code->count);
         break;
     KX_IROP(RET,  ret);
-    case KX_RETVL:
-        printf("%-23s %s", "retvl", gen_varloc_local(code));
+    case KX_RETVL0:
+        printf("%-23s %s", "retvl0", gen_varloc_local(code));
         break;
     case KX_RETVL1:
         printf("%-23s %s", "retvl1", gen_varloc_lexical1(code));
@@ -148,11 +148,11 @@ void ir_code_dump_one(int addr, kx_code_t *code)
             printf("%-23s %s => .L%lld", "pushf", code->value1.s, code->value2.i);
         }
         break;
-    case KX_PUSHVV:
-        printf("%-23s %s", "pushvv", gen_varloc(code)); /* push variable value */
+    case KX_PUSHV:
+        printf("%-23s %s", "pushv", gen_varloc(code)); /* push variable value */
         break;
-    case KX_PUSHVL:
-        printf("%-23s %s", "pushvl", gen_varloc(code)); /* push variable l-value */
+    case KX_PUSHLV:
+        printf("%-23s %s", "pushlv", gen_varloc(code)); /* push variable l-value */
         break;
 
     case KX_PUSH_NULL:
@@ -169,11 +169,11 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("%-23s .L%lld(%x)", "pushc", code->value1.i, code->addr);
         break;
 
-    case KX_PUSHVVL:
-        printf("%-23s %s", "pushvvl", gen_varloc_local(code)); /* push variable value of local */
+    case KX_PUSHVL0:
+        printf("%-23s %s", "pushvl0", gen_varloc_local(code)); /* push variable value of local */
         break;
-    case KX_PUSHVVL1:
-        printf("%-23s %s", "pushvvl1", gen_varloc_lexical1(code)); /* push variable value of lexical level 1 */
+    case KX_PUSHVL1:
+        printf("%-23s %s", "pushvl1", gen_varloc_lexical1(code)); /* push variable value of lexical level 1 */
         break;
 
     case KX_POP_C:
@@ -242,6 +242,18 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     case KX_APPLYL:
         printf("applyl");
+        break;
+    case KX_APPLYVI:
+        printf("%-23s %lld", "applyvi", code->value1.i);
+        break;
+    case KX_APPLYLI:
+        printf("%-23s %lld", "applyli", code->value1.i);
+        break;
+    case KX_APPLYVS:
+        printf("%-23s \"%s\"", "applyvs", code->value1.s);
+        break;
+    case KX_APPLYLS:
+        printf("%-23s \"%s\"", "applyls", code->value1.s);
         break;
 
     KX_IROP(APPEND, append);

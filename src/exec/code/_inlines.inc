@@ -139,17 +139,17 @@
 } \
 /**/
 
-#define KEX_SET_PROP(v, name, kexvalp) { \
+#define KEX_SET_PROP(o, name, kexvalp) { \
     int absent;\
-    khash_t(prop) *p = (v)->prop; \
+    khash_t(prop) *p = (o)->prop; \
     khint_t k = kh_put(prop, p, name, &absent); \
     kh_value(p, k) = *(kexvalp); \
 } \
 /**/
 
-#define KEX_SET_PROP_OBJ(v, name, kexobj) { \
+#define KEX_SET_PROP_OBJ(o, name, kexobj) { \
     int absent;\
-    khash_t(prop) *p = (v)->prop; \
+    khash_t(prop) *p = (o)->prop; \
     khint_t k = kh_put(prop, p, name, &absent); \
     kex_val_t *val = &(kh_value(p, k)); \
     val->type = KEX_OBJ; \
@@ -157,9 +157,9 @@
 } \
 /**/
 
-#define KEX_SET_PROP_STR(v, name, strv) { \
+#define KEX_SET_PROP_STR(o, name, strv) { \
     int absent;\
-    khash_t(prop) *p = (v)->prop; \
+    khash_t(prop) *p = (o)->prop; \
     khint_t k = kh_put(prop, p, name, &absent); \
     kex_val_t *val = &(kh_value(p, k)); \
     val->type = KEX_STR; \
@@ -167,25 +167,32 @@
 } \
 /**/
 
-#define KEX_GET_PROP(dst, v, name) { \
-    khash_t(prop) *p = (v)->prop; \
+#define KEX_GET_PROP(dst, o, name) { \
+    khash_t(prop) *p = (o)->prop; \
     khint_t k = kh_get(prop, p, name); \
     if (k != kh_end(p)) { \
-        dst = &(kh_value(p, k));\
+        dst = &(kh_value(p, k)); \
     } \
 } \
 /**/
 
-#define KEX_PUSH_ARRAY_INT(v, val) { \
-    kex_val_t *top = kv_pushp(kex_val_t, (v)->ary); \
-    top->type = KEX_INT;\
-    top->value.iv = (val);\
+#define KEX_PUSH_ARRAY_INT(o, val) { \
+    kex_val_t *top = kv_pushp(kex_val_t, (o)->ary); \
+    top->type = KEX_INT; \
+    top->value.iv = (val); \
 } \
 /**/
 
-#define KEX_PUSH_ARRAY_CSTR(v, val) { \
-    kex_val_t *top = kv_pushp(kex_val_t, (v)->ary); \
-    top->type = KEX_CSTR;\
-    top->value.pv = const_str(val);\
+#define KEX_PUSH_ARRAY_CSTR(o, val) { \
+    kex_val_t *top = kv_pushp(kex_val_t, (o)->ary); \
+    top->type = KEX_CSTR; \
+    top->value.pv = const_str(val); \
+} \
+/**/
+
+#define KEX_GET_ARRAY_ITEM(dst, o, i) { \
+    if ((i) < kv_size((o)->ary)) { \
+        dst = &(kv_A((o)->ary, i)); \
+    } \
 } \
 /**/
