@@ -28,8 +28,8 @@
 |   pop   |   **done**    |
 |  push   |   **done**    |
 |   ret   |   **done**    |
-|   shl   |               |
-|   shr   |               |
+|   shl   |   **done**    |
+|   shr   |   **done**    |
 |  store  |   **done**    |
 |   sub   |   **done**    |
 |  throw  |   **done**    |
