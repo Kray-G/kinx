@@ -1,13 +1,19 @@
 @echo off
 setlocal
-
-SET CFLAGS=/O2 /MT /Iinclude
+set CFLAGS=/O2 /MT /Iinclude
 
 if "%1"=="test" goto TEST_CODE
 
-cl %CFLAGS% /Femyacc.exe utility/myacc.c
-myacc.exe -vd -b kx -y kx_yy -Y KINX_YY src/kinx.y
-REM kmyacc -v -b kx -m kmyacc.c.parser -p kx_yy -L c src/kinx.y
+set YACC=myacc
+if "%YACC%"=="kmyacc" (
+    set CFLAGS=%CFLAGS% /DYYDEBUG
+    kmyacc -vd -b kx -m kmyacc.c.parser -p kx_yy -L c src/kinx.y
+) else (
+    cl %CFLAGS% /Femyacc.exe utility/myacc.c
+    myacc.exe -vd -b kx -y kx_yy -Y KINX_YY src/kinx.y
+)
+del parser.obj
+del lexer.obj
 move kx.tab.c src/parser.c
 move kx.tab.h include/parser.tab.h
 
@@ -19,31 +25,32 @@ goto END
 
 :TEST_CODE
 call :TEST_SETUP
-REM call :TEST_EXEC add
-REM call :TEST_EXEC sub
-REM call :TEST_EXEC mul
-REM call :TEST_EXEC div
-REM call :TEST_EXEC mod
-REM call :TEST_EXEC inc
-REM call :TEST_EXEC dec
-REM call :TEST_EXEC lt
-REM call :TEST_EXEC le
-REM call :TEST_EXEC lge
-REM call :TEST_EXEC gt
-REM call :TEST_EXEC ge
-REM call :TEST_EXEC eqeq
-REM call :TEST_EXEC neq
-REM call :TEST_EXEC and
-REM call :TEST_EXEC or
-REM call :TEST_EXEC xor
-REM call :TEST_EXEC neg
-REM call :TEST_EXEC not
-REM call :TEST_EXEC push
-REM call :TEST_EXEC store
-REM call :TEST_EXEC call
-REM call :TEST_EXEC mkary
-REM call :TEST_EXEC ret
-REM call :TEST_EXEC haltnop
+call :TEST_EXEC apply
+call :TEST_EXEC add
+call :TEST_EXEC sub
+call :TEST_EXEC mul
+call :TEST_EXEC div
+call :TEST_EXEC mod
+call :TEST_EXEC inc
+call :TEST_EXEC dec
+call :TEST_EXEC lt
+call :TEST_EXEC le
+call :TEST_EXEC lge
+call :TEST_EXEC gt
+call :TEST_EXEC ge
+call :TEST_EXEC eqeq
+call :TEST_EXEC neq
+call :TEST_EXEC and
+call :TEST_EXEC or
+call :TEST_EXEC xor
+call :TEST_EXEC neg
+call :TEST_EXEC not
+call :TEST_EXEC push
+call :TEST_EXEC store
+call :TEST_EXEC call
+call :TEST_EXEC mkary
+call :TEST_EXEC ret
+call :TEST_EXEC haltnop
 call :TEST_EXEC trycatch
 call :TEST_EXEC fib
 goto END

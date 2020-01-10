@@ -111,7 +111,7 @@
 /*
     Returns with a local variable.
 */
-#define KX_RETVL_CODE() \
+#define KX_RETVL0_CODE() \
 { \
     kv_shrinkto(ctx.stack, frmv->id); \
     kx_code_t *radr = kv_pop(ctx.stack).value.jp; \

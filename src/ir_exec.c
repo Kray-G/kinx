@@ -3,7 +3,6 @@
 #include <kstr.h>
 #include <kinx.h>
 
-#if defined(KX_EXEC_DEBUG)
 void print_value(kex_val_t *v, int recursive)
 {
     switch (v->type) {
@@ -30,8 +29,12 @@ void print_value(kex_val_t *v, int recursive)
         printf("(str) %s\n", (v->value.sv)->data);
         break;
     case KEX_LVAL:
+        #if defined(KX_EXEC_DEBUG)
         printf("(lval) (frm:%d)->var[%d]\n", v->value.lv->frm, v->value.lv->idx);
         printf("   * ");
+        #else
+        printf("(lval) * ");
+        #endif
         print_value(v->value.lv, 0);
         break;
     case KEX_OBJ: {
@@ -41,7 +44,7 @@ void print_value(kex_val_t *v, int recursive)
             if (!kh_exist(o->prop, i)) continue;
             ++props;
         }
-        printf("(obj) props:%d\n", props);
+        printf("(obj) props:%d, ary:%d\n", props, (int)kv_size(o->ary));
         break;
     }
     case KEX_FNC: {
@@ -90,13 +93,15 @@ void print_stack(kex_context_t *ctx, kex_frm_t *frmv, kex_frm_t *lexv)
         print_value(v, 1);
     }
     size = (int)kv_size(ctx->exception);
-printf("exception size = %d.\n", size); fflush(stdout);
+    printf("exception size = %d.\n", size); fflush(stdout);
     for (int i = 0; i < size; ++i) {
         kex_exc_t *e = &kv_A(ctx->exception, i);
         printf("[%2d] sp = %d, adr = %d\n", i, e->sp, e->code ? e->code->i : -1);
     }
-printf("print_stack done.\n"); fflush(stdout);
+    printf("print_stack done.\n"); fflush(stdout);
 }
+
+#if defined(KX_EXEC_DEBUG)
 #define KX_CASE_(OPCODE) case OPCODE: printf("--------\n"); fflush(stdout); ir_code_dump_one(cur->i, cur); \
                             printf("gc-start.\n"); fflush(stdout); KEX_TRY_GC(); printf("gc-done.\n"); fflush(stdout); \
                             OPCODE##_CODE(); \
@@ -118,7 +123,7 @@ printf("print_stack done.\n"); fflush(stdout);
     case KX_ENTER: goto LBL_KX_ENTER; \
     case KX_CALL: goto LBL_KX_CALL; \
     case KX_CALLV: goto LBL_KX_CALLV; \
-    case KX_CALLVL: goto LBL_KX_CALLVL; \
+    case KX_CALLVL0: goto LBL_KX_CALLVL0; \
     case KX_CALLVL1: goto LBL_KX_CALLVL1; \
     case KX_CALLBLTIN: goto LBL_KX_CALLBLTIN; \
     case KX_RET: goto LBL_KX_RET; \
@@ -126,7 +131,7 @@ printf("print_stack done.\n"); fflush(stdout);
     case KX_RETD: goto LBL_KX_RETD; \
     case KX_RETS: goto LBL_KX_RETS; \
     case KX_RETV: goto LBL_KX_RETV; \
-    case KX_RETVL: goto LBL_KX_RETVL; \
+    case KX_RETVL0: goto LBL_KX_RETVL0; \
     case KX_RETVL1: goto LBL_KX_RETVL1; \
     case KX_RET_NULL: goto LBL_KX_RET_NULL; \
     case KX_THROW: goto LBL_KX_THROW; \
@@ -139,10 +144,10 @@ printf("print_stack done.\n"); fflush(stdout);
     case KX_PUSHD: goto LBL_KX_PUSHD; \
     case KX_PUSHS: goto LBL_KX_PUSHS; \
     case KX_PUSHF: goto LBL_KX_PUSHF; \
-    case KX_PUSHVV: goto LBL_KX_PUSHVV; \
-    case KX_PUSHVVL: goto LBL_KX_PUSHVVL; \
-    case KX_PUSHVVL1: goto LBL_KX_PUSHVVL1; \
-    case KX_PUSHVL: goto LBL_KX_PUSHVL; \
+    case KX_PUSHV: goto LBL_KX_PUSHV; \
+    case KX_PUSHVL0: goto LBL_KX_PUSHVL0; \
+    case KX_PUSHVL1: goto LBL_KX_PUSHVL1; \
+    case KX_PUSHLV: goto LBL_KX_PUSHLV; \
     case KX_PUSH_NULL: goto LBL_KX_PUSH_NULL; \
     case KX_PUSH_TRUE: goto LBL_KX_PUSH_TRUE; \
     case KX_PUSH_FALSE: goto LBL_KX_PUSH_FALSE; \
@@ -407,7 +412,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     KX_CASE_(KX_ENTER) { KX_GOTO(); }
     KX_CASE_(KX_CALL) { KX_GOTO(); }
     KX_CASE_(KX_CALLV) { KX_GOTO(); }
-    KX_CASE_(KX_CALLVL) { KX_GOTO(); }
+    KX_CASE_(KX_CALLVL0) { KX_GOTO(); }
     KX_CASE_(KX_CALLVL1) { KX_GOTO(); }
     KX_CASE_(KX_CALLBLTIN) { KX_GOTO(); }
     KX_CASE_(KX_RET) { KX_GOTO(); }
@@ -415,7 +420,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     KX_CASE_(KX_RETD) { KX_GOTO(); }
     KX_CASE_(KX_RETS) { KX_GOTO(); }
     KX_CASE_(KX_RETV) { KX_GOTO(); }
-    KX_CASE_(KX_RETVL) { KX_GOTO(); }
+    KX_CASE_(KX_RETVL0) { KX_GOTO(); }
     KX_CASE_(KX_RETVL1) { KX_GOTO(); }
     KX_CASE_(KX_RET_NULL) { KX_GOTO(); }
     KX_CASE_(KX_THROW) { KX_GOTO(); }
@@ -429,10 +434,10 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     KX_CASE_(KX_PUSHD) { KX_GOTO(); }
     KX_CASE_(KX_PUSHS) { KX_GOTO(); }
     KX_CASE_(KX_PUSHF) { KX_GOTO(); }
-    KX_CASE_(KX_PUSHVV) { KX_GOTO(); }
-    KX_CASE_(KX_PUSHVL) { KX_GOTO(); }
-    KX_CASE_(KX_PUSHVVL) { KX_GOTO(); }
-    KX_CASE_(KX_PUSHVVL1) { KX_GOTO(); }
+    KX_CASE_(KX_PUSHV) { KX_GOTO(); }
+    KX_CASE_(KX_PUSHLV) { KX_GOTO(); }
+    KX_CASE_(KX_PUSHVL0) { KX_GOTO(); }
+    KX_CASE_(KX_PUSHVL1) { KX_GOTO(); }
 
     KX_CASE_(KX_PUSH_NULL) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_TRUE) { KX_GOTO(); }
@@ -462,9 +467,15 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     KX_CASE_(KX_INCVX) { KX_GOTO(); }
     KX_CASE_(KX_DECVX) { KX_GOTO(); }
     KX_CASE_(KX_MKARY) { KX_GOTO(); }
+    KEX_POP_STACK_TOP(v2); \
+    KEX_GET_STACK_TOP(v1); \
 
     KX_CASE_(KX_APPLYV) { KX_GOTO(); }
     KX_CASE_(KX_APPLYL) { KX_GOTO(); }
+    KX_CASE_(KX_APPLYVI) { KX_GOTO(); }
+    KX_CASE_(KX_APPLYLI) { KX_GOTO(); }
+    KX_CASE_(KX_APPLYVS) { KX_GOTO(); }
+    KX_CASE_(KX_APPLYLS) { KX_GOTO(); }
 
     KX_CASE_(KX_APPEND) { KX_GOTO(); }
     KX_CASE_(KX_APPENDI) { KX_GOTO(); }

@@ -42,7 +42,7 @@
 /*
     Call the function by a local var.
 */
-#define KX_CALLVL_CODE() \
+#define KX_CALLVL0_CODE() \
 { \
     kex_val_t *fv = &kv_A(frmv->v, cur->value2.i); \
     push_value(ctx.stack, *fv); \

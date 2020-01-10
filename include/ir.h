@@ -8,7 +8,7 @@
 #include <kstr.h>
 #include <bigint.h>
 
-#define KX_DEF_PUSH(cmd)  cmd ## I, cmd ## D, cmd ## S, cmd ## F, cmd ## VV, cmd ## VL, cmd ## _NULL, cmd ## _TRUE, cmd ## _FALSE, cmd ## _C
+#define KX_DEF_PUSH(cmd)  cmd ## I, cmd ## D, cmd ## S, cmd ## F, cmd ## V, cmd ## LV, cmd ## _NULL, cmd ## _TRUE, cmd ## _FALSE, cmd ## _C
 #define KX_DEF_IR(cmd)  cmd, cmd ## I, cmd ## D, cmd ## S, cmd ## V
 
 enum irop {
@@ -19,11 +19,11 @@ enum irop {
     KX_ENTER,
     KX_CALL,
     KX_CALLV,
-    KX_CALLVL,
+    KX_CALLVL0,
     KX_CALLVL1,
     KX_CALLBLTIN,
     KX_DEF_IR(KX_RET),
-    KX_RETVL,
+    KX_RETVL0,
     KX_RETVL1,
     KX_RET_NULL,
     KX_THROW,
@@ -34,8 +34,8 @@ enum irop {
     KX_JNZ,
 
     KX_DEF_PUSH(KX_PUSH),
-    KX_PUSHVVL,
-    KX_PUSHVVL1,
+    KX_PUSHVL0,
+    KX_PUSHVL1,
     KX_POP_C,
     KX_POP,
     KX_STORE,
@@ -59,6 +59,10 @@ enum irop {
 
     KX_APPLYV,
     KX_APPLYL,
+    KX_APPLYVI,
+    KX_APPLYLI,
+    KX_APPLYVS,
+    KX_APPLYLS,
     KX_DEF_IR(KX_APPEND),
     KX_DEF_IR(KX_ADD),
     KX_DEF_IR(KX_SUB),

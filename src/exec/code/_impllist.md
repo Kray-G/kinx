@@ -3,7 +3,7 @@
 |   add   |   **done**    |
 |   and   |   **done**    |
 | append  |               |
-|  apply  |               |
+|  apply  |   **done**    |
 |  call   |   **done**    |
 |  catch  |   **done**    |
 |   dec   |   **done**    |

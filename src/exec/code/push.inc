@@ -58,7 +58,7 @@
 } \
 /**/
 
-#define KX_PUSHVL_CODE() \
+#define KX_PUSHLV_CODE() \
 { \
     int lex = cur->value1.i; \
     if (lex) { \
@@ -76,7 +76,7 @@
 } \
 /**/
 
-#define KX_PUSHVV_CODE() \
+#define KX_PUSHV_CODE() \
 { \
     int lex = cur->value1.i; \
     if (lex) { \
@@ -94,7 +94,7 @@
 } \
 /**/
 
-#define KX_PUSHVVL_CODE() \
+#define KX_PUSHVL0_CODE() \
 { \
     /* push a local variable */ \
     push_value(ctx.stack, kv_A(frmv->v, cur->value2.i)); \
@@ -102,7 +102,7 @@
 } \
 /**/
 
-#define KX_PUSHVVL1_CODE() \
+#define KX_PUSHVL1_CODE() \
 { \
     /* push a local variable */ \
     push_value(ctx.stack, kv_A(lexv->v, cur->value2.i)); \
