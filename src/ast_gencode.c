@@ -311,6 +311,8 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         }
         break;
     }
+    KX_DEF_ASSIGNCMD(SHL);
+    KX_DEF_ASSIGNCMD(SHR);
     KX_DEF_ASSIGNCMD(ADD);
     KX_DEF_ASSIGNCMD(SUB);
     KX_DEF_ASSIGNCMD(MUL);
@@ -371,6 +373,8 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         ctx->block = out;
         break;
     }
+    KX_DEF_BINCMD(SHL);
+    KX_DEF_BINCMD(SHR);
     KX_DEF_BINCMD(ADD);
     KX_DEF_BINCMD(SUB);
     KX_DEF_BINCMD(MUL);

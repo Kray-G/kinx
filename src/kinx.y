@@ -23,8 +23,8 @@
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE
 %token NEW VAR FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
-%token EQEQ NEQ LE GE LGE LOR LAND INC DEC
-%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ
+%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
+%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
 %token<strval> NAME
 %token<strval> STR
@@ -58,6 +58,7 @@
 %type<obj> BitAndExpression
 %type<obj> CompareEqualExpression
 %type<obj> CompareExpression
+%type<obj> ShiftExpression
 %type<obj> Expression
 %type<obj> Term
 %type<obj> PrefixExpression
@@ -187,6 +188,8 @@ AssignExpression_Opt
 AssignExpression
     : LogicalOrExpression
     | AssignExpression '=' FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, $3); }
+    | AssignExpression SHLEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHL, $1, $3); }
+    | AssignExpression SHREQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHR, $1, $3); }
     | AssignExpression ADDEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_ADD, $1, $3); }
     | AssignExpression SUBEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SUB, $1, $3); }
     | AssignExpression MULEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_MUL, $1, $3); }
@@ -236,12 +239,18 @@ CompareEqualExpression
     ;
 
 CompareExpression
+    : ShiftExpression
+    | CompareExpression '<' ShiftExpression { $$ = kx_gen_bexpr_object(KXOP_LT, $1, $3); }
+    | CompareExpression LE ShiftExpression { $$ = kx_gen_bexpr_object(KXOP_LE, $1, $3); }
+    | CompareExpression '>' ShiftExpression { $$ = kx_gen_bexpr_object(KXOP_GT, $1, $3); }
+    | CompareExpression GE ShiftExpression { $$ = kx_gen_bexpr_object(KXOP_GE, $1, $3); }
+    | CompareExpression LGE ShiftExpression { $$ = kx_gen_bexpr_object(KXOP_LGE, $1, $3); }
+    ;
+
+ShiftExpression
     : Expression
-    | CompareExpression '<' Expression { $$ = kx_gen_bexpr_object(KXOP_LT, $1, $3); }
-    | CompareExpression LE Expression { $$ = kx_gen_bexpr_object(KXOP_LE, $1, $3); }
-    | CompareExpression '>' Expression { $$ = kx_gen_bexpr_object(KXOP_GT, $1, $3); }
-    | CompareExpression GE Expression { $$ = kx_gen_bexpr_object(KXOP_GE, $1, $3); }
-    | CompareExpression LGE Expression { $$ = kx_gen_bexpr_object(KXOP_LGE, $1, $3); }
+    | ShiftExpression SHL Expression { $$ = kx_gen_bexpr_object(KXOP_SHL, $1, $3); }
+    | ShiftExpression SHR Expression { $$ = kx_gen_bexpr_object(KXOP_SHR, $1, $3); }
     ;
 
 Expression

@@ -31,6 +31,8 @@ call :TEST_EXEC sub
 call :TEST_EXEC mul
 call :TEST_EXEC div
 call :TEST_EXEC mod
+call :TEST_EXEC shl
+call :TEST_EXEC shr
 call :TEST_EXEC inc
 call :TEST_EXEC dec
 call :TEST_EXEC lt
