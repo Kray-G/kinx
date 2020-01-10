@@ -19,7 +19,7 @@
         khash_t(prop) *p = (v)->value.ov->prop; \
         khint_t it = kh_get(prop, p, "_False"); \
         if (it != kh_end(p)) { \
-            kex_val_t *f = kh_val(p, it);\
+            kex_val_t *f = &(kh_value(p, it));\
             tf = f->type != KEX_INT || f->value.iv != 0; \
         } else { \
             tf = 1; \
@@ -49,7 +49,7 @@
         khash_t(prop) *p = (v)->value.ov->prop; \
         khint_t it = kh_get(prop, p, "_False"); \
         if (it != kh_end(p)) { \
-            kex_val_t *f = kh_val(p, it);\
+            kex_val_t *f = &(kh_value(p, it));\
             tf = f->type == KEX_INT && f->value.iv == 0; \
         } else { \
             tf = 0; \
@@ -136,5 +136,56 @@
         break; \
     }\
     cur = cur->next; \
+} \
+/**/
+
+#define KEX_SET_PROP(v, name, kexvalp) { \
+    int absent;\
+    khash_t(prop) *p = (v)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kh_value(p, k) = *(kexvalp); \
+} \
+/**/
+
+#define KEX_SET_PROP_OBJ(v, name, kexobj) { \
+    int absent;\
+    khash_t(prop) *p = (v)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kex_val_t *val = &(kh_value(p, k)); \
+    val->type = KEX_OBJ; \
+    val->value.ov = kexobj; \
+} \
+/**/
+
+#define KEX_SET_PROP_STR(v, name, strv) { \
+    int absent;\
+    khash_t(prop) *p = (v)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kex_val_t *val = &(kh_value(p, k)); \
+    val->type = KEX_STR; \
+    val->value.sv = strv; \
+} \
+/**/
+
+#define KEX_GET_PROP(dst, v, name) { \
+    khash_t(prop) *p = (v)->prop; \
+    khint_t k = kh_get(prop, p, name); \
+    if (k != kh_end(p)) { \
+        dst = &(kh_value(p, k));\
+    } \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_INT(v, val) { \
+    kex_val_t *top = kv_pushp(kex_val_t, (v)->ary); \
+    top->type = KEX_INT;\
+    top->value.iv = (val);\
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_CSTR(v, val) { \
+    kex_val_t *top = kv_pushp(kex_val_t, (v)->ary); \
+    top->type = KEX_CSTR;\
+    top->value.pv = const_str(val);\
 } \
 /**/

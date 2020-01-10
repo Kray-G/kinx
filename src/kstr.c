@@ -314,6 +314,41 @@ ks_trim(kstr_t *self) {
 }
 
 /*
+ * Trim leading char.
+ */
+
+void
+ks_trim_left_char(kstr_t *self, char ch) {
+  int c;
+  while ((c = *self->data) && (c == ch)) {
+    ++self->data;
+  }
+}
+
+/*
+ * Trim trailing char.
+ */
+
+void
+ks_trim_right_char(kstr_t *self, char ch) {
+  int c;
+  size_t i = ks_length(self) - 1;
+  while ((c = self->data[i]) && (c == ch)) {
+    self->data[i--] = 0;
+  }
+}
+
+/*
+ * Trim trailing and leading whitespace.
+ */
+
+void
+ks_trim_char(kstr_t *self, char ch) {
+  ks_trim_left_char(self, ch);
+  ks_trim_right_char(self, ch);
+}
+
+/*
  * Fill the buffer with `c`.
  */
 

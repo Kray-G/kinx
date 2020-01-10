@@ -104,6 +104,7 @@ typedef struct kx_code_ {
         const char *s;
     } value1, value2;
     const char *file;
+    const char *func;
     uint32_t line;
 } kx_code_t;
 kvec_init_t(kx_code_t);
@@ -142,6 +143,7 @@ kvec_init_t(kx_function_t);
 
 typedef struct kx_context_ {
     int def_func;
+    int classname;
     int function;
     int block;
     int label;     /* last break block */
@@ -164,8 +166,6 @@ extern void free_ir_info(void);
 struct kex_obj_;
 struct kex_fnc_;
 struct kex_frm_;
-
-KHASH_MAP_INIT_STR(prop, struct kex_val_ *)
 
 enum irexec {
     KEX_UND = 0,    /* undefined(null) must be 0 because it becomes undefined after clearing with 0. */
@@ -202,6 +202,9 @@ typedef struct kex_val_ {
     #endif
 } kex_val_t;
 kvec_init_t(kex_val_t);
+
+KHASH_MAP_INIT_STR(prop, kex_val_t)
+
 #if defined(KX_EXEC_DEBUG)
 #define KEX_SAVE_VARINFO(v) int vinfo_frm = (v).frm, vinfo_idx = (v).idx;
 #define KEX_RESTORE_VARINFO(v) (v).frm = vinfo_frm; (v).idx = vinfo_idx;
@@ -231,6 +234,7 @@ kvec_init_pt(kex_fnc_t);
 typedef struct kex_obj_ {
     uint8_t mark;
     khash_t(prop) *prop;
+    kvec_t(kex_val_t) ary;
 } kex_obj_t;
 kvec_init_t(kex_obj_t);
 kvec_init_pt(kex_obj_t);
@@ -258,7 +262,7 @@ typedef struct kex_context_ {
     kvec_t(kex_val_t) stack;
     kvec_t(kex_exc_t) exception;
 
-    kex_val_t *excval;
+    kex_val_t excval;
     klist_t(big) *big_alive;
     kvec_pt(bigint_t) big_dead;
     klist_t(str) *str_alive;

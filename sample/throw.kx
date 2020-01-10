@@ -1,0 +1,23 @@
+var r = 0;
+
+function f(e) {
+    throw e;
+}
+
+function g(i) {
+    try {
+        f(i);
+    } finally {
+        r = 10;
+    }
+}
+
+try {
+    g(100);
+} catch (e) {
+    r = 20;
+} finally {
+    r = 100;
+}
+
+return r;
