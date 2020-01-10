@@ -113,6 +113,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     }
     case KXOP_ASSIGN:
+    case KXOP_ASSIGN_SHL:
+    case KXOP_ASSIGN_SHR:
     case KXOP_ASSIGN_ADD:
     case KXOP_ASSIGN_SUB:
     case KXOP_ASSIGN_MUL:
@@ -130,6 +132,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->rhs, ctx);
         break;
     }
+    case KXOP_SHL:
+    case KXOP_SHR:
     case KXOP_ADD:
     case KXOP_SUB:
     case KXOP_MUL:

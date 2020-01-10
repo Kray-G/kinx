@@ -23,6 +23,8 @@ void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
     case KXOP_DECP:       /* postfix */
 
     case KXOP_ASSIGN:
+    case KXOP_ASSIGN_SHL:
+    case KXOP_ASSIGN_SHR:
     case KXOP_ASSIGN_ADD:
     case KXOP_ASSIGN_SUB:
     case KXOP_ASSIGN_MUL:
@@ -33,6 +35,8 @@ void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
     case KXOP_ASSIGN_XOR:
     case KXOP_ASSIGN_LAND:
     case KXOP_ASSIGN_LOR:
+    case KXOP_SHL:
+    case KXOP_SHR:
     case KXOP_ADD:
     case KXOP_SUB:
     case KXOP_MUL:

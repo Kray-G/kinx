@@ -138,6 +138,14 @@ int kx_yylex()
             kx_lex_next(kx_lex_ctx);
             return GE;
         }
+        if (kx_lex_ctx.ch == '>') {
+            kx_lex_next(kx_lex_ctx);
+            if (kx_lex_ctx.ch == '=') {
+                kx_lex_next(kx_lex_ctx);
+                return SHLEQ;
+            }
+            return SHL;
+        }
         return '>';
     case '<':
         kx_lex_next(kx_lex_ctx);
@@ -148,6 +156,14 @@ int kx_yylex()
                 return LGE;
             }
             return LE;
+        }
+        if (kx_lex_ctx.ch == '<') {
+            kx_lex_next(kx_lex_ctx);
+            if (kx_lex_ctx.ch == '=') {
+                kx_lex_next(kx_lex_ctx);
+                return SHREQ;
+            }
+            return SHR;
         }
         return '<';
     case '|':
