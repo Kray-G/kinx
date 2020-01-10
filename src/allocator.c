@@ -9,14 +9,18 @@ kex_obj_t *init_object(kex_obj_t *o)
 {
     if (!o->prop) {
         o->prop = kh_init(prop);
+        kv_init(o->ary);
     } else {
         kh_clear(prop, o->prop);
+        kv_shrinkto(o->ary, 0);
     }
     return o;
 }
 
 static void gc_unmark(kex_context_t *ctx)
 {
+    ctx->excval.mark = 0;
+
     int size = kv_size(ctx->stack);
     for (int i = 0; i < size; ++i) {
         kex_val_t *c = &kv_A(ctx->stack, i);
@@ -59,8 +63,12 @@ static void gc_mark_obj(kex_obj_t *c)
     c->mark = 1;
     for (khint_t k = 0; k < kh_end(c->prop); ++k) {
         if (kh_exist(c->prop, k)) {
-            gc_mark_val(kh_val(c->prop, k));
+            gc_mark_val(&(kh_value(c->prop, k)));
         }
+    }
+    int len = kv_size(c->ary);
+    for (int i = 0; i < len; ++i) {
+        gc_mark_val(&(kv_A(c->ary, i)));
     }
 }
 
@@ -205,6 +213,8 @@ void gc_mark_and_sweep(kex_context_t *ctx)
     #if defined(KX_EXEC_DEBUG)
     print_gc_info(ctx);
     #endif
+    gc_mark_val(&(ctx->excval));
+
     kvec_t(kex_val_t) stack = ctx->stack;
     int size = kv_size(stack);
     for (int i = 0; i < size; ++i) {
@@ -235,6 +245,7 @@ void gc_object_cleanup(kex_context_t *ctx)
     for (pobj = kl_begin(ctx->obj_alive); pobj != kl_end(ctx->obj_alive); pobj = kl_next(pobj)) {
         kex_obj_t *o = kl_val(pobj);
         kh_destroy(prop, o->prop);
+        kv_destroy(o->ary);
         free(o);
     }
     kliter_t(fnc) *pfnc;
@@ -260,6 +271,7 @@ void gc_object_cleanup(kex_context_t *ctx)
     for (i = 0; i < l; ++i) {
         kex_obj_t *o = kv_A(ctx->obj_dead, i);
         kh_destroy(prop, o->prop);
+        kv_destroy(o->ary);
         free(o);
     }
     l = kv_size(ctx->fnc_dead);

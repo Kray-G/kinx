@@ -7,7 +7,7 @@
 |  call   |   **done**    |
 |  catch  |   **done**    |
 |   dec   |   **done**    |
-|   div   |               |
+|   div   |   **done**    |
 |  enter  |   **done**    |
 |  eqeq   |   **done**    |
 |   ge    |   **done**    |
@@ -19,8 +19,8 @@
 |   lge   |   **done**    |
 |   lt    |   **done**    |
 |  mkary  |   **done**    |
-|   mod   |               |
-|   mul   |               |
+|   mod   |   **done**    |
+|   mul   |   **done**    |
 |   neg   |   **done**    |
 |   neq   |   **done**    |
 |   not   |   **done**    |

@@ -205,6 +205,7 @@ extern kx_object_t *kx_ast_root;
 extern const char *alloc_string(const char *str);
 extern void free_string(void);
 const char *const_str(const char* name);
+const char *const_str2(const char* classname, const char* name);
 
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name);

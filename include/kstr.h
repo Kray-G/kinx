@@ -99,6 +99,15 @@ void
 ks_trim(kstr_t *self);
 
 void
+ks_trim_left_char(kstr_t *self, char ch);
+
+void
+ks_trim_right_char(kstr_t *self, char ch);
+
+void
+ks_trim_char(kstr_t *self, char ch);
+
+void
 ks_print(kstr_t *self);
 
 #define ks_string(self) (self->data)

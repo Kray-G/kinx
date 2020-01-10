@@ -100,7 +100,7 @@
     case KEX_STR: { \
         int n = bigint_write_size(val, 10); \
         char *buf = malloc(n); \
-        ks_appendf((v1)->value.sv, "%s", bigint_write(buf, n, val)); \
+        ks_append((v1)->value.sv, bigint_write(buf, n, val)); \
         free(buf); \
         break; \
     } \
@@ -155,7 +155,7 @@
     } else switch ((v1)->type) { \
     case KEX_UND: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s", val); \
+        ks_append(s, val); \
         (v1)->value.sv = s; \
         (v1)->type = KEX_STR; \
         break; \
@@ -185,7 +185,7 @@
         break; \
     } \
     case KEX_STR: { \
-        ks_appendf((v1)->value.sv, "%s", val); \
+        ks_append((v1)->value.sv, val); \
         break; \
     } \
     default: \
