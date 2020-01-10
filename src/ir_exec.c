@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <kvec.h>
 #include <kstr.h>
-#include <ir.h>
+#include <kinx.h>
 
 #if defined(KX_EXEC_DEBUG)
 void print_value(kex_val_t *v, int recursive)
@@ -303,10 +303,100 @@ printf("print_stack done.\n"); fflush(stdout);
 #include "exec/code/gt.inc"
 #include "exec/code/lge.inc"
 
+static inline void print_uncaught_exception(kex_obj_t *val)
+{
+    printf("Uncaught Exception:");
+    kex_val_t *styp = NULL;
+    KEX_GET_PROP(styp, val, "_type");
+    if (styp && styp->type == KEX_STR) {
+        printf("%s: ", ks_string(styp->value.sv));
+    }
+    kex_val_t *swht = NULL;
+    KEX_GET_PROP(swht, val, "_what");
+    if (swht && swht->type == KEX_STR) {
+        printf("%s", ks_string(swht->value.sv));
+    }
+    printf("\n");
+    kex_val_t *trace = NULL;
+    KEX_GET_PROP(trace, val, "_trace");
+    if (trace && trace->type == KEX_OBJ) {
+        kex_obj_t *obj = trace->value.ov;
+        int i = kv_size(obj->ary) - 1;
+        while (i >= 0) {
+            kex_val_t *v1 = &(kv_A(obj->ary, i--));
+            if (v1->type != KEX_INT) break;
+            int line = v1->value.iv;
+            if (i < 0) break;
+
+            v1 = &(kv_A(obj->ary, i--));
+            if (v1->type != KEX_CSTR) break;
+            const char *func = v1->value.pv;
+            if (i < 0) break;
+
+            v1 = &(kv_A(obj->ary, i--));
+            if (v1->type != KEX_CSTR) break;
+            const char *file = v1->value.pv;
+
+            printf("        at %s (%s:%d)\n", func, file, line);
+        }
+    }
+}
+
+static inline void make_exception_object(kex_val_t *v, kex_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht)
+{
+    if (!typ) {
+        *v = kv_pop(ctx->stack);
+        if (v->type != KEX_OBJ) {
+            kex_obj_t *val = allocate_obj(*ctx);
+            KEX_SET_PROP(val, "_value", v);
+            kstr_t *styp = allocate_str(*ctx);
+            ks_append(styp, "UnknownException");
+            KEX_SET_PROP_STR(val, "_type", styp);
+            kstr_t *swht = allocate_str(*ctx);
+            ks_append(swht, "No message");
+            KEX_SET_PROP_STR(val, "_what", swht);
+            v->type = KEX_OBJ;
+            v->value.ov = val;
+        }
+    } else {
+        kex_obj_t *val = allocate_obj(*ctx);
+        kstr_t *styp = allocate_str(*ctx);
+        ks_append(styp, typ);
+        KEX_SET_PROP_STR(val, "_type", styp);
+        kstr_t *swht = allocate_str(*ctx);
+        ks_append(swht, wht);
+        KEX_SET_PROP_STR(val, "_what", swht);
+        v->type = KEX_OBJ;
+        v->value.ov = val;
+    }
+    kex_val_t *trace = NULL;
+    KEX_GET_PROP(trace, v->value.ov, "_trace");
+    if (!trace || trace->type != KEX_OBJ) {
+        kex_obj_t *obj = allocate_obj(*ctx);
+        KEX_PUSH_ARRAY_CSTR(obj, cur->file);
+        KEX_PUSH_ARRAY_CSTR(obj, cur->func);
+        KEX_PUSH_ARRAY_INT(obj, cur->line);
+        KEX_SET_PROP_OBJ(v->value.ov, "_trace", obj);
+    }
+}
+
+static inline void update_exception_object(kex_context_t *ctx, kx_code_t *cur)
+{
+    if (ctx->excval.type == KEX_OBJ) { \
+        kex_obj_t *val = ctx->excval.value.ov; \
+        kex_val_t *trace = NULL; \
+        KEX_GET_PROP(trace, val, "_trace"); \
+        if (trace && trace->type == KEX_OBJ) { \
+            KEX_PUSH_ARRAY_CSTR(trace->value.ov, cur->file); \
+            KEX_PUSH_ARRAY_CSTR(trace->value.ov, cur->func); \
+            KEX_PUSH_ARRAY_INT(trace->value.ov, cur->line); \
+        } \
+    } \
+}
+
 static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
 {
     KX_EXEC_SETUP(fixcode);
-
 
     KX_CASE_BEGIN() {
 

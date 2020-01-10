@@ -36,6 +36,16 @@ const char *const_str(const char* name)
     return kh_key(g_conststr, k);
 }
 
+const char *const_str2(const char* classname, const char* name)
+{
+    int len = strlen(classname) + strlen(name) + 2;
+    char *buf = malloc(len);
+    sprintf(buf, "%s#%s", classname, name);
+    const char *r = const_str(buf);
+    free(buf);
+    return r;
+}
+
 void free_string(void)
 {
     string_list_t *head = g_head;

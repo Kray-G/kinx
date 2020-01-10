@@ -21,8 +21,11 @@ goto END
 call :TEST_SETUP
 REM call :TEST_EXEC add
 REM call :TEST_EXEC sub
+REM call :TEST_EXEC mul
+REM call :TEST_EXEC div
+REM call :TEST_EXEC mod
 REM call :TEST_EXEC inc
-call :TEST_EXEC dec
+REM call :TEST_EXEC dec
 REM call :TEST_EXEC lt
 REM call :TEST_EXEC le
 REM call :TEST_EXEC lge
@@ -41,7 +44,7 @@ REM call :TEST_EXEC call
 REM call :TEST_EXEC mkary
 REM call :TEST_EXEC ret
 REM call :TEST_EXEC haltnop
-REM call :TEST_EXEC trycatch
+call :TEST_EXEC trycatch
 call :TEST_EXEC fib
 goto END
 
