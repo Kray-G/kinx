@@ -1,5 +1,5 @@
 #define KX_MUL_MUL_I(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         int64_t v2val = (val); \
         if ((v1val > 0 && v2val > 0) || (v1val < 0 && v2val < 0)) { \
@@ -9,7 +9,7 @@
                 bigint_t *bi = allocate_big(ctx); \
                 bigint_from_int64(bi, v1val); \
                 (v1)->value.bv = bigint_mul(bi, bi, b2); \
-                (v1)->type = KEX_BIG; \
+                (v1)->type = KX_BIG_T; \
             } else { \
                 (v1)->value.iv = v1val * v2val; \
             } \
@@ -20,7 +20,7 @@
                 bigint_t *bi = allocate_big(ctx); \
                 bigint_from_int64(bi, v1val); \
                 (v1)->value.bv = bigint_mul(bi, bi, b2); \
-                (v1)->type = KEX_BIG; \
+                (v1)->type = KX_BIG_T; \
             } else { \
                 (v1)->value.iv = v1val * v2val; \
             } \
@@ -28,15 +28,15 @@
             (v1)->value.iv *= v2val; \
         } \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         if (val == 0) { \
             (v1)->value.iv = 0; \
-            (v1)->type = KEX_INT; \
+            (v1)->type = KX_INT_T; \
         } else { \
             bigint_t *b2 = allocate_big(ctx); \
             bigint_from_int64(b2, val); \
@@ -44,21 +44,21 @@
         } \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv *= (val); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         const char *pv = (v1)->value.pv; \
         kstr_t *s = allocate_str(ctx); \
         for (int i = 0; i < val; ++i) { \
             ks_append(s, pv); \
         } \
         (v1)->value.sv = s; \
-        (v1)->type = KEX_STR; \
+        (v1)->type = KX_STR_T; \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         const char *pv = ks_string((v1)->value.sv); \
         kstr_t *s = allocate_str(ctx); \
         for (int i = 0; i < val; ++i) { \
@@ -75,26 +75,26 @@
 /**/
 #define KX_MUL_MUL_B(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         if ((v1)->value.iv != 0) { \
             bigint_t *bi = allocate_big(ctx); \
             bigint_from_int64(bi, (v1)->value.iv); \
             (v1)->value.bv = bigint_mul(bi, bi, val); \
-            (v1)->type = KEX_BIG; \
+            (v1)->type = KX_BIG_T; \
         } \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_mul((v1)->value.bv, (v1)->value.bv, val); \
-        (v1)->type = KEX_BIG; \
+        (v1)->type = KX_BIG_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv *= bigint_double(val); \
         break; \
     } \
@@ -106,26 +106,26 @@
 /**/
 #define KX_MUL_MUL_D(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         (v1)->value.dv = (double)(v1)->value.iv * (val); \
-        (v1)->type = KEX_DBL; \
+        (v1)->type = KX_DBL_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         (v1)->value.dv = bigint_double((v1)->value.bv) * (val); \
-        (v1)->type = KEX_DBL; \
+        (v1)->type = KX_DBL_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv *= (val); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         kstr_t *s = allocate_str(ctx); \
         const char *pv = (v1)->value.pv; \
         int len = (int)val; \
@@ -133,10 +133,10 @@
             ks_append(s, pv); \
         } \
         (v1)->value.sv = s; \
-        (v1)->type = KEX_STR; \
+        (v1)->type = KX_STR_T; \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         kstr_t *s = allocate_str(ctx); \
         const char *pv = ks_string((v1)->value.sv); \
         int len = (int)val; \
@@ -154,12 +154,12 @@
 /**/
 #define KX_MUL_MUL_S(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.sv = allocate_str(ctx); \
-        (v1)->type = KEX_STR; \
+        (v1)->type = KX_STR_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         kstr_t *s = allocate_str(ctx); \
         const char *pv = (v1)->value.pv; \
         int64_t len = (v1)->value.iv; \
@@ -167,10 +167,10 @@
             ks_append(s, val); \
         } \
         (v1)->value.sv = s; \
-        (v1)->type = KEX_STR; \
+        (v1)->type = KX_STR_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         kstr_t *s = allocate_str(ctx); \
         const char *pv = val; \
         int len = (int)(v1)->value.dv; \
@@ -178,7 +178,7 @@
             ks_append(s, pv); \
         } \
         (v1)->value.sv = s; \
-        (v1)->type = KEX_STR; \
+        (v1)->type = KX_STR_T; \
         break; \
     } \
     default: \
@@ -188,32 +188,32 @@
 } \
 /**/
 #define KX_MUL_MUL_V(v1, v2) {\
-    if ((v2)->type == KEX_INT) { \
+    if ((v2)->type == KX_INT_T) { \
         KX_MUL_MUL_I(v1, (v2)->value.iv); \
     } else switch ((v2)->type) { \
-    case KEX_UND: { \
-        if ((v1)->type == KEX_CSTR || (v1)->type == KEX_STR) { \
+    case KX_UND_T: { \
+        if ((v1)->type == KX_CSTR_T || (v1)->type == KX_STR_T) { \
             (v1)->value.sv = allocate_str(ctx); \
-            (v1)->type = KEX_STR; \
+            (v1)->type = KX_STR_T; \
         } else { \
             (v1)->value.iv = 0; \
-            (v1)->type = KEX_INT; \
+            (v1)->type = KX_INT_T; \
         } \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         KX_MUL_MUL_B(v1, (v2)->value.bv); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         KX_MUL_MUL_D(v1, (v2)->value.dv); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         KX_MUL_MUL_S(v1, (v2)->value.pv); \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         KX_MUL_MUL_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \

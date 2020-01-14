@@ -1,32 +1,32 @@
 #define KX_DEC_DEC(v1) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         if (v1val == INT64_MIN) { \
             bigint_t *bi = allocate_big(ctx); \
             bigint_from_int64(bi, v1val); \
             (v1)->value.bv = bigint_sub_word(bi, bi, 1); \
-            (v1)->type = KEX_BIG; \
+            (v1)->type = KX_BIG_T; \
         } else { \
             --((v1)->value.iv); \
         } \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = -1; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_t *bv = (v1)->value.bv; \
         int chk = (!bv->neg) && (bv->size == 2) && (bv->words[0] == 0) && (bv->words[1] == 0x80000000); \
         if (chk) { \
             (v1)->value.iv = INT64_MAX; \
-            (v1)->type = KEX_INT; \
+            (v1)->type = KX_INT_T; \
         } else { \
             bigint_sub_word((v1)->value.bv, (v1)->value.bv, 1); \
         } \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv -= 1.0; \
         break; \
     } \
@@ -48,11 +48,11 @@
 #define KX_DECP_CODE() \
 { \
     KEX_POP_STACK_TOP(v1); \
-    if (v1->type != KEX_LVAL) { \
+    if (v1->type != KX_LVAL_T) { \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
     } \
     v1 = v1->value.lv; \
-    push_value(ctx.stack, *v1); \
+    push_value((ctx)->stack, *v1); \
     KX_DEC_DEC(v1); \
     cur = cur->next; \
 } \
@@ -62,7 +62,7 @@
 { \
     KEX_GET_VAR_ADDR(v1); \
     KX_DEC_DEC(v1); \
-    push_value(ctx.stack, *v1); \
+    push_value((ctx)->stack, *v1); \
     cur = cur->next; \
 } \
 /**/
@@ -70,7 +70,7 @@
 #define KX_DECVP_CODE() \
 { \
     KEX_GET_VAR_ADDR(v1); \
-    push_value(ctx.stack, *v1); \
+    push_value((ctx)->stack, *v1); \
     KX_DEC_DEC(v1); \
     cur = cur->next; \
 } \

@@ -345,14 +345,14 @@ DeclAssignExpression
     ;
 
 FunctionDeclStatement
-    : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KX_FUNCTION, $2, $4, $6, NULL); }
-    | PUBLIC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KX_PUBLIC, $2, $4, $6, NULL); }
-    | PRIVATE NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KX_PRIVATE, $2, $4, $6, NULL); }
-    | PROTECTED NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KX_PROTECTED, $2, $4, $6, NULL); }
+    : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, $4, $6, NULL); }
+    | PUBLIC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, $2, $4, $6, NULL); }
+    | PRIVATE NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PRIVATE, $2, $4, $6, NULL); }
+    | PROTECTED NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PROTECTED, $2, $4, $6, NULL); }
     ;
 
 ClassDeclStatement
-    : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KX_CLASS, $2, $3, $5, $4); }
+    : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KXFT_CLASS, $2, $3, $5, $4); }
     ;
 
 Inherit_Opt
@@ -398,5 +398,5 @@ CallArgumentList
 
 int yyerror(const char* msg)
 {
-    return printf("Error: %s at %d (pos:%d)\n", msg, kx_lex_ctx.line, kx_lex_ctx.pos);
+    return printf("Error: %s at %d (pos:%d)\n", msg, kx_lexinfo.line, kx_lexinfo.pos);
 }

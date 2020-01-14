@@ -70,7 +70,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXVL_FALSE:
         break;
 
-    case KX_VAR: {
+    case KXOP_VAR: {
         kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
         if (!sym) {
             return;
@@ -79,7 +79,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         node->lexical = sym->lexical_index;
         break;
     }
-    case KX_KEYVALUE:
+    case KXOP_KEYVALUE:
         break;
 
     case KXOP_POSITIVE:

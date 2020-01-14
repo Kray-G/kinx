@@ -1,11 +1,22 @@
 #include <ir.h>
 
-static void gc_mark_obj(kex_obj_t *c);
-static void gc_mark_fnc(kex_fnc_t *c);
-static void gc_mark_frm(kex_frm_t *c);
-static void gc_mark_val(kex_val_t *c);
+static void gc_mark_obj(kx_obj_t *c);
+static void gc_mark_fnc(kx_fnc_t *c);
+static void gc_mark_frm(kx_frm_t *c);
+static void gc_mark_val(kx_val_t *c);
 
-kex_obj_t *init_object(kex_obj_t *o)
+kx_context_t *make_context(void)
+{
+    kx_context_t *ctx = calloc(1, sizeof(kx_context_t));
+    ctx->frm_alive = kl_init(frm);
+    ctx->fnc_alive = kl_init(fnc);
+    ctx->obj_alive = kl_init(obj);
+    ctx->big_alive = kl_init(big);
+    ctx->str_alive = kl_init(str);
+    return ctx;
+}
+
+kx_obj_t *init_object(kx_obj_t *o)
 {
     if (!o->prop) {
         o->prop = kh_init(prop);
@@ -17,13 +28,13 @@ kex_obj_t *init_object(kex_obj_t *o)
     return o;
 }
 
-static void gc_unmark(kex_context_t *ctx)
+static void gc_unmark(kx_context_t *ctx)
 {
     ctx->excval.mark = 0;
 
     int size = kv_size(ctx->stack);
     for (int i = 0; i < size; ++i) {
-        kex_val_t *c = &kv_A(ctx->stack, i);
+        kx_val_t *c = &kv_A(ctx->stack, i);
         c->mark = 0;
     }
 
@@ -45,7 +56,7 @@ static void gc_unmark(kex_context_t *ctx)
     }
     kliter_t(frm) *pfrm;
     for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = kl_next(pfrm)) {
-        kex_frm_t *c = kl_val(pfrm);
+        kx_frm_t *c = kl_val(pfrm);
         c->mark = 0;
         int len = kv_size(c->v);
         for (int i = 0; i < len; ++i) {
@@ -54,7 +65,7 @@ static void gc_unmark(kex_context_t *ctx)
     }
 }
 
-static void gc_mark_obj(kex_obj_t *c)
+static void gc_mark_obj(kx_obj_t *c)
 {
     if (c->mark) {
         return;
@@ -72,7 +83,7 @@ static void gc_mark_obj(kex_obj_t *c)
     }
 }
 
-static void gc_mark_fnc(kex_fnc_t *c)
+static void gc_mark_fnc(kx_fnc_t *c)
 {
     if (c->mark) {
         return;
@@ -84,7 +95,7 @@ static void gc_mark_fnc(kex_fnc_t *c)
     }
 }
 
-static void gc_mark_frm(kex_frm_t *c)
+static void gc_mark_frm(kx_frm_t *c)
 {
     if (c->mark) {
         return;
@@ -97,42 +108,42 @@ static void gc_mark_frm(kex_frm_t *c)
 
     int len = kv_size(c->v);
     for (int i = 0; i < len; ++i) {
-        kex_val_t *v = &kv_A(c->v, i);
+        kx_val_t *v = &kv_A(c->v, i);
         gc_mark_val(v);
     }
 }
 
-static void gc_mark_val(kex_val_t *c)
+static void gc_mark_val(kx_val_t *c)
 {
     if (c->mark) {
         return;
     }
 
     switch (c->type) {
-    case KEX_BIG:
+    case KX_BIG_T:
         c->mark = 1;
         c->value.bv->mark = 1;
         break;
-    case KEX_STR:
+    case KX_STR_T:
         c->mark = 1;
         c->value.sv->mark = 1;
         break;
-    case KEX_OBJ:
+    case KX_OBJ_T:
         c->mark = 1;
         gc_mark_obj(c->value.ov);
         break;
-    case KEX_FNC:
+    case KX_FNC_T:
         c->mark = 1;
         gc_mark_fnc(c->value.fn);
         break;
-    case KEX_FRM:
+    case KX_FRM_T:
         c->mark = 1;
         gc_mark_frm(c->value.fr);
         break;
     }
 }
 
-static void gc_sweep(kex_context_t *ctx)
+static void gc_sweep(kx_context_t *ctx)
 {
     kliter_t(str) *pstr, *prevstr = NULL, *nextstr;
     for (pstr = kl_begin(ctx->str_alive); pstr != kl_end(ctx->str_alive); pstr = nextstr) {
@@ -166,10 +177,10 @@ static void gc_sweep(kex_context_t *ctx)
         if (kl_val(pobj)->mark) {
             prevobj = pobj;
         } else {
-            kex_obj_t *v;
+            kx_obj_t *v;
             kl_remove_next(obj, ctx->obj_alive, prevobj, &v);
-            kv_push(kex_obj_t*, ctx->obj_dead, v);
-            kv_zero(kex_val_t, v->ary);
+            kv_push(kx_obj_t*, ctx->obj_dead, v);
+            kv_zero(kx_val_t, v->ary);
         }
     }
     kliter_t(fnc) *pfnc, *prevfnc = NULL, *nextfnc;
@@ -178,9 +189,9 @@ static void gc_sweep(kex_context_t *ctx)
         if (kl_val(pfnc)->mark) {
             prevfnc = pfnc;
         } else {
-            kex_fnc_t *v;
+            kx_fnc_t *v;
             kl_remove_next(fnc, ctx->fnc_alive, prevfnc, &v);
-            kv_push(kex_fnc_t*, ctx->fnc_dead, v);
+            kv_push(kx_fnc_t*, ctx->fnc_dead, v);
         }
     }
     kliter_t(frm) *pfrm, *prevfrm = NULL, *nextfrm;
@@ -189,15 +200,15 @@ static void gc_sweep(kex_context_t *ctx)
         if (kl_val(pfrm)->mark) {
             prevfrm = pfrm;
         } else {
-            kex_frm_t *v;
+            kx_frm_t *v;
             kl_remove_next(frm, ctx->frm_alive, prevfrm, &v);
-            kv_push(kex_frm_t*, ctx->frm_dead, v);
-            kv_zero(kex_val_t, v->v);
+            kv_push(kx_frm_t*, ctx->frm_dead, v);
+            kv_zero(kx_val_t, v->v);
         }
     }
 }
 
-static void print_gc_info(kex_context_t *ctx)
+static void print_gc_info(kx_context_t *ctx)
 {
     printf("  * stack: %d\n", kv_size(ctx->stack));
     printf("    alive(str) = %d, buf(%d)\n", ctx->str_alive->size, kv_size(ctx->str_dead));
@@ -207,7 +218,7 @@ static void print_gc_info(kex_context_t *ctx)
     printf("    alive(frm) = %d, buf(%d)\n", ctx->frm_alive->size, kv_size(ctx->frm_dead));
 }
 
-void gc_mark_and_sweep(kex_context_t *ctx)
+void gc_mark_and_sweep(kx_context_t *ctx)
 {
     gc_unmark(ctx);
 
@@ -216,10 +227,10 @@ void gc_mark_and_sweep(kex_context_t *ctx)
     #endif
     gc_mark_val(&(ctx->excval));
 
-    kvec_t(kex_val_t) stack = ctx->stack;
+    kvec_t(kx_val_t) stack = ctx->stack;
     int size = kv_size(stack);
     for (int i = 0; i < size; ++i) {
-        kex_val_t *c = &kv_A(stack, i);
+        kx_val_t *c = &kv_A(stack, i);
         c->mark = 0;
         gc_mark_val(c);
     }
@@ -230,7 +241,7 @@ void gc_mark_and_sweep(kex_context_t *ctx)
     #endif
 }
 
-void gc_object_cleanup(kex_context_t *ctx)
+static void gc_object_cleanup(kx_context_t *ctx)
 {
     kliter_t(str) *pstr;
     for (pstr = kl_begin(ctx->str_alive); pstr != kl_end(ctx->str_alive); pstr = kl_next(pstr)) {
@@ -244,7 +255,7 @@ void gc_object_cleanup(kex_context_t *ctx)
     }
     kliter_t(obj) *pobj;
     for (pobj = kl_begin(ctx->obj_alive); pobj != kl_end(ctx->obj_alive); pobj = kl_next(pobj)) {
-        kex_obj_t *o = kl_val(pobj);
+        kx_obj_t *o = kl_val(pobj);
         kh_destroy(prop, o->prop);
         kv_destroy(o->ary);
         free(o);
@@ -270,7 +281,7 @@ void gc_object_cleanup(kex_context_t *ctx)
     }
     l = kv_size(ctx->obj_dead);
     for (i = 0; i < l; ++i) {
-        kex_obj_t *o = kv_A(ctx->obj_dead, i);
+        kx_obj_t *o = kv_A(ctx->obj_dead, i);
         kh_destroy(prop, o->prop);
         kv_destroy(o->ary);
         free(o);
@@ -296,4 +307,39 @@ void gc_object_cleanup(kex_context_t *ctx)
     kl_destroy(obj, ctx->obj_alive);
     kv_destroy(ctx->exception);
     kv_destroy(ctx->stack);
+}
+
+static void free_ir_info(kx_module_t *module)
+{
+    int len = kv_size(module->blocks);
+    for (int i = 0; i < len; ++i) {
+        kx_block_t *block = &kv_A(module->blocks, i);
+        kv_destroy(block->code);
+    }
+    len = kv_size(module->functions);
+    for (int i = 0; i < len; ++i) {
+        KXFT_FUNCTION_t *func = &kv_A(module->functions, i);
+        kv_destroy(func->block);
+    }
+    kv_destroy(module->blocks);
+    kv_destroy(module->functions);
+}
+
+static void module_cleanup(kx_context_t *ctx)
+{
+    int l = kv_size(ctx->module);
+    for (int i = 0; i < l; ++i) {
+        kx_module_t *module = &kv_A(ctx->module, i);
+        kv_destroy(module->labels);
+        kv_destroy(module->fixcode);
+        free_ir_info(module);
+    }
+    kv_destroy(ctx->module);
+}
+
+void context_cleanup(kx_context_t *ctx)
+{
+    gc_object_cleanup(ctx);
+    module_cleanup(ctx);
+    free(ctx);
 }

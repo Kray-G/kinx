@@ -1,5 +1,5 @@
 #define KX_SHL_SHL_I(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         int64_t v2val = (val); \
         if (v1val > 0 && v2val > 0) { \
@@ -7,18 +7,18 @@
                 bigint_t *bi = allocate_big(ctx); \
                 bigint_from_int64(bi, v1val); \
                 (v1)->value.bv = bigint_shift_left(bi, bi, v2val); \
-                (v1)->type = KEX_BIG; \
+                (v1)->type = KX_BIG_T; \
             } else { \
                 (v1)->value.iv <<= v2val; \
             } \
         } \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         if (!((v1)->value.bv->neg) && val > 0) { \
             bigint_shift_left((v1)->value.bv, (v1)->value.bv, val); \
         } \
@@ -43,13 +43,13 @@
 } \
 /**/
 #define KX_SHL_SHL_V(v1, v2) {\
-    if (v2->type == KEX_INT) { \
+    if (v2->type == KX_INT_T) { \
         KX_SHL_SHL_I(v1, v2->value.iv); \
     } else switch (v2->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         break; /* do nothing */ \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         KX_SHL_SHL_I(v1, (int64_t)v2->value.dv); \
         break; \
     } \

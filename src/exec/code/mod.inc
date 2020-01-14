@@ -1,33 +1,33 @@
 #define KX_MOD_MOD_I(v1, val) { \
-    if (val == 0 && ((v1)->type != KEX_CSTR || (v1)->type != KEX_STR)) { \
+    if (val == 0 && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
         THROW_SYSTEM_EXCEPTION("SystemException", "Divided by zero"); \
     } \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         int64_t v2val = (val); \
         (v1)->value.iv %= v2val; \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_t *b2 = allocate_big(ctx); \
         bigint_from_int64(b2, val); \
         bigint_mod((v1)->value.bv, (v1)->value.bv, b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv /= (val); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
@@ -39,35 +39,35 @@
 /**/
 #define KX_MOD_MOD_B(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         if ((v1)->value.iv != 0) { \
             bigint_t *bi = allocate_big(ctx); \
             bigint_from_int64(bi, (v1)->value.iv); \
             (v1)->value.bv = bigint_mod(bi, bi, val); \
-            (v1)->type = KEX_BIG; \
+            (v1)->type = KX_BIG_T; \
             KX_BIGINT_CHKINT(v1); \
         } \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_mod((v1)->value.bv, (v1)->value.bv, val); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv = fmod((v1)->value.dv, bigint_double(val)); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
@@ -78,34 +78,34 @@
 } \
 /**/
 #define KX_MOD_MOD_D(v1, val) { \
-    if (val < DBL_EPSILON && ((v1)->type != KEX_CSTR || (v1)->type != KEX_STR)) { \
+    if (val < DBL_EPSILON && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
         THROW_SYSTEM_EXCEPTION("SystemException", "Divided by zero"); \
     } \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         (v1)->value.dv = fmod((double)(v1)->value.iv, val); \
-        (v1)->type = KEX_DBL; \
+        (v1)->type = KX_DBL_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         (v1)->value.dv = fmod(bigint_double((v1)->value.bv), val); \
-        (v1)->type = KEX_DBL; \
+        (v1)->type = KX_DBL_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv = fmod((v1)->value.dv, val); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
@@ -117,11 +117,11 @@
 /**/
 #define KX_MOD_MOD_S(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         /* TODO: formatter */ \
         break; \
     } \
@@ -132,26 +132,26 @@
 } \
 /**/
 #define KX_MOD_MOD_V(v1, v2) {\
-    if ((v2)->type == KEX_INT) { \
+    if ((v2)->type == KX_INT_T) { \
         KX_MOD_MOD_I(v1, (v2)->value.iv); \
     } else switch ((v2)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         KX_MOD_MOD_S(v1, "(undefined)"); \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         KX_MOD_MOD_B(v1, (v2)->value.bv); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         KX_MOD_MOD_D(v1, (v2)->value.dv); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         KX_MOD_MOD_S(v1, (v2)->value.pv); \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         KX_MOD_MOD_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \

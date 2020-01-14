@@ -17,38 +17,38 @@
 #define KX_ENTER_CODE() \
 { \
     int expand = cur->value1.i; \
-    kv_expand_if(kex_val_t, ctx.stack, expand); \
-    kex_frm_t *frm = allocate_frm(ctx); \
+    kv_expand_if(kx_val_t, (ctx)->stack, expand); \
+    kx_frm_t *frm = allocate_frm(ctx); \
     frm->prv = frmv; \
-    frm->id = kv_size(ctx.stack); \
+    frm->id = kv_size((ctx)->stack); \
     int max_vars = cur->value2.i; \
-    kv_resize(kex_val_t, frm->v, max_vars); \
+    kv_resize(kx_val_t, frm->v, max_vars); \
     kv_shrinkto(frm->v, max_vars); \
-    lexv = frm->lex = kv_last_by(ctx.stack, 3).value.fn->lex; \
+    lexv = frm->lex = kv_last_by((ctx)->stack, 3).value.fn->lex; \
     int max_args = cur->count; \
-    int args = kv_last_by(ctx.stack, 2).value.iv; \
+    int args = kv_last_by((ctx)->stack, 2).value.iv; \
     if (args < max_args) { \
         int i; \
         for (i = 0; i < args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by(ctx.stack, i+4); \
+            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
             kv_A(frm->v, i).frm = frm->id; \
             kv_A(frm->v, i).idx = i; \
         } \
         for ( ; i < max_args; ++i) { \
-            kex_val_t *v = &kv_A(frm->v, i); \
-            v->type = KEX_UND; \
+            kx_val_t *v = &kv_A(frm->v, i); \
+            v->type = KX_UND_T; \
             v->frm = frm->id; \
             v->idx = i; \
         } \
     } else {\
         int i; \
         for (i = 0; i < max_args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by(ctx.stack, i+4); \
+            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
             kv_A(frm->v, i).frm = frm->id; \
             kv_A(frm->v, i).idx = i; \
         } \
     } \
-    push_frm(ctx.stack, frm); \
+    push_frm((ctx)->stack, frm); \
     frmv = frm; \
     cur = cur->next; \
 } \
@@ -57,32 +57,32 @@
 #define KX_ENTER_CODE() \
 { \
     int expand = cur->value1.i; \
-    kv_expand_if(kex_val_t, ctx.stack, expand); \
-    kex_frm_t *frm = allocate_frm(ctx); \
+    kv_expand_if(kx_val_t, (ctx)->stack, expand); \
+    kx_frm_t *frm = allocate_frm(ctx); \
     frm->prv = frmv; \
-    frm->id = kv_size(ctx.stack); \
+    frm->id = kv_size((ctx)->stack); \
     int max_vars = cur->value2.i; \
-    kv_resize_if(kex_val_t, frm->v, max_vars); \
+    kv_resize_if(kx_val_t, frm->v, max_vars); \
     kv_shrinkto(frm->v, max_vars); \
-    lexv = frm->lex = kv_last_by(ctx.stack, 3).value.fn->lex; \
+    lexv = frm->lex = kv_last_by((ctx)->stack, 3).value.fn->lex; \
     int max_args = cur->count; \
-    int args = kv_last_by(ctx.stack, 2).value.iv; \
+    int args = kv_last_by((ctx)->stack, 2).value.iv; \
     if (args < max_args) { \
         int i; \
         for (i = 0; i < args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by(ctx.stack, i+4); \
+            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
         } \
         for ( ; i < max_args; ++i) { \
-            kex_val_t *v = &kv_A(frm->v, i); \
-            v->type = KEX_UND; \
+            kx_val_t *v = &kv_A(frm->v, i); \
+            v->type = KX_UND_T; \
         } \
     } else {\
         int i; \
         for (i = 0; i < max_args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by(ctx.stack, i+4); \
+            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
         } \
     } \
-    push_frm(ctx.stack, frm); \
+    push_frm((ctx)->stack, frm); \
     frmv = frm; \
     cur = cur->next; \
 } \
