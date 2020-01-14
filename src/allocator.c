@@ -318,7 +318,7 @@ static void free_ir_info(kx_module_t *module)
     }
     len = kv_size(module->functions);
     for (int i = 0; i < len; ++i) {
-        KXFT_FUNCTION_t *func = &kv_A(module->functions, i);
+        kx_function_t *func = &kv_A(module->functions, i);
         kv_destroy(func->block);
     }
     kv_destroy(module->blocks);

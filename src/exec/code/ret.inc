@@ -74,16 +74,16 @@
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
 \
     int lex = cur->value1.i; \
-    if (lex) { \
+    if (lex == 0) { \
+        push_value((ctx)->stack, kv_A(frmv->v, cur->value2.i)); \
+    } else if (lex == 1) { \
+        push_value((ctx)->stack, kv_A(lexv->v, cur->value2.i)); \
+    } else { \
         kx_frm_t *lexp = lexv; \
-        if (lexp) { \
-            while (lex--) { \
-                lexp = lexp->lex; \
-            } \
+        while (lexp && --lex) { \
+            lexp = lexp->lex; \
         } \
         push_value((ctx)->stack, kv_A(lexp ? lexp->v : frmv->v, cur->value2.i)); \
-    } else { \
-        push_value((ctx)->stack, kv_A(frmv->v, cur->value2.i)); \
     } \
 \
     cur = radr; \

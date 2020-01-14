@@ -89,15 +89,15 @@ kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs)
     return kx_gen_obj(type, 0, lhs, NULL, NULL);
 }
 
+kx_object_t *kx_gen_bltin_object(const char *name)
+{
+    kx_object_t *obj = kx_gen_obj(KXOP_BLTIN, 0, NULL, NULL, NULL);
+    obj->value.i = (kx_bltin.get_bltin_index)(name);
+    return obj;
+}
+
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
-    if (type == KXOP_CALL && lhs && lhs->lhs && lhs->rhs) {
-        if (lhs->lhs->type == KXOP_VAR && !strcmp(lhs->lhs->value.s, "System")) {
-            if (!strcmp(lhs->rhs->value.s, "println")) {
-                return kx_gen_obj(KXOP_BLTIN, 0, kx_gen_str_object("System.println"), rhs, NULL);
-            }
-        }
-    }
     return kx_gen_obj(type, 0, lhs, rhs, NULL);
 }
 
@@ -147,15 +147,29 @@ kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block,
     return obj;
 }
 
+const char *kx_gen_name(const char *base, int counter)
+{
+    char buf[128] = {0};
+    sprintf(buf, "%s%d", base, counter);
+    return const_str(buf);
+}
+
 kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
+    static int counter = 0;
     kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
     rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
 
-    kx_object_t *obj = kx_gen_obj(type, optional, lhs, rhs, ex);
+    const char *pname = name;
+    if (!name) {
+        name = kx_gen_name("__anonymous_func", counter++);
+    }
+    kx_object_t *obj = kx_gen_obj(type, pname ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
     obj->value.s = name;
     kx_object_t *assign;
-    if (type != KXST_CLASS) {
+    if (!pname) {
+        assign = obj;
+    } else if (type != KXST_CLASS) {
         assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name), obj);
     } else {
         assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name), kx_gen_str_object("create"));
@@ -165,18 +179,18 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     switch (optional) {
     case KXFT_FUNCTION:
     case KXFT_PRIVATE: {
-        stmt = kx_gen_stmt_object(KXST_EXPR, assign, NULL, NULL);
+        stmt = assign;
         break;
     }
     case KXFT_PROTECTED:
     case KXFT_PUBLIC: {
         kx_object_t *prop = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object(name));
         kx_object_t *passign = kx_gen_bassign_object(KXOP_ASSIGN, prop, assign);
-        stmt = kx_gen_stmt_object(KXST_EXPR, passign, NULL, NULL);
+        stmt = passign;
         break;
     }
     default:
-        stmt = kx_gen_stmt_object(KXST_EXPR, assign, NULL, NULL);
+        stmt = assign;
         break;
     }
     return stmt;

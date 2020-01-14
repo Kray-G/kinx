@@ -273,11 +273,13 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXST_FUNCTION: { /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         int depth = ctx->depth;
         ++ctx->depth;
-        int lvalue = ctx->lvalue;
-        ctx->lvalue = 1;
-        kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
-        assert(sym);
-        ctx->lvalue = lvalue;
+        if (node->optional != KXFT_ANONYMOUS) {
+            int lvalue = ctx->lvalue;
+            ctx->lvalue = 1;
+            kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
+            assert(sym);
+            ctx->lvalue = lvalue;
+        }
 
         if (ctx->func) {
             ctx->func->lexical_refs = 1;

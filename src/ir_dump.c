@@ -85,8 +85,8 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_CALLVL1:
         printf("%-23s %s, %d", "callvl1", gen_varloc_lexical1(code), code->count);
         break;
-    case KX_CALLBLTIN:
-        printf("%-23s %s, %d", "callb", code->value1.s, code->count);
+    case KX_CALLS:
+        printf("%-23s \"%s\", %d", "calls", code->value1.s, code->count);
         break;
     KX_IROP(RET,  ret);
     case KX_RETVL0:
@@ -171,6 +171,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     case KX_PUSHVL1:
         printf("%-23s %s", "pushvl1", gen_varloc_lexical1(code)); /* push variable value of lexical level 1 */
+        break;
+    case KX_PUSHBLTIN:
+        printf("%-23s index(%lld)", "push(bltin)", code->value1.i);
         break;
 
     case KX_POP_C:
@@ -307,7 +310,7 @@ static void ir_block_dump(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
     }
 }
 
-static void ir_function_dump(int llen, kx_module_t *module, KXFT_FUNCTION_t *func)
+static void ir_function_dump(int llen, kx_module_t *module, kx_function_t *func)
 {
     if (!func) {
         return;
@@ -333,7 +336,7 @@ void ir_dump(kx_context_t *ctx)
     int llen = kv_size(module->labels);
     int len = kv_size(*(module->funclist));
     for (int i = 0; i < len; ++i) {
-        KXFT_FUNCTION_t *func = &kv_A(*(module->funclist), i);
+        kx_function_t *func = &kv_A(*(module->funclist), i);
         ir_function_dump(llen, module, func);
     }
 }
