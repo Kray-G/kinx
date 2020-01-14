@@ -1,0 +1,12 @@
+var a = [1,2,3];
+var b = {
+    key: 1,
+    obj: {
+        value: 100,
+        array: a + [2,3],
+    }
+};
+
+var x = 2;
+var y = 20.5;
+var c = [a, b, x+20, 20.5, "aaa"];

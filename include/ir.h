@@ -63,6 +63,7 @@ enum irop {
     KX_APPLYLI,
     KX_APPLYVS,
     KX_APPLYLS,
+    KX_APPENDK,
     KX_DEF_IR(KX_APPEND),
     KX_DEF_IR(KX_ADD),
     KX_DEF_IR(KX_SUB),

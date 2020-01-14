@@ -229,6 +229,8 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         break;
     }
     case KX_KEYVALUE:
+        gencode_ast_hook(node->lhs, ctx, 0);
+        kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE(ctx), .op = KX_APPENDK, .value1 = { .s = const_str(node->value.s) } }));
         break;
 
     case KXOP_POSITIVE:
@@ -277,6 +279,10 @@ static void gencode_ast(kx_object_t *node, kx_context_t *ctx, int lvalue)
         if (node->lhs) {
             apply_array(node->lhs, ctx);
         }
+        break;
+    case KXOP_MKOBJ:
+        kv_push(kx_code_t, get_block(ctx->block)->code, ((kx_code_t){ FILELINE(ctx), .op = KX_MKARY }));
+        gencode_ast_hook(node->lhs, ctx, 0);
         break;
 
     case KXOP_DECL: {

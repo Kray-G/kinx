@@ -2,7 +2,7 @@
 | :-----: | :-----------: |
 |   add   |   **done**    |
 |   and   |   **done**    |
-| append  |               |
+| append  |   **done**    |
 |  apply  |   **done**    |
 |  call   |   **done**    |
 |  catch  |   **done**    |

@@ -21,6 +21,8 @@ void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
     case KXOP_DEC:
     case KXOP_INCP:       /* postfix */
     case KXOP_DECP:       /* postfix */
+    case KXOP_MKARY:
+    case KXOP_MKOBJ:
 
     case KXOP_ASSIGN:
     case KXOP_ASSIGN_SHL:

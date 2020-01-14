@@ -103,4 +103,14 @@ int main() {
 						  : (v).n <= (size_t)(i)? (v).n = (i) + 1 \
 						  : 0)), (v).a[(i)]
 
+#define kv_append(type, v1, v0) do {								\
+		int v1n = (v1).n;											\
+		if (((v1).n + (v0).n) >= (v1).m) {							\
+			(v1).n = (v1).n + (v0).n;								\
+			(v1).m = (v1).n<<1;										\
+			(v1).a = (type*)realloc((v1).a, sizeof(type) * (v1).m);	\
+		}															\
+		memcpy((v1).a + v1n, (v0).a, sizeof(type) * (v0).n);		\
+	} while (0)
+
 #endif
