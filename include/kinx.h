@@ -58,6 +58,7 @@ extern int kx_yylex();
 enum functype {
     KXFT_CLASS,
     KXFT_FUNCTION,
+    KXFT_ANONYMOUS,
     KXFT_PUBLIC,
     KXFT_PRIVATE,
     KXFT_PROTECTED,
@@ -201,9 +202,23 @@ typedef struct kx_object_ {
 kvec_init_t(kx_object_t);
 kvec_init_pt(kx_object_t);
 
+typedef int (*get_bltin_index_t)(const char *name);
+typedef int (*call_bltin_func_t)(int index, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
+
+typedef struct kx_bltin_ {
+    void *lib;
+    get_bltin_index_t get_bltin_index;
+    call_bltin_func_t call_bltin_func;
+} kx_bltin_t;
+
 #define KX_BUF_MAX (2048)
 extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
+extern kx_bltin_t kx_bltin;
+
+extern void *load_library(const char *name, const char *envname);
+extern void *get_libfunc(void *h, const char *name);
+extern void unload_library(void *h);
 
 extern kx_context_t *make_context(void);
 extern kx_obj_t *init_object(kx_obj_t *o);
@@ -224,6 +239,7 @@ extern kx_object_t *kx_gen_str_object(const char *val);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);
+extern kx_object_t *kx_gen_bltin_object(const char *name);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_texpr_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
@@ -234,7 +250,7 @@ extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name,
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
-extern kvec_t(KXFT_FUNCTION_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module);
+extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module);
 extern void ir_code_dump_one(int addr, kx_code_t *code);
 extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);

@@ -1,14 +1,14 @@
 #include <string.h>
 #include <parser.h>
 
-kx_yyin_t kx_yyin;
-kx_lexinfo_t kx_lexinfo;
-
 static char kx_strbuf[KX_BUF_MAX] = {0};
 
 int get_keyword_token(const char *val)
 {
     switch (val[0]) {
+    case '_':
+        if (strcmp(val, "_builtin") == 0)   return LOADBLTIN;
+        break;
     case 'b':
         if (strcmp(val, "break") == 0)      return BREAK;
         break;

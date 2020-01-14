@@ -5,8 +5,6 @@
 #ifdef YYDEBUG
 extern int kx_yydebug;
 #endif
-kx_object_t *kx_obj_mgr = NULL;
-kx_object_t *kx_ast_root = NULL;
 
 int eval(kx_context_t *ctx)
 {
@@ -63,9 +61,21 @@ int main(int ac, char **av)
     #ifdef YYDEBUG
     kx_yydebug = 1;
     #endif
-    int r = 0, opt;
-    kx_context_t *ctx = make_context();
+    int r = 0;
+    kx_bltin.lib = load_library("kxbltin", NULL);
+    if (!kx_bltin.lib) {
+        printf("load failed: kxbltin\n");
+        return 1;
+    }
+    kx_bltin.get_bltin_index = (get_bltin_index_t)get_libfunc(kx_bltin.lib, "get_bltin_index");
+    kx_bltin.call_bltin_func = (call_bltin_func_t)get_libfunc(kx_bltin.lib, "call_bltin_func");
+    if (!kx_bltin.get_bltin_index || !kx_bltin.call_bltin_func) {
+        printf("load failed: kxbltin functions\n");
+        return 1;
+    }
 
+    kx_context_t *ctx = make_context();
+    int opt;
     while ((opt = getopt(ac, av, "d")) != -1) {
         switch (opt) {
         case 'd':
@@ -83,5 +93,6 @@ int main(int ac, char **av)
     context_cleanup(ctx);
     free_nodes();
     free_string();
+    unload_library(kx_bltin.lib);
     return r;
 }

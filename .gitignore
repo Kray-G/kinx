@@ -1,5 +1,8 @@
 *.exe
 *.obj
+*.dll
+*.exp
+*.lib
 *.output
 *.c.parser
 src/parser.c
