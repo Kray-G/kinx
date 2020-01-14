@@ -2,35 +2,35 @@
 { \
     KEX_GET_STACK_TOP(v1); \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         int64_t v1val = (v1)->value.iv; \
         if (v1val == INT64_MIN) { \
             bigint_t *bi = allocate_big(ctx); \
             bigint_from_int64(bi, INT64_MIN); \
             (v1)->value.bv = bigint_negate(bi); \
-            (v1)->type = KEX_BIG; \
+            (v1)->type = KX_BIG_T; \
         } else { \
             (v1)->value.iv = -v1val; \
         } \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_t *bv = (v1)->value.bv; \
         int chk = (!bv->neg) && (bv->size == 2) && (bv->words[0] == 0) && (bv->words[1] == 0x80000000); \
         if (chk) { \
             (v1)->value.iv = INT64_MIN; \
-            (v1)->type = KEX_INT; \
+            (v1)->type = KX_INT_T; \
         } else { \
             bigint_negate(bv); \
         } \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.dv = -((v1)->value.dv); \
         break; \
     } \

@@ -4,4 +4,4 @@ function fib(n) {
     return fib(n-2) + fib(n-1);
 }
 
-System.println("fib(34) = ", fib(34));
+return fib(34);

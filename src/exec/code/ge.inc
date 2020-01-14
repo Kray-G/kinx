@@ -1,22 +1,22 @@
 #define KX_GE_GE_I(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         (v1)->value.iv = ((v1)->value.iv) >= (val); \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0 >= (val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_t *b2 = allocate_big(ctx); \
         bigint_from_int64(b2, val); \
         (v1)->value.iv = bigint_cmp((v1)->value.bv, b2) >= 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.iv = (v1)->value.dv >= (val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -26,25 +26,25 @@
 } \
 /**/
 #define KX_GE_GE_B(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         bigint_t *bi = allocate_big(ctx); \
         bigint_from_int64(bi, (v1)->value.iv); \
         (v1)->value.iv = bigint_cmp(bi, val) >= 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = !!((val)->neg); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         (v1)->value.iv = bigint_cmp((v1)->value.bv, val) >= 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.iv = (v1)->value.dv >= bigint_double(val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -54,23 +54,23 @@
 } \
 /**/
 #define KX_GE_GE_D(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         (v1)->value.iv = (double)(v1)->value.iv >= (val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0.0 >= (val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         (v1)->value.iv = bigint_double((v1)->value.bv) >= (val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.iv = (v1)->value.dv >= (val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -84,18 +84,18 @@
 } \
 /**/
 #define KX_GE_GE_V(v1, v2) {\
-    if (v2->type == KEX_INT) { \
+    if (v2->type == KX_INT_T) { \
         KX_GE_GE_I(v1, v2->value.iv); \
     } else switch (v2->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         KX_GE_GE_I(v1, 0); \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         KX_GE_GE_B(v1, v2->value.bv); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         KX_GE_GE_D(v1, v2->value.dv); \
         break; \
     } \

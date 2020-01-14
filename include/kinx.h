@@ -13,54 +13,54 @@ typedef struct kx_yyin_ {
     const char *file;
 } kx_yyin_t;
 
-struct kx_lex_context {
+typedef struct kx_lexinfo_ {
     int ch;
     int newline;
     int pos;
     const char *file;
     int line;
-};
+} kx_lexinfo_t;
 
 extern kx_yyin_t kx_yyin;
-extern struct kx_lex_context kx_lex_ctx;
+extern kx_lexinfo_t kx_lexinfo;
 extern int kx_yylex();
 
 #define kx_lex_next(ctx) \
-    if (ctx.newline) { \
-        ++ctx.line; \
-        ctx.pos = 0; \
-        ctx.newline = 0; \
+    if ((ctx).newline) { \
+        ++(ctx).line; \
+        (ctx).pos = 1; \
+        (ctx).newline = 0; \
     } \
     if (kx_yyin.fp) { \
-        ctx.ch = fgetc(kx_yyin.fp); \
-        ++ctx.pos; \
-        if (ctx.ch == EOF) { \
-            ctx.ch = 0; \
+        (ctx).ch = fgetc(kx_yyin.fp); \
+        ++(ctx).pos; \
+        if ((ctx).ch == EOF) { \
+            (ctx).ch = 0; \
         } \
-        if (ctx.ch == '\n') { \
-            ctx.newline = 1; \
+        if ((ctx).ch == '\n') { \
+            (ctx).newline = 1; \
         } \
     } else { \
-        ctx.ch = *kx_yyin.str++; \
-        ++ctx.pos; \
-        if (ctx.ch == '\n') { \
-            ctx.newline = 1; \
+        (ctx).ch = *kx_yyin.str++; \
+        ++(ctx).pos; \
+        if ((ctx).ch == '\n') { \
+            (ctx).newline = 1; \
         } \
     } \
 /**/
 
-#define kx_is_whitespace(ctx) (ctx.ch == ' ' || ctx.ch == '\t' || ctx.ch == '\r' || ctx.ch == '\n')
-#define kx_is_number(ctx) ('0' <= ctx.ch && ctx.ch <= '9')
-#define kx_is_char(ctx) ((ctx.ch == '_') || kx_is_number(ctx) || ('a' <= ctx.ch && ctx.ch <= 'z') || ('A' <= ctx.ch && ctx.ch <= 'Z'))
-#define kx_is_oct_number(ctx) ('0' <= ctx.ch && ctx.ch <= '7')
-#define kx_is_hex_number(ctx) (('0' <= ctx.ch && ctx.ch <= '9') || ('a' <= ctx.ch && ctx.ch <= 'f') || ('A' <= ctx.ch && ctx.ch <= 'F'))
+#define kx_is_whitespace(ctx) ((ctx).ch == ' ' || (ctx).ch == '\t' || (ctx).ch == '\r' || (ctx).ch == '\n')
+#define kx_is_number(ctx) ('0' <= (ctx).ch && (ctx).ch <= '9')
+#define kx_is_char(ctx) (((ctx).ch == '_') || kx_is_number(ctx) || ('a' <= (ctx).ch && (ctx).ch <= 'z') || ('A' <= (ctx).ch && (ctx).ch <= 'Z'))
+#define kx_is_oct_number(ctx) ('0' <= (ctx).ch && (ctx).ch <= '7')
+#define kx_is_hex_number(ctx) (('0' <= (ctx).ch && (ctx).ch <= '9') || ('a' <= (ctx).ch && (ctx).ch <= 'f') || ('A' <= (ctx).ch && (ctx).ch <= 'F'))
 
 enum functype {
-    KX_CLASS,
-    KX_FUNCTION,
-    KX_PUBLIC,
-    KX_PRIVATE,
-    KX_PROTECTED,
+    KXFT_CLASS,
+    KXFT_FUNCTION,
+    KXFT_PUBLIC,
+    KXFT_PRIVATE,
+    KXFT_PROTECTED,
 };
 
 enum opecode {
@@ -75,8 +75,8 @@ enum opecode {
     KXVL_FALSE,
 
     /* special node */
-    KX_VAR,
-    KX_KEYVALUE,
+    KXOP_VAR,
+    KXOP_KEYVALUE,
 
     /* unary expression */
     KXOP_POSITIVE,
@@ -152,8 +152,6 @@ enum opecode {
     KXST_CONTINUE,
 };
 
-struct kx_object_;
-
 typedef struct kxana_symbol_ {
     const char *name;
     int depth;
@@ -207,6 +205,11 @@ kvec_init_pt(kx_object_t);
 extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
 
+extern kx_context_t *make_context(void);
+extern kx_obj_t *init_object(kx_obj_t *o);
+extern void gc_mark_and_sweep(kx_context_t *ctx);
+extern void context_cleanup(kx_context_t *ctx);
+
 extern const char *alloc_string(const char *str);
 extern void free_string(void);
 const char *const_str(const char* name);
@@ -231,11 +234,11 @@ extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name,
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
-extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node);
+extern kvec_t(KXFT_FUNCTION_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module);
 extern void ir_code_dump_one(int addr, kx_code_t *code);
-extern void ir_dump(kvec_t(uint32_t) *labels, kvec_t(kx_function_t) *funclist);
+extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
-extern void ir_fix_code(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcode, kvec_t(kx_function_t) *funclist);
-extern int ir_exec(kvec_pt(kx_code_t) *fixcode);
+extern void ir_fix_code(kx_context_t *ctx);
+extern int ir_exec(kx_context_t *ctx);
 
 #endif /* KX_KINX_H */

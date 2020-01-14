@@ -1,43 +1,43 @@
 #define KX_EQEQ_EQEQ_I(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         int64_t ival = val; \
         (v1)->value.iv = (0 == ival); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         int64_t iv = ((v1)->value.iv); \
         int64_t ival = val; \
         (v1)->value.iv = (iv == ival); \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_t *b2 = allocate_big(ctx); \
         bigint_from_int64(b2, val); \
         (v1)->value.iv = bigint_cmp((v1)->value.bv, b2) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         double dv = (v1)->value.dv; \
         double dval = val; \
         (v1)->value.iv = fabs(dv - dval) < DBL_EPSILON; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         kstr_t *s = allocate_str(ctx); \
         ks_appendf(s, "%d", val); \
         (v1)->value.iv = strcmp((v1)->value.pv, ks_string(s)) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         kstr_t *s = allocate_str(ctx); \
         ks_appendf(s, "%d", val); \
         (v1)->value.iv = strcmp(ks_string((v1)->value.sv), ks_string(s)) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -48,27 +48,27 @@
 /**/
 #define KX_EQEQ_EQEQ_B(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = !!((val)->neg); /* don't have to care about zero. */ \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         bigint_t *bi = allocate_big(ctx); \
         bigint_from_int64(bi, (v1)->value.iv); \
         (v1)->value.iv = bigint_cmp(bi, val) == 0; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         (v1)->value.iv = bigint_cmp((v1)->value.bv, val) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         double dv = (v1)->value.dv; \
         double bd = bigint_double(val); \
         (v1)->value.iv = fabs(dv - bd) < DBL_EPSILON; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -79,30 +79,30 @@
 /**/
 #define KX_EQEQ_EQEQ_D(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         double dval = val; \
         (v1)->value.iv = fabs(dval) < DBL_EPSILON; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         double di = (double)(v1)->value.iv; \
         double dval = val; \
         (v1)->value.iv = fabs(di - dval) < DBL_EPSILON; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         double bd = bigint_double((v1)->value.bv); \
         double dval = val; \
         (v1)->value.iv = fabs(bd - dval) < DBL_EPSILON; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         double dv = (v1)->value.dv; \
         double dval = val; \
         (v1)->value.iv = fabs(dv - dval) < DBL_EPSILON; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -113,41 +113,41 @@
 /**/
 #define KX_EQEQ_EQEQ_S(v1, val) { \
     switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         char buf[] = {'0', 0}; \
         (v1)->value.iv = strcmp(buf, val) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         char buf[24] = {0}; \
         sprintf(buf, "%lld", (v1)->value.iv); \
         (v1)->value.iv = strcmp(buf, val) == 0; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         int n = bigint_write_size((v1)->value.bv, 10); \
         char *buf = malloc(n); \
         (v1)->value.iv = strcmp(bigint_write(buf, n, (v1)->value.bv), val) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         free(buf); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         kstr_t *s = allocate_str(ctx); \
         ks_appendf(s, "%g", (v1)->value.dv, val); \
         (v1)->value.iv = strcmp(ks_string(s), val) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         (v1)->value.iv = strcmp((v1)->value.pv, val) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         (v1)->value.iv = strcmp(ks_string((v1)->value.sv), val) == 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -158,27 +158,27 @@
 /**/
 #define KX_EQEQ_EQEQ_V(v1, v2) {\
     switch ((v2)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         KX_EQEQ_EQEQ_I(v1, 0); \
         break; \
     } \
-    case KEX_INT: { \
+    case KX_INT_T: { \
         KX_EQEQ_EQEQ_I(v1, (v2)->value.iv); \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         KX_EQEQ_EQEQ_B(v1, (v2)->value.bv); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         KX_EQEQ_EQEQ_D(v1, (v2)->value.dv); \
         break; \
     } \
-    case KEX_CSTR: { \
+    case KX_CSTR_T: { \
         KX_EQEQ_EQEQ_S(v1, (v2)->value.pv); \
         break; \
     } \
-    case KEX_STR: { \
+    case KX_STR_T: { \
         KX_EQEQ_EQEQ_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \

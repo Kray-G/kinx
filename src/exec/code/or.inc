@@ -1,24 +1,24 @@
 #define KX_OR_OR_I(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         int64_t v2val = (val); \
         (v1)->value.iv |= v2val; \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = val; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_t *b2 = allocate_big(ctx); \
         bigint_from_int64(b2, val); \
         bigint_or((v1)->value.bv, (v1)->value.bv, b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.iv = ((int64_t)(v1)->value.dv) | (val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -28,29 +28,29 @@
 } \
 /**/
 #define KX_OR_OR_B(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         bigint_t *bi = allocate_big(ctx); \
         bigint_from_int64(bi, (v1)->value.iv); \
         (v1)->value.bv = bigint_or(bi, bi, val); \
-        (v1)->type = KEX_BIG; \
+        (v1)->type = KX_BIG_T; \
         KX_BIGINT_CHKINT(v1); \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.bv = val; \
-        (v1)->type = KEX_BIG; \
+        (v1)->type = KX_BIG_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_or((v1)->value.bv, (v1)->value.bv, val); \
-        (v1)->type = KEX_BIG; \
+        (v1)->type = KX_BIG_T; \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         bigint_t *bi = allocate_big(ctx); \
         bigint_from_int64(bi, (int64_t)((v1)->value.dv)); \
         (v1)->value.bv = bigint_or(bi, bi, val); \
-        (v1)->type = KEX_BIG; \
+        (v1)->type = KX_BIG_T; \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -61,26 +61,26 @@
 } \
 /**/
 #define KX_OR_OR_D(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         (v1)->value.iv = (v1)->value.iv | (int64_t)(val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = (int64_t)(val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         bigint_t *bv = allocate_big(ctx); \
         bigint_from_int64(bv, (int64_t)(val)); \
         (v1)->value.bv = bigint_or((v1)->value.bv, (v1)->value.bv, bv); \
-        (v1)->type = KEX_BIG; \
+        (v1)->type = KX_BIG_T; \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         (v1)->value.iv = (int64_t)((v1)->value.dv) | (int64_t)(val); \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
     default: \
@@ -94,20 +94,20 @@
 } \
 /**/
 #define KX_OR_OR_V(v1, v2) {\
-    if (v2->type == KEX_INT) { \
+    if (v2->type == KX_INT_T) { \
         KX_OR_OR_I(v1, v2->value.iv); \
     } else switch (v2->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         v2->value.iv = 0; \
-        (v2)->type = KEX_INT; \
+        (v2)->type = KX_INT_T; \
         KX_OR_OR_I(v1, v2->value.iv); \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         KX_OR_OR_B(v1, v2->value.bv); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         KX_OR_OR_D(v1, v2->value.dv); \
         break; \
     } \
