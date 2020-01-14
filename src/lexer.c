@@ -309,6 +309,17 @@ int kx_yylex()
                 kx_strbuf[pos++] = kx_lex_ctx.ch;
                 kx_lex_next(kx_lex_ctx);
             }
+            if (kx_lex_ctx.ch == '.') {
+                kx_strbuf[pos++] = kx_lex_ctx.ch;
+                kx_lex_next(kx_lex_ctx);
+                while (kx_is_number(kx_lex_ctx)) {
+                    kx_strbuf[pos++] = kx_lex_ctx.ch;
+                    kx_lex_next(kx_lex_ctx);
+                }
+                kx_strbuf[pos] = 0;
+                kx_yylval.dblval = strtod(kx_strbuf, NULL);
+                return DBL;
+            }
             kx_strbuf[pos] = 0;
             kx_yylval.intval = strtoll(kx_strbuf, NULL, 10);
             return INT;

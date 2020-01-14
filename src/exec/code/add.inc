@@ -217,6 +217,15 @@
         KX_ADD_ADD_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
+    case KEX_OBJ: { \
+        if ((v1)->type == KEX_OBJ) { \
+            kex_obj_t *o1 = (v1)->value.ov; \
+            kex_obj_t *o2 = (v2)->value.ov; \
+            kv_append(kex_val_t, o1->ary, o2->ary); \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \

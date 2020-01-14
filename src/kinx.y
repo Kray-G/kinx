@@ -307,7 +307,7 @@ Array
     ;
 
 Object
-    : '{' KeyValueList Comma_Opt '}' { $$ = $2; }
+    : '{' KeyValueList Comma_Opt '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, $2); }
     ;
 
 Comma_Opt
