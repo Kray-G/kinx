@@ -1,7 +1,11 @@
+System = {
+    println:    _builtin("__SystemPrintln"),
+    print:      _builtin("__SystemPrint"),
+};
 
 function fib(n) {
     if (n < 3) return n;
     return fib(n-2) + fib(n-1);
 }
 
-return fib(34);
+System.println("fib(34) = ", fib(34));

@@ -21,7 +21,7 @@ enum irop {
     KX_CALLV,
     KX_CALLVL0,
     KX_CALLVL1,
-    KX_CALLBLTIN,
+    KX_CALLS,
     KX_DEF_IR(KX_RET),
     KX_RETVL0,
     KX_RETVL1,
@@ -36,6 +36,7 @@ enum irop {
     KX_DEF_PUSH(KX_PUSH),
     KX_PUSHVL0,
     KX_PUSHVL1,
+    KX_PUSHBLTIN,
     KX_POP_C,
     KX_POP,
     KX_STORE,
@@ -144,13 +145,13 @@ typedef struct KXFT_FUNCTION_ {
     int64_t addr;
     kvec_t(int) block;
     khash_t(label) *label;
-} KXFT_FUNCTION_t;
-kvec_init_t(KXFT_FUNCTION_t);
+} kx_function_t;
+kvec_init_t(kx_function_t);
 
 typedef struct kx_module_ {
-    kvec_t(KXFT_FUNCTION_t) functions;
+    kvec_t(kx_function_t) functions;
     kvec_t(kx_block_t) blocks;
-    kvec_t(KXFT_FUNCTION_t) *funclist;
+    kvec_t(kx_function_t) *funclist;
     kvec_t(uint32_t) labels;
     kvec_pt(kx_code_t) fixcode;
 } kx_module_t;
@@ -177,9 +178,9 @@ typedef struct kx_analyze_ {
     Code Executor.
 */
 
-struct kex_obj_;
-struct kex_fnc_;
-struct kex_frm_;
+struct kx_obj_;
+struct kx_fnc_;
+struct kx_frm_;
 
 enum irexec {
     KX_UND_T = 0,   /* undefined(null) must be 0 because it becomes undefined after clearing with 0. */
@@ -192,10 +193,11 @@ enum irexec {
     KX_OBJ_T,       /* ARRAY is also object */
     KX_FNC_T,
     KX_FRM_T,
+    KX_BFNC_T,
     KX_ADDR_T,
 };
 
-typedef struct kex_val_ {
+typedef struct kx_val_ {
     uint8_t mark;
     uint16_t type;
     union {
@@ -205,10 +207,10 @@ typedef struct kex_val_ {
         kstr_t *sv;
         const char *pv;
         kx_code_t *jp;
-        struct kex_val_ *lv;
-        struct kex_obj_ *ov;
-        struct kex_fnc_ *fn;
-        struct kex_frm_ *fr;
+        struct kx_val_ *lv;
+        struct kx_obj_ *ov;
+        struct kx_fnc_ *fn;
+        struct kx_frm_ *fr;
     } value;
     #if defined(KX_EXEC_DEBUG)
     int frm;
@@ -227,25 +229,26 @@ KHASH_MAP_INIT_STR(prop, kx_val_t)
 #define KEX_RESTORE_VARINFO(v)
 #endif
 
-typedef struct kex_frm_ {
+typedef struct kx_frm_ {
     uint8_t mark;
     int32_t id;
-    struct kex_frm_ *prv;
-    struct kex_frm_ *lex;
+    struct kx_frm_ *prv;
+    struct kx_frm_ *lex;
     kvec_t(kx_val_t) v;
 } kx_frm_t;
 kvec_init_t(kx_frm_t);
 kvec_init_pt(kx_frm_t);
 
-typedef struct kex_fnc_ {
+typedef struct kx_fnc_ {
     uint8_t mark;
     kx_code_t *jp;
-    struct kex_frm_ *lex;
+    int index;
+    struct kx_frm_ *lex;
 } kx_fnc_t;
 kvec_init_t(kx_fnc_t);
 kvec_init_pt(kx_fnc_t);
 
-typedef struct kex_obj_ {
+typedef struct kx_obj_ {
     uint8_t mark;
     khash_t(prop) *prop;
     kvec_t(kx_val_t) ary;
@@ -264,7 +267,7 @@ KLIST_INIT_NOALLOC(obj, kx_obj_t *)
 KLIST_INIT_NOALLOC(frm, kx_frm_t *)
 KLIST_INIT_NOALLOC(fnc, kx_fnc_t *)
 
-typedef struct kex_exc_ {
+typedef struct kx_exc_ {
     int sp;
     kx_code_t *code;
     kx_frm_t *frmv;
@@ -276,7 +279,7 @@ typedef struct kx_options_ {
     int dump:1;
 } kx_options_t;
 
-typedef struct kex_context_ {
+typedef struct kx_context_ {
     kx_frm_t *frmv;
     kx_frm_t *lexv;
     kvec_t(kx_val_t) stack;
@@ -364,7 +367,16 @@ typedef struct kex_context_ {
         kx_fnc_t *fnc = allocate_fnc(ctx); \
         fnc->jp = jmp; \
         fnc->lex = lexv; \
-        push_fnc((ctx)->stack, fnc); \
+        push_fnc(KX_FNC_T, (ctx)->stack, fnc); \
+    } while (0);\
+/**/
+#define push_bf(st, idx, lexv) \
+    do {\
+        kx_fnc_t *fnc = allocate_fnc(ctx); \
+        fnc->jp = NULL; \
+        fnc->index = idx; \
+        fnc->lex = lexv; \
+        push_fnc(KX_BFNC_T, (ctx)->stack, fnc); \
     } while (0);\
 /**/
 #define push_obj(st, v) \
@@ -397,10 +409,10 @@ typedef struct kex_context_ {
         } \
     } while (0);\
 /**/
-#define push_fnc(st, v) \
+#define push_fnc(typ, st, v) \
     do {\
         kx_val_t *top = &kv_push_undef(st);\
-        top->type = KX_FNC_T;\
+        top->type = (typ);\
         top->value.fn = (v);\
     } while (0);\
 /**/

@@ -58,19 +58,26 @@
 } \
 /**/
 
+#define KX_PUSHBLTIN_CODE() \
+{ \
+    push_bf((ctx)->stack, cur->value1.i, frmv); \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_PUSHLV_CODE() \
 { \
     int lex = cur->value1.i; \
-    if (lex) { \
+    if (lex == 0) { \
+        push_lvalue((ctx)->stack, &kv_A(frmv->v, cur->value2.i)); \
+    } else if (lex == 1) { \
+        push_lvalue((ctx)->stack, &kv_A(lexv->v, cur->value2.i)); \
+    } else { \
         kx_frm_t *lexp = lexv; \
-        if (lexp) { \
-            while (lex--) { \
-                lexp = lexp->lex; \
-            } \
+        while (lexp && --lex) { \
+            lexp = lexp->lex; \
         } \
         push_lvalue((ctx)->stack, &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i)); \
-    } else { \
-        push_lvalue((ctx)->stack, &kv_A(frmv->v, cur->value2.i)); \
     } \
     cur = cur->next; \
 } \
@@ -79,16 +86,16 @@
 #define KX_PUSHV_CODE() \
 { \
     int lex = cur->value1.i; \
-    if (lex) { \
+    if (lex == 0) { \
+        push_value((ctx)->stack, kv_A(frmv->v, cur->value2.i)); \
+    } else if (lex == 1) { \
+        push_value((ctx)->stack, kv_A(lexv->v, cur->value2.i)); \
+    } else { \
         kx_frm_t *lexp = lexv; \
-        if (lexp) { \
-            while (lex--) { \
-                lexp = lexp->lex; \
-            } \
+        while (lexp && --lex) { \
+            lexp = lexp->lex; \
         } \
         push_value((ctx)->stack, kv_A(lexp ? lexp->v : frmv->v, cur->value2.i)); \
-    } else { \
-        push_value((ctx)->stack, kv_A(frmv->v, cur->value2.i)); \
     } \
     cur = cur->next; \
 } \

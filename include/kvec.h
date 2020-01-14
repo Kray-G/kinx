@@ -69,6 +69,7 @@ int main() {
 #define kv_size(v) ((v).n)
 #define kv_max(v) ((v).m)
 #define kv_shrinkto(v, d) (((v).n) = d)
+#define kv_shrink(v, d) (((v).n) -= d)
 
 #define kv_zero(type, v)  (memset((v).a, 0, sizeof(type) * (v).m))
 #define kv_resize(type, v, s)  ((v).m = (s), (v).a = ((v).a ? (type*)realloc((v).a, sizeof(type) * (v).m) : (type*)calloc((v).m, sizeof(type))))

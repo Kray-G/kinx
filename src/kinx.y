@@ -26,6 +26,7 @@
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
+%token LOADBLTIN
 %token<strval> NAME
 %token<strval> STR
 %token<intval> INT
@@ -74,6 +75,8 @@
 %type<obj> DeclAssignExpressionList
 %type<obj> DeclAssignExpression
 %type<obj> FunctionDeclStatement
+%type<obj> NormalFunctionDeclStatement
+%type<obj> ClassFunctionDeclStatement
 %type<obj> ClassDeclStatement
 %type<obj> Inherit_Opt
 %type<obj> ClassArgumentList_Opts
@@ -295,9 +298,11 @@ Factor
     | NAME { $$ = kx_gen_var_object($1); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
+    | LOADBLTIN '(' STR ')' { $$ = kx_gen_bltin_object($3); }
     | Array
     | Object
     | '(' AssignExpression ')' { $$ = $2; }
+    | '(' NormalFunctionDeclStatement ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     ;
 
@@ -345,8 +350,17 @@ DeclAssignExpression
     ;
 
 FunctionDeclStatement
+    : NormalFunctionDeclStatement { $$ = kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL); }
+    | ClassFunctionDeclStatement { $$ = kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL); }
+    ;
+
+NormalFunctionDeclStatement
     : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, $4, $6, NULL); }
-    | PUBLIC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, $2, $4, $6, NULL); }
+    | FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
+    ;
+
+ClassFunctionDeclStatement
+    : PUBLIC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, $2, $4, $6, NULL); }
     | PRIVATE NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PRIVATE, $2, $4, $6, NULL); }
     | PROTECTED NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PROTECTED, $2, $4, $6, NULL); }
     ;
