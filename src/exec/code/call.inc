@@ -3,9 +3,9 @@
 */
 #define KX_CALL_CODE() \
 { \
-    push_i(ctx.stack, cur->count); \
-    push_adr(ctx.stack, cur->next); \
-    cur = kv_last_by(ctx.stack, 3).value.fn->jp; \
+    push_i((ctx)->stack, cur->count); \
+    push_adr((ctx)->stack, cur->next); \
+    cur = kv_last_by((ctx)->stack, 3).value.fn->jp; \
 } \
 /**/
 
@@ -14,7 +14,7 @@
 */
 #define KX_CALLBLTIN_CODE() \
 { \
-    push_i(ctx.stack, cur->count); \
+    push_i((ctx)->stack, cur->count); \
     /* TODO: not implemented */ \
 } \
 /**/
@@ -25,16 +25,16 @@
 #define KX_CALLV_CODE() \
 { \
     int lex = cur->value1.i; \
-    kex_frm_t *lexp = lexv; \
+    kx_frm_t *lexp = lexv; \
     if (lexp) { \
         while (lex--) { \
             lexp = lexp->lex; \
         } \
     } \
-    kex_val_t *fv = &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i); \
-    push_value(ctx.stack, *fv); \
-    push_i(ctx.stack, cur->count); \
-    push_adr(ctx.stack, cur->next); \
+    kx_val_t *fv = &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i); \
+    push_value((ctx)->stack, *fv); \
+    push_i((ctx)->stack, cur->count); \
+    push_adr((ctx)->stack, cur->next); \
     cur = fv->value.fn->jp; \
 } \
 /**/
@@ -44,10 +44,10 @@
 */
 #define KX_CALLVL0_CODE() \
 { \
-    kex_val_t *fv = &kv_A(frmv->v, cur->value2.i); \
-    push_value(ctx.stack, *fv); \
-    push_i(ctx.stack, cur->count); \
-    push_adr(ctx.stack, cur->next); \
+    kx_val_t *fv = &kv_A(frmv->v, cur->value2.i); \
+    push_value((ctx)->stack, *fv); \
+    push_i((ctx)->stack, cur->count); \
+    push_adr((ctx)->stack, cur->next); \
     cur = fv->value.fn->jp; \
 } \
 /**/
@@ -57,10 +57,10 @@
 */
 #define KX_CALLVL1_CODE() \
 { \
-    kex_val_t *fv = &kv_A(lexv->v, cur->value2.i); \
-    push_value(ctx.stack, *fv); \
-    push_i(ctx.stack, cur->count); \
-    push_adr(ctx.stack, cur->next); \
+    kx_val_t *fv = &kv_A(lexv->v, cur->value2.i); \
+    push_value((ctx)->stack, *fv); \
+    push_i((ctx)->stack, cur->count); \
+    push_adr((ctx)->stack, cur->next); \
     cur = fv->value.fn->jp; \
 } \
 /**/

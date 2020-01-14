@@ -1,17 +1,17 @@
 #define KX_SHR_SHR_I(v1, val) { \
-    if ((v1)->type == KEX_INT) { \
+    if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         int64_t v2val = (val); \
         if (v1val > 0 && v2val > 0) { \
             (v1)->value.iv >>= v2val; \
         } \
     } else switch ((v1)->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         (v1)->value.iv = 0; \
-        (v1)->type = KEX_INT; \
+        (v1)->type = KX_INT_T; \
         break; \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         if (!((v1)->value.bv->neg) && val > 0) { \
             bigint_shift_right((v1)->value.bv, (v1)->value.bv, val); \
             KX_BIGINT_CHKINT(v1); \
@@ -37,17 +37,17 @@
 } \
 /**/
 #define KX_SHR_SHR_V(v1, v2) {\
-    if (v2->type == KEX_INT) { \
+    if (v2->type == KX_INT_T) { \
         KX_SHR_SHR_I(v1, v2->value.iv); \
     } else switch (v2->type) { \
-    case KEX_UND: { \
+    case KX_UND_T: { \
         break; /* do nothing */ \
     } \
-    case KEX_BIG: { \
+    case KX_BIG_T: { \
         KX_SHR_SHR_B(v1, v2->value.bv); \
         break; \
     } \
-    case KEX_DBL: { \
+    case KX_DBL_T: { \
         KX_SHR_SHR_D(v1, v2->value.dv); \
         break; \
     } \

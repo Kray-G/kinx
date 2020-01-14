@@ -2,7 +2,7 @@
 #include <kvec.h>
 #include <ir.h>
 
-#define KX_FUNCTION_INDENT  ""
+#define KXFT_FUNCTION_INDENT  ""
 #define KX_BLOCK_INDENT     "  "
 #define KX_CODE_INDENT      "        "
 
@@ -23,9 +23,6 @@ case KX_##CMD##V:\
     printf("%-23s %s", #cmd "v", gen_varloc(code));\
     break;\
 /**/
-
-kvec_t(kx_function_t) kx_functions = {0};
-kvec_t(kx_block_t) kx_blocks = {0};
 
 static const char *gen_varloc(kx_code_t *code)
 {
@@ -310,32 +307,34 @@ static void ir_block_dump(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
     }
 }
 
-static void ir_function_dump(int llen, kvec_t(uint32_t) *labels, kx_function_t *func)
+static void ir_function_dump(int llen, kx_module_t *module, KXFT_FUNCTION_t *func)
 {
     if (!func) {
         return;
     }
 
+    kvec_t(uint32_t) *labels = &(module->labels);
     printf("\n");
-    printf(KX_FUNCTION_INDENT "%s:\n", func->name);
+    printf(KXFT_FUNCTION_INDENT "%s:\n", func->name);
     int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
         int block = kv_A(func->block, i);
-        ir_block_dump(llen, labels, get_block(block));
+        ir_block_dump(llen, labels, get_block(module, block));
     }
 }
 
-void ir_dump(kvec_t(uint32_t) *labels, kvec_t(kx_function_t) *funclist)
+void ir_dump(kx_context_t *ctx)
 {
-    if (!funclist) {
+    kx_module_t *module = &kv_last(ctx->module);
+    if (!module->funclist) {
         return;
     }
 
-    int llen = kv_size(*labels);
-    int len = kv_size(*funclist);
+    int llen = kv_size(module->labels);
+    int len = kv_size(*(module->funclist));
     for (int i = 0; i < len; ++i) {
-        kx_function_t *func = &kv_A(*funclist, i);
-        ir_function_dump(llen, labels, func);
+        KXFT_FUNCTION_t *func = &kv_A(*(module->funclist), i);
+        ir_function_dump(llen, module, func);
     }
 }
 

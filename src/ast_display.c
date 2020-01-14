@@ -41,14 +41,14 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("false\n");
         break;
 
-    case KX_VAR:
+    case KXOP_VAR:
         if (node->lexical_refs) {
             printf("%c(var:%s) [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index, node->lexical_refs);
         } else {
             printf("%c(var:%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index);
         }
         break;
-    case KX_KEYVALUE:
+    case KXOP_KEYVALUE:
         printf("(key:%s)\n", node->value.s);
         display_ast(node->lhs, indent + 1, 0);
         break;
@@ -393,7 +393,7 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         printf("(%s: %s) [refs:%d]\n",
-            node->optional == KX_PUBLIC ? "public" : node->optional == KX_PROTECTED ? "protected" : node->optional == KX_PRIVATE ? "private" : "function",
+            node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function",
             node->value.s,
             node->lexical_refs);
         if (node->lhs) {

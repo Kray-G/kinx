@@ -1,7 +1,7 @@
 #include <parser.h>
 #include <ir.h>
 
-void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
+void ast_traverse_template(kx_object_t *node, kx_analyze_t *ctx)
 {
     switch (node->type) {
     case KXVL_UNKNOWN:
@@ -12,8 +12,8 @@ void ast_traverse_template(kx_object_t *node, kx_context_t *ctx)
     case KXVL_TRUE:
     case KXVL_FALSE:
 
-    case KX_VAR:
-    case KX_KEYVALUE:
+    case KXOP_VAR:
+    case KXOP_KEYVALUE:
 
     case KXOP_POSITIVE:
     case KXOP_NEGATIVE:

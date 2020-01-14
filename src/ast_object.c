@@ -34,8 +34,8 @@ kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *r
     obj->ex = ex;
     obj->type = type;
     obj->optional = optional;
-    obj->file = const_str(kx_lex_ctx.file);
-    obj->line = kx_lex_ctx.line;
+    obj->file = const_str(kx_lexinfo.file);
+    obj->line = kx_lexinfo.line;
     return obj;
 }
 
@@ -46,14 +46,14 @@ kx_object_t *kx_gen_special_object(int type)
 
 kx_object_t *kx_gen_var_object(const char *name)
 {
-    kx_object_t *obj = kx_gen_obj(KX_VAR, 0, NULL, NULL, NULL);
+    kx_object_t *obj = kx_gen_obj(KXOP_VAR, 0, NULL, NULL, NULL);
     obj->value.s = name;
     return obj;
 }
 
 kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value)
 {
-    kx_object_t *obj = kx_gen_obj(KX_KEYVALUE, 0, value, NULL, NULL);
+    kx_object_t *obj = kx_gen_obj(KXOP_KEYVALUE, 0, value, NULL, NULL);
     obj->value.s = key;
     return obj;
 }
@@ -92,7 +92,7 @@ kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs)
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
     if (type == KXOP_CALL && lhs && lhs->lhs && lhs->rhs) {
-        if (lhs->lhs->type == KX_VAR && !strcmp(lhs->lhs->value.s, "System")) {
+        if (lhs->lhs->type == KXOP_VAR && !strcmp(lhs->lhs->value.s, "System")) {
             if (!strcmp(lhs->rhs->value.s, "println")) {
                 return kx_gen_obj(KXOP_BLTIN, 0, kx_gen_str_object("System.println"), rhs, NULL);
             }
@@ -163,13 +163,13 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     }
     kx_object_t *stmt;
     switch (optional) {
-    case KX_FUNCTION:
-    case KX_PRIVATE: {
+    case KXFT_FUNCTION:
+    case KXFT_PRIVATE: {
         stmt = kx_gen_stmt_object(KXST_EXPR, assign, NULL, NULL);
         break;
     }
-    case KX_PROTECTED:
-    case KX_PUBLIC: {
+    case KXFT_PROTECTED:
+    case KXFT_PUBLIC: {
         kx_object_t *prop = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object(name));
         kx_object_t *passign = kx_gen_bassign_object(KXOP_ASSIGN, prop, assign);
         stmt = kx_gen_stmt_object(KXST_EXPR, passign, NULL, NULL);

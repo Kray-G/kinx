@@ -3,32 +3,32 @@
 #include <kstr.h>
 #include <kinx.h>
 
-void print_value(kex_val_t *v, int recursive)
+void print_value(kx_val_t *v, int recursive)
 {
     switch (v->type) {
-    case KEX_UND:
+    case KX_UND_T:
         printf("(und) null\n");
         break;
-    case KEX_INT:
+    case KX_INT_T:
         printf("(int) %lld\n", v->value.iv);
         break;
-    case KEX_BIG: {
+    case KX_BIG_T: {
         int n = bigint_write_size(v->value.bv, 10);
         char *buf = malloc(n);
         printf("(bigint) %s\n", bigint_write(buf, n, v->value.bv));
         free(buf);
         break;
     }
-    case KEX_DBL:
+    case KX_DBL_T:
         printf("(dbl) %f\n", v->value.dv);
         break;
-    case KEX_CSTR:
+    case KX_CSTR_T:
         printf("(cstr) %s\n", v->value.pv);
         break;
-    case KEX_STR:
+    case KX_STR_T:
         printf("(str) %s\n", (v->value.sv)->data);
         break;
-    case KEX_LVAL:
+    case KX_LVAL_T:
         #if defined(KX_EXEC_DEBUG)
         printf("(lval) (frm:%d)->var[%d]\n", v->value.lv->frm, v->value.lv->idx);
         printf("   * ");
@@ -37,9 +37,9 @@ void print_value(kex_val_t *v, int recursive)
         #endif
         print_value(v->value.lv, 0);
         break;
-    case KEX_OBJ: {
+    case KX_OBJ_T: {
         int props = 0;
-        kex_obj_t *o = v->value.ov;
+        kx_obj_t *o = v->value.ov;
         for (int i = kh_begin(o->prop); i != kh_end(o->prop); ++i) {
             if (!kh_exist(o->prop, i)) continue;
             ++props;
@@ -47,8 +47,8 @@ void print_value(kex_val_t *v, int recursive)
         printf("(obj) props:%d, ary:%d\n", props, (int)kv_size(o->ary));
         break;
     }
-    case KEX_FNC: {
-        kex_frm_t *lex = v->value.fn->lex;
+    case KX_FNC_T: {
+        kx_frm_t *lex = v->value.fn->lex;
         if (lex) {
             printf("(fnc) adr:%d, lex:(frm:%d)\n", v->value.fn->jp->i, lex->id);
         } else {
@@ -56,9 +56,9 @@ void print_value(kex_val_t *v, int recursive)
         }
         break;
     }
-    case KEX_FRM: {
-        kex_frm_t *frm = v->value.fr;
-        kex_frm_t *lex = frm->lex;
+    case KX_FRM_T: {
+        kx_frm_t *frm = v->value.fr;
+        kx_frm_t *lex = frm->lex;
         if (lex) {
             printf("(frm:%d, vars:%d) -> lex:(frm:%d)\n", frm->id, (int)kv_size(frm->v), lex->id);
         } else {
@@ -73,7 +73,7 @@ void print_value(kex_val_t *v, int recursive)
         }
         break;
     }
-    case KEX_ADR:
+    case KX_ADDR_T:
         printf("(adr) %d\n", v->value.jp->i);
         break;
     default:
@@ -82,20 +82,20 @@ void print_value(kex_val_t *v, int recursive)
     }
     fflush(stdout);
 }
-void print_stack(kex_context_t *ctx, kex_frm_t *frmv, kex_frm_t *lexv)
+void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv)
 {
     int size = (int)kv_size(ctx->stack);
     printf("capacity = %d, size = %d\n", (int)kv_max(ctx->stack), size);
     printf("frmv = %d, lexv = %d\n", frmv ? frmv->id : -1, lexv ? lexv->id : -1);
     for (int i = 0; i < size; ++i) {
         printf("[%2d] ", i); fflush(stdout);
-        kex_val_t *v = &kv_A(ctx->stack, i);
+        kx_val_t *v = &kv_A(ctx->stack, i);
         print_value(v, 1);
     }
     size = (int)kv_size(ctx->exception);
     printf("exception size = %d.\n", size); fflush(stdout);
     for (int i = 0; i < size; ++i) {
-        kex_exc_t *e = &kv_A(ctx->exception, i);
+        kx_exc_t *e = &kv_A(ctx->exception, i);
         printf("[%2d] sp = %d, adr = %d\n", i, e->sp, e->code ? e->code->i : -1);
     }
     printf("print_stack done.\n"); fflush(stdout);
@@ -107,14 +107,14 @@ void print_stack(kex_context_t *ctx, kex_frm_t *frmv, kex_frm_t *lexv)
                             OPCODE##_CODE(); \
                             print_stack(&ctx, frmv, lexv); printf("goto next.\n");  fflush(stdout);
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
-#define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i(ctx.stack, 1);
+#define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() continue
 #else
 #if defined(KX_DIRECT_THREADING)
 #define KX_CASE_(OPCODE) LBL_##OPCODE: KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() LBL_KX_BEGIN_OF_CODE: KX_GOTO();
-#define KX_CASE_ERROR_END() LBL_KX_ERROR_END_OF_CODE: push_i(ctx.stack, 1);
+#define KX_CASE_ERROR_END() LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() \
     switch (cur->op) { \
@@ -265,7 +265,7 @@ void print_stack(kex_context_t *ctx, kex_frm_t *frmv, kex_frm_t *lexv)
 #else
 #define KX_CASE_(OPCODE) case OPCODE: KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
-#define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i(ctx.stack, 1);
+#define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() continue
 #endif
@@ -308,38 +308,38 @@ void print_stack(kex_context_t *ctx, kex_frm_t *frmv, kex_frm_t *lexv)
 #include "exec/code/gt.inc"
 #include "exec/code/lge.inc"
 
-static inline void print_uncaught_exception(kex_obj_t *val)
+static inline void print_uncaught_exception(kx_obj_t *val)
 {
     printf("Uncaught Exception:");
-    kex_val_t *styp = NULL;
+    kx_val_t *styp = NULL;
     KEX_GET_PROP(styp, val, "_type");
-    if (styp && styp->type == KEX_STR) {
+    if (styp && styp->type == KX_STR_T) {
         printf("%s: ", ks_string(styp->value.sv));
     }
-    kex_val_t *swht = NULL;
+    kx_val_t *swht = NULL;
     KEX_GET_PROP(swht, val, "_what");
-    if (swht && swht->type == KEX_STR) {
+    if (swht && swht->type == KX_STR_T) {
         printf("%s", ks_string(swht->value.sv));
     }
     printf("\n");
-    kex_val_t *trace = NULL;
+    kx_val_t *trace = NULL;
     KEX_GET_PROP(trace, val, "_trace");
-    if (trace && trace->type == KEX_OBJ) {
-        kex_obj_t *obj = trace->value.ov;
+    if (trace && trace->type == KX_OBJ_T) {
+        kx_obj_t *obj = trace->value.ov;
         int i = kv_size(obj->ary) - 1;
         while (i >= 0) {
-            kex_val_t *v1 = &(kv_A(obj->ary, i--));
-            if (v1->type != KEX_INT) break;
+            kx_val_t *v1 = &(kv_A(obj->ary, i--));
+            if (v1->type != KX_INT_T) break;
             int line = v1->value.iv;
             if (i < 0) break;
 
             v1 = &(kv_A(obj->ary, i--));
-            if (v1->type != KEX_CSTR) break;
+            if (v1->type != KX_CSTR_T) break;
             const char *func = v1->value.pv;
             if (i < 0) break;
 
             v1 = &(kv_A(obj->ary, i--));
-            if (v1->type != KEX_CSTR) break;
+            if (v1->type != KX_CSTR_T) break;
             const char *file = v1->value.pv;
 
             printf("        at %s (%s:%d)\n", func, file, line);
@@ -347,37 +347,37 @@ static inline void print_uncaught_exception(kex_obj_t *val)
     }
 }
 
-static inline void make_exception_object(kex_val_t *v, kex_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht)
+static inline void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht)
 {
     if (!typ) {
         *v = kv_pop(ctx->stack);
-        if (v->type != KEX_OBJ) {
-            kex_obj_t *val = allocate_obj(*ctx);
+        if (v->type != KX_OBJ_T) {
+            kx_obj_t *val = allocate_obj(ctx);
             KEX_SET_PROP(val, "_value", v);
-            kstr_t *styp = allocate_str(*ctx);
+            kstr_t *styp = allocate_str(ctx);
             ks_append(styp, "UnknownException");
             KEX_SET_PROP_STR(val, "_type", styp);
-            kstr_t *swht = allocate_str(*ctx);
+            kstr_t *swht = allocate_str(ctx);
             ks_append(swht, "No message");
             KEX_SET_PROP_STR(val, "_what", swht);
-            v->type = KEX_OBJ;
+            v->type = KX_OBJ_T;
             v->value.ov = val;
         }
     } else {
-        kex_obj_t *val = allocate_obj(*ctx);
-        kstr_t *styp = allocate_str(*ctx);
+        kx_obj_t *val = allocate_obj(ctx);
+        kstr_t *styp = allocate_str(ctx);
         ks_append(styp, typ);
         KEX_SET_PROP_STR(val, "_type", styp);
-        kstr_t *swht = allocate_str(*ctx);
+        kstr_t *swht = allocate_str(ctx);
         ks_append(swht, wht);
         KEX_SET_PROP_STR(val, "_what", swht);
-        v->type = KEX_OBJ;
+        v->type = KX_OBJ_T;
         v->value.ov = val;
     }
-    kex_val_t *trace = NULL;
+    kx_val_t *trace = NULL;
     KEX_GET_PROP(trace, v->value.ov, "_trace");
-    if (!trace || trace->type != KEX_OBJ) {
-        kex_obj_t *obj = allocate_obj(*ctx);
+    if (!trace || trace->type != KX_OBJ_T) {
+        kx_obj_t *obj = allocate_obj(ctx);
         KEX_PUSH_ARRAY_CSTR(obj, cur->file);
         KEX_PUSH_ARRAY_CSTR(obj, cur->func);
         KEX_PUSH_ARRAY_INT(obj, cur->line);
@@ -385,13 +385,13 @@ static inline void make_exception_object(kex_val_t *v, kex_context_t *ctx, kx_co
     }
 }
 
-static inline void update_exception_object(kex_context_t *ctx, kx_code_t *cur)
+static inline void update_exception_object(kx_context_t *ctx, kx_code_t *cur)
 {
-    if (ctx->excval.type == KEX_OBJ) { \
-        kex_obj_t *val = ctx->excval.value.ov; \
-        kex_val_t *trace = NULL; \
+    if (ctx->excval.type == KX_OBJ_T) { \
+        kx_obj_t *val = ctx->excval.value.ov; \
+        kx_val_t *trace = NULL; \
         KEX_GET_PROP(trace, val, "_trace"); \
-        if (trace && trace->type == KEX_OBJ) { \
+        if (trace && trace->type == KX_OBJ_T) { \
             KEX_PUSH_ARRAY_CSTR(trace->value.ov, cur->file); \
             KEX_PUSH_ARRAY_CSTR(trace->value.ov, cur->func); \
             KEX_PUSH_ARRAY_INT(trace->value.ov, cur->line); \
@@ -399,7 +399,7 @@ static inline void update_exception_object(kex_context_t *ctx, kx_code_t *cur)
     } \
 }
 
-static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
+static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
 {
     KX_EXEC_SETUP(fixcode);
 
@@ -596,18 +596,18 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     int ri = 0;
     KEX_GET_STACK_TOP(rv);
     switch (rv->type) {
-    case KEX_INT: ri = rv->value.iv; break;
-    case KEX_DBL: ri = (int)rv->value.dv; break;
-    case KEX_BIG: ri = -1; break;
+    case KX_INT_T: ri = rv->value.iv; break;
+    case KX_DBL_T: ri = (int)rv->value.dv; break;
+    case KX_BIG_T: ri = -1; break;
     }
 
-    gc_object_cleanup(&ctx);
     return ri;
 }
 
-int ir_exec(kvec_pt(kx_code_t) *fixcode)
+int ir_exec(kx_context_t *ctx)
 {
+    kvec_pt(kx_code_t) *fixcode = &kv_last(ctx->module).fixcode;
     kx_code_t halt = (kx_code_t){ .op = KX_HALT };
     kv_push(kx_code_t*, *fixcode, &halt);
-    return ir_exec_impl(fixcode);
+    return ir_exec_impl(fixcode, ctx);
 }

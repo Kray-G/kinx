@@ -13,7 +13,7 @@
 #define KX_DUP_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    push_value(ctx.stack, (*v1)); \
+    push_value((ctx)->stack, (*v1)); \
     cur = cur->next; \
 } \
 /**/
