@@ -477,6 +477,8 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode)
     KX_CASE_(KX_APPLYVS) { KX_GOTO(); }
     KX_CASE_(KX_APPLYLS) { KX_GOTO(); }
 
+    KX_CASE_(KX_APPENDK) { KX_GOTO(); }
+
     KX_CASE_(KX_APPEND) { KX_GOTO(); }
     KX_CASE_(KX_APPENDI) { KX_GOTO(); }
     KX_CASE_(KX_APPENDD) { KX_GOTO(); }

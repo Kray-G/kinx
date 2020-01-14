@@ -101,6 +101,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         break;
     case KXOP_MKARY:
+    case KXOP_MKOBJ:
         analyze_ast(node->lhs, ctx);
         break;
 

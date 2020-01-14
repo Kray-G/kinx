@@ -234,7 +234,7 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("%-23s %s", "decvx", gen_varloc(code));
         break;
     case KX_MKARY:
-        printf("push(a)");
+        printf("mkary");
         break;
 
     case KX_APPLYV:
@@ -254,6 +254,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     case KX_APPLYLS:
         printf("%-23s \"%s\"", "applyls", code->value1.s);
+        break;
+    case KX_APPENDK:
+        printf("%-23s \"%s\"", "appendk", code->value1.s);
         break;
 
     KX_IROP(APPEND, append);

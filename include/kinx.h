@@ -86,6 +86,7 @@ enum opecode {
     KXOP_INCP,       /* postfix */
     KXOP_DECP,       /* postfix */
     KXOP_MKARY,
+    KXOP_MKOBJ,
 
     /* binary expression */
     KXOP_DECL,
