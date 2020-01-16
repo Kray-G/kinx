@@ -4,6 +4,7 @@
 // Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
 //
 
+#include <dbg.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>

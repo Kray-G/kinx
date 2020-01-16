@@ -11,4 +11,4 @@ function fact(n) {
     return n * fact(n-1);
 }
 
-System.println(fact(500));
+System.println(fact(5000));

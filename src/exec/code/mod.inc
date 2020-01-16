@@ -13,9 +13,12 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *b2 = allocate_big(ctx); \
-        bigint_from_int64(b2, val); \
-        bigint_mod((v1)->value.bv, (v1)->value.bv, b2); \
+        BigZ r; \
+        BigZ b2 = BzFromInteger(val); \
+        BigZ q = BzDivide((v1)->value.bz, b2, &r); \
+        (v1)->value.bz = make_big_alive(ctx, r); \
+        BzFree(b2); \
+        BzFree(q); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -46,21 +49,35 @@
     } \
     case KX_INT_T: { \
         if ((v1)->value.iv != 0) { \
-            bigint_t *bi = allocate_big(ctx); \
-            bigint_from_int64(bi, (v1)->value.iv); \
-            (v1)->value.bv = bigint_mod(bi, bi, val); \
+            BigZ r; \
+            BigZ bi = BzFromInteger((v1)->value.iv); \
+            BigZ q = BzDivide(bi, val, &r); \
+            (v1)->value.bz = make_big_alive(ctx, r); \
             (v1)->type = KX_BIG_T; \
+            BzFree(bi); \
+            BzFree(q); \
             KX_BIGINT_CHKINT(v1); \
         } \
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_mod((v1)->value.bv, (v1)->value.bv, val); \
-        KX_BIGINT_CHKINT(v1); \
+        BigZ r; \
+        BigZ q = BzDivide((v1)->value.bz, val, &r); \
+        if (BzGetSign(r) == BZ_ZERO) { \
+            BzFree(r); \
+            BzFree(q); \
+            (v1)->value.iv = 0; \
+            (v1)->type = KX_INT_T; \
+        } else { \
+            BzFree(q); \
+            (v1)->value.bz = make_big_alive(ctx, r); \
+            (v1)->type = KX_BIG_T; \
+            KX_BIGINT_CHKINT(v1); \
+        } \
         break; \
     } \
     case KX_DBL_T: { \
-        (v1)->value.dv = fmod((v1)->value.dv, bigint_double(val)); \
+        (v1)->value.dv = fmod((v1)->value.dv, BzToDouble(val)); \
         break; \
     } \
     case KX_CSTR_T: { \
@@ -93,7 +110,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.dv = fmod(bigint_double((v1)->value.bv), val); \
+        (v1)->value.dv = fmod(BzToDouble((v1)->value.bz), val); \
         (v1)->type = KX_DBL_T; \
         break; \
     } \
@@ -140,7 +157,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        KX_MOD_MOD_B(v1, (v2)->value.bv); \
+        KX_MOD_MOD_B(v1, (v2)->value.bz); \
         break; \
     } \
     case KX_DBL_T: { \

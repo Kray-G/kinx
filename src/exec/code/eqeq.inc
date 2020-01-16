@@ -13,10 +13,10 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *b2 = allocate_big(ctx); \
-        bigint_from_int64(b2, val); \
-        (v1)->value.iv = bigint_cmp((v1)->value.bv, b2) == 0; \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.iv = BzCompare((v1)->value.bz, b2) == BZ_EQ; \
         (v1)->type = KX_INT_T; \
+        BzFree(b2); \
         break; \
     } \
     case KX_DBL_T: { \
@@ -49,24 +49,24 @@
 #define KX_EQEQ_EQEQ_B(v1, val) { \
     switch ((v1)->type) { \
     case KX_UND_T: { \
-        (v1)->value.iv = !!((val)->neg); /* don't have to care about zero. */ \
+        (v1)->value.iv = 0; \
         (v1)->type = KX_INT_T; \
         break; \
     } \
     case KX_INT_T: { \
-        bigint_t *bi = allocate_big(ctx); \
-        bigint_from_int64(bi, (v1)->value.iv); \
-        (v1)->value.iv = bigint_cmp(bi, val) == 0; \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.iv = BzCompare(bi, val) == BZ_EQ; \
+        BzFree(bi); \
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.iv = bigint_cmp((v1)->value.bv, val) == 0; \
+        (v1)->value.iv = BzCompare((v1)->value.bz, val) == BZ_EQ; \
         (v1)->type = KX_INT_T; \
         break; \
     } \
     case KX_DBL_T: { \
         double dv = (v1)->value.dv; \
-        double bd = bigint_double(val); \
+        double bd = BzToDouble(val); \
         (v1)->value.iv = fabs(dv - bd) < DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
         break; \
@@ -92,7 +92,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        double bd = bigint_double((v1)->value.bv); \
+        double bd = BzToDouble((v1)->value.bz); \
         double dval = val; \
         (v1)->value.iv = fabs(bd - dval) < DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
@@ -126,11 +126,10 @@
         break; \
     } \
     case KX_BIG_T: { \
-        int n = bigint_write_size((v1)->value.bv, 10); \
-        char *buf = malloc(n); \
-        (v1)->value.iv = strcmp(bigint_write(buf, n, (v1)->value.bv), val) == 0; \
+        char *buf = BzToString((v1)->value.bz, 10, 0); \
+        (v1)->value.iv = strcmp(buf, val) == 0; \
         (v1)->type = KX_INT_T; \
-        free(buf); \
+        BzFreeString(buf); \
         break; \
     } \
     case KX_DBL_T: { \
@@ -167,7 +166,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        KX_EQEQ_EQEQ_B(v1, (v2)->value.bv); \
+        KX_EQEQ_EQEQ_B(v1, (v2)->value.bz); \
         break; \
     } \
     case KX_DBL_T: { \

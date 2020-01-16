@@ -6,7 +6,7 @@
 #include <khash.h>
 #include <klist.h>
 #include <kstr.h>
-#include <bigint.h>
+#include <bigz.h>
 
 #define KX_DEF_PUSH(cmd)  cmd ## I, cmd ## D, cmd ## S, cmd ## F, cmd ## V, cmd ## LV, cmd ## _NULL, cmd ## _TRUE, cmd ## _FALSE, cmd ## _C
 #define KX_DEF_IR(cmd)  cmd, cmd ## I, cmd ## D, cmd ## S, cmd ## V
@@ -203,7 +203,7 @@ typedef struct kx_val_ {
     union {
         int64_t iv;
         double dv;
-        bigint_t *bv;
+        BigZ bz;
         kstr_t *sv;
         const char *pv;
         kx_code_t *jp;
@@ -258,10 +258,10 @@ kvec_init_pt(kx_obj_t);
 
 kvec_init_t(kstr_t);
 kvec_init_pt(kstr_t);
-kvec_init_t(bigint_t);
-kvec_init_pt(bigint_t);
+kvec_init_t(BigZ);
+kvec_init_pt(BigZ);
 
-KLIST_INIT_NOALLOC(big, bigint_t *)
+KLIST_INIT_NOALLOC(big, BigZ)
 KLIST_INIT_NOALLOC(str, kstr_t *)
 KLIST_INIT_NOALLOC(obj, kx_obj_t *)
 KLIST_INIT_NOALLOC(frm, kx_frm_t *)
@@ -287,7 +287,6 @@ typedef struct kx_context_ {
 
     kx_val_t excval;
     klist_t(big) *big_alive;
-    kvec_pt(bigint_t) big_dead;
     klist_t(str) *str_alive;
     kvec_pt(kstr_t) str_dead;
     klist_t(obj) *obj_alive;
@@ -309,13 +308,15 @@ typedef struct kx_context_ {
 #define KEX_DEFAULT_STACK (1024)
 #endif
 
+#define KX_INIT_FRM_COUNT (512)
+#define KX_INIT_BIG_COUNT (512)
+
 #define allocate_defstr(ctx) (kv_size((ctx)->str_dead) > 0 ? (kstr_t *)kv_pop((ctx)->str_dead) : (kstr_t *)ks_new())
-#define allocate_defbig(ctx) (kv_size((ctx)->big_dead) > 0 ? (bigint_t *)kv_pop((ctx)->big_dead) : (bigint_t *)calloc(1, sizeof(bigint_t)))
 #define allocate_def(ctx, typ) (kv_size((ctx)->typ##_dead) > 0 ? (kx_##typ##_t *)kv_pop((ctx)->typ##_dead) : (kx_##typ##_t *)calloc(1, sizeof(kx_##typ##_t)))
 #define set_alive(ctx, typ, ov) (*kl_pushp(typ, (ctx)->typ##_alive) = (ov))
 
+#define make_big_alive(ctx, val) (set_alive(ctx, big, val))
 #define allocate_str(ctx) (set_alive(ctx, str, allocate_defstr(ctx)))
-#define allocate_big(ctx) (set_alive(ctx, big, allocate_defbig(ctx)))
 #define allocate_obj(ctx) init_object(set_alive(ctx, obj, allocate_def(ctx, obj)))
 #define allocate_fnc(ctx) (set_alive(ctx, fnc, allocate_def(ctx, fnc)))
 #define allocate_frm(ctx) (set_alive(ctx, frm, allocate_def(ctx, frm)))
@@ -402,8 +403,7 @@ typedef struct kx_context_ {
             ks_append(top->value.sv, ks_string((v).value.sv)); \
         } else if ((v).type == KX_BIG_T) { \
             top->type = KX_BIG_T;\
-            top->value.bv = allocate_big(ctx); \
-            bigint_cpy(top->value.bv, (v).value.bv); \
+            top->value.bz = make_big_alive(ctx, BzCopy((v).value.bz)); \
         } else { \
             *top = v; /* structure copy. */\
         } \

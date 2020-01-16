@@ -10,9 +10,9 @@
     case KX_INT_T: { \
         int64_t v1val = (v1)->value.iv; \
         if (v1val == INT64_MIN) { \
-            bigint_t *bi = allocate_big(ctx); \
-            bigint_from_int64(bi, INT64_MIN); \
-            (v1)->value.bv = bigint_negate(bi); \
+            BigZ bi = BzFromString("8000000000000000", 16, BZ_UNTIL_END); \
+            BzSetSign(bi, BZ_PLUS); \
+            (v1)->value.bz = make_big_alive(ctx, bi); \
             (v1)->type = KX_BIG_T; \
         } else { \
             (v1)->value.iv = -v1val; \
@@ -20,13 +20,14 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *bv = (v1)->value.bv; \
-        int chk = (!bv->neg) && (bv->size == 2) && (bv->words[0] == 0) && (bv->words[1] == 0x80000000); \
-        if (chk) { \
+        BigZ bv = (v1)->value.bz; \
+        BzCmp chk = BzCompare(bv, get_int64max_plus1()); \
+        if (chk == BZ_EQ) { \
             (v1)->value.iv = INT64_MIN; \
             (v1)->type = KX_INT_T; \
         } else { \
-            bigint_negate(bv); \
+            bv = BzNegate(bv); \
+            (v1)->value.bz = make_big_alive(ctx, bv); \
         } \
         break; \
     } \

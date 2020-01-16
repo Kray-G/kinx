@@ -5,24 +5,24 @@
         if (v1val > 0 && v2val > 0) { \
             int64_t v = (v1)->value.iv + v2val; \
             if (v < 0) { \
-                bigint_t *b2 = allocate_big(ctx); \
-                bigint_from_int64(b2, v2val); \
-                bigint_t *bi = allocate_big(ctx); \
-                bigint_from_int64(bi, v1val); \
-                (v1)->value.bv = bigint_add(bi, bi, b2); \
+                BigZ b2 = BzFromInteger(v2val); \
+                BigZ bi = BzFromInteger(v1val); \
+                (v1)->value.bz = make_big_alive(ctx, BzAdd(bi, b2)); \
                 (v1)->type = KX_BIG_T; \
+                BzFree(bi); \
+                BzFree(b2); \
             } else { \
                 (v1)->value.iv = v; \
             } \
         } else if (v1val < 0 && v2val < 0) { \
             int64_t v = (v1)->value.iv + v2val; \
             if (v > 0) { \
-                bigint_t *b2 = allocate_big(ctx); \
-                bigint_from_int64(b2, v2val); \
-                bigint_t *bi = allocate_big(ctx); \
-                bigint_from_int64(bi, v1val); \
-                (v1)->value.bv = bigint_add(bi, bi, b2); \
+                BigZ b2 = BzFromInteger(v2val); \
+                BigZ bi = BzFromInteger(v1val); \
+                (v1)->value.bz = make_big_alive(ctx, BzAdd(bi, b2)); \
                 (v1)->type = KX_BIG_T; \
+                BzFree(bi); \
+                BzFree(b2); \
             } else { \
                 (v1)->value.iv = v; \
             } \
@@ -36,9 +36,10 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *b2 = allocate_big(ctx); \
-        bigint_from_int64(b2, val); \
-        bigint_add((v1)->value.bv, (v1)->value.bv, b2); \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzAdd((v1)->value.bz, b2)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -65,43 +66,40 @@
 /**/
 #define KX_ADD_ADD_B(v1, val) { \
     if ((v1)->type == KX_INT_T) { \
-        bigint_t *bi = allocate_big(ctx); \
-        bigint_from_int64(bi, (v1)->value.iv); \
-        (v1)->value.bv = bigint_add(bi, bi, val); \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.bz = make_big_alive(ctx, BzAdd(bi, val)); \
         (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
         KX_BIGINT_CHKINT(v1); \
     } else switch ((v1)->type) { \
     case KX_UND_T: { \
-        (v1)->value.bv = allocate_big(ctx); \
-        bigint_cpy((v1)->value.bv, val); \
+        (v1)->value.bz = make_big_alive(ctx, BzCopy(val)); \
         (v1)->type = KX_BIG_T; \
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_add((v1)->value.bv, (v1)->value.bv, val); \
+        (v1)->value.bz = make_big_alive(ctx, BzAdd((v1)->value.bz, val)); \
         (v1)->type = KX_BIG_T; \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
     case KX_DBL_T: { \
-        (v1)->value.dv += bigint_double(val); \
+        (v1)->value.dv += BzToDouble(val); \
         break; \
     } \
     case KX_CSTR_T: { \
-        int n = bigint_write_size(val, 10); \
-        char *buf = malloc(n); \
+        char *buf = BzToString(val, 10, 0); \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s%s", (v1)->value.pv, bigint_write(buf, n, val)); \
-        free(buf); \
+        ks_appendf(s, "%s%s", (v1)->value.pv, buf); \
+        BzFreeString(buf); \
         (v1)->value.sv = s; \
         (v1)->type = KX_STR_T; \
         break; \
     } \
     case KX_STR_T: { \
-        int n = bigint_write_size(val, 10); \
-        char *buf = malloc(n); \
-        ks_append((v1)->value.sv, bigint_write(buf, n, val)); \
-        free(buf); \
+        char *buf = BzToString(val, 10, 0); \
+        ks_append((v1)->value.sv, buf); \
+        BzFreeString(buf); \
         break; \
     } \
     default: \
@@ -121,7 +119,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.dv = bigint_double((v1)->value.bv) + (val); \
+        (v1)->value.dv = BzToDouble((v1)->value.bz) + (val); \
         (v1)->type = KX_DBL_T; \
         break; \
     } \
@@ -162,10 +160,9 @@
     } \
     case KX_BIG_T: { \
         kstr_t *s = allocate_str(ctx); \
-        int n = bigint_write_size((v1)->value.bv, 10); \
-        char *buf = malloc(n); \
-        ks_appendf(s, "%s%s", bigint_write(buf, n, (v1)->value.bv), val); \
-        free(buf); \
+        char *buf = BzToString((v1)->value.bz, 10, 0); \
+        ks_appendf(s, "%s%s", buf, val); \
+        BzFreeString(buf); \
         (v1)->value.sv = s; \
         (v1)->type = KX_STR_T; \
         break; \
@@ -202,7 +199,7 @@
         break; /* do nothing */ \
     } \
     case KX_BIG_T: { \
-        KX_ADD_ADD_B(v1, (v2)->value.bv); \
+        KX_ADD_ADD_B(v1, (v2)->value.bz); \
         break; \
     } \
     case KX_DBL_T: { \

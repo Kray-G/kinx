@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <string.h>
 #include <assert.h>
 #include <kvec.h>
