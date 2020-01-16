@@ -18,9 +18,9 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *b2 = allocate_big(ctx); \
-        bigint_from_int64(b2, val); \
-        bigint_div((v1)->value.bv, (v1)->value.bv, b2); \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzDiv((v1)->value.bz, b2)); \
+        BzFree(b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -62,27 +62,33 @@
     } \
     case KX_INT_T: { \
         if ((v1)->value.iv != 0) { \
-            (v1)->value.dv = (double)((v1)->value.iv) / bigint_double(val); \
+            (v1)->value.dv = (double)((v1)->value.iv) / BzToDouble(val); \
             (v1)->type = KX_DBL_T; \
         } \
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *q = allocate_big(ctx); \
-        bigint_t *r = allocate_big(ctx); \
-        bigint_div_mod(q, r, (v1)->value.bv, val); \
-        if (r->size == 0) { \
-            (v1)->value.bv = q; \
+        BigZ r; \
+        BigZ q = BzDivide((v1)->value.bz, val, &r); \
+        if (r == BZNULL) { \
+            (v1)->value.bz = make_big_alive(ctx, q); \
+            (v1)->type = KX_BIG_T; \
+            KX_BIGINT_CHKINT(v1); \
+        } else if (BzGetSign(r) == BZ_ZERO) { \
+            BzFree(r); \
+            (v1)->value.bz = make_big_alive(ctx, q); \
             (v1)->type = KX_BIG_T; \
             KX_BIGINT_CHKINT(v1); \
         } else { \
-            (v1)->value.dv = bigint_double((v1)->value.bv) / bigint_double(val); \
+            BzFree(q); \
+            BzFree(r); \
+            (v1)->value.dv = BzToDouble((v1)->value.bz) / BzToDouble(val); \
             (v1)->type = KX_DBL_T; \
         } \
         break; \
     } \
     case KX_DBL_T: { \
-        (v1)->value.dv /= bigint_double(val); \
+        (v1)->value.dv /= BzToDouble(val); \
         break; \
     } \
     case KX_CSTR_T: { \
@@ -90,10 +96,9 @@
         kstr_t *s = allocate_str(ctx); \
         ks_append(s, pv); \
         ks_trim_right_char(s, '/'); \
-        int n = bigint_write_size(val, 10); \
-        char *buf = malloc(n); \
-        ks_appendf(s, "/%s", bigint_write(buf, n, val)); \
-        free(buf); \
+        char *buf = BzToString(val, 10, 0); \
+        ks_appendf(s, "/%s", buf); \
+        BzFreeString(buf); \
         (v1)->value.sv = s; \
         (v1)->type = KX_STR_T; \
         break; \
@@ -103,10 +108,9 @@
         kstr_t *s = allocate_str(ctx); \
         ks_append(s, pv); \
         ks_trim_right_char(s, '/'); \
-        int n = bigint_write_size(val, 10); \
-        char *buf = malloc(n); \
-        ks_appendf(s, "/%s", bigint_write(buf, n, val)); \
-        free(buf); \
+        char *buf = BzToString(val, 10, 0); \
+        ks_appendf(s, "/%s", buf); \
+        BzFreeString(buf); \
         (v1)->value.sv = s; \
         break; \
     } \
@@ -132,7 +136,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.dv = bigint_double((v1)->value.bv) / (val); \
+        (v1)->value.dv = BzToDouble((v1)->value.bz) / (val); \
         (v1)->type = KX_DBL_T; \
         break; \
     } \
@@ -186,10 +190,9 @@
     } \
     case KX_BIG_T: { \
         kstr_t *s = allocate_str(ctx); \
-        int n = bigint_write_size((v1)->value.bv, 10); \
-        char *buf = malloc(n); \
-        ks_appendf(s, "%s", bigint_write(buf, n, (v1)->value.bv)); \
-        free(buf); \
+        char *buf = BzToString((v1)->value.bz, 10, 0); \
+        ks_appendf(s, "%s", buf); \
+        BzFreeString(buf); \
         const char *p = val; while (p && *p != 0 && *p == '/') ++p; \
         ks_appendf(s, "/%s", p); \
         (v1)->value.sv = s; \
@@ -247,7 +250,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        KX_DIV_DIV_B(v1, (v2)->value.bv); \
+        KX_DIV_DIV_B(v1, (v2)->value.bz); \
         break; \
     } \
     case KX_DBL_T: { \

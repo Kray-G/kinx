@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <stdio.h>
 #include <kinx.h>
 #include <getopt.h>
@@ -58,6 +59,13 @@ int eval_file(const char *file, kx_context_t *ctx)
 
 int main(int ac, char **av)
 {
+    #if defined(_DEBUG)
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+    _CrtSetDbgFlag(_CrtSetDbgFlag(0) | _CRTDBG_LEAK_CHECK_DF);
+    #endif
+
     #ifdef YYDEBUG
     kx_yydebug = 1;
     #endif

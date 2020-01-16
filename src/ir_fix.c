@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <stdio.h>
 #include <kvec.h>
 #include <ir.h>

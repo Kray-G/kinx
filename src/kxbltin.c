@@ -1,4 +1,4 @@
-
+#include <dbg.h>
 #include <kinx.h>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -34,10 +34,9 @@ void System__print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             break;
         case KX_BIG_T:
             ++count;
-            n = bigint_write_size(val.value.bv, 10);
-            buf = malloc(n);
-            printf("%s", bigint_write(buf, n, val.value.bv));
-            free(buf);
+            buf = BzToString(val.value.bz, 10, 0);
+            printf("%s", buf);
+            BzFreeString(buf);
             break;
         case KX_DBL_T:
             ++count;

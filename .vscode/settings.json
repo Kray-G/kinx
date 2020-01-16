@@ -3,6 +3,7 @@
         "*.kc": "c",
         "*.ksl": "llvm",
         "*.inc": "c",
-        "assert.h": "c"
+        "assert.h": "c",
+        "kinx.h": "c"
     }
 }

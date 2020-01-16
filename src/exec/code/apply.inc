@@ -79,8 +79,9 @@
     } \
     kx_obj_t *obj = lv->value.ov; \
     if (cur->value1.i >= kv_size(obj->ary)) { \
-        kv_resize_if(kx_val_t, obj->ary, cur->value1.i+1); \
-        kv_shrinkto(obj->ary, cur->value1.i+1); \
+        int max = cur->value1.i + 1; \
+        kv_resize_if(kx_val_t, obj->ary, max); \
+        kv_shrinkto(obj->ary, max); \
     } \
     kx_val_t *val = &(kv_A(lv->value.ov->ary, cur->value1.i)); \
     push_lvalue((ctx)->stack, val); \

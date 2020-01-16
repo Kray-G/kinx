@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <stdio.h>
 #include <kvec.h>
 #include <kstr.h>
@@ -13,10 +14,9 @@ void print_value(kx_val_t *v, int recursive)
         printf("(int) %lld\n", v->value.iv);
         break;
     case KX_BIG_T: {
-        int n = bigint_write_size(v->value.bv, 10);
-        char *buf = malloc(n);
-        printf("(bigint) %s\n", bigint_write(buf, n, v->value.bv));
-        free(buf);
+        char *buf = BzToString(v->value.bz, 10, 0);
+        printf("(bigint) %s\n", buf);
+        BzFreeString(buf);
         break;
     }
     case KX_DBL_T:

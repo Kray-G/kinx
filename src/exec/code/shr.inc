@@ -12,8 +12,8 @@
         break; \
     } \
     case KX_BIG_T: { \
-        if (!((v1)->value.bv->neg) && val > 0) { \
-            bigint_shift_right((v1)->value.bv, (v1)->value.bv, val); \
+        if (BzGetSign((v1)->value.bz) == BZ_PLUS && val > 0) { \
+            (v1)->value.bz = make_big_alive(ctx, BzAsh((v1)->value.bz, -val)); \
             KX_BIGINT_CHKINT(v1); \
         } \
         break; \

@@ -220,6 +220,9 @@ extern void *load_library(const char *name, const char *envname);
 extern void *get_libfunc(void *h, const char *name);
 extern void unload_library(void *h);
 
+extern BigZ get_int64max_plus1(void);
+extern BigZ get_int64min_minus1(void);
+
 extern kx_context_t *make_context(void);
 extern kx_obj_t *init_object(kx_obj_t *o);
 extern void gc_mark_and_sweep(kx_context_t *ctx);
