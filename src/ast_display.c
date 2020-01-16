@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <parser.h>
 
 static void print_indent(kx_object_t *node, int indent)

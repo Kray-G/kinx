@@ -4,10 +4,10 @@
         int64_t v2val = (val); \
         if (v1val > 0 && v2val > 0) { \
             if ((v2val >= 64) || (v1val > (INT64_MAX >> v2val))) { \
-                bigint_t *bi = allocate_big(ctx); \
-                bigint_from_int64(bi, v1val); \
-                (v1)->value.bv = bigint_shift_left(bi, bi, v2val); \
+                BigZ bi = BzFromInteger((int64_t)(v1val)); \
+                (v1)->value.bz = make_big_alive(ctx, BzAsh(bi, v2val)); \
                 (v1)->type = KX_BIG_T; \
+                BzFree(bi); \
             } else { \
                 (v1)->value.iv <<= v2val; \
             } \
@@ -19,8 +19,8 @@
         break; \
     } \
     case KX_BIG_T: { \
-        if (!((v1)->value.bv->neg) && val > 0) { \
-            bigint_shift_left((v1)->value.bv, (v1)->value.bv, val); \
+        if (BzGetSign((v1)->value.bz) == BZ_PLUS && val > 0) { \
+            (v1)->value.bz = make_big_alive(ctx, BzAsh((v1)->value.bz, val)); \
         } \
         break; \
     } \

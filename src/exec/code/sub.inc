@@ -5,24 +5,24 @@
         if (v1val > 0 && v2val < 0) { \
             int64_t v = (v1)->value.iv - v2val; \
             if (v < 0) { \
-                bigint_t *b2 = allocate_big(ctx); \
-                bigint_from_int64(b2, v2val); \
-                bigint_t *bi = allocate_big(ctx); \
-                bigint_from_int64(bi, v1val); \
-                (v1)->value.bv = bigint_sub(bi, bi, b2); \
+                BigZ b2 = BzFromInteger(v2val); \
+                BigZ bi = BzFromInteger(v1val); \
+                (v1)->value.bz = make_big_alive(ctx, BzSubtract(bi, b2)); \
                 (v1)->type = KX_BIG_T; \
+                BzFree(bi); \
+                BzFree(b2); \
             } else { \
                 (v1)->value.iv = v; \
             } \
         } else if (v1val < 0 && v2val > 0) { \
             int64_t v = (v1)->value.iv - v2val; \
             if (v > 0) { \
-                bigint_t *b2 = allocate_big(ctx); \
-                bigint_from_int64(b2, v2val); \
-                bigint_t *bi = allocate_big(ctx); \
-                bigint_from_int64(bi, v1val); \
-                (v1)->value.bv = bigint_sub(bi, bi, b2); \
+                BigZ b2 = BzFromInteger(v2val); \
+                BigZ bi = BzFromInteger(v1val); \
+                (v1)->value.bz = make_big_alive(ctx, BzSubtract(bi, b2)); \
                 (v1)->type = KX_BIG_T; \
+                BzFree(bi); \
+                BzFree(b2); \
             } else { \
                 (v1)->value.iv = v; \
             } \
@@ -36,9 +36,9 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *b2 = allocate_big(ctx); \
-        bigint_from_int64(b2, val); \
-        bigint_sub((v1)->value.bv, (v1)->value.bv, b2); \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzSubtract((v1)->value.bz, b2)); \
+        BzFree(b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -54,26 +54,26 @@
 /**/
 #define KX_SUB_SUB_B(v1, val) { \
     if ((v1)->type == KX_INT_T) { \
-        bigint_t *bi = allocate_big(ctx); \
-        bigint_from_int64(bi, (v1)->value.iv); \
-        (v1)->value.bv = bigint_sub(bi, bi, val); \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.bz = make_big_alive(ctx, BzSubtract(bi, val)); \
         (v1)->type = KX_BIG_T; \
         KX_BIGINT_CHKINT(v1); \
     } else switch ((v1)->type) { \
     case KX_UND_T: { \
-        (v1)->value.bv = allocate_big(ctx); \
-        bigint_cpy((v1)->value.bv, val); \
+        BigZ bz = BzCopy(val); \
+        BzSetSign(bz, BZ_MINUS); \
+        (v1)->value.bz = make_big_alive(ctx, bz); \
         (v1)->type = KX_BIG_T; \
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_sub((v1)->value.bv, (v1)->value.bv, val); \
+        (v1)->value.bz = make_big_alive(ctx, BzSubtract((v1)->value.bz, val)); \
         (v1)->type = KX_BIG_T; \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
     case KX_DBL_T: { \
-        (v1)->value.dv -= bigint_double(val); \
+        (v1)->value.dv -= BzToDouble(val); \
         break; \
     } \
     default: \
@@ -93,7 +93,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.dv = bigint_double((v1)->value.bv) - (val); \
+        (v1)->value.dv = BzToDouble((v1)->value.bz) - (val); \
         (v1)->type = KX_DBL_T; \
         break; \
     } \
@@ -119,7 +119,7 @@
         break; /* do nothing */ \
     } \
     case KX_BIG_T: { \
-        KX_SUB_SUB_B(v1, v2->value.bv); \
+        KX_SUB_SUB_B(v1, v2->value.bz); \
         break; \
     } \
     case KX_DBL_T: { \

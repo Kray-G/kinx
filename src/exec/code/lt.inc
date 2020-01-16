@@ -8,10 +8,11 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *b2 = allocate_big(ctx); \
-        bigint_from_int64(b2, val); \
-        (v1)->value.iv = bigint_cmp((v1)->value.bv, b2) < 0; \
+        BigZ b2 = BzFromInteger((int64_t)(val)); \
+        BzCmp comp = BzCompare((v1)->value.bz, b2); \
+        (v1)->value.iv = (comp == BZ_LT); \
         (v1)->type = KX_INT_T; \
+        BzFree(b2); \
         break; \
     } \
     case KX_DBL_T: { \
@@ -27,23 +28,25 @@
 /**/
 #define KX_LT_LT_B(v1, val) { \
     if ((v1)->type == KX_INT_T) { \
-        bigint_t *bi = allocate_big(ctx); \
-        bigint_from_int64(bi, (v1)->value.iv); \
-        (v1)->value.iv = bigint_cmp(bi, val) < 0; \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        BzCmp comp = BzCompare(bi, val); \
+        (v1)->value.iv = (comp == BZ_LT); \
         (v1)->type = KX_INT_T; \
+        BzFree(bi); \
     } else switch ((v1)->type) { \
     case KX_UND_T: { \
-        (v1)->value.iv = !((val)->neg); \
+        (v1)->value.iv = BzGetSign(val) == BZ_PLUS; \
         (v1)->type = KX_INT_T; \
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.iv = bigint_cmp((v1)->value.bv, val) < 0; \
+        BzCmp comp = BzCompare((v1)->value.bz, val); \
+        (v1)->value.iv = (comp == BZ_LT); \
         (v1)->type = KX_INT_T; \
         break; \
     } \
     case KX_DBL_T: { \
-        (v1)->value.iv = (v1)->value.dv < bigint_double(val); \
+        (v1)->value.iv = (v1)->value.dv < BzToDouble(val); \
         (v1)->type = KX_INT_T; \
         break; \
     } \
@@ -64,7 +67,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.iv = bigint_double((v1)->value.bv) < (val); \
+        (v1)->value.iv = BzToDouble((v1)->value.bz) < (val); \
         (v1)->type = KX_INT_T; \
         break; \
     } \
@@ -92,7 +95,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        KX_LT_LT_B(v1, v2->value.bv); \
+        KX_LT_LT_B(v1, v2->value.bz); \
         break; \
     } \
     case KX_DBL_T: { \

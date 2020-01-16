@@ -2,9 +2,7 @@
     if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         if (v1val == INT64_MIN) { \
-            bigint_t *bi = allocate_big(ctx); \
-            bigint_from_int64(bi, v1val); \
-            (v1)->value.bv = bigint_sub_word(bi, bi, 1); \
+            (v1)->value.bz = make_big_alive(ctx, BzCopy(get_int64min_minus1())); \
             (v1)->type = KX_BIG_T; \
         } else { \
             --((v1)->value.iv); \
@@ -16,13 +14,15 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *bv = (v1)->value.bv; \
-        int chk = (!bv->neg) && (bv->size == 2) && (bv->words[0] == 0) && (bv->words[1] == 0x80000000); \
-        if (chk) { \
+        BigZ bz = (v1)->value.bz; \
+        int chk = BzCompare(bz, get_int64max_plus1()); \
+        if (chk == BZ_EQ) { \
             (v1)->value.iv = INT64_MAX; \
             (v1)->type = KX_INT_T; \
         } else { \
-            bigint_sub_word((v1)->value.bv, (v1)->value.bv, 1); \
+            BigZ b2 = BzFromInteger(1); \
+            (v1)->value.bz = make_big_alive(ctx, BzSubtract((v1)->value.bz, b2)); \
+            BzFree(b2); \
         } \
         break; \
     } \

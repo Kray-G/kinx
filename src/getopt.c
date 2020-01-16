@@ -29,6 +29,7 @@ time, and optprogram only after getopt() has been called at least once.
 
 */
 
+#include <dbg.h>
 #include <stdio.h> /* for EOF and stderr---talk about immodularity! */
 #include <getopt.h>
 

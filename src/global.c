@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <kinx.h>
 
 kx_yyin_t kx_yyin;

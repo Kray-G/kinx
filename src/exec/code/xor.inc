@@ -10,9 +10,9 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *b2 = allocate_big(ctx); \
-        bigint_from_int64(b2, val); \
-        bigint_xor((v1)->value.bv, (v1)->value.bv, b2); \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor((v1)->value.bz, b2)); \
+        BzFree(b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -29,30 +29,27 @@
 /**/
 #define KX_XOR_XOR_B(v1, val) { \
     if ((v1)->type == KX_INT_T) { \
-        bigint_t *bi = allocate_big(ctx); \
-        bigint_from_int64(bi, (v1)->value.iv); \
-        (v1)->value.bv = bigint_xor(bi, bi, val); \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor(bi, val)); \
         (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
         KX_BIGINT_CHKINT(v1); \
     } else switch ((v1)->type) { \
     case KX_UND_T: { \
-        bigint_t *bi = allocate_big(ctx); \
-        (v1)->value.bv = bigint_cpy(bi, val); \
+        (v1)->value.bz = val; \
         (v1)->type = KX_BIG_T; \
-        KX_BIGINT_CHKINT(v1); \
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_xor((v1)->value.bv, (v1)->value.bv, val); \
-        (v1)->type = KX_BIG_T; \
+        (v1)->value.bz = make_big_alive(ctx, BzXor((v1)->value.bz, val)); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
     case KX_DBL_T: { \
-        bigint_t *bi = allocate_big(ctx); \
-        bigint_from_int64(bi, (int64_t)((v1)->value.dv)); \
-        (v1)->value.bv = bigint_xor(bi, bi, val); \
+        BigZ bi = BzFromInteger((int64_t)(v1)->value.dv); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor(bi, val)); \
         (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -73,10 +70,10 @@
         break; \
     } \
     case KX_BIG_T: { \
-        bigint_t *bv = allocate_big(ctx); \
-        bigint_from_int64(bv, (int64_t)(val)); \
-        (v1)->value.bv = bigint_xor((v1)->value.bv, (v1)->value.bv, bv); \
+        BigZ b2 = BzFromInteger((int64_t)(val)); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor((v1)->value.bz, b2)); \
         (v1)->type = KX_BIG_T; \
+        BzFree(b2); \
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
@@ -106,7 +103,7 @@
         break; \
     } \
     case KX_BIG_T: { \
-        KX_XOR_XOR_B(v1, v2->value.bv); \
+        KX_XOR_XOR_B(v1, v2->value.bz); \
         break; \
     } \
     case KX_DBL_T: { \

@@ -62,22 +62,21 @@
 /**/
 
 #define KX_BIGINT_CHKINT(v) { \
-    bigint_t *bv = (v)->value.bv; \
-    if (bv->size == 0) { \
+    BigZ bz = (v)->value.bz; \
+    if (BzGetSign(bz) == BZ_ZERO) { \
         (v)->value.iv = 0; \
         (v)->type = KX_INT_T; \
-    } else if (bv->size <= 2) { \
-        uint64_t iv = bv->size == 1 ? bv->words[0] : (((uint64_t)(bv->words[1]) << (BIGINT_WORD_BITS)) | bv->words[0]); \
-        if (bv->neg) { \
-            if (iv <= 0x8000000000000000) { \
-                (v)->value.iv = -iv; \
-                (v)->type = KX_INT_T; \
-            } \
-        } else { \
-            if (iv < 0x8000000000000000) { \
-                (v)->value.iv = iv; \
-                (v)->type = KX_INT_T; \
-            } \
+    } else if (BzGetSign(bz) == BZ_MINUS) { \
+        BzCmp comp = BzCompare(bz, get_int64min_minus1()); \
+        if (comp == BZ_GT) { \
+            (v)->value.iv = BzToInteger(bz); \
+            (v)->type = KX_INT_T; \
+        } \
+    } else { \
+        BzCmp comp = BzCompare(bz, get_int64max_plus1()); \
+        if (comp == BZ_LT) { \
+            (v)->value.iv = BzToInteger(bz); \
+            (v)->type = KX_INT_T; \
         } \
     } \
 } \
@@ -91,6 +90,7 @@
     } \
     if (v1->type != cur->value1.i) { \
         printf("\nERROR: [%s:%d]\n  - expect type = %lld, but actual type = %d\n", cur->file, cur->line, cur->value1.i, v1->type); \
+        print_stack(ctx, frmv, lexv); \
         goto LBL_KX_ERROR_END_OF_CODE; \
     }\
     switch (v1->type) { \
@@ -109,15 +109,15 @@
         } \
         break; \
     case KX_BIG_T: { \
-        char bb[2048] = {0}; \
-        bigint_t *b = allocate_big(ctx); \
-        if (bigint_cmp(v1->value.bv, bigint_from_str(b, cur->value2.s))) { \
-            int n = bigint_write_size((v1)->value.bv, 10); \
-            char *buf = malloc(n); \
-            printf("\nERROR: [%s:%d]\n  - expect big value = %s, but actual value = %s\n", cur->file, cur->line, cur->value2.s, bigint_write(buf, n, (v1)->value.bv)); \
-            free(buf); \
+        BigZ b = BzFromString(cur->value2.s, 10, BZ_UNTIL_END); \
+        if (BzCompare(v1->value.bz, b)) { \
+            char *buf = BzToString((v1)->value.bz, 10, 0); \
+            printf("\nERROR: [%s:%d]\n  - expect big value = %s, but actual value = %s\n", cur->file, cur->line, cur->value2.s, buf); \
+            BzFreeString(buf); \
+            BzFree(b); \
             goto LBL_KX_ERROR_END_OF_CODE; \
         } \
+        BzFree(b); \
         break; \
     } \
     case KX_CSTR_T: \

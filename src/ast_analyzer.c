@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <string.h>
 #include <assert.h>
 #include <parser.h>
@@ -312,5 +313,10 @@ void start_analyze_ast(kx_object_t *node)
     ctx.func = node;
     analyze_ast(node, &ctx);
 
+    int l = kv_size(ctx.symbols);
+    for (int i = 0; i < l; ++i) {
+        kxana_symbol_t* table = &(kv_A(ctx.symbols, i));
+        kv_destroy(table->list);
+    }
     kv_destroy(ctx.symbols);
 }
