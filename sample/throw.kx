@@ -1,23 +1,67 @@
-var r = 0;
+// The root function to throw exception.
+function RuntimeException(msg) { return { _type: "RuntimeException", _what: msg }; }
 
-function f(e) {
-    throw e;
-}
-
-function g(i) {
+function func1() {
     try {
-        f(i);
-    } finally {
-        r = 10;
+        try {
+            System.println('Nothing is thrown, good.');
+        }
+        finally {
+            System.println('finally: func1-1');
+        }
+        System.println("Throw exception");
+        throw RuntimeException("Oh, it's a careless mistake!");
+    }
+    finally {
+        System.println('finally: func1-2');
     }
 }
 
-try {
-    g(100);
-} catch (e) {
-    r = 20;
-} finally {
-    r = 100;
+// Catches the exception from func1, but rethrow it.
+function func2() {
+    try {
+        try {
+            func1();
+        }
+        finally {
+            System.println('finally: func2-1');
+        }
+    }
+    catch (e) {
+        System.println('catch: func2');
+        throw;
+    }
+    finally {
+        System.println('finally: func2-2');
+    }
 }
 
-return r;
+// No one catch the exception, but finally clause will be correctly working.
+function func3() {
+    try {
+        try {
+            func2();
+        }
+        finally {
+            System.println('finally: func3-1');
+        }
+    }
+    finally {
+        System.println('finally: func3-2');
+    }
+}
+
+// Starts the test.
+try {
+    func3();
+}
+catch (e) {
+    // System.println("%{e.type()}: %{e.what()}");
+    System.println(e._type, ": ", e._what);
+    e.printStackTrace();
+}
+finally {
+    System.println('finally: main-block');
+}
+
+System.println("end-of-program.");
