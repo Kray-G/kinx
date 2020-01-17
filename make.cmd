@@ -20,15 +20,18 @@ move kx.tab.h include/parser.tab.h
 
 set OBJS=getopt.obj string.obj parser.obj lexer.obj main.obj allocator.obj kstr.obj bign.obj bigz.obj loadlib.obj global.obj
 set OBJS=%OBJS% ast_object.obj ast_display.obj ast_analyzer.obj ast_gencode.obj
-set OBJS=%OBJS% ir_fix.obj ir_dump.obj ir_exec.obj
+set OBJS=%OBJS% ir_fix.obj ir_dump.obj ir_exec.obj ir_util.obj
 REM del %OBJS%
 call :COMPILE %OBJS%
 cl %CFLAGS% /Fekinx.exe %OBJS%
-timeit cl -LD -nologo %CFLAGS% src/kxbltin.c bign.obj bigz.obj
+timeit cl -LD -nologo %CFLAGS% src/kxsystem.c bign.obj bigz.obj
+timeit cl -LD -nologo %CFLAGS% src/kxstring.c bign.obj bigz.obj
+timeit cl -LD -nologo %CFLAGS% src/kxarray.c  bign.obj bigz.obj
 goto END
 
 :TEST_CODE
-set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
+REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
+set CFLAGS=/O2 /MT /Iinclude
 call :TEST_SETUP
 call :TEST_EXEC apply
 call :TEST_EXEC append
@@ -78,13 +81,15 @@ if not exist bigz.obj       timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/
 if not exist ir_dump.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/ir_dump.c
 if not exist allocator.obj  timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/allocator.c
 if not exist global.obj     timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/global.c
+if not exist loadlib.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/loadlib.c
+if not exist ir_util.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/ir_util.c
 if not exist ir_exec.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/ir_exec.c
 exit /b 0
 
 :TEST_EXEC
 call :MKDOTS %1
 set /P _DUMMY=Starting [%1] %DOTS% < NUL
-cl /nologo /DKX_EXEC_NODEBUG %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_dump.obj allocator.obj kstr.obj bign.obj bigz.obj string.obj global.obj
+cl /nologo /DKX_EXEC_NODEBUG %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_util.obj ir_dump.obj allocator.obj kstr.obj bign.obj bigz.obj string.obj global.obj loadlib.obj
 test.exe
 if ERRORLEVEL 1 goto FAILED
 echo Successful

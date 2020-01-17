@@ -81,6 +81,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     }
     case KXOP_KEYVALUE:
+        analyze_ast(node->lhs, ctx);
         break;
 
     case KXOP_POSITIVE:

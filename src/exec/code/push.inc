@@ -58,13 +58,6 @@
 } \
 /**/
 
-#define KX_PUSHBLTIN_CODE() \
-{ \
-    push_bf((ctx)->stack, cur->value1.i, frmv); \
-    cur = cur->next; \
-} \
-/**/
-
 #define KX_PUSHLV_CODE() \
 { \
     int lex = cur->value1.i; \

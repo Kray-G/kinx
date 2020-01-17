@@ -1,11 +1,3 @@
-var System;
-(function() {
-    System = {
-        println:    _builtin("__SystemPrintln"),
-        print:      _builtin("__SystemPrint"),
-    };
-})();
-
 function fact(n) {
     if (n < 1) return 1;
     return n * fact(n-1);

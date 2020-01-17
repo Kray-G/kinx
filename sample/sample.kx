@@ -70,6 +70,8 @@ try {
     var nx = 200 || 2;
     throw nx;
 } catch (e) {
-    return e;
+    System.println(e._type);
+    System.println(e._what);
+    throw;
 }
 return 1;

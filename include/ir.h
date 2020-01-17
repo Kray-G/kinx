@@ -15,6 +15,7 @@ enum irop {
     KX_HALT,
     KX_NOP,
     KX_DUP,
+    KX_IMPORT,
 
     KX_ENTER,
     KX_CALL,
@@ -27,6 +28,7 @@ enum irop {
     KX_RETVL1,
     KX_RET_NULL,
     KX_THROW,
+    KX_THROWA,
     KX_THROWE,
     KX_CATCH,
     KX_JMP,
@@ -36,7 +38,6 @@ enum irop {
     KX_DEF_PUSH(KX_PUSH),
     KX_PUSHVL0,
     KX_PUSHVL1,
-    KX_PUSHBLTIN,
     KX_POP_C,
     KX_POP,
     KX_STORE,
@@ -157,6 +158,7 @@ typedef struct kx_module_ {
 } kx_module_t;
 kvec_init_t(kx_module_t);
 
+typedef kvec_nt(struct kx_object_*) kx_finally_vec_t;
 typedef struct kx_analyze_ {
     int def_func;
     int classname;
@@ -168,7 +170,7 @@ typedef struct kx_analyze_ {
     int in_try;
     kx_module_t *module;
     kvec_t(int) fidxlist;
-    kvec_nt(struct kx_object_*) finallies;
+    kx_finally_vec_t *finallies;
 } kx_analyze_t;
 
 #define get_function(module, i) (&kv_A(module->functions, i))
@@ -212,6 +214,10 @@ typedef struct kx_val_ {
         struct kx_fnc_ *fn;
         struct kx_frm_ *fr;
     } value;
+    const char *method;
+    struct kx_val_ *host;
+    int has_pos;
+    int64_t pos;
     #if defined(KX_EXEC_DEBUG)
     int frm;
     int idx;
@@ -235,6 +241,7 @@ typedef struct kx_frm_ {
     struct kx_frm_ *prv;
     struct kx_frm_ *lex;
     kvec_t(kx_val_t) v;
+    kx_code_t *caller;
 } kx_frm_t;
 kvec_init_t(kx_frm_t);
 kvec_init_pt(kx_frm_t);
@@ -242,8 +249,11 @@ kvec_init_pt(kx_frm_t);
 typedef struct kx_fnc_ {
     uint8_t mark;
     kx_code_t *jp;
+    int lib;
     int index;
     struct kx_frm_ *lex;
+    struct kx_val_ *val;
+    const char *method;
 } kx_fnc_t;
 kvec_init_t(kx_fnc_t);
 kvec_init_pt(kx_fnc_t);
@@ -275,6 +285,21 @@ typedef struct kx_exc_ {
 } kx_exc_t;
 kvec_init_t(kx_exc_t);
 
+struct kx_context_;
+typedef int (*get_bltin_count_t)(void);
+typedef int (*get_bltin_index_t)(const char *name);
+typedef const char *(*get_bltin_name_t)(int index);
+typedef int (*call_bltin_func_t)(int index, int args, kx_frm_t *frmv, kx_frm_t *lexv, struct kx_context_ *ctx);
+
+typedef struct kx_bltin_ {
+    void *lib;
+    get_bltin_count_t get_bltin_count;
+    get_bltin_name_t  get_bltin_name;
+    get_bltin_index_t get_bltin_index;
+    call_bltin_func_t call_bltin_func;
+} kx_bltin_t;
+kvec_init_t(kx_bltin_t);
+
 typedef struct kx_options_ {
     int dump:1;
 } kx_options_t;
@@ -297,7 +322,12 @@ typedef struct kx_context_ {
     kvec_pt(kx_frm_t) frm_dead;
 
     kvec_t(kx_module_t) module;
+    kvec_t(kx_bltin_t) builtin;
+    kx_code_t *caller;
     kx_options_t options;
+    kx_obj_t *strlib;
+    kx_obj_t *arylib;
+    kx_fnc_t *global_method_missing;
 } kx_context_t;
 
 #if defined(KX_EXEC_DEBUG)
@@ -392,6 +422,16 @@ typedef struct kx_context_ {
         kx_val_t *top = &kv_push_undef(st);\
         top->type = KX_LVAL_T;\
         top->value.lv = (v);\
+        (v)->has_pos = 0;\
+    } while (0);\
+/**/
+#define push_lvalue_pos(st, v, p) \
+    do {\
+        kx_val_t *top = &kv_push_undef(st);\
+        top->type = KX_LVAL_T;\
+        top->value.lv = (v);\
+        (v)->has_pos = 1;\
+        (v)->pos = (p);\
     } while (0);\
 /**/
 #define push_value(st, v) \
@@ -429,6 +469,64 @@ typedef struct kx_context_ {
         top->type = KX_ADDR_T;\
         top->value.jp = (v);\
     } while (0);\
+/**/
+
+#define KEX_SET_PROP(o, name, kexvalp) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kh_value(p, k) = *(kexvalp); \
+} \
+/**/
+
+#define KEX_SET_PROP_OBJ(o, name, kexobj) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_OBJ_T; \
+    val->value.ov = kexobj; \
+} \
+/**/
+
+#define KEX_SET_PROP_STR(o, name, strv) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_STR_T; \
+    val->value.sv = strv; \
+} \
+/**/
+
+#define KEX_GET_PROP(dst, o, name) { \
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_get(prop, p, name); \
+    if (k != kh_end(p)) { \
+        dst = &(kh_value(p, k)); \
+    } \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_INT(o, val) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_INT_T; \
+    top->value.iv = (val); \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_CSTR(o, val) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_CSTR_T; \
+    top->value.pv = const_str(val); \
+} \
+/**/
+
+#define KEX_GET_ARRAY_ITEM(dst, o, i) { \
+    if ((i) < kv_size((o)->ary)) { \
+        dst = &(kv_A((o)->ary, i)); \
+    } \
+} \
 /**/
 
 #define KX_EXEC_DECL(fixcode) \

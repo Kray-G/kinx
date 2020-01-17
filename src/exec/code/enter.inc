@@ -19,6 +19,7 @@
     int expand = cur->value1.i; \
     kv_expand_if(kx_val_t, (ctx)->stack, expand); \
     kx_frm_t *frm = allocate_frm(ctx); \
+    frm->caller = (ctx)->caller; \
     frm->prv = frmv; \
     frm->id = kv_size((ctx)->stack); \
     int max_vars = cur->value2.i; \
@@ -59,6 +60,7 @@
     int expand = cur->value1.i; \
     kv_expand_if(kx_val_t, (ctx)->stack, expand); \
     kx_frm_t *frm = allocate_frm(ctx); \
+    frm->caller = (ctx)->caller; \
     frm->prv = frmv; \
     frm->id = kv_size((ctx)->stack); \
     int max_vars = cur->value2.i; \
