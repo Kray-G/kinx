@@ -102,8 +102,11 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_THROW:
         printf("throw");
         break;
+    case KX_THROWA:
+        printf("%-23s %s", "throw", "(auto)");
+        break;
     case KX_THROWE:
-        printf("%-23s %s", "throwe", "(stack-top)");
+        printf("%-23s %s", "throw", "(stack-top)");
         break;
     case KX_CATCH:
         printf("%-23s %s", "catch", gen_varloc(code));
@@ -173,8 +176,8 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_PUSHVL1:
         printf("%-23s %s", "pushvl1", gen_varloc_lexical1(code)); /* push variable value of lexical level 1 */
         break;
-    case KX_PUSHBLTIN:
-        printf("%-23s index(%lld)", "push(bltin)", code->value1.i);
+    case KX_IMPORT:
+        printf("%-23s %s", "import", code->value1.s);
         break;
 
     case KX_POP_C:

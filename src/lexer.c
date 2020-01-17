@@ -3,12 +3,14 @@
 #include <parser.h>
 
 static char kx_strbuf[KX_BUF_MAX] = {0};
+static int g_import = 0;
+static const char *varname = NULL;
+static const char *modulename = NULL;
 
 int get_keyword_token(const char *val)
 {
     switch (val[0]) {
     case '_':
-        if (strcmp(val, "_builtin") == 0)   return LOADBLTIN;
         break;
     case 'b':
         if (strcmp(val, "break") == 0)      return BREAK;
@@ -32,6 +34,7 @@ int get_keyword_token(const char *val)
         break;
     case 'i':
         if (strcmp(val, "if") == 0)         return IF;
+        if (strcmp(val, "import") == 0)     { g_import = 1; return IMPORT; }
         break;
     case 'n':
         if (strcmp(val, "null") == 0)       return NUL;
@@ -63,12 +66,12 @@ int get_keyword_token(const char *val)
     return NAME;
 }
 
-int kx_lex_make_string()
+int kx_lex_make_string(char quote)
 {
-    if (kx_lexinfo.ch == '"') {
+    if (kx_lexinfo.ch == quote) {
         kx_lex_next(kx_lexinfo);
     }
-    if (kx_lexinfo.ch == '"') {
+    if (kx_lexinfo.ch == quote) {
         kx_lex_next(kx_lexinfo);
         kx_yylval.strval = const_str("");
         return STR;
@@ -78,9 +81,14 @@ int kx_lex_make_string()
     kx_lex_next(kx_lexinfo);
 
     int pos = 1;
-    while (kx_lexinfo.ch != '"') {
+    while (kx_lexinfo.ch != quote) {
         if (kx_lexinfo.ch == '\\') {
             kx_lex_next(kx_lexinfo);
+            switch (kx_lexinfo.ch) {
+            case 'n': kx_lexinfo.ch = '\n';
+            case 't': kx_lexinfo.ch = '\t';
+            case 'r': kx_lexinfo.ch = '\r';
+            }
         }
         kx_strbuf[pos++] = kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);
@@ -92,13 +100,70 @@ int kx_lex_make_string()
     return STR;
 }
 
+const char *make_varname(const char *str)
+{
+    char strbuf[KX_BUF_MAX] = {0};
+    int pos = 0;
+    int upper = 1;
+    while (*str && pos < KX_BUF_MAX) {
+        if (*str == '_') {
+            upper = 1;
+            ++str;
+            continue;
+        }
+        strbuf[pos++] = upper ? toupper(*str++) : *str++;
+        upper = 0;
+    }
+    return const_str(strbuf);
+}
+
+const char *make_modulename(const char *str)
+{
+    char strbuf[KX_BUF_MAX] = {'k', 'x', 0};
+    int pos = 2;
+    while (*str && pos < KX_BUF_MAX) {
+        strbuf[pos++] = tolower(*str++);
+    }
+    return const_str(strbuf);
+}
+
 int kx_yylex()
 {
+HEAD_OF_YYLEX:
     while (kx_is_whitespace(kx_lexinfo)) {
         kx_lex_next(kx_lexinfo);
     }
     if (!kx_lexinfo.ch) {
         return 0;
+    }
+
+    if (g_import > 0) {
+        switch (g_import) {
+        case 1:
+            int pos = 0;
+            while (kx_lexinfo.ch && kx_lexinfo.ch != ';' && pos < KX_BUF_MAX) {
+                if (!kx_is_whitespace(kx_lexinfo)) {
+                    kx_strbuf[pos++] = kx_lexinfo.ch == '.' ? '_' : kx_lexinfo.ch;
+                }
+                kx_lex_next(kx_lexinfo);
+            }
+            kx_strbuf[pos] = 0;
+            varname = make_varname(kx_strbuf);
+            modulename = make_modulename(kx_strbuf);
+            g_import = 2;
+            return VAR;
+        case 2:
+            g_import = 3;
+            kx_yylval.strval = varname;
+            return NAME;
+        case 3:
+            g_import = 4;
+            return '=';
+        case 4:
+            g_import = 0;
+            kx_yylval.strval = modulename;
+            return MODULENAME;
+        }
     }
 
     int pos = 0, is_zero = 0;
@@ -117,8 +182,10 @@ int kx_yylex()
         kx_lex_next(kx_lexinfo);
         return ch;
     }
+    case '\'':
+        return kx_lex_make_string('\'');
     case '"':
-        return kx_lex_make_string();
+        return kx_lex_make_string('"');
     case '=':
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == '=') {
@@ -239,6 +306,28 @@ int kx_yylex()
             kx_lex_next(kx_lexinfo);
             return DIVEQ;
         }
+        if (kx_lexinfo.ch == '/') {
+            kx_lex_next(kx_lexinfo);
+            while (kx_lexinfo.ch != '\n') {
+                kx_lex_next(kx_lexinfo);
+            }
+            kx_lex_next(kx_lexinfo);
+            goto HEAD_OF_YYLEX;
+        }
+        if (kx_lexinfo.ch == '*') {
+            kx_lex_next(kx_lexinfo);
+            while (kx_lexinfo.ch) {
+                if (kx_lexinfo.ch == '*') {
+                    kx_lex_next(kx_lexinfo);
+                    if (kx_lexinfo.ch == '/') {
+                        kx_lex_next(kx_lexinfo);
+                        break;
+                    }
+                }
+                kx_lex_next(kx_lexinfo);
+            }
+            goto HEAD_OF_YYLEX;
+        }
         return '/';
     case '%':
         kx_lex_next(kx_lexinfo);
@@ -325,6 +414,16 @@ int kx_yylex()
             kx_yylval.intval = strtoll(kx_strbuf, NULL, 10);
             return INT;
         }
+        break;
+    case '#': {
+        kx_lex_next(kx_lexinfo);
+        while (kx_lexinfo.ch != '\n') {
+            kx_lex_next(kx_lexinfo);
+        }
+        kx_lex_next(kx_lexinfo);
+        goto HEAD_OF_YYLEX;
+    }
+    default:
         break;
     }
 

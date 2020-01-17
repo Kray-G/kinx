@@ -39,6 +39,9 @@ kx_context_t *make_context(void)
     ctx->obj_alive = kl_init(obj);
     ctx->big_alive = kl_init(big);
     ctx->str_alive = kl_init(str);
+    ctx->strlib = NULL;
+    ctx->arylib = NULL;
+    ctx->global_method_missing = NULL;
     init_allocation(ctx);
     return ctx;
 }
@@ -119,6 +122,9 @@ static void gc_mark_fnc(kx_fnc_t *c)
     c->mark = 1;
     if (c->lex) {
         gc_mark_frm(c->lex);
+    }
+    if (c->val) {
+        gc_mark_val(c->val);
     }
 }
 
@@ -217,6 +223,9 @@ static void gc_sweep(kx_context_t *ctx)
         } else {
             kx_fnc_t *v;
             kl_remove_next(fnc, ctx->fnc_alive, prevfnc, &v);
+            v->lex = NULL;
+            v->val = NULL;
+            v->method = NULL;
             kv_push(kx_fnc_t*, ctx->fnc_dead, v);
         }
     }
@@ -364,9 +373,19 @@ static void module_cleanup(kx_context_t *ctx)
     kv_destroy(ctx->module);
 }
 
+static void builtin_cleanup(kx_context_t *ctx)
+{
+    int l = kv_size(ctx->builtin);
+    for (int i = 0; i < l; ++i) {
+        unload_library((kv_A(ctx->builtin, i)).lib);
+    }
+    kv_destroy(ctx->builtin);
+}
+
 void context_cleanup(kx_context_t *ctx)
 {
     gc_object_cleanup(ctx);
     module_cleanup(ctx);
+    builtin_cleanup(ctx);
     free(ctx);
 }

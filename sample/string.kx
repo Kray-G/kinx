@@ -1,0 +1,37 @@
+var s = "string";
+System.println(s);
+System.println(s[0]);
+System.println(s[1]);
+System.println(s[2]);
+System.println(s[3]);
+System.println(s[4]);
+s[0] = 116;
+s[1] = "S";
+System.println(s);
+
+a['aaa'] = s;
+System.println(a["aaa"]);
+
+System.println(s);
+System.println(s.length());
+
+System.println([1,2,3].length());
+
+var x = {
+    methodMissing: function(a, b, c) {
+        System.println(a);
+        System.println(a.methodMissing);
+        System.println(b);
+        System.println(c);
+    }
+};
+
+x.kkk(2);
+
+y.methodMissing = function(a, b, c) {
+    System.println(a);
+    System.println(a.methodMissing);
+    System.println(b);
+    System.println(c);
+};
+y.kkk(2);

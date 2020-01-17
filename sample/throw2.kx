@@ -1,0 +1,26 @@
+function test1() {
+    var val = 1;
+    try {
+        return val;
+    }
+    finally {
+        val = 2;
+    }
+}
+
+var s_val;
+function test2() {
+    s_val = 1;
+    try {
+        return s_val;
+    }
+    finally {
+        s_val = 2;
+        System.print("(s_val = " + s_val + ") = ");
+    }
+};
+
+System.println("Test1() = " + test1());
+System.print("Test2() = ");
+System.println(test2());
+System.println("s_val = " + s_val);

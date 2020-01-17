@@ -33,9 +33,10 @@ int eval(kx_context_t *ctx)
     return ir_exec(ctx);
 }
 
-int eval_string(const char *code, kx_context_t *ctx)
+int eval_string(const char *code, kx_context_t *ctx, const char *startup)
 {
     kx_yyin.fp = NULL;
+    kx_yyin.startup = startup;
     kx_yyin.str = code;
     kx_yyin.file = "<eval>";
     kx_lexinfo.file = kx_yyin.file;
@@ -45,9 +46,10 @@ int eval_string(const char *code, kx_context_t *ctx)
     return eval(ctx);
 }
 
-int eval_file(const char *file, kx_context_t *ctx)
+int eval_file(const char *file, kx_context_t *ctx, const char *startup)
 {
     kx_yyin.fp = file ? fopen(file, "r") : stdin;
+    kx_yyin.startup = startup;
     kx_yyin.str = NULL;
     kx_yyin.file = file;
     kx_lexinfo.file = file;
@@ -55,6 +57,16 @@ int eval_file(const char *file, kx_context_t *ctx)
     kx_lexinfo.pos = 1;
     kx_lexinfo.newline = 0;
     return eval(ctx);
+}
+
+static const char *startup_code()
+{
+    static const char *code =
+        "import System;"
+        "import String;"
+        "import Array;"
+    ;
+    return code;
 }
 
 int main(int ac, char **av)
@@ -70,17 +82,6 @@ int main(int ac, char **av)
     kx_yydebug = 1;
     #endif
     int r = 0;
-    kx_bltin.lib = load_library("kxbltin", NULL);
-    if (!kx_bltin.lib) {
-        printf("load failed: kxbltin\n");
-        return 1;
-    }
-    kx_bltin.get_bltin_index = (get_bltin_index_t)get_libfunc(kx_bltin.lib, "get_bltin_index");
-    kx_bltin.call_bltin_func = (call_bltin_func_t)get_libfunc(kx_bltin.lib, "call_bltin_func");
-    if (!kx_bltin.get_bltin_index || !kx_bltin.call_bltin_func) {
-        printf("load failed: kxbltin functions\n");
-        return 1;
-    }
 
     kx_context_t *ctx = make_context();
     int opt;
@@ -93,14 +94,13 @@ int main(int ac, char **av)
     }
 
     if (av[optind]) {
-        r = eval_file(av[optind], ctx);
+        r = eval_file(av[optind], ctx, startup_code());
     } else {
-        r = eval_file(NULL, ctx);
+        r = eval_file(NULL, ctx, startup_code());
     }
 
     context_cleanup(ctx);
     free_nodes();
     free_string();
-    unload_library(kx_bltin.lib);
     return r;
 }

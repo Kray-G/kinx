@@ -90,10 +90,10 @@ kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs)
     return kx_gen_obj(type, 0, lhs, NULL, NULL);
 }
 
-kx_object_t *kx_gen_bltin_object(const char *name)
+kx_object_t *kx_gen_import_object(const char *name)
 {
-    kx_object_t *obj = kx_gen_obj(KXOP_BLTIN, 0, NULL, NULL, NULL);
-    obj->value.i = (kx_bltin.get_bltin_index)(name);
+    kx_object_t *obj = kx_gen_obj(KXOP_IMPORT, 0, NULL, NULL, NULL);
+    obj->value.s = name;
     return obj;
 }
 

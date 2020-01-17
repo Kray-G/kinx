@@ -10,6 +10,7 @@
 typedef struct kx_yyin_ {
     FILE       *fp;
     const char *str;
+    const char *startup;
     const char *file;
 } kx_yyin_t;
 
@@ -31,7 +32,9 @@ extern int kx_yylex();
         (ctx).pos = 1; \
         (ctx).newline = 0; \
     } \
-    if (kx_yyin.fp) { \
+    if (kx_yyin.startup && *kx_yyin.startup) { \
+        (ctx).ch = *kx_yyin.startup++; \
+    } else if (kx_yyin.fp) { \
         (ctx).ch = fgetc(kx_yyin.fp); \
         ++(ctx).pos; \
         if ((ctx).ch == EOF) { \
@@ -126,7 +129,7 @@ enum opecode {
     KXOP_GT,
     KXOP_LGE,
     KXOP_CALL,
-    KXOP_BLTIN,
+    KXOP_IMPORT,
 
     /* ternary expression */
     KXOP_TER,
@@ -202,19 +205,9 @@ typedef struct kx_object_ {
 kvec_init_t(kx_object_t);
 kvec_init_pt(kx_object_t);
 
-typedef int (*get_bltin_index_t)(const char *name);
-typedef int (*call_bltin_func_t)(int index, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
-
-typedef struct kx_bltin_ {
-    void *lib;
-    get_bltin_index_t get_bltin_index;
-    call_bltin_func_t call_bltin_func;
-} kx_bltin_t;
-
 #define KX_BUF_MAX (2048)
 extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
-extern kx_bltin_t kx_bltin;
 
 extern void *load_library(const char *name, const char *envname);
 extern void *get_libfunc(void *h, const char *name);
@@ -230,8 +223,8 @@ extern void context_cleanup(kx_context_t *ctx);
 
 extern const char *alloc_string(const char *str);
 extern void free_string(void);
-const char *const_str(const char* name);
-const char *const_str2(const char* classname, const char* name);
+extern const char *const_str(const char* name);
+extern const char *const_str2(const char* classname, const char* name);
 
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name);
@@ -242,7 +235,7 @@ extern kx_object_t *kx_gen_str_object(const char *val);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);
-extern kx_object_t *kx_gen_bltin_object(const char *name);
+extern kx_object_t *kx_gen_import_object(const char *name);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_texpr_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
@@ -259,5 +252,62 @@ extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
 extern void ir_fix_code(kx_context_t *ctx);
 extern int ir_exec(kx_context_t *ctx);
+
+extern void print_value(kx_val_t *v, int recursive);
+extern void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv);
+extern void print_uncaught_exception(kx_obj_t *val);
+extern void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht);
+extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
+extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host);
+extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
+extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
+
+#if defined(_WIN32) || defined(_WIN64)
+#define DllExport  __declspec(dllexport)
+#else
+#define DllExport
+#endif
+
+#define KX_FUNCTION_NOT_FOUND   (1)
+#define KX_THROW_EXCEPTION      (2)
+
+typedef struct kx_bltin_def_ {
+    const char *name;
+    int (*func)(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
+} kx_bltin_def_t;
+
+#define KX_ADJST_STACK() { \
+    kv_shrink((ctx)->stack, args); \
+} \
+/**/
+
+#define KX_DLL_DECL_FNCTIONS() \
+    DllExport int get_bltin_count(void) \
+    { \
+        return sizeof(kx_bltin_info)/sizeof(kx_bltin_info[0]); \
+    } \
+    DllExport const char *get_bltin_name(int index) \
+    { \
+        return kx_bltin_info[index].name; \
+    } \
+    DllExport int get_bltin_index(const char *name) \
+    { \
+        int l = sizeof(kx_bltin_info)/sizeof(kx_bltin_info[0]); \
+        for (int i = 0; i < l; ++i) { \
+            if (!strcmp(kx_bltin_info[i].name, name)) { \
+                return i; \
+            } \
+        } \
+        return -1; \
+    } \
+    DllExport int call_bltin_func(int index, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
+    { \
+        int l = sizeof(kx_bltin_info)/sizeof(kx_bltin_info[0]); \
+        if (0 <= index && index < l) { \
+            return kx_bltin_info[index].func(args, frmv, lexv, ctx); \
+        } \
+        return KX_FUNCTION_NOT_FOUND; /* not found */ \
+    } \
+/**/
 
 #endif /* KX_KINX_H */

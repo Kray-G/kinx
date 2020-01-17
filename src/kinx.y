@@ -26,7 +26,8 @@
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
-%token LOADBLTIN
+%token IMPORT
+%token<strval> MODULENAME
 %token<strval> NAME
 %token<strval> STR
 %token<intval> INT
@@ -76,6 +77,7 @@
 %type<obj> DeclAssignExpression
 %type<obj> FunctionDeclStatement
 %type<obj> NormalFunctionDeclStatement
+%type<obj> AnonymousFunctionDeclStatement
 %type<obj> ClassFunctionDeclStatement
 %type<obj> ClassDeclStatement
 %type<obj> Inherit_Opt
@@ -90,7 +92,7 @@
 %%
 
 Program
-    : StatementList         { kx_ast_root = $1; }
+    : StatementList         { kx_ast_root = kx_gen_bexpr_object(KXST_STMTLIST, $1, kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL)); }
     ;
 
 StatementList
@@ -111,6 +113,7 @@ Statement
     | DefinitionStatement
     | BreakStatement
     | LabelStatement
+    | IMPORT VAR NAME '=' MODULENAME ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3), kx_gen_import_object($5)); }
     ;
 
 BlockStatement
@@ -191,22 +194,22 @@ AssignExpression_Opt
 AssignExpression
     : LogicalOrExpression
     | AssignExpression '=' FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, $3); }
-    | AssignExpression SHLEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHL, $1, $3); }
-    | AssignExpression SHREQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHR, $1, $3); }
-    | AssignExpression ADDEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_ADD, $1, $3); }
-    | AssignExpression SUBEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SUB, $1, $3); }
-    | AssignExpression MULEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_MUL, $1, $3); }
-    | AssignExpression DIVEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_DIV, $1, $3); }
-    | AssignExpression MODEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_MOD, $1, $3); }
-    | AssignExpression ANDEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_AND, $1, $3); }
-    | AssignExpression OREQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_OR, $1, $3); }
-    | AssignExpression XOREQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_XOR, $1, $3); }
-    | AssignExpression LANDEQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_LAND, $1, $3); }
-    | AssignExpression LOREQ FunctionExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_LOR, $1, $3); }
+    | AssignExpression SHLEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHL, $1, $3); }
+    | AssignExpression SHREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHR, $1, $3); }
+    | AssignExpression ADDEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_ADD, $1, $3); }
+    | AssignExpression SUBEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SUB, $1, $3); }
+    | AssignExpression MULEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_MUL, $1, $3); }
+    | AssignExpression DIVEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_DIV, $1, $3); }
+    | AssignExpression MODEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_MOD, $1, $3); }
+    | AssignExpression ANDEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_AND, $1, $3); }
+    | AssignExpression OREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_OR, $1, $3); }
+    | AssignExpression XOREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_XOR, $1, $3); }
+    | AssignExpression LANDEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_LAND, $1, $3); }
+    | AssignExpression LOREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_LOR, $1, $3); }
     ;
 
 FunctionExpression
-    : FunctionDeclStatement
+    : AnonymousFunctionDeclStatement
     | LogicalOrExpression
     ;
 
@@ -298,11 +301,10 @@ Factor
     | NAME { $$ = kx_gen_var_object($1); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
-    | LOADBLTIN '(' STR ')' { $$ = kx_gen_bltin_object($3); }
     | Array
     | Object
     | '(' AssignExpression ')' { $$ = $2; }
-    | '(' NormalFunctionDeclStatement ')' { $$ = $2; }
+    | '(' AnonymousFunctionDeclStatement ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     ;
 
@@ -332,7 +334,9 @@ KeyValueList
 
 KeyValue
     : STR ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    | STR ':' AnonymousFunctionDeclStatement { $$ = kx_gen_keyvalue_object($1, $3); }
     | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    | NAME ':' AnonymousFunctionDeclStatement { $$ = kx_gen_keyvalue_object($1, $3); }
     ;
 
 VarDeclStatement
@@ -347,6 +351,7 @@ DeclAssignExpressionList
 DeclAssignExpression
     : NAME { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1), NULL); }
     | NAME '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1), $3); }
+    | NAME '=' AnonymousFunctionDeclStatement { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1), $3); }
     ;
 
 FunctionDeclStatement
@@ -356,7 +361,10 @@ FunctionDeclStatement
 
 NormalFunctionDeclStatement
     : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, $4, $6, NULL); }
-    | FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
+    ;
+
+AnonymousFunctionDeclStatement
+    : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
     ;
 
 ClassFunctionDeclStatement
