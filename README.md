@@ -125,6 +125,7 @@ Here is a plan to add.
 * [ ] `switch-case` statement.
 * [ ] `using` directive to include another source code.
 * [ ] `namespace` block.
+* [ ] `class` mechanism fully support.
 * [ ] `module` to add function easily to object.
 * [ ] `Math` object to support some calculations.
 * [ ] `File` object to support standard File I/O.
