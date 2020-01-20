@@ -54,6 +54,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         display_ast(node->lhs, indent + 1, 0);
         break;
 
+    case KXOP_NOT:
+        printf("(!)\n");
+        display_ast(node->lhs, indent + 1, 0);
+        break;
     case KXOP_POSITIVE:
         printf("(+)\n");
         display_ast(node->lhs, indent + 1, 0);

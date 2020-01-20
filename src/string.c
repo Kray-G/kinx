@@ -14,7 +14,7 @@ static string_list_t *g_head = NULL;
 
 const char *alloc_string(const char *str)
 {
-    string_list_t *sl = (string_list_t *)malloc(sizeof(string_list_t));
+    string_list_t *sl = (string_list_t *)kx_malloc(sizeof(string_list_t));
     sl->p = strdup(str);
     sl->n = g_head;
     g_head = sl;
@@ -40,10 +40,10 @@ const char *const_str(const char* name)
 const char *const_str2(const char* classname, const char* name)
 {
     int len = strlen(classname) + strlen(name) + 2;
-    char *buf = malloc(len);
+    char *buf = kx_malloc(len);
     sprintf(buf, "%s#%s", classname, name);
     const char *r = const_str(buf);
-    free(buf);
+    kx_free(buf);
     return r;
 }
 
@@ -52,8 +52,8 @@ void free_string(void)
     string_list_t *head = g_head;
     while (head) {
         string_list_t *next = head->n;
-        free(head->p);
-        free(head);
+        kx_free(head->p);
+        kx_free(head);
         head = next;
     }
     kh_destroy(conststr, g_conststr);

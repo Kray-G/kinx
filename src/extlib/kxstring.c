@@ -1,6 +1,8 @@
 #include <dbg.h>
 #include <kinx.h>
 
+KX_DLL_DECL_ALLOCATORS();
+
 int String_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
@@ -14,7 +16,7 @@ int String_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "length",     String_length },
+    { "length", String_length },
 };
 
-KX_DLL_DECL_FNCTIONS(kx_bltin_info);
+KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

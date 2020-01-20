@@ -280,9 +280,15 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         break;
     }
 
+    case KXOP_NOT:
+        gencode_ast_hook(node->lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_NOT }));
+        break;
     case KXOP_POSITIVE:
+        gencode_ast_hook(node->lhs, ana, 0);
         break;
     case KXOP_NEGATIVE:
+        gencode_ast_hook(node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_NEG }));
         break;
     case KXOP_INC: {
@@ -941,7 +947,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
     }
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         kx_finally_vec_t *finallies = ana->finallies;
-        ana->finallies = (kx_finally_vec_t *)calloc(1, sizeof(kx_finally_vec_t));
+        ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
         int in_try = ana->in_try;
         ana->in_try = 0;
         int func = kv_last(ana->fidxlist);
@@ -972,14 +978,14 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         ana->classname = classname;
         ana->def_func = cur;
         ana->in_try = in_try;
-        free(ana->finallies);
+        kx_free(ana->finallies);
         ana->finallies = finallies;
         kv_remove_last(ana->fidxlist);
         break;
     }
     case KXST_FUNCTION: { /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         kx_finally_vec_t *finallies = ana->finallies;
-        ana->finallies = (kx_finally_vec_t *)calloc(1, sizeof(kx_finally_vec_t));
+        ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
         int in_try = ana->in_try;
         ana->in_try = 0;
         int func = kv_last(ana->fidxlist);
@@ -1001,7 +1007,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         ana->function = func;
         ana->def_func = cur;
         ana->in_try = in_try;
-        free(ana->finallies);
+        kx_free(ana->finallies);
         ana->finallies = finallies;
         kv_remove_last(ana->fidxlist);
         break;
@@ -1111,7 +1117,7 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module)
     kx_analyze_t anaobj = {0};
     kx_analyze_t *ana = &anaobj;
     ana->module = module;
-    ana->finallies = (kx_finally_vec_t *)calloc(1, sizeof(kx_finally_vec_t));
+    ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
 
     int startup = new_function(ana);
     get_function(module, startup)->name = alloc_string("_startup");
@@ -1141,7 +1147,7 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module)
 
     kv_destroy(ana->fidxlist);
     kv_destroy(*(ana->finallies));
-    free(ana->finallies);
+    kx_free(ana->finallies);
     return &(ana->module->functions);
 }
 

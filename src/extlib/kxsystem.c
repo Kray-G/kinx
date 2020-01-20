@@ -1,7 +1,9 @@
 #include <dbg.h>
 #include <kinx.h>
 
-int System__print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+KX_DLL_DECL_ALLOCATORS();
+
+int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     int n, count = 0;
     char *buf;
@@ -50,14 +52,14 @@ int System__print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int System__println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    System__print(args, frmv, lexv, ctx);
+    System_print(args, frmv, lexv, ctx);
     printf("\n");
     return 0;
 }
 
-int System__exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *cmd = get_arg_str(1, args, ctx);
     if (cmd) {
@@ -70,17 +72,17 @@ int System__exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid argument in System.exec()");
 }
 
-int System__abort(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_abort(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     printf("This program aborted.\n");
     _exit(1);
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "print",      System__print },
-    { "println",    System__println },
-    { "exec",       System__exec },
-    { "abort",      System__abort },
+    { "print", System_print },
+    { "println", System_println },
+    { "exec", System_exec },
+    { "abort", System_abort },
 };
 
-KX_DLL_DECL_FNCTIONS(kx_bltin_info);
+KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

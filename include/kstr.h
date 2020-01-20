@@ -35,80 +35,31 @@ typedef struct {
 
 // prototypes
 
-kstr_t *
-ks_new();
-
-kstr_t *
-ks_new_with_size(size_t n);
-
-kstr_t *
-ks_new_with_string(char *str);
-
-kstr_t *
-ks_new_with_string_length(char *str, size_t len);
-
-kstr_t *
-ks_new_with_copy(char *str);
-
-size_t
-ks_size(kstr_t *self);
-
-size_t
-ks_length(kstr_t *self);
-
-void
-ks_free(kstr_t *self);
-
-int
-ks_prepend(kstr_t *self, char *str);
-
-int
-ks_append(kstr_t *self, const char *str);
-
-int
-ks_appendf(kstr_t *self, const char *format, ...);
-
-int
-ks_append_n(kstr_t *self, const char *str, size_t len);
-
-int
-ks_equals(kstr_t *self, kstr_t *other);
-
-ssize_t
-ks_indexof(kstr_t *self, char *str);
-
-kstr_t *
-ks_slice(kstr_t *self, size_t from, ssize_t to);
-
-ssize_t
-ks_compact(kstr_t *self);
-
-void
-ks_fill(kstr_t *self, int c);
-
-void
-ks_clear(kstr_t *self);
-
-void
-ks_trim_left(kstr_t *self);
-
-void
-ks_trim_right(kstr_t *self);
-
-void
-ks_trim(kstr_t *self);
-
-void
-ks_trim_left_char(kstr_t *self, char ch);
-
-void
-ks_trim_right_char(kstr_t *self, char ch);
-
-void
-ks_trim_char(kstr_t *self, char ch);
-
-void
-ks_print(kstr_t *self);
+kstr_t *ks_new();
+kstr_t *ks_new_with_size(size_t n);
+kstr_t *ks_new_with_string(char *str);
+kstr_t *ks_new_with_string_length(char *str, size_t len);
+kstr_t *ks_new_with_copy(char *str);
+size_t ks_size(kstr_t *self);
+size_t ks_length(kstr_t *self);
+void ks_free(kstr_t *self);
+int ks_prepend(kstr_t *self, char *str);
+int ks_append(kstr_t *self, const char *str);
+int ks_appendf(kstr_t *self, const char *format, ...);
+int ks_append_n(kstr_t *self, const char *str, size_t len);
+int ks_equals(kstr_t *self, kstr_t *other);
+ssize_t ks_indexof(kstr_t *self, char *str);
+kstr_t *ks_slice(kstr_t *self, size_t from, ssize_t to);
+ssize_t ks_compact(kstr_t *self);
+void ks_fill(kstr_t *self, int c);
+void ks_clear(kstr_t *self);
+void ks_trim_left(kstr_t *self);
+void ks_trim_right(kstr_t *self);
+void ks_trim(kstr_t *self);
+void ks_trim_left_char(kstr_t *self, char ch);
+void ks_trim_right_char(kstr_t *self, char ch);
+void ks_trim_char(kstr_t *self, char ch);
+void ks_print(kstr_t *self);
 
 #define ks_string(self) (self->data)
 
