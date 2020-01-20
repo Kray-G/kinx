@@ -31,8 +31,8 @@ if (r < 0) { \
         push_s((ctx)->stack, fn->method); \
         ++count; \
     } \
-    if (fn->val) { \
-        push_value((ctx)->stack, *(fn->val)); \
+    if (fn->val.type) { \
+        push_value((ctx)->stack, fn->val); \
         ++count; \
     } \
     if (fn->jp) { \
@@ -45,8 +45,7 @@ if (r < 0) { \
         push_adr((ctx)->stack, cur->next); \
         cur = fn->jp; \
     } else { \
-        kx_bltin_t *p = &kv_A(ctx->builtin, fn->lib); \
-        int r = p->call_bltin_func(fn->index, count, frmv, fn->lex, ctx); \
+        int r = fn->func(count, frmv, fn->lex, ctx); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } \
@@ -67,13 +66,12 @@ if (r < 0) { \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
         kv_remove_last((ctx)->stack); \
-        kx_bltin_t *p = &kv_A(ctx->builtin, fn->lib); \
         int r; \
-        if (fn->val) { \
-            push_value((ctx)->stack, *(fn->val)); \
-            r = p->call_bltin_func(fn->index, cur->count+1, frmv, fn->lex, ctx); \
+        if (fn->val.type) { \
+            push_value((ctx)->stack, fn->val); \
+            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
         } else { \
-            r = p->call_bltin_func(fn->index, cur->count, frmv, fn->lex, ctx); \
+            r = fn->func(cur->count, frmv, fn->lex, ctx); \
         } \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
@@ -103,13 +101,12 @@ if (r < 0) { \
         cur = fv->value.fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
-        kx_bltin_t *p = &kv_A(ctx->builtin, fn->lib); \
         int r; \
-        if (fn->val) { \
-            push_value((ctx)->stack, *(fn->val)); \
-            r = p->call_bltin_func(fn->index, cur->count+1, frmv, fn->lex, ctx); \
+        if (fn->val.type) { \
+            push_value((ctx)->stack, fn->val); \
+            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
         } else { \
-            r = p->call_bltin_func(fn->index, cur->count, frmv, fn->lex, ctx); \
+            r = fn->func(cur->count, frmv, fn->lex, ctx); \
         } \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
@@ -134,13 +131,12 @@ if (r < 0) { \
         cur = fv->value.fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
-        kx_bltin_t *p = &kv_A(ctx->builtin, fn->lib); \
         int r; \
-        if (fn->val) { \
-            push_value((ctx)->stack, *(fn->val)); \
-            r = p->call_bltin_func(fn->index, cur->count+1, frmv, fn->lex, ctx); \
+        if (fn->val.type) { \
+            push_value((ctx)->stack, fn->val); \
+            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
         } else { \
-            r = p->call_bltin_func(fn->index, cur->count, frmv, fn->lex, ctx); \
+            r = fn->func(cur->count, frmv, fn->lex, ctx); \
         } \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
@@ -165,13 +161,12 @@ if (r < 0) { \
         cur = fv->value.fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
-        kx_bltin_t *p = &kv_A(ctx->builtin, fn->lib); \
         int r; \
-        if (fn->val) { \
-            push_value((ctx)->stack, *(fn->val)); \
-            r = p->call_bltin_func(fn->index, cur->count+1, frmv, fn->lex, ctx); \
+        if (fn->val.type) { \
+            push_value((ctx)->stack, fn->val); \
+            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
         } else { \
-            r = p->call_bltin_func(fn->index, cur->count, frmv, fn->lex, ctx); \
+            r = fn->func(cur->count, frmv, fn->lex, ctx); \
         } \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
@@ -212,13 +207,12 @@ if (r < 0) { \
             cur = fn->jp; \
         } else if (fv->type == KX_BFNC_T) { \
             kx_fnc_t *fn = fv->value.fn; \
-            kx_bltin_t *p = &kv_A(ctx->builtin, fn->lib); \
             int r; \
-            if (fn->val) { \
-                push_value((ctx)->stack, *(fn->val)); \
-                r = p->call_bltin_func(fn->index, cur->count+1, frmv, fn->lex, ctx); \
+            if (fn->val.type) { \
+                push_value((ctx)->stack, fn->val); \
+                r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
             } else { \
-                r = p->call_bltin_func(fn->index, cur->count, frmv, fn->lex, ctx); \
+                r = fn->func(cur->count, frmv, fn->lex, ctx); \
             } \
             KX_BUILTIN_FUNCTION_ERROR(r); \
             cur = cur->next; \

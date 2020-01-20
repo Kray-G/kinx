@@ -85,6 +85,30 @@ enum irop {
     KX_DEF_IR(KX_GT),
     KX_DEF_IR(KX_LGE),
 
+    KX_EQEQ_V0V0,
+    KX_NEQ_V0V0,
+    KX_LE_V0V0,
+    KX_LT_V0V0,
+    KX_GE_V0V0,
+    KX_GT_V0V0,
+    KX_LGE_V0V0,
+
+    KX_EQEQ_V0I,
+    KX_NEQ_V0I,
+    KX_LE_V0I,
+    KX_LT_V0I,
+    KX_GE_V0I,
+    KX_GT_V0I,
+    KX_LGE_V0I,
+
+    KX_EQEQ_IV0,
+    KX_NEQ_IV0,
+    KX_LE_IV0,
+    KX_LT_IV0,
+    KX_GE_IV0,
+    KX_GT_IV0,
+    KX_LGE_IV0,
+
     KX_CHKVAL,  /* Checking the stack top value for testing. */
     KX_OPEND
 };
@@ -183,6 +207,13 @@ typedef struct kx_analyze_ {
 struct kx_obj_;
 struct kx_fnc_;
 struct kx_frm_;
+struct kx_context_;
+typedef int (*call_bltin_func_t)(int index, int args, struct kx_frm_ *frmv, struct kx_frm_ *lexv, struct kx_context_ *ctx);
+typedef int (*call_direct_func_t)(int args, struct kx_frm_ *frmv, struct kx_frm_ *lexv, struct kx_context_ *ctx);
+typedef int (*get_bltin_count_t)(void);
+typedef int (*get_bltin_index_t)(const char *name);
+typedef const char *(*get_bltin_name_t)(int index);
+typedef call_direct_func_t (*get_bltin_address_t)(int index);
 
 enum irexec {
     KX_UND_T = 0,   /* undefined(null) must be 0 because it becomes undefined after clearing with 0. */
@@ -250,9 +281,9 @@ typedef struct kx_fnc_ {
     uint8_t mark;
     kx_code_t *jp;
     int lib;
-    int index;
+    call_direct_func_t func;
     struct kx_frm_ *lex;
-    struct kx_val_ *val;
+    struct kx_val_ val;
     const char *method;
 } kx_fnc_t;
 kvec_init_t(kx_fnc_t);
@@ -285,18 +316,11 @@ typedef struct kx_exc_ {
 } kx_exc_t;
 kvec_init_t(kx_exc_t);
 
-struct kx_context_;
-typedef int (*get_bltin_count_t)(void);
-typedef int (*get_bltin_index_t)(const char *name);
-typedef const char *(*get_bltin_name_t)(int index);
-typedef int (*call_bltin_func_t)(int index, int args, kx_frm_t *frmv, kx_frm_t *lexv, struct kx_context_ *ctx);
-
 typedef struct kx_bltin_ {
     void *lib;
     get_bltin_count_t get_bltin_count;
-    get_bltin_name_t  get_bltin_name;
-    get_bltin_index_t get_bltin_index;
-    call_bltin_func_t call_bltin_func;
+    get_bltin_name_t get_bltin_name;
+    get_bltin_address_t get_bltin_address;
 } kx_bltin_t;
 kvec_init_t(kx_bltin_t);
 
@@ -479,6 +503,16 @@ typedef struct kx_context_ {
 } \
 /**/
 
+#define KEX_SET_PROP_INT(o, name, ival) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_INT_T; \
+    val->value.iv = ival; \
+} \
+/**/
+
 #define KEX_SET_PROP_OBJ(o, name, kexobj) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -496,6 +530,28 @@ typedef struct kx_context_ {
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_STR_T; \
     val->value.sv = strv; \
+} \
+/**/
+
+#define KEX_SET_PROP_CSTR(o, name, cstr) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    kstr_t *sv = allocate_str(ctx); \
+    ks_append(sv, cstr); \
+    val->type = KX_STR_T; \
+    val->value.sv = sv; \
+} \
+/**/
+
+#define KEX_SET_PROP_BFNC(o, name, fncv) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_BFNC_T; \
+    val->value.fn = fncv; \
 } \
 /**/
 
@@ -600,6 +656,9 @@ typedef struct kx_context_ {
     } else { \
         vp = &kv_A(frmv->v, cur->value2.i); \
     } \
+/**/
+#define KEX_GET_VAR_ADDR_LOCAL(vp, idx) \
+    kx_val_t *vp = &kv_A(frmv->v, idx); \
 /**/
 
 #endif /* KX_IR_H */

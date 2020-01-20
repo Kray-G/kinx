@@ -228,3 +228,35 @@
     cur = cur->next; \
 } \
 /**/
+
+#define KX_LGE_V0V0_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
+    KEX_GET_VAR_ADDR_LOCAL(v2, cur->value2.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    KX_LGE_LGE_V(v1, v2); \
+    cur = cur->next; \
+} \
+/**/
+
+#define KX_LGE_V0I_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    KX_LGE_LGE_I(v1, cur->value2.i); \
+    cur = cur->next; \
+} \
+/**/
+
+#define KX_LGE_IV0_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value2.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    KX_LGE_LGE_I(v1, cur->value1.i); \
+    (v1)->value.iv = -((v1)->value.iv);\
+    cur = cur->next; \
+} \
+/**/

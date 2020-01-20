@@ -46,18 +46,6 @@ kx_context_t *make_context(void)
     return ctx;
 }
 
-kx_obj_t *init_object(kx_obj_t *o)
-{
-    if (!o->prop) {
-        o->prop = kh_init(prop);
-        kv_init(o->ary);
-    } else {
-        kh_clear(prop, o->prop);
-        kv_shrinkto(o->ary, 0);
-    }
-    return o;
-}
-
 static void gc_unmark(kx_context_t *ctx)
 {
     ctx->excval.mark = 0;
@@ -83,6 +71,7 @@ static void gc_unmark(kx_context_t *ctx)
     kliter_t(fnc) *pfnc;
     for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = kl_next(pfnc)) {
         kl_val(pfnc)->mark = 0;
+        kl_val(pfnc)->val.mark = 0;
     }
     kliter_t(frm) *pfrm;
     for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = kl_next(pfrm)) {
@@ -123,9 +112,7 @@ static void gc_mark_fnc(kx_fnc_t *c)
     if (c->lex) {
         gc_mark_frm(c->lex);
     }
-    if (c->val) {
-        gc_mark_val(c->val);
-    }
+    gc_mark_val(&(c->val));
 }
 
 static void gc_mark_frm(kx_frm_t *c)
@@ -224,7 +211,7 @@ static void gc_sweep(kx_context_t *ctx)
             kx_fnc_t *v;
             kl_remove_next(fnc, ctx->fnc_alive, prevfnc, &v);
             v->lex = NULL;
-            v->val = NULL;
+            v->val.type = KX_UND_T;
             v->method = NULL;
             kv_push(kx_fnc_t*, ctx->fnc_dead, v);
         }

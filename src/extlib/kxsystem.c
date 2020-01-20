@@ -59,27 +59,15 @@ int System__println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
 int System__exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    if (args > 0) {
-        const char * cmd = NULL;
-        kvec_t(kx_val_t) *stack = &(ctx->stack);
-        kx_val_t val = kv_last(*stack);
-        if (val.type == KX_STR_T) {
-            cmd = ks_string(val.value.sv);
-        } else if (val.type == KX_CSTR_T) {
-            cmd = val.value.pv;
-        }
-        if (cmd) {
-            int r = system(cmd);
-            KX_ADJST_STACK();
-            push_i(ctx->stack, r);
-            return 0;
-        }
+    const char *cmd = get_arg_str(1, args, ctx);
+    if (cmd) {
+        int r = system(cmd);
+        KX_ADJST_STACK();
+        push_i(ctx->stack, r);
+        return 0;
     }
 
-    KX_ADJST_STACK();
-    push_s(ctx->stack, "SystemException");
-    push_s(ctx->stack, "Invalid argument in System.exec()");
-    return KX_THROW_EXCEPTION;
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid argument in System.exec()");
 }
 
 int System__abort(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -95,4 +83,4 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "abort",      System__abort },
 };
 
-KX_DLL_DECL_FNCTIONS();
+KX_DLL_DECL_FNCTIONS(kx_bltin_info);
