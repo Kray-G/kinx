@@ -1,11 +1,13 @@
 @echo off
 setlocal
 
+if "%1"=="clean" goto CLEAN_OBJS
+
 call :BUILDLIB
 
 if "%1"=="test" goto TEST_CODE
 REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
-set CFLAGS=/O2 /MT /Iinclude /DONIG_EXTERN=extern
+set CFLAGS=/O2 /MT /Iinclude
 
 set YACC=myacc
 if "%YACC%"=="kmyacc" (
@@ -29,7 +31,7 @@ cl %CFLAGS% /Fekinx.exe %OBJS%
 timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxsystem.c bign.obj bigz.obj
 timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxstring.c bign.obj bigz.obj
 timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxarray.c  bign.obj bigz.obj
-timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxregex.c  bign.obj bigz.obj kstr.obj allocutil.obj onig_s.lib
+timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxregex.c  bign.obj bigz.obj kstr.obj allocutil.obj onig.lib
 goto END
 
 :TEST_CODE
@@ -130,6 +132,13 @@ call make_win64.bat
 copy /y onig.lib ..\..\..\
 copy /y onig.dll ..\..\..\
 copy /y onig_s.lib ..\..\..\
+popd
+exit /b
+
+:CLEAN_OBJS
+del *.obj *.exe *.lib
+pushd src\extlib\onig
+call make_win64.bat clean
 popd
 exit /b
 

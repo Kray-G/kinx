@@ -1,0 +1,46 @@
+// Example 1
+
+var x = {
+    name: 'x',
+    methodMissing: function(a, method, arg0) {
+        System.println("-------- 1");
+        System.println("name = '", a.name, "'");
+        System.println("method = '", method, "'");
+        System.println("arg[0] = ", arg0);
+    }
+};
+
+x.kkk(2);
+
+// Example 2
+
+y.name = 'y';
+y.methodMissing = function(a, method, arg0) {
+    System.println("-------- 2");
+    System.println("name = '", a.name, "'");
+    System.println("method = '", method, "'");
+    System.println("arg[0] = ", arg0);
+};
+
+y.kkk(2);
+
+// Example 3
+
+var methodMissing = function(method, arg0) {
+    System.println("-------- global 1");
+    System.println("method = '", method, "'");
+    System.println("arg[0] = ", arg0);
+};
+
+a(1000);
+
+// Example 4
+
+function methodMissing(method, arg0) {
+    System.println("-------- global 2");
+    System.println("method = '", method, "'");
+    System.println("arg[0] = ", arg0);
+};
+
+a = 10000;
+a(100);
