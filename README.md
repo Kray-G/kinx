@@ -34,7 +34,7 @@ Sharing the definition of **C Style Syntax**, it is below.
 *   **Fall through** in switch case.
 *   etc.
 
-I imagine it is C, C++, Java, JavaScript, C#, and so on.
+For example that is C, C++, Java, JavaScript, C#, and so on.
 
 ### Features
 
@@ -115,7 +115,9 @@ For example the name will be `"kxa"` when it is `import A;`.
 `_import("kxyourlibrary")` function will work like this.
 
 *   Loading the dll dynamically and making an object with a dll rule.
-*   About a dll rule, for example see `kxstring.c`. It will be very simple example.
+*   About a dll rule, for example;
+    *   See [`kxstring.c`](src/extlib/kxstring.c) for single object. It will be very simple example.
+    *   See [`kxregex.c`](src/extlib/kxregex.c) for class definition. Just defines a `create` method for `new` operator.
 
 ### Support Objects
 
@@ -133,7 +135,7 @@ Many functionalities added in the future will be created by above strategy.
 |          |                            |                                                |
 | `Array`  | `Array.length(obj)`        | Counting the length of array object.           |
 
-`String` & `Array` objects are the special work for the object.
+`String` & `Array` objects will do the special work for the object.
 For example  `String.length(str)` is the same as `str.length()`.
 `Array` object is also same work like `Array.length(ary)` is the same as `ary.length()`.
 

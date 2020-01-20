@@ -16,22 +16,3 @@ System.println(s);
 System.println(s.length());
 
 System.println([1,2,3].length());
-
-var x = {
-    methodMissing: function(a, b, c) {
-        System.println(a);
-        System.println(a.methodMissing);
-        System.println(b);
-        System.println(c);
-    }
-};
-
-x.kkk(2);
-
-y.methodMissing = function(a, b, c) {
-    System.println(a);
-    System.println(a.methodMissing);
-    System.println(b);
-    System.println(c);
-};
-y.kkk(2);

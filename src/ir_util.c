@@ -249,22 +249,21 @@ kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t 
 
 kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
-    static kx_val_t undef_dummy = {0};
     if (!host) {
         if (ctx->global_method_missing) {
             ctx->global_method_missing->val.type = KX_UND_T;
-            ctx->global_method_missing->method = "";
+            ctx->global_method_missing->method = "<global>";
             return ctx->global_method_missing;
         }
     } else if (host->type != KX_OBJ_T) {
         if (ctx->global_method_missing) {
             ctx->global_method_missing->val.type = host->type;
             ctx->global_method_missing->val.value = host->value;
-            ctx->global_method_missing->method = "";
+            ctx->global_method_missing->method = "<global>";
             return ctx->global_method_missing;
         }
     } else {
-        kx_val_t *val;
+        kx_val_t *val = NULL;
         KEX_GET_PROP(val, host->value.ov, "methodMissing");
         if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
             val->value.fn->val.type = host->type;
