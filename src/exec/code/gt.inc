@@ -150,3 +150,34 @@
     cur = cur->next; \
 } \
 /**/
+
+#define KX_GT_V0V0_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
+    KEX_GET_VAR_ADDR_LOCAL(v2, cur->value2.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    KX_GT_GT_V(v1, v2); \
+    cur = cur->next; \
+} \
+/**/
+
+#define KX_GT_V0I_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    KX_GT_GT_I(v1, cur->value2.i); \
+    cur = cur->next; \
+} \
+/**/
+
+#define KX_GT_IV0_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value2.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    KX_LE_LE_I(v1, cur->value1.i); /* same meaning */ \
+    cur = cur->next; \
+} \
+/**/

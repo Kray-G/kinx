@@ -248,6 +248,30 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_LGES) { KX_GOTO(); }
     KX_CASE_(KX_LGEV) { KX_GOTO(); }
 
+    KX_CASE_(KX_EQEQ_V0V0) { KX_GOTO(); }
+    KX_CASE_(KX_NEQ_V0V0) { KX_GOTO(); }
+    KX_CASE_(KX_LE_V0V0) { KX_GOTO(); }
+    KX_CASE_(KX_LT_V0V0) { KX_GOTO(); }
+    KX_CASE_(KX_GE_V0V0) { KX_GOTO(); }
+    KX_CASE_(KX_GT_V0V0) { KX_GOTO(); }
+    KX_CASE_(KX_LGE_V0V0) { KX_GOTO(); }
+
+    KX_CASE_(KX_EQEQ_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_NEQ_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_LE_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_LT_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_GE_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_GT_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_LGE_V0I) { KX_GOTO(); }
+
+    KX_CASE_(KX_EQEQ_IV0) { KX_GOTO(); }
+    KX_CASE_(KX_NEQ_IV0) { KX_GOTO(); }
+    KX_CASE_(KX_LE_IV0) { KX_GOTO(); }
+    KX_CASE_(KX_LT_IV0) { KX_GOTO(); }
+    KX_CASE_(KX_GE_IV0) { KX_GOTO(); }
+    KX_CASE_(KX_GT_IV0) { KX_GOTO(); }
+    KX_CASE_(KX_LGE_IV0) { KX_GOTO(); }
+
     KX_CASE_(KX_CHKVAL) { KX_GOTO(); }
 
     } // END

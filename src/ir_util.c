@@ -59,9 +59,9 @@ void print_value(kx_val_t *v, int recursive)
     case KX_BFNC_T: {
         kx_frm_t *lex = v->value.fn->lex;
         if (lex) {
-            printf("(fnc) bltin:%d, lex:(frm:%d)\n", v->value.fn->index, lex->id);
+            printf("(fnc) bltin, lex:(frm:%d)\n", lex->id);
         } else {
-            printf("(fnc) bltin:%d, lex:(none)\n", v->value.fn->index);
+            printf("(fnc) bltin, lex:(none)\n");
         }
         break;
     }
@@ -225,7 +225,8 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
     kx_val_t *val;
     KEX_GET_PROP(val, ctx->strlib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
-        val->value.fn->val = host;
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
         return val->value.fn;
     }
     return NULL;
@@ -239,7 +240,8 @@ kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t 
     kx_val_t *val;
     KEX_GET_PROP(val, ctx->arylib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
-        val->value.fn->val = host;
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
         return val->value.fn;
     }
     return NULL;
@@ -250,13 +252,14 @@ kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host)
     static kx_val_t undef_dummy = {0};
     if (!host) {
         if (ctx->global_method_missing) {
-            ctx->global_method_missing->val = &undef_dummy;
+            ctx->global_method_missing->val.type = KX_UND_T;
             ctx->global_method_missing->method = "";
             return ctx->global_method_missing;
         }
     } else if (host->type != KX_OBJ_T) {
         if (ctx->global_method_missing) {
-            ctx->global_method_missing->val = host;
+            ctx->global_method_missing->val.type = host->type;
+            ctx->global_method_missing->val.value = host->value;
             ctx->global_method_missing->method = "";
             return ctx->global_method_missing;
         }
@@ -264,7 +267,8 @@ kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host)
         kx_val_t *val;
         KEX_GET_PROP(val, host->value.ov, "methodMissing");
         if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
-            val->value.fn->val = host;
+            val->value.fn->val.type = host->type;
+            val->value.fn->val.value = host->value;
             val->value.fn->method = method;
             return val->value.fn;
         }

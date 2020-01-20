@@ -71,4 +71,4 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "printStackTrace",    Array_printStackTrace },
 };
 
-KX_DLL_DECL_FNCTIONS();
+KX_DLL_DECL_FNCTIONS(kx_bltin_info);

@@ -8,6 +8,9 @@
 
 // #define gencode_ast_hook(a,b,c) (printf("%s:%d\n", __FILE__, __LINE__), gencode_ast(a,b,c))
 #define gencode_ast_hook(a,b,c) (gencode_ast(a,b,c))
+#define last2p(ana) &kv_last_by(get_block(module, ana->block)->code, 2)
+#define last2_op(ana) kv_last_by(get_block(module, ana->block)->code, 2).op
+#define lastp(ana) &kv_last(get_block(module, ana->block)->code)
 #define last_op(ana) kv_last(get_block(module, ana->block)->code).op
 #define last_value1(ana) kv_last(get_block(module, ana->block)->code).value1
 #define last_lexical(ana) kv_last(get_block(module, ana->block)->code).value1.idx
@@ -61,6 +64,31 @@
         gencode_ast_hook(node->lhs, ana, 0);\
         gencode_ast_hook(node->rhs, ana, 0);\
         KX_DEF_BINCHKCMD(CMD);\
+        break;\
+    }\
+/**/
+#define KX_DEF_BINCMD_COMP(CMD) \
+    case KXOP_##CMD: {\
+        gencode_ast_hook(node->lhs, ana, 0);\
+        gencode_ast_hook(node->rhs, ana, 0);\
+        KX_DEF_BINCHKCMD(CMD);\
+        kx_code_t *l2 = last2p(ana);\
+        kx_code_t *l = lastp(ana);\
+        if (l2->op == KX_PUSHVL0 && l->op == KX_##CMD##I) {\
+            l2->op = KX_##CMD##_V0I;\
+            l2->value1.i = l2->value2.i;\
+            l2->value2.i = l->value1.i;\
+            kv_remove_last(get_block(module, ana->block)->code);\
+        } else if (l2->op == KX_PUSHI && l->op == KX_##CMD##V && l->value1.i == 0) {\
+            l2->op = KX_##CMD##_IV0;\
+            l2->value2.i = l->value2.i;\
+            kv_remove_last(get_block(module, ana->block)->code);\
+        } else if (l2->op == KX_##CMD##V && l2->value1.i == 0 && l->op == KX_##CMD##V && l->value1.i == 0) {\
+            l2->op = KX_##CMD##_V0V0;\
+            l2->value1.i = l2->value2.i;\
+            l2->value2.i = l->value2.i;\
+            kv_remove_last(get_block(module, ana->block)->code);\
+        }\
         break;\
     }\
 /**/
@@ -476,13 +504,13 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         }
         break;
     }
-    KX_DEF_BINCMD(EQEQ);
-    KX_DEF_BINCMD(NEQ);
-    KX_DEF_BINCMD(LE);
-    KX_DEF_BINCMD(LT);
-    KX_DEF_BINCMD(GE);
-    KX_DEF_BINCMD(GT);
-    KX_DEF_BINCMD(LGE);
+    KX_DEF_BINCMD_COMP(EQEQ);
+    KX_DEF_BINCMD_COMP(NEQ);
+    KX_DEF_BINCMD_COMP(LE);
+    KX_DEF_BINCMD_COMP(LT);
+    KX_DEF_BINCMD_COMP(GE);
+    KX_DEF_BINCMD_COMP(GT);
+    KX_DEF_BINCMD_COMP(LGE);
     case KXOP_CALL: {
         int count = count_args(node->rhs);
         if (node->rhs) {
