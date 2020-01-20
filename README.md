@@ -6,6 +6,16 @@ Small scripting language with C like style syntax.
 
 ### Motivation
 
+#### Motivation 1
+
+The script language is a platform as a glue between libraries.
+This means a language itself is not a main purpose,
+it should be just a backend or supporter due to use a library you want to use.
+
+Kinx can be the best platform for any libraries which you want to use or your own library.
+
+#### Motivation 2
+
 I guess almost all programmers wants a lightweight scripting language with C style syntax
 because it is simple, easy, and familier to them.
 
@@ -15,12 +25,24 @@ Any other languages are also all good solution, but for me...
 *   Ruby is also greate. But is is too far from C style. Too many typing for `end`.
 *   JavaScript is very good for me, and it is a C like style. But nodejs is too heavyweight.
 
+##### What is C Style Syntax?
+
+Sharing the definition of **C Style Syntax**, it is below.
+
+*   `Block` is a scope between `{` and `}`
+*   Mostly **freedom** style of indent.
+*   **Fall through** in switch case.
+*   etc.
+
+I imagine it is C, C++, Java, JavaScript, C#, and so on.
+
 ### Features
 
-* C style syntax. Sorry no, it is JavaScript style syntax rather than C, but it is also good.
-* Small. Using C instead of C++. I love C++ but runtime is big some case.
-* Lightweight. You can start using this without a lot of work.
 * Extendable. Contributers are able to extend features easily for your own use.
+* Lightweight. You can start using this without a lot of work.
+* Small. Using C instead of C++. I love C++ but runtime is big in some cases.
+* Object-Oriented. Of cource you can do the object-oriented programming.
+* C style syntax... no it is JavaScript style syntax rather than C, but it is also good.
 
 ## Getting Started
 
@@ -126,9 +148,12 @@ Here is a plan to add.
 * [ ] `using` directive to include another source code.
 * [ ] `namespace` block.
 * [ ] `class` mechanism fully support.
+  * [ ] `instanceOf()`
+  * [ ] `initialize()`
 * [ ] `module` to add function easily to object.
 * [ ] `Math` object to support some calculations.
 * [ ] `File` object to support standard File I/O.
 * [ ] `Regex` object to support regular expression.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
+* [ ] Inner expression of string like `"...%{expr}..."`.

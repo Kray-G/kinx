@@ -25,6 +25,33 @@ case KX_##CMD##V:\
     break;\
 /**/
 
+#define KX_IROP_COMP(CMD, cmd)\
+case KX_##CMD:\
+    printf("%-23s", #cmd);\
+    break;\
+case KX_##CMD##I:\
+    printf("%-23s %lld", #cmd "i", code->value1.i);\
+    break;\
+case KX_##CMD##D:\
+    printf("%-23s %f", #cmd "d", code->value1.d);\
+    break;\
+case KX_##CMD##S:\
+    printf("%-23s \"%s\"", #cmd "s", code->value1.s);\
+    break;\
+case KX_##CMD##V:\
+    printf("%-23s %s", #cmd "v", gen_varloc(code));\
+    break;\
+case KX_##CMD##_V0V0:\
+    printf("%-23s $0(%lld), $0(%lld)", #cmd "_v0v0", code->value1.i, code->value2.i);\
+    break;\
+case KX_##CMD##_V0I:\
+    printf("%-23s $0(%lld), %lld", #cmd "_v0i", code->value1.i, code->value2.i);\
+    break;\
+case KX_##CMD##_IV0:\
+    printf("%-23s %lld, $0(%lld)", #cmd "_v0i", code->value1.i, code->value2.i);\
+    break;\
+/**/
+
 static const char *gen_varloc(kx_code_t *code)
 {
     static char buf[256];
@@ -275,13 +302,14 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     KX_IROP(XOR,  xor);
     KX_IROP(SHL,  shl);
     KX_IROP(SHR,  shr);
-    KX_IROP(EQEQ, eqeq);
-    KX_IROP(NEQ,  neq);
-    KX_IROP(LE,   le);
-    KX_IROP(LT,   lt);
-    KX_IROP(GE,   ge);
-    KX_IROP(GT,   gt);
-    KX_IROP(LGE,  lge);
+
+    KX_IROP_COMP(EQEQ, eqeq);
+    KX_IROP_COMP(NEQ,  neq);
+    KX_IROP_COMP(LE,   le);
+    KX_IROP_COMP(LT,   lt);
+    KX_IROP_COMP(GE,   ge);
+    KX_IROP_COMP(GT,   gt);
+    KX_IROP_COMP(LGE,  lge);
 
     case KX_CHKVAL:
         printf("chkval");

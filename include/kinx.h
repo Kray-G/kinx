@@ -273,7 +273,7 @@ extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t 
 
 typedef struct kx_bltin_def_ {
     const char *name;
-    int (*func)(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
+    call_direct_func_t func;
 } kx_bltin_def_t;
 
 #define KX_ADJST_STACK() { \
@@ -281,7 +281,33 @@ typedef struct kx_bltin_def_ {
 } \
 /**/
 
-#define KX_DLL_DECL_FNCTIONS() \
+static inline kx_obj_t *get_arg_obj(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        if (val.type == KX_OBJ_T) {
+            return val.value.ov;
+        }
+    }
+    return NULL;
+}
+
+static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        if (val.type == KX_STR_T) {
+            return ks_string(val.value.sv);
+        } else if (val.type == KX_CSTR_T) {
+            return val.value.pv;
+        }
+    }
+    return NULL;
+}
+
+#define KX_DLL_DECL_FNCTIONS(kx_bltin_info) \
     DllExport int get_bltin_count(void) \
     { \
         return sizeof(kx_bltin_info)/sizeof(kx_bltin_info[0]); \
@@ -289,6 +315,10 @@ typedef struct kx_bltin_def_ {
     DllExport const char *get_bltin_name(int index) \
     { \
         return kx_bltin_info[index].name; \
+    } \
+    DllExport call_direct_func_t get_bltin_address(int index) \
+    { \
+        return kx_bltin_info[index].func; \
     } \
     DllExport int get_bltin_index(const char *name) \
     { \
@@ -308,6 +338,28 @@ typedef struct kx_bltin_def_ {
         } \
         return KX_FUNCTION_NOT_FOUND; /* not found */ \
     } \
+/**/
+
+#define KEX_SET_METHOD(name, thisobj, funcsym) { \
+    kx_fnc_t *f = allocate_fnc(ctx); \
+    f->jp = NULL; \
+    f->lib = 0; \
+    f->func = &(funcsym); \
+    f->lex = 0; \
+    f->val.type = KX_OBJ_T; \
+    f->val.value.ov = thisobj; \
+    f->method = NULL; \
+    KEX_SET_PROP_BFNC(obj, name, f); \
+} \
+/**/
+
+#define KX_THROW_BLTIN_EXCEPTION(typ, wht) \
+{ \
+    KX_ADJST_STACK(); \
+    push_s(ctx->stack, typ); \
+    push_s(ctx->stack, wht); \
+    return KX_THROW_EXCEPTION; \
+} \
 /**/
 
 #endif /* KX_KINX_H */

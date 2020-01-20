@@ -65,6 +65,7 @@ static const char *startup_code()
         "import System;"
         "import String;"
         "import Array;"
+        "import Regex;"
     ;
     return code;
 }

@@ -27,10 +27,9 @@
         THROW_SYSTEM_EXCEPTION_FMT1("SystemException", "Loading import module(%s) failed", cur->value1.s); \
     }\
     p->get_bltin_count = (get_bltin_count_t)get_libfunc(p->lib, "get_bltin_count"); \
-    p->get_bltin_name  = (get_bltin_name_t) get_libfunc(p->lib, "get_bltin_name"); \
-    p->get_bltin_index = (get_bltin_index_t)get_libfunc(p->lib, "get_bltin_index"); \
-    p->call_bltin_func = (call_bltin_func_t)get_libfunc(p->lib, "call_bltin_func"); \
-    if (!(p->get_bltin_count) || !(p->get_bltin_name) || !(p->call_bltin_func)) { \
+    p->get_bltin_name = (get_bltin_name_t) get_libfunc(p->lib, "get_bltin_name"); \
+    p->get_bltin_address = (get_bltin_address_t)get_libfunc(p->lib, "get_bltin_address"); \
+    if (!(p->get_bltin_count) || !(p->get_bltin_name) || !(p->get_bltin_address)) { \
         THROW_SYSTEM_EXCEPTION_FMT1("SystemException", "Invalid import module(%s)", cur->value1.s); \
     } \
     kx_obj_t *obj = allocate_obj(ctx); \
@@ -45,7 +44,7 @@
         kx_fnc_t *fnc = allocate_fnc(ctx); \
         fnc->jp = NULL; \
         fnc->lib = lib; \
-        fnc->index = i; \
+        fnc->func = p->get_bltin_address(i); \
         fnc->lex = frmv; \
         kx_val_t v; \
         v.type = KX_BFNC_T; \
