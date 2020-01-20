@@ -79,6 +79,11 @@ int main(int ac, char **av)
     _CrtSetDbgFlag(_CrtSetDbgFlag(0) | _CRTDBG_LEAK_CHECK_DF);
     #endif
 
+    kx_malloc = kx_malloc_impl;
+    kx_realloc = kx_realloc_impl;
+    kx_calloc = kx_calloc_impl;
+    kx_free = kx_free_impl;
+
     #ifdef YYDEBUG
     kx_yydebug = 1;
     #endif
