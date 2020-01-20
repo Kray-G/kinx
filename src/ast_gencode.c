@@ -980,11 +980,8 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         int count = count_args(node->lhs);
         if (node->ex) {
             gencode_ast_hook(node->ex, ana, 0);
-            add_pop(ana);
         }
         gencode_ast_hook(node->rhs, ana, 0);
-        kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHV, .value1 = { .idx = 0 }, .value2 = { .idx = 0 } }));
-        kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
         int pushes = count_pushes(get_function(module, cur), ana);
         kv_A(get_block(module, block)->code, enter).value1.i = pushes + 1;
         kv_A(get_block(module, block)->code, enter).value2.i = node->local_vars;

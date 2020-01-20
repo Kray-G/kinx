@@ -379,8 +379,16 @@ ClassDeclStatement
     ;
 
 Inherit_Opt
-    : { $$ = NULL; }
-    | ':' Factor ClassCallArgumentList_Opts { $$ =  kx_gen_bexpr_object(KXOP_ASSIGN, kx_gen_var_object("this"), kx_gen_bexpr_object(KXOP_CALL, $2, $3)); }
+    : { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"), NULL); }
+    | ':' Factor ClassCallArgumentList_Opts
+        {
+            $$ = kx_gen_bexpr_object(KXST_STMTLIST,
+                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"),
+                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")), $3)),
+                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("super"),
+                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System"), kx_gen_str_object("copyObject")), kx_gen_var_object("this")))
+            );
+        }
     ;
 
 ClassArgumentList_Opts
@@ -414,7 +422,7 @@ CallArgumentList_Opts
 
 CallArgumentList
     : AssignExpression
-    | CallArgumentList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | CallArgumentList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $3, $1); }
     ;
 
 %%

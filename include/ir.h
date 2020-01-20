@@ -575,6 +575,16 @@ typedef struct kx_context_ {
 } \
 /**/
 
+#define KEX_SET_PROP_FNC(o, name, fncv) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_FNC_T; \
+    val->value.fn = fncv; \
+} \
+/**/
+
 #define KEX_SET_PROP_BFNC(o, name, fncv) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
