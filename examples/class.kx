@@ -1,15 +1,45 @@
+class PointObject {
 
-class BaseClassName(i, j, k) {
-    this.x = 10;
-    var n_ = [1,[2,4,[5, 1],[]],3];
-    public method1(j) {
-        return n_[i];
+    # Class Members.
+    var mXpos;
+    var mYpos;
+
+    # Private:
+    private moveX(x) { mXpos = x; }
+    private moveY(y) { mYpos = y; }
+
+    # Public:
+    public getX() { return mXpos; }  # Get X coord.
+    public getY() { return mYpos; }  # Get Y coord.
+    public move(x, y) {
+        moveX(x);
+        moveY(y);
     }
-    public method2(i, n) {
-        this.x = n;
-        return method1(i);
+    public print() {
+        System.println("(x,y) = (" + mXpos + "," + mYpos + ")");
+    }
+
+}
+
+class PointBoxObject(xmax, ymax) : PointObject {
+    var mXmax  = xmax;
+    var mYmax  = ymax;
+
+    # Override move()
+    public move(x, y) {
+        if (x <     0) x = 0;
+        if (y <     0) y = 0;
+        if (x > mXmax) x = mXmax;
+        if (y > mYmax) y = mYmax;
+        super.move(x, y);  # super is available.
     }
 }
 
-var bc = new BaseClassName(0, 1, 2).method1(10);
-return bc;
+var p1 = new PointBoxObject(50, 50);
+var p2 = new PointBoxObject(20, 20);
+
+p1.move(32, 32);
+p2.move(25, -8);
+
+p1.print();
+p2.print();

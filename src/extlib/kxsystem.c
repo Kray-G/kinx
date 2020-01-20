@@ -8,7 +8,7 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     int n, count = 0;
     char *buf;
     kvec_t(kx_val_t) *stack = &(ctx->stack);
-    for (int i = args; i > 0; --i) {
+    for (int i = 1; i <= args; ++i) {
         kx_val_t val = kv_last_by(*stack, i);
         switch (val.type) {
         case KX_UND_T:
@@ -78,7 +78,28 @@ int System_abort(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     _exit(1);
 }
 
+int System_copyObject(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_obj_t *super = allocate_obj(ctx);
+
+    for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
+        if (kh_exist(obj->prop, k)) {
+            kx_val_t *v = &kh_value(obj->prop, k);
+            if (v->type == KX_FNC_T || v->type == KX_BFNC_T) {
+                const char *key = kh_key(obj->prop, k);
+                KEX_SET_PROP_FNC(super, key, v->value.fn);
+            }
+        }
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, super);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
+    { "copyObject", System_copyObject },
     { "print", System_print },
     { "println", System_println },
     { "exec", System_exec },

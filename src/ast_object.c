@@ -158,7 +158,9 @@ const char *kx_gen_name(const char *base, int counter)
 kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     static int counter = 0;
-    kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
+    kx_object_t *ret = (type == KXST_CLASS)
+        ? kx_gen_stmt_object(KXST_RET, kx_gen_var_object("this"), NULL, NULL)
+        : kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
     rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
 
     const char *pname = name;

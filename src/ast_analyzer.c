@@ -259,8 +259,6 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         kv_push(kxana_symbol_t, ctx->symbols, kx_empty_symbols);
         int decl = ctx->decl;
         ctx->decl = 1;
-        sym = search_symbol_table(node, "this", ctx);
-        assert(sym);
         if (node->lhs) {
             analyze_ast(node->lhs, ctx);
         }

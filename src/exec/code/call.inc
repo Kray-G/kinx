@@ -9,25 +9,23 @@ if (fn->val.type) { \
     push_value((ctx)->stack, fn->val); \
     ++count; \
 } \
-r = fn->func(cur->count, frmv, fn->lex, ctx); \
+r = fn->func(count, frmv, fn->lex, ctx); \
 /**/
 
 #define KX_BUILTIN_FUNCTION_ERROR(r) \
-if (r < 0) { \
-    switch (r) { \
-    case KX_FUNCTION_NOT_FOUND: { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Builtin function not found"); \
-        break; \
-    } \
-    case KX_THROW_EXCEPTION: { \
-        KEX_POP_STACK_TOP(v2); \
-        KEX_POP_STACK_TOP(v1); \
-        THROW_SYSTEM_EXCEPTION(v1->value.pv, v2->value.pv); \
-        break; \
-    } \
-    default: \
-        break; \
-    } \
+switch (r) { \
+case KX_FUNCTION_NOT_FOUND: { \
+    THROW_SYSTEM_EXCEPTION("SystemException", "Builtin function not found"); \
+    break; \
+} \
+case KX_THROW_EXCEPTION: { \
+    KEX_POP_STACK_TOP(v2); \
+    KEX_POP_STACK_TOP(v1); \
+    THROW_SYSTEM_EXCEPTION(v1->value.pv, v2->value.pv); \
+    break; \
+} \
+default: \
+    break; \
 } \
 /**/
 
