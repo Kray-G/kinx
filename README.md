@@ -104,20 +104,16 @@ First, you use `import` directive like this.
 import YourLibrary;
 ```
 
-This is the same as:
+The import library name is `kx` plus your specified name with lower-case.
+For example in the above case, the name will be `"kxyourlibrary"`.
+`import` directive will do the followings.
 
-```js
-var YourLibrary = _import("kxyourlibrary");
-```
-
-The import library name is `kx` with your specified name with lower-case.
-For example the name will be `"kxa"` when it is `import A;`.
-`_import("kxyourlibrary")` function will work like this.
-
-*   Loading the dll dynamically and making an object with a dll rule.
-*   About a dll rule, for example;
+*   Loading the dll of `kxyourlibrary.dll` dynamically and making an object with a dll rule.
+*   About a dll rule is like below.
     *   See [`kxstring.c`](src/extlib/kxstring.c) for single object. It will be very simple example.
     *   See [`kxregex.c`](src/extlib/kxregex.c) for class definition. Just defines a `create` method for `new` operator.
+*   Assigning the object to the variable of the name you specified.
+    For example, the variable name is `YourLibrary` in the above case.
 
 ### Support Objects
 
@@ -155,7 +151,6 @@ Here is a plan to add.
 * [ ] `module` to add function easily to object.
 * [ ] `Math` object to support some calculations.
 * [ ] `File` object to support standard File I/O.
-* [ ] `Regex` object to support regular expression.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
 * [ ] Inner expression of string like `"...%{expr}..."`.

@@ -44,3 +44,28 @@ function methodMissing(method, arg0) {
 
 a = 10000;
 a(100);
+
+// Example 5
+
+System.println("-------- class 1");
+
+class SomeClass {
+    public methodMissing(self, name, arg0) {
+        self[name] = function(arg, isGenerated) {
+            if (isGenerated) {
+                System.println(" -> generated [", name, "] arg = ", arg);
+            } else {
+                System.println("[", name, "] arg = ", arg);
+            }
+        };
+        return self[name](arg0, true);
+    }
+}
+
+var some = new SomeClass();
+some.test(100);
+some.test(100);
+some.method(100);
+some.method(100);
+some.test(100);
+some.method(100);

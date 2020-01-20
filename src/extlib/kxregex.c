@@ -12,8 +12,8 @@ typedef struct regex_pack_ {
 } regex_pack_t;
 
 #define KX_REGEX_GET_RPACK(r, obj) \
-regex_pack_t *r; \
-{ \
+regex_pack_t *r = NULL; \
+if (obj) { \
     kx_val_t *val = NULL; \
     KEX_GET_PROP(val, obj, "_pack"); \
     if (!val || val->type != KX_ANY_T) { \
@@ -93,6 +93,9 @@ int Regex_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_REGEX_GET_RPACK(r, obj);
+    if (!r) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid Regex object");
+    }
 
     const unsigned char *str = r->source;
     if (!str) {
