@@ -1,0 +1,5 @@
+
+var re = new Regex("ab+");
+re.match();
+re.find();
+re.reset();

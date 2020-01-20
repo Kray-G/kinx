@@ -57,31 +57,32 @@
 #else
 #define KX_ENTER_CODE() \
 { \
-    int expand = cur->value1.i; \
-    kv_expand_if(kx_val_t, (ctx)->stack, expand); \
+    kv_expand_if(kx_val_t, (ctx)->stack, cur->value1.i); \
     kx_frm_t *frm = allocate_frm(ctx); \
     frm->caller = (ctx)->caller; \
     frm->prv = frmv; \
-    frm->id = kv_size((ctx)->stack); \
+    int ssize = frm->id = kv_size((ctx)->stack); \
     int max_vars = cur->value2.i; \
     kv_resize_if(kx_val_t, frm->v, max_vars); \
     kv_shrinkto(frm->v, max_vars); \
-    lexv = frm->lex = kv_last_by((ctx)->stack, 3).value.fn->lex; \
     int max_args = cur->count; \
-    int args = kv_last_by((ctx)->stack, 2).value.iv; \
+    kx_val_t* stack = ((ctx)->stack).a + ssize - 2;\
+    int args = (*stack).value.iv; \
+    lexv = frm->lex = (*(--stack)).value.fn->lex; \
     if (args < max_args) { \
-        int i; \
-        for (i = 0; i < args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
+        kx_val_t *v = (frm->v).a; \
+        kx_val_t *e = v + max_args; \
+        for (int i = 0; i < args; ++i) { \
+             *v++ = *(--stack); \
         } \
-        for ( ; i < max_args; ++i) { \
-            kx_val_t *v = &kv_A(frm->v, i); \
-            v->type = KX_UND_T; \
+        while (v != e) { \
+            (v++)->type = KX_UND_T; \
         } \
     } else {\
-        int i; \
-        for (i = 0; i < max_args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
+        kx_val_t *v = (frm->v).a; \
+        kx_val_t *e = v + max_args; \
+        while (v != e) { \
+            *v++ = *(--stack); \
         } \
     } \
     push_frm((ctx)->stack, frm); \
