@@ -26,11 +26,21 @@
     if (!(p->lib)) { \
         THROW_SYSTEM_EXCEPTION_FMT1("SystemException", "Loading import module(%s) failed", cur->value1.s); \
     }\
+    set_allocator_t set_allocator = (set_allocator_t)get_libfunc(p->lib, "set_allocator"); \
+    if (!set_allocator) { \
+        THROW_SYSTEM_EXCEPTION_FMT1("SystemException", "Invalid import module(%s)", cur->value1.s); \
+    } \
+    set_allocator(kx_malloc_impl, kx_realloc_impl, kx_calloc_impl, kx_free_impl); \
     p->get_bltin_count = (get_bltin_count_t)get_libfunc(p->lib, "get_bltin_count"); \
     p->get_bltin_name = (get_bltin_name_t) get_libfunc(p->lib, "get_bltin_name"); \
     p->get_bltin_address = (get_bltin_address_t)get_libfunc(p->lib, "get_bltin_address"); \
+    p->finalizer = (bltin_initfin_t)get_libfunc(p->lib, "finalize"); \
     if (!(p->get_bltin_count) || !(p->get_bltin_name) || !(p->get_bltin_address)) { \
         THROW_SYSTEM_EXCEPTION_FMT1("SystemException", "Invalid import module(%s)", cur->value1.s); \
+    } \
+    bltin_initfin_t initializer = (bltin_initfin_t)get_libfunc(p->lib, "initialize"); \
+    if (initializer) { \
+        initializer(); \
     } \
     kx_obj_t *obj = allocate_obj(ctx); \
     if (!strcmp(cur->value1.s, "kxstring")) { \

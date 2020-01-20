@@ -42,25 +42,25 @@
 		kmptype_t **buf;												\
 	} kmp_##name##_t;													\
 	SCOPE kmp_##name##_t *kmp_init_##name(void) {						\
-		return calloc(1, sizeof(kmp_##name##_t));						\
+		return kx_calloc(1, sizeof(kmp_##name##_t));					\
 	}																	\
 	SCOPE void kmp_destroy_##name(kmp_##name##_t *mp) {					\
 		size_t k;														\
 		for (k = 0; k < mp->n; ++k) {									\
-			kmpfree_f(mp->buf[k]); free(mp->buf[k]);					\
+			kmpfree_f(mp->buf[k]); kx_free(mp->buf[k]);					\
 		}																\
-		free(mp->buf); free(mp);										\
+		kx_free(mp->buf); kx_free(mp);									\
 	}																	\
 	SCOPE kmptype_t *kmp_alloc_##name(kmp_##name##_t *mp) {				\
 		++mp->cnt;														\
-		if (mp->n == 0) return calloc(1, sizeof(kmptype_t));			\
+		if (mp->n == 0) return kx_calloc(1, sizeof(kmptype_t));			\
 		return mp->buf[--mp->n];										\
 	}																	\
 	SCOPE void kmp_free_##name(kmp_##name##_t *mp, kmptype_t *p) {		\
 		--mp->cnt;														\
 		if (mp->n == mp->max) {											\
 			mp->max = mp->max? mp->max<<1 : 16;							\
-			mp->buf = realloc(mp->buf, sizeof(kmptype_t *) * mp->max);	\
+			mp->buf = kx_realloc(mp->buf, sizeof(kmptype_t *) * mp->max);\
 		}																\
 		mp->buf[mp->n++] = p;											\
 	}
@@ -87,7 +87,7 @@
 		size_t size;													\
 	} kl_##name##_t;													\
 	SCOPE kl_##name##_t *kl_init_##name(void) {							\
-		kl_##name##_t *kl = calloc(1, sizeof(kl_##name##_t));			\
+		kl_##name##_t *kl = kx_calloc(1, sizeof(kl_##name##_t));		\
 		kl->mp = kmp_init(name);										\
 		kl->head = kl->tail = kmp_alloc(name, kl->mp);					\
 		kl->head->next = 0;												\
@@ -99,7 +99,7 @@
 			kmp_free(name, kl->mp, p);									\
 		kmp_free(name, kl->mp, p);										\
 		kmp_destroy(name, kl->mp);										\
-		free(kl);														\
+		kx_free(kl);													\
 	}																	\
 	SCOPE kltype_t *kl_pushp_##name(kl_##name##_t *kl) {				\
 		kl1_##name *q, *p = kmp_alloc(name, kl->mp);					\

@@ -37,10 +37,10 @@ ks_new() {
 
 kstr_t *
 ks_new_with_size(size_t n) {
-  kstr_t *self = malloc(sizeof(kstr_t));
+  kstr_t *self = kx_malloc(sizeof(kstr_t));
   if (!self) return NULL;
   self->len = n;
-  self->data = self->alloc = calloc(n + 1, 1);
+  self->data = self->alloc = kx_calloc(n + 1, 1);
   return self;
 }
 
@@ -59,7 +59,7 @@ ks_new_with_string(char *str) {
 
 kstr_t *
 ks_new_with_string_length(char *str, size_t len) {
-  kstr_t *self = malloc(sizeof(kstr_t));
+  kstr_t *self = kx_malloc(sizeof(kstr_t));
   if (!self) return NULL;
   self->len = len;
   self->data = self->alloc = str;
@@ -89,10 +89,10 @@ ssize_t
 ks_compact(kstr_t *self) {
   size_t len = ks_length(self);
   size_t rem = self->len - len;
-  char *buf = calloc(len + 1, 1);
+  char *buf = kx_calloc(len + 1, 1);
   if (!buf) return -1;
   memcpy(buf, self->data, len);
-  free(self->alloc);
+  kx_free(self->alloc);
   self->len = len;
   self->data = self->alloc = buf;
   return rem;
@@ -104,8 +104,8 @@ ks_compact(kstr_t *self) {
 
 void
 ks_free(kstr_t *self) {
-  free(self->alloc);
-  free(self);
+  kx_free(self->alloc);
+  kx_free(self);
 }
 
 /*
@@ -134,7 +134,7 @@ int
 ks_resize(kstr_t *self, size_t n) {
   n = nearest_multiple_of(1024, n);
   self->len = n;
-  self->alloc = self->data = realloc(self->alloc, n + 1);
+  self->alloc = self->data = kx_realloc(self->alloc, n + 1);
   if (!self->alloc) return -1;
   self->alloc[n] = '\0';
   return 0;

@@ -215,24 +215,24 @@ typedef unsigned int                    BzSeed;
 /**
  * User overloadable macro called to allocate size bytes to store a BigZ.
  */
-#define BzAlloc(size)                   malloc(size)
+#define BzAlloc(size)                   kx_malloc(size)
 // #define BzAlloc(size)                   bzalloc(size)
 // extern void *bzalloc(size_t size);
 /**
  * User overloadable macro called to free a BigZ allocated by BzAlloc.
  */
-#define BzFree(z)                       free(z)
+#define BzFree(z)                       kx_free(z)
 // #define BzFree(z)                       bzfree(z)
 // extern void bzfree(void *p);
 /**
  * User overloadable macro called to allocate size BzChar that represent
  * a BzString.
  */
-#define BzStringAlloc(size)             malloc(size * sizeof(BzChar))
+#define BzStringAlloc(size)             kx_malloc(size * sizeof(BzChar))
 /**
  * User overloadable macro called to free a buffer allocated by BzStringAlloc.
  */
-#define BzFreeString(s)                 free(s)
+#define BzFreeString(s)                 kx_free(s)
 #endif
 
 /** @cond */

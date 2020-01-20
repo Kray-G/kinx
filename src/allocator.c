@@ -1,5 +1,5 @@
 #include <dbg.h>
-#include <ir.h>
+#include <kinx.h>
 
 static void gc_mark_obj(kx_obj_t *c);
 static void gc_mark_fnc(kx_fnc_t *c);
@@ -27,16 +27,17 @@ BigZ get_int64min_minus1(void)
 void init_allocation(kx_context_t *ctx)
 {
     for (int i = 0; i < KX_INIT_FRM_COUNT; ++i) {
-        kv_push(kx_frm_t*, ctx->frm_dead, (kx_frm_t *)calloc(1, sizeof(kx_frm_t)));
+        kv_push(kx_frm_t*, ctx->frm_dead, (kx_frm_t *)kx_calloc(1, sizeof(kx_frm_t)));
     }
 }
 
 kx_context_t *make_context(void)
 {
-    kx_context_t *ctx = calloc(1, sizeof(kx_context_t));
+    kx_context_t *ctx = kx_calloc(1, sizeof(kx_context_t));
     ctx->frm_alive = kl_init(frm);
     ctx->fnc_alive = kl_init(fnc);
     ctx->obj_alive = kl_init(obj);
+    ctx->any_alive = kl_init(any);
     ctx->big_alive = kl_init(big);
     ctx->str_alive = kl_init(str);
     ctx->strlib = NULL;
@@ -67,6 +68,10 @@ static void gc_unmark(kx_context_t *ctx)
     kliter_t(obj) *pobj;
     for (pobj = kl_begin(ctx->obj_alive); pobj != kl_end(ctx->obj_alive); pobj = kl_next(pobj)) {
         kl_val(pobj)->mark = 0;
+    }
+    kliter_t(any) *pany;
+    for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
+        kl_val(pany)->mark = 0;
     }
     kliter_t(fnc) *pfnc;
     for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = kl_next(pfnc)) {
@@ -160,6 +165,9 @@ static void gc_mark_val(kx_val_t *c)
         c->mark = 1;
         gc_mark_frm(c->value.fr);
         break;
+    case KX_ANY_T:
+        c->mark = 1;
+        break;
     }
 }
 
@@ -202,6 +210,18 @@ static void gc_sweep(kx_context_t *ctx)
             kv_zero(kx_val_t, v->ary);
         }
     }
+    kliter_t(any) *pany, *prevany = NULL, *nextany;
+    for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = nextany) {
+        nextany = kl_next(pany);
+        if (kl_val(pany)->mark) {
+            prevany = pany;
+        } else {
+            kx_any_t *v;
+            kl_remove_next(any, ctx->any_alive, prevany, &v);
+            v->any_free(v->p);
+            kv_push(kx_any_t*, ctx->any_dead, v);
+        }
+    }
     kliter_t(fnc) *pfnc, *prevfnc = NULL, *nextfnc;
     for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = nextfnc) {
         nextfnc = kl_next(pfnc);
@@ -232,11 +252,12 @@ static void gc_sweep(kx_context_t *ctx)
 
 static void print_gc_info(kx_context_t *ctx)
 {
-    printf("  * stack: %d\n", kv_size(ctx->stack));
-    printf("    alive(str) = %d, buf(%d)\n", ctx->str_alive->size, kv_size(ctx->str_dead));
-    printf("    alive(obj) = %d, buf(%d)\n", ctx->obj_alive->size, kv_size(ctx->obj_dead));
-    printf("    alive(fnc) = %d, buf(%d)\n", ctx->fnc_alive->size, kv_size(ctx->fnc_dead));
-    printf("    alive(frm) = %d, buf(%d)\n", ctx->frm_alive->size, kv_size(ctx->frm_dead));
+    printf("  * stack: %d\n", (int)kv_size(ctx->stack));
+    printf("    alive(str) = %d, buf(%d)\n", (int)ctx->str_alive->size, (int)kv_size(ctx->str_dead));
+    printf("    alive(obj) = %d, buf(%d)\n", (int)ctx->obj_alive->size, (int)kv_size(ctx->obj_dead));
+    printf("    alive(any) = %d, buf(%d)\n", (int)ctx->any_alive->size, (int)kv_size(ctx->any_dead));
+    printf("    alive(fnc) = %d, buf(%d)\n", (int)ctx->fnc_alive->size, (int)kv_size(ctx->fnc_dead));
+    printf("    alive(frm) = %d, buf(%d)\n", (int)ctx->frm_alive->size, (int)kv_size(ctx->frm_dead));
 }
 
 void gc_mark_and_sweep(kx_context_t *ctx)
@@ -278,17 +299,23 @@ static void gc_object_cleanup(kx_context_t *ctx)
         kx_obj_t *o = kl_val(pobj);
         kh_destroy(prop, o->prop);
         kv_destroy(o->ary);
-        free(o);
+        kx_free(o);
+    }
+    kliter_t(any) *pany;
+    for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
+        kx_any_t *o = kl_val(pany);
+        o->any_free(o->p);
+        kx_free(o);
     }
     kliter_t(fnc) *pfnc;
     for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = kl_next(pfnc)) {
-        free(kl_val(pfnc));
+        kx_free(kl_val(pfnc));
     }
     kliter_t(frm) *pfrm;
     for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = kl_next(pfrm)) {
         kx_frm_t *frm = kl_val(pfrm);
         kv_destroy(frm->v);
-        free(frm);
+        kx_free(frm);
     }
 
     /* Free objects in dead list */
@@ -301,29 +328,37 @@ static void gc_object_cleanup(kx_context_t *ctx)
         kx_obj_t *o = kv_A(ctx->obj_dead, i);
         kh_destroy(prop, o->prop);
         kv_destroy(o->ary);
-        free(o);
+        kx_free(o);
+    }
+    l = kv_size(ctx->any_dead);
+    for (i = 0; i < l; ++i) {
+        kx_any_t *o = kv_A(ctx->any_dead, i);
+        o->any_free(o->p);
+        kx_free(o);
     }
     l = kv_size(ctx->fnc_dead);
     for (i = 0; i < l; ++i) {
-        free(kv_A(ctx->fnc_dead, i));
+        kx_free(kv_A(ctx->fnc_dead, i));
     }
     l = kv_size(ctx->frm_dead);
     for (i = 0; i < l; ++i) {
         kx_frm_t *frm = kv_A(ctx->frm_dead, i);
         kv_destroy(frm->v);
-        free(frm);
+        kx_free(frm);
     }
 
     /* Free object storage */
     kv_destroy(ctx->frm_dead);
     kv_destroy(ctx->fnc_dead);
     kv_destroy(ctx->obj_dead);
+    kv_destroy(ctx->any_dead);
     kv_destroy(ctx->str_dead);
     kl_destroy(str, ctx->str_alive);
     kl_destroy(big, ctx->big_alive);
     kl_destroy(frm, ctx->frm_alive);
     kl_destroy(fnc, ctx->fnc_alive);
     kl_destroy(obj, ctx->obj_alive);
+    kl_destroy(any, ctx->any_alive);
     kv_destroy(ctx->exception);
     kv_destroy(ctx->stack);
 
@@ -364,7 +399,11 @@ static void builtin_cleanup(kx_context_t *ctx)
 {
     int l = kv_size(ctx->builtin);
     for (int i = 0; i < l; ++i) {
-        unload_library((kv_A(ctx->builtin, i)).lib);
+        kx_bltin_t *p = &kv_A(ctx->builtin, i);
+        if (p->finalizer) {
+            p->finalizer();
+        }
+        unload_library(p->lib);
     }
     kv_destroy(ctx->builtin);
 }
@@ -374,5 +413,5 @@ void context_cleanup(kx_context_t *ctx)
     gc_object_cleanup(ctx);
     module_cleanup(ctx);
     builtin_cleanup(ctx);
-    free(ctx);
+    kx_free(ctx);
 }
