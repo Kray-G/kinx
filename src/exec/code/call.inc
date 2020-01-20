@@ -1,4 +1,17 @@
 
+#define KX_CALLBUILTIN_FUNCTION(r) \
+int count = cur->count; \
+if (fn->method) { \
+    push_s((ctx)->stack, fn->method); \
+    ++count; \
+} \
+if (fn->val.type) { \
+    push_value((ctx)->stack, fn->val); \
+    ++count; \
+} \
+r = fn->func(cur->count, frmv, fn->lex, ctx); \
+/**/
+
 #define KX_BUILTIN_FUNCTION_ERROR(r) \
 if (r < 0) { \
     switch (r) { \
@@ -67,12 +80,7 @@ if (r < 0) { \
         kx_fnc_t *fn = fv->value.fn; \
         kv_remove_last((ctx)->stack); \
         int r; \
-        if (fn->val.type) { \
-            push_value((ctx)->stack, fn->val); \
-            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
-        } else { \
-            r = fn->func(cur->count, frmv, fn->lex, ctx); \
-        } \
+        KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -102,12 +110,7 @@ if (r < 0) { \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
         int r; \
-        if (fn->val.type) { \
-            push_value((ctx)->stack, fn->val); \
-            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
-        } else { \
-            r = fn->func(cur->count, frmv, fn->lex, ctx); \
-        } \
+        KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -132,12 +135,7 @@ if (r < 0) { \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
         int r; \
-        if (fn->val.type) { \
-            push_value((ctx)->stack, fn->val); \
-            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
-        } else { \
-            r = fn->func(cur->count, frmv, fn->lex, ctx); \
-        } \
+        KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -162,12 +160,7 @@ if (r < 0) { \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
         int r; \
-        if (fn->val.type) { \
-            push_value((ctx)->stack, fn->val); \
-            r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
-        } else { \
-            r = fn->func(cur->count, frmv, fn->lex, ctx); \
-        } \
+        KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -208,12 +201,7 @@ if (r < 0) { \
         } else if (fv->type == KX_BFNC_T) { \
             kx_fnc_t *fn = fv->value.fn; \
             int r; \
-            if (fn->val.type) { \
-                push_value((ctx)->stack, fn->val); \
-                r = fn->func(cur->count+1, frmv, fn->lex, ctx); \
-            } else { \
-                r = fn->func(cur->count, frmv, fn->lex, ctx); \
-            } \
+            KX_CALLBUILTIN_FUNCTION(r); \
             KX_BUILTIN_FUNCTION_ERROR(r); \
             cur = cur->next; \
         } else { \

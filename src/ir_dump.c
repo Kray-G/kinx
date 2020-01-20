@@ -311,6 +311,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     KX_IROP_COMP(GT,   gt);
     KX_IROP_COMP(LGE,  lge);
 
+    case KX_SET_GMM:
+        printf("set_gmm");
+        break;
+
     case KX_CHKVAL:
         printf("chkval");
         break;

@@ -346,8 +346,16 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
             if (ana->def_func >= 0) {
                 kx_function_t *func = get_function(module, ana->def_func);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHF, .value1 = { .s = const_str(func->name) }, .value2 = { .idx = get_block(module, kv_head(func->block))->index } }));
+                if (ana->classname == 0 && func->name && !strcmp(func->name, "methodMissing") && last_op(ana) != KX_SET_GMM) {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SET_GMM }));
+                }
             }
             ana->def_func = def_func;
+            if (node->lhs->type == KXOP_VAR) {
+                if (ana->classname == 0 && !strcmp(node->lhs->value.s, "methodMissing") && last_op(ana) != KX_SET_GMM) {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SET_GMM }));
+                }
+            }
             gencode_ast_hook(node->lhs, ana, 1);
             if (last_op(ana) == KX_PUSHLV) {
                 last_op(ana) = KX_STOREV;
@@ -366,8 +374,16 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
             if (ana->def_func >= 0) {
                 kx_function_t *func = get_function(module, ana->def_func);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHF, .value1 = { .s = const_str(func->name) }, .value2 = { .idx = get_block(module, kv_head(func->block))->index } }));
+                if (ana->classname == 0 && func->name && !strcmp(func->name, "methodMissing") && last_op(ana) != KX_SET_GMM) {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SET_GMM }));
+                }
             }
             ana->def_func = def_func;
+            if (node->lhs->type == KXOP_VAR) {
+                if (ana->classname == 0 && !strcmp(node->lhs->value.s, "methodMissing") && last_op(ana) != KX_SET_GMM) {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SET_GMM }));
+                }
+            }
             gencode_ast_hook(node->lhs, ana, 1);
             if (last_op(ana) == KX_PUSHLV) {
                 last_op(ana) = KX_STOREV;
