@@ -34,7 +34,6 @@ void Regex_finalize(void)
     onig_end();
 }
 
-static int com = 0;
 void *Regex_compile_impl(const char *pattern)
 {
     regex_pack_t *r = (regex_pack_t *)kx_calloc(1, sizeof(regex_pack_t));
