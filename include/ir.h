@@ -1,6 +1,7 @@
 #ifndef KX_IR_H
 #define KX_IR_H
 
+#include <dbg.h>
 #include <stdint.h>
 #include <kvec.h>
 #include <khash.h>
@@ -205,9 +206,11 @@ typedef struct kx_analyze_ {
 */
 
 struct kx_obj_;
+struct kx_any_;
 struct kx_fnc_;
 struct kx_frm_;
 struct kx_context_;
+typedef void (*bltin_initfin_t)(void);
 typedef int (*call_bltin_func_t)(int index, int args, struct kx_frm_ *frmv, struct kx_frm_ *lexv, struct kx_context_ *ctx);
 typedef int (*call_direct_func_t)(int args, struct kx_frm_ *frmv, struct kx_frm_ *lexv, struct kx_context_ *ctx);
 typedef int (*get_bltin_count_t)(void);
@@ -228,6 +231,7 @@ enum irexec {
     KX_FRM_T,
     KX_BFNC_T,
     KX_ADDR_T,
+    KX_ANY_T,
 };
 
 typedef struct kx_val_ {
@@ -242,6 +246,7 @@ typedef struct kx_val_ {
         kx_code_t *jp;
         struct kx_val_ *lv;
         struct kx_obj_ *ov;
+        struct kx_any_ *av;
         struct kx_fnc_ *fn;
         struct kx_frm_ *fr;
     } value;
@@ -297,6 +302,14 @@ typedef struct kx_obj_ {
 kvec_init_t(kx_obj_t);
 kvec_init_pt(kx_obj_t);
 
+typedef struct kx_any_ {
+    uint8_t mark;
+    void *p;
+    void (*any_free)(void *p);
+} kx_any_t;
+kvec_init_t(kx_any_t);
+kvec_init_pt(kx_any_t);
+
 kvec_init_t(kstr_t);
 kvec_init_pt(kstr_t);
 kvec_init_t(BigZ);
@@ -305,6 +318,7 @@ kvec_init_pt(BigZ);
 KLIST_INIT_NOALLOC(big, BigZ)
 KLIST_INIT_NOALLOC(str, kstr_t *)
 KLIST_INIT_NOALLOC(obj, kx_obj_t *)
+KLIST_INIT_NOALLOC(any, kx_any_t *)
 KLIST_INIT_NOALLOC(frm, kx_frm_t *)
 KLIST_INIT_NOALLOC(fnc, kx_fnc_t *)
 
@@ -321,6 +335,7 @@ typedef struct kx_bltin_ {
     get_bltin_count_t get_bltin_count;
     get_bltin_name_t get_bltin_name;
     get_bltin_address_t get_bltin_address;
+    bltin_initfin_t finalizer;
 } kx_bltin_t;
 kvec_init_t(kx_bltin_t);
 
@@ -340,6 +355,8 @@ typedef struct kx_context_ {
     kvec_pt(kstr_t) str_dead;
     klist_t(obj) *obj_alive;
     kvec_pt(kx_obj_t) obj_dead;
+    klist_t(any) *any_alive;
+    kvec_pt(kx_any_t) any_dead;
     klist_t(fnc) *fnc_alive;
     kvec_pt(kx_fnc_t) fnc_dead;
     klist_t(frm) *frm_alive;
@@ -366,12 +383,13 @@ typedef struct kx_context_ {
 #define KX_INIT_BIG_COUNT (512)
 
 #define allocate_defstr(ctx) (kv_size((ctx)->str_dead) > 0 ? (kstr_t *)kv_pop((ctx)->str_dead) : (kstr_t *)ks_new())
-#define allocate_def(ctx, typ) (kv_size((ctx)->typ##_dead) > 0 ? (kx_##typ##_t *)kv_pop((ctx)->typ##_dead) : (kx_##typ##_t *)calloc(1, sizeof(kx_##typ##_t)))
+#define allocate_def(ctx, typ) (kv_size((ctx)->typ##_dead) > 0 ? (kx_##typ##_t *)kv_pop((ctx)->typ##_dead) : (kx_##typ##_t *)kx_calloc(1, sizeof(kx_##typ##_t)))
 #define set_alive(ctx, typ, ov) (*kl_pushp(typ, (ctx)->typ##_alive) = (ov))
 
 #define make_big_alive(ctx, val) (set_alive(ctx, big, val))
 #define allocate_str(ctx) (set_alive(ctx, str, allocate_defstr(ctx)))
 #define allocate_obj(ctx) init_object(set_alive(ctx, obj, allocate_def(ctx, obj)))
+#define allocate_any(ctx) (set_alive(ctx, any, allocate_def(ctx, any)))
 #define allocate_fnc(ctx) (set_alive(ctx, fnc, allocate_def(ctx, fnc)))
 #define allocate_frm(ctx) (set_alive(ctx, frm, allocate_def(ctx, frm)))
 #define ks_copy(ctx, s)   ks_append(allocate_str(ctx), s)
@@ -513,6 +531,16 @@ typedef struct kx_context_ {
 } \
 /**/
 
+#define KEX_SET_PROP_ANY(o, name, aval) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_ANY_T; \
+    val->value.av = aval; \
+} \
+/**/
+
 #define KEX_SET_PROP_OBJ(o, name, kexobj) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -575,6 +603,13 @@ typedef struct kx_context_ {
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_CSTR_T; \
     top->value.pv = const_str(val); \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_OBJ(o, val) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_OBJ_T; \
+    top->value.ov = val; \
 } \
 /**/
 

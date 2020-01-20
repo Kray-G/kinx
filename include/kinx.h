@@ -83,6 +83,7 @@ enum opecode {
     KXOP_KEYVALUE,
 
     /* unary expression */
+    KXOP_NOT,
     KXOP_POSITIVE,
     KXOP_NEGATIVE,
     KXOP_INC,
@@ -307,7 +308,38 @@ static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
     return NULL;
 }
 
-#define KX_DLL_DECL_FNCTIONS(kx_bltin_info) \
+#define KX_DLL_DECL_ALLOCATORS() \
+kx_malloc_t kx_malloc; \
+kx_realloc_t kx_realloc; \
+kx_calloc_t kx_calloc; \
+kx_free_t kx_free; \
+/**/
+
+#ifndef KX_DLL
+extern void *kx_malloc_impl(size_t size);
+extern void *kx_realloc_impl(void *p, size_t size);
+extern void *kx_calloc_impl(size_t count, size_t size);
+extern void kx_free_impl(void *p);
+#endif
+
+#define KX_DLL_DECL_FNCTIONS(kx_bltin_info, initfunc, finfunc) \
+    DllExport void set_allocator(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f) \
+    { \
+        kx_malloc = m;\
+        kx_realloc = r;\
+        kx_calloc = c;\
+        kx_free = f;\
+    } \
+    DllExport void initialize(void) \
+    { \
+        bltin_initfin_t f = initfunc;\
+        if (initfunc) f(); \
+    } \
+    DllExport void finalize(void) \
+    { \
+        bltin_initfin_t f = finfunc;\
+        if (finfunc) f(); \
+    } \
     DllExport int get_bltin_count(void) \
     { \
         return sizeof(kx_bltin_info)/sizeof(kx_bltin_info[0]); \

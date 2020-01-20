@@ -4,7 +4,7 @@
 
 kx_object_t *kx_obj_alloc(void)
 {
-    kx_object_t *obj = (kx_object_t *)calloc(1, sizeof(kx_object_t));
+    kx_object_t *obj = (kx_object_t *)kx_calloc(1, sizeof(kx_object_t));
     if (kx_obj_mgr) {
         kx_obj_mgr->lst->nxt = obj;
         kx_obj_mgr->lst = obj;
@@ -22,7 +22,7 @@ void free_nodes(void)
     while (obj) {
         kx_object_t *next = obj->nxt;
         kv_destroy(obj->symbols.list);
-        free(obj);
+        kx_free(obj);
         obj = next;
     }
 }

@@ -1,6 +1,8 @@
 #include <dbg.h>
 #include <kinx.h>
 
+KX_DLL_DECL_ALLOCATORS();
+
 int Array_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     if (args > 0) {
@@ -67,8 +69,8 @@ int Array_printStackTrace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "length",             Array_length },
-    { "printStackTrace",    Array_printStackTrace },
+    { "length", Array_length },
+    { "printStackTrace", Array_printStackTrace },
 };
 
-KX_DLL_DECL_FNCTIONS(kx_bltin_info);
+KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

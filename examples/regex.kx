@@ -1,5 +1,21 @@
 
-var re = new Regex("ab+");
-re.match();
-re.find();
-re.reset();
+var re = new Regex("aa(b+)");
+re.reset("aaaaabbbabbaabbbbaaaabbb");
+while (re.find()) {
+    System.println("found");
+    var group = re.group;
+    var l = group.length();
+    for (var i = 0; i < l; ++i) {
+        System.println("[", group[i].begin, ", ", group[i].end, "]");
+    }
+}
+var re = new Regex("a+([ab]+)b");
+re.reset("aaaaabbbabbaabbbbaaaabbb");
+if (re.matches()) {
+    System.println("found");
+    var group = re.group;
+    var l = group.length();
+    for (var i = 0; i < l; ++i) {
+        System.println("[", group[i].begin, ", ", group[i].end, "]");
+    }
+}

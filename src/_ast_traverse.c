@@ -15,6 +15,7 @@ void ast_traverse_template(kx_object_t *node, kx_analyze_t *ctx)
     case KXOP_VAR:
     case KXOP_KEYVALUE:
 
+    case KXOP_NOT:
     case KXOP_POSITIVE:
     case KXOP_NEGATIVE:
     case KXOP_INC:

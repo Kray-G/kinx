@@ -59,7 +59,7 @@ int main() {
 #define kvec_nt(type) struct { size_t n, m; type *a; }
 
 #define kv_init(v) ((v).n = (v).m = 0, (v).a = 0)
-#define kv_destroy(v) free((v).a)
+#define kv_destroy(v) kx_free((v).a)
 #define kv_A(v, i) ((v).a[(i)])
 #define kv_head(v) ((v).a[0])
 #define kv_last(v) ((v).a[((v).n)-1])
@@ -72,10 +72,10 @@ int main() {
 #define kv_shrink(v, d) (((v).n) -= d)
 
 #define kv_zero(type, v)  (memset((v).a, 0, sizeof(type) * (v).m))
-#define kv_resize(type, v, s)  ((v).m = (s), (v).a = ((v).a ? (type*)realloc((v).a, sizeof(type) * (v).m) : (type*)calloc((v).m, sizeof(type))))
-#define kv_resize_if(type, v, s)  if ((v).m < (s)) ((v).m = (s), (v).a = ((v).a ? (type*)realloc((v).a, sizeof(type) * (v).m) : (type*)calloc((v).m, sizeof(type))))
-#define kv_expand(type, v, e)  ((v).m = ((v).n+(s)), (v).a = (type*)realloc((v).a, sizeof(type) * (v).m))
-#define kv_expand_if(type, v, e)  if ((v).m < ((v).n+(e))) ((v).m = ((v).n+(e)), (v).a = (type*)realloc((v).a, sizeof(type) * (v).m))
+#define kv_resize(type, v, s)  ((v).m = (s), (v).a = ((v).a ? (type*)kx_realloc((v).a, sizeof(type) * (v).m) : (type*)kx_calloc((v).m, sizeof(type))))
+#define kv_resize_if(type, v, s)  if ((v).m < (s)) ((v).m = (s), (v).a = ((v).a ? (type*)kx_realloc((v).a, sizeof(type) * (v).m) : (type*)kx_calloc((v).m, sizeof(type))))
+#define kv_expand(type, v, e)  ((v).m = ((v).n+(s)), (v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m))
+#define kv_expand_if(type, v, e)  if ((v).m < ((v).n+(e))) ((v).m = ((v).n+(e)), (v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m))
 
 #define kv_copy(type, v1, v0) do {							\
 		if ((v1).m < (v0).n) kv_resize(type, v1, (v0).n);	\
@@ -86,7 +86,7 @@ int main() {
 #define kv_push(type, v, x) do {									\
 		if ((v).n == (v).m) {										\
 			(v).m = (v).m? (v).m<<1 : 2;							\
-			(v).a = (type*)realloc((v).a, sizeof(type) * (v).m);	\
+			(v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m);	\
 		}															\
 		(v).a[(v).n++] = (x);										\
 	} while (0)
@@ -95,12 +95,12 @@ int main() {
 #define kv_push_undef(v) ((v).a[((v).n)++])
 #define kv_pushp(type, v) ((((v).n >= (v).m)?							\
 						   ((v).m = ((v).m? (v).m<<1 : 2),				\
-							(v).a = (type*)realloc((v).a, sizeof(type) * (v).m), 0)	\
+							(v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m), 0)	\
 						   : 0), ((v).a + ((v).n++)))
 
 #define kv_a(type, v, i) (((v).m <= (size_t)(i)? \
 						  ((v).m = (v).n = (i) + 1, kv_roundup32((v).m), \
-						   (v).a = (type*)realloc((v).a, sizeof(type) * (v).m), 0) \
+						   (v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m), 0) \
 						  : (v).n <= (size_t)(i)? (v).n = (i) + 1 \
 						  : 0)), (v).a[(i)]
 
@@ -109,7 +109,7 @@ int main() {
 		if (((v1).n + (v0).n) >= (v1).m) {							\
 			(v1).n = (v1).n + (v0).n;								\
 			(v1).m = (v1).n<<1;										\
-			(v1).a = (type*)realloc((v1).a, sizeof(type) * (v1).m);	\
+			(v1).a = (type*)kx_realloc((v1).a, sizeof(type) * (v1).m);	\
 		}															\
 		memcpy((v1).a + v1n, (v0).a, sizeof(type) * (v0).n);		\
 	} while (0)
