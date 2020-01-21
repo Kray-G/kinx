@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <khash.h>
 #include <string.h>
