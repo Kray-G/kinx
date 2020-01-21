@@ -125,7 +125,7 @@ var instance = new Example(10);
 The above code is analyzed as below.
 
 ```js
-ExampleBase.create(initValue) = function() {
+ExampleBase.create = function(initValue) {
 
     var this;
     this.value = initValue;
@@ -136,7 +136,7 @@ ExampleBase.create(initValue) = function() {
 
 };
 
-Example.create(initValue1, initValue2) = function() {
+Example.create = function(initValue1, initValue2) {
 
     var this = ExampleBase.create(initValue1);
     var super = System.copyMethods(this);
