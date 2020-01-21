@@ -186,6 +186,9 @@ HEAD_OF_YYLEX:
         return kx_lex_make_string('\'');
     case '"':
         return kx_lex_make_string('"');
+    case '@':
+        kx_lex_next(kx_lexinfo);
+        return '@';
     case '=':
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == '=') {
