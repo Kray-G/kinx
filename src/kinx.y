@@ -307,6 +307,7 @@ Factor
     | '(' AssignExpression ')' { $$ = $2; }
     | '(' AnonymousFunctionDeclStatement ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
+    | '@' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object($2)); }
     ;
 
 Array
@@ -386,7 +387,7 @@ Inherit_Opt
                 kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"),
                     kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")), $3)),
                 kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("super"),
-                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System"), kx_gen_str_object("copyObject")), kx_gen_var_object("this")))
+                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System"), kx_gen_str_object("copyMethods")), kx_gen_var_object("this")))
             );
         }
     ;

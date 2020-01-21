@@ -1,0 +1,20 @@
+class Example {
+
+    # Private variable.
+    var a_;
+
+    # Public property.
+    this.value = 10;
+
+    # Private method.
+    private getAimpl() { return a_; }
+
+    # Public method.
+    public getA() { return getAimpl(); }
+    public setA(a) { a_ = a; }
+
+    public calc(x) { return x + this.value; }
+}
+
+var instance = new Example();
+System.println("init = ", instance.value, ", calc = ", instance.calc(100));
