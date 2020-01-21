@@ -228,6 +228,7 @@ extern void free_string(void);
 extern const char *const_str(const char* name);
 extern const char *const_str2(const char* classname, const char* name);
 
+extern void free_nodes(void);
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name);
 extern kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value);

@@ -9,6 +9,8 @@ extern void init_allocator(void);
 extern int kx_yydebug;
 #endif
 
+extern int kx_yyparse(void);
+
 int eval(kx_context_t *ctx)
 {
     kx_ast_root = NULL;
