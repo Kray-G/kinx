@@ -120,7 +120,7 @@
     } \
     case KX_INT_T: { \
         char buf[24] = {0}; \
-        sprintf(buf, "%lld", (v1)->value.iv); \
+        sprintf(buf, "%"PRId64, (v1)->value.iv); \
         (v1)->value.iv = strcmp(buf, val); \
         break; \
     } \
