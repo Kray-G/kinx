@@ -15,6 +15,12 @@
 #include <stdlib.h>
 #endif
 
+#include <string.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#define NO_STRNDUP
+#endif
+
 void init_allocator(void)
 {
     #if defined(_DEBUG)
@@ -43,4 +49,27 @@ void *kx_calloc_impl(size_t count, size_t size)
 void kx_free_impl(void *p)
 {
     free(p);
+}
+
+char *kx_strdup_impl(const char *s)
+{
+    return strdup(s);
+}
+
+#if defined(NO_STRNDUP)
+char *strndup(const char *s, size_t n)
+{
+    char *p = NULL;
+    int m = n + 1;
+    if ((m > n) && ((p = malloc(m)) != NULL)) {
+        memcpy(p, s, n);
+        p[n] = '\0';
+    }
+    return p;
+}
+#endif /* ! HAVE_STRNDUP */
+
+char *kx_strndup_impl(const char *s, size_t n)
+{
+    return strndup(s, n);
 }

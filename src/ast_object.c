@@ -157,11 +157,70 @@ const char *kx_gen_name(const char *base, int counter)
 
 kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
+    static int classid = 0;
     static int counter = 0;
-    kx_object_t *ret = (type == KXST_CLASS)
-        ? kx_gen_stmt_object(KXST_RET, kx_gen_var_object("this"), NULL, NULL)
-        : kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
-    rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
+    // kx_object_t *ret = (type == KXST_CLASS)
+    //     ? kx_gen_stmt_object(KXST_RET, kx_gen_var_object("this"), NULL, NULL)
+    //     : kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
+    // rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
+    if (type != KXST_CLASS) {
+        kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
+        rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
+    } else {
+        ++classid;
+        rhs = kx_gen_bexpr_object(KXST_STMTLIST,
+            kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("_classid"), NULL),
+            rhs
+        );
+        rhs = kx_gen_bexpr_object(KXST_STMTLIST,
+            rhs,
+            kx_gen_stmt_object(KXST_EXPR,
+                kx_gen_bassign_object(KXOP_ASSIGN,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name), kx_gen_str_object("_classid")),
+                    kx_gen_bassign_object(KXOP_ASSIGN,
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object("_classid")),
+                        kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object("_classid"), kx_gen_int_object(classid))
+                    )
+                ),
+            NULL, NULL)
+        );
+        kx_object_t *instanceOf = ex
+            ?  kx_gen_stmt_object(KXST_RET,
+                    kx_gen_bexpr_object(KXOP_LOR,
+                        kx_gen_bexpr_object(KXOP_EQEQ,
+                            kx_gen_var_object("_classid"),
+                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("classobj"), kx_gen_str_object("_classid"))
+                        ),
+                        kx_gen_bexpr_object(KXOP_CALL,
+                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("super"), kx_gen_str_object("instanceOf")),
+                            kx_gen_var_object("classobj")
+                        )
+                    ),
+                NULL, NULL)
+            : kx_gen_stmt_object(KXST_RET,
+                    kx_gen_bexpr_object(KXOP_EQEQ,
+                        kx_gen_var_object("_classid"),
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("classobj"), kx_gen_str_object("_classid"))
+                    ),
+                NULL, NULL)
+            ;
+        rhs = kx_gen_bexpr_object(KXST_STMTLIST,
+            rhs,
+            kx_gen_stmt_object(KXST_EXPR,
+                kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, "instanceOf",
+                    kx_gen_var_object("classobj"),
+                    kx_gen_bexpr_object(KXST_STMTLIST, instanceOf, NULL),
+                NULL),
+            NULL, NULL)
+        );
+        rhs = kx_gen_bexpr_object(KXST_STMTLIST,
+            rhs,
+            kx_gen_stmt_object(KXST_RET, kx_gen_var_object("this"), NULL, NULL)
+        );
+    }
+    if (!ex) {
+        ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"), NULL);
+    }
 
     const char *pname = name;
     if (!name) {

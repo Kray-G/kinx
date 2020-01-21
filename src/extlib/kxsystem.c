@@ -1,7 +1,7 @@
 #include <dbg.h>
 #include <kinx.h>
 
-KX_DLL_DECL_ALLOCATORS();
+KX_DECL_MEM_ALLOCATORS();
 
 int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
@@ -78,7 +78,7 @@ int System_abort(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     _exit(1);
 }
 
-int System_copyMethods(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_makeSuper(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     kx_obj_t *super = allocate_obj(ctx);
@@ -99,7 +99,7 @@ int System_copyMethods(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "copyMethods", System_copyMethods },
+    { "makeSuper", System_makeSuper },
     { "print", System_print },
     { "println", System_println },
     { "exec", System_exec },

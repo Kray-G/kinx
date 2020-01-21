@@ -15,7 +15,7 @@ static string_list_t *g_head = NULL;
 const char *alloc_string(const char *str)
 {
     string_list_t *sl = (string_list_t *)kx_malloc(sizeof(string_list_t));
-    sl->p = strdup(str);
+    sl->p = kx_strdup(str);
     sl->n = g_head;
     g_head = sl;
     return sl->p;

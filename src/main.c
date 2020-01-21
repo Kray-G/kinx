@@ -80,6 +80,8 @@ int main(int ac, char **av)
     kx_realloc = kx_realloc_impl;
     kx_calloc = kx_calloc_impl;
     kx_free = kx_free_impl;
+    kx_strdup = kx_strdup_impl;
+    kx_strndup = kx_strndup_impl;
 
     #ifdef YYDEBUG
     kx_yydebug = 1;
@@ -96,12 +98,19 @@ int main(int ac, char **av)
         }
     }
 
+    const char *file = av[optind];
+    if (!file_exists(file)) {
+        fprintf(stderr, "File not found: %s.\n", file);
+        goto CLEANUP;
+    }
+
     if (av[optind]) {
         r = eval_file(av[optind], ctx, startup_code());
     } else {
         r = eval_file(NULL, ctx, startup_code());
     }
 
+CLEANUP:
     context_cleanup(ctx);
     free_nodes();
     free_string();
