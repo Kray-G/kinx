@@ -115,21 +115,30 @@ For example in the above case, the name will be `"kxyourlibrary"`.
 *   Assigning the object to the variable of the name you specified.
     For example, the variable name is `YourLibrary` in the above case.
 
+For `new` operator, `new A` is just alias of `A.create`.
+See [Class Design](doc/ClassDesign.md) for how class works.
+
 ### Support Objects
 
 Currently many functionalities are too lack, I would like to add objects and methods as soon as possible.
 Many functionalities added in the future will be created by above strategy.
 
-|  Object  |           Method           |                      Work                      |
-| -------- | -------------------------- | ---------------------------------------------- |
-| `System` | `System.print(arg, ...)`   | Printing to stdout without newline at the end. |
-|          | `System.println(arg, ...)` | Printing to stdout with newline at the end.    |
-|          | `System.abort()`           | Aborting the program.                          |
-|          | `System.exec(cmdline)`     | Executing the command with shell.              |
-|          |                            |                                                |
-| `String` | `String.length(str)`       | Counting the length of string.                 |
-|          |                            |                                                |
-| `Array`  | `Array.length(obj)`        | Counting the length of array object.           |
+|  Object  |           Method           |                                                    Work                                                    |
+| -------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `System` | `System.print(arg, ...)`   | Printing to stdout without newline at the end.                                                             |
+|          | `System.println(arg, ...)` | Printing to stdout with newline at the end.                                                                |
+|          | `System.abort()`           | Aborting the program.                                                                                      |
+|          | `System.exec(cmdline)`     | Executing the command with shell.                                                                          |
+|          |                            |                                                                                                            |
+| `String` | `String.length(str)`       | Counting the length of string.                                                                             |
+|          |                            |                                                                                                            |
+| `Array`  | `Array.length(obj)`        | Counting the length of array object.                                                                       |
+|          |                            |                                                                                                            |
+| `Regex`  | `re = new Regex(pattern)`  | Creating Regex object. (`re` is example)                                                                   |
+|          | `re.reset(str)`            | Reset the search target string.                                                                            |
+|          | `re.find()`                | `true` if found. This can be used continuously until it has been not found.                                |
+|          | `re.matches()`             | `true` if matches. This can be used only one time because this is checking if the target is fully matched. |
+|          |                            |                                                                                                            |
 
 `String` & `Array` objects will do the special work for the object.
 For example  `String.length(str)` is the same as `str.length()`.
@@ -153,4 +162,9 @@ Here is a plan to add.
 * [ ] `File` object to support standard File I/O.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
+* [ ] `SQLite` object to support SQLite database access.
 * [ ] Inner expression of string like `"...%{expr}..."`.
+* [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
+* [ ] `eval` to run the script on the fly.
+* [ ] Here document.
+* [ ] Object identifier property.
