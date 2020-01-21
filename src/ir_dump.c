@@ -1,5 +1,6 @@
 #include <dbg.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include <kvec.h>
 #include <ir.h>
 
@@ -12,7 +13,7 @@ case KX_##CMD:\
     printf("%-23s", #cmd);\
     break;\
 case KX_##CMD##I:\
-    printf("%-23s %lld", #cmd "i", code->value1.i);\
+    printf("%-23s %"PRId64, #cmd "i", code->value1.i);\
     break;\
 case KX_##CMD##D:\
     printf("%-23s %f", #cmd "d", code->value1.d);\
@@ -30,7 +31,7 @@ case KX_##CMD:\
     printf("%-23s", #cmd);\
     break;\
 case KX_##CMD##I:\
-    printf("%-23s %lld", #cmd "i", code->value1.i);\
+    printf("%-23s %"PRId64, #cmd "i", code->value1.i);\
     break;\
 case KX_##CMD##D:\
     printf("%-23s %f", #cmd "d", code->value1.d);\
@@ -42,34 +43,34 @@ case KX_##CMD##V:\
     printf("%-23s %s", #cmd "v", gen_varloc(code));\
     break;\
 case KX_##CMD##_V0V0:\
-    printf("%-23s $0(%lld), $0(%lld)", #cmd "_v0v0", code->value1.i, code->value2.i);\
+    printf("%-23s $0(%"PRId64"), $0(%"PRId64")", #cmd "_v0v0", code->value1.i, code->value2.i);\
     break;\
 case KX_##CMD##_V0I:\
-    printf("%-23s $0(%lld), %lld", #cmd "_v0i", code->value1.i, code->value2.i);\
+    printf("%-23s $0(%"PRId64"), %"PRId64, #cmd "_v0i", code->value1.i, code->value2.i);\
     break;\
 case KX_##CMD##_IV0:\
-    printf("%-23s %lld, $0(%lld)", #cmd "_v0i", code->value1.i, code->value2.i);\
+    printf("%-23s %"PRId64", $0(%"PRId64")", #cmd "_v0i", code->value1.i, code->value2.i);\
     break;\
 /**/
 
 static const char *gen_varloc(kx_code_t *code)
 {
     static char buf[256];
-    sprintf(buf, "$(%lld,%lld)", code->value1.i, code->value2.i);
+    sprintf(buf, "$(%"PRId64",%"PRId64")", code->value1.i, code->value2.i);
     return buf;
 }
 
 static const char *gen_varloc_local(kx_code_t *code)
 {
     static char buf[256];
-    sprintf(buf, "$0(%lld)", code->value2.i);
+    sprintf(buf, "$0(%"PRId64")", code->value2.i);
     return buf;
 }
 
 static const char *gen_varloc_lexical1(kx_code_t *code)
 {
     static char buf[256];
-    sprintf(buf, "$1(%lld)", code->value2.i);
+    sprintf(buf, "$1(%"PRId64")", code->value2.i);
     return buf;
 }
 
@@ -99,7 +100,7 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
 
     case KX_ENTER:
-        printf("%-23s %lld, vars(%lld), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
+        printf("%-23s %"PRId64", vars(%"PRId64"), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
         break;
     case KX_CALL:
         printf("%-23s %d", "call", code->count);
@@ -140,28 +141,28 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     case KX_JMP:
         if (code->addr > 0) {
-            printf("%-23s .L%lld(%x)", "jmp", code->value1.i, code->addr);
+            printf("%-23s .L%"PRId64"(%x)", "jmp", code->value1.i, code->addr);
         } else {
-            printf("%-23s .L%lld", "jmp", code->value1.i);
+            printf("%-23s .L%"PRId64, "jmp", code->value1.i);
         }
         break;
     case KX_JZ:
         if (code->addr > 0) {
-            printf("%-23s .L%lld(%x)", "jz", code->value1.i, code->addr);
+            printf("%-23s .L%"PRId64"(%x)", "jz", code->value1.i, code->addr);
         } else {
-            printf("%-23s .L%lld", "jz", code->value1.i);
+            printf("%-23s .L%"PRId64, "jz", code->value1.i);
         }
         break;
     case KX_JNZ:
         if (code->addr > 0) {
-            printf("%-23s .L%lld(%x)", "jnz", code->value1.i, code->addr);
+            printf("%-23s .L%"PRId64"(%x)", "jnz", code->value1.i, code->addr);
         } else {
-            printf("%-23s .L%lld", "jnz", code->value1.i);
+            printf("%-23s .L%"PRId64, "jnz", code->value1.i);
         }
         break;
 
     case KX_PUSHI:
-        printf("%-23s %lld", "pushi", code->value1.i);
+        printf("%-23s %"PRId64, "pushi", code->value1.i);
         break;
     case KX_PUSHD:
         printf("%-23s %f", "pushd", code->value1.d);
@@ -171,9 +172,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     case KX_PUSHF:
         if (code->addr > 0) {
-            printf("%-23s %s => .L%lld(%x)", "pushf", code->value1.s, code->value2.i, code->addr);
+            printf("%-23s %s => .L%"PRId64"(%x)", "pushf", code->value1.s, code->value2.i, code->addr);
         } else {
-            printf("%-23s %s => .L%lld", "pushf", code->value1.s, code->value2.i);
+            printf("%-23s %s => .L%"PRId64, "pushf", code->value1.s, code->value2.i);
         }
         break;
     case KX_PUSHV:
@@ -194,7 +195,7 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
 
     case KX_PUSH_C:
-        printf("%-23s .L%lld(%x)", "pushc", code->value1.i, code->addr);
+        printf("%-23s .L%"PRId64"(%x)", "pushc", code->value1.i, code->addr);
         break;
 
     case KX_PUSHVL0:
@@ -275,10 +276,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("applyl");
         break;
     case KX_APPLYVI:
-        printf("%-23s %lld", "applyvi", code->value1.i);
+        printf("%-23s %"PRId64, "applyvi", code->value1.i);
         break;
     case KX_APPLYLI:
-        printf("%-23s %lld", "applyli", code->value1.i);
+        printf("%-23s %"PRId64, "applyli", code->value1.i);
         break;
     case KX_APPLYVS:
         printf("%-23s \"%s\"", "applyvs", code->value1.s);

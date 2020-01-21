@@ -380,14 +380,14 @@ ClassDeclStatement
     ;
 
 Inherit_Opt
-    : { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"), NULL); }
+    : { $$ = NULL; }
     | ':' Factor ClassCallArgumentList_Opts
         {
             $$ = kx_gen_bexpr_object(KXST_STMTLIST,
                 kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"),
                     kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")), $3)),
                 kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("super"),
-                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System"), kx_gen_str_object("copyMethods")), kx_gen_var_object("this")))
+                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System"), kx_gen_str_object("makeSuper")), kx_gen_var_object("this")))
             );
         }
     ;
