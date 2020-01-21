@@ -56,7 +56,6 @@ char* get_exe_path(void)
     return s_result;
 }
 #else
-#include <xunistd.h>
 #include <linux/limits.h>
 #include <sys/stat.h>
 #include <sys/types.h>
