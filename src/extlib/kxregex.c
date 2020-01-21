@@ -2,7 +2,7 @@
 #include <kinx.h>
 #include "onig/src/oniguruma.h"
 
-KX_DLL_DECL_ALLOCATORS();
+KX_DECL_MEM_ALLOCATORS();
 
 typedef struct regex_pack_ {
     regex_t *reg;

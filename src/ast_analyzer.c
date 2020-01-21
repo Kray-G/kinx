@@ -8,6 +8,7 @@ typedef struct kxana_context_ {
     int lvalue;
     int decl;
     int depth;
+    int class_id;
     kx_object_t *func;
     kvec_t(kxana_symbol_t) symbols;
 } kxana_context_t;
@@ -37,8 +38,8 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
         }
     }
 
-    if (ctx->decl || ctx->lvalue) {
 DECL_VAR:
+    if (ctx->decl || ctx->lvalue) {
         kxana_symbol_t* table = &(kv_last(ctx->symbols));
         kxana_symbol_t sym = {0};
         sym.name = const_str(name);
@@ -221,7 +222,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->rhs, ctx);
         analyze_ast(node->ex, ctx);
         break;
-    case KXST_TRY:        /* lhs: try, rhs: catch: ex: finally */
+    case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
         kxana_symbol_t* table = &(kv_last(ctx->symbols));
         int size = kv_size(table->list);
         analyze_ast(node->lhs, ctx);
@@ -231,6 +232,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->ex, ctx);
         kv_shrinkto(table->list, size);
         break;
+    }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);

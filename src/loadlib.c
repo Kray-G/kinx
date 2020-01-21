@@ -22,6 +22,19 @@ extern const char *alloc_string(const char *str);
 #ifndef PATH_MAX
 #define PATH_MAX MAX_PATH
 #endif
+#define SUFFIX      ".exe"
+#define PUTENV      _putenv
+#define SNPRINTF    _snprintf
+#define DELIM       ";"
+#define PATH_DELIM  '\\'
+int file_exists(const char *p)
+{
+    unsigned long attr = GetFileAttributes(p);
+    if (attr == 0xFFFFFFFF) {
+        return 0;
+    }
+    return 1;
+}
 
 char* get_exe_path(void)
 {
@@ -46,6 +59,22 @@ char* get_exe_path(void)
 
 #include <xunistd.h>
 #include <linux/limits.h>
+#include <limits.h>
+#include <sys/stat.h>
+#include <setjmp.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#define SUFFIX
+#define PUTENV      putenv
+#define SNPRINTF    snprintf
+#define DELIM       ":"
+#define PATH_DELIM  '/'
+int file_exists(const char *p)
+{
+    struct stat st;
+    return stat(p, &st) == 0 ? 1 : 0;
+}
 
 char* get_exe_path(void)
 {

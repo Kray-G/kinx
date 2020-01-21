@@ -30,7 +30,7 @@
     if (!set_allocator) { \
         THROW_SYSTEM_EXCEPTION_FMT1("SystemException", "Invalid import module(%s)", cur->value1.s); \
     } \
-    set_allocator(kx_malloc_impl, kx_realloc_impl, kx_calloc_impl, kx_free_impl); \
+    set_allocator(kx_malloc_impl, kx_realloc_impl, kx_calloc_impl, kx_free_impl, kx_strdup_impl, kx_strndup_impl); \
     p->get_bltin_count = (get_bltin_count_t)get_libfunc(p->lib, "get_bltin_count"); \
     p->get_bltin_name = (get_bltin_name_t) get_libfunc(p->lib, "get_bltin_name"); \
     p->get_bltin_address = (get_bltin_address_t)get_libfunc(p->lib, "get_bltin_address"); \

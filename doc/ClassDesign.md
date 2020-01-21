@@ -139,7 +139,7 @@ ExampleBase.create = function(initValue) {
 Example.create = function(initValue1, initValue2) {
 
     var this = ExampleBase.create(initValue1);
-    var super = System.copyMethods(this);
+    var super = System.makeSuper(this);
 
     /* ... */
     function method() { return this.value + 100; }
