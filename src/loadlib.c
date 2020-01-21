@@ -55,8 +55,7 @@ char* get_exe_path(void)
 
     return s_result;
 }
-#elif defined(KCC_LINUX)
-
+#else
 #include <xunistd.h>
 #include <linux/limits.h>
 #include <sys/stat.h>
@@ -85,20 +84,6 @@ char* get_exe_path(void)
         char exe_full_path[PATH_MAX];
         readlink("/proc/self/exe", exe_full_path, PATH_MAX);
         strncpy(s_result, exe_full_path, 2040);
-        p = strrchr(s_result, '/');
-        if (p) *p = 0;
-    }
-
-    return s_result;
-}
-#elif defined(KCC_SOLARIS)
-char* get_exe_path(void)
-{
-    static char s_result[2048] = {0};
-
-    if (!s_result[0]) {
-        char* p;
-        strncpy(s_result, getexecname(), 2040);
         p = strrchr(s_result, '/');
         if (p) *p = 0;
     }
