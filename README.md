@@ -29,7 +29,7 @@ Any other languages are also all good solution, but for me...
 
 Sharing the definition of **C Style Syntax**, it is below.
 
-*   `Block` is a scope between `{` and `}`
+*   **Block** is a scope between `{` and `}`
 *   Mostly **freedom** style of indent.
 *   **Fall through** in switch case.
 *   etc.
