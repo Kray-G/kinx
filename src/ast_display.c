@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <inttypes.h>
 #include <parser.h>
 
 static void print_indent(kx_object_t *node, int indent)
@@ -24,7 +25,7 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
 
     case KXVL_INT:
-        printf("(i:%lld)\n", node->value.i);
+        printf("(i:%"PRId64")\n", node->value.i);
         break;
     case KXVL_DBL:
         printf("(d:%f)\n", node->value.d);

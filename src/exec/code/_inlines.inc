@@ -89,7 +89,7 @@
         v1 = (v1)->value.lv; \
     } \
     if (v1->type != cur->value1.i) { \
-        printf("\nERROR: [%s:%d]\n  - expect type = %lld, but actual type = %d\n", cur->file, cur->line, cur->value1.i, v1->type); \
+        printf("\nERROR: [%s:%d]\n  - expect type = %"PRId64", but actual type = %d\n", cur->file, cur->line, cur->value1.i, v1->type); \
         print_stack(ctx, frmv, lexv); \
         goto LBL_KX_ERROR_END_OF_CODE; \
     }\
@@ -98,7 +98,7 @@
         break; \
     case KX_INT_T: \
         if (v1->value.iv != cur->value2.i) { \
-            printf("\nERROR: [%s:%d]\n  - expect int value = %lld, but actual value = %lld\n", cur->file, cur->line, cur->value2.i, v1->value.iv); \
+            printf("\nERROR: [%s:%d]\n  - expect int value = %"PRId64", but actual value = %"PRId64"\n", cur->file, cur->line, cur->value2.i, v1->value.iv); \
             goto LBL_KX_ERROR_END_OF_CODE; \
         } \
         break; \
