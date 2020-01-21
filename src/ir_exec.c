@@ -1,5 +1,6 @@
 #include <dbg.h>
 #include <stdio.h>
+#include <math.h>
 #include <inttypes.h>
 #include <kvec.h>
 #include <kstr.h>
