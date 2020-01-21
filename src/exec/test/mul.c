@@ -89,7 +89,7 @@ int test(void)
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_MULI, .value1.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = INT64_MIN }));
         // int*(neg)int -> big
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = -INT64_MIN/2-1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = -(INT64_MIN/2)-1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_MULI, .value1.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_BIG_T, .value2.s = "-9223372036854775810" }));
         // dbl*dbl -> dbl
