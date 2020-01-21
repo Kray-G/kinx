@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <inttypes.h>
 #include <kinx.h>
 
 KX_DECL_MEM_ALLOCATORS();
@@ -16,7 +17,7 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             break;
         case KX_INT_T:
             ++count;
-            printf("%lld", val.value.iv);
+            printf("%"PRId64, val.value.iv);
             break;
         case KX_BIG_T:
             ++count;
