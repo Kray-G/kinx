@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <kvec.h>
 #include <kstr.h>
@@ -11,7 +12,7 @@ void print_value(kx_val_t *v, int recursive)
         printf("(und) null\n");
         break;
     case KX_INT_T:
-        printf("(int) %lld\n", v->value.iv);
+        printf("(int) %"PRId64"\n", v->value.iv);
         break;
     case KX_BIG_T: {
         char *buf = BzToString(v->value.bz, 10, 0);
