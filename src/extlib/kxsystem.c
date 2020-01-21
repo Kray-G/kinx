@@ -78,7 +78,7 @@ int System_abort(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     _exit(1);
 }
 
-int System_copyObject(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_copyMethods(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     kx_obj_t *super = allocate_obj(ctx);
@@ -99,7 +99,7 @@ int System_copyObject(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "copyObject", System_copyObject },
+    { "copyMethods", System_copyMethods },
     { "print", System_print },
     { "println", System_println },
     { "exec", System_exec },
