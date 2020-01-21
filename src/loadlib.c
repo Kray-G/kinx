@@ -59,12 +59,12 @@ char* get_exe_path(void)
 
 #include <xunistd.h>
 #include <linux/limits.h>
-#include <limits.h>
 #include <sys/stat.h>
-#include <setjmp.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <limits.h>
+#include <string.h>
+#include <unistd.h>
 #define SUFFIX
 #define PUTENV      putenv
 #define SNPRINTF    snprintf

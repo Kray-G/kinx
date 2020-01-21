@@ -1,5 +1,6 @@
 #include <dbg.h>
 #include <string.h>
+#include <ctype.h>
 #include <parser.h>
 
 static char kx_strbuf[KX_BUF_MAX] = {0};
@@ -139,7 +140,7 @@ HEAD_OF_YYLEX:
 
     if (g_import > 0) {
         switch (g_import) {
-        case 1:
+        case 1: {
             int pos = 0;
             while (kx_lexinfo.ch && kx_lexinfo.ch != ';' && pos < KX_BUF_MAX) {
                 if (!kx_is_whitespace(kx_lexinfo)) {
@@ -152,6 +153,7 @@ HEAD_OF_YYLEX:
             modulename = make_modulename(kx_strbuf);
             g_import = 2;
             return VAR;
+        }
         case 2:
             g_import = 3;
             kx_yylval.strval = varname;
