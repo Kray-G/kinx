@@ -479,6 +479,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         get_block(module, ana->block)->tf[0] = alt;
         get_block(module, ana->block)->tf[1] = out;
         ana->block = alt;
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
         gencode_ast_hook(node->rhs, ana, 0);
         get_block(module, ana->block)->tf[0] = out;
 
@@ -499,6 +500,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         get_block(module, ana->block)->tf[0] = out;
         get_block(module, ana->block)->tf[1] = alt;
         ana->block = alt;
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
         gencode_ast_hook(node->rhs, ana, 0);
 
         ana->block = out;

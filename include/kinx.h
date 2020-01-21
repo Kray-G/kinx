@@ -210,6 +210,7 @@ kvec_init_pt(kx_object_t);
 extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
 
+extern int file_exists(const char *p);
 extern void *load_library(const char *name, const char *envname);
 extern void *get_libfunc(void *h, const char *name);
 extern void unload_library(void *h);
@@ -308,11 +309,13 @@ static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
     return NULL;
 }
 
-#define KX_DLL_DECL_ALLOCATORS() \
+#define KX_DECL_MEM_ALLOCATORS() \
 kx_malloc_t kx_malloc; \
 kx_realloc_t kx_realloc; \
 kx_calloc_t kx_calloc; \
 kx_free_t kx_free; \
+kx_strdup_t kx_strdup; \
+kx_strndup_t kx_strndup; \
 /**/
 
 #ifndef KX_DLL
@@ -320,15 +323,19 @@ extern void *kx_malloc_impl(size_t size);
 extern void *kx_realloc_impl(void *p, size_t size);
 extern void *kx_calloc_impl(size_t count, size_t size);
 extern void kx_free_impl(void *p);
+extern char *kx_strdup_impl(const char *s);
+extern char *kx_strndup_impl(const char *s, size_t n);
 #endif
 
 #define KX_DLL_DECL_FNCTIONS(kx_bltin_info, initfunc, finfunc) \
-    DllExport void set_allocator(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f) \
+    DllExport void set_allocator(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f, kx_strdup_t sd, kx_strndup_t snd) \
     { \
         kx_malloc = m;\
         kx_realloc = r;\
         kx_calloc = c;\
         kx_free = f;\
+        kx_strdup = sd;\
+        kx_strndup = snd;\
     } \
     DllExport void initialize(void) \
     { \

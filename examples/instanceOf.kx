@@ -1,0 +1,35 @@
+class Example1 {
+
+}
+
+class Example2 : Example1 {
+
+}
+
+class Example3 : Example2 {
+
+}
+
+var classNames = [
+    { name: "Example1", base: Example1 },
+    { name: "Example2", base: Example2 },
+    { name: "Example3", base: Example3 },
+];
+
+function checkInstanceOf(instance, name) {
+    var len = classNames.length();
+    for (var i = 0; i < len; ++i) {
+        if (e1.instanceOf(classNames[i].base)) {
+            System.println(name, " is the instance of ", classNames[i].name);
+        } else {
+            System.println("--- ", name, " is NOT the instance of ", classNames[i].name);
+        }
+    }
+}
+
+var e1 = new Example1();
+var e2 = new Example2();
+var e3 = new Example3();
+checkInstanceOf(e1, "e1");
+checkInstanceOf(e2, "e2");
+checkInstanceOf(e3, "e3");

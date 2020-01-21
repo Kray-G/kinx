@@ -7,4 +7,4 @@ kx_lexinfo_t kx_lexinfo;
 kx_object_t *kx_obj_mgr = NULL;
 kx_object_t *kx_ast_root = NULL;
 
-KX_DLL_DECL_ALLOCATORS();
+KX_DECL_MEM_ALLOCATORS();
