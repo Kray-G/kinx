@@ -80,6 +80,13 @@ kx_object_t *kx_gen_str_object(const char *val)
     return obj;
 }
 
+kx_object_t *kx_gen_big_object(const char *val)
+{
+    kx_object_t *obj = kx_gen_obj(KXVL_BIG, 0, NULL, NULL, NULL);
+    obj->value.s = val;
+    return obj;
+}
+
 kx_object_t *kx_gen_block_object(kx_object_t *blk)
 {
     return kx_gen_obj(KXST_BLOCK, 0, blk, NULL, NULL);
