@@ -168,7 +168,7 @@ It will be true even if the class is a parent one.
 
 Here is an example.
 
-```
+```coffee
 class Example1 {}
 class Example2 : Example1 {}
 class Example3 : Example2 {}
