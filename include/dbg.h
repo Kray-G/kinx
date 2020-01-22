@@ -2,6 +2,9 @@
 #ifndef KX_DBG_H
 #define KX_DBG_H
 
+#define HAVE_STDINT_H 1
+#define SIZEOF_VOID_P 8
+
 #include <stdlib.h>
 #define malloc use_kx_malloc
 #define realloc use_kx_realloc
