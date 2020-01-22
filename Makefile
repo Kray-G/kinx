@@ -81,26 +81,29 @@ TESTCORE = \
     trycatch \
     fib \
 
-all: kinx $(SOFILES)
+all: timex kinx $(SOFILES)
+
+timex:
+	$(CC) $(CFLAGS) -o timex timex.c
 
 clean:
-	rm -f $(OBJS) $(SOFILES) $(PICOBJALL) kinx myacc test
+	rm -f $(OBJS) $(SOFILES) $(PICOBJALL) timex kinx myacc test
 
 kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS)
-	$(CC) -o $@ $(OBJS) -ldl -lm
+	./timex $(CC) -o $@ $(OBJS) -ldl -lm
 	rm kx.output
 
 kxsystem.so: src/extlib/kxsystem.c $(PICOBJS2)
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS2)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS2)
 
 kxstring.so: src/extlib/kxstring.c $(PICOBJS1)
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
 
 kxarray.so: src/extlib/kxarray.c $(PICOBJS1)
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
 
 kxregex.so: src/extlib/kxregex.c $(PICOBJS3) libonig.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3) -Wl,-rpath,'$$ORIGIN' -L. -lonig
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3) -Wl,-rpath,'$$ORIGIN' -L. -lonig
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
@@ -129,19 +132,19 @@ libonig.so:
 	ln -s libonig.so.5 libonig.so;
 
 bignpic.o: src/bign.c
-	$(CC) -fPIC -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 bigzpic.o: src/bigz.c
-	$(CC) -fPIC -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 allocutilpic.o: src/allocutil.c
-	$(CC) -fPIC -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 kstrpic.o: src/kstr.c
-	$(CC) -fPIC -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
-	$(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
 test-core: $(OBJS)
 	for file in $(TESTCORE) ; do \
