@@ -33,6 +33,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXVL_STR:
         printf("(s:\"%s\")\n", node->value.s);
         break;
+    case KXVL_BIG:
+        printf("(b:\"%s\")\n", node->value.s);
+        break;
     case KXVL_NULL:
         printf("null\n");
         break;
