@@ -33,6 +33,7 @@
     &&LBL_KX_RETI, \
     &&LBL_KX_RETD, \
     &&LBL_KX_RETS, \
+    &&LBL_KX_RETB, \
     &&LBL_KX_RETV, \
     &&LBL_KX_RETVL0, \
     &&LBL_KX_RETVL1, \
@@ -47,6 +48,7 @@
     &&LBL_KX_PUSHI, \
     &&LBL_KX_PUSHD, \
     &&LBL_KX_PUSHS, \
+    &&LBL_KX_PUSHB, \
     &&LBL_KX_PUSHF, \
     &&LBL_KX_PUSHV, \
     &&LBL_KX_PUSHLV, \
