@@ -67,6 +67,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXVL_INT:
     case KXVL_DBL:
     case KXVL_STR:
+    case KXVL_BIG:
     case KXVL_NULL:
     case KXVL_TRUE:
     case KXVL_FALSE:
