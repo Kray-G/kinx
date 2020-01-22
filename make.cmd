@@ -1,43 +1,29 @@
 @echo off
 setlocal
 
+REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
+set CFLAGS=/O2 /MT /Iinclude
+
 if "%1"=="clean" goto CLEAN_OBJS
 
 call :BUILDLIB
 
 if "%1"=="test" goto TEST_CODE
-REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
-set CFLAGS=/O2 /MT /Iinclude
-
-set YACC=myacc
-if "%YACC%"=="kmyacc" (
-    set CFLAGS=%CFLAGS% /DYYDEBUG
-    kmyacc -vd -b kx -m kmyacc.c.parser -p kx_yy -L c src/kinx.y
-) else (
-    cl %CFLAGS% /Femyacc.exe utility/myacc.c
-    myacc.exe -vd -b kx -y kx_yy -Y KINX_YY src/kinx.y
-)
-del parser.obj
-del lexer.obj
-move kx.tab.c src/parser.c
-move kx.tab.h include/parser.tab.h
 
 set OBJS=getopt.obj string.obj parser.obj lexer.obj main.obj allocator.obj allocutil.obj alloccore.obj kstr.obj bign.obj bigz.obj loadlib.obj global.obj
 set OBJS=%OBJS% ast_object.obj ast_display.obj ast_analyzer.obj ast_gencode.obj
 set OBJS=%OBJS% ir_fix.obj ir_dump.obj ir_exec.obj ir_util.obj
 REM del %OBJS%
 call :COMPILE %OBJS%
-cl %CFLAGS% /Fekinx.exe %OBJS%
-timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxsystem.c bign.obj bigz.obj allocutil.obj
-timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxstring.c bign.obj bigz.obj
-timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxarray.c  bign.obj bigz.obj
-timeit cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxregex.c  bign.obj bigz.obj kstr.obj allocutil.obj onig.lib
+timex cl /nologo %CFLAGS% /Fekinx.exe %OBJS%
+timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxsystem.c bign.obj bigz.obj allocutil.obj
+timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxstring.c bign.obj bigz.obj
+timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxarray.c  bign.obj bigz.obj
+timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxregex.c  bign.obj bigz.obj kstr.obj allocutil.obj onig.lib
 goto END
 
 :TEST_CODE
-REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
-set CFLAGS=/O2 /MT /Iinclude
-call :TEST_SETUP
+call :COMPILE %OBJS%
 call :TEST_EXEC apply
 call :TEST_EXEC append
 call :TEST_EXEC add
@@ -74,29 +60,14 @@ goto END
 :COMPILE
 if "%1"=="" exit /b 0
 set OBJ=%1
-if not exist %OBJ% timeit cl -c -nologo %CFLAGS% src/%OBJ:.obj=.c%
+if not exist %OBJ% timex cl -c -nologo %CFLAGS% src/%OBJ:.obj=.c%
 shift
 goto COMPILE
-
-:TEST_SETUP
-if not exist string.obj     timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/string.c
-if not exist kstr.obj       timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/kstr.c
-if not exist bign.obj       timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/bign.c
-if not exist bigz.obj       timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/bigz.c
-if not exist ir_dump.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/ir_dump.c
-if not exist allocator.obj  timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/allocator.c
-if not exist allocutil.obj  timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/allocutil.c
-if not exist alloccore.obj  timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/alloccore.c
-if not exist global.obj     timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/global.c
-if not exist loadlib.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/loadlib.c
-if not exist ir_util.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/ir_util.c
-if not exist ir_exec.obj    timeit cl /c /nologo /DKX_EXEC_NODEBUG %CFLAGS% src/ir_exec.c
-exit /b 0
 
 :TEST_EXEC
 call :MKDOTS %1
 set /P _DUMMY=Starting [%1] %DOTS% < NUL
-cl /nologo /DKX_EXEC_NODEBUG %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_util.obj ir_dump.obj allocator.obj allocutil.obj alloccore.obj kstr.obj bign.obj bigz.obj string.obj global.obj loadlib.obj
+cl /nologo %CFLAGS% /Fetest.exe src/exec/test/%1.c ir_exec.obj ir_util.obj ir_dump.obj allocator.obj allocutil.obj alloccore.obj kstr.obj bign.obj bigz.obj string.obj global.obj loadlib.obj
 test.exe
 if ERRORLEVEL 1 goto FAILED
 echo Successful
@@ -126,6 +97,21 @@ if not %LEN% equ 0 (
 exit /b
 
 :BUILDLIB
+set YACC=myacc
+echo %YACC% ...
+if "%YACC%"=="kmyacc" (
+    set CFLAGS=%CFLAGS% /DYYDEBUG
+    kmyacc -vd -b kx -m kmyacc.c.parser -p kx_yy -L c src/kinx.y
+) else (
+    cl %CFLAGS% /Femyacc.exe utility/myacc.c
+    myacc.exe -vd -b kx -y kx_yy -Y KINX_YY src/kinx.y
+)
+if exist parser.obj del parser.obj
+if exist lexer.obj  del lexer.obj
+move kx.tab.c src/parser.c
+move kx.tab.h include/parser.tab.h
+echo timex.exe...
+cl /nologo %CFLAGS% /Fetimex.exe timex.c
 echo Oniguruma...
 pushd src\extlib\onig
 call make_win64.bat
