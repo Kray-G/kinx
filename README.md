@@ -22,7 +22,7 @@ because it is simple, easy, and familier to them.
 Any other languages are also all good solution, but for me...
 
 *   Python is greate. But it is too far from C style. Indentend style is a little cramped.
-*   Ruby is also greate. But is is too far from C style. Too many typing for `end`.
+*   Ruby is also greate. But it is too far from C style. Too many typing for `end`.
 *   JavaScript is very good for me, and it is a C like style. But nodejs is too heavyweight.
 
 ##### What is C Style Syntax?
