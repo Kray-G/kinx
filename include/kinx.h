@@ -310,6 +310,19 @@ static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
     return NULL;
 }
 
+
+#if defined(_WIN32) || defined(_WIN64)
+extern int len_acp2utf8(const char *src);
+extern char *conv_acp2utf8(char *dst, int len, const char *src);
+extern int len_utf82acp(const char *src);
+extern char *conv_utf82acp(char *dst, int len, const char *src);
+#else   // not windows
+#define len_acp2utf8(src) (1)
+#define conv_acp2utf8(dst,len,src) (src)
+#define len_utf82acp(src) (1)
+#define conv_utf82acp(dst,len,src) (src)
+#endif
+
 #define KX_DECL_MEM_ALLOCATORS() \
 kx_malloc_t kx_malloc; \
 kx_realloc_t kx_realloc; \
