@@ -12,6 +12,7 @@ int get_keyword_token(const char *val)
 {
     switch (val[0]) {
     case '_':
+        if (strcmp(val, "__END__") == 0)    { kx_lexinfo.ch = 0; return 0; }
         break;
     case 'b':
         if (strcmp(val, "break") == 0)      return BREAK;
@@ -86,9 +87,10 @@ int kx_lex_make_string(char quote)
         if (kx_lexinfo.ch == '\\') {
             kx_lex_next(kx_lexinfo);
             switch (kx_lexinfo.ch) {
-            case 'n': kx_lexinfo.ch = '\n';
-            case 't': kx_lexinfo.ch = '\t';
-            case 'r': kx_lexinfo.ch = '\r';
+            case 'n':  kx_lexinfo.ch = '\n';
+            case 't':  kx_lexinfo.ch = '\t';
+            case 'r':  kx_lexinfo.ch = '\r';
+            case '\\': kx_lexinfo.ch = '\\';
             }
         }
         kx_strbuf[pos++] = kx_lexinfo.ch;
