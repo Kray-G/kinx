@@ -160,6 +160,32 @@ This means:
 
 ### Others
 
+#### `instanceOf` method
+
+The class instance has a `instanceOf` method automatically.
+This method tests if it is the instance of the specified class.
+It will be true even if the class is a parent one.
+
+Here is an example.
+
+```
+class Example1 {}
+class Example2 : Example1 {}
+class Example3 : Example2 {}
+
+var e2 = new Example2();
+if (e2.instanceOf(Example1)) System.println("e2 is the instance of Example1.");
+if (e2.instanceOf(Example2)) System.println("e2 is the instance of Example2.");
+if (e2.instanceOf(Example3)) System.println("e2 is the instance of Example3.");
+```
+
+The result is here.
+
+```
+e2 is the instance of Example1.
+e2 is the instance of Example2.
+```
+
 #### `@` - alias of `this.`
 
 For decreasing the count of writing `this`, you can use `@` as the alias of `this.`, which is `this` plus `.` (dot).
