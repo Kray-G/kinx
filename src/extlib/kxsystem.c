@@ -34,13 +34,13 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             ++count;
             buf = conv_acp2utf8_alloc(val.value.pv);
             printf("%s", buf);
-            kx_free(buf);
+            conv_free(buf);
             break;
         case KX_STR_T:
             ++count;
             buf = conv_acp2utf8_alloc(ks_string(val.value.sv));
             printf("%s", buf);
-            kx_free(buf);
+            conv_free(buf);
             break;
         case KX_OBJ_T:
             ++count;

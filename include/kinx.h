@@ -316,11 +316,17 @@ extern int len_acp2utf8(const char *src);
 extern char *conv_acp2utf8(char *dst, int len, const char *src);
 extern int len_utf82acp(const char *src);
 extern char *conv_utf82acp(char *dst, int len, const char *src);
+extern char *conv_acp2utf8_alloc(const char *src);
+extern char *conv_utf82acp_alloc(const char *src);
+#define conv_free(p) kx_free(p)
 #else   // not windows
 #define len_acp2utf8(src) (1)
 #define conv_acp2utf8(dst,len,src) (src)
+#define conv_acp2utf8_alloc(src) (src)
 #define len_utf82acp(src) (1)
 #define conv_utf82acp(dst,len,src) (src)
+#define conv_utf82acp_alloc(src) (src)
+#define conv_free(p)
 #endif
 
 #define KX_DECL_MEM_ALLOCATORS() \
