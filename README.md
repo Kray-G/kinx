@@ -50,28 +50,46 @@ For example that is C, C++, Java, JavaScript, C#, and so on.
 
 #### Windows
 
-Supporting OS is currently Windows only. I will support Linux soon.
+On Windows, tested with Visual Studio 2017 Express Edition with x64.
 To build, see below.
 
 ```
 $ make.cmd
 ```
 
-My compiler is now Visual Studio 2017 Express Edition with x64.
-
 #### Linux
 
-Sorry wait.
-
-### Executing Your Program
+On Linux, tested with gcc 7.4.0 with x64.
+To build, see below.
 
 ```
-$ kinx.exe <script-file>
+$ make
 ```
+
+### How to Execute
+
+#### Usage
+
+```
+$ kinx.exe [options] [<script-file>]
+```
+
+#### Options
+
+Here is current available options.
+
+| Option |          Description          |
+| ------ | ----------------------------- |
+| `-h`   | Display help.                 |
+| `-v`   | Display version number.       |
+| `-d`   | Dump compiled code.           |
+| `-i`   | Input source code from stdin. |
 
 #### Examples
 
-##### fibonacci
+You will think it is like JavaScript.
+
+##### Fibonacci
 
 ```js
 function fib(n) {
@@ -82,7 +100,7 @@ function fib(n) {
 System.println("fib(34) = ", fib(34));
 ```
 
-##### factorial
+##### Factorial
 
 ```js
 function fact(n) {
@@ -91,6 +109,16 @@ function fact(n) {
 }
 
 System.println(fact(5000));
+```
+
+##### Class
+
+```coffee
+class Example(i) {
+    public get() { return i; }
+}
+
+System.println(new Example(100).get());
 ```
 
 ### Extending Functionalities
