@@ -8,6 +8,7 @@ void ast_traverse_template(kx_object_t *node, kx_analyze_t *ctx)
     case KXVL_INT:
     case KXVL_DBL:
     case KXVL_STR:
+    case KXVL_BIG:
     case KXVL_NULL:
     case KXVL_TRUE:
     case KXVL_FALSE:

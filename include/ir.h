@@ -26,6 +26,7 @@ enum irop {
     KX_RETI,
     KX_RETD,
     KX_RETS,
+    KX_RETB,
     KX_RETV,
     KX_RETVL0,
     KX_RETVL1,
@@ -44,6 +45,7 @@ enum irop {
     KX_PUSHI,
     KX_PUSHD,
     KX_PUSHS,
+    KX_PUSHB,
     KX_PUSHF,
     KX_PUSHV,
     KX_PUSHLV,
@@ -83,6 +85,7 @@ enum irop {
     KX_APPLYLI,
     KX_APPLYVS,
     KX_APPLYLS,
+
     KX_APPENDK,
     KX_APPEND,
     KX_APPENDI,
@@ -217,7 +220,6 @@ enum irop {
     KX_LGE_IV0,
 
     KX_SET_GMM, /* Set a global method missing */
-
     KX_CHKVAL,  /* Checking the stack top value for testing. */
     KX_OPEND
 };
@@ -452,7 +454,8 @@ kvec_init_t(kx_bltin_t);
 
 typedef struct kx_options_ {
     int dump:1;
-    int srcin:1;
+    int src_stdin:1;
+    int utf8inout:1;
 } kx_options_t;
 
 typedef struct kx_context_ {
@@ -545,6 +548,13 @@ typedef struct kx_context_ {
         kx_val_t *top = &kv_push_undef(st);\
         top->type = KX_CSTR_T;\
         top->value.pv = (v); /* just a shallow copy to the stack because it is a temporary. */\
+    } while (0);\
+/**/
+#define push_b(st, v) \
+    do {\
+        kx_val_t *top = &kv_push_undef(st);\
+        top->type = KX_BIG_T;\
+        top->value.bz = make_big_alive(ctx, BzFromString(v, 10, BZ_UNTIL_END)); \
     } while (0);\
 /**/
 #define push_f(st, jmp, lexv) \

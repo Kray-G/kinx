@@ -20,10 +20,13 @@ typedef struct kx_lexinfo_ {
     int pos;
     const char *file;
     int line;
+    kx_yyin_t in;
 } kx_lexinfo_t;
+kvec_init_t(kx_lexinfo_t);
 
 extern kx_yyin_t kx_yyin;
 extern kx_lexinfo_t kx_lexinfo;
+extern kvec_t(kx_lexinfo_t) kx_lex_stack;
 extern int kx_yylex();
 
 #define kx_lex_next(ctx) \
@@ -53,10 +56,12 @@ extern int kx_yylex();
 /**/
 
 #define kx_is_whitespace(ctx) ((ctx).ch == ' ' || (ctx).ch == '\t' || (ctx).ch == '\r' || (ctx).ch == '\n')
-#define kx_is_number(ctx) ('0' <= (ctx).ch && (ctx).ch <= '9')
+#define kx_is_number(ctx) (((ctx).ch == '_') || ('0' <= (ctx).ch && (ctx).ch <= '9'))
 #define kx_is_char(ctx) (((ctx).ch == '_') || kx_is_number(ctx) || ('a' <= (ctx).ch && (ctx).ch <= 'z') || ('A' <= (ctx).ch && (ctx).ch <= 'Z'))
-#define kx_is_oct_number(ctx) ('0' <= (ctx).ch && (ctx).ch <= '7')
-#define kx_is_hex_number(ctx) (('0' <= (ctx).ch && (ctx).ch <= '9') || ('a' <= (ctx).ch && (ctx).ch <= 'f') || ('A' <= (ctx).ch && (ctx).ch <= 'F'))
+#define kx_is_filechar(ctx) (((ctx).ch == '_') || ((ctx).ch == '.') || ((ctx).ch == '(') || ((ctx).ch == ')') || ((ctx).ch == '-') || \
+                                kx_is_number(ctx) || ('a' <= (ctx).ch && (ctx).ch <= 'z') || ('A' <= (ctx).ch && (ctx).ch <= 'Z'))
+#define kx_is_oct_number(ctx) (((ctx).ch == '_') || ('0' <= (ctx).ch && (ctx).ch <= '7'))
+#define kx_is_hex_number(ctx) (((ctx).ch == '_') || ('0' <= (ctx).ch && (ctx).ch <= '9') || ('a' <= (ctx).ch && (ctx).ch <= 'f') || ('A' <= (ctx).ch && (ctx).ch <= 'F'))
 
 enum functype {
     KXFT_CLASS,
@@ -74,6 +79,7 @@ enum opecode {
     KXVL_INT,
     KXVL_DBL,
     KXVL_STR,
+    KXVL_BIG,
     KXVL_NULL,
     KXVL_TRUE,
     KXVL_FALSE,
@@ -215,6 +221,11 @@ extern void *load_library(const char *name, const char *envname);
 extern void *get_libfunc(void *h, const char *name);
 extern void unload_library(void *h);
 
+extern void setup_lexinfo(const char *file, kx_yyin_t *yyin);
+extern int kx_yyparse(void);
+extern int kx_yyerror(const char *);
+extern int kx_yywarning(const char *);
+
 extern BigZ get_int64max_plus1(void);
 extern BigZ get_int64min_minus1(void);
 
@@ -234,6 +245,7 @@ extern kx_object_t *kx_gen_var_object(const char *name);
 extern kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value);
 extern kx_object_t *kx_gen_int_object(int64_t val);
 extern kx_object_t *kx_gen_dbl_object(double val);
+extern kx_object_t *kx_gen_big_object(const char *val);
 extern kx_object_t *kx_gen_str_object(const char *val);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
