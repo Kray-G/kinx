@@ -8,7 +8,7 @@ KX_DECL_MEM_ALLOCATORS();
 int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     int n, count = 0;
-    char *buf;
+    const char *buf;
     kvec_t(kx_val_t) *stack = &(ctx->stack);
     for (int i = 1; i <= args; ++i) {
         kx_val_t val = kv_last_by(*stack, i);
