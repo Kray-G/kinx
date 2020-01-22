@@ -1,6 +1,12 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+#else
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
 
 char* alloc_command(int ac, char **av)
 {
@@ -24,14 +30,14 @@ char* alloc_command(int ac, char **av)
 
 int main(int ac, char **av)
 {
+    char *cmd = alloc_command(ac, av);
+    #if defined(_WIN32) || defined(_WIN64)
     LARGE_INTEGER freq;
     LARGE_INTEGER start, end;
 
     if (!QueryPerformanceFrequency(&freq)) {
         return 1;
     }
-
-    char *cmd = alloc_command(ac, av);
     if (!QueryPerformanceCounter(&start)) {
         return 1;
     }
@@ -39,9 +45,19 @@ int main(int ac, char **av)
     if (!QueryPerformanceCounter(&end)) {
         return 1;
     }
-    free(cmd);
 
     double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
+    #else
+    struct timeval s, e;
+
+    gettimeofday(&s, NULL);
+    (void)system(cmd);
+    gettimeofday(&e, NULL);
+
+    double elapsed = (e.tv_sec - s.tv_sec) + (e.tv_usec - s.tv_usec) * 1.0e-6;
+    #endif
+    free(cmd);
+
     int mn = (int)elapsed / 60;
     int sc = (int)elapsed % 60;
     int ms = (int)(elapsed * 1000) % 1000;
