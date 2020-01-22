@@ -183,7 +183,6 @@ Here is a plan to add.
 * [ ] `using` directive to include another source code.
 * [ ] `namespace` block.
 * [ ] `class` mechanism fully support.
-  * [ ] `instanceOf()`
   * [ ] `initialize()`
 * [ ] `module` to add function easily to object.
 * [ ] `Math` object to support some calculations.
