@@ -321,11 +321,11 @@ extern char *conv_utf82acp_alloc(const char *src);
 #define conv_free(p) kx_free(p)
 #else   // not windows
 #define len_acp2utf8(src) (1)
-#define conv_acp2utf8(dst,len,src) (src)
-#define conv_acp2utf8_alloc(src) (src)
+#define conv_acp2utf8(dst,len,src) (char*)(src)
+#define conv_acp2utf8_alloc(src) (char*)(src)
 #define len_utf82acp(src) (1)
-#define conv_utf82acp(dst,len,src) (src)
-#define conv_utf82acp_alloc(src) (src)
+#define conv_utf82acp(dst,len,src) (char*)(src)
+#define conv_utf82acp_alloc(src) (char*)(src)
 #define conv_free(p)
 #endif
 
