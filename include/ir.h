@@ -9,9 +9,6 @@
 #include <kstr.h>
 #include <bigz.h>
 
-#define KX_DEF_PUSH(cmd)  cmd ## I, cmd ## D, cmd ## S, cmd ## F, cmd ## V, cmd ## LV, cmd ## _NULL, cmd ## _TRUE, cmd ## _FALSE, cmd ## _C
-#define KX_DEF_IR(cmd)  cmd, cmd ## I, cmd ## D, cmd ## S, cmd ## V
-
 enum irop {
     KX_HALT,
     KX_NOP,
@@ -24,23 +21,42 @@ enum irop {
     KX_CALLVL0,
     KX_CALLVL1,
     KX_CALLS,
-    KX_DEF_IR(KX_RET),
+
+    KX_RET,
+    KX_RETI,
+    KX_RETD,
+    KX_RETS,
+    KX_RETV,
     KX_RETVL0,
     KX_RETVL1,
     KX_RET_NULL,
+
     KX_THROW,
     KX_THROWA,
     KX_THROWE,
+
     KX_CATCH,
+
     KX_JMP,
     KX_JZ,
     KX_JNZ,
 
-    KX_DEF_PUSH(KX_PUSH),
+    KX_PUSHI,
+    KX_PUSHD,
+    KX_PUSHS,
+    KX_PUSHF,
+    KX_PUSHV,
+    KX_PUSHLV,
     KX_PUSHVL0,
     KX_PUSHVL1,
+    KX_PUSH_NULL,
+    KX_PUSH_TRUE,
+    KX_PUSH_FALSE,
+    KX_PUSH_C,
+
     KX_POP_C,
     KX_POP,
+
     KX_STORE,
     KX_STOREV,
     KX_STOREX,
@@ -48,6 +64,7 @@ enum irop {
 
     KX_NOT,
     KX_NEG,
+
     KX_INC,
     KX_DEC,
     KX_INCV,
@@ -58,8 +75,8 @@ enum irop {
     KX_DECVP,
     KX_INCVX,
     KX_DECVX,
-    KX_MKARY,
 
+    KX_MKARY,
     KX_APPLYV,
     KX_APPLYL,
     KX_APPLYVI,
@@ -67,24 +84,113 @@ enum irop {
     KX_APPLYVS,
     KX_APPLYLS,
     KX_APPENDK,
-    KX_DEF_IR(KX_APPEND),
-    KX_DEF_IR(KX_ADD),
-    KX_DEF_IR(KX_SUB),
-    KX_DEF_IR(KX_MUL),
-    KX_DEF_IR(KX_DIV),
-    KX_DEF_IR(KX_MOD),
-    KX_DEF_IR(KX_AND),
-    KX_DEF_IR(KX_OR),
-    KX_DEF_IR(KX_XOR),
-    KX_DEF_IR(KX_SHL),
-    KX_DEF_IR(KX_SHR),
-    KX_DEF_IR(KX_EQEQ),
-    KX_DEF_IR(KX_NEQ),
-    KX_DEF_IR(KX_LE),
-    KX_DEF_IR(KX_LT),
-    KX_DEF_IR(KX_GE),
-    KX_DEF_IR(KX_GT),
-    KX_DEF_IR(KX_LGE),
+    KX_APPEND,
+    KX_APPENDI,
+    KX_APPENDD,
+    KX_APPENDS,
+    KX_APPENDV,
+
+    KX_ADD,
+    KX_ADDI,
+    KX_ADDD,
+    KX_ADDS,
+    KX_ADDV,
+
+    KX_SUB,
+    KX_SUBI,
+    KX_SUBD,
+    KX_SUBS,
+    KX_SUBV,
+
+    KX_MUL,
+    KX_MULI,
+    KX_MULD,
+    KX_MULS,
+    KX_MULV,
+
+    KX_DIV,
+    KX_DIVI,
+    KX_DIVD,
+    KX_DIVS,
+    KX_DIVV,
+
+    KX_MOD,
+    KX_MODI,
+    KX_MODD,
+    KX_MODS,
+    KX_MODV,
+
+    KX_AND,
+    KX_ANDI,
+    KX_ANDD,
+    KX_ANDS,
+    KX_ANDV,
+
+    KX_OR,
+    KX_ORI,
+    KX_ORD,
+    KX_ORS,
+    KX_ORV,
+
+    KX_XOR,
+    KX_XORI,
+    KX_XORD,
+    KX_XORS,
+    KX_XORV,
+
+    KX_SHL,
+    KX_SHLI,
+    KX_SHLD,
+    KX_SHLS,
+    KX_SHLV,
+
+    KX_SHR,
+    KX_SHRI,
+    KX_SHRD,
+    KX_SHRS,
+    KX_SHRV,
+
+    KX_EQEQ,
+    KX_EQEQI,
+    KX_EQEQD,
+    KX_EQEQS,
+    KX_EQEQV,
+
+    KX_NEQ,
+    KX_NEQI,
+    KX_NEQD,
+    KX_NEQS,
+    KX_NEQV,
+
+    KX_LE,
+    KX_LEI,
+    KX_LED,
+    KX_LES,
+    KX_LEV,
+
+    KX_LT,
+    KX_LTI,
+    KX_LTD,
+    KX_LTS,
+    KX_LTV,
+
+    KX_GE,
+    KX_GEI,
+    KX_GED,
+    KX_GES,
+    KX_GEV,
+
+    KX_GT,
+    KX_GTI,
+    KX_GTD,
+    KX_GTS,
+    KX_GTV,
+
+    KX_LGE,
+    KX_LGEI,
+    KX_LGED,
+    KX_LGES,
+    KX_LGEV,
 
     KX_EQEQ_V0V0,
     KX_NEQ_V0V0,
@@ -138,6 +244,9 @@ typedef struct kx_code_ {
         double d;
         const char *s;
     } value1, value2;
+    #if defined(KX_DIRECT_THREAD)
+    void *gotolabel;
+    #endif
     const char *file;
     const char *func;
     uint32_t line;
@@ -630,42 +739,6 @@ typedef struct kx_context_ {
         dst = &(kv_A((o)->ary, i)); \
     } \
 } \
-/**/
-
-#define KX_EXEC_DECL(fixcode) \
-    int gc_ticks = KEX_GC_TICK; \
-    struct kx_code_ *cur = kv_head(*fixcode); \
-    kv_expand_if(kx_val_t, (ctx)->stack, KEX_DEFAULT_STACK); \
-    kx_frm_t *frmv = (ctx)->frmv; \
-    kx_frm_t *lexv = (ctx)->lexv; \
-/**/
-#define KX_STACK_SETUP(fixcode) \
-    if (kv_size((ctx)->stack) < 5) { \
-        push_i((ctx)->stack, 1); \
-        push_i((ctx)->stack, 2); \
-        push_f((ctx)->stack, kv_head(*fixcode), NULL); \
-        push_i((ctx)->stack, 2); \
-        push_adr((ctx)->stack, kv_last(*fixcode)); \
-    } \
-/**/
-#define KX_EXEC_SETUP(fixcode) \
-    KX_EXEC_DECL(fixcode); \
-    int len = kv_size(*fixcode) - 1; \
-    for (int i = 0; i < len; ++i) { \
-        kx_code_t *c = kv_A(*fixcode, i);\
-        c->i = i; \
-        int j = i + 1; \
-        kx_code_t *n = c->next = kv_A(*fixcode, j); \
-        while (n && n->op == KX_NOP) { \
-            n = kv_A(*fixcode, ++j); \
-            c->next = n; \
-        } \
-        if (c->addr > 0) { \
-            c->jmp = kv_A(*fixcode, c->addr); \
-        } \
-    } \
-    kv_last(*fixcode)->i = len; \
-    KX_STACK_SETUP(fixcode) \
 /**/
 
 #define KEX_TRY_GC() \
