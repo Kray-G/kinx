@@ -103,7 +103,7 @@ kxarray.so: src/extlib/kxarray.c $(PICOBJS1)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
 
 kxregex.so: src/extlib/kxregex.c $(PICOBJS3) libonig.so
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3) -Wl,-rpath,'$$ORIGIN' -L. -lonig
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3) -Wl,-rpath,'$$ORIGIN' -L. -lonig
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
