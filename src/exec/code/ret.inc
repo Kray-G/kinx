@@ -64,6 +64,22 @@
 /**/
 
 /*
+    Returns with a big integer value.
+*/
+#define KX_RETB_CODE() \
+{ \
+    kv_shrinkto((ctx)->stack, frmv->id); \
+    kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
+    int count = kv_pop((ctx)->stack).value.iv; \
+    kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
+    push_b((ctx)->stack, cur->value1.s); \
+    cur = radr; \
+    frmv = frmv->prv; \
+    lexv = frmv->lex; \
+} \
+/**/
+
+/*
     Returns with a variable.
 */
 #define KX_RETV_CODE() \

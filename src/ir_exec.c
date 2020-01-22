@@ -305,18 +305,23 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_CALLVL0) { KX_GOTO(); }
     KX_CASE_(KX_CALLVL1) { KX_GOTO(); }
     KX_CASE_(KX_CALLS) { KX_GOTO(); }
+
     KX_CASE_(KX_RET) { KX_GOTO(); }
     KX_CASE_(KX_RETI) { KX_GOTO(); }
     KX_CASE_(KX_RETD) { KX_GOTO(); }
     KX_CASE_(KX_RETS) { KX_GOTO(); }
+    KX_CASE_(KX_RETB) { KX_GOTO(); }
     KX_CASE_(KX_RETV) { KX_GOTO(); }
     KX_CASE_(KX_RETVL0) { KX_GOTO(); }
     KX_CASE_(KX_RETVL1) { KX_GOTO(); }
     KX_CASE_(KX_RET_NULL) { KX_GOTO(); }
+
     KX_CASE_(KX_THROW) { KX_GOTO(); }
     KX_CASE_(KX_THROWA) { KX_GOTO(); }
     KX_CASE_(KX_THROWE) { KX_GOTO(); }
+
     KX_CASE_(KX_CATCH) { KX_GOTO(); }
+
     KX_CASE_(KX_JMP) { KX_GOTO(); }
     KX_CASE_(KX_JZ) { KX_GOTO(); }
     KX_CASE_(KX_JNZ) { KX_GOTO(); }
@@ -324,20 +329,18 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_PUSHI) { KX_GOTO(); }
     KX_CASE_(KX_PUSHD) { KX_GOTO(); }
     KX_CASE_(KX_PUSHS) { KX_GOTO(); }
+    KX_CASE_(KX_PUSHB) { KX_GOTO(); }
     KX_CASE_(KX_PUSHF) { KX_GOTO(); }
     KX_CASE_(KX_PUSHV) { KX_GOTO(); }
     KX_CASE_(KX_PUSHLV) { KX_GOTO(); }
     KX_CASE_(KX_PUSHVL0) { KX_GOTO(); }
     KX_CASE_(KX_PUSHVL1) { KX_GOTO(); }
-
     KX_CASE_(KX_PUSH_NULL) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_TRUE) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_FALSE) { KX_GOTO(); }
-
     KX_CASE_(KX_PUSH_C) { KX_GOTO(); }
 
     KX_CASE_(KX_POP_C) { KX_GOTO(); }
-
     KX_CASE_(KX_POP) { KX_GOTO(); }
 
     KX_CASE_(KX_STORE) { KX_GOTO(); }
@@ -347,6 +350,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
 
     KX_CASE_(KX_NOT) { KX_GOTO(); }
     KX_CASE_(KX_NEG) { KX_GOTO(); }
+
     KX_CASE_(KX_INC) { KX_GOTO(); }
     KX_CASE_(KX_DEC) { KX_GOTO(); }
     KX_CASE_(KX_INCV) { KX_GOTO(); }
@@ -357,8 +361,8 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_DECVP) { KX_GOTO(); }
     KX_CASE_(KX_INCVX) { KX_GOTO(); }
     KX_CASE_(KX_DECVX) { KX_GOTO(); }
-    KX_CASE_(KX_MKARY) { KX_GOTO(); }
 
+    KX_CASE_(KX_MKARY) { KX_GOTO(); }
     KX_CASE_(KX_APPLYV) { KX_GOTO(); }
     KX_CASE_(KX_APPLYL) { KX_GOTO(); }
     KX_CASE_(KX_APPLYVI) { KX_GOTO(); }
@@ -367,7 +371,6 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_APPLYLS) { KX_GOTO(); }
 
     KX_CASE_(KX_APPENDK) { KX_GOTO(); }
-
     KX_CASE_(KX_APPEND) { KX_GOTO(); }
     KX_CASE_(KX_APPENDI) { KX_GOTO(); }
     KX_CASE_(KX_APPENDD) { KX_GOTO(); }

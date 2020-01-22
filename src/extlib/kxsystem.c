@@ -32,15 +32,23 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             break;
         case KX_CSTR_T:
             ++count;
-            buf = conv_acp2utf8_alloc(val.value.pv);
-            printf("%s", buf);
-            conv_free(buf);
+            if (ctx->options.utf8inout) {
+                printf("%s", val.value.pv);
+            } else {
+                buf = conv_utf82acp_alloc(val.value.pv);
+                printf("%s", buf);
+                conv_free(buf);
+            }
             break;
         case KX_STR_T:
             ++count;
-            buf = conv_acp2utf8_alloc(ks_string(val.value.sv));
-            printf("%s", buf);
-            conv_free(buf);
+            if (ctx->options.utf8inout) {
+                printf("%s", ks_string(val.value.sv));
+            } else {
+                buf = conv_utf82acp_alloc(ks_string(val.value.sv));
+                printf("%s", buf);
+                conv_free(buf);
+            }
             break;
         case KX_OBJ_T:
             ++count;

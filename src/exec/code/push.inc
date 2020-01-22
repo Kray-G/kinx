@@ -51,6 +51,13 @@
 } \
 /**/
 
+#define KX_PUSHB_CODE() \
+{ \
+    push_b((ctx)->stack, cur->value1.s); \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_PUSHF_CODE() \
 { \
     push_f((ctx)->stack, cur->jmp, frmv); \
