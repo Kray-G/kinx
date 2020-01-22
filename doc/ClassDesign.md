@@ -1,8 +1,8 @@
-# Class
+# Class Design
 
 ## Overview
 
-`class` is a important part of object-oriented programming,
+`class` is an important part of object-oriented programming,
 and here is the detail of how class works.
 
 ## Examples
