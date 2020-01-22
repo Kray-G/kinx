@@ -5,7 +5,8 @@ LIBDIR = $(PREFIX)/lib
 SRCDIR = $(CURDIR)$(.CURDIR)
 
 CC = gcc
-CFLAGS = -Iinclude -O2 -Wno-unused-result -Wno-missing-braces -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
+CFLAGS = -DKX_DIRECT_THREAD -Iinclude -O2 \
+	 -Wno-unused-result -Wno-missing-braces -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
 OBJS = \
     allocator.o \
     alloccore.o \
