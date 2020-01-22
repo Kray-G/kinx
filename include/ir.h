@@ -452,6 +452,7 @@ kvec_init_t(kx_bltin_t);
 
 typedef struct kx_options_ {
     int dump:1;
+    int srcin:1;
 } kx_options_t;
 
 typedef struct kx_context_ {

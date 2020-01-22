@@ -52,7 +52,7 @@ int eval_string(const char *code, kx_context_t *ctx, const char *startup)
 
 int eval_file(const char *file, kx_context_t *ctx, const char *startup)
 {
-    kx_yyin.fp = file ? fopen(file, "r") : stdin;
+    kx_yyin.fp = (file && !ctx->options.srcin) ? fopen(file, "r") : stdin;
     kx_yyin.startup = startup;
     kx_yyin.str = NULL;
     kx_yyin.file = file;
@@ -92,21 +92,24 @@ int main(int ac, char **av)
 
     kx_context_t *ctx = make_context();
     int opt;
-    while ((opt = getopt(ac, av, "d")) != -1) {
+    while ((opt = getopt(ac, av, "di")) != -1) {
         switch (opt) {
         case 'd':
             ctx->options.dump = 1;
+            break;
+        case 'i':
+            ctx->options.srcin = 1;
             break;
         }
     }
 
     const char *file = av[optind];
-    if (!file_exists(file)) {
+    if (file && !file_exists(file)) {
         fprintf(stderr, "File not found: %s.\n", file);
         goto CLEANUP;
     }
 
-    if (av[optind]) {
+    if (file) {
         r = eval_file(av[optind], ctx, startup_code());
     } else {
         r = eval_file(NULL, ctx, startup_code());

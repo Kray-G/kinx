@@ -32,11 +32,15 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             break;
         case KX_CSTR_T:
             ++count;
-            printf("%s", val.value.pv);
+            buf = conv_acp2utf8_alloc(val.value.pv);
+            printf("%s", buf);
+            kx_free(buf);
             break;
         case KX_STR_T:
             ++count;
-            printf("%s", ks_string(val.value.sv));
+            buf = conv_acp2utf8_alloc(ks_string(val.value.sv));
+            printf("%s", buf);
+            kx_free(buf);
             break;
         case KX_OBJ_T:
             ++count;
