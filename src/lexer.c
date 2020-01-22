@@ -194,6 +194,7 @@ HEAD_OF_YYLEX:
                 fclose(kx_yyin.fp);
             }
             kx_yyin = kv_pop(kx_lex_stack).in;
+            kx_yyin.startup = NULL;
             kx_lex_next(kx_lexinfo);
             goto HEAD_OF_YYLEX; /* retry at the previous file */
         }
