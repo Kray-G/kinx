@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include <kinx.h>
 
@@ -76,7 +77,7 @@ int System_exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 int System_abort(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     printf("This program aborted.\n");
-    _exit(1);
+    exit(1);
 }
 
 int System_makeSuper(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
