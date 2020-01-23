@@ -8,7 +8,6 @@
                 "${workspaceFolder}/src"
             ],
             "defines": [
-                "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
