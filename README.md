@@ -198,6 +198,8 @@ Here is a plan to add.
 * [ ] `SQLite` object to support SQLite database access.
 * [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
 * [ ] Here document.
+* [ ] `const` for constant value.
+* [ ] Optimizations.
 
 ### Undocumented Memo
 
