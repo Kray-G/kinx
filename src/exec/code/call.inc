@@ -183,7 +183,7 @@ default: \
     if (lv->type != KX_OBJ_T) { \
         kx_fnc_t *fn = NULL; \
         if (lv->type == KX_CSTR_T || lv->type == KX_STR_T) { \
-            fn = search_string_function(ctx, name, lv, cur->count); \
+            fn = search_string_function(ctx, name, lv, cur->count, jumptable); \
         } \
         KX_CALL_FUNCTION(fn, name, lv); \
     } else { \

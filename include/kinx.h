@@ -282,7 +282,7 @@ extern void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv);
 extern void print_uncaught_exception(kx_obj_t *val);
 extern void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht);
 extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
-extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count);
+extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
