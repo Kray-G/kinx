@@ -219,7 +219,7 @@ void update_exception_object(kx_context_t *ctx, kx_exc_t *e)
     }
 }
 
-kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count)
+kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[])
 {
     int start;
     if (host->type == KX_CSTR_T) {
@@ -254,10 +254,10 @@ kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count)
     return fnc;
 }
 
-kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count)
+kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
     if (method[0] == 'e' && !strcmp(method, "eval")) {
-        return do_eval(ctx, host, count);
+        return do_eval(ctx, host, count, jumptable);
     }
     if (!ctx->strlib) {
         return NULL;
