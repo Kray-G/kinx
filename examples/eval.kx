@@ -1,0 +1,5 @@
+var a = "var i = 0; var l = $$.length(); while (i < l) System.println('eval value = ', $$[i++]); return {a:100, b:10};";
+var b = a.eval(1000, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+System.println("b.a = %{b.a}");
+System.println("b.b = %{b.b}");
+return 1;

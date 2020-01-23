@@ -397,11 +397,12 @@ kvec_init_pt(kx_frm_t);
 typedef struct kx_fnc_ {
     uint8_t mark;
     kx_code_t *jp;
-    int lib;
     call_direct_func_t func;
     struct kx_frm_ *lex;
     struct kx_val_ val;
     const char *method;
+    const char *typ;
+    const char *wht;
 } kx_fnc_t;
 kvec_init_t(kx_fnc_t);
 kvec_init_pt(kx_fnc_t);
@@ -444,18 +445,20 @@ kvec_init_t(kx_exc_t);
 
 typedef struct kx_bltin_ {
     void *lib;
+    kx_obj_t *obj;
     get_bltin_count_t get_bltin_count;
     get_bltin_name_t get_bltin_name;
     get_bltin_address_t get_bltin_address;
     bltin_initfin_t finalizer;
 } kx_bltin_t;
-kvec_init_t(kx_bltin_t);
 
 typedef struct kx_options_ {
     int dump:1;
     int src_stdin:1;
     int utf8inout:1;
 } kx_options_t;
+
+KHASH_MAP_INIT_STR(importlib, kx_bltin_t*)
 
 typedef struct kx_context_ {
     kx_frm_t *frmv;
@@ -477,7 +480,7 @@ typedef struct kx_context_ {
     kvec_pt(kx_frm_t) frm_dead;
 
     kvec_t(kx_module_t) module;
-    kvec_t(kx_bltin_t) builtin;
+    khash_t(importlib) *builtin;
     kx_code_t *caller;
     kx_options_t options;
     kx_obj_t *strlib;
@@ -724,6 +727,12 @@ typedef struct kx_context_ {
     if (k != kh_end(p)) { \
         dst = &(kh_value(p, k)); \
     } \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_VAL(o, val) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    *top = (val); \
 } \
 /**/
 

@@ -49,6 +49,7 @@ kx_context_t *make_context(void)
     ctx->any_alive = kl_init(any);
     ctx->big_alive = kl_init(big);
     ctx->str_alive = kl_init(str);
+    ctx->builtin = kh_init(importlib);
     ctx->strlib = NULL;
     ctx->arylib = NULL;
     ctx->global_method_missing = NULL;
@@ -244,6 +245,8 @@ static void gc_sweep(kx_context_t *ctx)
             v->lex = NULL;
             v->val.type = KX_UND_T;
             v->method = NULL;
+            v->typ = NULL;
+            v->wht = NULL;
             kv_push(kx_fnc_t*, ctx->fnc_dead, v);
         }
     }
@@ -406,15 +409,17 @@ static void module_cleanup(kx_context_t *ctx)
 
 static void builtin_cleanup(kx_context_t *ctx)
 {
-    int l = kv_size(ctx->builtin);
-    for (int i = 0; i < l; ++i) {
-        kx_bltin_t *p = &kv_A(ctx->builtin, i);
-        if (p->finalizer) {
-            p->finalizer();
+    for (khint_t k = 0; k < kh_end(ctx->builtin); ++k) {
+        if (kh_exist(ctx->builtin, k)) {
+            kx_bltin_t *p = kh_value(ctx->builtin, k);
+            if (p->finalizer) {
+                p->finalizer();
+            }
+            unload_library(p->lib);
+            kx_free(p);
         }
-        unload_library(p->lib);
     }
-    kv_destroy(ctx->builtin);
+    kh_destroy(importlib, ctx->builtin);
 }
 
 void context_cleanup(kx_context_t *ctx)

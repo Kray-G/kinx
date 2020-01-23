@@ -4,6 +4,7 @@
 #include <kvec.h>
 #include <kstr.h>
 #include <kinx.h>
+#include <kxexec.h>
 
 void print_value(kx_val_t *v, int recursive)
 {
@@ -218,8 +219,46 @@ void update_exception_object(kx_context_t *ctx, kx_exc_t *e)
     }
 }
 
-kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host)
+kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count)
 {
+    int start;
+    if (host->type == KX_CSTR_T) {
+        start = eval_string(host->value.pv, ctx, startup_code());
+    } else if (host->type == KX_STR_T) {
+        start = eval_string(ks_string(host->value.sv), ctx, startup_code());
+    } else {
+        return NULL;
+    }
+    kx_fnc_t *fnc = allocate_fnc(ctx);
+    if (start < 0) {
+        char buf[2048] = {0};
+        snprintf(buf, 2047, "eval() failed at the line %d (pos:%d)", kx_lexinfo.line, kx_lexinfo.pos);
+        fnc->typ = const_str("CompileException");
+        fnc->wht = const_str(buf);
+        return fnc;
+    }
+
+    // ir_dump_fixed_code(&(ctx->fixcode));
+    KX_EXEC_FIX_JMPADDR(&(ctx->fixcode), start);
+
+    /* change arguments to array */
+    kx_obj_t *obj = allocate_obj(ctx);
+    for (int i = 1; i <= count; ++i) {
+        KEX_PUSH_ARRAY_VAL(obj, kv_last_by(ctx->stack, i));
+    }
+
+    fnc->jp = kv_A(ctx->fixcode, start);
+    fnc->lex = 0;
+    fnc->val.type = KX_OBJ_T;
+    fnc->val.value.ov = obj;
+    return fnc;
+}
+
+kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count)
+{
+    if (method[0] == 'e' && !strcmp(method, "eval")) {
+        return do_eval(ctx, host, count);
+    }
     if (!ctx->strlib) {
         return NULL;
     }
@@ -274,4 +313,61 @@ kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host)
         }
     }
     return NULL;
+}
+
+kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
+{
+    int absent;
+    const char *name = cur->value1.s;
+    khash_t(importlib) *bltin = ctx->builtin;
+    khint_t k = kh_put(importlib, bltin, name, &absent);
+    if (!absent) {
+        kx_bltin_t *p = kh_value(bltin, k);
+        return p->obj;
+    }
+
+    /* Setting it up only when it is the first loading time. */
+    kh_key(bltin, k) = const_str(name);
+    kx_bltin_t *p = kx_calloc(1, sizeof(kx_bltin_t));
+    kh_value(bltin, k) = p;
+    p->lib = load_library(name, NULL);
+    if (!(p->lib)) {
+        return NULL;
+    }
+    set_allocator_t set_allocator = (set_allocator_t)get_libfunc(p->lib, "set_allocator");
+    if (!set_allocator) {
+        return NULL;
+    }
+    set_allocator(kx_malloc_impl, kx_realloc_impl, kx_calloc_impl, kx_free_impl, kx_strdup_impl, kx_strndup_impl);
+    p->get_bltin_count = (get_bltin_count_t)get_libfunc(p->lib, "get_bltin_count");
+    p->get_bltin_name = (get_bltin_name_t) get_libfunc(p->lib, "get_bltin_name");
+    p->get_bltin_address = (get_bltin_address_t)get_libfunc(p->lib, "get_bltin_address");
+    p->finalizer = (bltin_initfin_t)get_libfunc(p->lib, "finalize");
+    if (!(p->get_bltin_count) || !(p->get_bltin_name) || !(p->get_bltin_address)) {
+        return NULL;
+    }
+    bltin_initfin_t initializer = (bltin_initfin_t)get_libfunc(p->lib, "initialize");
+    if (initializer) {
+        initializer();
+    }
+    kx_obj_t *obj = p->obj = allocate_obj(ctx);
+    if (!strcmp(name, "kxstring")) {
+        ctx->strlib = obj;
+    } else if (!strcmp(name, "kxarray")) {
+        ctx->arylib = obj;
+    }
+    int l = p->get_bltin_count();
+    for (int i = 0; i < l; ++i) {
+        const char *name = p->get_bltin_name(i);
+        kx_fnc_t *fnc = allocate_fnc(ctx);
+        fnc->jp = NULL;
+        fnc->func = p->get_bltin_address(i);
+        fnc->lex = frmv;
+        kx_val_t v;
+        v.type = KX_BFNC_T;
+        v.value.fn = fnc;
+        KEX_SET_PROP(obj, name, &v);
+    }
+
+    return obj;
 }
