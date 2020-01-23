@@ -135,7 +135,7 @@ int main(int ac, char **av)
     }
 
     kx_lexinfo.quiet = 0;
-    if (ac <= optind) {
+    if (ctx->options.src_stdin || ac <= optind) {
         r = eval_file(NULL, ctx);
         if (r < 0) {
             r = 1;

@@ -160,6 +160,48 @@ This means:
 
 ### Others
 
+#### `initialize` method
+
+The class can have the method named as `initialize` for initialization.
+By this method, you can write an initialization code at one place.
+
+For example,
+
+```coffee
+class Example1 {
+    private initialize() {
+        @value = 100;
+        System.println("This 'initialize' method is automatically called at the end of creating this instance.");
+    }
+}
+
+var e1 = new Example1();
+System.println("e1.value = ", e1.value);
+```
+
+The result is here.
+
+```
+This 'initialize' method is automatically called at the end of creating this instance.
+e1.value = 100
+```
+
+Of cource, you can also do it without `initialize` method like this.
+
+```coffee
+class Example1 {
+
+    @value = 100;
+
+    public method() {
+        /* ... */
+    }
+
+}
+```
+
+You can choose it as you like.
+
 #### `instanceOf` method
 
 The class instance has a `instanceOf` method automatically.
