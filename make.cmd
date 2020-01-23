@@ -1,6 +1,7 @@
 @echo off
 setlocal
 
+set YACC=myacc
 REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
 set CFLAGS=/O2 /MT /Iinclude
 
@@ -97,7 +98,6 @@ if not %LEN% equ 0 (
 exit /b
 
 :BUILDLIB
-set YACC=myacc
 echo %YACC% ...
 if "%YACC%"=="kmyacc" (
     set CFLAGS=%CFLAGS% /DYYDEBUG

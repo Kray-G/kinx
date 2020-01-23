@@ -1,9 +1,12 @@
 {
     "files.associations": {
+        "*.kx": "coffeescript",
         "*.kc": "c",
         "*.ksl": "llvm",
         "*.inc": "c",
         "assert.h": "c",
-        "kinx.h": "c"
+        "kinx.h": "c",
+        "system_error": "c",
+        "xlocale": "c"
     }
 }
