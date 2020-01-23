@@ -182,10 +182,10 @@ static int kx_lex_make_string(char quote)
             if (kx_lexinfo.ch == '\\') {
                 kx_lex_next(kx_lexinfo);
                 switch (kx_lexinfo.ch) {
-                case 'n':  kx_lexinfo.ch = '\n';
-                case 't':  kx_lexinfo.ch = '\t';
-                case 'r':  kx_lexinfo.ch = '\r';
-                case '\\': kx_lexinfo.ch = '\\';
+                case 'n':  kx_lexinfo.ch = '\n'; break;
+                case 't':  kx_lexinfo.ch = '\t'; break;
+                case 'r':  kx_lexinfo.ch = '\r'; break;
+                case '\\': kx_lexinfo.ch = '\\'; break;
                 }
             }
         }

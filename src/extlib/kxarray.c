@@ -54,8 +54,12 @@ int Array_printStackTrace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
                 if (v1->type != KX_INT_T) break;
                 int line = v1->value.iv;
 
-                if (!strcmp(func, "_main")) {
-                    printf("        at <main-block>(%s:%d)\n", file, line);
+                if (strlen(func) > 4 && func[0] == '_' && func[1] == 'm' && func[2] == 'a' && func[3] == 'i' && func[4] == 'n') {
+                    if (!strcmp(func, "_main1")) {
+                        printf("        at <main-block>(%s:%d)\n", file, line);
+                    } else {
+                        printf("        at <eval-block>(%s:%d)\n", file, line);
+                    }
                 } else {
                     printf("        at function %s(%s:%d)\n", func, file, line);
                 }
