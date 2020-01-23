@@ -53,8 +53,11 @@
     kx_val_t *lv = (v1->type == KX_LVAL_T) ? v1->value.lv : v1; \
     const char *name = v2->type == KX_CSTR_T ? v2->value.pv : (v2->type == KX_STR_T ? ks_string(v2->value.sv) : NULL); \
     if (lv->type == KX_CSTR_T || lv->type == KX_STR_T) { \
-        kx_fnc_t *fn = search_string_function(ctx, name, v1); \
+        kx_fnc_t *fn = search_string_function(ctx, name, v1, cur->count); \
         if (fn) { \
+            if (fn->typ || fn->wht) { \
+                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
+            } \
             push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \
@@ -201,8 +204,11 @@ do { \
     kx_val_t *lv = (v1->type == KX_LVAL_T) ? v1->value.lv : v1; \
     const char *name = cur->value1.s; \
     if (lv->type == KX_CSTR_T || lv->type == KX_STR_T) { \
-        kx_fnc_t *fn = search_string_function(ctx, name, v1); \
+        kx_fnc_t *fn = search_string_function(ctx, name, v1, cur->count); \
         if (fn) { \
+            if (fn->typ || fn->wht) { \
+                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
+            } \
             push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \

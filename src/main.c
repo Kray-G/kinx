@@ -34,7 +34,6 @@ int eval(kx_context_t *ctx)
     kx_lex_next(kx_lexinfo);
     int r = kx_yyparse();
     if (r != 0) {
-        printf("parse failed: %d\n", r);
         return -1;
     }
     if (kx_yyin.fp && kx_yyin.fp != stdin) {
@@ -69,17 +68,6 @@ int eval_file(const char *file, kx_context_t *ctx, const char *startup)
     kx_yyin.file = file;
     setup_lexinfo(file, &kx_yyin);
     return eval(ctx);
-}
-
-static const char *startup_code()
-{
-    static const char *code =
-        "import System;"
-        "import String;"
-        "import Array;"
-        "import Regex;"
-    ;
-    return code;
 }
 
 void usage(void)
@@ -135,6 +123,7 @@ int main(int ac, char **av)
         }
     }
 
+    kx_lexinfo.quiet = 0;
     if (ac <= optind) {
         r = eval_file(NULL, ctx, startup_code());
         if (r < 0) {
@@ -161,6 +150,7 @@ int main(int ac, char **av)
         return 0;
     }
 
+    kx_lexinfo.quiet = 1;
     ctx->frmv = allocate_frm(ctx); /* initial frame */
     ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */
     kv_expand_if(kx_val_t, ctx->stack, KEX_DEFAULT_STACK);
