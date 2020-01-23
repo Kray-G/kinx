@@ -77,57 +77,65 @@ static int get_keyword_token(const char *val)
 {
     switch (val[0]) {
     case '_':
-        if (strcmp(val, "__END__") == 0)    { kx_lexinfo.ch = 0; return 0; }
+        if (strcmp(val, "__END__") == 0)        { kx_lexinfo.ch = 0; return 0; }
         break;
     case 'b':
-        if (strcmp(val, "break") == 0)      return BREAK;
+        if (strcmp(val, "break") == 0)          return BREAK;
         break;
     case 'c':
-        if (strcmp(val, "class") == 0)      return CLASS;
-        if (strcmp(val, "catch") == 0)      return CATCH;
-        if (strcmp(val, "continue") == 0)   return CONTINUE;
+        if (strcmp(val, "class") == 0)          return CLASS;
+        if (strcmp(val, "catch") == 0)          return CATCH;
+        if (strcmp(val, "continue") == 0)       return CONTINUE;
         break;
     case 'd':
-        if (strcmp(val, "do") == 0)         return DO;
+        if (strcmp(val, "do") == 0)             return DO;
         break;
     case 'e':
-        if (strcmp(val, "else") == 0)       return ELSE;
+        if (strcmp(val, "else") == 0)           return ELSE;
         break;
     case 'f':
-        if (strcmp(val, "function") == 0)   return FUNCTION;
-        if (strcmp(val, "for") == 0)        return FOR;
-        if (strcmp(val, "finally") == 0)    return FINALLY;
-        if (strcmp(val, "false") == 0)      return FALSE;
+        if (strcmp(val, "function") == 0)       return FUNCTION;
+        if (strcmp(val, "for") == 0)            return FOR;
+        if (strcmp(val, "finally") == 0)        return FINALLY;
+        if (strcmp(val, "false") == 0)          return FALSE;
         break;
     case 'i':
-        if (strcmp(val, "if") == 0)         return IF;
-        if (strcmp(val, "import") == 0)     { g_import = 1; return IMPORT; }
+        if (strcmp(val, "if") == 0)             return IF;
+        if (strcmp(val, "import") == 0)         { g_import = 1; return IMPORT; }
+        if (strcmp(val, "isUndefined") == 0)    { kx_yylval.intval = KX_UND_T; return TYPEOF; }
+        if (strcmp(val, "isInteger") == 0)      { kx_yylval.intval = KX_INT_T; return TYPEOF; }
+        if (strcmp(val, "isBigInteger") == 0)   { kx_yylval.intval = KX_BIG_T; return TYPEOF; }
+        if (strcmp(val, "isString") == 0)       { kx_yylval.intval = KX_STR_T; return TYPEOF; }
+        if (strcmp(val, "isDouble") == 0)       { kx_yylval.intval = KX_DBL_T; return TYPEOF; }
+        if (strcmp(val, "isFunction") == 0)     { kx_yylval.intval = KX_FNC_T; return TYPEOF; }
+        if (strcmp(val, "isArray") == 0)        { kx_yylval.intval = KX_ARY_T; return TYPEOF; }
+        if (strcmp(val, "isObject") == 0)       { kx_yylval.intval = KX_OBJ_T; return TYPEOF; }
         break;
     case 'n':
-        if (strcmp(val, "null") == 0)       return NUL;
-        if (strcmp(val, "new") == 0)        return NEW;
+        if (strcmp(val, "null") == 0)           return NUL;
+        if (strcmp(val, "new") == 0)            return NEW;
         break;
     case 'p':
-        if (strcmp(val, "public") == 0)     return PUBLIC;
-        if (strcmp(val, "private") == 0)    return PRIVATE;
-        if (strcmp(val, "protected") == 0)  return PROTECTED;
+        if (strcmp(val, "public") == 0)         return PUBLIC;
+        if (strcmp(val, "private") == 0)        return PRIVATE;
+        if (strcmp(val, "protected") == 0)      return PROTECTED;
         break;
     case 'r':
-        if (strcmp(val, "return") == 0)     return RETURN;
+        if (strcmp(val, "return") == 0)         return RETURN;
         break;
     case 't':
-        if (strcmp(val, "throw") == 0)      return THROW;
-        if (strcmp(val, "try") == 0)        return TRY;
-        if (strcmp(val, "true") == 0)       return TRUE;
+        if (strcmp(val, "throw") == 0)          return THROW;
+        if (strcmp(val, "try") == 0)            return TRY;
+        if (strcmp(val, "true") == 0)           return TRUE;
         break;
     case 'u':
-        if (strcmp(val, "using") == 0)      return process_using();
+        if (strcmp(val, "using") == 0)          return process_using();
         break;
     case 'v':
-        if (strcmp(val, "var") == 0)        return VAR;
+        if (strcmp(val, "var") == 0)            return VAR;
         break;
     case 'w':
-        if (strcmp(val, "while") == 0)      return WHILE;
+        if (strcmp(val, "while") == 0)          return WHILE;
         break;
     default:
         break;

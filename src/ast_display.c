@@ -273,6 +273,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXOP_IMPORT:
         printf("(import) %s\n", node->value.s);
         break;
+    case KXOP_TYPEOF:
+        printf("(typeof) is %s\n", get_typename(node->value.i));
+        break;
 
     case KXOP_TER:
         printf("(call)\n");

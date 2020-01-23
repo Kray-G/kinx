@@ -32,6 +32,7 @@
 %token<strval> STR
 %token<strval> BIGINT
 %token<intval> INT
+%token<intval> TYPEOF
 %token<dblval> DBL
 
 %type<obj> Program
@@ -286,6 +287,7 @@ PostfixExpression
     : Factor IncDec_Opt { $$ = (($2 < 0) ? $1 : kx_gen_uexpr_object($2, $1)); }
     | PostfixExpression '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | PostfixExpression '.' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, kx_gen_str_object($3)); }
+    | PostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
 
@@ -328,7 +330,9 @@ Comma_Opt
 
 AssignExpressionList
     : AssignExpression
+    | AnonymousFunctionDeclStatement
     | AssignExpressionList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | AssignExpressionList ',' AnonymousFunctionDeclStatement { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
     ;
 
 KeyValueList

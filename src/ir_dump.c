@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <kvec.h>
-#include <ir.h>
+#include <kinx.h>
 
 #define KXFT_FUNCTION_INDENT  ""
 #define KX_BLOCK_INDENT     "  "
@@ -317,6 +317,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     KX_IROP_COMP(GE,   ge);
     KX_IROP_COMP(GT,   gt);
     KX_IROP_COMP(LGE,  lge);
+
+    case KX_TYPEOF:
+        printf("%-23s is %s", "typeof", get_typename(code->value1.i));
+        break;
 
     case KX_SET_GMM:
         printf("set_gmm");
