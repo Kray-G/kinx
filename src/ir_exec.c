@@ -525,7 +525,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
 
 int ir_exec(kx_context_t *ctx)
 {
-    kvec_pt(kx_code_t) *fixcode = &kv_last(ctx->module).fixcode;
+    kvec_pt(kx_code_t) *fixcode = &(ctx->fixcode);
     kx_code_t halt = (kx_code_t){ .op = KX_HALT };
     kv_push(kx_code_t*, *fixcode, &halt);
     return ir_exec_impl(fixcode, ctx);

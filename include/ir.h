@@ -291,8 +291,6 @@ typedef struct kx_module_ {
     kvec_t(kx_function_t) functions;
     kvec_t(kx_block_t) blocks;
     kvec_t(kx_function_t) *funclist;
-    kvec_t(uint32_t) labels;
-    kvec_pt(kx_code_t) fixcode;
 } kx_module_t;
 kvec_init_t(kx_module_t);
 
@@ -306,6 +304,7 @@ typedef struct kx_analyze_ {
     int contblock; /* inside continue block if exists */
     int pushes;
     int in_try;
+    int start_index;
     kx_module_t *module;
     kvec_t(int) fidxlist;
     kx_finally_vec_t *finallies;
@@ -484,6 +483,10 @@ typedef struct kx_context_ {
     kx_obj_t *strlib;
     kx_obj_t *arylib;
     kx_fnc_t *global_method_missing;
+
+    int block_index;
+    kvec_t(uint32_t) labels;
+    kvec_pt(kx_code_t) fixcode;
 } kx_context_t;
 
 #if defined(KX_EXEC_DEBUG)

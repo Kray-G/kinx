@@ -130,8 +130,8 @@ static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode)
 void ir_fix_code(kx_context_t *ctx)
 {
     kx_module_t *module = &kv_last(ctx->module);
-    kvec_t(uint32_t) *labels = &(module->labels);
-    kvec_pt(kx_code_t) *fixcode = &(module->fixcode);
+    kvec_t(uint32_t) *labels = &(ctx->labels);
+    kvec_pt(kx_code_t) *fixcode = &(ctx->fixcode);
     kvec_t(kx_function_t) *funclist = module->funclist;
     kv_push(uint32_t, *labels, 0);
     if (!funclist) {
