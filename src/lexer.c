@@ -15,11 +15,19 @@ void setup_lexinfo(const char *file, kx_yyin_t *yyin)
     kx_lexinfo.line = 1;
     kx_lexinfo.pos = 1;
     kx_lexinfo.newline = 0;
+    kx_lexinfo.inner.brcount = 0;
+    kx_lexinfo.inner.quote = 0;
     kx_lexinfo.in = *yyin;
 }
 
 int process_using(void)
 {
+    int no_error = 0;
+    if (kx_lexinfo.ch == '?') {
+        /* ignore if a file does not exist. */
+        no_error = 1;
+        kx_lex_next(kx_lexinfo);
+    }
     while (kx_is_whitespace(kx_lexinfo)) {
         kx_lex_next(kx_lexinfo);
     }
@@ -34,21 +42,24 @@ int process_using(void)
     kx_strbuf[pos++] = 'k';
     kx_strbuf[pos++] = 'z';
     kx_strbuf[pos] = 0;
-    if (!file_exists(kx_strbuf)) {
+    const char *file = NULL;
+    if (!(file = kxlib_file_exists(kx_strbuf))) {
         kx_strbuf[pos-1] = 'x';
     }
-    if (!file_exists(kx_strbuf)) {
-        char buf[2048] = {0};
-        snprintf(buf, 2047, "File not found(%s)", kx_strbuf);
-        kx_yywarning(buf);
+    if (!(file = kxlib_file_exists(kx_strbuf))) {
+        if (!no_error) {
+            char buf[2048] = {0};
+            snprintf(buf, 2047, "File not found(%s)", kx_strbuf);
+            kx_yywarning(buf);
+        }
         while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
             kx_lex_next(kx_lexinfo);
         }
-        return ';';
+        return no_error ? ';' : ERROR;
     }
 
     kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    kx_yyin.fp = fopen(kx_strbuf, "r");
+    kx_yyin.fp = fopen(file, "r");
     kx_yyin.startup = NULL;
     kx_yyin.str = NULL;
     kx_yyin.file = const_str(kx_strbuf);
@@ -120,6 +131,21 @@ int get_keyword_token(const char *val)
     return NAME;
 }
 
+int kx_lex_start_inner_expression(char quote, int pos)
+{
+    if (kx_lexinfo.inner.brcount > 0) {
+        kx_yyerror("Can not put a nested inner expression.");
+        return ERROR;
+    }
+    kx_lexinfo.inner.brcount = 1;
+    kx_lexinfo.inner.quote = quote;
+
+    kx_strbuf[pos] = 0;
+    kx_yylval.strval = const_str(kx_strbuf);
+    kx_lexinfo.ch = '+';
+    return STR;
+}
+
 int kx_lex_make_string(char quote)
 {
     if (kx_lexinfo.ch == quote) {
@@ -131,23 +157,28 @@ int kx_lex_make_string(char quote)
         return STR;
     }
 
-    kx_strbuf[0] = kx_lexinfo.ch;
-    kx_lex_next(kx_lexinfo);
-
-    int pos = 1;
-    while (pos < POSMAX && kx_lexinfo.ch != quote) {
-        if (kx_lexinfo.ch == '\\') {
+    int pos = 0;
+    do {
+        if (kx_lexinfo.ch == '%') {
             kx_lex_next(kx_lexinfo);
-            switch (kx_lexinfo.ch) {
-            case 'n':  kx_lexinfo.ch = '\n';
-            case 't':  kx_lexinfo.ch = '\t';
-            case 'r':  kx_lexinfo.ch = '\r';
-            case '\\': kx_lexinfo.ch = '\\';
+            if (kx_lexinfo.ch == '{') {
+                return kx_lex_start_inner_expression(quote, pos);
+            }
+            kx_strbuf[pos++] = '%';
+        } else {
+            if (kx_lexinfo.ch == '\\') {
+                kx_lex_next(kx_lexinfo);
+                switch (kx_lexinfo.ch) {
+                case 'n':  kx_lexinfo.ch = '\n';
+                case 't':  kx_lexinfo.ch = '\t';
+                case 'r':  kx_lexinfo.ch = '\r';
+                case '\\': kx_lexinfo.ch = '\\';
+                }
             }
         }
         kx_strbuf[pos++] = kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);
-    }
+    } while (pos < POSMAX && kx_lexinfo.ch != quote);
 
     kx_strbuf[pos] = 0;
     kx_yylval.strval = const_str(kx_strbuf);
@@ -182,7 +213,21 @@ const char *make_modulename(const char *str)
     return const_str(strbuf);
 }
 
+#if defined(KX_LEX_DEBUG)
+int kx_yylex_x();
+
 int kx_yylex()
+{
+    int ch = kx_yylex_x();
+    if (isgraph(ch)) printf("ret '%c'\n", ch);
+    else printf("ret %d\n", ch);
+    return ch;
+}
+
+int kx_yylex_x()
+#else
+int kx_yylex()
+#endif
 {
 HEAD_OF_YYLEX:
     while (kx_is_whitespace(kx_lexinfo)) {
@@ -234,7 +279,21 @@ HEAD_OF_YYLEX:
     int pos = 0, is_zero = 0;
     switch (kx_lexinfo.ch) {
     case '{':
+        if (kx_lexinfo.inner.brcount > 0) {
+            ++kx_lexinfo.inner.brcount;
+        }
+        kx_lex_next(kx_lexinfo);
+        return '{';
     case '}':
+        if (kx_lexinfo.inner.brcount > 0) {
+            --kx_lexinfo.inner.brcount;
+            if (kx_lexinfo.inner.brcount == 0) {
+                kx_lexinfo.ch = kx_lexinfo.inner.quote; // restart analyzing a quoted string.
+                return '+';
+            }
+        }
+        kx_lex_next(kx_lexinfo);
+        return '}';
     case '[':
     case ']':
     case '(':
