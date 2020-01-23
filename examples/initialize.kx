@@ -1,0 +1,9 @@
+class Example(i, j) {
+    private initialize() {
+        System.println("i = ", i);
+        System.println("j = ", j);
+    }
+}
+
+new Example(10, 20);
+new Example(100, 200);
