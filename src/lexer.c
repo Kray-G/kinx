@@ -22,6 +22,12 @@ void setup_lexinfo(const char *file, kx_yyin_t *yyin)
 
 int process_using(void)
 {
+    int no_error = 0;
+    if (kx_lexinfo.ch == '?') {
+        /* ignore if a file does not exist. */
+        no_error = 1;
+        kx_lex_next(kx_lexinfo);
+    }
     while (kx_is_whitespace(kx_lexinfo)) {
         kx_lex_next(kx_lexinfo);
     }
@@ -36,21 +42,24 @@ int process_using(void)
     kx_strbuf[pos++] = 'k';
     kx_strbuf[pos++] = 'z';
     kx_strbuf[pos] = 0;
-    if (!file_exists(kx_strbuf)) {
+    const char *file = NULL;
+    if (!(file = kxlib_file_exists(kx_strbuf))) {
         kx_strbuf[pos-1] = 'x';
     }
-    if (!file_exists(kx_strbuf)) {
-        char buf[2048] = {0};
-        snprintf(buf, 2047, "File not found(%s)", kx_strbuf);
-        kx_yywarning(buf);
+    if (!(file = kxlib_file_exists(kx_strbuf))) {
+        if (!no_error) {
+            char buf[2048] = {0};
+            snprintf(buf, 2047, "File not found(%s)", kx_strbuf);
+            kx_yywarning(buf);
+        }
         while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
             kx_lex_next(kx_lexinfo);
         }
-        return ';';
+        return no_error ? ';' : ERROR;
     }
 
     kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    kx_yyin.fp = fopen(kx_strbuf, "r");
+    kx_yyin.fp = fopen(file, "r");
     kx_yyin.startup = NULL;
     kx_yyin.str = NULL;
     kx_yyin.file = const_str(kx_strbuf);
