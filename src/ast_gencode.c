@@ -120,11 +120,10 @@ static int new_function(kx_analyze_t *ana)
 static int new_block(kx_analyze_t *ana)
 {
     kx_module_t *module = ana->module;
-    static int index = 0;
     int i = kv_size(module->blocks);
     kv_push(int, get_function(module, ana->function)->block, i);
     kx_block_t block = {0};
-    block.index = ++index;
+    block.index = ++(ana->start_index);
     kv_push(kx_block_t, ana->module->blocks, block);
     return i;
 }
@@ -1133,12 +1132,13 @@ static void append_ret_all(kvec_t(kx_function_t) *funclist, kx_analyze_t *ana)
     }
 }
 
-kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module)
+kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module)
 {
     kx_analyze_t anaobj = {0};
     kx_analyze_t *ana = &anaobj;
     ana->module = module;
     ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
+    ana->start_index = ctx->block_index;
 
     int startup = new_function(ana);
     get_function(module, startup)->name = alloc_string("_startup");
@@ -1165,6 +1165,8 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module)
 
     kv_A(get_block(module, startb)->code, 1).value1.s = alloc_string(get_function(module, func)->name);
     kv_A(get_block(module, startb)->code, 1).value2.idx = get_block(module, kv_head(get_function(module, func)->block))->index;
+
+    ctx->block_index = ana->start_index;
 
     kv_destroy(ana->fidxlist);
     kv_destroy(*(ana->finallies));

@@ -353,13 +353,12 @@ static void ir_block_dump(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
     }
 }
 
-static void ir_function_dump(int llen, kx_module_t *module, kx_function_t *func)
+static void ir_function_dump(int llen, kx_module_t *module, kvec_t(uint32_t) *labels, kx_function_t *func)
 {
     if (!func) {
         return;
     }
 
-    kvec_t(uint32_t) *labels = &(module->labels);
     printf("\n");
     printf(KXFT_FUNCTION_INDENT "%s:\n", func->name);
     int len = kv_size(func->block);
@@ -376,11 +375,11 @@ void ir_dump(kx_context_t *ctx)
         return;
     }
 
-    int llen = kv_size(module->labels);
+    int llen = kv_size(ctx->labels);
     int len = kv_size(*(module->funclist));
     for (int i = 0; i < len; ++i) {
         kx_function_t *func = &kv_A(*(module->funclist), i);
-        ir_function_dump(llen, module, func);
+        ir_function_dump(llen, module, &(ctx->labels), func);
     }
 }
 

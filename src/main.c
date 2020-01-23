@@ -41,9 +41,9 @@ int eval(kx_context_t *ctx)
     start_analyze_ast(kx_ast_root);
     kx_module_t *module = kv_pushp(kx_module_t, ctx->module);
     memset(module, 0x00, sizeof(kx_module_t));
-    module->funclist = start_gencode_ast(kx_ast_root, module);
-    kv_init(module->labels);
-    kv_init(module->fixcode);
+    module->funclist = start_gencode_ast(kx_ast_root, ctx, module);
+    kv_init(ctx->labels);
+    kv_init(ctx->fixcode);
     ir_fix_code(ctx);
     if (ctx->options.dump) {
         ir_dump(ctx);
@@ -102,13 +102,6 @@ void version(void)
 int main(int ac, char **av)
 {
     init_allocator();
-
-    kx_malloc = kx_malloc_impl;
-    kx_realloc = kx_realloc_impl;
-    kx_calloc = kx_calloc_impl;
-    kx_free = kx_free_impl;
-    kx_strdup = kx_strdup_impl;
-    kx_strndup = kx_strndup_impl;
 
     #ifdef YYDEBUG
     kx_yydebug = 1;
