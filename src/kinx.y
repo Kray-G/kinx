@@ -432,10 +432,16 @@ CallArgumentList
 
 int yyerror(const char *msg)
 {
-    return printf("Error: %s at %d (pos:%d)\n", msg, kx_lexinfo.line, kx_lexinfo.pos);
+    if (!kx_lexinfo.quiet) {
+        return printf("Error: %s at the line %d (pos:%d)\n", msg, kx_lexinfo.line, kx_lexinfo.pos);
+    }
+    return 0;
 }
 
 int kx_yywarning(const char *msg)
 {
-    return printf("Warning: %s at %d (pos:%d)\n", msg, kx_lexinfo.line, kx_lexinfo.pos);
+    if (!kx_lexinfo.quiet) {
+        return printf("Warning: %s at the line %d (pos:%d)\n", msg, kx_lexinfo.line, kx_lexinfo.pos);
+    }
+    return 0;
 }

@@ -26,6 +26,7 @@ typedef struct kx_lexinfo_ {
     int pos;
     const char *file;
     int line;
+    int quiet;
     kx_lexinner_t inner;
     kx_yyin_t in;
 } kx_lexinfo_t;
@@ -281,9 +282,10 @@ extern void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv);
 extern void print_uncaught_exception(kx_obj_t *val);
 extern void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht);
 extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
-extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host);
+extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
+extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 
 #if defined(_WIN32) || defined(_WIN64)
 #define DllExport  __declspec(dllexport)
@@ -330,6 +332,16 @@ static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
     return NULL;
 }
 
+static inline const char *startup_code()
+{
+    static const char *code =
+        "import System;"
+        "import String;"
+        "import Array;"
+        "import Regex;"
+    ;
+    return code;
+}
 
 #if defined(_WIN32) || defined(_WIN64)
 extern int len_acp2utf8(const char *src);
@@ -422,7 +434,6 @@ extern char *kx_strndup_impl(const char *s, size_t n);
 #define KEX_SET_METHOD(name, thisobj, funcsym) { \
     kx_fnc_t *f = allocate_fnc(ctx); \
     f->jp = NULL; \
-    f->lib = 0; \
     f->func = &(funcsym); \
     f->lex = 0; \
     f->val.type = KX_OBJ_T; \
