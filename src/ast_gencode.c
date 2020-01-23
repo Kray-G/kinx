@@ -988,7 +988,16 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         if (node->ex) {
             gencode_ast_hook(node->ex, ana, 0);
         }
-        gencode_ast_hook(node->rhs, ana, 0);
+        assert(node->rhs->type == KXST_STMTLIST);
+        gencode_ast_hook(node->rhs->lhs, ana, 0);
+        if (node->init) {
+            kx_function_t *func = get_function(module, node->init->func);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHF, .value1 = { .s = const_str(func->name) }, .value2 = { .idx = get_block(module, kv_head(func->block))->index } }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CALL, .count = 0 }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
+        }
+        gencode_ast_hook(node->rhs->rhs, ana, 0);
+
         int pushes = count_pushes(get_function(module, cur), ana);
         kv_A(get_block(module, block)->code, enter).value1.i = pushes + 1;
         kv_A(get_block(module, block)->code, enter).value2.i = node->local_vars;
@@ -1010,7 +1019,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         ana->in_try = 0;
         int func = kv_last(ana->fidxlist);
         int cur = new_function(ana);
-        ana->function = cur;
+        ana->function = node->func = cur;
         get_function(module, cur)->name = ana->classname > 0 ? const_str2(get_function(module, ana->classname)->name, node->value.s) : const_str(node->value.s);
         int old = ana->block;
         int block = new_block(ana);

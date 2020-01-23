@@ -9,6 +9,7 @@ typedef struct kxana_context_ {
     int decl;
     int depth;
     int class_id;
+    kx_object_t *class_node;
     kx_object_t *func;
     kvec_t(kxana_symbol_t) symbols;
 } kxana_context_t;
@@ -246,6 +247,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
+        kx_object_t *class_node = ctx->class_node;
+        ctx->class_node = node;
         int depth = ctx->depth;
         ++ctx->depth;
         int lvalue = ctx->lvalue;
@@ -274,6 +277,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         node->symbols = kv_last(ctx->symbols);
         kv_remove_last(ctx->symbols);
         ctx->depth = depth;
+        ctx->class_node = class_node;
         break;
     }
     case KXST_FUNCTION: { /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
@@ -285,6 +289,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
             assert(sym);
             ctx->lvalue = lvalue;
+            if (ctx->class_node && !strcmp(node->value.s, "initialize")) {
+                ctx->class_node->init = node;
+            }
         }
 
         if (ctx->func) {
