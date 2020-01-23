@@ -38,11 +38,11 @@ For example that is C, C++, Java, JavaScript, C#, and so on.
 
 ### Features
 
-* Extendable. Contributers are able to extend features easily for your own use.
-* Lightweight. You can start using this without a lot of work.
-* Small. Using C instead of C++. I love C++ but runtime is big in some cases.
-* Object-Oriented. Of cource you can do the object-oriented programming.
-* C style syntax... no it is JavaScript style syntax rather than C, but it is also good.
+* **Extendable**. Contributers are able to extend features easily for your own use.
+* **Lightweight**. You can start using this without a lot of work.
+* **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
+* **Object-Oriented**. Of cource you can do the object-oriented programming.
+* C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
 
 ## Getting Started
 
@@ -180,7 +180,6 @@ Here is a plan to add.
 * [ ] Adding many methods to `String` and `Array`.
 * [ ] Binary data access.
 * [ ] `switch-case` statement.
-* [ ] `using` directive to include another source code.
 * [ ] `namespace` block.
 * [ ] `class` mechanism fully support.
   * [ ] `initialize()`
@@ -190,7 +189,6 @@ Here is a plan to add.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
-* [ ] Inner expression of string like `"...%{expr}..."`.
 * [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
 * [ ] `eval` to run the script on the fly.
 * [ ] Here document.
