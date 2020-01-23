@@ -1,0 +1,5 @@
+
+var l = $$.length();
+for (var i = 0; i < l; ++i) {
+    System.println("arg[%{i}] = ", $$[i]);
+}
