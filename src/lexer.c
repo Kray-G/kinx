@@ -20,7 +20,37 @@ void setup_lexinfo(const char *file, kx_yyin_t *yyin)
     kx_lexinfo.in = *yyin;
 }
 
-int process_using(void)
+static int load_using_module(const char *name, int no_error)
+{
+    char libname[256] = {0};
+    snprintf(libname, 255, "%s.kz", name);
+    const char *file = NULL;
+    if (!(file = kxlib_file_exists(libname))) {
+        snprintf(libname, 255, "%s.kx", name);
+    }
+    if (!(file = kxlib_file_exists(libname))) {
+        if (!no_error) {
+            char buf[256] = {0};
+            snprintf(buf, 255, "File not found(%s)", libname);
+            kx_yywarning(buf);
+        }
+        while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
+            kx_lex_next(kx_lexinfo);
+        }
+        return no_error ? ';' : ERROR;
+    }
+
+    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+    kx_yyin.fp = fopen(file, "r");
+    kx_yyin.startup = NULL;
+    kx_yyin.str = NULL;
+    kx_yyin.file = const_str(libname);
+    setup_lexinfo(kx_yyin.file, &kx_yyin);
+    kx_lex_next(kx_lexinfo);
+    return kx_yylex();  /* recursive call for the new file. */
+}
+
+static int process_using(void)
 {
     int no_error = 0;
     if (kx_lexinfo.ch == '?') {
@@ -38,37 +68,12 @@ int process_using(void)
         kx_strbuf[pos++] = kx_lexinfo.ch == '.' ? '/' : kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);
     }
-    kx_strbuf[pos++] = '.';
-    kx_strbuf[pos++] = 'k';
-    kx_strbuf[pos++] = 'z';
     kx_strbuf[pos] = 0;
-    const char *file = NULL;
-    if (!(file = kxlib_file_exists(kx_strbuf))) {
-        kx_strbuf[pos-1] = 'x';
-    }
-    if (!(file = kxlib_file_exists(kx_strbuf))) {
-        if (!no_error) {
-            char buf[2048] = {0};
-            snprintf(buf, 2047, "File not found(%s)", kx_strbuf);
-            kx_yywarning(buf);
-        }
-        while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
-            kx_lex_next(kx_lexinfo);
-        }
-        return no_error ? ';' : ERROR;
-    }
 
-    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    kx_yyin.fp = fopen(file, "r");
-    kx_yyin.startup = NULL;
-    kx_yyin.str = NULL;
-    kx_yyin.file = const_str(kx_strbuf);
-    setup_lexinfo(kx_yyin.file, &kx_yyin);
-    kx_lex_next(kx_lexinfo);
-    return kx_yylex();  /* recursive call for the new file. */
+    return load_using_module(kx_strbuf, no_error);
 }
 
-int get_keyword_token(const char *val)
+static int get_keyword_token(const char *val)
 {
     switch (val[0]) {
     case '_':
@@ -131,7 +136,7 @@ int get_keyword_token(const char *val)
     return NAME;
 }
 
-int kx_lex_start_inner_expression(char quote, int pos)
+static int kx_lex_start_inner_expression(char quote, int pos)
 {
     if (kx_lexinfo.inner.brcount > 0) {
         kx_yyerror("Can not put a nested inner expression.");
@@ -146,7 +151,7 @@ int kx_lex_start_inner_expression(char quote, int pos)
     return STR;
 }
 
-int kx_lex_make_string(char quote)
+static int kx_lex_make_string(char quote)
 {
     if (kx_lexinfo.ch == quote) {
         kx_lex_next(kx_lexinfo);
@@ -186,7 +191,7 @@ int kx_lex_make_string(char quote)
     return STR;
 }
 
-const char *make_varname(const char *str)
+static const char *make_varname(const char *str)
 {
     char strbuf[KX_BUF_MAX] = {0};
     int pos = 0;
@@ -203,7 +208,7 @@ const char *make_varname(const char *str)
     return const_str(strbuf);
 }
 
-const char *make_modulename(const char *str)
+static const char *make_modulename(const char *str)
 {
     char strbuf[KX_BUF_MAX] = {'k', 'x', 0};
     int pos = 2;
@@ -211,6 +216,44 @@ const char *make_modulename(const char *str)
         strbuf[pos++] = tolower(*str++);
     }
     return const_str(strbuf);
+}
+
+static int process_import(void)
+{
+    switch (g_import) {
+    case 1: {
+        int pos = 0;
+        while (pos < POSMAX && kx_lexinfo.ch && kx_lexinfo.ch != ';') {
+            if (!kx_is_whitespace(kx_lexinfo)) {
+                kx_strbuf[pos++] = kx_lexinfo.ch == '.' ? '_' : kx_lexinfo.ch;
+            }
+            kx_lex_next(kx_lexinfo);
+        }
+        kx_strbuf[pos] = 0;
+        varname = make_varname(kx_strbuf);
+        modulename = make_modulename(kx_strbuf);
+        g_import = 2;
+        return VAR;
+    }
+    case 2:
+        g_import = 3;
+        kx_yylval.strval = varname;
+        return NAME;
+    case 3:
+        g_import = 4;
+        return '=';
+    case 4:
+        g_import = 5;
+        kx_yylval.strval = modulename;
+        return MODULENAME;
+    case 5:
+        g_import = 6;
+        return ';';
+    case 6:
+        g_import = 0;
+        return load_using_module(modulename, 1);
+    }
+    return ERROR;
 }
 
 #if defined(KX_LEX_DEBUG)
@@ -247,33 +290,7 @@ HEAD_OF_YYLEX:
     }
 
     if (g_import > 0) {
-        switch (g_import) {
-        case 1: {
-            int pos = 0;
-            while (pos < POSMAX && kx_lexinfo.ch && kx_lexinfo.ch != ';') {
-                if (!kx_is_whitespace(kx_lexinfo)) {
-                    kx_strbuf[pos++] = kx_lexinfo.ch == '.' ? '_' : kx_lexinfo.ch;
-                }
-                kx_lex_next(kx_lexinfo);
-            }
-            kx_strbuf[pos] = 0;
-            varname = make_varname(kx_strbuf);
-            modulename = make_modulename(kx_strbuf);
-            g_import = 2;
-            return VAR;
-        }
-        case 2:
-            g_import = 3;
-            kx_yylval.strval = varname;
-            return NAME;
-        case 3:
-            g_import = 4;
-            return '=';
-        case 4:
-            g_import = 0;
-            kx_yylval.strval = modulename;
-            return MODULENAME;
-        }
+        return process_import();
     }
 
     int pos = 0, is_zero = 0;

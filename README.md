@@ -137,11 +137,20 @@ For example in the above case, the name will be `"kxyourlibrary"`.
 `import` directive will do the followings.
 
 *   Loading the dll of `kxyourlibrary.dll` dynamically and making an object with a dll rule.
+    *   The dll is searched by the following order.
+        *   The same directory as executable of `kinx`.
+        *   Following the system search path.
 *   About a dll rule is like below.
     *   See [`kxstring.c`](src/extlib/kxstring.c) for single object. It will be very simple example.
     *   See [`kxregex.c`](src/extlib/kxregex.c) for class definition. Just defines a `create` method for `new` operator.
 *   Assigning the object to the variable of the name you specified.
     For example, the variable name is `YourLibrary` in the above case.
+*   After that, if there is `kxyourlibrary.kx` is found in the library path, automatically loading it.
+    *   The library is searched by the following order.
+        *   Current directory.
+        *   The same directory as executable of `kinx`.
+        *   The child `lib` directory of a directory of `kinx` executable.
+        *   The child `lib` directory of a parent directory of `kinx` executable.
 
 For `new` operator, `new A` is just alias of `A.create`.
 See [Class Design](doc/ClassDesign.md) for how class works.
@@ -190,6 +199,6 @@ Here is a plan to add.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
 * [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
-* [ ] `eval` to run the script on the fly.
+* [x] `eval` to run the script on the fly.
 * [ ] Here document.
 * [ ] Object identifier property.
