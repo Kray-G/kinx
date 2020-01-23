@@ -166,6 +166,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->rhs, ctx);
         break;
 
+    case KXOP_TYPEOF:
+        analyze_ast(node->lhs, ctx);
+        break;
+
     case KXOP_TER:
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);

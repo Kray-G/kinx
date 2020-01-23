@@ -29,6 +29,15 @@
 } \
 /**/
 
+#define KX_TYPEOF_CODE() \
+{ \
+    KEX_POP_STACK_TOP(v1); \
+    int r = check_typeof(v1->type == KX_LVAL_T ? v1->value.lv : v1, cur->value1.i); \
+    push_i((ctx)->stack, r); \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_SET_GMM_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \

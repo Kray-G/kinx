@@ -33,7 +33,6 @@
     KEX_GET_STACK_TOP(v1); \
     /* v1 should be KX_OBJ_T */ \
     kx_val_t val = (kx_val_t){ .type = KX_CSTR_T, .value.pv = cur->value1.s }; \
-    cur = cur->next; \
     kv_push(kx_val_t, v1->value.ov->ary, val); \
     cur = cur->next; \
 } \
