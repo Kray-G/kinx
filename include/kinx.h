@@ -15,12 +15,18 @@ typedef struct kx_yyin_ {
     const char *file;
 } kx_yyin_t;
 
+typedef struct kx_lexinner_ {
+    int brcount;
+    int quote;
+} kx_lexinner_t;
+
 typedef struct kx_lexinfo_ {
     int ch;
     int newline;
     int pos;
     const char *file;
     int line;
+    kx_lexinner_t inner;
     kx_yyin_t in;
 } kx_lexinfo_t;
 kvec_init_t(kx_lexinfo_t);
