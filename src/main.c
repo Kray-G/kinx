@@ -156,6 +156,7 @@ int main(int ac, char **av)
     }
 
     if (ctx->options.dump) {
+        // start_display_ast(kx_ast_root);
         ir_dump(ctx);
         // ir_dump_fixed_code(&fixcode);
         return 0;

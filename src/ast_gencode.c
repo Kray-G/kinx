@@ -192,7 +192,14 @@ static void apply_array(kx_object_t *node, kx_analyze_t *ana)
         apply_array(node->lhs, ana);
         apply_array(node->rhs, ana);
     } else {
+        int def_func = ana->def_func;
+        ana->def_func = -1;
         gencode_ast_hook(node, ana, 0);
+        if (ana->def_func >= 0) {
+            kx_function_t *func = get_function(module, ana->def_func);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHF, .value1 = { .s = const_str(func->name) }, .value2 = { .idx = get_block(module, kv_head(func->block))->index } }));
+        }
+        ana->def_func = def_func;
         KX_DEF_BINCHKCMD(APPEND);
     }
 }
@@ -568,6 +575,11 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
     }
     case KXOP_IMPORT: {
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_IMPORT, .value1 = { .s = node->value.s } }));
+        break;
+    }
+    case KXOP_TYPEOF: {
+        gencode_ast_hook(node->lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = node->value.i } }));
         break;
     }
 

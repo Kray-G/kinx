@@ -1,0 +1,25 @@
+
+var a = [
+    null,
+    1,
+    9223372036854775808,
+    "abc",
+    "abcdef"+100,
+    12.5,
+    function() {},
+    [1, 2, 3],
+    { x: 100, y: 200 },
+];
+
+var l = a.length();
+for (var i = 0; i < l; ++i) {
+    System.println("target: ", a[i]);
+    System.println("    isUndefined  = ", a[i].isUndefined);
+    System.println("    isInteger    = ", a[i].isInteger);
+    System.println("    isBigInteger = ", a[i].isBigInteger);
+    System.println("    isString     = ", a[i].isString);
+    System.println("    isDouble     = ", a[i].isDouble);
+    System.println("    isFunction   = ", a[i].isFunction);
+    System.println("    isArray      = ", a[i].isArray);
+    System.println("    isObject     = ", a[i].isObject);
+}

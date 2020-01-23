@@ -190,6 +190,7 @@
     &&LBL_KX_GE_IV0, \
     &&LBL_KX_GT_IV0, \
     &&LBL_KX_LGE_IV0, \
+    &&LBL_KX_TYPEOF, \
     &&LBL_KX_SET_GMM, \
     &&LBL_KX_CHKVAL, \
 /**/

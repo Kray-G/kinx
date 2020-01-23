@@ -145,6 +145,7 @@ enum opecode {
     KXOP_LGE,
     KXOP_CALL,
     KXOP_IMPORT,
+    KXOP_TYPEOF,
 
     /* ternary expression */
     KXOP_TER,
@@ -253,6 +254,7 @@ extern const char *const_str2(const char* classname, const char* name);
 extern void free_nodes(void);
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name);
+extern kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type);
 extern kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value);
 extern kx_object_t *kx_gen_int_object(int64_t val);
 extern kx_object_t *kx_gen_dbl_object(double val);
@@ -291,6 +293,7 @@ extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, k
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
+extern int check_typeof(kx_val_t *v1, int type);
 
 #if defined(_WIN32) || defined(_WIN64)
 #define DllExport  __declspec(dllexport)
@@ -335,6 +338,27 @@ static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
         }
     }
     return NULL;
+}
+
+static inline const char *get_typename(int type)
+{
+    switch (type) {
+    case KX_UND_T:  return "null";
+    case KX_INT_T:  return "integer";
+    case KX_BIG_T:  return "big integer";
+    case KX_DBL_T:  return "double";
+    case KX_CSTR_T: return "string";
+    case KX_STR_T:  return "string";
+    case KX_LVAL_T: return "-";
+    case KX_OBJ_T:  return "object";
+    case KX_FNC_T:  return "function";
+    case KX_FRM_T:  return "-";
+    case KX_BFNC_T: return "function";
+    case KX_ADDR_T: return "-";
+    case KX_ANY_T:  return "-";
+    case KX_ARY_T:  return "array";
+    }
+    return "... unknown";
 }
 
 #if defined(_WIN32) || defined(_WIN64)
