@@ -219,6 +219,7 @@ enum irop {
     KX_GT_IV0,
     KX_LGE_IV0,
 
+    KX_TYPEOF,
     KX_SET_GMM, /* Set a global method missing */
     KX_CHKVAL,  /* Checking the stack top value for testing. */
     KX_OPEND
@@ -344,6 +345,7 @@ enum irexec {
     KX_BFNC_T,
     KX_ADDR_T,
     KX_ANY_T,
+    KX_ARY_T,       /* used only with typeof */
 };
 
 typedef struct kx_val_ {

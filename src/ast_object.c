@@ -52,6 +52,13 @@ kx_object_t *kx_gen_var_object(const char *name)
     return obj;
 }
 
+kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type)
+{
+    kx_object_t *obj = kx_gen_obj(KXOP_TYPEOF, 0, lhs, NULL, NULL);
+    obj->value.i = type;
+    return obj;
+}
+
 kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value)
 {
     kx_object_t *obj = kx_gen_obj(KXOP_KEYVALUE, 0, value, NULL, NULL);
