@@ -316,11 +316,15 @@ void start_analyze_ast(kx_object_t *node)
     kxana_context_t ctx = {0};
     kv_push(kxana_symbol_t, ctx.symbols, kx_empty_symbols);
     ctx.func = node;
+    ctx.decl = 1;
+    kxana_symbol_t *sym = search_symbol_table(node, "$$", &ctx);
+    assert(sym);
+    ctx.decl = 0;
     analyze_ast(node, &ctx);
 
     int l = kv_size(ctx.symbols);
     for (int i = 0; i < l; ++i) {
-        kxana_symbol_t* table = &(kv_A(ctx.symbols, i));
+        kxana_symbol_t *table = &(kv_A(ctx.symbols, i));
         kv_destroy(table->list);
     }
     kv_destroy(ctx.symbols);

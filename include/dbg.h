@@ -30,4 +30,6 @@ extern kx_free_t kx_free;
 extern kx_strdup_t kx_strdup;
 extern kx_strndup_t kx_strndup;
 
+#define KXDBG(msg) printf("%s:%d: %s\n", __FILE__, __LINE__, msg);
+
 #endif /* KX_DBG_H */
