@@ -37,6 +37,9 @@ default: \
     if (!fn) { \
         THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
     } \
+    if (fn->typ || fn->wht) { \
+        THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
+    } \
     int count = cur->count; \
     if (fn->method) { \
         push_s((ctx)->stack, fn->method); \
@@ -180,7 +183,7 @@ default: \
     if (lv->type != KX_OBJ_T) { \
         kx_fnc_t *fn = NULL; \
         if (lv->type == KX_CSTR_T || lv->type == KX_STR_T) { \
-            fn = search_string_function(ctx, name, lv); \
+            fn = search_string_function(ctx, name, lv, cur->count); \
         } \
         KX_CALL_FUNCTION(fn, name, lv); \
     } else { \
