@@ -194,6 +194,7 @@ typedef struct kx_object_ {
     struct kx_object_ *lhs;
     struct kx_object_ *rhs;
     struct kx_object_ *ex;
+    struct kx_object_ *init; /* class initializer function node */
 
     /* for values */
     int type;
@@ -211,6 +212,7 @@ typedef struct kx_object_ {
     int pushes;
     int lexical_refs;
     int local_vars;
+    int func;
 
     const char *file;
     uint32_t line;

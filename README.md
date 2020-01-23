@@ -190,8 +190,6 @@ Here is a plan to add.
 * [ ] Binary data access.
 * [ ] `switch-case` statement.
 * [ ] `namespace` block.
-* [ ] `class` mechanism fully support.
-  * [ ] `initialize()`
 * [ ] `module` to add function easily to object.
 * [ ] `Math` object to support some calculations.
 * [ ] `File` object to support standard File I/O.
@@ -199,6 +197,5 @@ Here is a plan to add.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
 * [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
-* [x] `eval` to run the script on the fly.
 * [ ] Here document.
 * [ ] Object identifier property.
