@@ -223,9 +223,9 @@ kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[
 {
     int start;
     if (host->type == KX_CSTR_T) {
-        start = eval_string(host->value.pv, ctx, startup_code());
+        start = eval_string(host->value.pv, ctx);
     } else if (host->type == KX_STR_T) {
-        start = eval_string(ks_string(host->value.sv), ctx, startup_code());
+        start = eval_string(ks_string(host->value.sv), ctx);
     } else {
         return NULL;
     }
