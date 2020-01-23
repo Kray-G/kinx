@@ -218,18 +218,8 @@
 #define KX_EXEC_DECL(fixcode) \
     int gc_ticks = KEX_GC_TICK; \
     struct kx_code_ *cur = kv_head(*fixcode); \
-    kv_expand_if(kx_val_t, (ctx)->stack, KEX_DEFAULT_STACK); \
     kx_frm_t *frmv = (ctx)->frmv; \
     kx_frm_t *lexv = (ctx)->lexv; \
-/**/
-#define KX_STACK_SETUP(fixcode) \
-    if (kv_size((ctx)->stack) < 5) { \
-        push_i((ctx)->stack, 1); \
-        push_i((ctx)->stack, 2); \
-        push_f((ctx)->stack, kv_head(*fixcode), NULL); \
-        push_i((ctx)->stack, 2); \
-        push_adr((ctx)->stack, kv_last(*fixcode)); \
-    } \
 /**/
 #define KX_EXEC_SETUP(fixcode) \
     KX_SETUP_JUMPTABLE(); \
@@ -250,7 +240,6 @@
         } \
     } \
     kv_last(*fixcode)->i = len; \
-    KX_STACK_SETUP(fixcode) \
 /**/
 
 #include "exec/code/_except.inc"

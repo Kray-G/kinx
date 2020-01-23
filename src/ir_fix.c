@@ -83,14 +83,14 @@ static void ir_fix_function(kvec_t(uint32_t) *labels, kvec_pt(kx_code_t) *fixcod
     }
 }
 
-static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode)
+static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode, int start)
 {
     if (!fixcode) {
         return;
     }
 
     int len = kv_size(*fixcode);
-    for (int i = 0; i < len; ++i) {
+    for (int i = start; i < len; ++i) {
         kx_code_t *code = kv_A(*fixcode, i);
         if (code->op == KX_JMP && code->addr == (i+1)) {
             code->op = KX_NOP;
@@ -98,14 +98,14 @@ static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode)
     }
 }
 
-static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode)
+static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
 {
     if (!fixcode) {
         return;
     }
 
     int len = kv_size(*fixcode);
-    for (int i = 0; i < len; ++i) {
+    for (int i = start; i < len; ++i) {
         kx_code_t *code = kv_A(*fixcode, i);
         if (code->op == KX_JMP || code->op == KX_JZ || code->op == KX_JNZ) {
             int idx = code->value1.i;
@@ -127,11 +127,11 @@ static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode)
     }
 }
 
-void ir_fix_code(kx_context_t *ctx)
+void ir_fix_code(kx_context_t *ctx, int start)
 {
-    kx_module_t *module = &kv_last(ctx->module);
     kvec_t(uint32_t) *labels = &(ctx->labels);
     kvec_pt(kx_code_t) *fixcode = &(ctx->fixcode);
+    kx_module_t *module = &kv_last(ctx->module);
     kvec_t(kx_function_t) *funclist = module->funclist;
     kv_push(uint32_t, *labels, 0);
     if (!funclist) {
@@ -148,6 +148,6 @@ void ir_fix_code(kx_context_t *ctx)
         ir_fix_jmp_function(labels, func, module);
     }
 
-    ir_remove_jmp(fixcode);
-    ir_otimize_jmp(fixcode);
+    ir_remove_jmp(fixcode, start);
+    ir_otimize_jmp(fixcode, start);
 }

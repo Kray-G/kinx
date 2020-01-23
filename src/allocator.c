@@ -52,6 +52,8 @@ kx_context_t *make_context(void)
     ctx->strlib = NULL;
     ctx->arylib = NULL;
     ctx->global_method_missing = NULL;
+    kv_init(ctx->labels);
+    kv_init(ctx->fixcode);
     init_allocation(ctx);
     return ctx;
 }

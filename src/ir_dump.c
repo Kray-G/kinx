@@ -368,18 +368,26 @@ static void ir_function_dump(int llen, kx_module_t *module, kvec_t(uint32_t) *la
     }
 }
 
-void ir_dump(kx_context_t *ctx)
+static void ir_module_dump(int llen, kx_module_t *module, kvec_t(uint32_t) *labels)
 {
-    kx_module_t *module = &kv_last(ctx->module);
     if (!module->funclist) {
         return;
     }
 
-    int llen = kv_size(ctx->labels);
     int len = kv_size(*(module->funclist));
     for (int i = 0; i < len; ++i) {
         kx_function_t *func = &kv_A(*(module->funclist), i);
-        ir_function_dump(llen, module, &(ctx->labels), func);
+        ir_function_dump(llen, module, labels, func);
+    }
+}
+
+void ir_dump(kx_context_t *ctx)
+{
+    int llen = kv_size(ctx->labels);
+    int len = kv_size(ctx->module);
+    for (int i = 0; i < len; ++i) {
+        kx_module_t *module = &kv_A(ctx->module, i);
+        ir_module_dump(llen, module, &(ctx->labels));
     }
 }
 

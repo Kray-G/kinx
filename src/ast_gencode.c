@@ -1132,7 +1132,7 @@ static void append_ret_all(kvec_t(kx_function_t) *funclist, kx_analyze_t *ana)
     }
 }
 
-kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module)
+kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module, const char *name)
 {
     kx_analyze_t anaobj = {0};
     kx_analyze_t *ana = &anaobj;
@@ -1140,18 +1140,19 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, k
     ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
     ana->start_index = ctx->block_index;
 
-    int startup = new_function(ana);
-    get_function(module, startup)->name = alloc_string("_startup");
-    int startb = new_block(ana);
+    int startup = 0, startb = 0;
+    if (ctx->block_index == 0) {
+        startup = new_function(ana);
+        get_function(module, startup)->name = alloc_string("_startup");
+        startb = new_block(ana);
 
-    kv_push(kx_code_t, get_block(module, startb)->code, ((kx_code_t){ FILELINE(ana), .op = KX_ENTER, .value1.i = 5, .value2.i = 0, .count = 0 }));
-    kv_push(kx_code_t, get_block(module, startb)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHF, .addr = 4 }));
-    kv_push(kx_code_t, get_block(module, startb)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CALL, .count = 0 }));
-    kv_push(kx_code_t, get_block(module, startb)->code, ((kx_code_t){ FILELINE(ana), .op = KX_HALT }));
+        kv_push(kx_code_t, get_block(module, startb)->code, ((kx_code_t){ FILELINE(ana), .op = KX_JMP }));
+        kv_push(kx_code_t, get_block(module, startb)->code, ((kx_code_t){ FILELINE(ana), .op = KX_HALT }));
+    }
 
     int func = new_function(ana);
     ana->function = func;
-    get_function(module, func)->name = alloc_string("_main");
+    get_function(module, func)->name = const_str(name);
     int block = new_block(ana);
     ana->block = block;
     int enter = kv_size(get_block(module, block)->code);
@@ -1159,12 +1160,14 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, k
     gencode_ast_hook(node, ana, 0);
     int pushes = count_pushes(get_function(module, func), ana);
     kv_A(get_block(module, block)->code, enter).value1.i = pushes + 1;
-    kv_A(get_block(module, block)->code, enter).value2.i = node->local_vars;
-    kv_A(get_block(module, block)->code, enter).count = 0;
+    kv_A(get_block(module, block)->code, enter).value2.i = node->local_vars + 1;
+    kv_A(get_block(module, block)->code, enter).count = 1;
     append_ret_all(&(ana->module->functions), ana);
 
-    kv_A(get_block(module, startb)->code, 1).value1.s = alloc_string(get_function(module, func)->name);
-    kv_A(get_block(module, startb)->code, 1).value2.idx = get_block(module, kv_head(get_function(module, func)->block))->index;
+    if (ctx->block_index == 0) {
+        kv_A(get_block(module, startb)->code, 0).value1.i = get_block(module, kv_head(get_function(module, func)->block))->index;
+        kv_A(get_block(module, startb)->code, 0).value2.idx = get_block(module, kv_head(get_function(module, func)->block))->index;
+    }
 
     ctx->block_index = ana->start_index;
 
