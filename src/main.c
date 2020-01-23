@@ -24,7 +24,18 @@ extern void init_allocator(void);
 extern int kx_yydebug;
 #endif
 
-int eval(kx_context_t *ctx)
+static inline const char *startup_code()
+{
+    static const char *code =
+        "import System;"
+        "import String;"
+        "import Array;"
+        "import Regex;"
+    ;
+    return code;
+}
+
+static int eval(kx_context_t *ctx)
 {
     static int mainx = 0;
     char name[256] = {0};
@@ -50,27 +61,27 @@ int eval(kx_context_t *ctx)
     return start;
 }
 
-int eval_string(const char *code, kx_context_t *ctx, const char *startup)
+int eval_string(const char *code, kx_context_t *ctx)
 {
     kx_yyin.fp = NULL;
-    kx_yyin.startup = startup;
+    kx_yyin.startup = startup_code();
     kx_yyin.str = code;
     kx_yyin.file = "<eval>";
     setup_lexinfo(kx_yyin.file, &kx_yyin);
     return eval(ctx);
 }
 
-int eval_file(const char *file, kx_context_t *ctx, const char *startup)
+int eval_file(const char *file, kx_context_t *ctx)
 {
     kx_yyin.fp = (file && !ctx->options.src_stdin) ? fopen(file, "r") : stdin;
-    kx_yyin.startup = startup;
+    kx_yyin.startup = startup_code();
     kx_yyin.str = NULL;
     kx_yyin.file = file;
     setup_lexinfo(file, &kx_yyin);
     return eval(ctx);
 }
 
-void usage(void)
+static void usage(void)
 {
     printf("Usage: " PROGNAME " -[hdui]\n");
     printf("    -h      Display this help.\n");
@@ -79,7 +90,7 @@ void usage(void)
     printf("    -i      Input source code from stdin.\n");
 }
 
-void version(void)
+static void version(void)
 {
     printf(PROGNAME " version %d.%d.%d\n", VER_MAJ, VER_MIN, VER_PAT);
 }
@@ -125,7 +136,7 @@ int main(int ac, char **av)
 
     kx_lexinfo.quiet = 0;
     if (ac <= optind) {
-        r = eval_file(NULL, ctx, startup_code());
+        r = eval_file(NULL, ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
@@ -137,7 +148,7 @@ int main(int ac, char **av)
             r = 1;
             goto CLEANUP;
         }
-        r = eval_file(file, ctx, startup_code());
+        r = eval_file(file, ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
