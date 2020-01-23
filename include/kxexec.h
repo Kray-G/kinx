@@ -10,7 +10,6 @@
 #define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() continue
-#define KX_SETUP_JUMPTABLE()
 #define KX_SET_GOTO(c)
 #elif defined(KX_DIRECT_THREAD)
 #define KX_LABELS \
@@ -198,15 +197,14 @@
 #define KX_CASE_ERROR_END() LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() goto *(cur->gotolabel);
-#define KX_SETUP_JUMPTABLE() static void *jumptable[] = { KX_LABELS };
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
+extern void *jumptable[];
 #else
 #define KX_CASE_(OPCODE) case OPCODE: /* printf("[%3x] %s\n", cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
 #define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
 #define KX_GOTO() continue
-#define KX_SETUP_JUMPTABLE()
 #define KX_SET_GOTO(c)
 #endif
 
@@ -235,7 +233,6 @@
     kv_last(*fixcode)->i = len; \
 /**/
 #define KX_EXEC_SETUP(fixcode) \
-    KX_SETUP_JUMPTABLE(); \
     KX_EXEC_DECL(fixcode); \
     KX_EXEC_FIX_JMPADDR(fixcode, 0); \
 /**/
