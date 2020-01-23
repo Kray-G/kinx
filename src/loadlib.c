@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <stdio.h>
 
 extern const char *alloc_string(const char *str);
 
