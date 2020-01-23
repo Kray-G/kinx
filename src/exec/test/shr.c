@@ -104,7 +104,7 @@ int test(void)
     memset(module, 0x00, sizeof(kx_module_t));
     int l = kv_size(code);
     for (int i = 0; i < l; ++i) {
-        kv_push(kx_code_t*, module->fixcode, &kv_A(code, i));
+        kv_push(kx_code_t*, ctx->fixcode, &kv_A(code, i));
     }
 
     int r = ir_exec(ctx);

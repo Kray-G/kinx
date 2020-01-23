@@ -262,7 +262,7 @@ extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name,
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
-extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_module_t *module);
+extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module);
 extern void ir_code_dump_one(int addr, kx_code_t *code);
 extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
@@ -343,12 +343,12 @@ extern char *conv_utf82acp_alloc(const char *src);
 #endif
 
 #define KX_DECL_MEM_ALLOCATORS() \
-kx_malloc_t kx_malloc; \
-kx_realloc_t kx_realloc; \
-kx_calloc_t kx_calloc; \
-kx_free_t kx_free; \
-kx_strdup_t kx_strdup; \
-kx_strndup_t kx_strndup; \
+kx_malloc_t kx_malloc = NULL; \
+kx_realloc_t kx_realloc = NULL; \
+kx_calloc_t kx_calloc = NULL; \
+kx_free_t kx_free = NULL; \
+kx_strdup_t kx_strdup = NULL; \
+kx_strndup_t kx_strndup = NULL; \
 /**/
 
 #ifndef KX_DLL

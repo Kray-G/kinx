@@ -33,6 +33,15 @@ void init_allocation(kx_context_t *ctx)
 
 kx_context_t *make_context(void)
 {
+    if (!kx_malloc) {
+        kx_malloc = kx_malloc_impl;
+        kx_realloc = kx_realloc_impl;
+        kx_calloc = kx_calloc_impl;
+        kx_free = kx_free_impl;
+        kx_strdup = kx_strdup_impl;
+        kx_strndup = kx_strndup_impl;
+    }
+
     kx_context_t *ctx = kx_calloc(1, sizeof(kx_context_t));
     ctx->frm_alive = kl_init(frm);
     ctx->fnc_alive = kl_init(fnc);
@@ -388,8 +397,6 @@ static void module_cleanup(kx_context_t *ctx)
     int l = kv_size(ctx->module);
     for (int i = 0; i < l; ++i) {
         kx_module_t *module = &kv_A(ctx->module, i);
-        kv_destroy(module->labels);
-        kv_destroy(module->fixcode);
         free_ir_info(module);
     }
     kv_destroy(ctx->module);
@@ -413,5 +420,7 @@ void context_cleanup(kx_context_t *ctx)
     gc_object_cleanup(ctx);
     module_cleanup(ctx);
     builtin_cleanup(ctx);
+    kv_destroy(ctx->labels);
+    kv_destroy(ctx->fixcode);
     kx_free(ctx);
 }
