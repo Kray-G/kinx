@@ -198,4 +198,66 @@ Here is a plan to add.
 * [ ] `SQLite` object to support SQLite database access.
 * [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
 * [ ] Here document.
-* [ ] Object identifier property.
+
+### Undocumented Memo
+
+Now there is no document about following items, but I will write it as soon as possible.
+
+#### Command Line Arguments
+
+The variable named `$$` is an array of command line arguments.
+Here is an example.
+
+```coffee
+var len = $$.length();
+for (var i = 0; i < len; ++i) {
+    System.println("arg[%{i}] = ", $$[i]);
+}
+```
+
+#### Inner Expression
+
+Here is the sample of **inner expression**.
+
+```coffee
+var a = 100;
+var str = "You can put expression like %{a * (a + 2)} as inner expression in the string.";
+System.println(str);
+```
+
+The result is here.
+
+```
+You can put expression like 10200 as inner expression in the string.
+```
+
+#### Type Property
+
+You can use the type property to check the object type.
+See example of [`idprop.kx`](examples/idprop.kx) for that.
+
+#### `eval()`
+
+`eval()` is now supported.
+You can run the code of string on the fly.
+The eval's arguments are assigned to `$$` like command line arguments as an array.
+
+#### `using` directive
+
+You can use `using` to include another source file.
+
+```coffee
+using dir.to.path.file1;
+using? dir.to.path.file2;
+```
+
+When you use `using` and the file is not found, it will make it error.
+When you use `using?` instead, it will ignore without errors.
+
+The library is searched by the following order.
+
+*   Current directory.
+*   The same directory as executable of `kinx`.
+*   The child `lib` directory of a directory of `kinx` executable.
+*   The child `lib` directory of a parent directory of `kinx` executable.
+
