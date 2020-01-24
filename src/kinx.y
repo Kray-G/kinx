@@ -68,6 +68,7 @@
 %type<obj> PostfixExpression
 %type<type> IncDec_Opt
 %type<obj> Factor
+%type<strval> String
 %type<obj> Array
 %type<obj> Object
 %type<obj> AssignExpressionList
@@ -297,7 +298,7 @@ IncDec_Opt
     ;
 
 Factor
-    : STR { $$ = kx_gen_str_object($1); }
+    : String { $$ = kx_gen_str_object($1); }
     | INT { $$ = kx_gen_int_object($1); }
     | DBL { $$ = kx_gen_dbl_object($1); }
     | BIGINT { $$ = kx_gen_big_object($1); }
@@ -312,6 +313,11 @@ Factor
     | '(' AnonymousFunctionDeclStatement ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     | '@' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object($2)); }
+    ;
+
+String
+    : STR
+    | String STR { $$ = kx_append_string($1, $2); }
     ;
 
 Array
