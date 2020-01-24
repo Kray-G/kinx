@@ -210,7 +210,7 @@ Now there is no document about following items, but I will write it as soon as p
 
 #### Auto-loaded Objects
 
-You can use the following objects in every program with nothing to do.
+You can use the following objects in every programs with nothing to do.
 
 *   `System` ... automatically do `import System;` at the beginning of program.
 *   `String` ... same as `Sysrem`.
