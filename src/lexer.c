@@ -200,6 +200,61 @@ static int kx_lex_make_string(char quote)
     return STR;
 }
 
+static int get_here_doc(int start)
+{
+    int end = start;
+    switch (start) {
+    case '{': end = '}'; break;
+    case '(': end = ')'; break;
+    case '[': end = ']'; break;
+    case '<': end = '>'; break;
+    default: break;
+    }
+
+    kx_lex_next(kx_lexinfo);
+
+    kstr_t *s = ks_new();
+    int pos = 0;
+    int br = 1;
+    while (kx_lexinfo.ch) {
+        if (start != end && kx_lexinfo.ch == start) {
+            ++br;
+        }
+        if (kx_lexinfo.ch == '\\') {
+            kx_lex_next(kx_lexinfo);
+            if (kx_lexinfo.ch != end) {
+                kx_strbuf[pos++] = '\\';
+            }
+            kx_strbuf[pos++] = kx_lexinfo.ch;
+            kx_lex_next(kx_lexinfo);
+            continue;
+        }
+        if (kx_lexinfo.ch == end) {
+            --br;
+            if (br == 0) {
+                break;
+            }
+        }
+        kx_strbuf[pos++] = kx_lexinfo.ch;
+        if (pos > POSMAX) {
+            kx_strbuf[pos] = 0;
+            ks_append(s, kx_strbuf);
+            pos = 0;
+        }
+        kx_lex_next(kx_lexinfo);
+    }
+
+    if (pos > 0) {
+        kx_strbuf[pos] = 0;
+        ks_append(s, kx_strbuf);
+    }
+    kx_yylval.strval = alloc_string(ks_string(s));
+    ks_free(s);
+
+    kx_lex_next(kx_lexinfo);
+    return HEREDOC;
+}
+
 static const char *make_varname(const char *str)
 {
     char strbuf[KX_BUF_MAX] = {0};
@@ -491,6 +546,13 @@ HEAD_OF_YYLEX:
         if (kx_lexinfo.ch == '=') {
             kx_lex_next(kx_lexinfo);
             return MODEQ;
+        }
+        switch (kx_lexinfo.ch) {
+        case '{': case '(': case '[': case '<': case '|': case '-': case '^': case '~': case '_': case '.': case ',': case '+':
+        case '*': case '@': case '&': case '$': case ':': case ';': case '?': case '`': case '\'': case '"':
+            return get_here_doc(kx_lexinfo.ch);
+        default:
+            break;
         }
         return '%';
     case '_': case '$':
