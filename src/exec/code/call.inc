@@ -39,29 +39,34 @@ default: \
     } \
     if (fn->typ || fn->wht) { \
         THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-    } \
-    int count = cur->count; \
-    if (fn->method) { \
-        push_s((ctx)->stack, fn->method); \
-        ++count; \
-    } \
-    if (fn->val.type) { \
-        push_value((ctx)->stack, fn->val); \
-        ++count; \
-    } \
-    if (fn->jp) { \
-        kx_val_t fvx; \
-        fvx.type = KX_FNC_T; \
-        fvx.value.fn = fn; \
-        (ctx)->caller = cur; \
-        push_value((ctx)->stack, fvx); \
-        push_i((ctx)->stack, count); \
-        push_adr((ctx)->stack, cur->next); \
-        cur = fn->jp; \
-    } else { \
-        int r = fn->func(count, frmv, fn->lex, ctx); \
-        KX_BUILTIN_FUNCTION_ERROR(r); \
+    } else if (fn->push.type) { \
+        kv_shrink((ctx)->stack, cur->count); \
+        push_value((ctx)->stack, fn->push); \
         cur = cur->next; \
+    } else { \
+        int count = cur->count; \
+        if (fn->method) { \
+            push_s((ctx)->stack, fn->method); \
+            ++count; \
+        } \
+        if (fn->val.type) { \
+            push_value((ctx)->stack, fn->val); \
+            ++count; \
+        } \
+        if (fn->jp) { \
+            kx_val_t fvx; \
+            fvx.type = KX_FNC_T; \
+            fvx.value.fn = fn; \
+            (ctx)->caller = cur; \
+            push_value((ctx)->stack, fvx); \
+            push_i((ctx)->stack, count); \
+            push_adr((ctx)->stack, cur->next); \
+            cur = fn->jp; \
+        } else { \
+            int r = fn->func(count, frmv, fn->lex, ctx); \
+            KX_BUILTIN_FUNCTION_ERROR(r); \
+            cur = cur->next; \
+        } \
     } \
 } \
 /**/
