@@ -27,7 +27,6 @@
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
 %token IMPORT USING
-%token<strval> MODULENAME
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -115,7 +114,7 @@ Statement
     | DefinitionStatement
     | BreakStatement
     | LabelStatement
-    | IMPORT VAR NAME '=' MODULENAME ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3), kx_gen_import_object($5)); }
+    | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3), kx_gen_import_object($5)); }
     ;
 
 BlockStatement
@@ -206,8 +205,8 @@ AssignExpression
     | AssignExpression ANDEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_AND, $1, $3); }
     | AssignExpression OREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_OR, $1, $3); }
     | AssignExpression XOREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_XOR, $1, $3); }
-    | AssignExpression LANDEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_LAND, $1, $3); }
-    | AssignExpression LOREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_LOR, $1, $3); }
+    | AssignExpression LANDEQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LAND, $1, $3)); }
+    | AssignExpression LOREQ LogicalOrExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LOR, $1, $3)); }
     ;
 
 FunctionExpression

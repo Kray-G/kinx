@@ -45,12 +45,15 @@ static int eval(kx_context_t *ctx)
     kx_ast_root = NULL;
     kx_lex_next(kx_lexinfo);
     int r = kx_yyparse();
-    if (r != 0) {
-        return -1;
-    }
     if (kx_lexinfo.in.fp && kx_lexinfo.in.fp != stdin) {
         fclose(kx_lexinfo.in.fp);
         kx_lexinfo.in.fp = NULL;
+    }
+    if (r != 0) {
+        return -1;
+    }
+    if (ctx->options.ast) {
+        return 0;
     }
 
     start_analyze_ast(kx_ast_root);
@@ -101,7 +104,8 @@ static void usage(void)
 {
     printf("Usage: " PROGNAME " -[hdui]\n");
     printf("    -h      Display this help.\n");
-    printf("    -d      Dump operation code.\n");
+    printf("    -d      Dump compiled code.\n");
+    printf("    -D      Dump AST.\n");
     printf("    -u      Use UTF8 in standard I/O without converting. (Windows only)\n");
     printf("    -i      Input source code from stdin.\n");
 }
@@ -127,10 +131,13 @@ int main(int ac, char **av)
 
     kx_context_t *ctx = make_context();
     int opt;
-    while ((opt = getopt(ac, av, "vhdui")) != -1) {
+    while ((opt = getopt(ac, av, "vhdDui")) != -1) {
         switch (opt) {
         case 'd':
             ctx->options.dump = 1;
+            break;
+        case 'D':
+            ctx->options.ast = 1;
             break;
         case 'i':
             ctx->options.src_stdin = 1;
@@ -171,10 +178,14 @@ int main(int ac, char **av)
         }
     }
 
-    if (ctx->options.dump) {
-        // start_display_ast(kx_ast_root);
-        ir_dump(ctx);
-        // ir_dump_fixed_code(&fixcode);
+    if (ctx->options.ast || ctx->options.dump) {
+        if (ctx->options.ast) {
+            start_display_ast(kx_ast_root);
+        }
+        if (ctx->options.dump) {
+            ir_dump(ctx);
+            // ir_dump_fixed_code(&fixcode);
+        }
         return 0;
     }
 

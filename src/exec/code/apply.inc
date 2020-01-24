@@ -70,8 +70,13 @@
             if (v2->type == KX_STR_T) { \
                 KEX_GET_PROP(val, obj, ks_string(v2->value.sv)); \
             } else if (v2->type == KX_INT_T) { \
-                if (v2->value.iv < kv_size(obj->ary)) { \
-                    val = &(kv_A(obj->ary, v2->value.iv)); \
+                if (v2->value.iv < 0) { \
+                    int sz = kv_size(obj->ary); \
+                    int64_t i = v2->value.iv; \
+                    do { i += sz; } while (i < 0); \
+                    val = &(kv_A(obj->ary, i)); \
+                } else { \
+                    val = &(kv_A(obj->ary, (v2->value.iv % kv_size(obj->ary)))); \
                 } \
             } else if (v2->type == KX_CSTR_T) { \
                 KEX_GET_PROP(val, obj, v2->value.pv); \
@@ -158,8 +163,13 @@ do { \
         kx_obj_t *obj = NULL; \
         if (lv->type == KX_OBJ_T) { \
             obj = lv->value.ov; \
-            if (cur->value1.i < kv_size(obj->ary)) { \
-                val = &(kv_A(obj->ary, cur->value1.i)); \
+            if (cur->value1.i < 0) { \
+                int sz = kv_size(obj->ary); \
+                int64_t i = cur->value1.i; \
+                do { i += sz; } while (i < 0); \
+                val = &(kv_A(obj->ary, i)); \
+            } else { \
+                val = &(kv_A(obj->ary, (cur->value1.i % kv_size(obj->ary)))); \
             } \
         } \
         if (!val) { \
