@@ -1,0 +1,8 @@
+function calc(x, y, func) {
+    return func(x, y);
+}
+
+System.println("add = " + calc(10, 2, &(a, b) => a + b));
+System.println("sub = " + calc(10, 2, &(a, b) => a - b));
+System.println("mul = " + calc(10, 2, &(a, b) => a * b));
+System.println("div = " + calc(10, 2, &(a, b) => a / b));
