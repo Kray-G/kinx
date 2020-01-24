@@ -78,6 +78,7 @@ static int get_keyword_token(const char *val)
     switch (val[0]) {
     case '_':
         if (strcmp(val, "__END__") == 0)        { kx_lexinfo.ch = 0; return 0; }
+        if (strcmp(val, "_import") == 0)        return IMPORT;
         break;
     case 'b':
         if (strcmp(val, "break") == 0)          return BREAK;
