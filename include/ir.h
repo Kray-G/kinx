@@ -403,8 +403,10 @@ typedef struct kx_fnc_ {
     struct kx_frm_ *lex;
     struct kx_val_ val;
     const char *method;
+    /* helpers for altanative option */
     const char *typ;
     const char *wht;
+    kx_val_t push;
 } kx_fnc_t;
 kvec_init_t(kx_fnc_t);
 kvec_init_pt(kx_fnc_t);

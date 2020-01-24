@@ -31,6 +31,7 @@ static inline const char *startup_code()
         "import String;"
         "import Array;"
         "import Regex;"
+        "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };"
     ;
     return code;
 }
@@ -47,9 +48,9 @@ static int eval(kx_context_t *ctx)
     if (r != 0) {
         return -1;
     }
-    if (kx_yyin.fp && kx_yyin.fp != stdin) {
-        fclose(kx_yyin.fp);
-        kx_yyin.fp = NULL;
+    if (kx_lexinfo.in.fp && kx_lexinfo.in.fp != stdin) {
+        fclose(kx_lexinfo.in.fp);
+        kx_lexinfo.in.fp = NULL;
     }
 
     start_analyze_ast(kx_ast_root);
@@ -63,21 +64,36 @@ static int eval(kx_context_t *ctx)
 
 int eval_string(const char *code, kx_context_t *ctx)
 {
-    kx_yyin.fp = NULL;
-    kx_yyin.startup = startup_code();
-    kx_yyin.str = code;
-    kx_yyin.file = "<eval>";
-    setup_lexinfo(kx_yyin.file, &kx_yyin);
+    const char *name = "<eval>";
+    setup_lexinfo(name, &(kx_yyin_t){
+        .fp = NULL,
+        .str = code,
+        .file = name
+    });
+    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+    name = "<startup>";
+    setup_lexinfo(name, &(kx_yyin_t){
+        .fp = NULL,
+        .str = startup_code(),
+        .file = name
+    });
     return eval(ctx);
 }
 
 int eval_file(const char *file, kx_context_t *ctx)
 {
-    kx_yyin.fp = (file && !ctx->options.src_stdin) ? fopen(file, "r") : stdin;
-    kx_yyin.startup = startup_code();
-    kx_yyin.str = NULL;
-    kx_yyin.file = file;
-    setup_lexinfo(file, &kx_yyin);
+    setup_lexinfo(file, &(kx_yyin_t){
+        .fp = (file && !ctx->options.src_stdin) ? fopen(file, "r") : stdin,
+        .str = NULL,
+        .file = file
+    });
+    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+    const char *name = "<startup>";
+    setup_lexinfo(name, &(kx_yyin_t){
+        .fp = NULL,
+        .str = startup_code(),
+        .file = name
+    });
     return eval(ctx);
 }
 
