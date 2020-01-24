@@ -804,10 +804,8 @@ typedef struct kx_context_ {
     int lex = cur->value1.i; \
     if (lex) { \
         kx_frm_t *lexp = lexv; \
-        if (lexp) { \
-            while (lex--) { \
-                lexp = lexp->lex; \
-            } \
+        while (lexp && --lex) { \
+            lexp = lexp->lex; \
         } \
         vp = &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i); \
     } else { \

@@ -843,7 +843,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         if (node->lhs) {
             kx_object_t *lhs = node->lhs;
             if (kv_size(*(ana->finallies)) > 0) {
-                gencode_ast_hook(lhs, ana, 0);
+                check_function(lhs, module, ana, 0);
                 do_finally(ana, 1);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
             } else switch (lhs->type) {
@@ -866,7 +866,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
                     .value2 = { .idx = lhs->index } }));
                 break;
             default:
-                gencode_ast_hook(lhs, ana, 0);
+                check_function(lhs, module, ana, 0);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
                 break;
             }
@@ -898,7 +898,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
     }
     case KXST_THROW: {    /* lhs: expr */
         if (node->lhs) {
-            gencode_ast_hook(node->lhs, ana, 0);
+            check_function(node->lhs, module, ana, 0);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWE }));
         } else {
             do_finally(ana, 0);
