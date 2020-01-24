@@ -132,6 +132,13 @@ First, you use `import` directive like this.
 import YourLibrary;
 ```
 
+This is same as follows.
+
+```js
+var YourLibrary = _import("kxyourlibrary");
+using? kxyourlibrary;
+```
+
 The import library name is `kx` plus your specified name with lower-case.
 For example in the above case, the name will be `"kxyourlibrary"`.
 `import` directive will do the followings.
@@ -146,11 +153,7 @@ For example in the above case, the name will be `"kxyourlibrary"`.
 *   Assigning the object to the variable of the name you specified.
     For example, the variable name is `YourLibrary` in the above case.
 *   After that, if there is `kxyourlibrary.kx` is found in the library path, automatically loading it.
-    *   The library is searched by the following order.
-        *   Current directory.
-        *   The same directory as executable of `kinx`.
-        *   The child `lib` directory of a directory of `kinx` executable.
-        *   The child `lib` directory of a parent directory of `kinx` executable.
+    *   The library is searched by the order which is same as `using`.
 
 For `new` operator, `new A` is just alias of `A.create`.
 See [Class Design](doc/ClassDesign.md) for how class works.
@@ -211,8 +214,7 @@ The variable named `$$` is an array of command line arguments.
 Here is an example.
 
 ```coffee
-var len = $$.length();
-for (var i = 0; i < len; ++i) {
+for (var i = 0, len = $$.length(); i < len; ++i) {
     System.println("arg[%{i}] = ", $$[i]);
 }
 ```
@@ -238,13 +240,13 @@ You can put expression like 10200 as inner expression in the string.
 You can use the type property to check the object type.
 See example of [`idprop.kx`](examples/idprop.kx) for that.
 
-#### `eval()`
+#### eval
 
 `eval()` is now supported.
 You can run the code of string on the fly.
 The eval's arguments are assigned to `$$` like command line arguments as an array.
 
-#### `using` directive
+#### using directive
 
 You can use `using` to include another source file.
 
@@ -254,7 +256,7 @@ using? dir.to.path.file2;
 ```
 
 When you use `using` and the file is not found, it will make it error.
-When you use `using?` instead, it will ignore without errors.
+When you use `using?` instead, it will be ignored without errors even if the file is not found.
 
 The library is searched by the following order.
 
