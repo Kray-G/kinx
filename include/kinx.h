@@ -11,7 +11,6 @@
 typedef struct kx_yyin_ {
     FILE       *fp;
     const char *str;
-    const char *startup;
     const char *file;
 } kx_yyin_t;
 
@@ -32,7 +31,6 @@ typedef struct kx_lexinfo_ {
 } kx_lexinfo_t;
 kvec_init_t(kx_lexinfo_t);
 
-extern kx_yyin_t kx_yyin;
 extern kx_lexinfo_t kx_lexinfo;
 extern kvec_t(kx_lexinfo_t) kx_lex_stack;
 extern int kx_yylex();
@@ -43,10 +41,8 @@ extern int kx_yylex();
         (ctx).pos = 1; \
         (ctx).newline = 0; \
     } \
-    if (kx_yyin.startup && *kx_yyin.startup) { \
-        (ctx).ch = *kx_yyin.startup++; \
-    } else if (kx_yyin.fp) { \
-        (ctx).ch = fgetc(kx_yyin.fp); \
+    if (kx_lexinfo.in.fp) { \
+        (ctx).ch = fgetc(kx_lexinfo.in.fp); \
         ++(ctx).pos; \
         if ((ctx).ch == EOF) { \
             (ctx).ch = 0; \
@@ -55,7 +51,7 @@ extern int kx_yylex();
             (ctx).newline = 1; \
         } \
     } else { \
-        (ctx).ch = *kx_yyin.str++; \
+        (ctx).ch = *kx_lexinfo.in.str++; \
         ++(ctx).pos; \
         if ((ctx).ch == '\n') { \
             (ctx).newline = 1; \

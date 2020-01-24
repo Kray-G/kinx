@@ -41,11 +41,11 @@ static int load_using_module(const char *name, int no_error)
     }
 
     kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    kx_yyin.fp = fopen(file, "r");
-    kx_yyin.startup = NULL;
-    kx_yyin.str = NULL;
-    kx_yyin.file = const_str(libname);
-    setup_lexinfo(kx_yyin.file, &kx_yyin);
+    setup_lexinfo(libname, &(kx_yyin_t){
+        .fp = fopen(file, "r"),
+        .str = NULL,
+        .file = const_str(libname)
+    });
     kx_lex_next(kx_lexinfo);
     return kx_yylex();  /* recursive call for the new file. */
 }
@@ -286,11 +286,11 @@ HEAD_OF_YYLEX:
     }
     if (!kx_lexinfo.ch) {
         if (kv_size(kx_lex_stack) > 0) {
-            if (kx_yyin.fp && kx_yyin.fp != stdin) {
-                fclose(kx_yyin.fp);
+            if (kx_lexinfo.in.fp && kx_lexinfo.in.fp != stdin) {
+                fclose(kx_lexinfo.in.fp);
             }
-            kx_yyin = kv_pop(kx_lex_stack).in;
-            kx_yyin.startup = NULL;
+            kx_lexinfo = kv_pop(kx_lex_stack);
+            kx_lexinfo.in = kx_lexinfo.in;
             kx_lex_next(kx_lexinfo);
             goto HEAD_OF_YYLEX; /* retry at the previous file */
         }
