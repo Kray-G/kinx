@@ -191,6 +191,7 @@ ExpressionStatement
 AssignExpression_Opt
     : { $$ = NULL; }
     | AssignExpression
+    | AnonymousFunctionDeclStatement
     ;
 
 AssignExpression
