@@ -116,8 +116,6 @@ enum opecode {
     KXOP_ASSIGN_AND,
     KXOP_ASSIGN_OR,
     KXOP_ASSIGN_XOR,
-    KXOP_ASSIGN_LAND,
-    KXOP_ASSIGN_LOR,
     KXOP_ASSIGN_END,
     KXOP_SHL = KXOP_ASSIGN_END,
     KXOP_SHR,
@@ -310,32 +308,6 @@ typedef struct kx_bltin_def_ {
 } \
 /**/
 
-static inline kx_obj_t *get_arg_obj(int n, int args, kx_context_t *ctx)
-{
-    if (args > 0) {
-        kvec_t(kx_val_t) *stack = &(ctx->stack);
-        kx_val_t val = kv_last_by(*stack, n);
-        if (val.type == KX_OBJ_T) {
-            return val.value.ov;
-        }
-    }
-    return NULL;
-}
-
-static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
-{
-    if (args > 0) {
-        kvec_t(kx_val_t) *stack = &(ctx->stack);
-        kx_val_t val = kv_last_by(*stack, n);
-        if (val.type == KX_STR_T) {
-            return ks_string(val.value.sv);
-        } else if (val.type == KX_CSTR_T) {
-            return val.value.pv;
-        }
-    }
-    return NULL;
-}
-
 static inline const char *get_typename(int type)
 {
     switch (type) {
@@ -355,6 +327,35 @@ static inline const char *get_typename(int type)
     case KX_ARY_T:  return "array";
     }
     return "... unknown";
+}
+
+static inline kx_obj_t *get_arg_obj(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t *val = &kv_last_by(*stack, n);
+        while (val->type == KX_LVAL_T) {
+            val = val->value.lv;
+        }
+        if (val->type == KX_OBJ_T) {
+            return val->value.ov;
+        }
+    }
+    return NULL;
+}
+
+static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        if (val.type == KX_STR_T) {
+            return ks_string(val.value.sv);
+        } else if (val.type == KX_CSTR_T) {
+            return val.value.pv;
+        }
+    }
+    return NULL;
 }
 
 #if defined(_WIN32) || defined(_WIN64)

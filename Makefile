@@ -100,7 +100,7 @@ kxstring.so: src/extlib/kxstring.c $(PICOBJS1)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
 
 kxarray.so: src/extlib/kxarray.c $(PICOBJS1)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3)
 
 kxregex.so: src/extlib/kxregex.c $(PICOBJS3) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3) -Wl,-rpath,'$$ORIGIN' -L. -lonig

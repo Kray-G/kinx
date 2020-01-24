@@ -1,0 +1,32 @@
+var a = [1,2,3];
+var b = {
+    key: 1,
+    obj: {
+        value: 100,
+        array: a + [2,3],
+    }
+};
+
+var x = 2;
+var y = 20.5;
+var c = [a, b, x+20, 20.5, "aaa"];
+
+function display(obj, key, indent) {
+    if (obj.isArray) {
+        System.println("  " * indent, "item[%{key}]:");
+        for (var i = 0, l = obj.length(); i < l; ++i) {
+            display(obj[i], i, indent+1);
+        }
+    } else if (obj.isObject) {
+        System.println("  " * indent, "item[%{key}]:");
+        var keys = obj.keySet();
+        for (var i = 0, l = keys.length(); i < l; ++i) {
+            var k = keys[i];
+            display(obj[k], k, indent+1);
+        }
+    } else {
+        System.println("  " * indent, "item[%{key}] = ", obj);
+    }
+}
+
+display(c);
