@@ -208,6 +208,16 @@ Here is a plan to add.
 
 Now there is no document about following items, but I will write it as soon as possible.
 
+#### Auto-loaded Objects
+
+You can use the following objects in every program with nothing to do.
+
+*   `System` ... automatically do `import System;` at the beginning of program.
+*   `String` ... same as `Sysrem`.
+*   `Array` ... same as `Sysrem`.
+*   `Regex` ... same as `Sysrem`.
+*   `RuntimeException` ... is a standard exception, do it like `throw RuntimeException("message");`.
+
 #### Command Line Arguments
 
 The variable named `$$` is an array of command line arguments.
@@ -265,3 +275,13 @@ The library is searched by the following order.
 *   The child `lib` directory of a directory of `kinx` executable.
 *   The child `lib` directory of a parent directory of `kinx` executable.
 
+#### Alternative Function Call Value
+
+When you call `someMethod` but `methodMissing` occurs for an object,
+searching a `_someMethod` property and use the value of it if found.
+It is sometimes reasonable because you do not have to define the function.
+
+```coffee
+var obj = { _msg: "message" };
+System.println(obj.msg()); # => print out "message".
+```
