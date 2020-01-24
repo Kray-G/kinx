@@ -458,6 +458,7 @@ typedef struct kx_bltin_ {
 
 typedef struct kx_options_ {
     int dump:1;
+    int ast:1;
     int src_stdin:1;
     int utf8inout:1;
 } kx_options_t;
@@ -751,6 +752,15 @@ typedef struct kx_context_ {
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_CSTR_T; \
     top->value.pv = const_str(val); \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_STR(o, val) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_STR_T; \
+    kstr_t *s = allocate_str(ctx); \
+    ks_append(s, val); \
+    top->value.sv = s; \
 } \
 /**/
 
