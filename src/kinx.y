@@ -307,6 +307,7 @@ Factor
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | Array
     | Object
+    | IMPORT '(' STR ')' { $$ = kx_gen_import_object($3); }
     | '(' AssignExpression ')' { $$ = $2; }
     | '(' AnonymousFunctionDeclStatement ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
