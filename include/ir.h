@@ -561,6 +561,13 @@ typedef struct kx_context_ {
         top->value.pv = (v); /* just a shallow copy to the stack because it is a temporary. */\
     } while (0);\
 /**/
+#define push_sv(st, v) \
+    do {\
+        kx_val_t *top = &kv_push_undef(st);\
+        top->type = KX_STR_T;\
+        top->value.sv = (v);\
+    } while (0);\
+/**/
 #define push_b(st, v) \
     do {\
         kx_val_t *top = &kv_push_undef(st);\
