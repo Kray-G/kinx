@@ -480,7 +480,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
     case KXOP_CALL: {
         int count = count_args(node->rhs);
         if (node->rhs) {
-            gencode_ast_hook(node->rhs, ana, 0);
+            check_function(node->rhs, module, ana, 0);
         }
         check_function(node->lhs, module, ana, 0);
         if (last_op(ana) == KX_PUSHV || last_op(ana) == KX_PUSHVL0 || last_op(ana) == KX_PUSHVL1) {
@@ -590,9 +590,9 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         break;
     }
     case KXST_EXPRLIST: { /* lhs: expr1: rhs: expr2 */
-        gencode_ast_hook(node->lhs, ana, 0);
+        check_function(node->lhs, module, ana, 0);
         if (node->rhs) {
-            gencode_ast_hook(node->rhs, ana, 0);
+            check_function(node->rhs, module, ana, 0);
         }
         break;
     }
