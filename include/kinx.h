@@ -246,6 +246,7 @@ extern const char *const_str(const char* name);
 extern const char *const_str2(const char* classname, const char* name);
 
 extern void free_nodes(void);
+extern const char *kx_append_string(const char *str1, const char *str2);
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name);
 extern kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type);
