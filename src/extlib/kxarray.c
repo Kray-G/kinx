@@ -3,36 +3,49 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
-int Array_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int throw_invalid_object(int args, kx_context_t *ctx)
 {
-    if (args > 0) {
-        kvec_t(kx_val_t) *stack = &(ctx->stack);
-        kx_val_t val = kv_last(*stack);
-        if (val.type == KX_OBJ_T) {
-            kx_obj_t *obj = val.value.ov;
-            KX_ADJST_STACK();
-            push_i(ctx->stack, kv_size(obj->ary));
-            return 0;
-        }
-    }
-
     KX_ADJST_STACK();
     push_s(ctx->stack, "SystemException");
     push_s(ctx->stack, "Invalid object, it must be an array object");
     return KX_THROW_EXCEPTION;
 }
 
+int Array_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, kv_size(obj->ary));
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
+int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        kx_obj_t *ary = allocate_obj(ctx);
+        for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
+            if (kh_exist(obj->prop, k)) {
+                const char *key = kh_key(obj->prop, k);
+                KEX_PUSH_ARRAY_STR(ary, key);
+            }
+        }
+        KX_ADJST_STACK();
+        push_obj(ctx->stack, ary);
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
 int Array_printStackTrace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    if (args > 0) {
-        kvec_t(kx_val_t) *stack = &(ctx->stack);
-        kx_val_t *val = &kv_last(*stack);
-        if (val->type != KX_OBJ_T) {
-            KX_ADJST_STACK();
-            push_i(ctx->stack, 0);
-            return 0;
-        }
-        kx_obj_t *obj = val->value.ov;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
         printf("Stack Trace Information:\n");
         kx_val_t *trace = NULL;
         KEX_GET_PROP(trace, obj, "_trace");
@@ -74,6 +87,7 @@ int Array_printStackTrace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Array_length },
+    { "keySet", Array_keySet },
     { "printStackTrace", Array_printStackTrace },
 };
 

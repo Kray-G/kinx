@@ -131,9 +131,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_ASSIGN_MOD:
     case KXOP_ASSIGN_AND:
     case KXOP_ASSIGN_OR:
-    case KXOP_ASSIGN_XOR:
-    case KXOP_ASSIGN_LAND:
-    case KXOP_ASSIGN_LOR: {
+    case KXOP_ASSIGN_XOR: {
         int lvalue = ctx->lvalue;
         ctx->lvalue = 1;
         analyze_ast(node->lhs, ctx);

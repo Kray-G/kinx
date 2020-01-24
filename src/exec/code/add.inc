@@ -216,9 +216,11 @@
     } \
     case KX_OBJ_T: { \
         if ((v1)->type == KX_OBJ_T) { \
-            kx_obj_t *o1 = (v1)->value.ov; \
+            kx_obj_t *o1 = allocate_obj(ctx); \
+            kv_copy(kx_val_t, o1->ary, (v1)->value.ov->ary); \
             kx_obj_t *o2 = (v2)->value.ov; \
             kv_append(kx_val_t, o1->ary, o2->ary); \
+            (v1)->value.ov = o1;\
             break; \
         } \
         /* fall through */ \

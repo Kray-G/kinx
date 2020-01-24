@@ -1,9 +1,9 @@
 
-function x() {
+function x(i) {
     var a;
     a[2] = 100;
     a[1][3] = 5;
-    return a[1][3];
+    return a[1][3] * a[i];
 }
 
 function y() {
@@ -18,4 +18,4 @@ function z() {
     return b[a];
 }
 
-return x() + y() + z();
+System.println("result = ", x(2) + y() + z());

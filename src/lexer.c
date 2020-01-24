@@ -253,7 +253,7 @@ static int process_import(void)
     case 4:
         g_import = 5;
         kx_yylval.strval = modulename;
-        return MODULENAME;
+        return STR;
     case 5:
         g_import = 6;
         return ';';
