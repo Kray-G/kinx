@@ -34,20 +34,11 @@ SOFILES = \
     kxstring.so \
     kxarray.so \
     kxregex.so
-PICOBJS1 = \
-    bignpic.o \
-    bigzpic.o
-PICOBJS2 = \
-    bignpic.o \
-    bigzpic.o \
-    allocutilpic.o
-PICOBJS3 = \
+PICOBJS = \
     bignpic.o \
     bigzpic.o \
     allocutilpic.o \
     kstrpic.o
-PICOBJALL = \
-    $(PICOBJS3)
 TESTCORE = \
     apply \
     append \
@@ -87,23 +78,23 @@ timex:
 	$(CC) $(CFLAGS) -o timex timex.c
 
 clean:
-	rm -f $(OBJS) $(SOFILES) $(PICOBJALL) timex kinx myacc test
+	rm -f $(OBJS) $(SOFILES) $(PICOBJS) timex kinx myacc test
 
 kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS)
 	./timex $(CC) -o $@ $(OBJS) -ldl -lm
 	rm kx.output
 
-kxsystem.so: src/extlib/kxsystem.c $(PICOBJS2)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS2)
+kxsystem.so: src/extlib/kxsystem.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
-kxstring.so: src/extlib/kxstring.c $(PICOBJS1)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS1)
+kxstring.so: src/extlib/kxstring.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
-kxarray.so: src/extlib/kxarray.c $(PICOBJS3)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3)
+kxarray.so: src/extlib/kxarray.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
-kxregex.so: src/extlib/kxregex.c $(PICOBJS3) libonig.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS3) -Wl,-rpath,'$$ORIGIN' -L. -lonig
+kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
