@@ -27,6 +27,7 @@
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
 %token IMPORT USING DARROW
+%token<strval> HEREDOC
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -304,14 +305,15 @@ IncDec_Opt
     ;
 
 Factor
-    : String { $$ = kx_gen_str_object($1); }
-    | INT { $$ = kx_gen_int_object($1); }
+    : INT { $$ = kx_gen_int_object($1); }
     | DBL { $$ = kx_gen_dbl_object($1); }
     | BIGINT { $$ = kx_gen_big_object($1); }
     | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
     | NAME { $$ = kx_gen_var_object($1); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
+    | HEREDOC { $$ = kx_gen_str_object($1); }
+    | String { $$ = kx_gen_str_object($1); }
     | Array
     | Object
     | IMPORT '(' STR ')' { $$ = kx_gen_import_object($3); }
