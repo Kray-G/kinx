@@ -17,8 +17,8 @@ set OBJS=%OBJS% ir_fix.obj ir_dump.obj ir_exec.obj ir_util.obj
 REM del %OBJS%
 call :COMPILE %OBJS%
 timex cl /nologo %CFLAGS% /Fekinx.exe %OBJS%
-timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxsystem.c bign.obj bigz.obj allocutil.obj
-timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxstring.c bign.obj bigz.obj
+timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxsystem.c bign.obj bigz.obj kstr.obj allocutil.obj
+timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxstring.c bign.obj bigz.obj kstr.obj allocutil.obj
 timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxarray.c  bign.obj bigz.obj kstr.obj allocutil.obj
 timex cl /LD /nologo %CFLAGS% /DKX_DLL src/extlib/kxregex.c  bign.obj bigz.obj kstr.obj allocutil.obj onig.lib
 goto END

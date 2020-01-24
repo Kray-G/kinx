@@ -200,7 +200,7 @@ Here is a plan to add.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
 * [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
-* [ ] Here document.
+* [ ] Here document with inner expression.
 * [ ] `const` for constant value.
 * [ ] Optimizations.
 
@@ -285,3 +285,33 @@ It is sometimes reasonable because you do not have to define the function.
 var obj = { _msg: "message" };
 System.println(obj.msg()); # => print out "message".
 ```
+
+#### Here Document
+
+Here document is supported like below.
+
+```coffee
+var a = %{
+This is here documen.
+New line is available in this area.
+}.trim();
+System.println(a);
+```
+
+Use `trim()` to remove it if you need because new line at the beginning and at the end is added.
+
+You can use the following character for here document instead of `{` and `}`.
+Escaping by `\` is available only for the end character.
+
+| Start |  End  |
+| :---: | :---: |
+|  `(`  |  `)`  |
+|  `[`  |  `]`  |
+|  `<`  |  `>`  |
+
+You can also use the followings for this purpose.
+These are different from above that the start and the end character is the same.
+For example, it is like `%- ... -`.
+Anyway the first character is always `%`.
+
+*   `|`, `-`, `^`, `~`, `_`, `.`, `,`, `+`, `*`, `@`, `&`, `$`, `:`, `;`, `?`, `'`, `"`.
