@@ -303,7 +303,16 @@ kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host)
             return ctx->global_method_missing;
         }
     } else {
+        char altprop[128] = {0}; /* why 128? ... maybe it is enough */
+        snprintf(altprop, 127, "_%s", method);
         kx_val_t *val = NULL;
+        KEX_GET_PROP(val, host->value.ov, altprop);
+        if (val) {
+            kx_fnc_t *fn = allocate_fnc(ctx);
+            fn->push = *val;
+            return fn;
+        }
+        val = NULL;
         KEX_GET_PROP(val, host->value.ov, "methodMissing");
         if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
             val->value.fn->val.type = host->type;

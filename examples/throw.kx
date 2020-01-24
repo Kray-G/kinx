@@ -1,4 +1,4 @@
-// The root function to throw exception.
+# The root function to throw exception.
 function RuntimeException(msg) { return { _type: "RuntimeException", _what: msg }; }
 
 function func1() {
@@ -17,7 +17,7 @@ function func1() {
     }
 }
 
-// Catches the exception from func1, but rethrow it.
+# Catches the exception from func1, but rethrow it.
 function func2() {
     try {
         try {
@@ -36,7 +36,7 @@ function func2() {
     }
 }
 
-// No one catch the exception, but finally clause will be correctly working.
+# No one catch the exception, but finally clause will be correctly working.
 function func3() {
     try {
         try {
@@ -51,12 +51,12 @@ function func3() {
     }
 }
 
-// Starts the test.
+# Starts the test.
 try {
     func3();
 }
 catch (e) {
-    // System.println("%{e.type()}: %{e.what()}");
+    # System.println("%{e.type()}: %{e.what()}");
     System.println(e._type, ": ", e._what);
     e.printStackTrace();
 }
