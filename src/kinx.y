@@ -435,7 +435,9 @@ CallArgumentList_Opts
 
 CallArgumentList
     : AssignExpression
+    | AnonymousFunctionDeclStatement
     | CallArgumentList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $3, $1); }
+    | CallArgumentList ',' AnonymousFunctionDeclStatement { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $3, $1); }
     ;
 
 %%
