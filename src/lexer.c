@@ -345,6 +345,10 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
             return EQEQ;
         }
+        if (kx_lexinfo.ch == '>') {
+            kx_lex_next(kx_lexinfo);
+            return DARROW;
+        }
         return '=';
     case '!':
         kx_lex_next(kx_lexinfo);

@@ -1,0 +1,15 @@
+function newCounter() {
+    var i = 0;          // a lexical variable.
+
+    return function() { // an anonymous function.
+        ++i;            // a reference to a lexical variable.
+        return i;
+    };
+}
+
+var c1 = newCounter();
+System.println(c1()); // 1
+System.println(c1()); // 2
+System.println(c1()); // 3
+System.println(c1()); // 4
+System.println(c1()); // 5
