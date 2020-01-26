@@ -23,7 +23,7 @@ Any other languages are also all good solution, but for me...
 
 *   Python is greate. But it is too far from C style. Indentend style is a little cramped.
 *   Ruby is also greate. But it is too far from C style. Too many typing for `end`.
-*   JavaScript is very good for me, and it is a C like style. But nodejs is too heavyweight.
+*   JavaScript is very good for me, and it is a C like style. But node.js is too heavyweight.
 
 ##### What is C Style Syntax?
 
@@ -213,9 +213,9 @@ Now there is no document about following items, but I will write it as soon as p
 You can use the following objects in every programs with nothing to do.
 
 *   `System` ... automatically do `import System;` at the beginning of program.
-*   `String` ... same as `Sysrem`.
-*   `Array` ... same as `Sysrem`.
-*   `Regex` ... same as `Sysrem`.
+*   `String` ... same as `System`.
+*   `Array` ... same as `System`.
+*   `Regex` ... same as `System`.
 *   `RuntimeException` ... is a standard exception, do it like `throw RuntimeException("message");`.
 
 #### Command Line Arguments
@@ -286,19 +286,19 @@ var obj = { _msg: "message" };
 System.println(obj.msg()); # => print out "message".
 ```
 
-#### Here Document
+#### String literal like Here Document
 
-Here document is supported like below.
+String literal like Here document is supported like below.
 
 ```coffee
 var a = %{
-This is here documen.
+This is a string without escaping control characters.
 New line is available in this area.
 }.trim();
 System.println(a);
 ```
 
-Use `trim()` to remove it if you need because new line at the beginning and at the end is added.
+Use `trim()` to remove newlines if you need because those are added at the beginning and at the end.
 
 You can use the following character for here document instead of `{` and `}`.
 Escaping by `\` is available only for the end character.
