@@ -11,6 +11,7 @@ static const char *modulename = NULL;
 
 void setup_lexinfo(const char *file, kx_yyin_t *yyin)
 {
+    kx_lexinfo.restart = NULL;
     kx_lexinfo.file = file;
     kx_lexinfo.line = 1;
     kx_lexinfo.pos = 1;
@@ -151,10 +152,6 @@ static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_
         kx_yyerror("Can not put a nested inner expression.");
         return ERROR;
     }
-    kx_lexinfo.inner.brcount = 1;
-    kx_lexinfo.inner.quote = quote;
-    kx_lexinfo.is_multi = is_multi;
-    kx_lexinfo.is_trim = is_trim;
 
     if (pos > 0) {
         kx_strbuf[pos] = 0;
@@ -166,6 +163,13 @@ static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_
     kx_yylval.strval = alloc_string(ks_string(s));
     ks_free(s);
 
+    kx_lexinfo.inner.brcount = 1;
+    kx_lexinfo.inner.quote = quote == '"' ? DQ : quote == '\'' ? SQ : quote;
+    kx_lexinfo.is_multi = is_multi;
+    kx_lexinfo.is_trim = is_trim;
+    kx_lexinfo.tempbuf[0] = '(';
+    kx_lexinfo.tempbuf[1] = 0;
+    kx_lexinfo.restart = kx_lexinfo.tempbuf;
     kx_lexinfo.ch = '+';
     return STR;
 }
@@ -176,7 +180,7 @@ static int kx_lex_make_string(char quote)
         kx_lex_next(kx_lexinfo);
     }
     if (kx_lexinfo.ch == quote) {
-        kx_lex_next(kx_lexinfo);
+        kx_lexinfo.ch = ')';
         kx_yylval.strval = const_str("");
         return STR;
     }
@@ -217,7 +221,7 @@ static int kx_lex_make_string(char quote)
     kx_yylval.strval = alloc_string(ks_string(s));
     ks_free(s);
 
-    kx_lex_next(kx_lexinfo);
+    kx_lexinfo.ch = ')';
     return STR;
 }
 
@@ -232,7 +236,6 @@ static int get_multi_line(int start, int is_trim)
     default: break;
     }
 
-    kx_lexinfo.is_multi = 0;
     kx_lex_next(kx_lexinfo);
 
     kstr_t *s = ks_new();
@@ -282,7 +285,8 @@ static int get_multi_line(int start, int is_trim)
     kx_yylval.strval = alloc_string(ks_string(s));
     ks_free(s);
 
-    kx_lex_next(kx_lexinfo);
+    kx_lexinfo.is_multi = 0;
+    kx_lexinfo.ch = ')';
     return MULTILINE;
 }
 
@@ -357,7 +361,7 @@ int kx_yylex_x();
 int kx_yylex()
 {
     int ch = kx_yylex_x();
-    if (isgraph(ch)) printf("ret '%c'\n", ch);
+    if (isgraph(ch)) printf("ret '%c' (kx_lexinfo.ch = %d)\n", ch, kx_lexinfo.ch);
     else printf("ret %d\n", ch);
     return ch;
 }
@@ -400,8 +404,12 @@ HEAD_OF_YYLEX:
         if (kx_lexinfo.inner.brcount > 0) {
             --kx_lexinfo.inner.brcount;
             if (kx_lexinfo.inner.brcount == 0) {
-                kx_lexinfo.ch = kx_lexinfo.inner.quote; // restart analyzing a quoted string.
-                return '+';
+                // restart analyzing a quoted string.
+                kx_lexinfo.tempbuf[0] = kx_lexinfo.inner.quote;
+                kx_lexinfo.tempbuf[1] = 0;
+                kx_lexinfo.restart = kx_lexinfo.tempbuf;
+                kx_lexinfo.ch = '+';
+                return ')';
             }
         }
         kx_lex_next(kx_lexinfo);
@@ -419,8 +427,16 @@ HEAD_OF_YYLEX:
         return ch;
     }
     case '\'':
-        return kx_lex_make_string('\'');
+        kx_lexinfo.ch = SQ;
+        return '(';
     case '"':
+        kx_lexinfo.ch = DQ;
+        return '(';
+    case SQ:
+        kx_lexinfo.ch = '\'';
+        return kx_lex_make_string('\'');
+    case DQ:
+        kx_lexinfo.ch = '"';
         return kx_lex_make_string('"');
     case '@':
         kx_lex_next(kx_lexinfo);
@@ -581,19 +597,24 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
             return MODEQ;
         }
-        int trim = 0;
+        kx_lexinfo.is_trim = 0;
         if (kx_lexinfo.ch == '-') {
-            trim = 1;
+            kx_lexinfo.is_trim = 1;
             kx_lex_next(kx_lexinfo);
         }
         switch (kx_lexinfo.ch) {
         case '{': case '(': case '[': case '<': case '|': case '^': case '~': case '_': case '.': case ',': case '+': case '!':
         case '*': case '@': case '&': case '$': case ':': case ';': case '?': case '`': case '/': case '\'': case '"':
-            return get_multi_line(kx_lexinfo.ch, trim);
+            kx_lexinfo.is_multi = kx_lexinfo.ch;
+            kx_lexinfo.ch = MLSTR;
+            return '(';
         default:
             break;
         }
         return '%';
+    }
+    case MLSTR: {
+        return get_multi_line(kx_lexinfo.is_multi, kx_lexinfo.is_trim);
     }
     case '_': case '$':
     case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm':
