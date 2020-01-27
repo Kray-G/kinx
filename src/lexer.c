@@ -287,7 +287,7 @@ static int get_multi_line(int start, int is_trim)
 
     kx_lexinfo.is_multi = 0;
     kx_lexinfo.ch = ')';
-    return MULTILINE;
+    return STR;
 }
 
 static const char *make_varname(const char *str)
