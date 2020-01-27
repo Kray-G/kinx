@@ -8,6 +8,7 @@
         "kinx.h": "c",
         "system_error": "c",
         "xlocale": "c",
-        "xiosbase": "c"
+        "xiosbase": "c",
+        "xutility": "c"
     }
 }
