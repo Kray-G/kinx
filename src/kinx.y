@@ -27,7 +27,7 @@
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
 %token IMPORT USING DARROW
-%token<strval> HEREDOC
+%token<strval> MULTILINE
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -70,7 +70,7 @@
 %type<obj> PostfixExpression
 %type<type> IncDec_Opt
 %type<obj> Factor
-%type<strval> String
+%type<obj> String
 %type<obj> Array
 %type<obj> Object
 %type<obj> AssignExpressionList
@@ -312,8 +312,7 @@ Factor
     | NAME { $$ = kx_gen_var_object($1); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
-    | HEREDOC { $$ = kx_gen_str_object($1); }
-    | String { $$ = kx_gen_str_object($1); }
+    | String
     | Array
     | Object
     | IMPORT '(' STR ')' { $$ = kx_gen_import_object($3); }
@@ -323,8 +322,10 @@ Factor
     ;
 
 String
-    : STR
-    | String STR { $$ = kx_append_string($1, $2); }
+    : STR { $$ = kx_gen_str_object($1); }
+    | MULTILINE { $$ = kx_gen_str_object($1); }
+    | String STR { $$ = kx_gen_bexpr_object(KXOP_ADD, $1, kx_gen_str_object($2)); }
+    | String MULTILINE { $$ = kx_gen_bexpr_object(KXOP_ADD, $1, kx_gen_str_object($2)); }
     ;
 
 Array
