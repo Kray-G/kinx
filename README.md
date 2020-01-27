@@ -16,7 +16,7 @@ Kinx can be the best platform for any libraries which you want to use or your ow
 
 #### Motivation 2
 
-I guess almost all programmers wants a lightweight scripting language with C style syntax
+I guess almost all programmers want a lightweight scripting language with C style syntax
 because it is simple, easy, and familier to them.
 
 Any other languages are also all good solution, but for me...
@@ -199,10 +199,9 @@ Here is a plan to add.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
-* [ ] Inner regular expression like `/pattern/`, and operations of `=~` & `!~`.
-* [ ] Here document with inner expression.
+* [ ] Regular expression literal like `/pattern/`, and operations of `=~` & `!~`.
 * [ ] `const` for constant value.
-* [ ] Optimizations.
+* [ ] Some Optimizations.
 
 ### Undocumented Memo
 
@@ -291,17 +290,26 @@ System.println(obj.msg()); # => print out "message".
 String literal like Here document is supported like below.
 
 ```coffee
-var a = %{
+var a = 100;
+var b = 10;
+var str = %{
 This is a string without escaping control characters.
 New line is available in this area.
-}.trim();
-System.println(a);
+};
+System.println(str);
+var str = %-{
+This is a string without escaping control characters.
+New line is available in this area.
+But newlines at the beginning and the end are removed when starting with '%-'.
+};
+System.println(str);
 ```
 
-Use `trim()` to remove newlines if you need because those are added at the beginning and at the end.
+Use `%-` instead of `%` at start point and youn can remove newlines if you need,
+because there are newlines at the beginning and the end.
 
 You can use the following character for here document instead of `{` and `}`.
-Escaping by `\` is available only for the end character.
+Escaping by `\` is available only for the start or the end character.
 
 | Start |  End  |
 | :---: | :---: |
@@ -311,7 +319,7 @@ Escaping by `\` is available only for the end character.
 
 You can also use the followings for this purpose.
 These are different from above that the start and the end character is the same.
-For example, it is like `%- ... -`.
+For example, it is like `%| ... |`.
 Anyway the first character is always `%`.
 
-*   `|`, `-`, `^`, `~`, `_`, `.`, `,`, `+`, `*`, `@`, `&`, `$`, `:`, `;`, `?`, `'`, `"`.
+*   `|`, `!`, `^`, `~`, `_`, `.`, `,`, `+`, `*`, `@`, `&`, `$`, `:`, `;`, `?`, `'`, `"`.

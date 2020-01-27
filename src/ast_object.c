@@ -27,15 +27,6 @@ void free_nodes(void)
     }
 }
 
-const char *kx_append_string(const char *str1, const char *str2)
-{
-    kstr_t *s = ks_new();
-    ks_appendf(s, "%s%s", str1, str2);
-    const char *ns = alloc_string(ks_string(s));
-    ks_free(s);
-    return ns;
-}
-
 kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     kx_object_t *obj = kx_obj_alloc();
