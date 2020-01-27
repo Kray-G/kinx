@@ -26,6 +26,8 @@ typedef struct kx_lexinfo_ {
     const char *file;
     int line;
     int quiet;
+    int is_multi;
+    int is_trim;
     kx_lexinner_t inner;
     kx_yyin_t in;
 } kx_lexinfo_t;
@@ -42,8 +44,10 @@ extern int kx_yylex();
         (ctx).newline = 0; \
     } \
     if (kx_lexinfo.in.fp) { \
-        (ctx).ch = fgetc(kx_lexinfo.in.fp); \
-        ++(ctx).pos; \
+        do { \
+            (ctx).ch = fgetc(kx_lexinfo.in.fp); \
+            ++(ctx).pos; \
+        } while ((ctx).ch == '\r'); \
         if ((ctx).ch == EOF) { \
             (ctx).ch = 0; \
         } \
@@ -51,8 +55,10 @@ extern int kx_yylex();
             (ctx).newline = 1; \
         } \
     } else { \
-        (ctx).ch = *kx_lexinfo.in.str++; \
-        ++(ctx).pos; \
+        do { \
+            ++(ctx).pos; \
+            (ctx).ch = *kx_lexinfo.in.str++; \
+        } while ((ctx).ch == '\r'); \
         if ((ctx).ch == '\n') { \
             (ctx).newline = 1; \
         } \

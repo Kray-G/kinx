@@ -2,4 +2,9 @@
 var a = 100;
 var b = 10;
 System.println("%{a * (b + 2)}");
-System.println("%{a} * (%{b} + 2) = %{a * (b + 2)}");
+System.println(%|%{a} * (%{b} + 2) = %{a * (b + 2)}|);
+
+System.println(%-{
+expression(1) = %{a * (b + 2)};
+expression(2) = "%{a} * (%{b} + 2) = %{a * (b + 2)}";
+});

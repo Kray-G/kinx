@@ -145,7 +145,7 @@ static int get_keyword_token(const char *val)
     return NAME;
 }
 
-static int kx_lex_start_inner_expression(char quote, int pos)
+static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_multi, int is_trim)
 {
     if (kx_lexinfo.inner.brcount > 0) {
         kx_yyerror("Can not put a nested inner expression.");
@@ -153,9 +153,19 @@ static int kx_lex_start_inner_expression(char quote, int pos)
     }
     kx_lexinfo.inner.brcount = 1;
     kx_lexinfo.inner.quote = quote;
+    kx_lexinfo.is_multi = is_multi;
+    kx_lexinfo.is_trim = is_trim;
 
-    kx_strbuf[pos] = 0;
-    kx_yylval.strval = const_str(kx_strbuf);
+    if (pos > 0) {
+        kx_strbuf[pos] = 0;
+        ks_append(s, kx_strbuf);
+    }
+    if (is_trim) {
+        ks_trim_char(s, '\n');
+    }
+    kx_yylval.strval = alloc_string(ks_string(s));
+    ks_free(s);
+
     kx_lexinfo.ch = '+';
     return STR;
 }
@@ -171,12 +181,13 @@ static int kx_lex_make_string(char quote)
         return STR;
     }
 
+    kstr_t *s = ks_new();
     int pos = 0;
     do {
         if (kx_lexinfo.ch == '%') {
             kx_lex_next(kx_lexinfo);
             if (kx_lexinfo.ch == '{') {
-                return kx_lex_start_inner_expression(quote, pos);
+                return kx_lex_start_inner_expression(s, quote, pos, 0, 0);
             }
             kx_strbuf[pos++] = '%';
         } else {
@@ -191,16 +202,26 @@ static int kx_lex_make_string(char quote)
             }
         }
         kx_strbuf[pos++] = kx_lexinfo.ch;
+        if (pos > POSMAX) {
+            kx_strbuf[pos] = 0;
+            ks_append(s, kx_strbuf);
+            pos = 0;
+        }
         kx_lex_next(kx_lexinfo);
-    } while (pos < POSMAX && kx_lexinfo.ch != quote);
+    } while (kx_lexinfo.ch != quote);
 
-    kx_strbuf[pos] = 0;
-    kx_yylval.strval = const_str(kx_strbuf);
+    if (pos > 0) {
+        kx_strbuf[pos] = 0;
+        ks_append(s, kx_strbuf);
+    }
+    kx_yylval.strval = alloc_string(ks_string(s));
+    ks_free(s);
+
     kx_lex_next(kx_lexinfo);
     return STR;
 }
 
-static int get_here_doc(int start)
+static int get_multi_line(int start, int is_trim)
 {
     int end = start;
     switch (start) {
@@ -211,18 +232,26 @@ static int get_here_doc(int start)
     default: break;
     }
 
+    kx_lexinfo.is_multi = 0;
     kx_lex_next(kx_lexinfo);
 
     kstr_t *s = ks_new();
     int pos = 0;
     int br = 1;
     while (kx_lexinfo.ch) {
+        if (kx_lexinfo.ch == '%') {
+            kx_lex_next(kx_lexinfo);
+            if (kx_lexinfo.ch == '{') {
+                return kx_lex_start_inner_expression(s, '%', pos, start, is_trim);
+            }
+            kx_strbuf[pos++] = '%';
+        }
         if (start != end && kx_lexinfo.ch == start) {
             ++br;
         }
         if (kx_lexinfo.ch == '\\') {
             kx_lex_next(kx_lexinfo);
-            if (kx_lexinfo.ch != end) {
+            if (kx_lexinfo.ch != start && kx_lexinfo.ch != end) {
                 kx_strbuf[pos++] = '\\';
             }
             kx_strbuf[pos++] = kx_lexinfo.ch;
@@ -230,8 +259,7 @@ static int get_here_doc(int start)
             continue;
         }
         if (kx_lexinfo.ch == end) {
-            --br;
-            if (br == 0) {
+            if (--br == 0) {
                 break;
             }
         }
@@ -248,11 +276,14 @@ static int get_here_doc(int start)
         kx_strbuf[pos] = 0;
         ks_append(s, kx_strbuf);
     }
+    if (is_trim) {
+        ks_trim_char(s, '\n');
+    }
     kx_yylval.strval = alloc_string(ks_string(s));
     ks_free(s);
 
     kx_lex_next(kx_lexinfo);
-    return HEREDOC;
+    return MULTILINE;
 }
 
 static const char *make_varname(const char *str)
@@ -541,20 +572,29 @@ HEAD_OF_YYLEX:
             goto HEAD_OF_YYLEX;
         }
         return '/';
-    case '%':
+    case '%': {
+        if (kx_lexinfo.is_multi) {
+            return get_multi_line(kx_lexinfo.is_multi, kx_lexinfo.is_trim);
+        }
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == '=') {
             kx_lex_next(kx_lexinfo);
             return MODEQ;
         }
+        int trim = 0;
+        if (kx_lexinfo.ch == '-') {
+            trim = 1;
+            kx_lex_next(kx_lexinfo);
+        }
         switch (kx_lexinfo.ch) {
-        case '{': case '(': case '[': case '<': case '|': case '-': case '^': case '~': case '_': case '.': case ',': case '+':
-        case '*': case '@': case '&': case '$': case ':': case ';': case '?': case '`': case '\'': case '"':
-            return get_here_doc(kx_lexinfo.ch);
+        case '{': case '(': case '[': case '<': case '|': case '^': case '~': case '_': case '.': case ',': case '+': case '!':
+        case '*': case '@': case '&': case '$': case ':': case ';': case '?': case '`': case '/': case '\'': case '"':
+            return get_multi_line(kx_lexinfo.ch, trim);
         default:
             break;
         }
         return '%';
+    }
     case '_': case '$':
     case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm':
     case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
