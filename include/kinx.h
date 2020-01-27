@@ -30,6 +30,8 @@ typedef struct kx_lexinfo_ {
     int is_trim;
     kx_lexinner_t inner;
     kx_yyin_t in;
+    int tempbuf[16];
+    const int *restart;
 } kx_lexinfo_t;
 kvec_init_t(kx_lexinfo_t);
 
@@ -43,7 +45,9 @@ extern int kx_yylex();
         (ctx).pos = 1; \
         (ctx).newline = 0; \
     } \
-    if (kx_lexinfo.in.fp) { \
+    if (kx_lexinfo.restart && *kx_lexinfo.restart) { \
+        (ctx).ch = *kx_lexinfo.restart++; \
+    } else if (kx_lexinfo.in.fp) { \
         do { \
             (ctx).ch = fgetc(kx_lexinfo.in.fp); \
             ++(ctx).pos; \

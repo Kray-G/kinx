@@ -3,6 +3,7 @@ setlocal
 
 set YACC=myacc
 REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
+REM set CFLAGS=/O2 /MT /Iinclude /DKX_LEX_DEBUG
 set CFLAGS=/O2 /MT /Iinclude
 
 if "%1"=="clean" goto CLEAN_OBJS
