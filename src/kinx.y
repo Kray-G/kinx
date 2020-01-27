@@ -27,7 +27,6 @@
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
 %token IMPORT USING DARROW SQ DQ MLSTR
-%token<strval> MULTILINE
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -323,9 +322,7 @@ Factor
 
 String
     : STR { $$ = kx_gen_str_object($1); }
-    | MULTILINE { $$ = kx_gen_str_object($1); }
     | String STR { $$ = kx_gen_bexpr_object(KXOP_ADD, $1, kx_gen_str_object($2)); }
-    | String MULTILINE { $$ = kx_gen_bexpr_object(KXOP_ADD, $1, kx_gen_str_object($2)); }
     ;
 
 Array
