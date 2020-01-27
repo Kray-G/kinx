@@ -265,6 +265,9 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
     kx_val_t *val = NULL;
     KEX_GET_PROP(val, ctx->strlib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
         return val->value.fn;
@@ -280,6 +283,9 @@ kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t 
     kx_val_t *val = NULL;
     KEX_GET_PROP(val, ctx->arylib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
         return val->value.fn;
