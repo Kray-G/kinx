@@ -19,23 +19,26 @@
     (kv_last(get_block(module, ana->block)->code).value1.idx == l) && (kv_last(get_block(module, ana->block)->code).value2.idx == i))\
 /**/
 #define add_pop(ana) \
-    if (last_op(ana) == KX_STORE) {\
-        last_op(ana) = KX_STOREX;\
-    } else if (last_op(ana) == KX_STOREV) {\
-        last_op(ana) = KX_STOREVX;\
-    } else {\
-        if (last_op(ana) == KX_INCV || last_op(ana) == KX_INCVP) {\
-            last_op(ana) = KX_INCVX;\
-        } else if (last_op(ana) == KX_DECV || last_op(ana) == KX_DECVP) {\
-            last_op(ana) = KX_DECVX;\
+    if (kv_size(get_block(module, ana->block)->code) > 0) {\
+        if (last_op(ana) == KX_STORE) {\
+            last_op(ana) = KX_STOREX;\
+        } else if (last_op(ana) == KX_STOREV) {\
+            last_op(ana) = KX_STOREVX;\
         } else {\
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));\
+            if (last_op(ana) == KX_INCV || last_op(ana) == KX_INCVP) {\
+                last_op(ana) = KX_INCVX;\
+            } else if (last_op(ana) == KX_DECV || last_op(ana) == KX_DECVP) {\
+                last_op(ana) = KX_DECVX;\
+            } else {\
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));\
+            }\
         }\
     }\
 /**/
 #define KX_DEF_BINCHKCMD(CMD) \
-    assert(kv_size(get_block(module, ana->block)->code) > 0);\
-    switch (last_op(ana)) {\
+    if (kv_size(get_block(module, ana->block)->code) == 0) {\
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_##CMD }));\
+    } else switch (last_op(ana)) {\
     case KX_PUSHI:\
         last_op(ana) = KX_##CMD##I;\
         if (KX_##CMD##I == KX_ADDI && last_value1(ana).i == 1) {\
@@ -72,22 +75,24 @@
         check_function(node->lhs, module, ana, 0); \
         check_function(node->rhs, module, ana, 0); \
         KX_DEF_BINCHKCMD(CMD);\
-        kx_code_t *l2 = last2p(ana);\
-        kx_code_t *l = lastp(ana);\
-        if (l2->op == KX_PUSHVL0 && l->op == KX_##CMD##I) {\
-            l2->op = KX_##CMD##_V0I;\
-            l2->value1.i = l2->value2.i;\
-            l2->value2.i = l->value1.i;\
-            kv_remove_last(get_block(module, ana->block)->code);\
-        } else if (l2->op == KX_PUSHI && l->op == KX_##CMD##V && l->value1.i == 0) {\
-            l2->op = KX_##CMD##_IV0;\
-            l2->value2.i = l->value2.i;\
-            kv_remove_last(get_block(module, ana->block)->code);\
-        } else if (l2->op == KX_##CMD##V && l2->value1.i == 0 && l->op == KX_##CMD##V && l->value1.i == 0) {\
-            l2->op = KX_##CMD##_V0V0;\
-            l2->value1.i = l2->value2.i;\
-            l2->value2.i = l->value2.i;\
-            kv_remove_last(get_block(module, ana->block)->code);\
+        if (kv_size(get_block(module, ana->block)->code) > 2) {\
+            kx_code_t *l2 = last2p(ana);\
+            kx_code_t *l = lastp(ana);\
+            if (l2->op == KX_PUSHVL0 && l->op == KX_##CMD##I) {\
+                l2->op = KX_##CMD##_V0I;\
+                l2->value1.i = l2->value2.i;\
+                l2->value2.i = l->value1.i;\
+                kv_remove_last(get_block(module, ana->block)->code);\
+            } else if (l2->op == KX_PUSHI && l->op == KX_##CMD##V && l->value1.i == 0) {\
+                l2->op = KX_##CMD##_IV0;\
+                l2->value2.i = l->value2.i;\
+                kv_remove_last(get_block(module, ana->block)->code);\
+            } else if (l2->op == KX_##CMD##V && l2->value1.i == 0 && l->op == KX_##CMD##V && l->value1.i == 0) {\
+                l2->op = KX_##CMD##_V0V0;\
+                l2->value1.i = l2->value2.i;\
+                l2->value2.i = l->value2.i;\
+                kv_remove_last(get_block(module, ana->block)->code);\
+            }\
         }\
         break;\
     }\
@@ -187,7 +192,7 @@ static void check_function(kx_object_t *node, kx_module_t *module, kx_analyze_t 
     int def_func = ana->def_func;
     ana->def_func = -1;
     gencode_ast_hook(node, ana, 0);
-    if (ana->def_func >= 0) {
+    if (kv_size(get_block(module, ana->block)->code) > 0 && ana->def_func >= 0) {
         kx_function_t *func = get_function(module, ana->def_func);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHF, .value1 = { .s = const_str(func->name) }, .value2 = { .idx = get_block(module, kv_head(func->block))->index } }));
         if (global) {
@@ -278,7 +283,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
         if (lvalue) {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHLV, .value1 = { .idx = node->lexical }, .value2 = { .idx = node->index } }));
         } else {
-            if (last_stvx(ana, node->lexical, node->index)) {
+            if ((kv_size(get_block(module, ana->block)->code) > 0) && last_stvx(ana, node->lexical, node->index)) {
                 last_op(ana) = KX_STOREV;
             } else {
                 push_vv(node, ana);
@@ -359,7 +364,7 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
                 }
             }
             gencode_ast_hook(node->lhs, ana, 1);
-            if (last_op(ana) == KX_PUSHLV) {
+            if ((kv_size(get_block(module, ana->block)->code) > 0) && last_op(ana) == KX_PUSHLV) {
                 last_op(ana) = KX_STOREV;
             } else {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
@@ -371,13 +376,13 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
     case KXOP_ASSIGN: {
         if (node->rhs) {
             check_function(node->rhs, module, ana, 0);
-            if (node->lhs->type == KXOP_VAR) {
+            if ((kv_size(get_block(module, ana->block)->code) > 0) && node->lhs->type == KXOP_VAR) {
                 if (ana->classname == 0 && !strcmp(node->lhs->value.s, "methodMissing") && last_op(ana) != KX_SET_GMM) {
                     kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SET_GMM }));
                 }
             }
             gencode_ast_hook(node->lhs, ana, 1);
-            if (last_op(ana) == KX_PUSHLV) {
+            if ((kv_size(get_block(module, ana->block)->code) > 0) && last_op(ana) == KX_PUSHLV) {
                 last_op(ana) = KX_STOREV;
             } else {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
@@ -451,21 +456,29 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
     case KXOP_IDX: {
         gencode_ast_hook(node->lhs, ana, 1);
         gencode_ast_hook(node->rhs, ana, 0);
-        if (lvalue) {
-            if (last_op(ana) == KX_PUSHI) {
-                last_op(ana) = KX_APPLYLI;
-            } else if (last_op(ana) == KX_PUSHS) {
-                last_op(ana) = KX_APPLYLS;
-            } else {
+        if (kv_size(get_block(module, ana->block)->code) > 0) {
+            if (lvalue) { 
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYL }));
-            }
-        } else {
-            if (last_op(ana) == KX_PUSHI) {
-                last_op(ana) = KX_APPLYVI;
-            } else if (last_op(ana) == KX_PUSHS) {
-                last_op(ana) = KX_APPLYVS;
             } else {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYV }));
+            }
+        } else {
+            if (lvalue) {
+                if (last_op(ana) == KX_PUSHI) {
+                    last_op(ana) = KX_APPLYLI;
+                } else if (last_op(ana) == KX_PUSHS) {
+                    last_op(ana) = KX_APPLYLS;
+                } else {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYL }));
+                }
+            } else {
+                if (last_op(ana) == KX_PUSHI) {
+                    last_op(ana) = KX_APPLYVI;
+                } else if (last_op(ana) == KX_PUSHS) {
+                    last_op(ana) = KX_APPLYVS;
+                } else {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYV }));
+                }
             }
         }
         break;
@@ -483,16 +496,20 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
             check_function(node->rhs, module, ana, 0);
         }
         check_function(node->lhs, module, ana, 0);
-        if (last_op(ana) == KX_PUSHV || last_op(ana) == KX_PUSHVL0 || last_op(ana) == KX_PUSHVL1) {
-            if (last_lexical(ana) == 0) {
-                last_op(ana) = KX_CALLVL0;
-            } else if (last_lexical(ana) == 1) {
-                last_op(ana) = KX_CALLVL1;
+        if (kv_size(get_block(module, ana->block)->code) > 0) {
+            if (last_op(ana) == KX_PUSHV || last_op(ana) == KX_PUSHVL0 || last_op(ana) == KX_PUSHVL1) {
+                if (last_lexical(ana) == 0) {
+                    last_op(ana) = KX_CALLVL0;
+                } else if (last_lexical(ana) == 1) {
+                    last_op(ana) = KX_CALLVL1;
+                } else {
+                    last_op(ana) = KX_CALLV;
+                }
+            } else if (last_op(ana) == KX_APPLYVS) {
+                last_op(ana) = KX_CALLS;
             } else {
-                last_op(ana) = KX_CALLV;
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CALL }));
             }
-        } else if (last_op(ana) == KX_APPLYVS) {
-            last_op(ana) = KX_CALLS;
         } else {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CALL }));
         }
@@ -563,6 +580,9 @@ static void gencode_ast(kx_object_t *node, kx_analyze_t *ana, int lvalue)
             }
         }
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_JMP, .label = label, .value1 = { .i = node->type == KXST_BREAK ? LABEL_BREAK : LABEL_CONTINUE } }));
+        int next = new_block(ana);
+        get_block(module, ana->block)->tf[0] = next;
+        ana->block = next;
         break;
     }
     case KXST_LABEL: {       /* lhs: stmt */
