@@ -67,8 +67,8 @@
         kx_obj_t *obj = NULL; \
         if (lv->type == KX_OBJ_T) { \
             obj = lv->value.ov; \
-            if (v2->type == KX_STR_T) { \
-                KEX_GET_PROP(val, obj, ks_string(v2->value.sv)); \
+            if (v2->type == KX_STR_T || v2->type == KX_CSTR_T) { \
+                KEX_GET_PROP(val, obj, name); \
             } else if (v2->type == KX_INT_T) { \
                 if (v2->value.iv < 0) { \
                     int sz = kv_size(obj->ary); \
@@ -78,8 +78,6 @@
                 } else { \
                     val = &(kv_A(obj->ary, (v2->value.iv % kv_size(obj->ary)))); \
                 } \
-            } else if (v2->type == KX_CSTR_T) { \
-                KEX_GET_PROP(val, obj, v2->value.pv); \
             } \
         } \
         if (!val) { \

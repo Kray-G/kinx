@@ -4,7 +4,7 @@ setlocal
 set YACC=myacc
 REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
 REM set CFLAGS=/O2 /MT /Iinclude /DKX_LEX_DEBUG
-set CFLAGS=/O2 /MT /Iinclude
+set CFLAGS=/O2 /MT /Iinclude /Isrc/jit
 
 if "%1"=="clean" goto CLEAN_OBJS
 
@@ -13,8 +13,8 @@ call :BUILDLIB
 if "%1"=="test" goto TEST_CODE
 
 set OBJS=getopt.obj string.obj parser.obj lexer.obj main.obj allocator.obj allocutil.obj alloccore.obj kstr.obj bign.obj bigz.obj loadlib.obj global.obj
-set OBJS=%OBJS% ast_object.obj ast_display.obj ast_analyzer.obj ast_gencode.obj
-set OBJS=%OBJS% ir_fix.obj ir_dump.obj ir_exec.obj ir_util.obj
+set OBJS=%OBJS% ast_object.obj ast_display.obj ast_analyzer.obj ast_gencode.obj ast_nativeaot.obj
+set OBJS=%OBJS% ir_fix.obj ir_dump.obj ir_exec.obj ir_util.obj ir_aotcore.obj ir_aotutil.obj
 REM del %OBJS%
 call :COMPILE %OBJS%
 timex cl /nologo %CFLAGS% /Fekinx.exe %OBJS%
@@ -62,7 +62,7 @@ goto END
 :COMPILE
 if "%1"=="" exit /b 0
 set OBJ=%1
-if not exist %OBJ% timex cl -c -nologo %CFLAGS% src/%OBJ:.obj=.c%
+if not exist %OBJ% timex cl /c /nologo /Fa%OBJ:.obj=.s% %CFLAGS% src/%OBJ:.obj=.c%
 shift
 goto COMPILE
 

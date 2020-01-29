@@ -104,6 +104,7 @@ static int get_keyword_token(const char *val)
     case 'i':
         if (strcmp(val, "if") == 0)             return IF;
         if (strcmp(val, "import") == 0)         { g_import = 1; return IMPORT; }
+        /* typeof */
         if (strcmp(val, "isUndefined") == 0)    { kx_yylval.intval = KX_UND_T; return TYPEOF; }
         if (strcmp(val, "isInteger") == 0)      { kx_yylval.intval = KX_INT_T; return TYPEOF; }
         if (strcmp(val, "isBigInteger") == 0)   { kx_yylval.intval = KX_BIG_T; return TYPEOF; }
@@ -112,10 +113,13 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "isFunction") == 0)     { kx_yylval.intval = KX_FNC_T; return TYPEOF; }
         if (strcmp(val, "isArray") == 0)        { kx_yylval.intval = KX_ARY_T; return TYPEOF; }
         if (strcmp(val, "isObject") == 0)       { kx_yylval.intval = KX_OBJ_T; return TYPEOF; }
+        /* type */
+        if (strcmp(val, "int") == 0)            { kx_yylval.intval = KX_INT_T; return TYPE; }
         break;
     case 'n':
         if (strcmp(val, "null") == 0)           return NUL;
         if (strcmp(val, "new") == 0)            return NEW;
+        if (strcmp(val, "native") == 0)         return NATIVE;
         break;
     case 'p':
         if (strcmp(val, "public") == 0)         return PUBLIC;
