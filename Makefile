@@ -15,6 +15,7 @@ OBJS = \
     ast_display.o \
     ast_gencode.o \
     ast_object.o \
+    ast_nativeaot.o \
     bign.o \
     bigz.o \
     getopt.o \
@@ -23,6 +24,8 @@ OBJS = \
     ir_exec.o \
     ir_fix.o \
     ir_util.o \
+    ir_aotcore.o \
+    ir_aotutil.o \
     kstr.o \
     lexer.o \
     loadlib.o \
