@@ -119,13 +119,13 @@ int System_makeSuper(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
 typedef struct timer_ {
     LARGE_INTEGER freq;
     LARGE_INTEGER start;
-} timer_t;
+} systemtimer_t;
 #else
 #include <sys/time.h>
 #include <sys/resource.h>
 typedef struct timer_ {
     struct timeval s;
-} timer_t;
+} systemtimer_t;
 #endif
 
 #define KX_REGEX_GET_ANYOBJ(objtype, v, obj, name, t, w) \
@@ -146,7 +146,7 @@ int SystemTimer_elapsed(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     if (!obj) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SystemTimer object");
     }
-    KX_REGEX_GET_ANYOBJ(timer_t, v, obj, "_timer", "SystemException", "Invalid SystemTimer object");
+    KX_REGEX_GET_ANYOBJ(systemtimer_t, v, obj, "_timer", "SystemException", "Invalid SystemTimer object");
     #if defined(_WIN32) || defined(_WIN64)
     LARGE_INTEGER end;
     QueryPerformanceCounter(&end);
@@ -168,7 +168,7 @@ int SystemTimer_restart(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     if (!obj) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SystemTimer object");
     }
-    KX_REGEX_GET_ANYOBJ(timer_t, v, obj, "_timer", "SystemException", "Invalid SystemTimer object");
+    KX_REGEX_GET_ANYOBJ(systemtimer_t, v, obj, "_timer", "SystemException", "Invalid SystemTimer object");
     #if defined(_WIN32) || defined(_WIN64)
     QueryPerformanceCounter(&(v->start));
     #else
@@ -184,10 +184,15 @@ int SystemTimer_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
 {
     kx_obj_t *obj = allocate_obj(ctx);
     kx_any_t *a = allocate_any(ctx);
-    timer_t *v = a->p = kx_calloc(1, sizeof(timer_t));
+    systemtimer_t *v = a->p = kx_calloc(1, sizeof(systemtimer_t));
     a->any_free = kx_free;
+
+    #if defined(_WIN32) || defined(_WIN64)
     QueryPerformanceFrequency(&(v->freq));
     QueryPerformanceCounter(&(v->start));
+    #else
+    gettimeofday(&(v->s), NULL);
+    #endif
 
     KEX_SET_PROP_ANY(obj, "_timer", a);
     KEX_SET_METHOD("elapsed", obj, SystemTimer_elapsed);
