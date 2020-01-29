@@ -50,6 +50,7 @@ kx_context_t *make_context(void)
     ctx->big_alive = kl_init(big);
     ctx->str_alive = kl_init(str);
     ctx->builtin = kh_init(importlib);
+    ctx->nfuncs = kh_init(nativefunc);
     ctx->strlib = NULL;
     ctx->arylib = NULL;
     ctx->global_method_missing = NULL;
@@ -79,7 +80,17 @@ static void gc_unmark(kx_context_t *ctx)
     }
     kliter_t(obj) *pobj;
     for (pobj = kl_begin(ctx->obj_alive); pobj != kl_end(ctx->obj_alive); pobj = kl_next(pobj)) {
-        kl_val(pobj)->mark = 0;
+        kx_obj_t *c = kl_val(pobj);
+        c->mark = 0;
+        for (khint_t k = 0; k < kh_end(c->prop); ++k) {
+            if (kh_exist(c->prop, k)) {
+                kh_value(c->prop, k).mark = 0;
+            }
+        }
+        int len = kv_size(c->ary);
+        for (int i = 0; i < len; ++i) {
+            kv_A(c->ary, i).mark = 0;
+        }
     }
     kliter_t(any) *pany;
     for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
@@ -89,6 +100,7 @@ static void gc_unmark(kx_context_t *ctx)
     for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = kl_next(pfnc)) {
         kl_val(pfnc)->mark = 0;
         kl_val(pfnc)->val.mark = 0;
+        kl_val(pfnc)->push.mark = 0;
     }
     kliter_t(frm) *pfrm;
     for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = kl_next(pfrm)) {
@@ -173,12 +185,17 @@ static void gc_mark_val(kx_val_t *c)
         c->mark = 1;
         gc_mark_fnc(c->value.fn);
         break;
+    case KX_BFNC_T:
+        c->mark = 1;
+        gc_mark_fnc(c->value.fn);
+        break;
     case KX_FRM_T:
         c->mark = 1;
         gc_mark_frm(c->value.fr);
         break;
     case KX_ANY_T:
         c->mark = 1;
+        c->value.av->mark = 1;
         break;
     }
 }
@@ -230,7 +247,10 @@ static void gc_sweep(kx_context_t *ctx)
         } else {
             kx_any_t *v;
             kl_remove_next(any, ctx->any_alive, prevany, &v);
-            v->any_free(v->p);
+            if (v->p) {
+                v->any_free(v->p);
+                v->p = NULL;
+            }
             kv_push(kx_any_t*, ctx->any_dead, v);
         }
     }
@@ -247,6 +267,7 @@ static void gc_sweep(kx_context_t *ctx)
             v->method = NULL;
             v->typ = NULL;
             v->wht = NULL;
+            v->native.func = NULL;
             v->push.type = KX_UND_T;
             kv_push(kx_fnc_t*, ctx->fnc_dead, v);
         }
@@ -288,7 +309,6 @@ void gc_mark_and_sweep(kx_context_t *ctx)
     int size = kv_size(stack);
     for (int i = 0; i < size; ++i) {
         kx_val_t *c = &kv_A(stack, i);
-        c->mark = 0;
         gc_mark_val(c);
     }
 
@@ -421,6 +441,16 @@ static void builtin_cleanup(kx_context_t *ctx)
         }
     }
     kh_destroy(importlib, ctx->builtin);
+
+    for (khint_t k = 0; k < kh_end(ctx->nfuncs); ++k) {
+        if (kh_exist(ctx->nfuncs, k)) {
+            kx_native_function_t nf = kh_value(ctx->nfuncs, k);
+            if (nf.func) {
+                sljit_free_code(nf.func);
+            }
+        }
+    }
+    kh_destroy(nativefunc, ctx->nfuncs);
 }
 
 void context_cleanup(kx_context_t *ctx)

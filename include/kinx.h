@@ -171,6 +171,7 @@ enum opecode {
     KXST_THROW,     /* lhs: expr */
     KXST_CLASS,     /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
     KXST_FUNCTION,  /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
+    KXST_NATIVE,    /* s: name, lhs: arglist, rhs: block, optional: return type */
 
     KXST_BREAK,
     KXST_CONTINUE,
@@ -203,6 +204,7 @@ typedef struct kx_object_ {
 
     /* for values */
     int type;
+    int var_type;
     int optional;
     union {
         int64_t     i;
@@ -217,6 +219,8 @@ typedef struct kx_object_ {
     int pushes;
     int lexical_refs;
     int local_vars;
+    int count_args;
+    int callargs_max;
     int func;
 
     const char *file;
@@ -230,6 +234,9 @@ kvec_init_pt(kx_object_t);
 #define KX_BUF_MAX (2048)
 extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
+extern int g_yyerror;
+extern int g_yywarning;
+
 
 extern int file_exists(const char *p);
 extern void *load_library(const char *name, const char *envname);
@@ -239,6 +246,7 @@ extern const char *kxlib_file_exists(const char *file);
 
 extern void setup_lexinfo(const char *file, kx_yyin_t *yyin);
 extern int kx_yyparse(void);
+extern int kx_yyerror_line(const char *msg, const char* file, const int line);
 extern int kx_yyerror(const char *);
 extern int kx_yywarning(const char *);
 
@@ -256,9 +264,9 @@ extern const char *const_str(const char* name);
 extern const char *const_str2(const char* classname, const char* name);
 
 extern void free_nodes(void);
-extern const char *kx_append_string(const char *str1, const char *str2);
+extern void kx_make_native_mode(void);
 extern kx_object_t *kx_gen_special_object(int type);
-extern kx_object_t *kx_gen_var_object(const char *name);
+extern kx_object_t *kx_gen_var_object(const char *name, int var_type);
 extern kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type);
 extern kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value);
 extern kx_object_t *kx_gen_int_object(int64_t val);
@@ -282,6 +290,7 @@ extern int eval_file(const char *file, kx_context_t *ctx);
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
+extern kx_native_function_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node);
 extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module, const char *name);
 extern void ir_code_dump_one(int addr, kx_code_t *code);
 extern void ir_dump(kx_context_t *ctx);
@@ -291,14 +300,27 @@ extern int ir_exec(kx_context_t *ctx);
 
 extern void print_value(kx_val_t *v, int recursive);
 extern void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv);
-extern void print_uncaught_exception(kx_obj_t *val);
+extern void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *val);
 extern void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht);
 extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
 extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
+extern int native_function_check(sljit_sw s0, sljit_sw *s1, sljit_sw s2);
+extern void longjmp_hook(sljit_sw r);
+extern int call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);
+
+#define KX_NAT_MAX_FUNC_ARGS (31)
+
+#define KX_NAT_UNKNOWN_ERROR (1)
+#define KX_NAT_TOO_MUSH_ARGS (2)
+#define KX_NAT_INVALID_FUNCTION (3)
+#define KX_NAT_UNSUPPORTED_TYPE (4)
+#define KX_NAT_TOO_DEEP_TO_CALL_FUNC (5)
+
+/* for import library */
 
 #if defined(_WIN32) || defined(_WIN64)
 #define DllExport  __declspec(dllexport)
@@ -332,7 +354,8 @@ static inline const char *get_typename(int type)
     case KX_OBJ_T:  return "object";
     case KX_FNC_T:  return "function";
     case KX_FRM_T:  return "-";
-    case KX_BFNC_T: return "function";
+    case KX_BFNC_T: return "builtin-function";
+    case KX_NFNC_T: return "native-function";
     case KX_ADDR_T: return "-";
     case KX_ANY_T:  return "-";
     case KX_ARY_T:  return "array";

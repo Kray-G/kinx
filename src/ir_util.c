@@ -52,9 +52,9 @@ void print_value(kx_val_t *v, int recursive)
     case KX_FNC_T: {
         kx_frm_t *lex = v->value.fn->lex;
         if (lex) {
-            printf("(fnc) adr:%d, lex:(frm:%d)\n", v->value.fn->jp->i, lex->id);
+            printf("(fnc) adr:0x%x, lex:(frm:%d)\n", v->value.fn->jp->i, lex->id);
         } else {
-            printf("(fnc) adr:%d, lex:(none)\n", v->value.fn->jp->i);
+            printf("(fnc) adr:0x%x, lex:(none)\n", v->value.fn->jp->i);
         }
         break;
     }
@@ -65,6 +65,10 @@ void print_value(kx_val_t *v, int recursive)
         } else {
             printf("(fnc) bltin, lex:(none)\n");
         }
+        break;
+    }
+    case KX_NFNC_T: {
+        printf("(fnc) native, addr(%p), args(%d)\n", v->value.fn->native.func, v->value.fn->native.args);
         break;
     }
     case KX_FRM_T: {
@@ -85,7 +89,7 @@ void print_value(kx_val_t *v, int recursive)
         break;
     }
     case KX_ADDR_T:
-        printf("(adr) %d\n", v->value.jp->i);
+        printf("(adr) 0x%x\n", v->value.jp->i);
         break;
     default:
         printf("unknown(%d)\n", v->type);
@@ -113,18 +117,25 @@ void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv)
     printf("print_stack done.\n"); fflush(stdout);
 }
 
-void print_uncaught_exception(kx_obj_t *obj)
+void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
 {
     printf("Uncaught exception: No one catch the exception.\n");
-    kx_val_t *styp = NULL;
-    KEX_GET_PROP(styp, obj, "_type");
-    if (styp && styp->type == KX_STR_T) {
-        printf("%s: ", ks_string(styp->value.sv));
+    kx_val_t *sp = NULL;
+    KEX_GET_PROP(sp, obj, "_type");
+    if (sp && sp->type == KX_STR_T) {
+        printf("%s: ", ks_string(sp->value.sv));
     }
-    kx_val_t *swht = NULL;
-    KEX_GET_PROP(swht, obj, "_what");
-    if (swht && swht->type == KX_STR_T) {
-        printf("%s", ks_string(swht->value.sv));
+    sp = NULL;
+    KEX_GET_PROP(sp, obj, "_what");
+    if (sp && sp->type == KX_STR_T) {
+        printf("%s", ks_string(sp->value.sv));
+    }
+    if (ctx->options.exception_detail_info) {
+        sp = NULL;
+        KEX_GET_PROP(sp, obj, "_instr");
+        if (sp && sp->type == KX_INT_T) {
+            printf(", ip(%lld:0x%04llx)", sp->value.iv, sp->value.iv);
+        }
     }
     printf("\n");
     printf("Stack Trace Information:\n");
@@ -155,6 +166,9 @@ void print_uncaught_exception(kx_obj_t *obj)
             }
         }
     }
+    if (ctx->options.exception_detail_info) {
+        print_stack(ctx, NULL, NULL);
+    }
 }
 
 void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht)
@@ -164,23 +178,37 @@ void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const
         if (v->type != KX_OBJ_T) {
             kx_obj_t *obj = allocate_obj(ctx);
             KEX_SET_PROP(obj, "_value", v);
-            kstr_t *styp = allocate_str(ctx);
-            ks_append(styp, "UnknownException");
-            KEX_SET_PROP_STR(obj, "_type", styp);
-            kstr_t *swht = allocate_str(ctx);
-            ks_append(swht, "No message");
-            KEX_SET_PROP_STR(obj, "_what", swht);
+
+            kstr_t *sp = allocate_str(ctx);
+            ks_append(sp, "UnknownException");
+            KEX_SET_PROP_STR(obj, "_type", sp);
+
+            sp = allocate_str(ctx);
+            ks_append(sp, "No message");
+            KEX_SET_PROP_STR(obj, "_what", sp);
+
+            if (ctx->options.exception_detail_info) {
+                KEX_SET_PROP_INT(obj, "_instr", cur->i);
+            }
+
             v->type = KX_OBJ_T;
             v->value.ov = obj;
         }
     } else {
         kx_obj_t *obj = allocate_obj(ctx);
-        kstr_t *styp = allocate_str(ctx);
-        ks_append(styp, typ);
-        KEX_SET_PROP_STR(obj, "_type", styp);
-        kstr_t *swht = allocate_str(ctx);
-        ks_append(swht, wht);
-        KEX_SET_PROP_STR(obj, "_what", swht);
+
+        kstr_t *sp = allocate_str(ctx);
+        ks_append(sp, typ);
+        KEX_SET_PROP_STR(obj, "_type", sp);
+
+        sp = allocate_str(ctx);
+        ks_append(sp, wht);
+        KEX_SET_PROP_STR(obj, "_what", sp);
+
+        if (ctx->options.exception_detail_info) {
+            KEX_SET_PROP_INT(obj, "_instr", cur->i);
+        }
+
         v->type = KX_OBJ_T;
         v->value.ov = obj;
     }

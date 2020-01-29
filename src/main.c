@@ -31,6 +31,7 @@ static inline const char *startup_code()
         "import String;"
         "import Array;"
         "import Regex;"
+        "var SystemTimer = { create: System.SystemTimer_create };"
         "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };"
     ;
     return code;
@@ -49,19 +50,29 @@ static int eval(kx_context_t *ctx)
         fclose(kx_lexinfo.in.fp);
         kx_lexinfo.in.fp = NULL;
     }
-    if (r != 0) {
+    if (r != 0 || g_yyerror > 0) {
+        return -1;
+    }
+
+    start_analyze_ast(kx_ast_root);
+    if (g_yyerror > 0) {
         return -1;
     }
     if (ctx->options.ast) {
         return 0;
     }
 
-    start_analyze_ast(kx_ast_root);
     kx_module_t *module = kv_pushp(kx_module_t, ctx->module);
     memset(module, 0x00, sizeof(kx_module_t));
     int start = kv_size(ctx->fixcode);
     module->funclist = start_gencode_ast(kx_ast_root, ctx, module, name);
+    if (g_yyerror > 0) {
+        return -1;
+    }
     ir_fix_code(ctx, start);
+    if (g_yyerror > 0) {
+        return -1;
+    }
     return start;
 }
 
@@ -115,6 +126,33 @@ static void version(void)
     printf(PROGNAME " version %d.%d.%d\n", VER_MAJ, VER_MIN, VER_PAT);
 }
 
+#define LONGNAME_MAX (128)
+
+static void get_long_option(const char *optarg, char *lname, char *param)
+{
+    int i, head = 0;
+    for (i = 0; i < LONGNAME_MAX && optarg[i]; ++i) {
+        char c = optarg[i];
+        if (c == '=') {
+            lname[i] = 0;
+            head = i + 1;
+            continue;
+        }
+        if (head == 0) {
+            lname[i] = c;
+        } else {
+            param[i - head] = c;
+        }
+    }
+    if (head == 0) {
+        lname[i] = 0;
+        param[0] = '0';
+        param[1] = 0;
+    } else {
+        param[i] = 0;
+    }
+}
+
 int main(int ac, char **av)
 {
     int r = 1;
@@ -130,9 +168,19 @@ int main(int ac, char **av)
     }
 
     kx_context_t *ctx = make_context();
+    char lname[LONGNAME_MAX] = {0};
+    char param[LONGNAME_MAX] = {0};
     int opt;
     while ((opt = getopt(ac, av, "vhdDui")) != -1) {
         switch (opt) {
+        case '-':
+            get_long_option(optarg, lname, param);
+            if (!strcmp(lname, "native-call-max-depth")) {
+                ctx->options.max_call_depth = strtol(param, NULL, 0);
+            } else if (!strcmp(lname, "exception-detail-info")) {
+                ctx->options.exception_detail_info = strtol(param, NULL, 0);
+            }
+            break;
         case 'd':
             ctx->options.dump = 1;
             break;

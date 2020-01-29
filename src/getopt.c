@@ -75,8 +75,16 @@ int getopt(int argc, char **argv, char *opts)
    if ((c == '-') || (c == 0))
     {
      /* XXX: this behavior of "-" is stupid */
-     if (c)
+     if (c) {
+       c = argv[optind][2];
+       if (c != 0) {
+         optarg = argv[optind] + 2;
+         ++optind;
+         optpos = 0;
+         return '-';
+       }
        ++optind;
+     }
      optpos = 0;
      return opteof;
     }

@@ -45,6 +45,7 @@
     &&LBL_KX_PUSHS, \
     &&LBL_KX_PUSHB, \
     &&LBL_KX_PUSHF, \
+    &&LBL_KX_PUSHNF, \
     &&LBL_KX_PUSHV, \
     &&LBL_KX_PUSHLV, \
     &&LBL_KX_PUSHVL0, \

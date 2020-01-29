@@ -112,12 +112,99 @@ int System_makeSuper(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     return 0;
 }
 
+/* SystemTimer */
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+typedef struct timer_ {
+    LARGE_INTEGER freq;
+    LARGE_INTEGER start;
+} timer_t;
+#else
+#include <sys/time.h>
+#include <sys/resource.h>
+typedef struct timer_ {
+    struct timeval s;
+} timer_t;
+#endif
+
+#define KX_REGEX_GET_ANYOBJ(objtype, v, obj, name, t, w) \
+objtype *v = NULL; \
+if (obj) { \
+    kx_val_t *val = NULL; \
+    KEX_GET_PROP(val, obj, name); \
+    if (!val || val->type != KX_ANY_T) { \
+        KX_THROW_BLTIN_EXCEPTION(t, w); \
+    } \
+    v = (objtype *)(val->value.av->p); \
+} \
+/**/
+
+int SystemTimer_elapsed(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (!obj) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SystemTimer object");
+    }
+    KX_REGEX_GET_ANYOBJ(timer_t, v, obj, "_timer", "SystemException", "Invalid SystemTimer object");
+    #if defined(_WIN32) || defined(_WIN64)
+    LARGE_INTEGER end;
+    QueryPerformanceCounter(&end);
+    double elapsed = (double)(end.QuadPart - (v->start).QuadPart) / (v->freq).QuadPart;
+    #else
+    struct timeval e;
+    gettimeofday(&e, NULL);
+    double elapsed = (e.tv_sec - (v->s).tv_sec) + (e.tv_usec - (v->s).tv_usec) * 1.0e-6;
+    #endif
+
+    KX_ADJST_STACK();
+    push_d(ctx->stack, elapsed);
+    return 0;
+}
+
+int SystemTimer_restart(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (!obj) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SystemTimer object");
+    }
+    KX_REGEX_GET_ANYOBJ(timer_t, v, obj, "_timer", "SystemException", "Invalid SystemTimer object");
+    #if defined(_WIN32) || defined(_WIN64)
+    QueryPerformanceCounter(&(v->start));
+    #else
+    gettimeofday(&(v->s), NULL);
+    #endif
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
+    return 0;
+}
+
+int SystemTimer_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = allocate_obj(ctx);
+    kx_any_t *a = allocate_any(ctx);
+    timer_t *v = a->p = kx_calloc(1, sizeof(timer_t));
+    a->any_free = kx_free;
+    QueryPerformanceFrequency(&(v->freq));
+    QueryPerformanceCounter(&(v->start));
+
+    KEX_SET_PROP_ANY(obj, "_timer", a);
+    KEX_SET_METHOD("elapsed", obj, SystemTimer_elapsed);
+    KEX_SET_METHOD("restart", obj, SystemTimer_restart);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "makeSuper", System_makeSuper },
     { "print", System_print },
     { "println", System_println },
     { "exec", System_exec },
     { "abort", System_abort },
+    { "SystemTimer_create", SystemTimer_create },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

@@ -29,6 +29,33 @@ default: \
 } \
 /**/
 
+#define KX_NATIVE_FUNCTION_ERROR(r) \
+switch (r) { \
+case KX_NAT_UNKNOWN_ERROR: { \
+    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unknown error occurred"); \
+    break; \
+} \
+case KX_NAT_TOO_MUSH_ARGS: { \
+    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too much argument"); \
+    break; \
+} \
+case KX_NAT_INVALID_FUNCTION: { \
+    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Invalid function address"); \
+    break; \
+} \
+case KX_NAT_UNSUPPORTED_TYPE: { \
+    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unsupported argument type"); \
+    break; \
+} \
+case KX_NAT_TOO_DEEP_TO_CALL_FUNC: { \
+    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too deep to call function"); \
+    break; \
+} \
+default: \
+    break; \
+} \
+/**/
+
 #define KX_CALL_FUNCTION(fn, name, host) \
 { \
     if (!fn) { \
@@ -89,6 +116,11 @@ default: \
         KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
+    } else if (fv->type == KX_NFNC_T) { \
+        kv_remove_last((ctx)->stack); \
+        int r = call_native(ctx, cur->count, fv->value.fn); \
+        KX_NATIVE_FUNCTION_ERROR(r); \
+        cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
         KX_CALL_FUNCTION(fn, fv->method, fv->host); \
@@ -119,6 +151,10 @@ default: \
         KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
+    } else if (fv->type == KX_NFNC_T) { \
+        int r = call_native(ctx, cur->count, fv->value.fn); \
+        KX_NATIVE_FUNCTION_ERROR(r); \
+        cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
         KX_CALL_FUNCTION(fn, NULL, NULL); \
@@ -144,6 +180,10 @@ default: \
         KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
+    } else if (fv->type == KX_NFNC_T) { \
+        int r = call_native(ctx, cur->count, fv->value.fn); \
+        KX_NATIVE_FUNCTION_ERROR(r); \
+        cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
         KX_CALL_FUNCTION(fn, NULL, NULL); \
@@ -168,6 +208,10 @@ default: \
         int r; \
         KX_CALLBUILTIN_FUNCTION(r); \
         KX_BUILTIN_FUNCTION_ERROR(r); \
+        cur = cur->next; \
+    } else if (fv->type == KX_NFNC_T) { \
+        int r = call_native(ctx, cur->count, fv->value.fn); \
+        KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
@@ -209,6 +253,10 @@ default: \
             int r; \
             KX_CALLBUILTIN_FUNCTION(r); \
             KX_BUILTIN_FUNCTION_ERROR(r); \
+            cur = cur->next; \
+        } else if (fv->type == KX_NFNC_T) { \
+            int r = call_native(ctx, cur->count, fv->value.fn); \
+            KX_NATIVE_FUNCTION_ERROR(r); \
             cur = cur->next; \
         } else { \
             kx_fnc_t *fn = search_array_function(ctx, name, lv); \

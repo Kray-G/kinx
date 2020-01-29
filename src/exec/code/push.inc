@@ -65,6 +65,13 @@
 } \
 /**/
 
+#define KX_PUSHNF_CODE() \
+{ \
+    push_nf((ctx)->stack, cur->value2.n); \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_PUSHLV_CODE() \
 { \
     int lex = cur->value1.i; \

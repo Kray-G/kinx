@@ -2,7 +2,7 @@
 #define KX_THROW_CODE() \
 { \
     if (kv_size((ctx)->exception) == 0) { \
-        print_uncaught_exception((ctx)->excval.value.ov); \
+        print_uncaught_exception(ctx, (ctx)->excval.value.ov); \
         goto LBL_KX_END_OF_CODE; \
     } \
     kx_exc_t *e = &kv_pop((ctx)->exception); \
@@ -18,7 +18,7 @@
 #define KX_THROWA_CODE() \
 { \
     if (kv_size((ctx)->exception) == 0) { \
-        print_uncaught_exception((ctx)->excval.value.ov); \
+        print_uncaught_exception(ctx, (ctx)->excval.value.ov); \
         goto LBL_KX_END_OF_CODE; \
     } \
     kx_exc_t *e = &kv_pop((ctx)->exception); \
@@ -35,7 +35,7 @@
 { \
     make_exception_object(&((ctx)->excval), ctx, cur, NULL, NULL); /* from stack */ \
     if (kv_size((ctx)->exception) == 0) { \
-        print_uncaught_exception((ctx)->excval.value.ov); \
+        print_uncaught_exception(ctx, (ctx)->excval.value.ov); \
         goto LBL_KX_END_OF_CODE; \
     } \
     kx_exc_t *e = &kv_pop((ctx)->exception); \
