@@ -1,0 +1,57 @@
+var n = 10000;
+
+native loop_while(n) {
+    var v = 0, i = 0;
+    while (i <= n) {
+        v += i++;
+    }
+    return v;
+}
+
+native loop_for(n) {
+    var v = 0;
+    for (var i = 0; i <= n; ++i) {
+        v += i;
+    }
+    return v;
+}
+
+native loop_do_while(n) {
+    var v = 0, i = 0;
+    do {
+        v += i++;
+    } while (i <= n);
+    return v;
+}
+
+System.println("while(%{n})    = ", loop_while(n));
+System.println("for(%{n})      = ", loop_for(n));
+System.println("do_while(%{n}) = ", loop_do_while(n));
+
+function loop_while(n) {
+    var v = 0, i = 0;
+    while (i <= n) {
+        v += i++;
+    }
+    return v;
+}
+
+function loop_for(n) {
+    var i, v = 0;
+    for (i = 0; i <= n; ++i) {
+        v += i;
+    }
+    return v;
+}
+
+function loop_do_while(n) {
+    var v = 0, i = 0;
+    do {
+        v += i++;
+    } while (i <= n);
+    return v;
+}
+
+System.println("while(%{n})    = ", loop_while(n));
+System.println("for(%{n})      = ", loop_for(n));
+System.println("do_while(%{n}) = ", loop_do_while(n));

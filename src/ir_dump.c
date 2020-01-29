@@ -183,6 +183,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
             printf("%-23s %s => .L%"PRId64, "pushf", code->value1.s, code->value2.i);
         }
         break;
+    case KX_PUSHNF:
+            printf("%-23s %s(args:%d) => %p", "pushnf", code->value1.s, code->value2.n.args, code->value2.n.func);
+        break;
     case KX_PUSHV:
         printf("%-23s %s", "pushv", gen_varloc(code)); /* push variable value */
         break;

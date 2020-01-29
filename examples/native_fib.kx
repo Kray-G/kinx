@@ -1,7 +1,7 @@
-
-native:int fib(a:int) {
+native fib(a) {
     if (a < 3) return a;
     return fib(a-2) + fib(a-1);
 }
 
 System.println("fib(34) = ", fib(34));
+

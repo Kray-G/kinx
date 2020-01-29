@@ -3,6 +3,7 @@
 *.dll
 *.exp
 *.lib
+*.s
 *.output
 *.c.parser
 src/parser.c

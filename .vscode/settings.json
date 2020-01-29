@@ -9,6 +9,12 @@
         "system_error": "c",
         "xlocale": "c",
         "xiosbase": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "memory": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "xmemory0": "c",
+        "xtr1common": "c"
     }
 }

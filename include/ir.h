@@ -8,6 +8,8 @@
 #include <klist.h>
 #include <kstr.h>
 #include <bigz.h>
+#include <bigz.h>
+#include <jit.h>
 
 enum irop {
     KX_HALT,
@@ -47,6 +49,7 @@ enum irop {
     KX_PUSHS,
     KX_PUSHB,
     KX_PUSHF,
+    KX_PUSHNF,
     KX_PUSHV,
     KX_PUSHLV,
     KX_PUSHVL0,
@@ -233,6 +236,15 @@ kvec_init_t(int);
 kvec_init_t(uint32_t);
 struct kx_object_;
 
+typedef int (*kx_native_funcp_t)(void*, sljit_sw*, int);
+
+typedef struct kx_native_function_ {
+    kx_native_funcp_t func;
+    int ret_type;
+    int arg_types;
+    int args;
+} kx_native_function_t;
+
 typedef struct kx_code_ {
     struct kx_code_ *next;
     struct kx_code_ *jmp;
@@ -246,6 +258,7 @@ typedef struct kx_code_ {
         int64_t i;
         double d;
         const char *s;
+        kx_native_function_t n;
     } value1, value2;
     #if defined(KX_DIRECT_THREAD)
     void *gotolabel;
@@ -297,7 +310,6 @@ kvec_init_t(kx_module_t);
 
 typedef kvec_nt(struct kx_object_*) kx_finally_vec_t;
 typedef struct kx_analyze_ {
-    int def_func;
     int classname;
     int function;
     int block;
@@ -332,6 +344,7 @@ typedef const char *(*get_bltin_name_t)(int index);
 typedef call_direct_func_t (*get_bltin_address_t)(int index);
 
 enum irexec {
+    KX_UNKNOWN_T = -1,
     KX_UND_T = 0,   /* undefined(null) must be 0 because it becomes undefined after clearing with 0. */
     KX_INT_T,
     KX_BIG_T,       /* Big Integer */
@@ -343,6 +356,7 @@ enum irexec {
     KX_FNC_T,
     KX_FRM_T,
     KX_BFNC_T,
+    KX_NFNC_T,
     KX_ADDR_T,
     KX_ANY_T,
     KX_ARY_T,       /* used only with typeof */
@@ -400,6 +414,7 @@ typedef struct kx_fnc_ {
     uint8_t mark;
     kx_code_t *jp;
     call_direct_func_t func;
+    kx_native_function_t native;
     struct kx_frm_ *lex;
     struct kx_val_ val;
     const char *method;
@@ -461,9 +476,12 @@ typedef struct kx_options_ {
     int ast:1;
     int src_stdin:1;
     int utf8inout:1;
+    int exception_detail_info:1;
+    uint16_t max_call_depth;
 } kx_options_t;
 
 KHASH_MAP_INIT_STR(importlib, kx_bltin_t*)
+KHASH_MAP_INIT_STR(nativefunc, kx_native_function_t)
 
 typedef struct kx_context_ {
     kx_frm_t *frmv;
@@ -486,6 +504,7 @@ typedef struct kx_context_ {
 
     kvec_t(kx_module_t) module;
     khash_t(importlib) *builtin;
+    khash_t(nativefunc) *nfuncs;
     kx_code_t *caller;
     kx_options_t options;
     kx_obj_t *strlib;
@@ -581,6 +600,13 @@ typedef struct kx_context_ {
         fnc->jp = jmp; \
         fnc->lex = lexv; \
         push_fnc(KX_FNC_T, (ctx)->stack, fnc); \
+    } while (0);\
+/**/
+#define push_nf(st, n) \
+    do {\
+        kx_fnc_t *fnc = allocate_fnc(ctx); \
+        fnc->native = n; \
+        push_fnc(KX_NFNC_T, (ctx)->stack, fnc); \
     } while (0);\
 /**/
 #define push_bf(st, idx, lexv) \
