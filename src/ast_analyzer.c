@@ -8,6 +8,7 @@ typedef struct kxana_context_ {
     int lvalue;
     int decl;
     int depth;
+    int in_native;
     int class_id;
     kx_object_t *class_node;
     kx_object_t *func;
@@ -34,6 +35,9 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
                         sym->lexical_index = i - 1;
                     }
                 }
+                if (sym->base->var_type == KX_UNKNOWN_T && ctx->in_native) {
+                    sym->base->var_type = KX_INT_T; // automatically set it.
+                }
                 return sym;
             }
         }
@@ -49,10 +53,27 @@ DECL_VAR:
         ++(ctx->func->local_vars);
         sym.lexical_index = 0;
         sym.base = node;
+        if (node->var_type == KX_UNKNOWN_T && ctx->in_native) {
+            node->var_type = KX_INT_T;  // automatically set it.
+        }
         kv_push(kxana_symbol_t, table->list, sym);
         return &kv_last(table->list);
     }
     return NULL;
+}
+
+static int count_args(kx_object_t *node)
+{
+    int count = 0;
+    if (!node) {
+        return 0;
+    }
+    if (node->type == KXST_EXPRLIST) {
+        count += count_args(node->lhs);
+        count += count_args(node->rhs);
+        return count;
+    }
+    return 1;
 }
 
 static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
@@ -81,9 +102,14 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
+        node->var_type = sym->base->var_type;
         break;
     }
     case KXOP_KEYVALUE:
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use key-value object in native function.", node->file, node->line);
+            break;
+        }
         analyze_ast(node->lhs, ctx);
         break;
 
@@ -109,7 +135,17 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         break;
     case KXOP_MKARY:
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use array object in native function.", node->file, node->line);
+            break;
+        }
+        analyze_ast(node->lhs, ctx);
+        break;
     case KXOP_MKOBJ:
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use key-value object in native function.", node->file, node->line);
+            break;
+        }
         analyze_ast(node->lhs, ctx);
         break;
 
@@ -151,7 +187,16 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_XOR:
     case KXOP_LAND:
     case KXOP_LOR:
+        analyze_ast(node->lhs, ctx);
+        analyze_ast(node->rhs, ctx);
+        break;
     case KXOP_IDX:
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use apply index operation in native function.", node->file, node->line);
+        }
+        analyze_ast(node->lhs, ctx);
+        analyze_ast(node->rhs, ctx);
+        break;
     case KXOP_EQEQ:
     case KXOP_NEQ:
     case KXOP_LE:
@@ -160,11 +205,19 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_GT:
     case KXOP_LGE:
     case KXOP_CALL:
+        node->count_args = count_args(node->rhs);
+        if (ctx->func && node->count_args > ctx->func->callargs_max) {
+            ctx->func->callargs_max = node->count_args;
+        }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
         break;
 
     case KXOP_TYPEOF:
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use type property in native function.", node->file, node->line);
+            break;
+        }
         analyze_ast(node->lhs, ctx);
         break;
 
@@ -227,6 +280,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->ex, ctx);
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use try-catch in native function.", node->file, node->line);
+            break;
+        }
         kxana_symbol_t* table = &(kv_last(ctx->symbols));
         int size = kv_size(table->list);
         analyze_ast(node->lhs, ctx);
@@ -238,6 +295,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use try-catch in native function.", node->file, node->line);
+            break;
+        }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
         break;
@@ -246,9 +307,17 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         break;
     case KXST_THROW:      /* lhs: expr */
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use throw in native function.", node->file, node->line);
+            break;
+        }
         analyze_ast(node->lhs, ctx);
         break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
+        if (ctx->in_native) {
+            kx_yyerror_line("Do not define class in native function.", node->file, node->line);
+            break;
+        }
         kx_object_t *class_node = ctx->class_node;
         ctx->class_node = node;
         int depth = ctx->depth;
@@ -268,7 +337,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         int decl = ctx->decl;
         ctx->decl = 1;
         if (node->lhs) {
+            node->count_args = count_args(node->lhs);
             analyze_ast(node->lhs, ctx);
+        } else {
+            node->count_args = 0;
         }
         ctx->decl = decl;
         if (node->ex) {
@@ -282,20 +354,31 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         ctx->class_node = class_node;
         break;
     }
-    case KXST_FUNCTION: { /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
+    case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
+    case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: optional: return type */
         int depth = ctx->depth;
         ++ctx->depth;
-        if (node->optional != KXFT_ANONYMOUS) {
-            int lvalue = ctx->lvalue;
-            ctx->lvalue = 1;
+        if (node->type == KXST_NATIVE) {
             kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
-            assert(sym);
-            ctx->lvalue = lvalue;
-            if (ctx->class_node && !strcmp(node->value.s, "initialize")) {
-                ctx->class_node->init = node;
+            sym->base->var_type = KX_NFNC_T;
+        } else {
+            if (ctx->in_native) {
+                kx_yyerror_line("Do not define function in native function.", node->file, node->line);
+                break;
+            }
+            if (node->optional != KXFT_ANONYMOUS) {
+                int lvalue = ctx->lvalue;
+                ctx->lvalue = 1;
+                kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
+                assert(sym);
+                ctx->lvalue = lvalue;
+                if (ctx->class_node && !strcmp(node->value.s, "initialize")) {
+                    ctx->class_node->init = node;
+                }
             }
         }
 
+        ctx->in_native = node->type == KXST_NATIVE;
         if (ctx->func) {
             ctx->func->lexical_refs = 1;
         }
@@ -305,7 +388,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         int decl = ctx->decl;
         ctx->decl = 1;
         if (node->lhs) {
+            node->count_args = count_args(node->lhs);
             analyze_ast(node->lhs, ctx);
+        } else {
+            node->count_args = 0;
         }
         ctx->decl = decl;
         analyze_ast(node->rhs, ctx);
@@ -313,6 +399,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         node->symbols = kv_last(ctx->symbols);
         kv_remove_last(ctx->symbols);
         ctx->depth = depth;
+        ctx->in_native = 0;
         break;
     }
     default:

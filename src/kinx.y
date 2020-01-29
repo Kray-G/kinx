@@ -22,7 +22,7 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE
-%token NEW VAR FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
+%token NEW VAR NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
@@ -31,6 +31,7 @@
 %token<strval> STR
 %token<strval> BIGINT
 %token<intval> INT
+%token<intval> TYPE
 %token<intval> TYPEOF
 %token<dblval> DBL
 
@@ -91,6 +92,7 @@
 %type<obj> Argument
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
+%type<intval> NativeType
 
 %%
 
@@ -116,7 +118,7 @@ Statement
     | DefinitionStatement
     | BreakStatement
     | LabelStatement
-    | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3), kx_gen_import_object($5)); }
+    | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
     ;
 
 BlockStatement
@@ -156,11 +158,26 @@ DoWhileStatement
 
 ForStatement
     : FOR '(' VAR DeclAssignExpressionList ';' AssignExpression_Opt ';' AssignExpression_Opt ')' Statement
-        { $$ = kx_gen_stmt_object(KXST_FOR, kx_gen_stmt_object(KXST_FORCOND, $4, $6, $8), $10, NULL); }
+        { $$ = kx_gen_stmt_object(KXST_FOR,
+            kx_gen_stmt_object(KXST_FORCOND,
+                $4,
+                $6,
+                kx_gen_stmt_object(KXST_EXPR, $8, NULL, NULL)),
+            $10, NULL); }
     | FOR '(' AssignExpression ';' AssignExpression_Opt ';' AssignExpression_Opt ')' Statement
-        { $$ = kx_gen_stmt_object(KXST_FOR, kx_gen_stmt_object(KXST_FORCOND, $3, $5, $7), $9, NULL); }
+        { $$ = kx_gen_stmt_object(KXST_FOR,
+            kx_gen_stmt_object(KXST_FORCOND,
+                kx_gen_stmt_object(KXST_EXPR, $3, NULL, NULL),
+                $5,
+                kx_gen_stmt_object(KXST_EXPR, $7, NULL, NULL)),
+            $9, NULL); }
     | FOR '(' ';' AssignExpression_Opt ';' AssignExpression_Opt ')' Statement
-        { $$ = kx_gen_stmt_object(KXST_FOR, kx_gen_stmt_object(KXST_FORCOND, NULL, $4, $6), $8, NULL); }
+        { $$ = kx_gen_stmt_object(KXST_FOR,
+            kx_gen_stmt_object(KXST_FORCOND,
+                NULL,
+                $4,
+                kx_gen_stmt_object(KXST_EXPR, $6, NULL, NULL)),
+            $8, NULL); }
     ;
 
 TryCatchStatement
@@ -308,7 +325,7 @@ Factor
     | DBL { $$ = kx_gen_dbl_object($1); }
     | BIGINT { $$ = kx_gen_big_object($1); }
     | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
-    | NAME { $$ = kx_gen_var_object($1); }
+    | NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | String
@@ -317,7 +334,7 @@ Factor
     | IMPORT '(' STR ')' { $$ = kx_gen_import_object($3); }
     | '(' AssignAndAnonymousFunctionDeclStatement ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
-    | '@' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object($2)); }
+    | '@' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object($2)); }
     ;
 
 String
@@ -364,8 +381,10 @@ DeclAssignExpressionList
     ;
 
 DeclAssignExpression
-    : NAME { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1), NULL); }
-    | NAME '=' AssignAndAnonymousFunctionDeclStatement { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1), $3); }
+    : NAME { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
+    | NAME ':' TYPE { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), NULL); }
+    | NAME '=' AssignAndAnonymousFunctionDeclStatement { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
+    | NAME ':' TYPE '=' AssignAndAnonymousFunctionDeclStatement { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), $5); }
     ;
 
 FunctionDeclStatement
@@ -375,6 +394,16 @@ FunctionDeclStatement
 
 NormalFunctionDeclStatement
     : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, $4, $6, NULL); }
+    | NativeKeyword NativeType NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, $3, $5, $7, NULL); }
+    ;
+
+NativeKeyword
+    : NATIVE { kx_make_native_mode(); }
+    ;
+
+NativeType
+    : { $$ = KX_UNKNOWN_T; }
+    | ':' TYPE { $$ = $2; }
     ;
 
 AnonymousFunctionDeclStatement
@@ -397,10 +426,10 @@ Inherit_Opt
     | ':' Factor ClassCallArgumentList_Opts
         {
             $$ = kx_gen_bexpr_object(KXST_STMTLIST,
-                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"),
+                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this", KX_UNKNOWN_T),
                     kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")), $3)),
-                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("super"),
-                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System"), kx_gen_str_object("makeSuper")), kx_gen_var_object("this")))
+                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("super", KX_UNKNOWN_T),
+                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_UNKNOWN_T), kx_gen_str_object("makeSuper")), kx_gen_var_object("this", KX_UNKNOWN_T)))
             );
         }
     ;
@@ -421,7 +450,8 @@ ArgumentList
     ;
 
 Argument
-    : NAME { $$ = kx_gen_var_object($1); }
+    : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | NAME ':' TYPE { $$ = kx_gen_var_object($1, $3); }
     ;
 
 ClassCallArgumentList_Opts
@@ -443,16 +473,35 @@ CallArgumentList
 
 int yyerror(const char *msg)
 {
+    ++g_yyerror;
     if (!kx_lexinfo.quiet) {
-        return printf("Error: %s at the line %d (pos:%d)\n", msg, kx_lexinfo.line, kx_lexinfo.pos);
+        if (kx_lexinfo.file) {
+            return printf("Error: %s near the %s:%d\n", msg, kx_lexinfo.file, kx_lexinfo.line);
+        } else {
+            return printf("Error: %s near the <eval>:%d\n", msg, kx_lexinfo.line);
+        }
+    }
+    return 0;
+}
+
+int kx_yyerror_line(const char *msg, const char* file, const int line)
+{
+    ++g_yyerror;
+    if (!kx_lexinfo.quiet) {
+        return printf("Error: %s near the %s:%d\n", msg, file, line);
     }
     return 0;
 }
 
 int kx_yywarning(const char *msg)
 {
+    ++g_yywarning;
     if (!kx_lexinfo.quiet) {
-        return printf("Warning: %s at the line %d (pos:%d)\n", msg, kx_lexinfo.line, kx_lexinfo.pos);
+        if (kx_lexinfo.file) {
+            return printf("Warning: %s near the %s:%d\n", msg, kx_lexinfo.file, kx_lexinfo.line);
+        } else {
+            return printf("Warning: %s near the <eval>:%d\n", msg, kx_lexinfo.line);
+        }
     }
     return 0;
 }

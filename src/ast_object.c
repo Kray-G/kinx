@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <kinx.h>
 
+static int sg_native = 0; /* use this for ... something? */
+
 kx_object_t *kx_obj_alloc(void)
 {
     kx_object_t *obj = (kx_object_t *)kx_calloc(1, sizeof(kx_object_t));
@@ -27,6 +29,11 @@ void free_nodes(void)
     }
 }
 
+void kx_make_native_mode(void)
+{
+    sg_native = 1;
+}
+
 kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     kx_object_t *obj = kx_obj_alloc();
@@ -45,10 +52,11 @@ kx_object_t *kx_gen_special_object(int type)
     return kx_gen_obj(type, 0, NULL, NULL, NULL);
 }
 
-kx_object_t *kx_gen_var_object(const char *name)
+kx_object_t *kx_gen_var_object(const char *name, int var_type)
 {
     kx_object_t *obj = kx_gen_obj(KXOP_VAR, 0, NULL, NULL, NULL);
     obj->value.s = name;
+    obj->var_type = var_type;
     return obj;
 }
 
@@ -157,7 +165,7 @@ kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs)
 
 kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block, kx_object_t *ex)
 {
-    kx_object_t *decl = kx_gen_bassign_object(KXOP_DECL, kx_gen_var_object(name), NULL);
+    kx_object_t *decl = kx_gen_bassign_object(KXOP_DECL, kx_gen_var_object(name, KX_UNKNOWN_T), NULL);
     kx_object_t *obj = kx_gen_obj(type, 0, decl, block, ex);
     return obj;
 }
@@ -173,27 +181,25 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
 {
     static int classid = 0;
     static int counter = 0;
-    // kx_object_t *ret = (type == KXST_CLASS)
-    //     ? kx_gen_stmt_object(KXST_RET, kx_gen_var_object("this"), NULL, NULL)
-    //     : kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
-    // rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
-    if (type != KXST_CLASS) {
+    if (type == KXST_NATIVE) {
+        sg_native = 0;
+    } else if (type != KXST_CLASS) {
         kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
         rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
     } else {
         ++classid;
         rhs = kx_gen_bexpr_object(KXST_STMTLIST,
-            kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("_classid"), NULL),
+            kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("_classid", KX_UNKNOWN_T), NULL),
             rhs
         );
         rhs = kx_gen_bexpr_object(KXST_STMTLIST,
             rhs,
             kx_gen_stmt_object(KXST_EXPR,
                 kx_gen_bassign_object(KXOP_ASSIGN,
-                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name), kx_gen_str_object("_classid")),
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name, KX_UNKNOWN_T), kx_gen_str_object("_classid")),
                     kx_gen_bassign_object(KXOP_ASSIGN,
-                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object("_classid")),
-                        kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object("_classid"), kx_gen_int_object(classid))
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object("_classid")),
+                        kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object("_classid", KX_UNKNOWN_T), kx_gen_int_object(classid))
                     )
                 ),
             NULL, NULL)
@@ -202,19 +208,19 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
             ?  kx_gen_stmt_object(KXST_RET,
                     kx_gen_bexpr_object(KXOP_LOR,
                         kx_gen_bexpr_object(KXOP_EQEQ,
-                            kx_gen_var_object("_classid"),
-                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("classobj"), kx_gen_str_object("_classid"))
+                            kx_gen_var_object("_classid", KX_UNKNOWN_T),
+                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("classobj", KX_UNKNOWN_T), kx_gen_str_object("_classid"))
                         ),
                         kx_gen_bexpr_object(KXOP_CALL,
-                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("super"), kx_gen_str_object("instanceOf")),
-                            kx_gen_var_object("classobj")
+                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("super", KX_UNKNOWN_T), kx_gen_str_object("instanceOf")),
+                            kx_gen_var_object("classobj", KX_UNKNOWN_T)
                         )
                     ),
                 NULL, NULL)
             : kx_gen_stmt_object(KXST_RET,
                     kx_gen_bexpr_object(KXOP_EQEQ,
-                        kx_gen_var_object("_classid"),
-                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("classobj"), kx_gen_str_object("_classid"))
+                        kx_gen_var_object("_classid", KX_UNKNOWN_T),
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("classobj", KX_UNKNOWN_T), kx_gen_str_object("_classid"))
                     ),
                 NULL, NULL)
             ;
@@ -222,18 +228,18 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
             rhs,
             kx_gen_stmt_object(KXST_EXPR,
                 kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, "instanceOf",
-                    kx_gen_var_object("classobj"),
+                    kx_gen_var_object("classobj", KX_UNKNOWN_T),
                     kx_gen_bexpr_object(KXST_STMTLIST, instanceOf, NULL),
                 NULL),
             NULL, NULL)
         );
         rhs = kx_gen_bexpr_object(KXST_STMTLIST,
             rhs,
-            kx_gen_stmt_object(KXST_RET, kx_gen_var_object("this"), NULL, NULL)
+            kx_gen_stmt_object(KXST_RET, kx_gen_var_object("this", KX_UNKNOWN_T), NULL, NULL)
         );
     }
     if (!ex) {
-        ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this"), NULL);
+        ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this", KX_UNKNOWN_T), NULL);
     }
 
     const char *pname = name;
@@ -246,9 +252,9 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     if (!pname) {
         assign = obj;
     } else if (type != KXST_CLASS) {
-        assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name), obj);
+        assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name, KX_UNKNOWN_T), obj);
     } else {
-        assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name), kx_gen_str_object("create"));
+        assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name, KX_UNKNOWN_T), kx_gen_str_object("create"));
         assign = kx_gen_bassign_object(KXOP_ASSIGN, assign, obj);
     }
     kx_object_t *stmt;
@@ -260,7 +266,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     }
     case KXFT_PROTECTED:
     case KXFT_PUBLIC: {
-        kx_object_t *prop = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this"), kx_gen_str_object(name));
+        kx_object_t *prop = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object(name));
         kx_object_t *passign = kx_gen_bassign_object(KXOP_ASSIGN, prop, assign);
         stmt = passign;
         break;

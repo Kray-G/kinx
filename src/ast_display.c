@@ -47,10 +47,18 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
 
     case KXOP_VAR:
-        if (node->lexical_refs) {
-            printf("%c(var:%s) [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index, node->lexical_refs);
+        if (node->var_type == KX_UNKNOWN_T) {
+            if (node->lexical_refs) {
+                printf("%c(var:%s) [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index, node->lexical_refs);
+            } else {
+                printf("%c(var:%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index);
+            }
         } else {
-            printf("%c(var:%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index);
+            if (node->lexical_refs) {
+                printf("%c(var:%s):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, get_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
+            } else {
+                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_typename(node->var_type), node->lexical, node->index);
+            }
         }
         break;
     case KXOP_KEYVALUE:
@@ -396,6 +404,17 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
             node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function",
             node->value.s,
             node->lexical_refs);
+        if (node->lhs) {
+            print_indent(node, indent + 1);
+            printf("(argument)\n");
+            display_ast(node->lhs, indent + 2, 0);
+        }
+        display_ast(node->rhs, indent + 1, 0);
+        break;
+    case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: optional: return type */
+        printf("ret:%s native(%s)\n",
+            get_typename(node->optional),
+            node->value.s);
         if (node->lhs) {
             print_indent(node, indent + 1);
             printf("(argument)\n");
