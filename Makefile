@@ -26,6 +26,7 @@ OBJS = \
     ir_util.o \
     ir_aotcore.o \
     ir_aotutil.o \
+    ir_aotdump.o \
     kstr.o \
     lexer.o \
     loadlib.o \

@@ -134,7 +134,7 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
         sp = NULL;
         KEX_GET_PROP(sp, obj, "_instr");
         if (sp && sp->type == KX_INT_T) {
-            printf(", ip(%lld:0x%04llx)", sp->value.iv, sp->value.iv);
+            printf(", ip(%"PRId64":0x%04"PRIx64")", sp->value.iv, sp->value.iv);
         }
     }
     printf("\n");
