@@ -1,2 +1,2 @@
 @echo off
-nmake -f Makefile.msc 
+nmake -f Makefile.msc %*
