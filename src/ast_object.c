@@ -139,9 +139,9 @@ kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
     return lhs;
 }
 
-kx_object_t *kx_gen_texpr_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+kx_object_t *kx_gen_texpr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
-    return kx_gen_obj(type, 0, lhs, rhs, ex);
+    return kx_gen_obj(KXOP_TER, 0, lhs, rhs, ex);
 }
 
 kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)

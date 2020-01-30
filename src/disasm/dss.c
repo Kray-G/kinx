@@ -1,12 +1,15 @@
 #include "dss.h"
 
+const char *kxlib_file_exists(const char *file);
+
 const char *dss_instr_type_str[6] = {
 	"arithmetic", "logical", "data processing", "stack", "conditional branch", "unconditional branch"
 };
 
 void parse_sem_file(const char *file, struct hash_table *stable)
 {
-	FILE *fp = fopen(file, "r");
+	file = kxlib_file_exists(file);
+	FILE *fp = fopen(file, "rb");
 	if (!fp) {
 		printf("Error opening semantic file %s\n", file);
 		return;
@@ -21,8 +24,9 @@ void parse_sem_file(const char *file, struct hash_table *stable)
 	rewind(fp);
 	char *buffer = malloc(len+1);
 	memset(buffer, 0, len);
-	if (fread(buffer, 1, len, fp) != (size_t)len) {
-		printf("Error reading from file\n");
+	int l;
+	if ((l = fread(buffer, 1, len, fp)) != (size_t)len) {
+		printf("Error reading from file: read:%d <=> %d\n", l, len);
 		fclose(fp);
 		free(buffer);
 		return;

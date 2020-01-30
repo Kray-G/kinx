@@ -12,10 +12,10 @@ struct disassembler *ds_init(int arch, int mode)
 	ds->asm_table = hash_table_init(101);
 	if (arch == X86_ARCH) {
 		x86_parse(ds->root, ds->asm_table, mode);
-		parse_sem_file("src/spec/x86.spec", ds->sem_table);
+		parse_sem_file("x86.spec", ds->sem_table);
 	} else if (arch == MIPS_ARCH) {
 		mips_parse(ds->root, ds->asm_table, mode);
-		parse_sem_file("src/spec/mips.spec", ds->sem_table);
+		parse_sem_file("mips.spec", ds->sem_table);
 	} else if (arch == ARM_ARCH) {
 		arm_parse(ds->root, ds->asm_table, mode);
 	}

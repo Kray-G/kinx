@@ -425,6 +425,7 @@ HEAD_OF_YYLEX:
     case ':':
     case ',':
     case '.':
+    case '?':
     case ';': {
         int ch = kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);

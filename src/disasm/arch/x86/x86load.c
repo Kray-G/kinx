@@ -1,12 +1,11 @@
 #include "x86load.h"
 
+const char *kxlib_file_exists(const char *file);
+
 void x86_parse(struct trie_node *root, struct hash_table *table, int mode)
 {
-	FILE *fp = NULL;
-	if (mode == MODE_32B)
-		fp = fopen("./src/arch/x86/x86.ins", "r");
-	else
-		fp = fopen("./src/arch/x86/x64.ins", "r");
+	const char *file = kxlib_file_exists(mode == MODE_32B ? "x86.ins" : "x64.ins");
+	FILE *fp = fopen(file, "r");
 	if (!fp) {
 		printf("Error opening x86 instruction file\n");
 		return;
