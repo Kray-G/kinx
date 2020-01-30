@@ -1,10 +1,13 @@
 #include "aload.h"
 
+const char *kxlib_file_exists(const char *file);
+
 void arm_parse(struct trie_node *root, struct hash_table *table, int mode)
 {
 	(void)mode; //Disregard mode for now
 	FILE *fp = NULL;
-	fp = fopen("./src/arch/arm/arm.ins", "r");
+	const char *file = kxlib_file_exists("arm.ins");
+	fp = fopen(file, "r");
 	if (!fp) {
 		printf("Error opening arm instruction file\n");
 		return;

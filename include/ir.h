@@ -239,10 +239,12 @@ struct kx_object_;
 typedef int (*kx_native_funcp_t)(void*, sljit_sw*, int);
 
 typedef struct kx_native_function_ {
-    kx_native_funcp_t func;
+    const char *name;
     int ret_type;
     int arg_types;
     int args;
+    int exec_size;
+    kx_native_funcp_t func;
 } kx_native_function_t;
 
 typedef struct kx_code_ {
@@ -476,6 +478,7 @@ typedef struct kx_options_ {
     int ast:1;
     int src_stdin:1;
     int utf8inout:1;
+    int native_verbose:1;
     int exception_detail_info:1;
     uint16_t max_call_depth;
 } kx_options_t;

@@ -247,6 +247,93 @@ void update_exception_object(kx_context_t *ctx, kx_exc_t *e)
     }
 }
 
+static inline const char *startup_code()
+{
+    static const char *code =
+        "import System;"
+        "import String;"
+        "import Array;"
+        "import Regex;"
+        "var SystemTimer = { create: System.SystemTimer_create };"
+        "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };"
+    ;
+    return code;
+}
+
+static int eval(kx_context_t *ctx)
+{
+    static int mainx = 0;
+    char name[256] = {0};
+    sprintf(name, "_main%d", ++mainx);
+
+    kx_ast_root = NULL;
+    kx_lex_next(kx_lexinfo);
+    int r = kx_yyparse();
+    if (kx_lexinfo.in.fp && kx_lexinfo.in.fp != stdin) {
+        fclose(kx_lexinfo.in.fp);
+        kx_lexinfo.in.fp = NULL;
+    }
+    if (r != 0 || g_yyerror > 0) {
+        return -1;
+    }
+
+    start_analyze_ast(kx_ast_root);
+    if (g_yyerror > 0) {
+        return -1;
+    }
+    if (ctx->options.ast) {
+        return 0;
+    }
+
+    kx_module_t *module = kv_pushp(kx_module_t, ctx->module);
+    memset(module, 0x00, sizeof(kx_module_t));
+    int start = kv_size(ctx->fixcode);
+    module->funclist = start_gencode_ast(kx_ast_root, ctx, module, name);
+    if (g_yyerror > 0) {
+        return -1;
+    }
+    ir_fix_code(ctx, start);
+    if (g_yyerror > 0) {
+        return -1;
+    }
+    return start;
+}
+
+int eval_string(const char *code, kx_context_t *ctx)
+{
+    const char *name = "<eval>";
+    setup_lexinfo(name, &(kx_yyin_t){
+        .fp = NULL,
+        .str = code,
+        .file = name
+    });
+    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+    name = "<startup>";
+    setup_lexinfo(name, &(kx_yyin_t){
+        .fp = NULL,
+        .str = startup_code(),
+        .file = name
+    });
+    return eval(ctx);
+}
+
+int eval_file(const char *file, kx_context_t *ctx)
+{
+    setup_lexinfo(file, &(kx_yyin_t){
+        .fp = (file && !ctx->options.src_stdin) ? fopen(file, "r") : stdin,
+        .str = NULL,
+        .file = file
+    });
+    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+    const char *name = "<startup>";
+    setup_lexinfo(name, &(kx_yyin_t){
+        .fp = NULL,
+        .str = startup_code(),
+        .file = name
+    });
+    return eval(ctx);
+}
+
 kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[])
 {
     int start;
