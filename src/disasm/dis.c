@@ -160,7 +160,7 @@ int operand_squash(char *buf, long max, struct operand_tree *tree)
 	if (tree->type == DIS_OPER) {
 		if (tree->body.operand.operand_type == DIS_ADDR) {
 			iter +=
-			    snprintf(buf + iter, max - iter, "%#"PRIx64,
+			    snprintf(buf + iter, max - iter, "0x%08"PRIx64,
 				     TREE_ADDR(tree));
 		} else if (tree->body.operand.operand_type == DIS_IMM) {
 			int sign = SIGNED(TREE_IMM(tree));
@@ -168,7 +168,7 @@ int operand_squash(char *buf, long max, struct operand_tree *tree)
 				iter +=
 				    snprintf(buf + iter, max - iter, "-");
 			iter +=
-			    snprintf(buf + iter, max - iter, "%#"PRIX64,
+			    snprintf(buf + iter, max - iter, "0x%02"PRIx64,
 				     SIGN(TREE_IMM(tree)));
 		} else if (tree->body.operand.operand_type == DIS_REG) {
 			iter +=

@@ -9,3 +9,9 @@
 src/parser.c
 include/parser.tab.h
 timeit.dat
+/x86.ins
+/x64.ins
+/mips.ins
+/arm.ins
+/x86.spec
+/mips.spec

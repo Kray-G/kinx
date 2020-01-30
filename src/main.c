@@ -24,93 +24,6 @@ extern void init_allocator(void);
 extern int kx_yydebug;
 #endif
 
-static inline const char *startup_code()
-{
-    static const char *code =
-        "import System;"
-        "import String;"
-        "import Array;"
-        "import Regex;"
-        "var SystemTimer = { create: System.SystemTimer_create };"
-        "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };"
-    ;
-    return code;
-}
-
-static int eval(kx_context_t *ctx)
-{
-    static int mainx = 0;
-    char name[256] = {0};
-    sprintf(name, "_main%d", ++mainx);
-
-    kx_ast_root = NULL;
-    kx_lex_next(kx_lexinfo);
-    int r = kx_yyparse();
-    if (kx_lexinfo.in.fp && kx_lexinfo.in.fp != stdin) {
-        fclose(kx_lexinfo.in.fp);
-        kx_lexinfo.in.fp = NULL;
-    }
-    if (r != 0 || g_yyerror > 0) {
-        return -1;
-    }
-
-    start_analyze_ast(kx_ast_root);
-    if (g_yyerror > 0) {
-        return -1;
-    }
-    if (ctx->options.ast) {
-        return 0;
-    }
-
-    kx_module_t *module = kv_pushp(kx_module_t, ctx->module);
-    memset(module, 0x00, sizeof(kx_module_t));
-    int start = kv_size(ctx->fixcode);
-    module->funclist = start_gencode_ast(kx_ast_root, ctx, module, name);
-    if (g_yyerror > 0) {
-        return -1;
-    }
-    ir_fix_code(ctx, start);
-    if (g_yyerror > 0) {
-        return -1;
-    }
-    return start;
-}
-
-int eval_string(const char *code, kx_context_t *ctx)
-{
-    const char *name = "<eval>";
-    setup_lexinfo(name, &(kx_yyin_t){
-        .fp = NULL,
-        .str = code,
-        .file = name
-    });
-    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    name = "<startup>";
-    setup_lexinfo(name, &(kx_yyin_t){
-        .fp = NULL,
-        .str = startup_code(),
-        .file = name
-    });
-    return eval(ctx);
-}
-
-int eval_file(const char *file, kx_context_t *ctx)
-{
-    setup_lexinfo(file, &(kx_yyin_t){
-        .fp = (file && !ctx->options.src_stdin) ? fopen(file, "r") : stdin,
-        .str = NULL,
-        .file = file
-    });
-    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    const char *name = "<startup>";
-    setup_lexinfo(name, &(kx_yyin_t){
-        .fp = NULL,
-        .str = startup_code(),
-        .file = name
-    });
-    return eval(ctx);
-}
-
 static void usage(void)
 {
     printf("Usage: " PROGNAME " -[hdui]\n");
@@ -146,8 +59,7 @@ static void get_long_option(const char *optarg, char *lname, char *param)
     }
     if (head == 0) {
         lname[i] = 0;
-        param[0] = '0';
-        param[1] = 0;
+        param[0] = 0;
     } else {
         param[i] = 0;
     }
@@ -176,9 +88,11 @@ int main(int ac, char **av)
         case '-':
             get_long_option(optarg, lname, param);
             if (!strcmp(lname, "native-call-max-depth")) {
-                ctx->options.max_call_depth = strtol(param, NULL, 0);
+                ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 128;
+            } else if (!strcmp(lname, "native-verbose")) {
+                ctx->options.native_verbose = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "exception-detail-info")) {
-                ctx->options.exception_detail_info = strtol(param, NULL, 0);
+                ctx->options.exception_detail_info = param[0] ? strtol(param, NULL, 0) : 1;
             }
             break;
         case 'd':

@@ -388,6 +388,22 @@ static void ir_module_dump(int llen, kx_module_t *module, kvec_t(uint32_t) *labe
     }
 }
 
+static void ir_native_dump(kx_context_t *ctx)
+{
+    for (khint_t k = 0; k < kh_end(ctx->nfuncs); ++k) {
+        if (kh_exist(ctx->nfuncs, k)) {
+            kx_native_function_t nf = kh_value(ctx->nfuncs, k);
+            if (nf.func) {
+                unsigned char *f = (unsigned char *)nf.func;
+                uint64_t b = (uint64_t)f & 0xFFFFFFFFFFFF0000;
+                printf("\n");
+                printf(KXFT_FUNCTION_INDENT "%s: (native-base:0x%08llx)\n", nf.name, b);
+                native_dump(f, nf.exec_size, b);
+            }
+        }
+    }
+}
+
 void ir_dump(kx_context_t *ctx)
 {
     int llen = kv_size(ctx->labels);
@@ -396,6 +412,8 @@ void ir_dump(kx_context_t *ctx)
         kx_module_t *module = &kv_A(ctx->module, i);
         ir_module_dump(llen, module, &(ctx->labels));
     }
+
+    ir_native_dump(ctx);
 }
 
 void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode)

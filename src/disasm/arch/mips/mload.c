@@ -1,9 +1,12 @@
 #include "mload.h"
 
+const char *kxlib_file_exists(const char *file);
+
 void mips_parse(struct trie_node *root, struct hash_table *table, int mode)
 {
 	FILE *fp = NULL;
-	fp = fopen("./src/arch/mips/mips.ins", "r");
+	const char *file = kxlib_file_exists("mips.ins");
+	fp = fopen(file, "r");
 	(void) mode;		/*32 and 64 mode have the same file, so mode isnt needed */
 	if (!fp) {
 		printf("Error opening mips instruction file\n");

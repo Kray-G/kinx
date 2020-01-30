@@ -278,7 +278,7 @@ extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_import_object(const char *name);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
-extern kx_object_t *kx_gen_texpr_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
+extern kx_object_t *kx_gen_texpr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_break_object(int type, const char *name);
 extern kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs);
@@ -297,6 +297,7 @@ extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
 extern void ir_fix_code(kx_context_t *ctx, int start);
 extern int ir_exec(kx_context_t *ctx);
+extern void native_dump(unsigned char *bytes, int size, int base);
 
 extern void print_value(kx_val_t *v, int recursive);
 extern void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv);
@@ -308,7 +309,7 @@ extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern int native_function_check(sljit_sw s0);
 extern void longjmp_hook(sljit_sw r);
-extern int call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
+extern int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);
 
