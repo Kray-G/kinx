@@ -32,6 +32,25 @@ OBJS = \
     main.o \
     parser.o \
     string.o
+DISASM = \
+    dis.o \
+    disas.o \
+    dss.o \
+    lex.o \
+    sym.o \
+    aload.o \
+    arm.o \
+    astrings.o \
+    mips.o \
+    mload.o \
+    mstrings.o \
+    x86.o \
+    x86asm.o \
+    x86load.o \
+    x86strings.o \
+    file.o \
+    table.o \
+    trie.o
 SOFILES = \
     kxsystem.so \
     kxstring.so \
@@ -81,10 +100,10 @@ timex:
 	$(CC) $(CFLAGS) -o timex timex.c
 
 clean:
-	rm -f $(OBJS) $(SOFILES) $(PICOBJS) timex kinx myacc test
+	rm -f $(OBJS) $(DISASM) $(SOFILES) $(PICOBJS) timex kinx myacc test
 
-kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS)
-	./timex $(CC) -o $@ $(OBJS) -ldl -lm
+kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
+	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm
 	rm kx.output
 
 kxsystem.so: src/extlib/kxsystem.c $(PICOBJS)
@@ -138,6 +157,21 @@ kstrpic.o: src/kstr.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/disasm/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/disasm/common/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/disasm/arch/x86/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/disasm/arch/arm/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/disasm/arch/mips/%.c
 	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
 test-core: $(OBJS)

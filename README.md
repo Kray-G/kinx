@@ -166,8 +166,7 @@ But you have to know the limitations below with native function.
 I am now considering how to remove those.
 
 *   Currently you can use the type of integer only.
-*   Integer value does not be automatically promoted to big integer, just overfow it.
-*   Can not use a lexical scope & lexical vriable.
+*   Integer value is not automatically promoted to big integer, just overfow it.
 *   Can not call a script function. Only can call a native function.
 *   Forward declaration of a native function is not supported.
 

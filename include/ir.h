@@ -236,7 +236,7 @@ kvec_init_t(int);
 kvec_init_t(uint32_t);
 struct kx_object_;
 
-typedef int (*kx_native_funcp_t)(void*, sljit_sw*, int);
+typedef int (*kx_native_funcp_t)(sljit_sw*, sljit_sw*, int);
 
 typedef struct kx_native_function_ {
     const char *name;
