@@ -27,6 +27,30 @@ OBJS = \
     src/main.obj \
     src/parser.obj \
     src/string.obj
+SLJIT_DEP = \
+    src/jit/sljitConfig.h \
+    src/jit/sljitConfigInternal.h \
+    src/jit/sljitExecAllocator.c \
+    src/jit/sljitLir.c \
+    src/jit/sljitLir.h \
+    src/jit/sljitNativeARM_32.c \
+    src/jit/sljitNativeARM_64.c \
+    src/jit/sljitNativeARM_T2_32.c \
+    src/jit/sljitNativeMIPS_32.c \
+    src/jit/sljitNativeMIPS_64.c \
+    src/jit/sljitNativeMIPS_common.c \
+    src/jit/sljitNativePPC_32.c \
+    src/jit/sljitNativePPC_64.c \
+    src/jit/sljitNativePPC_common.c \
+    src/jit/sljitNativeSPARC_32.c \
+    src/jit/sljitNativeSPARC_common.c \
+    src/jit/sljitNativeTILEGX-encoder.c \
+    src/jit/sljitNativeTILEGX_64.c \
+    src/jit/sljitNativeX86_32.c \
+    src/jit/sljitNativeX86_64.c \
+    src/jit/sljitNativeX86_common.c \
+    src/jit/sljitProtExecAllocator.c \
+    src/jit/sljitUtils.c
 DISASM = \
     src/disasm/dis.obj \
     src/disasm/disas.obj \
@@ -45,7 +69,7 @@ DISASM = \
     src/disasm/arch/x86/x86strings.obj \
     src/disasm/common/file.obj \
     src/disasm/common/table.obj \
-    src/disasm/common/trie.c
+    src/disasm/common/trie.obj
 SOFILES = \
     kxsystem.dll \
     kxstring.dll \
@@ -164,3 +188,6 @@ test-core: $(OBJS)
 
 .c.obj:
 	$(CC) /c $(CFLAGS) /Fo$*.obj $<
+
+src/ir_aotcore.obj: src/ir_aotcore.c $(SLJIT_DEP)
+	$(CC) /c $(CFLAGS) /Fo$*.obj src/ir_aotcore.c
