@@ -1,0 +1,10 @@
+"+" : plus
+"-" : minus
+"*" : mult
+"[" : rbrk
+"]" : lbrk
+"," : comma
+"byte" : byte
+"word" : word
+"dword" : dword
+"qword" : qword
