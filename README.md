@@ -373,3 +373,10 @@ For example, it is like `%| ... |`.
 Anyway the first character is always `%`.
 
 *   `|`, `!`, `^`, `~`, `_`, `.`, `,`, `+`, `*`, `@`, `&`, `$`, `:`, `;`, `?`, `'`, `"`.
+
+## License
+
+This project is licensed under the **MIT License**.
+See the [LICENSE](LICENSE) file for details.
+About the licenses of internal used libraries, follow the licenses of each library.
+See [doc/licenses](doc/licenses) folder for details.
