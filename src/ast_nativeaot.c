@@ -272,7 +272,7 @@ static void set_native_function_info(kx_native_context_t *nctx, kx_object_t *nod
     khash_t(nativefunc) *nfuncs = nctx->nfuncs;
     khint_t k = kh_put(nativefunc, nfuncs, name, &absent);
     if (!absent) {
-        kx_yyerror_line("Native function is duplicated", node->file, node->line);
+        kx_yyerror_line_fmt("Native function(%s) is duplicated", node->file, node->line, name);
     }
     kh_value(nfuncs, k) = nf;
 }
@@ -375,24 +375,45 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         break;
 
     case KXOP_VAR: {
-        r0 = get_rreg(nctx);
         switch (node->var_type) {
         case KX_INT_T:
-            sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(SLJIT_SP), node->index * SIZE_OF_WORD);
+            if (node->lexical == 0) {
+                r0 = get_rreg(nctx);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(SLJIT_SP), node->index * SIZE_OF_WORD);
+            } else {
+                save_regs(nctx);
+                clear_regs(nctx);
+                reserve_regs(nctx, 0);
+                reserve_regs(nctx, 1);
+                reserve_regs(nctx, 2);
+                r0 = get_rreg(nctx);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S0), 1 * SIZE_OF_WORD); /* lexical frame */
+                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, node->lexical);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, node->index);
+                sljit_emit_icall(nctx->C, SLJIT_CALL,
+                    SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
+                    SLJIT_IMM, SLJIT_FUNC_OFFSET(get_lexical_int_value));
+                sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_R0, 0);
+                release_regs(nctx, 2);
+                release_regs(nctx, 1);
+                release_regs(nctx, 0);
+            }
             break;
         case KX_NFNC_T: {
+            r0 = get_rreg(nctx);
             if (strcmp(nctx->func_name, node->value.s) == 0) {
-                sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_S0, 0);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(reg(ARG0)), 0);
             } else {
                 kx_native_function_t nf = get_native_function_info(nctx, node->value.s);
                 if (!nf.func) {
-                    kx_yyerror_line("Native function not found", node->file, node->line);
+                    kx_yyerror_line_fmt("Native function(%s) not found", node->file, node->line, node->value.s);
                 }
                 sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(nf.func));
             }
             break;
         }
         default:
+            r0 = get_rreg(nctx);
             kx_yyerror_line("Unsupported variable type", node->file, node->line);
             break;
         }
@@ -553,11 +574,11 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), nctx->offset_callbuf * SIZE_OF_WORD, SLJIT_IMM, index - 1);
         sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->offset_callbuf * SIZE_OF_WORD);
         int r1 = nativejit_ast(nctx, node->lhs, 0);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, reg(r1), 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_S2, 0);
     	sljit_emit_icall(nctx->C, SLJIT_CALL,
             SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
-            SLJIT_R0, 0);
+            reg(r1), 0);
         release_regs(nctx, r1);
         release_regs(nctx, 2);
         release_regs(nctx, 1);

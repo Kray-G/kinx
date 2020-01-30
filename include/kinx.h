@@ -247,6 +247,7 @@ extern const char *kxlib_file_exists(const char *file);
 extern void setup_lexinfo(const char *file, kx_yyin_t *yyin);
 extern int kx_yyparse(void);
 extern int kx_yyerror_line(const char *msg, const char* file, const int line);
+extern int kx_yyerror_line_fmt(const char *msg, const char* file, const int line, ...);
 extern int kx_yyerror(const char *);
 extern int kx_yywarning(const char *);
 
@@ -307,11 +308,13 @@ extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
 extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
-extern int native_function_check(sljit_sw s0);
+extern int native_function_check(sljit_sw val, sljit_sw ex);
 extern void longjmp_hook(sljit_sw r);
-extern int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
+extern int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);
+
+extern int get_lexical_int_value(sljit_sw xfrm, sljit_sw xlex_no, sljit_sw xval_idx);
 
 #define KX_NAT_MAX_FUNC_ARGS (31)
 

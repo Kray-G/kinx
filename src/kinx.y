@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <kvec.h>
 #include <kinx.h>
 #include <parser.tab.h>
@@ -495,6 +496,21 @@ int kx_yyerror_line(const char *msg, const char* file, const int line)
     ++g_yyerror;
     if (!kx_lexinfo.quiet) {
         return printf("Error: %s near the %s:%d\n", msg, file, line);
+    }
+    return 0;
+}
+
+int kx_yyerror_line_fmt(const char *msg, const char* file, const int line, ...)
+{
+    ++g_yyerror;
+    if (!kx_lexinfo.quiet) {
+        va_list list;
+        int r = printf("Error: ");
+        va_start(list, line);
+        r += vprintf(msg, list);
+        va_end(list);
+        r += printf(" near the %s:%d\n", file, line);
+        return r;
     }
     return 0;
 }

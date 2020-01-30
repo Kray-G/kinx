@@ -1,0 +1,9 @@
+# native function can access lexical variable if it is integer.
+
+var a = 1;
+native test(n) {
+    var b = a;
+    return b + n;
+}
+
+System.println(test(10));

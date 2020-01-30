@@ -98,6 +98,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_VAR: {
         kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
         if (!sym) {
+            if (!ctx->decl && !ctx->lvalue) {
+                kx_yyerror_line_fmt("Symbol(%s) is not found.", node->file, node->line, node->value.s);
+            }
             return;
         }
         node->index = sym->local_index;

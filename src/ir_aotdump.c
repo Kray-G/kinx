@@ -26,7 +26,7 @@ void native_dump(unsigned char *bytes, int size)
                 printf("   ");
             }
         }
-		printf("\t%s\t%s\n", dis->mnemonic, dis->op_squash);
+		printf("    %-8s%s\n", dis->mnemonic, dis->op_squash);
 	}
 
     ds_destroy(ds);
