@@ -12,7 +12,7 @@ static void dump(const unsigned char *b, int l)
     printf("\n");
 }
 
-struct rv { int r; int ex; };
+struct rv { int64_t r; int ex; };
 static struct rv exc;
 
 int native_function_check(sljit_sw s0)
@@ -29,7 +29,7 @@ static struct rv call_hook(kx_native_funcp_t f, sljit_sw *s1, sljit_sw s2)
     };
 }
 
-int call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc)
+int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc)
 {
     kx_native_funcp_t func = nfnc->native.func;
     if (!func) {

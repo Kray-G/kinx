@@ -4,10 +4,23 @@
 
 #define SIZE_OF_WORD (8)
 
+typedef struct sljit_label sllabel_t;
+typedef struct sljit_jump sljump_t;
+
+typedef struct kx_native_jump_info_ {
+    int done;
+    sljump_t *source;
+    const char *label;
+} kx_native_jump_info_t;
+
+kvec_init_t(kx_native_jump_info_t);
+
 typedef struct kx_native_context_ {
     struct sljit_compiler *C;
     khash_t(nativefunc) *nfuncs;
     const char *func_name;
+    const char *label_name;
+    int label_depth;
     int verbose;
     int label;
     int offset_callbuf;
@@ -16,6 +29,8 @@ typedef struct kx_native_context_ {
     int max_call_depth;
     int regs[20];
     int saved[20];
+    kvec_t(kx_native_jump_info_t) continue_list;
+    kvec_t(kx_native_jump_info_t) break_list;
 } kx_native_context_t;
 
 #define KX_NAT_EMITOP2_ASSIGN(NAME, CMD, OP, CMDNAME) \
@@ -58,13 +73,13 @@ case KXOP_##NAME: { \
     if (node->rhs->type == KXVL_INT) { \
         int imm = node->rhs->value.i; \
         sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, 1); \
-        struct sljit_jump *next = sljit_emit_cmp(nctx->C, SLJIT_##CMDNAME, reg(r1), 0, SLJIT_IMM, imm); \
+        sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_##CMDNAME, reg(r1), 0, SLJIT_IMM, imm); \
         sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, 0); \
         sljit_set_label(next, sljit_emit_label(nctx->C)); \
     } else { \
         int r2 = nativejit_ast(nctx, node->rhs, 0); \
         sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, 1); \
-        struct sljit_jump *next = sljit_emit_cmp(nctx->C, SLJIT_##CMDNAME, reg(r1), 0, reg(r2), 0); \
+        sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_##CMDNAME, reg(r1), 0, reg(r2), 0); \
         sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, 0); \
         sljit_set_label(next, sljit_emit_label(nctx->C)); \
         release_regs(nctx, r2); \
@@ -262,10 +277,70 @@ static void set_native_function_info(kx_native_context_t *nctx, kx_object_t *nod
     kh_value(nfuncs, k) = nf;
 }
 
+void set_continue_label(kx_native_context_t *nctx, const char *label, sllabel_t *gotolbl)
+{
+    int done = 0;
+    int size = kv_size(nctx->continue_list);
+    for (int i = 0; i < size; ++i) {
+        kx_native_jump_info_t* info = &kv_A(nctx->continue_list, i);
+        if (info->done) {
+            ++done;
+        } else {
+            if (!info->label) {
+                info->done = 1;
+                sljit_set_label(info->source, gotolbl);
+                ++done;
+            } else {
+                if (label && !strcmp(info->label, label)) {
+                    info->done = 1;
+                    sljit_set_label(info->source, gotolbl);
+                    ++done;
+                }
+            }
+        }
+    }
+    if (done == size) {
+        kv_shrinkto(nctx->continue_list, 0);
+    }
+}
+
+void set_break_label(kx_native_context_t *nctx, const char *label, sllabel_t *gotolbl)
+{
+    int done = 0;
+    int size = kv_size(nctx->break_list);
+    for (int i = 0; i < size; ++i) {
+        kx_native_jump_info_t* info = &kv_A(nctx->break_list, i);
+        if (info->done) {
+            ++done;
+        } else {
+            if (!info->label) {
+                info->done = 1;
+                sljit_set_label(info->source, gotolbl);
+                ++done;
+            } else {
+                if (label && !strcmp(info->label, label)) {
+                    info->done = 1;
+                    sljit_set_label(info->source, gotolbl);
+                    ++done;
+                }
+            }
+        }
+    }
+    if (done == size) {
+        kv_shrinkto(nctx->break_list, 0);
+    }
+}
+
 static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
 {
     if (!node) {
         return -1;
+    }
+
+    if (node->type != KXST_STMTLIST && nctx->label_depth > 0) {
+        if (--nctx->label_depth == 0) {
+            nctx->label_name = NULL;
+        }
     }
 
     int r0 = -1;
@@ -425,9 +500,22 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     KX_NAT_EMITOP2(AND, "and", "&", AND)
     KX_NAT_EMITOP2(OR,  "or",  "|", OR)
     KX_NAT_EMITOP2(XOR, "xor", "^", XOR)
-    case KXOP_LAND: /* TODO */
-    case KXOP_LOR:  /* TODO */
+    case KXOP_LAND: {
+        r0 = nativejit_ast(nctx, node->lhs, 0);
+        sljump_t *out = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
+        release_regs(nctx, r0);
+        r0 = nativejit_ast(nctx, node->rhs, 0);
+        sljit_set_label(out, sljit_emit_label(nctx->C));
         break;
+    }
+    case KXOP_LOR: {
+        r0 = nativejit_ast(nctx, node->lhs, 0);
+        sljump_t *out = sljit_emit_cmp(nctx->C, SLJIT_NOT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
+        release_regs(nctx, r0);
+        r0 = nativejit_ast(nctx, node->rhs, 0);
+        sljit_set_label(out, sljit_emit_label(nctx->C));
+        break;
+    }
     case KXOP_IDX:
         kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
         break;
@@ -438,8 +526,22 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     KX_NAT_EMITCMP(LT, "lt", "<", LESS)
     KX_NAT_EMITCMP(GE, "ge", ">=", GREATER_EQUAL)
     KX_NAT_EMITCMP(GT, "gt", ">", GREATER)
-    case KXOP_LGE:  /* TODO */
+    case KXOP_LGE: {
+        r0 = get_rreg(nctx);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, 0);
+        int r1 = nativejit_ast(nctx, node->lhs, 0);
+        int r2 = nativejit_ast(nctx, node->rhs, 0);
+        sljump_t *out1 = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(r1), 0, reg(r2), 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, 1);
+        sljump_t *out2 = sljit_emit_cmp(nctx->C, SLJIT_GREATER, reg(r1), 0, reg(r2), 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_IMM, -1);
+        sllabel_t *outlbl = sljit_emit_label(nctx->C);
+        sljit_set_label(out1, outlbl);
+        sljit_set_label(out2, outlbl);
+        release_regs(nctx, r2);
+        release_regs(nctx, r1);
         break;
+    }
     case KXOP_CALL: {
         /* save */
         save_regs(nctx);
@@ -473,14 +575,85 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         kx_yyerror_line("Can not use type property in native function", node->file, node->line);
         break;
 
-    case KXOP_TER:      /* TODO */
+    case KXOP_TER: {
+        kx_object_t *cond = node->lhs;
+        int op = 0, r1 = -1;
+        switch (cond->type) {
+        case KXOP_EQEQ: op = SLJIT_NOT_EQUAL;       break;  /* opposite operation because jump to else clause. */
+        case KXOP_NEQ:  op = SLJIT_EQUAL;           break;  /* opposite operation because jump to else clause. */
+        case KXOP_LE:   op = SLJIT_GREATER;         break;  /* opposite operation because jump to else clause. */
+        case KXOP_LT:   op = SLJIT_GREATER_EQUAL;   break;  /* opposite operation because jump to else clause. */
+        case KXOP_GE:   op = SLJIT_LESS;            break;  /* opposite operation because jump to else clause. */
+        case KXOP_GT:   op = SLJIT_LESS_EQUAL;      break;  /* opposite operation because jump to else clause. */
+        default:
+            break;;
+        }
+        clear_regs(nctx);
+        if (op != 0) {
+            r0 = nativejit_ast(nctx, cond->lhs, 0);
+            r1 = nativejit_ast(nctx, cond->rhs, 0);
+        } else {
+            r0 = nativejit_ast(nctx, cond, 0);
+        }
+        sljump_t *out, *el;
+        if (r1 >= 0) {
+            el = sljit_emit_cmp(nctx->C, op, reg(r0), 0, reg(r1), 0);
+        } else {
+            el = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
+        }
+        clear_regs(nctx);
+        nativejit_ast(nctx, node->rhs, 0);
+        out = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+        sljit_set_label(el, sljit_emit_label(nctx->C));
+        clear_regs(nctx);
+        nativejit_ast(nctx, node->ex, 0);
+        sljit_set_label(out, sljit_emit_label(nctx->C));
+        if (r1 >= 0) {
+            release_regs(nctx, r1);
+        }
         break;
+    }
 
-    case KXST_BREAK:    /* TODO */
-    case KXST_CONTINUE: /* TODO */
+    case KXST_BREAK: {
+        sljump_t *out = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+        if (node->value.s) {
+            kv_push(kx_native_jump_info_t, nctx->break_list, ((kx_native_jump_info_t){
+                .done = 0,
+                .source = out,
+                .label = node->value.s
+            }));
+        } else {
+            kv_push(kx_native_jump_info_t, nctx->break_list, ((kx_native_jump_info_t){
+                .done = 0,
+                .source = out,
+                .label = NULL
+            }));
+        }
         break;
+    }
+    case KXST_CONTINUE: {
+        sljump_t *out = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+        if (node->value.s) {
+            kv_push(kx_native_jump_info_t, nctx->continue_list, ((kx_native_jump_info_t){
+                .done = 0,
+                .source = out,
+                .label = node->value.s
+            }));
+        } else {
+            kv_push(kx_native_jump_info_t, nctx->continue_list, ((kx_native_jump_info_t){
+                .done = 0,
+                .source = out,
+                .label = NULL
+            }));
+        }
+        break;
+    }
     case KXST_LABEL:
-        kx_yyerror_line("Can not use label in native function", node->file, node->line);
+        nctx->label_name = node->value.s;
+        nctx->label_depth = 2;
+        nativejit_ast(nctx, node->lhs, 0);
+        nctx->label_depth = 0;
+        nctx->label_name = NULL;
         break;
     case KXST_EXPR:       /* lhs: expr */
         nativejit_ast(nctx, node->lhs, 0);
@@ -520,9 +693,9 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         } else {
             r0 = nativejit_ast(nctx, cond, 0);
         }
-        struct sljit_jump *out, *el;
+        sljump_t *out, *el;
         if (node->ex) {
-            if (op != 0) {
+            if (r1 >= 0) {
                 el = sljit_emit_cmp(nctx->C, op, reg(r0), 0, reg(r1), 0);
             } else {
                 el = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
@@ -534,7 +707,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             clear_regs(nctx);
             nativejit_ast(nctx, node->ex, 0);
         } else {
-            if (op != 0) {
+            if (r1 >= 0) {
                 out = sljit_emit_cmp(nctx->C, op, reg(r0), 0, reg(r1), 0);
             } else {
                 out = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
@@ -543,63 +716,81 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             nativejit_ast(nctx, node->rhs, 0);
         }
         sljit_set_label(out, sljit_emit_label(nctx->C));
-        if (r1 > 0) {
+        if (r1 >= 0) {
             release_regs(nctx, r1);
         }
         break;
     }
     case KXST_WHILE: {    /* lhs: cond: rhs: block */
-        struct sljit_jump *cond = NULL;
+        const char *label = nctx->label_name;
+        sljump_t *cond = NULL;
 
         /* goto cond */
-        if (node->lhs) {
-            cond = sljit_emit_jump(nctx->C, SLJIT_JUMP);
-        }
-
-        /* body */
-        struct sljit_label *bodylbl = sljit_emit_label(nctx->C);
-        clear_regs(nctx);
-        nativejit_ast(nctx, node->rhs, 0);
-
-        /* cond */
-        if (node->lhs) {
-            sljit_set_label(cond, sljit_emit_label(nctx->C));
-            int op = 0, r1 = -1;
-            switch (node->lhs->type) {
-            case KXOP_EQEQ: op = SLJIT_EQUAL;         break;
-            case KXOP_NEQ:  op = SLJIT_NOT_EQUAL;     break;
-            case KXOP_LE:   op = SLJIT_LESS_EQUAL;    break;
-            case KXOP_LT:   op = SLJIT_LESS;          break;
-            case KXOP_GE:   op = SLJIT_GREATER_EQUAL; break;
-            case KXOP_GT:   op = SLJIT_GREATER;       break;
-            default:
-                break;;
-            }
-            struct sljit_jump *gotobody;
+        if (node->lhs && node->lhs->type == KXVL_INT && node->lhs->value.i != 0) {
+            sllabel_t *bodylbl = sljit_emit_label(nctx->C);
             clear_regs(nctx);
-            if (op != 0) {
-                r0 = nativejit_ast(nctx, node->lhs->lhs, 0);
-                r1 = nativejit_ast(nctx, node->lhs->rhs, 0);
-                gotobody = sljit_emit_cmp(nctx->C, op, reg(r0), 0, reg(r1), 0);
-                release_regs(nctx, r1);
-            } else {
-                r0 = nativejit_ast(nctx, node->lhs, 0);
-                gotobody = sljit_emit_cmp(nctx->C, SLJIT_NOT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
-            }
+            nativejit_ast(nctx, node->rhs, 0);
+            sllabel_t *condlbl = sljit_emit_label(nctx->C);
+            set_continue_label(nctx, label, condlbl);
+            sljump_t *gotobody = sljit_emit_jump(nctx->C, SLJIT_JUMP);
             sljit_set_label(gotobody, bodylbl);
         } else {
-            struct sljit_jump *gotobody = sljit_emit_jump(nctx->C, SLJIT_JUMP);
-            sljit_set_label(gotobody, bodylbl);
+            if (node->lhs) {
+                cond = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+            }
+
+            /* body */
+            sllabel_t *bodylbl = sljit_emit_label(nctx->C);
+            clear_regs(nctx);
+            nativejit_ast(nctx, node->rhs, 0);
+
+            /* cond */
+            sllabel_t *condlbl = sljit_emit_label(nctx->C);
+            set_continue_label(nctx, label, condlbl);
+            if (node->lhs) {
+                sljit_set_label(cond, condlbl);
+                int op = 0, r1 = -1;
+                switch (node->lhs->type) {
+                case KXOP_EQEQ: op = SLJIT_EQUAL;         break;
+                case KXOP_NEQ:  op = SLJIT_NOT_EQUAL;     break;
+                case KXOP_LE:   op = SLJIT_LESS_EQUAL;    break;
+                case KXOP_LT:   op = SLJIT_LESS;          break;
+                case KXOP_GE:   op = SLJIT_GREATER_EQUAL; break;
+                case KXOP_GT:   op = SLJIT_GREATER;       break;
+                default:
+                    break;;
+                }
+                sljump_t *gotobody;
+                clear_regs(nctx);
+                if (op != 0) {
+                    r0 = nativejit_ast(nctx, node->lhs->lhs, 0);
+                    r1 = nativejit_ast(nctx, node->lhs->rhs, 0);
+                    gotobody = sljit_emit_cmp(nctx->C, op, reg(r0), 0, reg(r1), 0);
+                    release_regs(nctx, r1);
+                } else {
+                    r0 = nativejit_ast(nctx, node->lhs, 0);
+                    gotobody = sljit_emit_cmp(nctx->C, SLJIT_NOT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
+                }
+                sljit_set_label(gotobody, bodylbl);
+            } else {
+                sljump_t *gotobody = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+                sljit_set_label(gotobody, bodylbl);
+            }
         }
+        sllabel_t *brklbl = sljit_emit_label(nctx->C);
+        set_break_label(nctx, label, brklbl);
         break;
     }
     case KXST_DO: {       /* lhs: cond: rhs: block */
         /* body */
-        struct sljit_label *bodylbl = sljit_emit_label(nctx->C);
+        const char *label = nctx->label_name;
+        sllabel_t *bodylbl = sljit_emit_label(nctx->C);
         clear_regs(nctx);
         nativejit_ast(nctx, node->rhs, 0);
 
         /* cond */
+        sllabel_t *condlbl = sljit_emit_label(nctx->C);
+        set_continue_label(nctx, label, condlbl);
         if (node->lhs) {
             int op = 0, r1 = -1;
             switch (node->lhs->type) {
@@ -612,7 +803,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             default:
                 break;;
             }
-            struct sljit_jump *gotobody;
+            sljump_t *gotobody;
             clear_regs(nctx);
             if (op != 0) {
                 r0 = nativejit_ast(nctx, node->lhs->lhs, 0);
@@ -625,14 +816,17 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             }
             sljit_set_label(gotobody, bodylbl);
         } else {
-            struct sljit_jump *gotobody = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+            sljump_t *gotobody = sljit_emit_jump(nctx->C, SLJIT_JUMP);
             sljit_set_label(gotobody, bodylbl);
         }
+        sllabel_t *brklbl = sljit_emit_label(nctx->C);
+        set_break_label(nctx, label, brklbl);
         break;
     }
     case KXST_FOR: {      /* lhs: forcond: rhs: block */
+        const char *label = nctx->label_name;
         kx_object_t *forcond = node->lhs;
-        struct sljit_jump *cond = NULL;
+        sljump_t *cond = NULL;
 
         /* init */
         clear_regs(nctx);
@@ -642,11 +836,13 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         }
 
         /* body */
-        struct sljit_label *bodylbl = sljit_emit_label(nctx->C);
+        sllabel_t *bodylbl = sljit_emit_label(nctx->C);
         clear_regs(nctx);
         nativejit_ast(nctx, node->rhs, 0);
 
         /* inc */
+        sllabel_t *inclbl = sljit_emit_label(nctx->C);
+        set_continue_label(nctx, label, inclbl);
         if (forcond->ex) {
             clear_regs(nctx);
             nativejit_ast(nctx, forcond->ex, 0);
@@ -666,7 +862,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             default:
                 break;;
             }
-            struct sljit_jump *gotobody;
+            sljump_t *gotobody;
             clear_regs(nctx);
             if (op != 0) {
                 r0 = nativejit_ast(nctx, forcond->rhs->lhs, 0);
@@ -679,9 +875,11 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             }
             sljit_set_label(gotobody, bodylbl);
         } else {
-            struct sljit_jump *gotobody = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+            sljump_t *gotobody = sljit_emit_jump(nctx->C, SLJIT_JUMP);
             sljit_set_label(gotobody, bodylbl);
         }
+        sllabel_t *brklbl = sljit_emit_label(nctx->C);
+        set_break_label(nctx, label, brklbl);
         break;
     }
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
@@ -734,7 +932,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             /*fsaved*/   0,
             /*local*/    (node->local_vars + node->count_args + 1) * SIZE_OF_WORD);
         sljit_emit_op2(nctx->C, SLJIT_ADD, reg(ARG2), 0, reg(ARG2), 0, SLJIT_IMM, 1);
-        struct sljit_jump *body = sljit_emit_cmp(nctx->C, SLJIT_LESS, reg(ARG2), 0, SLJIT_IMM, nctx->max_call_depth);
+        sljump_t *body = sljit_emit_cmp(nctx->C, SLJIT_LESS, reg(ARG2), 0, SLJIT_IMM, nctx->max_call_depth);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_IMM, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
     	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_ARG1(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_function_check));
     	sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
@@ -759,7 +957,7 @@ kx_native_function_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node)
     if (node->type != KXST_NATIVE) {
         return (kx_native_function_t){ .func = 0 };
     }
-    nctx.verbose = ctx->options.dump;
+    nctx.verbose = ctx->options.native_verbose;
     nctx.max_call_depth = ctx->options.max_call_depth;
     nctx.nfuncs = ctx->nfuncs;
     nctx.C = sljit_create_compiler(NULL);
@@ -780,11 +978,15 @@ kx_native_function_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node)
 	sljit_free_compiler(nctx.C);
 
     kx_native_function_t nf = (kx_native_function_t){
+        .name = node->value.s,
         .func = (void*)SLJIT_FUNC_OFFSET(code),
         .ret_type = nctx.ret_type,
         .arg_types = nctx.arg_types,
+        .exec_size = nctx.C->executable_size,
     };
     set_native_function_info(&nctx, node, nctx.func_name, nf);
 
+    kv_destroy(nctx.continue_list);
+    kv_destroy(nctx.break_list);
     return nf;
 }

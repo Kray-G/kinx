@@ -1,0 +1,50 @@
+var n = 10000;
+
+native loop_while(n) {
+    var v = 0, i = 0;
+    LABEL:
+    while (1) {
+        while (i <= n) {
+            if (i == 9) {
+                ++i;
+                continue;
+            }
+            v += i++;
+            if (i > 10) break LABEL;
+        }
+    }
+    return v;
+}
+
+native loop_for(n) {
+    var v = 0;
+    LABEL:
+    while (1) {
+        for (var i = 0; i <= n; ++i) {
+            if (i == 9) continue;
+            v += i;
+            if (i == 10) break LABEL;
+        }
+    }
+    return v;
+}
+
+native loop_do_while(n) {
+    var v = 0, i = 0;
+    LABEL:
+    while (1) {
+        do {
+            if (i == 9) {
+                ++i;
+                continue;
+            }
+            v += i++;
+            if (i > 10) break LABEL;
+        } while (i <= n);
+    }
+    return v;
+}
+
+System.println("while(%{n})    = ", loop_while(n));
+System.println("for(%{n})      = ", loop_for(n));
+System.println("do_while(%{n}) = ", loop_do_while(n));

@@ -1,0 +1,166 @@
+
+CC = cl
+CFLAGS = /nologo /O2 /MT /Iinclude /Isrc/jit
+OBJS = \
+    src/allocator.obj \
+    src/alloccore.obj \
+    src/allocutil.obj \
+    src/ast_analyzer.obj \
+    src/ast_display.obj \
+    src/ast_gencode.obj \
+    src/ast_object.obj \
+    src/ast_nativeaot.obj \
+    src/bign.obj \
+    src/bigz.obj \
+    src/getopt.obj \
+    src/global.obj \
+    src/ir_dump.obj \
+    src/ir_exec.obj \
+    src/ir_fix.obj \
+    src/ir_util.obj \
+    src/ir_aotcore.obj \
+    src/ir_aotutil.obj \
+    src/ir_aotdump.obj \
+    src/kstr.obj \
+    src/lexer.obj \
+    src/loadlib.obj \
+    src/main.obj \
+    src/parser.obj \
+    src/string.obj
+DISASM = \
+    src/disasm/dis.obj \
+    src/disasm/disas.obj \
+    src/disasm/dss.obj \
+    src/disasm/lex.obj \
+    src/disasm/sym.obj \
+    src/disasm/arch/arm/aload.obj \
+    src/disasm/arch/arm/arm.obj \
+    src/disasm/arch/arm/astrings.obj \
+    src/disasm/arch/mips/mips.obj \
+    src/disasm/arch/mips/mload.obj \
+    src/disasm/arch/mips/mstrings.obj \
+    src/disasm/arch/x86/x86.obj \
+    src/disasm/arch/x86/x86asm.obj \
+    src/disasm/arch/x86/x86load.obj \
+    src/disasm/arch/x86/x86strings.obj \
+    src/disasm/common/file.obj \
+    src/disasm/common/table.obj \
+    src/disasm/common/trie.c
+SOFILES = \
+    kxsystem.dll \
+    kxstring.dll \
+    kxarray.dll \
+    kxregex.dll
+PICOBJS = \
+    bignpic.obj \
+    bigzpic.obj \
+    allocutilpic.obj \
+    kstrpic.obj
+TESTCORE = \
+    apply \
+    append \
+    add \
+    sub \
+    mul \
+    div \
+    mod \
+    shl \
+    shr \
+    inc \
+    dec \
+    lt \
+    le \
+    lge \
+    gt \
+    ge \
+    eqeq \
+    neq \
+    and \
+    or \
+    xor \
+    neg \
+    not \
+    push \
+    store \
+    call \
+    mkary \
+    ret \
+    haltnop \
+    trycatch \
+    fib \
+
+.SUFFIXES :
+.SUFFIXES : .c .obj
+
+all: timex kinx $(SOFILES)
+
+timex:
+	$(CC) $(CFLAGS) /Fetimex timex.c
+
+clean:
+	del /S /Q *.obj *.dll *.exp
+	del kx.output timex.exe kinx.exe myacc.exe test.exe
+
+kinx: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
+	$(CC) /Fe$@ $(OBJS) $(DISASM)
+    copy /y src\disasm\arch\x86\x86.ins .
+    copy /y src\disasm\arch\x86\x64.ins .
+    copy /y src\disasm\arch\mips\mips.ins .
+    copy /y src\disasm\arch\arm\arm.ins .
+    copy /y src\disasm\spec\x86.spec .
+    copy /y src\disasm\spec\mips.spec .
+
+kxsystem.dll: src/extlib/kxsystem.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsystem.c $(PICOBJS)
+
+kxstring.dll: src/extlib/kxstring.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxstring.c $(PICOBJS)
+
+kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
+
+kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
+
+src/parser.c: kx.tab.c
+	move /y kx.tab.c src/parser.c; 
+
+include/parser.tab.h: kx.tab.h
+	move /y kx.tab.h include/parser.tab.h;
+
+kx.tab.c: myacc
+	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
+
+kx.tab.h: myacc
+	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
+
+myacc:
+	cd utility
+	$(CC) $(CFLAGS) /Femyacc myacc.c
+	move /y myacc.exe ..
+    cd ..
+
+onig.dll:
+	cd src\extlib\onig
+	call make_win64.bat
+	copy /y onig.lib ..\..\..
+	copy /y onig.dll ..\..\..
+	copy /y onig_s.lib ..\..\..
+	cd ..\..\..
+
+bignpic.obj: src/bign.c
+	$(CC) /c $(CFLAGS) /Fo$@ src/bign.c
+
+bigzpic.obj: src/bigz.c
+	$(CC) /c $(CFLAGS) /Fo$@ src/bigz.c
+
+allocutilpic.obj: src/allocutil.c
+	$(CC) /c $(CFLAGS) /Fo$@ src/allocutil.c
+
+kstrpic.obj: src/kstr.c
+	$(CC) /c $(CFLAGS) /Fo$@ src/kstr.c
+
+test-core: $(OBJS)
+
+.c.obj:
+	$(CC) /c $(CFLAGS) /Fo$*.obj $<
