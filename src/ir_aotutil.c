@@ -15,21 +15,47 @@ static void dump(const unsigned char *b, int l)
 struct rv { int64_t r; int ex; };
 static struct rv exc;
 
-int native_function_check(sljit_sw s0)
+int native_function_check(sljit_sw val, sljit_sw ex)
 {
-    exc.ex = s0;
+    exc.ex = ex;
     return 0;
 }
 
-static struct rv call_hook(kx_native_funcp_t f, sljit_sw *s1, sljit_sw s2)
+int get_lexical_int_value(sljit_sw xlexp, sljit_sw xlex_no, sljit_sw xval_idx)
 {
+    kx_val_t *vp;
+    int lex = xlex_no;
+    kx_frm_t *lexp = (kx_frm_t *)xlexp;
+    while (lexp && --lex) {
+        lexp = lexp->lex;
+    }
+    vp = &kv_A(lexp->v, xval_idx);
+    if (vp->type == KX_INT_T) {
+        return vp->value.iv;
+    }
+
+    /*
+        The exception is raised after returning function call.
+        There is no way to raise it immediately so far.
+        ... setjmp/longjmp did not work in callback.
+     */
+    exc.ex = KX_NAT_UNSUPPORTED_TYPE;
+    return 0;
+}
+
+static struct rv call_hook(kx_native_funcp_t f, kx_frm_t *frmv, sljit_sw *s1, sljit_sw s2)
+{
+    sljit_sw info[] = {
+        (sljit_sw)f,
+        (sljit_sw)frmv,
+    };
     return (struct rv){
-        .r = f(f, s1, s2),
+        .r = f(info, s1, s2),
         .ex = exc.ex,
     };
 }
 
-int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc)
+int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc)
 {
     kx_native_funcp_t func = nfnc->native.func;
     if (!func) {
@@ -60,7 +86,7 @@ int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc)
         }
     }
 
-    struct rv v = call_hook(func, arglist, 0);
+    struct rv v = call_hook(func, frmv, arglist, 0);
     kv_shrink(cx->stack, ct);
     push_i(cx->stack, v.r);
     return v.ex;
