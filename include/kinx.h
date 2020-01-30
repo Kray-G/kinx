@@ -297,7 +297,7 @@ extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
 extern void ir_fix_code(kx_context_t *ctx, int start);
 extern int ir_exec(kx_context_t *ctx);
-extern void native_dump(unsigned char *bytes, int size, int base);
+extern void native_dump(unsigned char *bytes, int size);
 
 extern void print_value(kx_val_t *v, int recursive);
 extern void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv);

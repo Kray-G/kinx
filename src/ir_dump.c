@@ -184,7 +184,7 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         }
         break;
     case KX_PUSHNF:
-            printf("%-23s %s(args:%d) => %p", "pushnf", code->value1.s, code->value2.n.args, code->value2.n.func);
+            printf("%-23s %s(args:%d) => 0x%08llx", "pushnf", code->value1.s, code->value2.n.args, (uint64_t)code->value2.n.func);
         break;
     case KX_PUSHV:
         printf("%-23s %s", "pushv", gen_varloc(code)); /* push variable value */
@@ -395,10 +395,9 @@ static void ir_native_dump(kx_context_t *ctx)
             kx_native_function_t nf = kh_value(ctx->nfuncs, k);
             if (nf.func) {
                 unsigned char *f = (unsigned char *)nf.func;
-                uint64_t b = (uint64_t)f & 0xFFFFFFFFFFFF0000;
                 printf("\n");
-                printf(KXFT_FUNCTION_INDENT "%s: (native-base:0x%08llx)\n", nf.name, b);
-                native_dump(f, nf.exec_size, b);
+                printf(KXFT_FUNCTION_INDENT "%s: (native-base:0x%08llx)\n", nf.name, (uint64_t)f);
+                native_dump(f, nf.exec_size);
             }
         }
     }
