@@ -18,7 +18,7 @@ void native_dump(unsigned char *bytes, int size)
 
 	int biter = 0;
 	DS_FOREACH(ds, dis) {
-		printf("%8llx:   ", dis->address);
+		printf("%8"PRIx64":   ", dis->address);
 		for (int m = 0, t = dis->used_bytes; m < 10; m++, t = m < dis->used_bytes) {
             if (t) {
                 printf("%02x ", bytes[biter++]);
