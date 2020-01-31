@@ -253,6 +253,7 @@ static inline const char *startup_code()
         "import System;"
         "import String;"
         "import Array;"
+        "import Math;"
         "import Regex;"
         "var SystemTimer = { create: System.SystemTimer_create };"
         "var Integer = { parseInt: System.parseInt };"

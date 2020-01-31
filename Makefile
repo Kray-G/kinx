@@ -56,6 +56,7 @@ SOFILES = \
     kxsystem.so \
     kxstring.so \
     kxarray.so \
+    kxmath.so \
     kxregex.so
 PICOBJS = \
     bignpic.o \
@@ -115,6 +116,9 @@ kxstring.so: src/extlib/kxstring.c $(PICOBJS)
 
 kxarray.so: src/extlib/kxarray.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+
+kxmath.so: src/extlib/kxmath.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -lm
 
 kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
