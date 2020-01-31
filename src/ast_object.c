@@ -246,10 +246,10 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     if (!name) {
         name = kx_gen_name("__anonymous_func", counter++);
     }
-    kx_object_t *obj = kx_gen_obj(type, pname ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
+    kx_object_t *obj = kx_gen_obj(type, (type == KXST_NATIVE || pname) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
     obj->value.s = name;
     kx_object_t *assign;
-    if (!pname) {
+    if (!pname && type != KXST_NATIVE) {
         assign = obj;
     } else if (type != KXST_CLASS) {
         assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name, KX_UNKNOWN_T), obj);
