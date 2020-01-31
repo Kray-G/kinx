@@ -255,6 +255,8 @@ static inline const char *startup_code()
         "import Array;"
         "import Regex;"
         "var SystemTimer = { create: System.SystemTimer_create };"
+        "var Integer = { parseInt: System.parseInt };"
+        "var Double = { parseDouble: System.parseDouble };"
         "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };"
     ;
     return code;
