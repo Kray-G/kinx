@@ -278,6 +278,8 @@ You can use the following objects in every programs with nothing to do.
 *   `Math` ... same as `System`.
 *   `Regex` ... same as `System`.
 *   `SystemTimer` ... same as `System`.
+*   `Integer` ... same as `System`.
+*   `Double` ... same as `System`.
 *   `RuntimeException` ... is a standard exception, do it like `throw RuntimeException("message");`.
 
 ### Command Line Arguments
