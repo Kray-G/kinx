@@ -1,8 +1,8 @@
 var b = 100;
 var c = 100;
-var d = 0;
 function test() {
-    native try_catch(n) {
+    var d = 0;
+    return native (n) {
         var a = 100;
         try {
             try {
@@ -18,8 +18,7 @@ function test() {
             ++b;
         }
         return a;
-    }
-    return try_catch;
+    };
 }
 
 var try_catch = test();
