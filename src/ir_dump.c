@@ -397,7 +397,11 @@ static void ir_native_dump(kx_context_t *ctx)
                 unsigned char *f = (unsigned char *)nf.func;
                 printf("\n");
                 printf(KXFT_FUNCTION_INDENT "%s: (native-base:0x%08"PRIx64")\n", nf.name, (uint64_t)f);
-                native_dump(f, nf.exec_size);
+                if (ctx->options.with_native) {
+                    native_dump(f, nf.exec_size);
+                } else {
+                    printf("    (omitted ... specify --with-native for dump of native code)\n");
+                }
             }
         }
     }
