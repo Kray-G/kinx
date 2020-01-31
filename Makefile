@@ -107,6 +107,12 @@ clean:
 kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm
 	rm kx.output
+	cp -f src/disasm/arch/x86/x86.ins .
+	cp -f src/disasm/arch/x86/x64.ins .
+	cp -f src/disasm/arch/mips/mips.ins .
+	cp -f src/disasm/arch/arm/arm.ins .
+	cp -f src/disasm/spec/x86.spec .
+	cp -f src/disasm/spec/mips.spec .
 
 kxsystem.so: src/extlib/kxsystem.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
