@@ -4,13 +4,15 @@
 
 #define KXN_SIZE_OF_WORD (8)
 #define KXN_LOCALVAR_OFFSET (2)
+#define KXN_MAX_NATIVE_ARGS (8)
 #define KXN_CALL_DEPTH_REG (SLJIT_MEM1(reg(ARG1)))
 #define KXN_CALL_DEPTH_IDX (1 * KXN_SIZE_OF_WORD)
 #define KXN_EXCEPT_FLAG_REG (SLJIT_MEM1(reg(ARG0)))
 #define KXN_EXCEPT_FLAG_IDX (2 * KXN_SIZE_OF_WORD)
 #define KXN_EXCEPT_VAL_REG (SLJIT_MEM1(reg(ARG0)))
 #define KXN_EXCEPT_VAL_IDX (3 * KXN_SIZE_OF_WORD)
-#define KXN_MAX_NATIVE_ARGS (8)
+#define KXN_CTX_VAL_REG (SLJIT_MEM1(reg(ARG0)))
+#define KXN_CTX_VAL_IDX (4 * KXN_SIZE_OF_WORD)
 
 typedef struct sljit_label sllabel_t;
 typedef struct sljit_jump sljump_t;
