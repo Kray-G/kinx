@@ -14,7 +14,7 @@
     cur = e->code; \
     frmv = e->frmv; \
     lexv = e->lexv; \
-    continue; \
+    KX_GOTO(); \
 } \
 /**/
 
@@ -32,6 +32,6 @@
     cur = e->code; \
     frmv = e->frmv; \
     lexv = e->lexv; \
-    continue; \
+    KX_GOTO(); \
 } \
 /**/
