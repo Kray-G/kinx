@@ -303,6 +303,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXST_EXPR:       /* lhs: expr */
         display_ast(node->lhs, indent, 0);
         break;
+    case KXST_EXPRSEQ:    /* lhs: expr1: rhs: expr2 */
+        display_ast(node->lhs, indent, 0);
+        display_ast(node->rhs, indent, 0);
+        break;
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
         display_ast(node->lhs, indent, 0);
         display_ast(node->rhs, indent, 0);
