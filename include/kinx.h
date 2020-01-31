@@ -308,7 +308,6 @@ extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
 extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
-extern int set_exception_code(sljit_sw *val, sljit_sw ex);
 extern void longjmp_hook(sljit_sw r);
 extern int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
