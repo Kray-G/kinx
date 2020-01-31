@@ -74,12 +74,13 @@ SOFILES = \
     kxsystem.dll \
     kxstring.dll \
     kxarray.dll \
+    kxmath.dll \
     kxregex.dll
 PICOBJS = \
-    bignpic.obj \
-    bigzpic.obj \
-    allocutilpic.obj \
-    kstrpic.obj
+    src/bign.obj \
+    src/bigz.obj \
+    src/allocutil.obj \
+    src/kstr.obj
 TESTCORE = \
     apply \
     append \
@@ -143,6 +144,9 @@ kxstring.dll: src/extlib/kxstring.c $(PICOBJS)
 kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
 
+kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxmath.c $(PICOBJS)
+
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
 
@@ -171,18 +175,6 @@ onig.dll:
 	copy /y onig.dll ..\..\..
 	copy /y onig_s.lib ..\..\..
 	cd ..\..\..
-
-bignpic.obj: src/bign.c
-	$(CC) /c $(CFLAGS) /Fo$@ src/bign.c
-
-bigzpic.obj: src/bigz.c
-	$(CC) /c $(CFLAGS) /Fo$@ src/bigz.c
-
-allocutilpic.obj: src/allocutil.c
-	$(CC) /c $(CFLAGS) /Fo$@ src/allocutil.c
-
-kstrpic.obj: src/kstr.c
-	$(CC) /c $(CFLAGS) /Fo$@ src/kstr.c
 
 test-core: $(OBJS)
 
