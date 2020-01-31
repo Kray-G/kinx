@@ -238,6 +238,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXST_EXPR:       /* lhs: expr */
         analyze_ast(node->lhs, ctx);
         break;
+    case KXST_EXPRSEQ:   /* lhs: expr1: rhs: expr2 */
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
         analyze_ast(node->lhs, ctx);

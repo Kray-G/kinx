@@ -66,7 +66,7 @@ static struct rv call_hook(kx_context_t *ctx, kx_native_funcp_t f, kx_frm_t *frm
         (sljit_sw)frmv,
         0, /* exception flag */
         0, /* exception val */
-        ctx,
+        (sljit_sw)ctx,
     };
     int64_t r = f(info, args, flag);
     if (info[2] == 0) {

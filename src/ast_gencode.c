@@ -578,6 +578,14 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
+    case KXST_EXPRSEQ: {  /* lhs: expr1: rhs: expr2 */
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        if (node->rhs) {
+            add_pop(ana);
+            gencode_ast_hook(ctx, node->rhs, ana, 0);
+        }
+        break;
+    }
     case KXST_EXPRLIST: { /* lhs: expr1: rhs: expr2 */
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         if (node->rhs) {
