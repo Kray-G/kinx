@@ -515,7 +515,7 @@ int check_typeof(kx_val_t *v1, int type)
     case KX_CSTR_T: return v1->type == KX_CSTR_T || v1->type == KX_STR_T;
     case KX_STR_T:  return v1->type == KX_CSTR_T || v1->type == KX_STR_T;
     case KX_OBJ_T:  return v1->type == KX_OBJ_T;
-    case KX_FNC_T:  return v1->type == KX_FNC_T;
+    case KX_FNC_T:  return v1->type == KX_FNC_T || v1->type == KX_BFNC_T || v1->type == KX_NFNC_T;
     case KX_ARY_T:  return v1->type == KX_OBJ_T && kv_size(v1->value.ov->ary) > 0;
     }
     return 0;
