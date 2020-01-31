@@ -59,13 +59,14 @@ int set_lexical_int_value(sljit_sw *args)
     return 0;
 }
 
-static struct rv call_hook(kx_native_funcp_t f, kx_frm_t *frmv, sljit_sw *args, sljit_sw flag)
+static struct rv call_hook(kx_context_t *ctx, kx_native_funcp_t f, kx_frm_t *frmv, sljit_sw *args, sljit_sw flag)
 {
     sljit_sw info[] = {
         (sljit_sw)f,
         (sljit_sw)frmv,
         0, /* exception flag */
         0, /* exception val */
+        ctx,
     };
     int64_t r = f(info, args, flag);
     if (info[2] == 0) {
@@ -116,7 +117,7 @@ int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc)
         }
     }
 
-    struct rv v = call_hook(func, nfnc->lex, arglist, 0);
+    struct rv v = call_hook(ctx, func, nfnc->lex, arglist, 0);
     kv_shrink(cx->stack, ct);
     push_i(cx->stack, v.r);
     return v.ex;
