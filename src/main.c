@@ -91,6 +91,8 @@ int main(int ac, char **av)
                 ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 128;
             } else if (!strcmp(lname, "native-verbose")) {
                 ctx->options.native_verbose = param[0] ? strtol(param, NULL, 0) : 1;
+            } else if (!strcmp(lname, "with-native")) {
+                ctx->options.with_native = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "exception-detail-info")) {
                 ctx->options.exception_detail_info = param[0] ? strtol(param, NULL, 0) : 1;
             }
