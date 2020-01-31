@@ -1,0 +1,36 @@
+var b = 100;
+var c = 100;
+var d = 0;
+function test() {
+    native try_catch(n) {
+        var a = 100;
+        try {
+            try {
+                a /= d;
+            } finally {
+                ++b;
+            }
+            b %= 9;
+        } catch (e) {
+            c = 999;
+            throw;
+        } finally {
+            ++b;
+        }
+        return a;
+    }
+    return try_catch;
+}
+
+var try_catch = test();
+try {
+    System.println("b = ", b);
+    System.println(try_catch(10));
+} catch (e) {
+    System.println(e.what());
+    e.printStackTrace();
+} finally {
+    System.println("b = ", b);
+    System.println("c = ", c);
+}
+

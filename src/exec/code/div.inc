@@ -1,6 +1,6 @@
 #define KX_DIV_DIV_I(v1, val) { \
     if (val == 0) { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Divided by zero"); \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Divide by zero"); \
     } \
     if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
@@ -122,7 +122,7 @@
 /**/
 #define KX_DIV_DIV_D(v1, val) { \
     if (val < DBL_EPSILON) { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Divided by zero"); \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Divide by zero"); \
     } \
     switch ((v1)->type) { \
     case KX_UND_T: { \

@@ -14,6 +14,7 @@
     cur = e->code; \
     frmv = e->frmv; \
     lexv = e->lexv; \
+    continue; \
 } \
 /**/
 
@@ -31,5 +32,6 @@
     cur = e->code; \
     frmv = e->frmv; \
     lexv = e->lexv; \
+    continue; \
 } \
 /**/

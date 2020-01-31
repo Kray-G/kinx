@@ -15,47 +15,85 @@ static void dump(const unsigned char *b, int l)
 struct rv { int64_t r; int ex; };
 static struct rv exc;
 
-int native_function_check(sljit_sw val, sljit_sw ex)
+int set_exception_code(sljit_sw* val, sljit_sw ex)
 {
-    exc.ex = ex;
+    exc.ex = (int)ex;
+    if (exc.ex <= 0 || KX_NAT_MAX_EXCEPTION < exc.ex) {
+        exc.ex = KX_NAT_UNKNOWN_ERROR;
+    }
     return 0;
 }
 
-int get_lexical_int_value(sljit_sw xlexp, sljit_sw xlex_no, sljit_sw xval_idx)
+int native_debug_print(sljit_sw value)
 {
+    return printf("value = %llx\n", value);
+}
+
+int native_debug_print_reg(sljit_sw name, sljit_sw value)
+{
+    return printf("%s = %llx\n", (const char*)name, value);
+}
+
+int64_t get_lexical_int_value(sljit_sw *args)
+{
+    sljit_sw *info = (sljit_sw *)args[0];
     kx_val_t *vp;
-    int lex = xlex_no;
-    kx_frm_t *lexp = (kx_frm_t *)xlexp;
+    int lex = (int)args[1];
+    kx_frm_t *lexp = (kx_frm_t *)(info[1]);
     while (lexp && --lex) {
         lexp = lexp->lex;
     }
-    vp = &kv_A(lexp->v, xval_idx);
+    vp = &kv_A(lexp->v, args[2]);
     if (vp->type == KX_INT_T) {
         return vp->value.iv;
     }
 
-    /*
-        The exception is raised after returning function call.
-        There is no way to raise it immediately so far.
-        ... setjmp/longjmp did not work in callback.
-     */
-    exc.ex = KX_NAT_UNSUPPORTED_TYPE;
+    info[2] = 1;
+    info[3] = KX_NAT_UNSUPPORTED_TYPE;
     return 0;
 }
 
-static struct rv call_hook(kx_native_funcp_t f, kx_frm_t *frmv, sljit_sw *s1, sljit_sw s2)
+int set_lexical_int_value(sljit_sw *args)
+{
+    sljit_sw *info = (sljit_sw *)args[0];
+    kx_val_t *vp;
+    int lex = (int)args[1];
+    kx_frm_t *lexp = (kx_frm_t *)(info[1]);
+    while (lexp && --lex) {
+        lexp = lexp->lex;
+    }
+    vp = &kv_A(lexp->v, args[2]);
+    vp->type = KX_INT_T;
+    vp->value.iv = args[3];
+    return 0;
+}
+
+static struct rv call_hook(kx_native_funcp_t f, kx_frm_t *frmv, sljit_sw *args, sljit_sw flag)
 {
     sljit_sw info[] = {
         (sljit_sw)f,
         (sljit_sw)frmv,
+        0, /* exception flag */
+        0, /* exception val */
     };
+    int64_t r = f(info, args, flag);
+    if (info[2] == 0) {
+        exc.ex = 0;
+    } else {
+        if (exc.ex == 0) {
+            exc.ex = info[3];
+            if (exc.ex <= 0 || KX_NAT_MAX_EXCEPTION < exc.ex) {
+                exc.ex = KX_NAT_UNKNOWN_ERROR;
+            }
+        }
+    }
     return (struct rv){
-        .r = f(info, s1, s2),
+        .r = r,
         .ex = exc.ex,
     };
 }
 
-int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc)
+int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc)
 {
     kx_native_funcp_t func = nfnc->native.func;
     if (!func) {
@@ -72,21 +110,22 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     }
     sljit_sw arglist[256] = {0};
     arglist[0] = nargs;
-    for (int i = 1; i <= nargs; ++i) {
+    arglist[1] = 0; /* depth */
+    for (int i = 1, j = 2; i <= nargs; ++i, ++j) {
         kx_val_t *v = &kv_last_by(ctx->stack, i);
         switch (v->type) {
         case KX_INT_T:
-            arglist[i] = (sljit_sw)(v->value.iv);
+            arglist[j] = (sljit_sw)(v->value.iv);
             break;
         case KX_NFNC_T:
-            arglist[i] = (sljit_sw)(v->value.fn->native.func);
+            arglist[j] = (sljit_sw)(v->value.fn->native.func);
             break;
         default:
             return KX_NAT_UNSUPPORTED_TYPE;
         }
     }
 
-    struct rv v = call_hook(func, frmv, arglist, 0);
+    struct rv v = call_hook(func, nfnc->lex, arglist, 0);
     kv_shrink(cx->stack, ct);
     push_i(cx->stack, v.r);
     return v.ex;

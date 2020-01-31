@@ -67,7 +67,7 @@
 
 #define KX_PUSHNF_CODE() \
 { \
-    push_nf((ctx)->stack, cur->value2.n); \
+    push_nf((ctx)->stack, cur->value2.n, frmv); \
     cur = cur->next; \
 } \
 /**/
