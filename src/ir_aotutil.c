@@ -15,15 +15,6 @@ static void dump(const unsigned char *b, int l)
 struct rv { int64_t r; int ex; };
 static struct rv exc;
 
-int set_exception_code(sljit_sw* val, sljit_sw ex)
-{
-    exc.ex = (int)ex;
-    if (exc.ex <= 0 || KX_NAT_MAX_EXCEPTION < exc.ex) {
-        exc.ex = KX_NAT_UNKNOWN_ERROR;
-    }
-    return 0;
-}
-
 int native_debug_print(sljit_sw value)
 {
     return printf("value = %llx\n", value);

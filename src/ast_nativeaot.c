@@ -1212,9 +1212,8 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         sljit_emit_op2(nctx->C, SLJIT_ADD, SLJIT_R0, 0, SLJIT_R0, 0, SLJIT_IMM, 1);
         sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_CALL_DEPTH_REG, KXN_CALL_DEPTH_IDX, SLJIT_R0, 0);
         sljump_t *body = sljit_emit_cmp(nctx->C, SLJIT_LESS, SLJIT_R0, 0, SLJIT_IMM, nctx->max_call_depth);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, reg(ARG0), 0);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
-    	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_ARG1(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(set_exception_code));
+        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_VAL_REG, KXN_EXCEPT_VAL_IDX, SLJIT_IMM, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
     	sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
         /* function body */
         sljit_set_label(body, sljit_emit_label(nctx->C));
