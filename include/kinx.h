@@ -401,6 +401,66 @@ static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
     return NULL;
 }
 
+static inline int can_be_arg_int(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        return (val.type == KX_INT_T) || (val.type == KX_DBL_T) || (val.type == KX_CSTR_T) || (val.type == KX_STR_T);
+    }
+    return 0;
+}
+
+static inline int can_be_arg_dbl(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        return (val.type == KX_INT_T) || (val.type == KX_BIG_T) || (val.type == KX_DBL_T) || (val.type == KX_CSTR_T) || (val.type == KX_STR_T);
+    }
+    return 0;
+}
+
+static inline int64_t get_arg_int(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        if (val.type == KX_INT_T) {
+            return val.value.iv;
+        } else if (val.type == KX_DBL_T) {
+            return (int64_t)val.value.dv;
+        } else if (val.type == KX_BIG_T) {
+            return BzToDouble(val.value.bz);
+        } else if (val.type == KX_CSTR_T) {
+            return (int64_t)strtoll(val.value.pv, NULL, 0);
+        } else if (val.type == KX_STR_T) {
+            return (int64_t)strtoll(ks_string(val.value.sv), NULL, 0);
+        }
+    }
+    return 0;
+}
+
+static inline double get_arg_dbl(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        if (val.type == KX_INT_T) {
+            return (double)val.value.iv;
+        } else if (val.type == KX_DBL_T) {
+            return val.value.dv;
+        } else if (val.type == KX_BIG_T) {
+            return BzToDouble(val.value.bz);
+        } else if (val.type == KX_CSTR_T) {
+            return (double)strtod(val.value.pv, NULL);
+        } else if (val.type == KX_STR_T) {
+            return (double)strtod(ks_string(val.value.sv), NULL);
+        }
+    }
+    return 0;
+}
+
 #if defined(_WIN32) || defined(_WIN64)
 extern int len_acp2utf8(const char *src);
 extern char *conv_acp2utf8(char *dst, int len, const char *src);
