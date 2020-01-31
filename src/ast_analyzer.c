@@ -283,10 +283,6 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->ex, ctx);
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
-        if (ctx->in_native) {
-            kx_yyerror_line("Can not use try-catch in native function.", node->file, node->line);
-            break;
-        }
         kxana_symbol_t* table = &(kv_last(ctx->symbols));
         int size = kv_size(table->list);
         analyze_ast(node->lhs, ctx);
@@ -298,10 +294,6 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
-        if (ctx->in_native) {
-            kx_yyerror_line("Can not use try-catch in native function.", node->file, node->line);
-            break;
-        }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
         break;
@@ -310,10 +302,6 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         break;
     case KXST_THROW:      /* lhs: expr */
-        if (ctx->in_native) {
-            kx_yyerror_line("Can not use throw in native function.", node->file, node->line);
-            break;
-        }
         analyze_ast(node->lhs, ctx);
         break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */

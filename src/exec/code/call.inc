@@ -47,6 +47,10 @@ case KX_NAT_UNSUPPORTED_TYPE: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unsupported argument type"); \
     break; \
 } \
+case KX_NAT_DIVIDE_BY_ZERO: { \
+    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Divide by zero"); \
+    break; \
+} \
 case KX_NAT_TOO_DEEP_TO_CALL_FUNC: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too deep to call function"); \
     break; \
@@ -118,7 +122,7 @@ default: \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
         kv_remove_last((ctx)->stack); \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -152,7 +156,7 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -181,7 +185,7 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -210,7 +214,7 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -255,7 +259,7 @@ default: \
             KX_BUILTIN_FUNCTION_ERROR(r); \
             cur = cur->next; \
         } else if (fv->type == KX_NFNC_T) { \
-            int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+            int64_t r = call_native(ctx, cur->count, fv->value.fn); \
             KX_NATIVE_FUNCTION_ERROR(r); \
             cur = cur->next; \
         } else { \
