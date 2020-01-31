@@ -879,6 +879,12 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     case KXST_EXPR:       /* lhs: expr */
         nativejit_ast(nctx, node->lhs, 0);
         break;
+    case KXST_EXPRSEQ:   /* lhs: expr1: rhs: expr2 */
+        clear_regs(nctx);
+        nativejit_ast(nctx, node->lhs, 0);
+        clear_regs(nctx);
+        nativejit_ast(nctx, node->rhs, 0);
+        break;
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
         clear_regs(nctx);
         nativejit_ast(nctx, node->lhs, 0);

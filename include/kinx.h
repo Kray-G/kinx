@@ -156,6 +156,7 @@ enum opecode {
 
     /* statement object */
     KXST_EXPR,      /* lhs: expr */
+    KXST_EXPRSEQ,   /* lhs: expr1, rhs: expr2 */
     KXST_EXPRLIST,  /* lhs: expr1, rhs: expr2 */
     KXST_STMTLIST,  /* lhs: stmt1, rhs: stmt2 */
     KXST_BLOCK,     /* lhs: block */

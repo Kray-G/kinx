@@ -26,6 +26,7 @@ y.kkk(2);
 
 // Example 3
 
+var a;
 var methodMissing = function(method, arg0) {
     System.println("-------- global 1");
     System.println("method = '", method, "'");
