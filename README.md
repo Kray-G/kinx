@@ -125,8 +125,8 @@ System.println(new Example(100).get());
 
 #### What is Native function?
 
-Remember fibonacci function above.
-That is simple fibonacci function and execute it with time measurement like below.
+Remember the fibonacci function above.
+That is a simple fibonacci function and execute it with time measurement like below.
 
 ```
 $ time ./kinx examples/fib.kx
@@ -169,6 +169,9 @@ I am now considering how to remove those.
 *   Integer value is not automatically promoted to big integer, just overfow it.
 *   Can not call a script function. Only can call a native function.
 *   Forward declaration of a native function is not supported.
+*   Can access to the lexical scope and variables, but only for an integer value.
+*   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
+*   Support 64bit only. Libraries are supporting x64, ARM, MIPS, but sorry I can not test it except x64 Windows or Linux.
 
 ### Extending Functionalities
 

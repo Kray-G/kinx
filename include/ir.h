@@ -605,10 +605,11 @@ typedef struct kx_context_ {
         push_fnc(KX_FNC_T, (ctx)->stack, fnc); \
     } while (0);\
 /**/
-#define push_nf(st, n) \
+#define push_nf(st, n, lexv) \
     do {\
         kx_fnc_t *fnc = allocate_fnc(ctx); \
         fnc->native = n; \
+        fnc->lex = lexv; \
         push_fnc(KX_NFNC_T, (ctx)->stack, fnc); \
     } while (0);\
 /**/
