@@ -203,6 +203,92 @@ int SystemTimer_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
+/* parseInt/parseDouble */
+
+int System_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args == 0) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No argument to parseInt");
+    }
+
+    kvec_t(kx_val_t) *stack = &(ctx->stack);
+    kx_val_t *val = &kv_last_by(*stack, 1);
+    while (val && val->type == KX_LVAL_T) {
+        val = val->value.lv;
+    }
+    if (!val) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object");
+    }
+
+    int64_t r;
+    switch (val->type) {
+    case KX_INT_T:
+        r = val->value.iv;
+        break;
+    case KX_DBL_T:
+        r = (int64_t)val->value.dv;
+        break;
+    case KX_CSTR_T: {
+        r = strtoll(val->value.pv, NULL, 0);
+        break;
+    }
+    case KX_STR_T: {
+        r = strtoll(ks_string(val->value.sv), NULL, 0);
+        break;
+    }
+    default:
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Unsupported object for converting to integer");
+        break;
+    }
+
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int System_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args == 0) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No argument to parseDouble");
+    }
+
+    kvec_t(kx_val_t) *stack = &(ctx->stack);
+    kx_val_t *val = &kv_last_by(*stack, 1);
+    while (val && val->type == KX_LVAL_T) {
+        val = val->value.lv;
+    }
+    if (!val) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object");
+    }
+
+    double r;
+    switch (val->type) {
+    case KX_INT_T:
+        r = (double)val->value.iv;
+        break;
+    case KX_DBL_T:
+        r = val->value.dv;
+        break;
+    case KX_CSTR_T: {
+        r = strtod(val->value.pv, NULL);
+        break;
+    }
+    case KX_STR_T: {
+        r = strtod(ks_string(val->value.sv), NULL);
+        break;
+    }
+    default:
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Unsupported object for converting to double");
+        break;
+    }
+
+
+    KX_ADJST_STACK();
+    push_d(ctx->stack, r);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "makeSuper", System_makeSuper },
     { "print", System_print },
@@ -210,6 +296,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "exec", System_exec },
     { "abort", System_abort },
     { "SystemTimer_create", SystemTimer_create },
+    { "parseInt", System_parseInt },
+    { "parseDouble", System_parseDouble },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
