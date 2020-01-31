@@ -2,18 +2,31 @@
 #include <kinx.h>
 #include <jit.h>
 
-#define SIZE_OF_WORD (8)
+#define KXN_SIZE_OF_WORD (8)
+#define KXN_LOCALVAR_OFFSET (2)
+#define KXN_CALL_DEPTH_REG (SLJIT_MEM1(reg(ARG1)))
+#define KXN_CALL_DEPTH_IDX (1 * KXN_SIZE_OF_WORD)
+#define KXN_EXCEPT_FLAG_REG (SLJIT_MEM1(reg(ARG0)))
+#define KXN_EXCEPT_FLAG_IDX (2 * KXN_SIZE_OF_WORD)
+#define KXN_EXCEPT_VAL_REG (SLJIT_MEM1(reg(ARG0)))
+#define KXN_EXCEPT_VAL_IDX (3 * KXN_SIZE_OF_WORD)
+#define KXN_MAX_NATIVE_ARGS (8)
 
 typedef struct sljit_label sllabel_t;
 typedef struct sljit_jump sljump_t;
+kvec_init_pt(sljump_t);
 
 typedef struct kx_native_jump_info_ {
     int done;
     sljump_t *source;
     const char *label;
 } kx_native_jump_info_t;
-
 kvec_init_t(kx_native_jump_info_t);
+
+typedef struct kx_native_except_info_ {
+    kvec_pt(sljump_t) throw_list;
+} kx_native_except_info_t;
+kvec_init_t(kx_native_except_info_t);
 
 typedef struct kx_native_context_ {
     struct sljit_compiler *C;
@@ -31,8 +44,78 @@ typedef struct kx_native_context_ {
     int saved[20];
     kvec_t(kx_native_jump_info_t) continue_list;
     kvec_t(kx_native_jump_info_t) break_list;
+    kx_object_t *finally_clause;
+    kx_object_t *excet_var;
+    kvec_t(kx_native_except_info_t) except_stack;
 } kx_native_context_t;
 
+#define KX_NAT_DO_FINALLY(CLR) { \
+    if (nctx->finally_clause) { \
+        if (CLR) clear_regs(nctx); \
+        nativejit_ast(nctx, nctx->finally_clause, 0); \
+    } \
+} \
+/**/
+#define KX_RAISE_EXCEPTION_SAME() \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1); /* exception on */ \
+    if (kv_size(nctx->except_stack) == 0) { \
+        KX_NAT_DO_FINALLY(1); \
+        nctx->finally_clause = NULL; \
+        sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
+    } else { \
+        sljump_t *tocatch = sljit_emit_jump(nctx->C, SLJIT_JUMP); \
+        kv_push(sljump_t*, kv_last(nctx->except_stack).throw_list, tocatch); \
+    } \
+/**/
+#define KX_RAISE_EXCEPTION(val1, val2) \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1); /* exception on */ \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_VAL_REG, KXN_EXCEPT_VAL_IDX, val1, val2); /* exception value */ \
+    if (kv_size(nctx->except_stack) == 0) { \
+        KX_NAT_DO_FINALLY(1); \
+        nctx->finally_clause = NULL; \
+        sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
+    } else { \
+        sljump_t *tocatch = sljit_emit_jump(nctx->C, SLJIT_JUMP); \
+        kv_push(sljump_t*, kv_last(nctx->except_stack).throw_list, tocatch); \
+    } \
+/**/
+#define KX_RAISE_EXCEPTION_IF_NOT(op, c11, c12, c21, c22, val1, val2) \
+    sljump_t *good = sljit_emit_cmp(nctx->C, op, c11, c12, c21, c22); \
+    KX_RAISE_EXCEPTION(val1, val2); \
+    sljit_set_label(good, sljit_emit_label(nctx->C)); \
+/**/
+#define KX_NAT_EMITOP2_ASSIGD(NAME, CMD, OP, CMDNAME, RET) \
+case KXOP_ASSIGN_##NAME: { \
+    if (!node->lhs || node->lhs->type != KXOP_VAR || node->lhs->var_type != KX_INT_T) { \
+        kx_yyerror_line("Assignment is supported only for an integer variable in native function", node->file, node->line); \
+    } else { \
+        r0 = nativejit_ast(nctx, node->lhs, 1); \
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, reg(r0), 0); \
+        if (node->rhs->type == KXVL_INT) { \
+            int imm = node->rhs->value.i; \
+            KX_RAISE_EXCEPTION_IF_NOT(SLJIT_NOT_EQUAL, SLJIT_IMM, imm, SLJIT_IMM, 0, SLJIT_IMM, KX_NAT_DIVIDE_BY_ZERO); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, imm); \
+            sljit_emit_op0(nctx->C, SLJIT_##CMDNAME); \
+        } else { \
+            int r1 = nativejit_ast(nctx, node->rhs, 0); \
+            KX_RAISE_EXCEPTION_IF_NOT(SLJIT_NOT_EQUAL, reg(r1), 0, SLJIT_IMM, 0, SLJIT_IMM, KX_NAT_DIVIDE_BY_ZERO); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, reg(r1), 0); \
+            sljit_emit_op0(nctx->C, SLJIT_##CMDNAME); \
+            release_regs(nctx, r1); \
+        } \
+        if (node->lhs->lexical == 0) { \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, RET, 0); \
+        } else { \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 0)*KXN_SIZE_OF_WORD, SLJIT_S0, 0); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 1)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->lhs->lexical); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 2)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->lhs->index); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 3)*KXN_SIZE_OF_WORD, RET, 0); \
+            KX_NAT_CALL_NATIVE(set_lexical_int_value); \
+        } \
+    } \
+    break; \
+} \
+/**/
 #define KX_NAT_EMITOP2_ASSIGN(NAME, CMD, OP, CMDNAME) \
 case KXOP_ASSIGN_##NAME: { \
     if (!node->lhs || node->lhs->type != KXOP_VAR || node->lhs->var_type != KX_INT_T) { \
@@ -47,8 +130,36 @@ case KXOP_ASSIGN_##NAME: { \
             sljit_emit_op2(nctx->C, SLJIT_##CMDNAME, reg(r0), 0, reg(r0), 0, reg(r1), 0); \
             release_regs(nctx, r1); \
         } \
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, reg(r0), 0); \
+        if (node->lhs->lexical == 0) { \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, reg(r0), 0); \
+        } else { \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 0)*KXN_SIZE_OF_WORD, SLJIT_S0, 0); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 1)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->lhs->lexical); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 2)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->lhs->index); \
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 3)*KXN_SIZE_OF_WORD, reg(r0), 0); \
+            KX_NAT_CALL_NATIVE(set_lexical_int_value); \
+        } \
     } \
+    break; \
+} \
+/**/
+#define KX_NAT_EMITOPD(NAME, CMD, OP, CMDNAME, RET) \
+case KXOP_##NAME: { \
+    r0 = nativejit_ast(nctx, node->lhs, 1); \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, reg(r0), 0); \
+    if (node->rhs->type == KXVL_INT) { \
+        int imm = node->rhs->value.i; \
+        KX_RAISE_EXCEPTION_IF_NOT(SLJIT_NOT_EQUAL, SLJIT_IMM, imm, SLJIT_IMM, 0, SLJIT_IMM, KX_NAT_DIVIDE_BY_ZERO); \
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, imm); \
+        sljit_emit_op0(nctx->C, SLJIT_##CMDNAME); \
+    } else { \
+        int r1 = nativejit_ast(nctx, node->rhs, 0); \
+        KX_RAISE_EXCEPTION_IF_NOT(SLJIT_NOT_EQUAL, reg(r1), 0, SLJIT_IMM, 0, SLJIT_IMM, KX_NAT_DIVIDE_BY_ZERO); \
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, reg(r1), 0); \
+        sljit_emit_op0(nctx->C, SLJIT_##CMDNAME); \
+        release_regs(nctx, r1); \
+    } \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, RET, 0); \
     break; \
 } \
 /**/
@@ -88,6 +199,46 @@ case KXOP_##NAME: { \
     break; \
 } \
 /**/
+#define KX_EXCEPTION_CHECK() { \
+    /* exception check */ \
+    int rr = get_rreg(nctx); \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, reg(rr), 0, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX); /* exception on? */ \
+    sljump_t *good = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(rr), 0, SLJIT_IMM, 0); \
+    release_regs(nctx, rr); \
+    /* exception detected */ \
+    sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
+    /* okay to go next */ \
+    sljit_set_label(good, sljit_emit_label(nctx->C)); \
+} \
+/**/
+#define KX_NAT_CALL_NATIVE(name) \
+    save_regs(nctx); \
+    clear_regs(nctx); \
+    reserve_regs(nctx, 0); \
+    sljit_get_local_base(nctx->C, SLJIT_R0, 0, nctx->offset_callbuf * KXN_SIZE_OF_WORD); \
+    sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(name)); \
+    release_regs(nctx, 0); \
+    restore_regs(nctx); \
+    if (reg(r0) != SLJIT_RETURN_REG) { \
+        sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_RETURN_REG, 0); \
+    } \
+    KX_EXCEPTION_CHECK(); \
+/**/
+#define KX_NAT_DEBUG_PRINT(value) { \
+    save_regs(nctx); \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_IMM, value); \
+    sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_debug_print)); \
+    restore_regs(nctx); \
+} \
+/**/
+#define KX_NAT_DEBUG_REG_PRINT(name, r0) { \
+    save_regs(nctx); \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_IMM, (sljit_sw)name); \
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, reg(r0), 0); \
+    sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_debug_print_reg)); \
+    restore_regs(nctx); \
+} \
+/**/
 
 static int is_rreg_used(kx_native_context_t *nctx, int i)
 {
@@ -114,8 +265,8 @@ static int clear_regs(kx_native_context_t *nctx)
 
 static int get_rreg(kx_native_context_t *nctx)
 {
-    /* R0-R2 is used for arguments in calling. */
-    for (int i = 1; i < 6; ++i) {
+    /* R0-R1 is used for divide operation. */
+    for (int i = 2; i < 6; ++i) {
         if (nctx->regs[i] == 0) {
             nctx->regs[i] = 1;
             return i;
@@ -206,6 +357,9 @@ static int restore_regs(kx_native_context_t *nctx)
             int sr = nctx->saved[i];
             sljit_emit_op1(nctx->C, SLJIT_MOV, reg(i), 0, reg(sr), 0);
             nctx->regs[i] = 1;
+            release_regs(nctx, sr);
+        } else {
+            nctx->regs[i] = 0;
         }
         nctx->saved[i] = -1;
     }
@@ -227,7 +381,7 @@ static int set_args(kx_native_context_t *nctx, kx_object_t *node, int index)
     /**/
 
     int r0 = nativejit_ast(nctx, node, 0);
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), index * SIZE_OF_WORD, reg(r0), 0);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), index * KXN_SIZE_OF_WORD, reg(r0), 0);
     release_regs(nctx, r0);
     return index + 1;
 }
@@ -277,7 +431,7 @@ static void set_native_function_info(kx_native_context_t *nctx, kx_object_t *nod
     kh_value(nfuncs, k) = nf;
 }
 
-void set_continue_label(kx_native_context_t *nctx, const char *label, sllabel_t *gotolbl)
+static void set_continue_label(kx_native_context_t *nctx, const char *label, sllabel_t *gotolbl)
 {
     int done = 0;
     int size = kv_size(nctx->continue_list);
@@ -304,7 +458,7 @@ void set_continue_label(kx_native_context_t *nctx, const char *label, sllabel_t 
     }
 }
 
-void set_break_label(kx_native_context_t *nctx, const char *label, sllabel_t *gotolbl)
+static void set_break_label(kx_native_context_t *nctx, const char *label, sllabel_t *gotolbl)
 {
     int done = 0;
     int size = kv_size(nctx->break_list);
@@ -329,6 +483,35 @@ void set_break_label(kx_native_context_t *nctx, const char *label, sllabel_t *go
     if (done == size) {
         kv_shrinkto(nctx->break_list, 0);
     }
+}
+
+static void update_catch_list(kx_native_context_t *nctx, sllabel_t *clabel)
+{
+    kx_native_except_info_t *exc = &kv_last(nctx->except_stack);
+    int len = kv_size(exc->throw_list);
+    for (int i = 0; i < len; ++i) {
+        sljump_t *src = kv_A(exc->throw_list, i);
+        sljit_set_label(src, clabel);
+    }
+}
+
+static int get_reg_to_lexical_value(kx_native_context_t *nctx, kx_object_t *node, int r0)
+{
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 0)*KXN_SIZE_OF_WORD, SLJIT_S0, 0);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 1)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->lexical);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 2)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->index);
+    KX_NAT_CALL_NATIVE(get_lexical_int_value);
+    return r0;
+}
+
+static int set_reg_to_lexical_value(kx_native_context_t *nctx, kx_object_t *node, int r0)
+{
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 0)*KXN_SIZE_OF_WORD, SLJIT_S0, 0);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 1)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->lexical);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 2)*KXN_SIZE_OF_WORD, SLJIT_IMM, node->index);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 3)*KXN_SIZE_OF_WORD, reg(r0), 0);
+    KX_NAT_CALL_NATIVE(set_lexical_int_value);
+    return r0;
 }
 
 static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
@@ -377,26 +560,11 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     case KXOP_VAR: {
         switch (node->var_type) {
         case KX_INT_T:
+            r0 = get_rreg(nctx);
             if (node->lexical == 0) {
-                r0 = get_rreg(nctx);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(SLJIT_SP), node->index * SIZE_OF_WORD);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(SLJIT_SP), node->index * KXN_SIZE_OF_WORD);
             } else {
-                save_regs(nctx);
-                clear_regs(nctx);
-                reserve_regs(nctx, 0);
-                reserve_regs(nctx, 1);
-                reserve_regs(nctx, 2);
-                r0 = get_rreg(nctx);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S0), 1 * SIZE_OF_WORD); /* lexical frame */
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, node->lexical);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, node->index);
-                sljit_emit_icall(nctx->C, SLJIT_CALL,
-                    SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
-                    SLJIT_IMM, SLJIT_FUNC_OFFSET(get_lexical_int_value));
-                sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_R0, 0);
-                release_regs(nctx, 2);
-                release_regs(nctx, 1);
-                release_regs(nctx, 0);
+                r0 = get_reg_to_lexical_value(nctx, node, r0);
             }
             break;
         case KX_NFNC_T: {
@@ -442,12 +610,20 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             r0 = nativejit_ast(nctx, node->lhs, 0);
             if (node->type == KXOP_INC) {
                 sljit_emit_op2(nctx->C, SLJIT_ADD, reg(r0), 0, reg(r0), 0, SLJIT_IMM, 1);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, reg(r0), 0);
+                if (node->lhs->lexical == 0) {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, reg(r0), 0);
+                } else {
+                    r0 = set_reg_to_lexical_value(nctx, node->lhs, r0);
+                }
             } else {
                 int r1 = get_rreg(nctx);
                 sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r1), 0, reg(r0), 0);
                 sljit_emit_op2(nctx->C, SLJIT_ADD, reg(r1), 0, reg(r1), 0, SLJIT_IMM, 1);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, reg(r1), 0);
+                if (node->lhs->lexical == 0) {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, reg(r1), 0);
+                } else {
+                    r1 = set_reg_to_lexical_value(nctx, node->lhs, r1);
+                }
                 release_regs(nctx, r1);
             }
         }
@@ -460,12 +636,20 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             r0 = nativejit_ast(nctx, node->lhs, 0);
             if (node->type == KXOP_DEC) {
                 sljit_emit_op2(nctx->C, SLJIT_SUB, reg(r0), 0, reg(r0), 0, SLJIT_IMM, 1);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, reg(r0), 0);
+                if (node->lhs->lexical == 0) {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, reg(r0), 0);
+                } else {
+                    r0 = set_reg_to_lexical_value(nctx, node->lhs, r0);
+                }
             } else {
                 int r1 = get_rreg(nctx);
                 sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r1), 0, reg(r0), 0);
                 sljit_emit_op2(nctx->C, SLJIT_SUB, reg(r1), 0, reg(r1), 0, SLJIT_IMM, 1);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, reg(r1), 0);
+                if (node->lhs->lexical == 0) {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, reg(r1), 0);
+                } else {
+                    r1 = set_reg_to_lexical_value(nctx, node->lhs, r1);
+                }
                 release_regs(nctx, r1);
             }
         }
@@ -482,9 +666,9 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             kx_yyerror_line("Declaration is supported only for an integer variable in native function", node->file, node->line);
         } else if (node->rhs) {
             r0 = nativejit_ast(nctx, node->rhs, 0);
-            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, reg(r0), 0);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, reg(r0), 0);
         } else {
-            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, SLJIT_IMM, 0);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, SLJIT_IMM, 0);
         }
         break;
     }
@@ -493,9 +677,13 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             kx_yyerror_line("Assignment is supported only for an integer variable in native function", node->file, node->line);
         } else if (node->rhs) {
             r0 = nativejit_ast(nctx, node->rhs, 0);
-            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, reg(r0), 0);
+            if (node->lhs->lexical == 0) {
+                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, reg(r0), 0);
+            } else {
+                r0 = set_reg_to_lexical_value(nctx, node->lhs, r0);
+            }
         } else {
-            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * SIZE_OF_WORD, SLJIT_IMM, 0);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), node->lhs->index * KXN_SIZE_OF_WORD, SLJIT_IMM, 0);
         }
         break;
     }
@@ -505,8 +693,8 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     KX_NAT_EMITOP2_ASSIGN(ADD, "add", "+", ADD)
     KX_NAT_EMITOP2_ASSIGN(SUB, "sub", "-", SUB)
     KX_NAT_EMITOP2_ASSIGN(MUL, "mul", "*", MUL)
-    KX_NAT_EMITOP2_ASSIGN(DIV, "div", "/", DIV_SW)
-    KX_NAT_EMITOP2_ASSIGN(MOD, "mod", "%", DIVMOD_SW)
+    KX_NAT_EMITOP2_ASSIGD(DIV, "div", "/", DIV_SW, SLJIT_R0)
+    KX_NAT_EMITOP2_ASSIGD(MOD, "mod", "%", DIVMOD_SW, SLJIT_R1)
     KX_NAT_EMITOP2_ASSIGN(AND, "and", "&", AND)
     KX_NAT_EMITOP2_ASSIGN(OR,  "or",  "|", OR)
     KX_NAT_EMITOP2_ASSIGN(XOR, "xor", "^", XOR)
@@ -516,8 +704,8 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     KX_NAT_EMITOP2(ADD, "add", "+", ADD)
     KX_NAT_EMITOP2(SUB, "sub", "-", SUB)
     KX_NAT_EMITOP2(MUL, "mul", "*", MUL)
-    KX_NAT_EMITOP2(DIV, "div", "/", DIV_SW)
-    KX_NAT_EMITOP2(MOD, "mod", "%", DIVMOD_SW)
+    KX_NAT_EMITOPD(DIV, "div", "/", DIV_SW, SLJIT_R0)
+    KX_NAT_EMITOPD(MOD, "mod", "%", DIVMOD_SW, SLJIT_R1)
     KX_NAT_EMITOP2(AND, "and", "&", AND)
     KX_NAT_EMITOP2(OR,  "or",  "|", OR)
     KX_NAT_EMITOP2(XOR, "xor", "^", XOR)
@@ -570,25 +758,35 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         reserve_regs(nctx, 0);
         reserve_regs(nctx, 1);
         reserve_regs(nctx, 2);
-        int index = set_args(nctx, node->rhs, nctx->offset_callbuf + 1);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), nctx->offset_callbuf * SIZE_OF_WORD, SLJIT_IMM, index - 1);
-        sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->offset_callbuf * SIZE_OF_WORD);
+
+        /* setup arguments */
+        int index = set_args(nctx, node->rhs, nctx->offset_callbuf + KXN_LOCALVAR_OFFSET);
+
+        /* get call address */
         int r1 = nativejit_ast(nctx, node->lhs, 0);
+
+        /* setup common prameters */
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), nctx->offset_callbuf * KXN_SIZE_OF_WORD, SLJIT_IMM, index - 1);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->offset_callbuf + 1) * KXN_SIZE_OF_WORD, KXN_CALL_DEPTH_REG, KXN_CALL_DEPTH_IDX);
+        sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->offset_callbuf * KXN_SIZE_OF_WORD);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_S2, 0);
-    	sljit_emit_icall(nctx->C, SLJIT_CALL,
-            SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
-            reg(r1), 0);
+
+        /* call */
+    	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW), reg(r1), 0);
+
+        /* restore */
         release_regs(nctx, r1);
         release_regs(nctx, 2);
         release_regs(nctx, 1);
         release_regs(nctx, 0);
-        /* restore */
         restore_regs(nctx);
         r0 = get_rreg(nctx);
         if (reg(r0) != SLJIT_RETURN_REG) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_RETURN_REG, 0);
         }
+
+        KX_EXCEPTION_CHECK();
         break;
     }
 
@@ -906,20 +1104,76 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
-        kx_yyerror_line("Can not use try-catch in native function", node->file, node->line);
+        kv_push(kx_native_except_info_t, nctx->except_stack, (kx_native_except_info_t){0});
+        kx_object_t *finally_clause = nctx->finally_clause;
+        nctx->finally_clause = node->ex;
+        kx_object_t *excet_var = nctx->excet_var;
+        nctx->excet_var = NULL;
+        clear_regs(nctx);
+        nativejit_ast(nctx, node->lhs, 0);
+        KX_NAT_DO_FINALLY(1);
+        sljump_t *out = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+
+        /* catch */
+        sllabel_t *clabel = sljit_emit_label(nctx->C);
+        update_catch_list(nctx, clabel);
+        kv_destroy(kv_last(nctx->except_stack).throw_list);
+        kv_remove_last(nctx->except_stack);
+        kx_object_t *catchc = node->rhs;
+        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 0); /* off */
+        if (catchc && catchc->rhs) {
+            if (catchc->lhs && catchc->lhs->lhs) {
+                kx_object_t *v = nctx->excet_var = catchc->lhs->lhs;
+                if (v->lexical == 0) {
+                    /* lexical must be 0 */
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), v->index * KXN_SIZE_OF_WORD, SLJIT_R0, 0);
+                }
+            }
+            clear_regs(nctx);
+            nativejit_ast(nctx, catchc->rhs, 0);
+            /* do finally when normal ended in catch clause. */
+            KX_NAT_DO_FINALLY(1);
+        } else {
+            /* no catch clause, then do finally and rethrow to the next catch. */
+            KX_NAT_DO_FINALLY(1);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1); /* on again */
+            if (kv_size(nctx->except_stack) == 0) {
+                nctx->finally_clause = NULL;
+            	sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
+            } else {
+                if (nctx->excet_var) {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_SP), nctx->excet_var->index * KXN_SIZE_OF_WORD);
+                }
+                sljump_t *tocatch = sljit_emit_jump(nctx->C, SLJIT_JUMP);
+                kv_push(sljump_t*, kv_last(nctx->except_stack).throw_list, tocatch);
+            }
+        }
+        sljit_set_label(out, sljit_emit_label(nctx->C));
+        nctx->excet_var = excet_var;
+        nctx->finally_clause = finally_clause;
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
-        kx_yyerror_line("Can not use try-catch in native function", node->file, node->line);
         break;
     }
     case KXST_RET:        /* lhs: expr */
         r0 = nativejit_ast(nctx, node->lhs, 0);
+        KX_NAT_DO_FINALLY(0);
     	sljit_emit_return(nctx->C, SLJIT_MOV, reg(r0), 0);
         break;
-    case KXST_THROW:      /* lhs: expr */
-        kx_yyerror_line("Can not use throw in native function", node->file, node->line);
+    case KXST_THROW: {    /* lhs: expr */
+        if (node->lhs) {
+            /* just throw exception without finally because it will do it in catch clause. */
+            r0 = nativejit_ast(nctx, node->lhs, 0);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, reg(r0), 0);
+            KX_RAISE_EXCEPTION(reg(r0), 0);
+        } else {
+            /* re-throw exception with finally because it is now in catch clause and before doing finally clause. */
+            KX_NAT_DO_FINALLY(0);
+            KX_RAISE_EXCEPTION_SAME();
+        }
         break;
+    }
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         kx_yyerror_line("Do not define class in native function", node->file, node->line);
         break;
@@ -946,21 +1200,26 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             nctx->ret_type = SLJIT_RET(SW);
             break;
         }
+        int max_call_arg = node->count_args > KXN_MAX_NATIVE_ARGS ? node->count_args : KXN_MAX_NATIVE_ARGS;
         sljit_emit_enter(nctx->C, 0, SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
             /*scratch*/  6,
             /*saved*/    6,
             /*fscratch*/ 0,
             /*fsaved*/   0,
-            /*local*/    (node->local_vars + node->count_args + 1) * SIZE_OF_WORD);
-        sljit_emit_op2(nctx->C, SLJIT_ADD, reg(ARG2), 0, reg(ARG2), 0, SLJIT_IMM, 1);
-        sljump_t *body = sljit_emit_cmp(nctx->C, SLJIT_LESS, reg(ARG2), 0, SLJIT_IMM, nctx->max_call_depth);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_IMM, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
-    	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_ARG1(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_function_check));
+            /*local*/    (node->local_vars + max_call_arg + KXN_LOCALVAR_OFFSET) * KXN_SIZE_OF_WORD);
+
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, KXN_CALL_DEPTH_REG, KXN_CALL_DEPTH_IDX);
+        sljit_emit_op2(nctx->C, SLJIT_ADD, SLJIT_R0, 0, SLJIT_R0, 0, SLJIT_IMM, 1);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_CALL_DEPTH_REG, KXN_CALL_DEPTH_IDX, SLJIT_R0, 0);
+        sljump_t *body = sljit_emit_cmp(nctx->C, SLJIT_LESS, SLJIT_R0, 0, SLJIT_IMM, nctx->max_call_depth);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, reg(ARG0), 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
+    	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_ARG1(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(set_exception_code));
     	sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
         /* function body */
         sljit_set_label(body, sljit_emit_label(nctx->C));
         for (int i = 0; i < node->count_args; ++i) {
-            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), i * SIZE_OF_WORD, SLJIT_MEM1(reg(ARG1)), (i+1) * SIZE_OF_WORD);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), i * KXN_SIZE_OF_WORD, SLJIT_MEM1(reg(ARG1)), (i+KXN_LOCALVAR_OFFSET) * KXN_SIZE_OF_WORD);
         }
         nativejit_ast(nctx, node->rhs, 0);
         break;

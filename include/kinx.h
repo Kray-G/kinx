@@ -308,13 +308,16 @@ extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
 extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
-extern int native_function_check(sljit_sw val, sljit_sw ex);
+extern int set_exception_code(sljit_sw *val, sljit_sw ex);
 extern void longjmp_hook(sljit_sw r);
-extern int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc);
+extern int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);
 
-extern int get_lexical_int_value(sljit_sw xfrm, sljit_sw xlex_no, sljit_sw xval_idx);
+extern int native_debug_print(sljit_sw value);
+extern int native_debug_print_reg(sljit_sw name, sljit_sw value);
+extern int64_t get_lexical_int_value(sljit_sw *args);
+extern int set_lexical_int_value(sljit_sw *args);
 
 #define KX_NAT_MAX_FUNC_ARGS (31)
 
@@ -322,7 +325,9 @@ extern int get_lexical_int_value(sljit_sw xfrm, sljit_sw xlex_no, sljit_sw xval_
 #define KX_NAT_TOO_MUSH_ARGS (2)
 #define KX_NAT_INVALID_FUNCTION (3)
 #define KX_NAT_UNSUPPORTED_TYPE (4)
-#define KX_NAT_TOO_DEEP_TO_CALL_FUNC (5)
+#define KX_NAT_DIVIDE_BY_ZERO (5)
+#define KX_NAT_TOO_DEEP_TO_CALL_FUNC (6)
+#define KX_NAT_MAX_EXCEPTION (KX_NAT_TOO_DEEP_TO_CALL_FUNC)
 
 /* for import library */
 

@@ -374,8 +374,8 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         display_ast(node->ex, indent + 1, 0);
         break;
     case KXST_CATCH:      /* lhs: name: rhs: block */
-        printf("(catch: %s)\n", node->value.s);
-        display_ast(node->lhs, indent + 1, 0);
+        printf("(catch: %s)\n", node->lhs->value.s);
+        display_ast(node->rhs, indent + 1, 0);
         break;
     case KXST_RET:        /* lhs: expr */
         printf("(return)\n");

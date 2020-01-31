@@ -1,6 +1,6 @@
 #define KX_MOD_MOD_I(v1, val) { \
     if (val == 0 && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Divided by zero"); \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Divide by zero"); \
     } \
     if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
@@ -96,7 +96,7 @@
 /**/
 #define KX_MOD_MOD_D(v1, val) { \
     if (val < DBL_EPSILON && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Divided by zero"); \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Divide by zero"); \
     } \
     switch ((v1)->type) { \
     case KX_UND_T: { \

@@ -1,0 +1,6 @@
+
+native tooDeep(n) {
+    return tooDeep(n-1);    # infinite loop!
+}
+
+tooDeep(100);

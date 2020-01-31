@@ -203,7 +203,7 @@
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = { KX_LABELS };
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
 #else
-#define KX_CASE_(OPCODE) case OPCODE: /* printf("[%3x] %s\n", cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
+#define KX_CASE_(OPCODE) case OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
 #define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
