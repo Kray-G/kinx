@@ -1,5 +1,5 @@
 #include <stdio.h>
-// #include <setjmp.h>
+#include <inttypes.h>
 #include <kinx.h>
 #include <jit.h>
 
@@ -17,12 +17,12 @@ static struct rv exc;
 
 int native_debug_print(sljit_sw value)
 {
-    return printf("value = %llx\n", value);
+    return printf("value = %"PRIx64"\n", value);
 }
 
 int native_debug_print_reg(sljit_sw name, sljit_sw value)
 {
-    return printf("%s = %llx\n", (const char*)name, value);
+    return printf("%s = %"PRIx64"\n", (const char*)name, value);
 }
 
 int64_t get_lexical_int_value(sljit_sw *args)
