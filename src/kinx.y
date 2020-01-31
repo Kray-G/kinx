@@ -75,6 +75,7 @@
 %type<obj> String
 %type<obj> Array
 %type<obj> Object
+%type<obj> ArraItemList
 %type<obj> AssignExpressionList
 %type<obj> KeyValueList
 %type<obj> KeyValue
@@ -351,7 +352,7 @@ String
 
 Array
     : '[' ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, NULL); }
-    | '[' AssignExpressionList Comma_Opt ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
+    | '[' ArraItemList Comma_Opt ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
     ;
 
 Object
@@ -363,9 +364,14 @@ Comma_Opt
     | ','
     ;
 
+ArraItemList
+    : AssignExpression
+    | ArraItemList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    ;
+
 AssignExpressionList
     : AssignExpression
-    | AssignExpressionList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | AssignExpressionList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRSEQ, $1, $3); }
     ;
 
 KeyValueList

@@ -19,7 +19,7 @@ var classNames = [
 function checkInstanceOf(instance, name) {
     var len = classNames.length();
     for (var i = 0; i < len; ++i) {
-        if (e1.instanceOf(classNames[i].base)) {
+        if (instance.instanceOf(classNames[i].base)) {
             System.println(name, " is the instance of ", classNames[i].name);
         } else {
             System.println("--- ", name, " is NOT the instance of ", classNames[i].name);
