@@ -3,7 +3,7 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
-int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Double_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     if (args > 0) {
         kvec_t(kx_val_t) *stack = &(ctx->stack);
@@ -48,7 +48,7 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to convert to integer");
 }
 
-int Integer_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Double_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     if (args > 0) {
         kvec_t(kx_val_t) *stack = &(ctx->stack);
@@ -85,8 +85,8 @@ int Integer_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "parseInt", Integer_parseInt },
-    { "parseDouble", Integer_parseDouble },
+    { "parseInt", Double_parseInt },
+    { "parseDouble", Double_parseDouble },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

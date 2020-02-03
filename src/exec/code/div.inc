@@ -19,9 +19,24 @@
     } \
     case KX_BIG_T: { \
         BigZ b2 = BzFromInteger(val); \
-        (v1)->value.bz = make_big_alive(ctx, BzDiv((v1)->value.bz, b2)); \
+        BigZ r; \
+        BigZ q = BzDivide((v1)->value.bz, b2, &r); \
+        if (r == BZNULL) { \
+            (v1)->value.bz = make_big_alive(ctx, q); \
+            (v1)->type = KX_BIG_T; \
+            KX_BIGINT_CHKINT(v1); \
+        } else if (BzGetSign(r) == BZ_ZERO) { \
+            BzFree(r); \
+            (v1)->value.bz = make_big_alive(ctx, q); \
+            (v1)->type = KX_BIG_T; \
+            KX_BIGINT_CHKINT(v1); \
+        } else { \
+            BzFree(q); \
+            BzFree(r); \
+            (v1)->value.dv = BzToDouble((v1)->value.bz) / BzToDouble(b2); \
+            (v1)->type = KX_DBL_T; \
+        } \
         BzFree(b2); \
-        KX_BIGINT_CHKINT(v1); \
         break; \
     } \
     case KX_DBL_T: { \

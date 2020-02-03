@@ -28,3 +28,7 @@ System.println("");
 
 b.downto(b - 10, listing);
 System.println("");
+
+System.println("92233720368547758080".parseInt() / 10);
+System.println("92233720368547758080".parseInt() / 100);
+System.println("256".parseInt() * 10);

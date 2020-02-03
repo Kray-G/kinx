@@ -118,6 +118,7 @@ SOFILES = \
     kxstring.so \
     kxbinary.so \
     kxinteger.so \
+    kxdouble.so \
     kxarray.so \
     kxmath.so \
     kxregex.so
@@ -187,6 +188,9 @@ kxbinary.so: src/extlib/kxbinary.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxinteger.so: src/extlib/kxinteger.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+
+kxdouble.so: src/extlib/kxdouble.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxarray.so: src/extlib/kxarray.c $(PICOBJS)

@@ -529,6 +529,7 @@ typedef struct kx_context_ {
     kx_obj_t *strlib;
     kx_obj_t *binlib;
     kx_obj_t *intlib;
+    kx_obj_t *dbllib;
     kx_obj_t *arylib;
     kx_fnc_t *global_method_missing;
 

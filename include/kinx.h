@@ -311,6 +311,7 @@ extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
 extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
+extern kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern void longjmp_hook(sljit_sw r);

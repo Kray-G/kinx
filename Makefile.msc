@@ -112,6 +112,7 @@ SOFILES = \
     kxstring.dll \
     kxbinary.dll \
     kxinteger.dll \
+    kxdouble.dll \
     kxarray.dll \
     kxmath.dll \
     kxregex.dll
@@ -185,6 +186,9 @@ kxbinary.dll: src/extlib/kxbinary.c $(PICOBJS)
 
 kxinteger.dll: src/extlib/kxinteger.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxinteger.c $(PICOBJS)
+
+kxdouble.dll: src/extlib/kxdouble.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxdouble.c $(PICOBJS)
 
 kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
