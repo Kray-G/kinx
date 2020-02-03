@@ -331,6 +331,12 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
+    case KXOP_MKBIN:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKBIN }));
+        if (node->lhs) {
+            apply_array(ctx, node->lhs, ana);
+        }
+        break;
     case KXOP_MKARY:
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
         if (node->lhs) {

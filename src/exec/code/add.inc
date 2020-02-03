@@ -191,6 +191,14 @@
     } \
 } \
 /**/
+#define KX_ADD_ADD_BIN(v1, val) { \
+    if ((v1)->type == KX_BIN_T) { \
+        kv_append(uint8_t, v1->value.bn->bin, val); \
+    } else { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
+    } \
+} \
+/**/
 #define KX_ADD_ADD_V(v1, v2) {\
     if ((v2)->type == KX_INT_T) { \
         KX_ADD_ADD_I(v1, (v2)->value.iv); \
@@ -212,6 +220,10 @@
     } \
     case KX_STR_T: { \
         KX_ADD_ADD_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        KX_ADD_ADD_BIN(v1, (v2)->value.bn->bin); \
         break; \
     } \
     case KX_OBJ_T: { \

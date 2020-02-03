@@ -274,6 +274,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_DECVX:
         printf("%-23s %s", "decvx", gen_varloc(code));
         break;
+    case KX_MKBIN:
+        printf("mkbin");
+        break;
     case KX_MKARY:
         printf("mkary");
         break;

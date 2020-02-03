@@ -114,4 +114,15 @@ int main() {
 		memcpy((v1).a + v1n, (v0).a, sizeof(type) * (v0).n);		\
 	} while (0)
 
+#define kv_prepend(type, v1, v0) do {								\
+		int v1n = (v1).n;											\
+		if (((v1).n + (v0).n) >= (v1).m) {							\
+			(v1).n = (v1).n + (v0).n;								\
+			(v1).m = (v1).n<<1;										\
+			(v1).a = (type*)kx_realloc((v1).a, sizeof(type) * (v1).m);	\
+		}															\
+		memmove((v1).a + (v0).n, (v1).a, sizeof(type) * (v1).n);	\
+		memcpy((v1).a, (v0).a, sizeof(type) * (v0).n);				\
+	} while (0)
+
 #endif
