@@ -73,6 +73,7 @@ DISASM = \
 SOFILES = \
     kxsystem.dll \
     kxstring.dll \
+    kxbinary.dll \
     kxarray.dll \
     kxmath.dll \
     kxregex.dll
@@ -140,6 +141,9 @@ kxsystem.dll: src/extlib/kxsystem.c $(PICOBJS)
 
 kxstring.dll: src/extlib/kxstring.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxstring.c $(PICOBJS)
+
+kxbinary.dll: src/extlib/kxbinary.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxbinary.c $(PICOBJS)
 
 kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)

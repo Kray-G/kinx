@@ -55,6 +55,7 @@ DISASM = \
 SOFILES = \
     kxsystem.so \
     kxstring.so \
+    kxbinary.so \
     kxarray.so \
     kxmath.so \
     kxregex.so
@@ -118,6 +119,9 @@ kxsystem.so: src/extlib/kxsystem.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxstring.so: src/extlib/kxstring.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+
+kxbinary.so: src/extlib/kxbinary.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxarray.so: src/extlib/kxarray.c $(PICOBJS)
