@@ -44,25 +44,20 @@ typedef struct kx_native_context_ {
     int max_call_depth;
     int regs[20];
     int saved[20];
+    int in_finaly;
+    kx_finally_vec_t *finallies;
     kvec_t(kx_native_jump_info_t) continue_list;
     kvec_t(kx_native_jump_info_t) break_list;
-    kx_object_t *finally_clause;
     kx_object_t *excet_var;
     kvec_t(kx_native_except_info_t) except_stack;
 } kx_native_context_t;
 
-#define KX_NAT_DO_FINALLY(CLR) { \
-    if (nctx->finally_clause) { \
-        if (CLR) clear_regs(nctx); \
-        nativejit_ast(nctx, nctx->finally_clause, 0); \
-    } \
-} \
-/**/
+static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left);
+
 #define KX_RAISE_EXCEPTION_SAME() \
     sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1); /* exception on */ \
     if (kv_size(nctx->except_stack) == 0) { \
-        KX_NAT_DO_FINALLY(1); \
-        nctx->finally_clause = NULL; \
+        do_native_finally(nctx, 1); \
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
     } else { \
         sljump_t *tocatch = sljit_emit_jump(nctx->C, SLJIT_JUMP); \
@@ -73,8 +68,7 @@ typedef struct kx_native_context_ {
     sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1); /* exception on */ \
     sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_VAL_REG, KXN_EXCEPT_VAL_IDX, val1, val2); /* exception value */ \
     if (kv_size(nctx->except_stack) == 0) { \
-        KX_NAT_DO_FINALLY(1); \
-        nctx->finally_clause = NULL; \
+        do_native_finally(nctx, 1); \
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
     } else { \
         sljump_t *tocatch = sljit_emit_jump(nctx->C, SLJIT_JUMP); \
@@ -203,14 +197,17 @@ case KXOP_##NAME: { \
 /**/
 #define KX_EXCEPTION_CHECK() { \
     /* exception check */ \
-    int rr = get_rreg(nctx); \
-    sljit_emit_op1(nctx->C, SLJIT_MOV, reg(rr), 0, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX); /* exception on? */ \
-    sljump_t *good = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(rr), 0, SLJIT_IMM, 0); \
-    release_regs(nctx, rr); \
-    /* exception detected */ \
-    sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
-    /* okay to go next */ \
-    sljit_set_label(good, sljit_emit_label(nctx->C)); \
+    if (!nctx->in_finaly) { \
+        int rr = get_rreg(nctx); \
+        sljit_emit_op1(nctx->C, SLJIT_MOV, reg(rr), 0, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX); /* exception on? */ \
+        sljump_t *good = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(rr), 0, SLJIT_IMM, 0); \
+        release_regs(nctx, rr); \
+        /* exception detected */ \
+        do_native_finally_all(nctx, 1); \
+        sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
+        /* okay to go next */ \
+        sljit_set_label(good, sljit_emit_label(nctx->C)); \
+    } \
 } \
 /**/
 #define KX_NAT_CALL_NATIVE(name) \
@@ -368,8 +365,6 @@ static int restore_regs(kx_native_context_t *nctx)
     return -1;
 }
 
-static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left);
-
 static int set_args(kx_native_context_t *nctx, kx_object_t *node, int index)
 {
     if (!node) {
@@ -386,6 +381,36 @@ static int set_args(kx_native_context_t *nctx, kx_object_t *node, int index)
     sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), index * KXN_SIZE_OF_WORD, reg(r0), 0);
     release_regs(nctx, r0);
     return index + 1;
+}
+
+static void do_native_finally(kx_native_context_t *nctx, int clear)
+{
+    if (nctx->in_finaly) {
+        return;
+    }
+    nctx->in_finaly = 1;
+    if (clear) clear_regs(nctx);
+    int len = kv_size(*(nctx->finallies));
+    if (len > 0) {
+        nativejit_ast(nctx, kv_last(*(nctx->finallies)), 0);
+    }
+    nctx->in_finaly = 0;
+}
+
+static void do_native_finally_all(kx_native_context_t *nctx, int clear)
+{
+    if (nctx->in_finaly) {
+        return;
+    }
+    nctx->in_finaly = 1;
+    int len = kv_size(*(nctx->finallies));
+    if (len > 0) {
+        for (int i = 1; i <= len; ++i) {
+            if (clear) clear_regs(nctx);
+            nativejit_ast(nctx, kv_last_by(*(nctx->finallies), i), 0);
+        }
+    }
+    nctx->in_finaly = 0;
 }
 
 static int generate_arg_types(kx_native_context_t *nctx, kx_object_t *node, sljit_s32 *types, int index)
@@ -1113,13 +1138,14 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
         kv_push(kx_native_except_info_t, nctx->except_stack, (kx_native_except_info_t){0});
-        kx_object_t *finally_clause = nctx->finally_clause;
-        nctx->finally_clause = node->ex;
+        if (node->ex) {
+            kv_push(kx_object_t*, *(nctx->finallies), node->ex);
+        }
         kx_object_t *excet_var = nctx->excet_var;
         nctx->excet_var = NULL;
         clear_regs(nctx);
         nativejit_ast(nctx, node->lhs, 0);
-        KX_NAT_DO_FINALLY(1);
+        do_native_finally(nctx, 1);
         sljump_t *out = sljit_emit_jump(nctx->C, SLJIT_JUMP);
 
         /* catch */
@@ -1140,13 +1166,12 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             clear_regs(nctx);
             nativejit_ast(nctx, catchc->rhs, 0);
             /* do finally when normal ended in catch clause. */
-            KX_NAT_DO_FINALLY(1);
+            do_native_finally(nctx, 1);
         } else {
             /* no catch clause, then do finally and rethrow to the next catch. */
-            KX_NAT_DO_FINALLY(1);
+            do_native_finally(nctx, 1);
             sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1); /* on again */
             if (kv_size(nctx->except_stack) == 0) {
-                nctx->finally_clause = NULL;
             	sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
             } else {
                 if (nctx->excet_var) {
@@ -1158,7 +1183,9 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         }
         sljit_set_label(out, sljit_emit_label(nctx->C));
         nctx->excet_var = excet_var;
-        nctx->finally_clause = finally_clause;
+        if (node->ex) {
+            kv_remove_last(*(nctx->finallies));
+        }
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
@@ -1166,7 +1193,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
     }
     case KXST_RET:        /* lhs: expr */
         r0 = nativejit_ast(nctx, node->lhs, 0);
-        KX_NAT_DO_FINALLY(0);
+        do_native_finally_all(nctx, 0);
     	sljit_emit_return(nctx->C, SLJIT_MOV, reg(r0), 0);
         break;
     case KXST_THROW: {    /* lhs: expr */
@@ -1177,7 +1204,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             KX_RAISE_EXCEPTION(reg(r0), 0);
         } else {
             /* re-throw exception with finally because it is now in catch clause and before doing finally clause. */
-            KX_NAT_DO_FINALLY(0);
+            do_native_finally(nctx, 0);
             KX_RAISE_EXCEPTION_SAME();
         }
         break;
@@ -1190,6 +1217,8 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         kx_yyerror_line("Do not define function in native function", node->file, node->line);
         break;
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: optional: return type */
+        kx_finally_vec_t *finallies = nctx->finallies;
+        nctx->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
         nctx->func_name = node->value.s;
         if (nctx->verbose) {
             printf("\n%s (native)\n", nctx->func_name);
@@ -1229,6 +1258,8 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), i * KXN_SIZE_OF_WORD, SLJIT_MEM1(reg(ARG1)), (i+KXN_LOCALVAR_OFFSET) * KXN_SIZE_OF_WORD);
         }
         nativejit_ast(nctx, node->rhs, 0);
+        kx_free(nctx->finallies);
+        nctx->finallies = finallies;
         break;
     }
     default:
