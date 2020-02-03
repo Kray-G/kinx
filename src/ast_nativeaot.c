@@ -57,7 +57,6 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
 #define KX_RAISE_EXCEPTION_SAME() \
     sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_EXCEPT_FLAG_REG, KXN_EXCEPT_FLAG_IDX, SLJIT_IMM, 1); /* exception on */ \
     if (kv_size(nctx->except_stack) == 0) { \
-        do_native_finally(nctx, 1); \
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0); \
     } else { \
         sljump_t *tocatch = sljit_emit_jump(nctx->C, SLJIT_JUMP); \

@@ -253,55 +253,57 @@ void update_exception_object(kx_context_t *ctx, kx_exc_t *e)
 static inline const char *startup_code()
 {
     static const char *code =
-        "import System;"
-        "import String;"
-        "import Binary;"
-        "import Array;"
-        "import Integer;"
-        "import Double;"
-        "import Math;"
-        "import Regex;"
-        "var SystemTimer = { create: System.SystemTimer_create };"
-        "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };"
-        "(function() {"
-            "Array.each = function(ary, callback) {"
-                "var len = ary.length();"
-                "for (var i = 0; i < len; ++i) {"
-                    "callback(ary[i], i);"
-                "}"
-            "};"
-            "Integer.times = function(val, callback) {"
-                "for (var i = 0; i < val; ++i) {"
-                    "callback(i, i);"
-                "}"
-            "};"
-            "Integer.upto = function(val, max, callback) {"
-                "var index = 0;"
-                "for (var i = val; i <= max; ++i) {"
-                    "callback(i, index++);"
-                "}"
-            "};"
-            "Integer.downto = function(val, min, callback) {"
-                "var index = 0;"
-                "for (var i = val; i >= min; --i) {"
-                    "callback(i, index++);"
-                "}"
-            "};"
-            "Integer.methodMissing = function(d, method, a0) {"
-                "var item = Math[method];"
-                "if (item.isFunction) {"
-                    "Integer[method] = item;"
-                "}"
-                "return Integer[method](Double.parseDouble(d), Double.parseDouble(a0));"
-            "};"
-            "Double.methodMissing = function(d, method, a0) {"
-                "var item = Math[method];"
-                "if (item.isFunction) {"
-                    "Double[method] = item;"
-                "}"
-                "return Double[method](Double.parseDouble(d), Double.parseDouble(a0));"
-            "};"
-        "})();"
+        "import System;\n"
+        "import String;\n"
+        "import Binary;\n"
+        "import Array;\n"
+        "import Integer;\n"
+        "import Double;\n"
+        "import Math;\n"
+        "import Regex;\n"
+        "var SystemTimer = { create: System.SystemTimer_create };\n"
+        "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };\n"
+        "(function() {\n"
+            "Array.each = function(ary, callback) {\n"
+                "var len = ary.length();\n"
+                "for (var i = 0; i < len; ++i) {\n"
+                    "callback(ary[i], i);\n"
+                "}\n"
+            "};\n"
+            "Integer.times = function(val, callback) {\n"
+                "for (var i = 0; i < val; ++i) {\n"
+                    "callback(i, i);\n"
+                "}\n"
+            "};\n"
+            "Integer.upto = function(val, max, callback) {\n"
+                "var index = 0;\n"
+                "for (var i = val; i <= max; ++i) {\n"
+                    "callback(i, index++);\n"
+                "}\n"
+            "};\n"
+            "Integer.downto = function(val, min, callback) {\n"
+                "var index = 0;\n"
+                "for (var i = val; i >= min; --i) {\n"
+                    "callback(i, index++);\n"
+                "}\n"
+            "};\n"
+            "Integer.methodMissing = function(d, method, a0) {\n"
+                "var item = Math[method];\n"
+                "if (item.isFunction) {\n"
+                    "Integer[method] = item;\n"
+                    "return Integer[method](Double.parseDouble(d), Double.parseDouble(a0));\n"
+                "}\n"
+                "return d;\n"
+            "};\n"
+            "Double.methodMissing = function(d, method, a0) {\n"
+                "var item = Math[method];\n"
+                "if (item.isFunction) {\n"
+                    "Double[method] = item;\n"
+                    "return Double[method](Double.parseDouble(d), Double.parseDouble(a0));\n"
+                "}\n"
+                "return d;\n"
+            "};\n"
+        "})();\n"
     ;
     return code;
 }
@@ -433,7 +435,7 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    KEX_GET_PROP(val, ctx->strlib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -461,7 +463,7 @@ kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    KEX_GET_PROP(val, ctx->binlib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -489,7 +491,7 @@ kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    KEX_GET_PROP(val, ctx->intlib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -545,7 +547,7 @@ kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t 
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    KEX_GET_PROP(val, ctx->arylib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
