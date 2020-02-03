@@ -9,6 +9,7 @@ var a = [
     function() {},
     [1, 2, 3],
     { x: 100, y: 200 },
+    <1,2,3>,
 ];
 
 var l = a.length();
@@ -19,6 +20,7 @@ for (var i = 0; i < l; ++i) {
     System.println("    isBigInteger = ", a[i].isBigInteger);
     System.println("    isString     = ", a[i].isString);
     System.println("    isDouble     = ", a[i].isDouble);
+    System.println("    isBinary     = ", a[i].isBinary);
     System.println("    isFunction   = ", a[i].isFunction);
     System.println("    isArray      = ", a[i].isArray);
     System.println("    isObject     = ", a[i].isObject);
