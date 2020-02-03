@@ -3,10 +3,12 @@
 int count = cur->count; \
 if (fn->method) { \
     push_s((ctx)->stack, fn->method); \
+    fn->method = NULL; \
     ++count; \
 } \
 if (fn->val.type) { \
     push_value((ctx)->stack, fn->val); \
+    fn->val.type = KX_UND_T; \
     ++count; \
 } \
 r = fn->func(count, frmv, fn->lex, ctx); \
@@ -78,10 +80,12 @@ default: \
         int count = cur->count; \
         if (fn->method) { \
             push_s((ctx)->stack, fn->method); \
+            fn->method = NULL; \
             ++count; \
         } \
         if (fn->val.type) { \
             push_value((ctx)->stack, fn->val); \
+            fn->val.type = KX_UND_T; \
             ++count; \
         } \
         if (fn->jp) { \
