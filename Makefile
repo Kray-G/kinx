@@ -274,5 +274,5 @@ test-core: $(OBJS)
 src/ir_aotcore.o: src/ir_aotcore.c $(SLJIT_DEP)
 	./timex $(CC) -c $(CFLAGS) -o $@ src/ir_aotcore.c
 
-src/ir_exec.c: include\ir.h include\kinx.h $(IR_EXEC_DEP)
+src/ir_exec.c: include/ir.h include/kinx.h $(IR_EXEC_DEP)
 
