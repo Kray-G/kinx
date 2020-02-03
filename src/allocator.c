@@ -256,7 +256,7 @@ static void gc_sweep(kx_context_t *ctx)
         } else {
             kx_bin_t *v;
             kl_remove_next(bin, ctx->bin_alive, prevbin, &v);
-            kv_zero(uint8_t, v->val);
+            kv_zero(uint8_t, v->bin);
             kv_push(kx_bin_t*, ctx->bin_dead, v);
         }
     }
@@ -361,7 +361,7 @@ static void gc_object_cleanup(kx_context_t *ctx)
     kliter_t(bin) *pbin;
     for (pbin = kl_begin(ctx->bin_alive); pbin != kl_end(ctx->bin_alive); pbin = kl_next(pbin)) {
         kx_bin_t *o = kl_val(pbin);
-        kv_destroy(o->val);
+        kv_destroy(o->bin);
         kx_free(o);
     }
     kliter_t(any) *pany;
@@ -396,7 +396,7 @@ static void gc_object_cleanup(kx_context_t *ctx)
     l = kv_size(ctx->bin_dead);
     for (i = 0; i < l; ++i) {
         kx_bin_t *o = kv_A(ctx->bin_dead, i);
-        kv_destroy(o->val);
+        kv_destroy(o->bin);
         kx_free(o);
     }
     l = kv_size(ctx->any_dead);
