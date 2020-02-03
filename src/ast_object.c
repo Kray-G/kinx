@@ -131,7 +131,7 @@ kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
         return kx_gen_bexpr_object(type, lhs, rhs);
     }
     kx_object_t *p = lhs;
-    while (IS_ASSIGN(p->rhs->type) && IS_ASSIGN(p->rhs->rhs->type)) {
+    while (IS_ASSIGN(p->rhs->type)) {
         p = p->rhs;
     }
     p->rhs = kx_gen_bexpr_object(type, p->rhs, rhs);

@@ -182,9 +182,26 @@ static void do_finally(kx_context_t *ctx, kx_analyze_t *ana, int popc)
     int len = kv_size(*(ana->finallies));
     if (len > 0) {
         gencode_ast_hook(ctx, kv_last(*(ana->finallies)), ana, 0);
+        if (popc && ana->in_try) {
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_POP_C }));
+        }
     }
-    if (popc && ana->in_try) {
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_POP_C }));
+}
+
+static void do_finally_all(kx_context_t *ctx, kx_analyze_t *ana, int popc)
+{
+    kx_module_t *module = ana->module;
+    if (kv_size(get_block(module, ana->block)->code) > 0 && (last_op(ana) == KX_JMP || last_op(ana) == KX_RET || last_op(ana) == KX_THROW)) {
+        return;
+    }
+    int len = kv_size(*(ana->finallies));
+    if (len > 0) {
+        for (int i = 1; i <= len; ++i) {
+            gencode_ast_hook(ctx, kv_last_by(*(ana->finallies), i), ana, 0);
+            if (popc && ana->in_try) {
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_POP_C }));
+            }
+        }
     }
 }
 
@@ -841,7 +858,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             kx_object_t *lhs = node->lhs;
             if (kv_size(*(ana->finallies)) > 0) {
                 gencode_ast_hook(ctx, lhs, ana, 0);
-                do_finally(ctx, ana, 1);
+                do_finally_all(ctx, ana, 1);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
             } else switch (lhs->type) {
             case KXVL_INT:
@@ -883,12 +900,12 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             case KX_THROWE:
                 break;
             default:
-                do_finally(ctx, ana, 1);
+                do_finally_all(ctx, ana, 1);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET_NULL }));
                 break;
             }
         } else {
-            do_finally(ctx, ana, 1);
+            do_finally_all(ctx, ana, 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET_NULL }));
         }
         break;
