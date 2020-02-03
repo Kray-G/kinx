@@ -254,14 +254,29 @@ static inline const char *startup_code()
 {
     static const char *code =
         "import System;"
+        "import Integer;"
         "import String;"
         "import Binary;"
         "import Array;"
         "import Math;"
         "import Regex;"
         "var SystemTimer = { create: System.SystemTimer_create };"
-        "var Integer = {"
-            "parseInt: System.parseInt,"
+        "Integer.times = function(val, callback) {"
+            "for (var i = 0; i < val; ++i) {"
+                "callback(i, i);"
+            "}"
+        "};"
+        "Integer.upto = function(val, max, callback) {"
+            "var index = 0;"
+            "for (var i = val; i <= max; ++i) {"
+                "callback(i, index++);"
+            "}"
+        "};"
+        "Integer.downto = function(val, min, callback) {"
+            "var index = 0;"
+            "for (var i = val; i >= min; --i) {"
+                "callback(i, index++);"
+            "}"
         "};"
         "var Double = {"
             "parseDouble: System.parseDouble,"
@@ -419,6 +434,24 @@ kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t
     return NULL;
 }
 
+kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
+{
+    if (!ctx->intlib) {
+        return NULL;
+    }
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, ctx->intlib, method);
+    if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
+        return val->value.fn;
+    }
+    return NULL;
+}
+
 kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
     if (!ctx->arylib) {
@@ -514,6 +547,8 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
         ctx->strlib = obj;
     } else if (!strcmp(name, "kxbinary")) {
         ctx->binlib = obj;
+    } else if (!strcmp(name, "kxinteger")) {
+        ctx->intlib = obj;
     } else if (!strcmp(name, "kxarray")) {
         ctx->arylib = obj;
     }
