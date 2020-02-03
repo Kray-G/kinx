@@ -654,8 +654,17 @@ HEAD_OF_YYLEX:
         kx_strbuf[pos++] = kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == '.') {
-            kx_strbuf[pos++] = kx_lexinfo.ch;
             kx_lex_next(kx_lexinfo);
+            if (!kx_is_number(kx_lexinfo)) {
+                kx_lexinfo.tempbuf[0] = kx_lexinfo.ch;
+                kx_lexinfo.tempbuf[1] = 0;
+                kx_lexinfo.restart = kx_lexinfo.tempbuf;
+                kx_lexinfo.ch = '.';
+                kx_strbuf[pos] = 0;
+                kx_yylval.intval = strtoll(kx_strbuf, NULL, 16);
+                return INT;
+            }
+            kx_strbuf[pos++] = '.';
             while (pos < POSMAX && kx_is_number(kx_lexinfo)) {
                 kx_strbuf[pos++] = kx_lexinfo.ch;
                 kx_lex_next(kx_lexinfo);
@@ -695,8 +704,17 @@ HEAD_OF_YYLEX:
                 kx_lex_next(kx_lexinfo);
             }
             if (kx_lexinfo.ch == '.') {
-                kx_strbuf[pos++] = kx_lexinfo.ch;
                 kx_lex_next(kx_lexinfo);
+                if (!kx_is_number(kx_lexinfo)) {
+                    kx_lexinfo.tempbuf[0] = kx_lexinfo.ch;
+                    kx_lexinfo.tempbuf[1] = 0;
+                    kx_lexinfo.restart = kx_lexinfo.tempbuf;
+                    kx_lexinfo.ch = '.';
+                    kx_strbuf[pos] = 0;
+                    kx_yylval.intval = strtoll(kx_strbuf, NULL, 0);
+                    return INT;
+                }
+                kx_strbuf[pos++] = '.';
                 while (pos < POSMAX && kx_is_number(kx_lexinfo)) {
                     kx_strbuf[pos++] = kx_lexinfo.ch;
                     kx_lex_next(kx_lexinfo);

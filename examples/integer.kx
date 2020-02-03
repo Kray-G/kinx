@@ -1,0 +1,30 @@
+var a = 10.5;
+Integer.parseInt(a).times(function(i) {
+    if (i > 0)
+        System.print(", ");
+    System.print(i);
+});
+System.println("");
+
+function listing(i, index) {
+    if (index > 0)
+        System.print(", ");
+    System.print(i);
+}
+
+10.times(listing);
+System.println("");
+
+5.upto(10, listing);
+System.println("");
+
+10.downto(5, listing);
+System.println("");
+
+var b = 9223372036854775808 * 2;
+
+b.upto(b + 10, listing);
+System.println("");
+
+b.downto(b - 10, listing);
+System.println("");

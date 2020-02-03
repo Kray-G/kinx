@@ -51,6 +51,43 @@ SLJIT_DEP = \
     src/jit/sljitNativeX86_common.c \
     src/jit/sljitProtExecAllocator.c \
     src/jit/sljitUtils.c
+IR_EXEC_DEP = \
+    src/exec/code/_except.inc \
+    src/exec/code/_inlines.inc \
+    src/exec/code/add.inc \
+    src/exec/code/and.inc \
+    src/exec/code/append.inc \
+    src/exec/code/apply.inc \
+    src/exec/code/call.inc \
+    src/exec/code/catch.inc \
+    src/exec/code/dec.inc \
+    src/exec/code/div.inc \
+    src/exec/code/enter.inc \
+    src/exec/code/eqeq.inc \
+    src/exec/code/ge.inc \
+    src/exec/code/gt.inc \
+    src/exec/code/haltnop.inc \
+    src/exec/code/inc.inc \
+    src/exec/code/jmp.inc \
+    src/exec/code/le.inc \
+    src/exec/code/lge.inc \
+    src/exec/code/lt.inc \
+    src/exec/code/mkary.inc \
+    src/exec/code/mod.inc \
+    src/exec/code/mul.inc \
+    src/exec/code/neg.inc \
+    src/exec/code/neq.inc \
+    src/exec/code/not.inc \
+    src/exec/code/or.inc \
+    src/exec/code/pop.inc \
+    src/exec/code/push.inc \
+    src/exec/code/ret.inc \
+    src/exec/code/shl.inc \
+    src/exec/code/shr.inc \
+    src/exec/code/store.inc \
+    src/exec/code/sub.inc \
+    src/exec/code/throw.inc \
+    src/exec/code/xor.inc
 DISASM = \
     src/disasm/dis.obj \
     src/disasm/disas.obj \
@@ -74,6 +111,7 @@ SOFILES = \
     kxsystem.dll \
     kxstring.dll \
     kxbinary.dll \
+    kxinteger.dll \
     kxarray.dll \
     kxmath.dll \
     kxregex.dll
@@ -145,6 +183,9 @@ kxstring.dll: src/extlib/kxstring.c $(PICOBJS)
 kxbinary.dll: src/extlib/kxbinary.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxbinary.c $(PICOBJS)
 
+kxinteger.dll: src/extlib/kxinteger.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxinteger.c $(PICOBJS)
+
 kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
 
@@ -187,3 +228,5 @@ test-core: $(OBJS)
 
 src/ir_aotcore.obj: src/ir_aotcore.c $(SLJIT_DEP)
 	$(CC) /c $(CFLAGS) /Fo$*.obj src/ir_aotcore.c
+
+src/ir_exec.c: include\ir.h include\kinx.h $(IR_EXEC_DEP)
