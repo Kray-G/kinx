@@ -50,6 +50,10 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 conv_free(buf);
             }
             break;
+        case KX_BIN_T:
+            ++count;
+            printf("<...>");
+            break;
         case KX_OBJ_T:
             ++count;
             printf("[...]");

@@ -81,6 +81,7 @@ enum irop {
     KX_INCVX,
     KX_DECVX,
 
+    KX_MKBIN,
     KX_MKARY,
     KX_APPLYV,
     KX_APPLYL,
@@ -333,6 +334,7 @@ typedef struct kx_analyze_ {
 */
 
 struct kx_obj_;
+struct kx_bin_;
 struct kx_any_;
 struct kx_fnc_;
 struct kx_frm_;
@@ -353,6 +355,7 @@ enum irexec {
     KX_DBL_T,
     KX_CSTR_T,
     KX_STR_T,
+    KX_BIN_T,
     KX_LVAL_T,
     KX_OBJ_T,       /* ARRAY is also object */
     KX_FNC_T,
@@ -379,6 +382,7 @@ typedef struct kx_val_ {
         struct kx_any_ *av;
         struct kx_fnc_ *fn;
         struct kx_frm_ *fr;
+        struct kx_bin_ *bn;
     } value;
     const char *method;
     struct kx_val_ *host;
@@ -436,6 +440,14 @@ typedef struct kx_obj_ {
 kvec_init_t(kx_obj_t);
 kvec_init_pt(kx_obj_t);
 
+kvec_init_t(uint8_t);
+typedef struct kx_bin_ {
+    uint8_t mark;
+    kvec_t(uint8_t) bin;
+} kx_bin_t;
+kvec_init_t(kx_bin_t);
+kvec_init_pt(kx_bin_t);
+
 typedef struct kx_any_ {
     uint8_t mark;
     void *p;
@@ -452,6 +464,7 @@ kvec_init_pt(BigZ);
 KLIST_INIT_NOALLOC(big, BigZ)
 KLIST_INIT_NOALLOC(str, kstr_t *)
 KLIST_INIT_NOALLOC(obj, kx_obj_t *)
+KLIST_INIT_NOALLOC(bin, kx_bin_t *)
 KLIST_INIT_NOALLOC(any, kx_any_t *)
 KLIST_INIT_NOALLOC(frm, kx_frm_t *)
 KLIST_INIT_NOALLOC(fnc, kx_fnc_t *)
@@ -499,6 +512,8 @@ typedef struct kx_context_ {
     kvec_pt(kstr_t) str_dead;
     klist_t(obj) *obj_alive;
     kvec_pt(kx_obj_t) obj_dead;
+    klist_t(bin) *bin_alive;
+    kvec_pt(kx_bin_t) bin_dead;
     klist_t(any) *any_alive;
     kvec_pt(kx_any_t) any_dead;
     klist_t(fnc) *fnc_alive;
@@ -512,6 +527,7 @@ typedef struct kx_context_ {
     kx_code_t *caller;
     kx_options_t options;
     kx_obj_t *strlib;
+    kx_obj_t *binlib;
     kx_obj_t *arylib;
     kx_fnc_t *global_method_missing;
 
@@ -538,6 +554,7 @@ typedef struct kx_context_ {
 #define make_big_alive(ctx, val) (set_alive(ctx, big, val))
 #define allocate_str(ctx) (set_alive(ctx, str, allocate_defstr(ctx)))
 #define allocate_obj(ctx) init_object(set_alive(ctx, obj, allocate_def(ctx, obj)))
+#define allocate_bin(ctx) (set_alive(ctx, bin, allocate_def(ctx, bin)))
 #define allocate_any(ctx) (set_alive(ctx, any, allocate_def(ctx, any)))
 #define allocate_fnc(ctx) (set_alive(ctx, fnc, allocate_def(ctx, fnc)))
 #define allocate_frm(ctx) (set_alive(ctx, frm, allocate_def(ctx, frm)))
@@ -628,6 +645,13 @@ typedef struct kx_context_ {
         kx_val_t *top = &kv_push_undef(st);\
         top->type = KX_OBJ_T;\
         top->value.ov = (v);\
+    } while (0);\
+/**/
+#define push_bin(st, v) \
+    do {\
+        kx_val_t *top = &kv_push_undef(st);\
+        top->type = KX_BIN_T;\
+        top->value.bn = (v);\
     } while (0);\
 /**/
 #define push_lvalue(st, v) \

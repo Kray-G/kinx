@@ -110,6 +110,7 @@ enum opecode {
     KXOP_DEC,
     KXOP_INCP,       /* postfix */
     KXOP_DECP,       /* postfix */
+    KXOP_MKBIN,
     KXOP_MKARY,
     KXOP_MKOBJ,
 
@@ -267,6 +268,7 @@ extern const char *const_str2(const char* classname, const char* name);
 
 extern void free_nodes(void);
 extern void kx_make_native_mode(void);
+extern void kx_make_bin_mode(void);
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name, int var_type);
 extern kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type);
@@ -307,6 +309,7 @@ extern void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *val);
 extern void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht);
 extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
 extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
+extern kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern void longjmp_hook(sljit_sw r);
@@ -396,6 +399,18 @@ static inline const char *get_arg_str(int n, int args, kx_context_t *ctx)
             return ks_string(val.value.sv);
         } else if (val.type == KX_CSTR_T) {
             return val.value.pv;
+        }
+    }
+    return NULL;
+}
+
+static inline kx_bin_t *get_arg_bin(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, n);
+        if (val.type == KX_BIN_T) {
+            return val.value.bn;
         }
     }
     return NULL;

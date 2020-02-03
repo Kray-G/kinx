@@ -27,6 +27,9 @@ void print_value(kx_val_t *v, int recursive)
     case KX_CSTR_T:
         printf("(cstr) %s\n", v->value.pv);
         break;
+    case KX_BIN_T:
+        printf("(bin) item:%d\n", (int)kv_size(v->value.bn->bin));
+        break;
     case KX_STR_T:
         printf("(str) %s\n", ks_string(v->value.sv));
         break;
@@ -252,12 +255,17 @@ static inline const char *startup_code()
     static const char *code =
         "import System;"
         "import String;"
+        "import Binary;"
         "import Array;"
         "import Math;"
         "import Regex;"
         "var SystemTimer = { create: System.SystemTimer_create };"
-        "var Integer = { parseInt: System.parseInt };"
-        "var Double = { parseDouble: System.parseDouble };"
+        "var Integer = {"
+            "parseInt: System.parseInt,"
+        "};"
+        "var Double = {"
+            "parseDouble: System.parseDouble,"
+        "};"
         "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };"
     ;
     return code;
@@ -393,6 +401,24 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
     return NULL;
 }
 
+kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
+{
+    if (!ctx->binlib) {
+        return NULL;
+    }
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, ctx->binlib, method);
+    if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
+        return val->value.fn;
+    }
+    return NULL;
+}
+
 kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
     if (!ctx->arylib) {
@@ -486,6 +512,8 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
     kx_obj_t *obj = p->obj = allocate_obj(ctx);
     if (!strcmp(name, "kxstring")) {
         ctx->strlib = obj;
+    } else if (!strcmp(name, "kxbinary")) {
+        ctx->binlib = obj;
     } else if (!strcmp(name, "kxarray")) {
         ctx->arylib = obj;
     }
@@ -514,9 +542,21 @@ int check_typeof(kx_val_t *v1, int type)
     case KX_DBL_T:  return v1->type == KX_DBL_T;
     case KX_CSTR_T: return v1->type == KX_CSTR_T || v1->type == KX_STR_T;
     case KX_STR_T:  return v1->type == KX_CSTR_T || v1->type == KX_STR_T;
+    case KX_BIN_T:  return v1->type == KX_BIN_T;
     case KX_OBJ_T:  return v1->type == KX_OBJ_T;
     case KX_FNC_T:  return v1->type == KX_FNC_T || v1->type == KX_BFNC_T || v1->type == KX_NFNC_T;
     case KX_ARY_T:  return v1->type == KX_OBJ_T && kv_size(v1->value.ov->ary) > 0;
     }
     return 0;
+}
+
+int get_bin_item(kx_val_t *v)
+{
+    switch (v->type) {
+    case KX_UND_T:  return 0;
+    case KX_INT_T:  return v->value.iv & 0xFF;
+    case KX_BIG_T:  return 0xFF;
+    case KX_DBL_T:  return (uint8_t)(int)v->value.dv;
+    }
+    return -1;
 }
