@@ -18,7 +18,7 @@ if ((v) < 0) { \
         kv_push(kx_val_t, v1->value.ov->ary, *v2); \
         cur = cur->next; \
     } else if (v1->type == KX_BIN_T) { \
-        int v = get_bin_item(*v2); \
+        int v = get_bin_item(v2); \
         KX_APPEND_APPEND_BIN_ITEM_CHK(v); \
         cur = cur->next; \
     } else { \
@@ -86,7 +86,7 @@ if ((v) < 0) { \
         kv_push(kx_val_t, v1->value.ov->ary, *v2); \
         cur = cur->next; \
     } else if (v1->type == KX_BIN_T) { \
-        int v = get_bin_item(*v2); \
+        int v = get_bin_item(v2); \
         KX_APPEND_APPEND_BIN_ITEM_CHK(v); \
         cur = cur->next; \
     } else { \
