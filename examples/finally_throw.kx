@@ -1,0 +1,70 @@
+
+var a, b, c, d;
+
+function check(name, test) {
+    a = b = c = d = 0;
+    System.println("%{name}:");
+    System.println("    a = %{a}, b = %{b}, c = %{c}, d = %{d}");
+
+    try {
+        test();
+    } catch (e) {
+        ;
+    }
+    System.println("    a = %{a}, b = %{b}, c = %{c}, d = %{d}");
+
+}
+
+native test1_native() {
+    try {
+        try {
+            throw 1;
+        } finally {
+            a = 100;
+        }
+    } finally {
+        b = 1000;
+    }
+}
+
+native test_native(f) {
+    try {
+        try {
+            return f();
+        } finally {
+            c = 10000;
+        }
+    } finally {
+        d = 100000;
+    }
+}
+
+function test1_function() {
+    try {
+        try {
+            throw 1;
+        } finally {
+            a = 100;
+        }
+    } finally {
+        b = 1000;
+    }
+}
+
+function test_function(f) {
+    try {
+        try {
+            return f();
+        } finally {
+            c = 10000;
+        }
+    } finally {
+        d = 100000;
+    }
+}
+
+check("native -> native", &() => test_native(test1_native));
+check("function -> native", &() => test_function(test1_native));
+check("function -> function", &() => test_function(test1_function));
+# not-supported:
+# check("native -> function", &() => test_native(test1_function));
