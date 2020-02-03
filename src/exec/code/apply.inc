@@ -145,6 +145,16 @@ do { \
         } else { \
             push_undef((ctx)->stack); \
         } \
+    } else if (lv->type == KX_DBL_T) { \
+        kx_fnc_t *fn = search_double_function(ctx, name, v1, cur->count, jumptable); \
+        if (fn) { \
+            if (fn->typ || fn->wht) { \
+                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
+            } \
+            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+        } else { \
+            push_undef((ctx)->stack); \
+        } \
     } else if (lv->type == KX_BIN_T) { \
         if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
             int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
@@ -303,6 +313,16 @@ do { \
         } \
     } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
         kx_fnc_t *fn = search_integer_function(ctx, name, v1, cur->count, jumptable); \
+        if (fn) { \
+            if (fn->typ || fn->wht) { \
+                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
+            } \
+            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+        } else { \
+            push_undef((ctx)->stack); \
+        } \
+    } else if (lv->type == KX_DBL_T) { \
+        kx_fnc_t *fn = search_double_function(ctx, name, v1, cur->count, jumptable); \
         if (fn) { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \

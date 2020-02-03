@@ -239,6 +239,8 @@ default: \
             fn = search_string_function(ctx, name, lv, cur->count, jumptable); \
         } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
             fn = search_integer_function(ctx, name, lv, cur->count, jumptable); \
+        } else if (lv->type == KX_DBL_T) { \
+            fn = search_double_function(ctx, name, lv, cur->count, jumptable); \
         } else if (lv->type == KX_BIN_T) { \
             fn = search_binary_function(ctx, name, lv, cur->count, jumptable); \
         } \
