@@ -71,19 +71,27 @@ $ make
 #### Usage
 
 ```
+# For Windows
 $ kinx.exe [options] [<script-file>]
+
+# For Linux
+$ ./kinx [options] [<script-file>]
 ```
 
 #### Options
 
 Here is current available options.
 
-| Option |          Description          |
-| ------ | ----------------------------- |
-| `-h`   | Display help.                 |
-| `-v`   | Display version number.       |
-| `-d`   | Dump compiled code.           |
-| `-i`   | Input source code from stdin. |
+|          Option           |                          Description                          |
+| ------------------------- | ------------------------------------------------------------- |
+| `-h`                      | Display help.                                                 |
+| `-v`                      | Display version number.                                       |
+| `-d`                      | Dump compiled code.                                           |
+| `-D`                      | Display AST.                                                  |
+| `-i`                      | Input source code from stdin.                                 |
+|                           |                                                               |
+| `--with-native`           | Dump compiled code of native function. Use with `-d`.         |
+| `--native-call-max-depth` | Specify the max depth to call native fnction. 128 by default. |
 
 ## Examples
 
