@@ -34,7 +34,7 @@ str.length();
 ### Integer
 
 `Integer` object is used to operate for an integer like `100`.
-And Math object's function is available for Integer object like `2.pow(10)`.
+And `Math` object's function is available for Integer object like `2.pow(10)`.
 
 |                Method                |                          Meaning                          |
 | ------------------------------------ | --------------------------------------------------------- |
@@ -55,7 +55,7 @@ Integer.times(100, callback);
 ### Double
 
 `Double` object is used to operate for a double like `1.5`.
-And Math object's function is available for Integer object like `2.0.pow(10.0)`.
+And `Math` object's function is available for Integer object like `2.0.pow(10.0)`.
 
 |          Method           |               Meaning               |
 | ------------------------- | ----------------------------------- |
@@ -106,7 +106,7 @@ ary.length();
 ### Math
 
 `Math` object is mathematical functions to perform mathematical operations.
-These fnctions are also available for Integer and Double object.
+These fnctions are also available for `Integer` and `Double` object.
 
 |         Method         |         Meaning          |
 | ---------------------- | ------------------------ |
