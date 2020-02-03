@@ -6,6 +6,7 @@
 #define POSMAX ((KX_BUF_MAX)-128)
 static char kx_strbuf[KX_BUF_MAX] = {0};
 static int g_import = 0;
+static int g_binmode = 0;
 static const char *varname = NULL;
 static const char *modulename = NULL;
 
@@ -19,6 +20,11 @@ void setup_lexinfo(const char *file, kx_yyin_t *yyin)
     kx_lexinfo.inner.brcount = 0;
     kx_lexinfo.inner.quote = 0;
     kx_lexinfo.in = *yyin;
+}
+
+void kx_make_bin_mode(void)
+{
+    g_binmode = 1;
 }
 
 static int load_using_module(const char *name, int no_error)
@@ -474,9 +480,13 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
             if (kx_lexinfo.ch == '=') {
                 kx_lex_next(kx_lexinfo);
-                return SHLEQ;
+                return SHREQ;
             }
-            return SHL;
+            return SHR;
+        }
+        if (g_binmode) {
+            g_binmode = 0;
+            return BINEND;
         }
         return '>';
     case '<':
@@ -493,9 +503,9 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
             if (kx_lexinfo.ch == '=') {
                 kx_lex_next(kx_lexinfo);
-                return SHREQ;
+                return SHLEQ;
             }
-            return SHR;
+            return SHL;
         }
         return '<';
     case '|':

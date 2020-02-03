@@ -14,11 +14,12 @@
 %}
 
 %union {
-    kx_object_t *obj;
-    int         type;
-    int64_t     intval;
-    double      dblval;
-    const char  *strval;
+    kx_object_t   *obj;
+    int           type;
+    int64_t       intval;
+    double        dblval;
+    const char    *strval;
+    const uint8_t *binval;
 }
 
 %token ERROR
@@ -27,7 +28,7 @@
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
-%token IMPORT USING DARROW SQ DQ MLSTR
+%token IMPORT USING DARROW SQ DQ MLSTR BINEND
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -35,6 +36,7 @@
 %token<intval> TYPE
 %token<intval> TYPEOF
 %token<dblval> DBL
+%token<binval> BIN
 
 %type<obj> Program
 %type<obj> StatementList
@@ -73,9 +75,10 @@
 %type<type> IncDec_Opt
 %type<obj> Factor
 %type<obj> String
+%type<obj> Binary
 %type<obj> Array
 %type<obj> Object
-%type<obj> ArraItemList
+%type<obj> ArrayItemList
 %type<obj> AssignExpressionList
 %type<obj> KeyValueList
 %type<obj> KeyValue
@@ -338,6 +341,7 @@ Factor
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | String
     | Array
+    | Binary
     | Object
     | IMPORT '(' STR ')' { $$ = kx_gen_import_object($3); }
     | '(' AssignExpression ')' { $$ = $2; }
@@ -352,7 +356,16 @@ String
 
 Array
     : '[' ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, NULL); }
-    | '[' ArraItemList Comma_Opt ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
+    | '[' ArrayItemList Comma_Opt ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
+    ;
+
+Binary
+    : '<' '>' { $$ = kx_gen_uexpr_object(KXOP_MKBIN, NULL); }
+    | '<' BinStart ArrayItemList Comma_Opt BINEND { $$ = kx_gen_uexpr_object(KXOP_MKBIN, $3); }
+    ;
+
+BinStart
+    : { kx_make_bin_mode(); }
     ;
 
 Object
@@ -364,9 +377,9 @@ Comma_Opt
     | ','
     ;
 
-ArraItemList
+ArrayItemList
     : AssignExpression
-    | ArraItemList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | ArrayItemList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
     ;
 
 AssignExpressionList

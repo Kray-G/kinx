@@ -42,7 +42,7 @@ If you agree, push the star.
 * **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
 * **Object-Oriented**. Of cource you can do the object-oriented programming.
 * C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
-* **Native function** by AOT compiling supported with some limitations.
+* **Native function** by AOT/JIT compiling supported with some limitations.
 
 ## Getting Started
 
@@ -224,6 +224,8 @@ Many functionalities added in the future will be created by above strategy.
 |               |                            |                                                                                                            |
 | `String`      | `String.length(str)`       | Counting the length of string.                                                                             |
 |               |                            |                                                                                                            |
+| `Binary`      | `Binary.length(bin)`       | Counting the length of binary object.                                                                      |
+|               |                            |                                                                                                            |
 | `Array`       | `Array.length(obj)`        | Counting the length of array object.                                                                       |
 |               |                            |                                                                                                            |
 | `Math`        | `Math.acos(dbl)`, etc      | Math object having some mathematical functions.                                                            |
@@ -242,9 +244,9 @@ Many functionalities added in the future will be created by above strategy.
 |               | `re.matches()`             | `true` if matches. This can be used only one time because this is checking if the target is fully matched. |
 |               |                            |                                                                                                            |
 
-`String` & `Array` objects will do the special work for the object.
+`String`, `Binary`, and `Array` objects will do the special work for the object.
 For example  `String.length(str)` is the same as `str.length()`.
-`Array` object is also same work like `Array.length(ary)` is the same as `ary.length()`.
+The work of `Binary` and `Array` is also same as `String`.
 
 ## TODO
 

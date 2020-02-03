@@ -46,6 +46,7 @@ kx_context_t *make_context(void)
     ctx->frm_alive = kl_init(frm);
     ctx->fnc_alive = kl_init(fnc);
     ctx->obj_alive = kl_init(obj);
+    ctx->bin_alive = kl_init(bin);
     ctx->any_alive = kl_init(any);
     ctx->big_alive = kl_init(big);
     ctx->str_alive = kl_init(str);
@@ -91,6 +92,10 @@ static void gc_unmark(kx_context_t *ctx)
         for (int i = 0; i < len; ++i) {
             kv_A(c->ary, i).mark = 0;
         }
+    }
+    kliter_t(bin) *pbin;
+    for (pbin = kl_begin(ctx->bin_alive); pbin != kl_end(ctx->bin_alive); pbin = kl_next(pbin)) {
+        kl_val(pbin)->mark = 0;
     }
     kliter_t(any) *pany;
     for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
@@ -177,6 +182,10 @@ static void gc_mark_val(kx_val_t *c)
         c->mark = 1;
         c->value.sv->mark = 1;
         break;
+    case KX_BIN_T:
+        c->mark = 1;
+        c->value.bn->mark = 1;
+        break;
     case KX_OBJ_T:
         c->mark = 1;
         gc_mark_obj(c->value.ov);
@@ -239,6 +248,18 @@ static void gc_sweep(kx_context_t *ctx)
             kv_zero(kx_val_t, v->ary);
         }
     }
+    kliter_t(bin) *pbin, *prevbin = NULL, *nextbin;
+    for (pbin = kl_begin(ctx->bin_alive); pbin != kl_end(ctx->bin_alive); pbin = nextbin) {
+        nextbin = kl_next(pbin);
+        if (kl_val(pbin)->mark) {
+            prevbin = pbin;
+        } else {
+            kx_bin_t *v;
+            kl_remove_next(bin, ctx->bin_alive, prevbin, &v);
+            kv_zero(uint8_t, v->val);
+            kv_push(kx_bin_t*, ctx->bin_dead, v);
+        }
+    }
     kliter_t(any) *pany, *prevany = NULL, *nextany;
     for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = nextany) {
         nextany = kl_next(pany);
@@ -291,6 +312,7 @@ static void print_gc_info(kx_context_t *ctx)
     printf("  * stack: %d\n", (int)kv_size(ctx->stack));
     printf("    alive(str) = %d, buf(%d)\n", (int)ctx->str_alive->size, (int)kv_size(ctx->str_dead));
     printf("    alive(obj) = %d, buf(%d)\n", (int)ctx->obj_alive->size, (int)kv_size(ctx->obj_dead));
+    printf("    alive(bin) = %d, buf(%d)\n", (int)ctx->bin_alive->size, (int)kv_size(ctx->bin_dead));
     printf("    alive(any) = %d, buf(%d)\n", (int)ctx->any_alive->size, (int)kv_size(ctx->any_dead));
     printf("    alive(fnc) = %d, buf(%d)\n", (int)ctx->fnc_alive->size, (int)kv_size(ctx->fnc_dead));
     printf("    alive(frm) = %d, buf(%d)\n", (int)ctx->frm_alive->size, (int)kv_size(ctx->frm_dead));
@@ -336,6 +358,12 @@ static void gc_object_cleanup(kx_context_t *ctx)
         kv_destroy(o->ary);
         kx_free(o);
     }
+    kliter_t(bin) *pbin;
+    for (pbin = kl_begin(ctx->bin_alive); pbin != kl_end(ctx->bin_alive); pbin = kl_next(pbin)) {
+        kx_bin_t *o = kl_val(pbin);
+        kv_destroy(o->val);
+        kx_free(o);
+    }
     kliter_t(any) *pany;
     for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
         kx_any_t *o = kl_val(pany);
@@ -365,6 +393,12 @@ static void gc_object_cleanup(kx_context_t *ctx)
         kv_destroy(o->ary);
         kx_free(o);
     }
+    l = kv_size(ctx->bin_dead);
+    for (i = 0; i < l; ++i) {
+        kx_bin_t *o = kv_A(ctx->bin_dead, i);
+        kv_destroy(o->val);
+        kx_free(o);
+    }
     l = kv_size(ctx->any_dead);
     for (i = 0; i < l; ++i) {
         kx_any_t *o = kv_A(ctx->any_dead, i);
@@ -387,6 +421,7 @@ static void gc_object_cleanup(kx_context_t *ctx)
     kv_destroy(ctx->fnc_dead);
     kv_destroy(ctx->obj_dead);
     kv_destroy(ctx->any_dead);
+    kv_destroy(ctx->bin_dead);
     kv_destroy(ctx->str_dead);
     kl_destroy(str, ctx->str_alive);
     kl_destroy(big, ctx->big_alive);
@@ -394,6 +429,7 @@ static void gc_object_cleanup(kx_context_t *ctx)
     kl_destroy(fnc, ctx->fnc_alive);
     kl_destroy(obj, ctx->obj_alive);
     kl_destroy(any, ctx->any_alive);
+    kl_destroy(bin, ctx->bin_alive);
     kv_destroy(ctx->exception);
     kv_destroy(ctx->stack);
 

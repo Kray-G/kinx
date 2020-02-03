@@ -1,0 +1,12 @@
+var a = <1, 2, 3, 4>;
+var b = <a[1], a[2]==1, a[0]==1>;
+b += <2, 3, 0xFF<<4, 5<<1, 0xFF>>4>;
+System.println(a.length());
+System.println(b.length());
+
+for (var i = 0; i < a.length(); ++i) {
+    System.println("a[%{i}] = %{a[i]}");
+}
+for (var i = 0; i < b.length(); ++i) {
+    System.println("b[%{i}] = %{b[i]}");
+}

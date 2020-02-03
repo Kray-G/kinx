@@ -137,6 +137,13 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_DECP:       /* postfix */
         analyze_ast(node->lhs, ctx);
         break;
+    case KXOP_MKBIN:
+        if (ctx->in_native) {
+            kx_yyerror_line("Can not use binary object in native function.", node->file, node->line);
+            break;
+        }
+        analyze_ast(node->lhs, ctx);
+        break;
     case KXOP_MKARY:
         if (ctx->in_native) {
             kx_yyerror_line("Can not use array object in native function.", node->file, node->line);
