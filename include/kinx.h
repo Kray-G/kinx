@@ -317,6 +317,7 @@ extern void longjmp_hook(sljit_sw r);
 extern int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);
+extern int get_bin_item(kx_val_t *v);
 
 extern int native_debug_print(sljit_sw value);
 extern int native_debug_print_reg(sljit_sw name, sljit_sw value);
