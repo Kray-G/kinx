@@ -26,12 +26,19 @@ extern int kx_yydebug;
 
 static void usage(void)
 {
-    printf("Usage: " PROGNAME " -[hdui]\n");
+    printf("Usage: " PROGNAME " -[hdDui]\n");
+    printf("Main options:\n");
     printf("    -h      Display this help.\n");
     printf("    -d      Dump compiled code.\n");
-    printf("    -D      Dump AST.\n");
+    printf("    -D      Display AST.\n");
     printf("    -u      Use UTF8 in standard I/O without converting. (Windows only)\n");
     printf("    -i      Input source code from stdin.\n");
+    printf("\n");
+    printf("Detail controls:\n");
+    printf("    --with-native\n");
+    printf("            Use this with -d to dump a compiled native function.\n");
+    printf("    --native-call-max-depth\n");
+    printf("            Specify the max depth to call a native fnction. 128 by default.\n");
 }
 
 static void version(void)
@@ -89,12 +96,12 @@ int main(int ac, char **av)
             get_long_option(optarg, lname, param);
             if (!strcmp(lname, "native-call-max-depth")) {
                 ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 128;
-            } else if (!strcmp(lname, "native-verbose")) {
-                ctx->options.native_verbose = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "with-native")) {
                 ctx->options.with_native = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "exception-detail-info")) {
                 ctx->options.exception_detail_info = param[0] ? strtol(param, NULL, 0) : 1;
+            } else if (!strcmp(lname, "native-verbose")) {
+                ctx->options.native_verbose = param[0] ? strtol(param, NULL, 0) : 1;
             }
             break;
         case 'd':
