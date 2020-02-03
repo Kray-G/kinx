@@ -287,12 +287,20 @@ static inline const char *startup_code()
                     "callback(i, index++);"
                 "}"
             "};"
-            "Math.keySet().each(function(name) {"
-                "var item = Math[name];"
+            "Integer.methodMissing = function(d, method, a0) {"
+                "var item = Math[method];"
                 "if (item.isFunction) {"
-                    "Double[name] = &(v1, v2) => item(v1, v2);"
+                    "Integer[method] = item;"
                 "}"
-            "});"
+                "return Integer[method](Double.parseDouble(d), Double.parseDouble(a0));"
+            "};"
+            "Double.methodMissing = function(d, method, a0) {"
+                "var item = Math[method];"
+                "if (item.isFunction) {"
+                    "Double[method] = item;"
+                "}"
+                "return Double[method](Double.parseDouble(d), Double.parseDouble(a0));"
+            "};"
         "})();"
     ;
     return code;
@@ -425,6 +433,16 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
+    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
+        val->value.fn->method = method;
+        return val->value.fn;
+    }
     return NULL;
 }
 
@@ -441,6 +459,16 @@ kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t
         }
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
+        return val->value.fn;
+    }
+    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
+        val->value.fn->method = method;
         return val->value.fn;
     }
     return NULL;
@@ -461,6 +489,16 @@ kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
+    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
+        val->value.fn->method = method;
+        return val->value.fn;
+    }
     return NULL;
 }
 
@@ -479,6 +517,16 @@ kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
+    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
+        val->value.fn->method = method;
+        return val->value.fn;
+    }
     return NULL;
 }
 
@@ -495,6 +543,16 @@ kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t 
         }
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
+        return val->value.fn;
+    }
+    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+        if (host->type == KX_LVAL_T) {
+            host = host->value.lv;
+        }
+        val->value.fn->val.type = host->type;
+        val->value.fn->val.value = host->value;
+        val->value.fn->method = method;
         return val->value.fn;
     }
     return NULL;
