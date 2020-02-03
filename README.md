@@ -215,38 +215,7 @@ See [Class Design](doc/ClassDesign.md) for how class works.
 Currently many functionalities are too lack, I would like to add objects and methods as soon as possible.
 Many functionalities added in the future will be created by above strategy.
 
-|    Object     |           Method           |                                                    Work                                                    |
-| ------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `System`      | `System.print(arg, ...)`   | Printing to stdout without newline at the end.                                                             |
-|               | `System.println(arg, ...)` | Printing to stdout with newline at the end.                                                                |
-|               | `System.abort()`           | Aborting the program.                                                                                      |
-|               | `System.exec(cmdline)`     | Executing the command with shell.                                                                          |
-|               |                            |                                                                                                            |
-| `String`      | `String.length(str)`       | Counting the length of string.                                                                             |
-|               |                            |                                                                                                            |
-| `Binary`      | `Binary.length(bin)`       | Counting the length of binary object.                                                                      |
-|               |                            |                                                                                                            |
-| `Array`       | `Array.length(obj)`        | Counting the length of array object.                                                                       |
-|               |                            |                                                                                                            |
-| `Math`        | `Math.acos(dbl)`, etc      | Math object having some mathematical functions.                                                            |
-|               |                            |                                                                                                            |
-| `SystemTimer` | `tmr = new SystemTimer()`  | Creating SystemTimer object. (`tmr` is example)                                                            |
-|               | `tmr.restart()`            | Reset internal timer and restart it.                                                                       |
-|               | `tmr.elapsed()`            | Return the eplased time from start or restart.                                                             |
-|               |                            |                                                                                                            |
-| `Integer`     | `Integer.parseInt(arg)`    | Converting arg to an integer value.                                                                        |
-|               |                            |                                                                                                            |
-| `Double`      | `Double.parseDouble(arg)`  | Converting arg to a double value.                                                                          |
-|               |                            |                                                                                                            |
-| `Regex`       | `re = new Regex(pattern)`  | Creating Regex object. (`re` is example)                                                                   |
-|               | `re.reset(str)`            | Reset the search target string.                                                                            |
-|               | `re.find()`                | `true` if found. This can be used continuously until it has been not found.                                |
-|               | `re.matches()`             | `true` if matches. This can be used only one time because this is checking if the target is fully matched. |
-|               |                            |                                                                                                            |
-
-`String`, `Binary`, and `Array` objects will do the special work for the object.
-For example  `String.length(str)` is the same as `str.length()`.
-The work of `Binary` and `Array` is also same as `String`.
+For current supported objects, see [here](doc/Object.md).
 
 ## TODO
 
@@ -254,7 +223,6 @@ Now development is very early stage, I need to add many functionalities.
 Here is a plan to add.
 
 * [ ] Adding many methods to `String` and `Array`.
-* [ ] Binary data access.
 * [ ] `switch-case` statement.
 * [ ] `namespace` block.
 * [ ] `module` to add function easily to object.
@@ -269,20 +237,6 @@ Here is a plan to add.
 ## Undocumented Memo
 
 Now there is no document about following items, but I will write it as soon as possible.
-
-### Auto-loaded Objects
-
-You can use the following objects in every programs with nothing to do.
-
-*   `System` ... automatically do `import System;` at the beginning of program.
-*   `String` ... same as `System`.
-*   `Array` ... same as `System`.
-*   `Math` ... same as `System`.
-*   `Regex` ... same as `System`.
-*   `SystemTimer` ... same as `System`.
-*   `Integer` ... same as `System`.
-*   `Double` ... same as `System`.
-*   `RuntimeException` ... is a standard exception, do it like `throw RuntimeException("message");`.
 
 ### Command Line Arguments
 
