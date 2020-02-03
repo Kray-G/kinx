@@ -1,0 +1,9 @@
+
+# Double.pow = Math.pow;
+# Double.parseDouble(2).pow(10);
+
+System.println(Math.pow);
+# System.println(2.pow(10));
+System.println(Math.pow(2, 10));
+System.println(2.pow(10));
+System.println(Math.pow(2, 10));
