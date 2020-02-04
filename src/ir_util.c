@@ -298,7 +298,7 @@ static inline const char *startup_code()
             "Double.methodMissing = function(d, method, a0) {\n"
                 "var item = Math[method];\n"
                 "if (item.isFunction) {\n"
-                    "Double[method] = item;\n"
+                    "Double[method] = &(v1, v2) => item(v1, v2);\n"
                     "return Double[method](Double.parseDouble(d), Double.parseDouble(a0));\n"
                 "}\n"
                 "return d;\n"
