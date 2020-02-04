@@ -233,7 +233,6 @@ Now development is very early stage, I need to add many functionalities.
 Here is a plan to add.
 
 * [ ] Adding many methods to `String` and `Array`.
-* [ ] `switch-case` statement.
 * [ ] `namespace` block.
 * [ ] `module` to add function easily to object.
 * [ ] `File` object to support standard File I/O.
