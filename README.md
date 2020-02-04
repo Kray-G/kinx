@@ -82,16 +82,17 @@ $ ./kinx [options] [<script-file>]
 
 Here is current available options.
 
-|          Option           |                           Description                           |
-| ------------------------- | --------------------------------------------------------------- |
-| `-h`                      | Display help.                                                   |
-| `-v`                      | Display version number.                                         |
-| `-d`                      | Dump compiled code.                                             |
-| `-D`                      | Display AST.                                                    |
-| `-i`                      | Input source code from stdin.                                   |
-|                           |                                                                 |
-| `--with-native`           | Dump compiled code of a native function. Use with `-d`.         |
-| `--native-call-max-depth` | Specify the max depth to call a native fnction. 128 by default. |
+|          Option           |                              Description                              |
+| ------------------------- | --------------------------------------------------------------------- |
+| `-h`                      | Display help.                                                         |
+| `-v`                      | Display version number.                                               |
+| `-d`                      | Dump compiled code.                                                   |
+| `-D`                      | Display AST.                                                          |
+| `-i`                      | Input source code from stdin.                                         |
+|                           |                                                                       |
+| `--with-native`           | Dump compiled code of a native function. Use with `-d`.               |
+| `--native-call-max-depth` | Specify the max depth to call a native fnction. 128 by default.       |
+| `--case-threshold`        | Specify the max interval between case's integer value. 16 by default. |
 
 ## Examples
 
@@ -176,6 +177,7 @@ I am now considering how to remove those.
 *   Currently you can use the type of integer only.
 *   Integer value is not automatically promoted to big integer, just overfow it.
 *   Can not call a script function. Only can call a native function.
+*   `switch-case` is not supported.
 *   Forward declaration of a native function is not supported.
 *   Can access to the lexical scope and variables, but only for an integer value.
 *   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.

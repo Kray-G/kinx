@@ -12,6 +12,7 @@ typedef struct kxana_context_ {
     int class_id;
     kx_object_t *class_node;
     kx_object_t *func;
+    kx_object_t *switch_stmt;
     kvec_t(kxana_symbol_t) symbols;
 } kxana_context_t;
 static const kxana_symbol_t kx_empty_symbols = {0};
@@ -271,6 +272,24 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->ex, ctx);
         kv_shrinkto(table->list, size);
         --ctx->depth;
+        break;
+    }
+    case KXST_SWITCH: {   /* lhs: cond: rhs: block */
+        ++ctx->depth;
+        kx_object_t *sw = ctx->switch_stmt;
+        ctx->switch_stmt = node;
+        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        int size = kv_size(table->list);
+        analyze_ast(node->lhs, ctx);
+        analyze_ast(node->rhs, ctx);
+        kv_shrinkto(table->list, size);
+        ctx->switch_stmt = sw;
+        --ctx->depth;
+        break;
+    }
+    case KXST_CASE: {     /* lhs: cond */
+        ctx->switch_stmt->case_next = node;
+        ctx->switch_stmt = node;
         break;
     }
     case KXST_WHILE:      /* lhs: cond: rhs: block */

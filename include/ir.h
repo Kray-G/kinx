@@ -43,6 +43,7 @@ enum irop {
     KX_JMP,
     KX_JZ,
     KX_JNZ,
+    KX_JMPTBL,
 
     KX_PUSHI,
     KX_PUSHD,
@@ -316,7 +317,8 @@ typedef struct kx_analyze_ {
     int classname;
     int function;
     int block;
-    int label;     /* last break block */
+    int break_label; /* last break block */
+    int cont_label; /* last continue block */
     int contblock; /* inside continue block if exists */
     int pushes;
     int in_try;
@@ -494,6 +496,7 @@ typedef struct kx_options_ {
     int native_verbose:1;
     int with_native:1;  /* dump with native */
     int exception_detail_info:1;
+    uint16_t case_threshold;
     uint16_t max_call_depth;
 } kx_options_t;
 

@@ -86,6 +86,11 @@ enum functype {
     KXFT_PROTECTED,
 };
 
+enum casetype {
+    KXCS_CASE,
+    KXCS_DEFAULT,
+};
+
 enum opecode {
     KXVL_UNKNOWN = 0,
 
@@ -163,6 +168,8 @@ enum opecode {
     KXST_BLOCK,     /* lhs: block */
     KXST_LABEL,     /* lhs: stmt */
     KXST_IF,        /* lhs: cond, rhs: then-block, ex: else-block */
+    KXST_SWITCH,    /* lhs: cond, rhs: block */
+    KXST_CASE,      /* lhs: cond */
     KXST_WHILE,     /* lhs: cond, rhs: block */
     KXST_DO,        /* lhs: cond, rhs: block */
     KXST_FOR,       /* lhs: forcond, rhs: block */
@@ -228,6 +235,10 @@ typedef struct kx_object_ {
     const char *file;
     uint32_t line;
 
+    struct kx_object_ *case_next; /* used in switch-case */
+    kvec_t(int) case_src_block;  /* jump source to case */
+    kvec_t(int) case_src_pos;  /* jump source to case */
+
     kxana_symbol_t symbols;
 } kx_object_t;
 kvec_init_t(kx_object_t);
@@ -284,6 +295,7 @@ extern kx_object_t *kx_gen_import_object(const char *name);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_texpr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
+extern kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs);
 extern kx_object_t *kx_gen_break_object(int type, const char *name);
 extern kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs);
 extern kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *lhs, kx_object_t *ex);

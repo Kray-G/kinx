@@ -149,6 +149,11 @@ kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx
     return kx_gen_obj(type, 0, lhs, rhs, ex);
 }
 
+kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs)
+{
+    return kx_gen_obj(KXST_CASE, optional, lhs, NULL, NULL);
+}
+
 kx_object_t *kx_gen_break_object(int type, const char *name)
 {
     kx_object_t *obj = kx_gen_obj(type, 0, NULL, NULL, NULL);
