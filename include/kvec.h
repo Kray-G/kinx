@@ -77,6 +77,8 @@ int main() {
 #define kv_expand(type, v, e)  ((v).m = ((v).n+(s)), (v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m))
 #define kv_expand_if(type, v, e)  if ((v).m < ((v).n+(e))) ((v).m = ((v).n+(e)), (v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m))
 
+#define kv_sort(type, v, comp) qsort((v).a, kv_size(v), sizeof(type), comp)
+
 #define kv_copy(type, v1, v0) do {							\
 		if ((v1).m < (v0).n) kv_resize(type, v1, (v0).n);	\
 		(v1).n = (v0).n;									\

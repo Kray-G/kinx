@@ -93,10 +93,12 @@ static int get_keyword_token(const char *val)
     case 'c':
         if (strcmp(val, "class") == 0)          return CLASS;
         if (strcmp(val, "catch") == 0)          return CATCH;
+        if (strcmp(val, "case") == 0)           return CASE;
         if (strcmp(val, "continue") == 0)       return CONTINUE;
         break;
     case 'd':
         if (strcmp(val, "do") == 0)             return DO;
+        if (strcmp(val, "default") == 0)        return DEFAULT;
         break;
     case 'e':
         if (strcmp(val, "else") == 0)           return ELSE;
@@ -135,6 +137,9 @@ static int get_keyword_token(const char *val)
         break;
     case 'r':
         if (strcmp(val, "return") == 0)         return RETURN;
+        break;
+    case 's':
+        if (strcmp(val, "switch") == 0)         return SWITCH;
         break;
     case 't':
         if (strcmp(val, "throw") == 0)          return THROW;
