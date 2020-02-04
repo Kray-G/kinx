@@ -23,7 +23,7 @@
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE
+%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
 %token NEW VAR NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
@@ -72,6 +72,7 @@
 %type<obj> Term
 %type<obj> PrefixExpression
 %type<obj> PostfixExpression
+%type<obj> PropertyName
 %type<type> IncDec_Opt
 %type<obj> Factor
 %type<obj> String
@@ -320,7 +321,7 @@ PrefixExpression
 PostfixExpression
     : Factor IncDec_Opt { $$ = (($2 < 0) ? $1 : kx_gen_uexpr_object($2, $1)); }
     | PostfixExpression '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
-    | PostfixExpression '.' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, kx_gen_str_object($3)); }
+    | PostfixExpression '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | PostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
@@ -346,7 +347,39 @@ Factor
     | IMPORT '(' STR ')' { $$ = kx_gen_import_object($3); }
     | '(' AssignExpression ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
-    | '@' NAME { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object($2)); }
+    | '@' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
+    ;
+
+PropertyName
+    : NAME { $$ = kx_gen_str_object($1); }
+    | IF { $$ = kx_gen_str_object("if"); }
+    | ELSE { $$ = kx_gen_str_object("else"); }
+    | WHILE { $$ = kx_gen_str_object("while"); }
+    | DO { $$ = kx_gen_str_object("do"); }
+    | FOR { $$ = kx_gen_str_object("for"); }
+    | TRY { $$ = kx_gen_str_object("try"); }
+    | CATCH { $$ = kx_gen_str_object("catch"); }
+    | FINALLY { $$ = kx_gen_str_object("finally"); }
+    | BREAK { $$ = kx_gen_str_object("break"); }
+    | CONTINUE { $$ = kx_gen_str_object("continue"); }
+    | SWITCH { $$ = kx_gen_str_object("switch"); }
+    | CASE { $$ = kx_gen_str_object("case"); }
+    | DEFAULT { $$ = kx_gen_str_object("default"); }
+    | NEW { $$ = kx_gen_str_object("new"); }
+    | VAR { $$ = kx_gen_str_object("var"); }
+    | NATIVE { $$ = kx_gen_str_object("nativ"); }
+    | FUNCTION { $$ = kx_gen_str_object("function"); }
+    | PUBLIC { $$ = kx_gen_str_object("public"); }
+    | PRIVATE { $$ = kx_gen_str_object("private"); }
+    | PROTECTED { $$ = kx_gen_str_object("protectd"); }
+    | CLASS { $$ = kx_gen_str_object("class"); }
+    | RETURN { $$ = kx_gen_str_object("return"); }
+    | THROW { $$ = kx_gen_str_object("throw"); }
+    | NUL { $$ = kx_gen_str_object("null"); }
+    | TRUE { $$ = kx_gen_str_object("true"); }
+    | FALSE { $$ = kx_gen_str_object("false"); }
+    | IMPORT { $$ = kx_gen_str_object("import"); }
+    | USING { $$ = kx_gen_str_object("using"); } 
     ;
 
 String
