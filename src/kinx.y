@@ -46,6 +46,8 @@
 %type<obj> IfStatement
 %type<obj> WhileStatement
 %type<obj> DoWhileStatement
+%type<obj> SwitchCaseStatement
+%type<obj> CaseStatement
 %type<obj> ForStatement
 %type<obj> TryCatchStatement
 %type<obj> CatchStatement_Opt
@@ -117,6 +119,8 @@ Statement
     | IfStatement
     | WhileStatement
     | DoWhileStatement
+    | SwitchCaseStatement
+    | CaseStatement
     | ForStatement
     | TryCatchStatement
     | ReturnStatement
@@ -161,6 +165,15 @@ WhileStatement
 
 DoWhileStatement
     : DO Statement WHILE '(' AssignExpressionList ')' ';' { $$ = kx_gen_stmt_object(KXST_DO, $5, $2, NULL); }
+    ;
+
+SwitchCaseStatement
+    : SWITCH '(' AssignExpressionList ')' BlockStatement { $$ = kx_gen_stmt_object(KXST_SWITCH, $3, $5, NULL); }
+    ;
+
+CaseStatement
+    : CASE AssignExpression ':' { $$ = kx_gen_case_stmt_object(KXCS_CASE, $2); }
+    | DEFAULT ':' { $$ = kx_gen_case_stmt_object(KXCS_DEFAULT, NULL); }
     ;
 
 ForStatement

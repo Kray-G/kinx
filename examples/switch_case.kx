@@ -1,0 +1,89 @@
+
+function test1(a) {
+    switch (a) {
+    case 105:
+        System.println(105);
+        break;
+    case 106:
+        System.println(106);
+        break;
+    case 107:
+        System.println(107);
+        break;
+    case 108:
+        System.println(108);
+        break;
+    default:
+        System.println("default");
+        break;
+    case 1:
+        System.println(1);
+        break;
+    case 2:
+        System.println(2);
+        break;
+    case 3:
+        System.println(3);
+        break;
+    case 5:
+        System.println(5);
+        break;
+    case 7:
+        System.println(7);
+        break;
+    case 8:
+        System.println(8);
+        break;
+    case 10:
+        System.println(10);
+        break;
+    case 15:
+        System.println(15);
+        break;
+    case 220:
+        System.println(220);
+        break;
+    case 255:
+        System.println(255);
+        break;
+    case 256:
+        System.println(256);
+        break;
+    case 257:
+        System.println(257);
+        break;
+    }
+}
+
+for (var i = 0; i < 260; ++i) {
+    System.print("i = %{i} => ");
+    test1(i);
+}
+
+function test2(n) {
+    switch (n) {
+    case 1: System.println(n); return;
+    case 2: System.println(n); return;
+    case 3: System.println(n); return;
+    case 4: System.println(n); return;
+    case 5: System.println(n); return;
+    case 6: System.println(n); return;
+    case 7: System.println(n); return;
+    case 8: System.println(n); return;
+    case 100: System.println(n); return;
+    case "aaa": System.println(n); return;
+    case "bbb": System.println(n); return;
+    }
+    System.println("default");
+}
+
+for (var i = 0; i <= 100; ++i) {
+    System.print("i = %{i} => ");
+    test2(i);
+}
+System.print("aaa => ");
+test2("aaa");
+System.print("bbb => ");
+test2("bbb");
+System.print("ccc => ");
+test2("ccc");

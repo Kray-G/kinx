@@ -163,6 +163,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
             printf("%-23s .L%"PRId64, "jnz", code->value1.i);
         }
         break;
+    case KX_JMPTBL:
+        printf("%-23s", "jmptbl");
+        break;
 
     case KX_PUSHI:
         printf("%-23s %"PRId64, "pushi", code->value1.i);

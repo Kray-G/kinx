@@ -972,6 +972,12 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int left)
         }
         break;
     }
+    case KXST_SWITCH: {  /* lhs: cond: rhs: block */
+    }
+    case KXST_CASE: {  /* lhs: cond */
+        kx_yyerror_line("Can not use switch-case statement in native function", node->file, node->line);
+        break;
+    }
     case KXST_WHILE: {    /* lhs: cond: rhs: block */
         const char *label = nctx->label_name;
         sljump_t *cond = NULL;
