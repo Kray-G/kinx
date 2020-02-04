@@ -159,6 +159,9 @@ TESTCORE = \
 
 all: timex kinx $(SOFILES)
 
+yacc: myacc
+	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
+
 timex:
 	$(CC) $(CFLAGS) /Fetimex timex.c
 
@@ -211,7 +214,9 @@ kx.tab.c: myacc
 kx.tab.h: myacc
 	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
 
-myacc:
+myacc: myacc.exe
+
+myacc.exe: utility/myacc.c
 	cd utility
 	$(CC) $(CFLAGS) /Femyacc myacc.c
 	move /y myacc.exe ..

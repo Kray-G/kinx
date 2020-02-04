@@ -338,6 +338,24 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
             display_ast(node->ex, indent + 2, 0);
         }
         break;
+    case KXST_CASE:      /* lhs: cond */
+        printf("(%s)", node->optional == KXCS_CASE ? "case" : "default");
+        if (node->lhs) {
+            printf("-(cond)\n");
+            display_ast(node->lhs, indent + 1, 0);
+        } else {
+            printf("\n");
+        }
+        break;
+    case KXST_SWITCH:     /* lhs: cond: rhs: block */
+        printf("(switch)\n");
+        print_indent(node, indent + 1);
+        printf("(cond)\n");
+        display_ast(node->lhs, indent + 2, 0);
+        print_indent(node, indent + 1);
+        printf("(block)\n");
+        display_ast(node->rhs, indent + 2, 0);
+        break;
     case KXST_WHILE:      /* lhs: cond: rhs: block */
         printf("(while)\n");
         print_indent(node, indent + 1);
