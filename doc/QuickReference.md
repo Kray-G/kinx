@@ -380,6 +380,30 @@ But there are limitations below.
 
 I will challenge to remove those, but the performance may be a little slower.
 
+##### `lambda`
+
+A function is used as lambda inside expession with the style of `&(args) => expression`.
+About its functionality it is same as anonymous function.
+Here is the example below.
+
+```javascript
+function calc(x, y, func) {
+    return func(x, y);
+}
+
+System.println("add = " + calc(10, 2, &(a, b) => a + b));
+System.println("sub = " + calc(10, 2, &(a, b) => a - b));
+System.println("mul = " + calc(10, 2, &(a, b) => a * b));
+System.println("div = " + calc(10, 2, &(a, b) => a / b));
+```
+
+```
+add = 12
+sub = 8
+mul = 20
+div = 5
+```
+
 #### Class
 
 Kinx is strongly supporting OOP (Object Oriented Programming).
