@@ -149,6 +149,17 @@ kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx
     return kx_gen_obj(type, 0, lhs, rhs, ex);
 }
 
+kx_object_t *kx_gen_modifier(kx_object_t *modifier, kx_object_t *stmt)
+{
+    if (modifier) {
+        if (modifier->type == KXST_IF) {
+            modifier->rhs = stmt;
+            return modifier;
+        }
+    }
+    return stmt;
+}
+
 kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs)
 {
     return kx_gen_obj(KXST_CASE, optional, lhs, NULL, NULL);
