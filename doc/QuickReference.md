@@ -18,7 +18,7 @@ $ ./kinx hello.kx
 hello, world.
 ```
 
-Kinx can be executed without compiling.
+Kinx can execute the script without compiling.
 
 ### Import Library
 
@@ -502,7 +502,7 @@ System.println(y.instanceOf(ClassName));    // 1
 ##### `@` as Alias of `this.`
 
 You can use `@` instead of `this.`, which is `this` plus `.`(dot).
-Here is an example.
+Here is the example.
 
 ```javascript
 class ClassName(arg0, arg1) {
@@ -611,7 +611,7 @@ if (a == 0) {
 }
 ```
 
-Here is an example with `else` clause.
+Here is the example with `else` clause.
 
 ```javascript
 if (a == 0) {
@@ -904,7 +904,7 @@ Either `catch` or `finally` can be omitted.
 If you omit `catch`, the thrown exception will not be caught but `finally` block is done when exitting `try` block.
 On the other hand, if you omit `finally`, nothing but catching an exception.
 
-See an example below.
+See the example below.
 
 ```javascript
 function func() {
