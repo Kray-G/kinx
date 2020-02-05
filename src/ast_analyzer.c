@@ -290,6 +290,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXST_CASE: {     /* lhs: cond */
         ctx->switch_stmt->case_next = node;
         ctx->switch_stmt = node;
+        analyze_ast(node->lhs, ctx);
         break;
     }
     case KXST_WHILE:      /* lhs: cond: rhs: block */

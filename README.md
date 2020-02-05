@@ -16,6 +16,7 @@ Kinx can be the best platform for any libraries which you want to use or your ow
 
 I guess almost all programmers want a lightweight scripting language with C style syntax
 because it is simple, easy, and familier to them.
+C style syntax is the most fitting in the programmer's hand, I guess.
 
 Any other languages are also all good solution, but for me...
 
@@ -43,6 +44,11 @@ If you agree, push the star.
 * **Object-Oriented**. Of cource you can do the object-oriented programming.
 * C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
 * **Native function** by AOT/JIT compiling supported with some limitations.
+
+### Language Details
+
+There is [the reference guide](doc/QuickReference.md).
+Please see [the reference guide](doc/QuickReference.md) for your understanding.
 
 ## Getting Started
 
@@ -171,17 +177,8 @@ sys     0m0.000s
 
 How nice it is 10x or more faster.
 
-But you have to know the limitations below with native function.
-I am now considering how to remove those.
-
-*   Currently you can use the type of integer only.
-*   Integer value is not automatically promoted to big integer, just overfow it.
-*   Can not call a script function. Only can call a native function.
-*   `switch-case` is not supported.
-*   Forward declaration of a native function is not supported.
-*   Can access to the lexical scope and variables, but only for an integer value.
-*   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
-*   Support 64bit only. Libraries are supporting x64, ARM, MIPS, but sorry I can not test it except x64 Windows or Linux.
+But you have to know the limitations with native function.
+See [the reference guide](doc/QuickReference.md) for details.
 
 ### Extending Functionalities
 
@@ -218,7 +215,7 @@ For example in the above case, the name will be `"kxyourlibrary"`.
     *   The library is searched by the order which is same as `using`.
 
 For `new` operator, `new A` is just alias of `A.create`.
-See [Class Design](doc/ClassDesign.md) for how class works.
+See [Class Design](doc/HowClassWorks.md) for how class works.
 
 ## Support Objects
 
@@ -256,22 +253,6 @@ Here is an example.
 for (var i = 0, len = $$.length(); i < len; ++i) {
     System.println("arg[%{i}] = ", $$[i]);
 }
-```
-
-### Inner Expression
-
-Here is the sample of **inner expression**.
-
-```coffee
-var a = 100;
-var str = "You can put expression like %{a * (a + 2)} as inner expression in the string.";
-System.println(str);
-```
-
-The result is here.
-
-```
-You can put expression like 10200 as inner expression in the string.
 ```
 
 ### Type Property
@@ -314,45 +295,6 @@ It is sometimes reasonable because you do not have to define the function.
 var obj = { _msg: "message" };
 System.println(obj.msg()); # => print out "message".
 ```
-
-### String literal like Here Document
-
-String literal like Here document is supported like below.
-
-```coffee
-var a = 100;
-var b = 10;
-var str = %{
-This is a string without escaping control characters.
-New line is available in this area.
-};
-System.println(str);
-var str = %-{
-This is a string without escaping control characters.
-New line is available in this area.
-But newlines at the beginning and the end are removed when starting with '%-'.
-};
-System.println(str);
-```
-
-Use `%-` instead of `%` at start point and youn can remove newlines if you need,
-because there are newlines at the beginning and the end.
-
-You can use the following character for here document instead of `{` and `}`.
-Escaping by `\` is available only for the start or the end character.
-
-| Start |  End  |
-| :---: | :---: |
-|  `(`  |  `)`  |
-|  `[`  |  `]`  |
-|  `<`  |  `>`  |
-
-You can also use the followings for this purpose.
-These are different from above that the start and the end character is the same.
-For example, it is like `%| ... |`.
-Anyway the first character is always `%`.
-
-*   `|`, `!`, `^`, `~`, `_`, `.`, `,`, `+`, `*`, `@`, `&`, `$`, `:`, `;`, `?`, `'`, `"`.
 
 ## License
 

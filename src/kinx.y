@@ -55,6 +55,7 @@
 %type<obj> ReturnStatement
 %type<obj> ThrowStatement
 %type<obj> ExpressionStatement
+%type<obj> Modifier_Opt
 %type<obj> BreakStatement
 %type<obj> LabelStatement
 %type<obj> AssignExpression_Opt
@@ -143,13 +144,6 @@ DefinitionStatement
     | ClassDeclStatement
     ;
 
-BreakStatement
-    : BREAK ';' { $$ = kx_gen_break_object(KXST_BREAK, NULL); }
-    | BREAK NAME ';' { $$ = kx_gen_break_object(KXST_BREAK, $2); }
-    | CONTINUE ';' { $$ = kx_gen_break_object(KXST_CONTINUE, NULL); }
-    | CONTINUE NAME ';' { $$ = kx_gen_break_object(KXST_CONTINUE, $2); }
-    ;
-
 LabelStatement
     : NAME ':' Statement { $$ = kx_gen_label_object(KXST_LABEL, $1, $3); }
     ;
@@ -214,26 +208,38 @@ FinallyStatement_Opt
     | FINALLY BlockStatement { $$ = $2; }
     ;
 
+BreakStatement
+    : BREAK Modifier_Opt ';' { $$ = kx_gen_modifier($2, kx_gen_break_object(KXST_BREAK, NULL)); }
+    | BREAK NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_BREAK, $2)); }
+    | CONTINUE Modifier_Opt ';' { $$ = kx_gen_modifier($2, kx_gen_break_object(KXST_CONTINUE, NULL)); }
+    | CONTINUE NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_CONTINUE, $2)); }
+    ;
+
 ReturnStatement
-    : RETURN AssignExpressionList_Opt ';' { $$ = kx_gen_stmt_object(KXST_RET, $2, NULL, NULL); }
+    : RETURN AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_RET, $2, NULL, NULL)); }
     ;
 
 ThrowStatement
-    : THROW AssignExpressionList_Opt ';' { $$ = kx_gen_stmt_object(KXST_THROW, $2, NULL, NULL); }
+    : THROW AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_THROW, $2, NULL, NULL)); }
     ;
 
 ExpressionStatement
-    : AssignExpression_Opt ';' { $$ = kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL); }
+    : AssignExpression_Opt ';' { $$ = $1; }
     ;
 
 AssignExpression_Opt
-    : { $$ = NULL; }
-    | AssignExpression
+    : { $$ = kx_gen_stmt_object(KXST_EXPR, NULL, NULL, NULL); }
+    | AssignExpression Modifier_Opt { $$ = kx_gen_modifier($2, kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL)); }
     ;
 
 AssignExpressionList_Opt
     : { $$ = NULL; }
     | AssignExpressionList
+    ;
+
+Modifier_Opt
+    : { $$ = NULL; }
+    | IF '(' AssignExpressionList ')' { $$ = kx_gen_stmt_object(KXST_IF, $3, NULL, NULL); }
     ;
 
 AssignExpression
