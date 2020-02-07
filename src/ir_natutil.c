@@ -105,9 +105,3 @@ sljit_sw native_get_var_int_addr(sljit_sw *args)
     }
     return (sljit_sw)native_get_var_int_addr_of(ctx, lexv, index);
 }
-
-sljit_sw native_set_exception_value(sljit_sw *exc, int64_t value)
-{
-    exc[1] = value;
-    return 0;
-}
