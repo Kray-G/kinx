@@ -70,8 +70,11 @@ static int64_t native_get_var_int_of(kx_context_t *ctx, kx_frm_t *frm, int index
     return (kv_A(frm->v, index)).value.iv;
 }
 
-sljit_sw native_get_var_int(sljit_sw *info, int64_t lex, int64_t index)
+sljit_sw native_get_var_int(sljit_sw *args)
 {
+    sljit_sw *info = (sljit_sw *)args[0];
+    int64_t lex = (int64_t)args[1];
+    int64_t index = (int64_t)args[2];
     kx_context_t *ctx = (kx_context_t *)info[0];
     if (lex == 0) {
         return (sljit_sw)native_get_var_int_of(ctx, (kx_frm_t *)info[1], index);
@@ -90,8 +93,11 @@ static int64_t *native_get_var_int_addr_of(kx_context_t *ctx, kx_frm_t *frm, int
     return &((kv_A(frm->v, index)).value.iv);
 }
 
-sljit_sw native_get_var_int_addr(sljit_sw *info, int64_t lex, int64_t index)
+sljit_sw native_get_var_int_addr(sljit_sw *args)
 {
+    sljit_sw *info = (sljit_sw *)args[0];
+    int64_t lex = (int64_t)args[1];
+    int64_t index = (int64_t)args[2];
     kx_context_t *ctx = (kx_context_t *)info[0];
     if (lex == 0) {
         return (sljit_sw)native_get_var_int_addr_of(ctx, (kx_frm_t *)info[1], index);

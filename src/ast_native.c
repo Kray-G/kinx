@@ -12,6 +12,8 @@
 #define ARG0 (20)
 #define ARG1 (21)
 #define ARG2 (22)
+#define ARGB SLJIT_MEM1(SLJIT_SP)
+#define ARG(n) ((2 + (n) + nctx->local_vars) * KXN_WDSZ)
 
 typedef struct sljit_label sllabel_t;
 typedef struct sljit_jump sljump_t;
@@ -123,6 +125,7 @@ typedef struct kx_native_context_ {
 #define KXN_CALL_NATIVE1(r0, name, RT, A0T, SETARG_BLK) \
     save_regs(nctx, 1, 1, r0); \
     SETARG_BLK; \
+    sljit_get_local_base(nctx->C, SLJIT_R0, 0, (nctx->local_vars + 2) * KXN_WDSZ); \
     sljit_emit_icall(nctx->C, SLJIT_CALL, \
         SLJIT_RET(RT) | SLJIT_ARG1(A0T), \
         SLJIT_IMM, SLJIT_FUNC_OFFSET(name)); \
@@ -134,6 +137,7 @@ typedef struct kx_native_context_ {
 #define KXN_CALL_NATIVE2(r0, name, RT, A0T, A1T, SETARG_BLK) \
     save_regs(nctx, 1, 1, r0); \
     SETARG_BLK; \
+    sljit_get_local_base(nctx->C, SLJIT_R0, 0, (nctx->local_vars + 2) * KXN_WDSZ); \
     sljit_emit_icall(nctx->C, SLJIT_CALL, \
         SLJIT_RET(RT) | SLJIT_ARG1(A0T) | SLJIT_ARG1(A1T), \
         SLJIT_IMM, SLJIT_FUNC_OFFSET(name)); \
@@ -145,6 +149,7 @@ typedef struct kx_native_context_ {
 #define KXN_CALL_NATIVE3(r0, name, RT, A0T, A1T, A2T, SETARG_BLK) \
     save_regs(nctx, 1, 2, r0); \
     SETARG_BLK; \
+    sljit_get_local_base(nctx->C, SLJIT_R0, 0, (nctx->local_vars + 2) * KXN_WDSZ); \
     sljit_emit_icall(nctx->C, SLJIT_CALL, \
         SLJIT_RET(RT) | SLJIT_ARG1(A0T) | SLJIT_ARG1(A1T) | SLJIT_ARG1(A2T), \
         SLJIT_IMM, SLJIT_FUNC_OFFSET(name)); \
@@ -169,8 +174,8 @@ typedef struct kx_native_context_ {
 
 /* extern functions */
 extern int64_t kxn_print_val(sljit_sw val);
-extern sljit_sw native_get_var_int(sljit_sw *info, int64_t lex, int64_t index);
-extern sljit_sw native_get_var_int_addr(sljit_sw *info, int64_t lex, int64_t index);
+extern sljit_sw native_get_var_int(sljit_sw *args);
+extern sljit_sw native_get_var_int_addr(sljit_sw *args);
 extern sljit_sw native_set_exception_value(sljit_sw *exc, int64_t value);
 
 static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalue);
@@ -538,15 +543,15 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
             }
         } else if (lvalue) {
             KXN_CALL_NATIVE3(r0, native_get_var_int_addr, SW, SW, SW, SW, {
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, node->lexical);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, node->index);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, node->lexical);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, node->index);
             });
         } else {
             KXN_CALL_NATIVE3(r0, native_get_var_int, SW, SW, SW, SW, {
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, SLJIT_IMM, node->lexical);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, node->index);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, node->lexical);
+                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, node->index);
             });
         }
         break;
