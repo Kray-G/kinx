@@ -161,9 +161,9 @@ typedef struct kx_native_context_ {
 
 /*
     Register Layout in calling.
-        S0: SHARE [ ctx, frmv, lexv, func_me, temp, p_func_list ]
+        S0: SHARE [ ctx, frmv, lexv, func_me, ExceptionFlag ]
         S1: LOCAL [ ArgCount, Depth, Arguments... ]
-        S2: EXCPT [ ExceptionFlag, exceptionCode, traceLen, StackTraceInfo... ]
+        S2: EXCPT [ exceptionCode, traceLen, StackTraceInfo... ]
 
     Function Local Var Area Layout
         0 - (Args-1): Copy of received arguments,
@@ -446,25 +446,22 @@ static void do_native_finally_all(kx_native_context_t *nctx, int clear)
     nctx->in_finally = 0;
 }
 
+static void set_exception(kx_native_context_t *nctx, int on)
+{
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S0), 4 * KXN_WDSZ, SLJIT_IMM, on);
+}
+
 static void set_exception_value(kx_native_context_t *nctx, int r0, int value)
 {
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S2), 1 * KXN_WDSZ, SLJIT_IMM, value);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S2), 0, SLJIT_IMM, value);
 }
 
 static void check_exception(kx_native_context_t *nctx)
 {
-    int r0 = get_rreg(nctx);
-    sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(SLJIT_S2), 0);
-    sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
-    release_reg(nctx, r0);
+    sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, SLJIT_MEM1(SLJIT_S0), 4 * KXN_WDSZ, SLJIT_IMM, 0);
     do_native_finally_all(nctx, 0);
     sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
     sljit_set_label(next, sljit_emit_label(nctx->C));
-}
-
-static void set_exception(kx_native_context_t *nctx, int on)
-{
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S2), 0, SLJIT_IMM, on);
 }
 
 static int check_divide_by_zero(kx_native_context_t *nctx, int val)
