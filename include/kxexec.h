@@ -40,7 +40,7 @@
     &&LBL_KX_JMP, \
     &&LBL_KX_JZ, \
     &&LBL_KX_JNZ, \
-    &&LBL_KX_JMPTBLk, \
+    &&LBL_KX_JMPTBL, \
     &&LBL_KX_PUSHI, \
     &&LBL_KX_PUSHD, \
     &&LBL_KX_PUSHS, \
