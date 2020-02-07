@@ -238,16 +238,16 @@ kvec_init_t(int);
 kvec_init_t(uint32_t);
 struct kx_object_;
 
-typedef int (*kx_native_funcp_t)(sljit_sw*, sljit_sw*, int);
+typedef sljit_sw (*kx_native_funcp_t)(sljit_sw*, sljit_sw*, sljit_sw*);
 
-typedef struct kx_native_function_ {
+typedef struct kxn_func_ {
+    kx_native_funcp_t func; /* !MUST BE TOP! easy to access by native function */
     const char *name;
+    int exec_size;
+    int args;
     int ret_type;
     int arg_types;
-    int args;
-    int exec_size;
-    kx_native_funcp_t func;
-} kx_native_function_t;
+} kxn_func_t;
 
 typedef struct kx_code_ {
     struct kx_code_ *next;
@@ -262,7 +262,7 @@ typedef struct kx_code_ {
         int64_t i;
         double d;
         const char *s;
-        kx_native_function_t n;
+        kxn_func_t n;
     } value1, value2;
     #if defined(KX_DIRECT_THREAD)
     void *gotolabel;
@@ -370,9 +370,7 @@ enum irexec {
 };
 
 typedef struct kx_val_ {
-    uint8_t mark;
-    uint16_t type;
-    union {
+    union { /* !MUST BE TOP! easy to access by native function */
         int64_t iv;
         double dv;
         BigZ bz;
@@ -386,6 +384,8 @@ typedef struct kx_val_ {
         struct kx_frm_ *fr;
         struct kx_bin_ *bn;
     } value;
+    uint8_t mark;
+    uint16_t type;
     const char *method;
     struct kx_val_ *host;
     int has_pos;
@@ -396,7 +396,8 @@ typedef struct kx_val_ {
     #endif
 } kx_val_t;
 kvec_init_t(kx_val_t);
-
+kvec_init_pt(kx_val_t);
+KLIST_INIT_NOALLOC(val, kx_val_t *)
 KHASH_MAP_INIT_STR(prop, kx_val_t)
 
 #if defined(KX_EXEC_DEBUG)
@@ -419,10 +420,10 @@ kvec_init_t(kx_frm_t);
 kvec_init_pt(kx_frm_t);
 
 typedef struct kx_fnc_ {
+    kxn_func_t native;  /* !MUST BE TOP! easy to access by native function */
     uint8_t mark;
     kx_code_t *jp;
     call_direct_func_t func;
-    kx_native_function_t native;
     struct kx_frm_ *lex;
     struct kx_val_ val;
     const char *method;
@@ -501,7 +502,7 @@ typedef struct kx_options_ {
 } kx_options_t;
 
 KHASH_MAP_INIT_STR(importlib, kx_bltin_t*)
-KHASH_MAP_INIT_STR(nativefunc, kx_native_function_t)
+KHASH_MAP_INIT_STR(nativefunc, kxn_func_t)
 
 typedef struct kx_context_ {
     kx_frm_t *frmv;
@@ -523,6 +524,8 @@ typedef struct kx_context_ {
     kvec_pt(kx_fnc_t) fnc_dead;
     klist_t(frm) *frm_alive;
     kvec_pt(kx_frm_t) frm_dead;
+    klist_t(val) *val_alive;
+    kvec_pt(kx_val_t) val_dead;
 
     kvec_t(kx_module_t) module;
     khash_t(importlib) *builtin;
@@ -550,7 +553,7 @@ typedef struct kx_context_ {
 #endif
 
 #define KX_INIT_FRM_COUNT (512)
-#define KX_INIT_BIG_COUNT (512)
+#define KX_INIT_KXN_COUNT (512)
 
 #define allocate_defstr(ctx) (kv_size((ctx)->str_dead) > 0 ? (kstr_t *)kv_pop((ctx)->str_dead) : (kstr_t *)ks_new())
 #define allocate_def(ctx, typ) (kv_size((ctx)->typ##_dead) > 0 ? (kx_##typ##_t *)kv_pop((ctx)->typ##_dead) : (kx_##typ##_t *)kx_calloc(1, sizeof(kx_##typ##_t)))
@@ -563,6 +566,7 @@ typedef struct kx_context_ {
 #define allocate_any(ctx) (set_alive(ctx, any, allocate_def(ctx, any)))
 #define allocate_fnc(ctx) (set_alive(ctx, fnc, allocate_def(ctx, fnc)))
 #define allocate_frm(ctx) (set_alive(ctx, frm, allocate_def(ctx, frm)))
+#define allocate_val(ctx) (set_alive(ctx, val, allocate_def(ctx, val)))
 #define ks_copy(ctx, s)   ks_append(allocate_str(ctx), s)
 
 #define push_undef(st) \

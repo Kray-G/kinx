@@ -398,7 +398,7 @@ static void ir_native_dump(kx_context_t *ctx)
 {
     for (khint_t k = 0; k < kh_end(ctx->nfuncs); ++k) {
         if (kh_exist(ctx->nfuncs, k)) {
-            kx_native_function_t nf = kh_value(ctx->nfuncs, k);
+            kxn_func_t nf = kh_value(ctx->nfuncs, k);
             if (nf.func) {
                 unsigned char *f = (unsigned char *)nf.func;
                 printf("\n");
