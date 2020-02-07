@@ -9,19 +9,6 @@ int64_t kxn_print_val(sljit_sw *val)
     return 0;
 }
 
-static sljit_sw call_hook(kx_context_t *ctx, kx_native_funcp_t f, kx_frm_t *frmv, kx_frm_t *lexv, sljit_sw *args, sljit_sw *exc)
-{
-    sljit_sw info[] = {
-        (sljit_sw)ctx,
-        (sljit_sw)frmv,
-        (sljit_sw)lexv,
-        (sljit_sw)f,
-        0, /* temp, ex) local var count in call */
-        0,
-    };
-    return f(info, args, exc);
-}
-
 int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc)
 {
     kx_native_funcp_t func = nfnc->native.func;
@@ -54,13 +41,21 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         }
     }
 
+    sljit_sw info[256] = {
+        (sljit_sw)ctx,
+        (sljit_sw)frmv,
+        (sljit_sw)nfnc->lex,
+        (sljit_sw)func,
+        0, /* exc flag */
+        0, /* temp */
+    };
     sljit_sw exc[256] = {0};
-    int64_t v = (int64_t)call_hook(ctx, func, frmv, nfnc->lex, arglist, exc);
+    int64_t v = (int64_t)func(info, arglist, exc);
 
     kv_shrink(ctx->stack, count);
     push_i(ctx->stack, v);
-    if (exc[0] != 0) {
-        return exc[1] ? exc[1] : KX_NAT_UNKNOWN_ERROR;
+    if (info[4] != 0) {
+        return exc[0] ? exc[0] : KX_NAT_UNKNOWN_ERROR;
     }
     return 0;
 }
