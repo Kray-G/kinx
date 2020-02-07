@@ -239,39 +239,6 @@ static void reserve_reg_multi(kx_native_context_t *nctx, int s, int e)
     }
 }
 
-static void save_regs(kx_native_context_t *nctx, int start, int end, int ignore)
-{
-    /* R0 is not saved */
-    for (int i = start; i <= end; ++i) {
-        if (i != ignore && nctx->regs[i]) {
-            int s = get_sreg(nctx);
-            sljit_emit_op1(nctx->C, SLJIT_MOV, reg(s), 0, reg(i), 0);
-            nctx->save[i] = s;
-            nctx->regs[i] = 0;
-        } else {
-            nctx->save[i] = -1;
-        }
-    }
-}
-
-static void restore_regs(kx_native_context_t *nctx, int start, int end, int ignore)
-{
-    for (int i = start; i <= end; ++i) {
-        if (i == ignore) {
-            continue;
-        }
-        if (nctx->save[i] >= 0) {
-            int s = nctx->save[i];
-            sljit_emit_op1(nctx->C, SLJIT_MOV, reg(i), 0, reg(s), 0);
-            nctx->regs[i] = 1;
-            nctx->regs[s] = 0;
-        } else {
-            nctx->regs[i] = 0;
-        }
-        nctx->save[i] = -1;
-    }
-}
-
 static int reg(int i)
 {
     switch (i) {
@@ -324,6 +291,39 @@ static const char *reg_name(int r)
     case 25: return "S5";
     }
     return ".";
+}
+
+static void save_regs(kx_native_context_t *nctx, int start, int end, int ignore)
+{
+    /* R0 is not saved */
+    for (int i = start; i <= end; ++i) {
+        if (i != ignore && nctx->regs[i]) {
+            int s = get_sreg(nctx);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, reg(s), 0, reg(i), 0);
+            nctx->save[i] = s;
+            nctx->regs[i] = 0;
+        } else {
+            nctx->save[i] = -1;
+        }
+    }
+}
+
+static void restore_regs(kx_native_context_t *nctx, int start, int end, int ignore)
+{
+    for (int i = start; i <= end; ++i) {
+        if (i == ignore) {
+            continue;
+        }
+        if (nctx->save[i] >= 0) {
+            int s = nctx->save[i];
+            sljit_emit_op1(nctx->C, SLJIT_MOV, reg(i), 0, reg(s), 0);
+            nctx->regs[i] = 1;
+            nctx->regs[s] = 0;
+        } else {
+            nctx->regs[i] = 0;
+        }
+        nctx->save[i] = -1;
+    }
 }
 
 static int set_args(kx_native_context_t *nctx, kx_object_t *node, int index)
