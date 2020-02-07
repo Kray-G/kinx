@@ -3,9 +3,9 @@
 #include <kinx.h>
 #include <jit.h>
 
-int64_t kxn_print_val(sljit_sw val)
+int64_t kxn_print_val(sljit_sw *val)
 {
-    printf("val = %"PRId64", %p\n", val, (void*)val);
+    printf("val = %"PRId64", %p\n", val[0], (void*)val[0]);
     return 0;
 }
 
