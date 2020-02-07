@@ -9,7 +9,7 @@ OBJS = \
     src/ast_display.obj \
     src/ast_gencode.obj \
     src/ast_object.obj \
-    src/ast_nativeaot.obj \
+    src/ast_native.obj \
     src/bign.obj \
     src/bigz.obj \
     src/getopt.obj \
@@ -19,7 +19,7 @@ OBJS = \
     src/ir_fix.obj \
     src/ir_util.obj \
     src/ir_aotcore.obj \
-    src/ir_aotutil.obj \
+    src/ir_natutil.obj \
     src/ir_aotdump.obj \
     src/kstr.obj \
     src/lexer.obj \

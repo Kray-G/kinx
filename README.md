@@ -97,7 +97,7 @@ Here is current available options.
 | `-i`                      | Input source code from stdin.                                         |
 |                           |                                                                       |
 | `--with-native`           | Dump compiled code of a native function. Use with `-d`.               |
-| `--native-call-max-depth` | Specify the max depth to call a native fnction. 128 by default.       |
+| `--native-call-max-depth` | Specify the max depth to call a native fnction. 1024 by default.      |
 | `--case-threshold`        | Specify the max interval between case's integer value. 16 by default. |
 
 ## Examples

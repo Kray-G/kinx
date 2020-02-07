@@ -122,7 +122,7 @@ default: \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
         kv_remove_last((ctx)->stack); \
-        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -156,7 +156,7 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -185,7 +185,7 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -214,7 +214,7 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
         KX_NATIVE_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else { \
@@ -265,7 +265,7 @@ default: \
             KX_BUILTIN_FUNCTION_ERROR(r); \
             cur = cur->next; \
         } else if (fv->type == KX_NFNC_T) { \
-            int64_t r = call_native(ctx, cur->count, fv->value.fn); \
+            int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
             KX_NATIVE_FUNCTION_ERROR(r); \
             cur = cur->next; \
         } else { \

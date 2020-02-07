@@ -34,7 +34,8 @@ struct dis *x86_disassemble(int mode, struct trie_node *root, u8 * stream,
 		if (prefix == 0x67)
 			flags |= ADDR_SIZE_OVERRIDE;
 		n = trie_lookup(root, stream + iter, max - iter);
-		iter += n->dist;
+		/* TODO: workaround... I don't know whether this modification is okay or not. */
+		++iter;
 	}
 	/*Some instructions have an opcode extension in the reg part of the modrm byte */
 	if (n->flags == REG_EXT_FLAG) {

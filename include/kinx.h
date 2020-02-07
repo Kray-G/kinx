@@ -308,7 +308,7 @@ extern int eval_file(const char *file, kx_context_t *ctx);
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
-extern kx_native_function_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node);
+extern kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node);
 extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module, const char *name);
 extern void ir_code_dump_one(int addr, kx_code_t *code);
 extern void ir_dump(kx_context_t *ctx);
@@ -329,15 +329,10 @@ extern kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, k
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern void longjmp_hook(sljit_sw r);
-extern int64_t call_native(kx_context_t *ctx, int count, kx_fnc_t *nfnc);
+extern int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);
 extern int get_bin_item(kx_val_t *v);
-
-extern int native_debug_print(sljit_sw value);
-extern int native_debug_print_reg(sljit_sw name, sljit_sw value);
-extern int64_t get_lexical_int_value(sljit_sw *args);
-extern int set_lexical_int_value(sljit_sw *args);
 
 #define KX_NAT_MAX_FUNC_ARGS (31)
 
