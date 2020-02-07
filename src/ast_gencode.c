@@ -1437,7 +1437,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: optional: return type */
-        kx_native_function_t nf = start_nativejit_ast(ctx, node);
+        kxn_func_t nf = start_nativejit_ast(ctx, node);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
             FILELINE(ana), .op = KX_PUSHNF,
             .value1 = { .s = const_str(node->value.s) },
@@ -1479,12 +1479,12 @@ static void append_jmp(kx_block_t *block, kx_analyze_t *ana)
                 } else {
                     kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JNZ, .value1 = { .i = get_block(module, next)->index } }));
                 }
-                if (len > 0 && kv_last(block->code).op != KX_JMP && get_block(module, othw)->index != block->index + 1) {
+                if (!(len > 0 && kv_last(block->code).op == KX_JMP) && get_block(module, othw)->index != block->index + 1) {
                     kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JMP, .value1 = { .i = get_block(module, othw)->index } }));
                 }
             }
         } else if (next) {
-            if (len > 0 && kv_last(block->code).op != KX_JMP && get_block(module, next)->index != block->index + 1) {
+            if (!(len > 0 && kv_last(block->code).op == KX_JMP) && get_block(module, next)->index != block->index + 1) {
                 kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JMP, .value1 = { .i = get_block(module, next)->index } }));
             }
         } else if (othw) {
