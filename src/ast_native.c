@@ -451,10 +451,12 @@ static void set_exception_value(kx_native_context_t *nctx, int r0, int value)
     sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S2), 1 * KXN_WDSZ, SLJIT_IMM, value);
 }
 
-static void check_exception(kx_native_context_t *nctx, int r0)
+static void check_exception(kx_native_context_t *nctx)
 {
+    int r0 = get_rreg(nctx);
     sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(SLJIT_S2), 0);
     sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
+    release_reg(nctx, r0);
     do_native_finally_all(nctx, 0);
     sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
     sljit_set_label(next, sljit_emit_label(nctx->C));
@@ -829,8 +831,8 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         release_reg(nctx, r1);
         release_reg_multi(nctx, 1, 2);
         restore_regs(nctx, 0, 6, -1);
+        check_exception(nctx);
         r0 = get_rreg(nctx);
-        check_exception(nctx, r0);
         if (reg(r0) != SLJIT_RETURN_REG) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_RETURN_REG, 0);
         }
