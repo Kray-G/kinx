@@ -1192,17 +1192,23 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         break;
     }
     case KXST_RET:        /* lhs: expr */
-        r0 = nativejit_ast(nctx, node->lhs, 0);
-        do_native_finally_all(nctx, 0);
-    	sljit_emit_return(nctx->C, SLJIT_MOV, reg(r0), 0);
+        if (node->lhs) {
+            r0 = nativejit_ast(nctx, node->lhs, 0);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_S4, 0, reg(r0), 0);
+            do_native_finally_all(nctx, 0);
+            sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_S4, 0);
+        } else {
+            sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
+        }
         break;
     case KXST_THROW: {    /* lhs: expr */
         if (node->lhs) {
             r0 = nativejit_ast(nctx, node->lhs, 0);
             if (kv_size(nctx->except_stack) == 0) {
+                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_S4, 0, reg(r0), 0);
                 do_native_finally_all(nctx, 0);
                 set_exception(nctx, 1);
-            	sljit_emit_return(nctx->C, SLJIT_MOV, reg(r0), 0);
+            	sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_S4, 0);
             } else {
                 set_exception(nctx, 1);
                 sljump_t *tocatch = sljit_emit_jump(nctx->C, SLJIT_JUMP);
