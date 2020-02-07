@@ -38,7 +38,7 @@ static void usage(void)
     printf("    --with-native\n");
     printf("            Use this with -d to dump a compiled native function.\n");
     printf("    --native-call-max-depth\n");
-    printf("            Specify the max depth to call a native fnction. 128 by default.\n");
+    printf("            Specify the max depth to call a native fnction. 1024 by default.\n");
     printf("    --case-threshold\n");
     printf("            Specify the max interval between case's integer value. 16 by default.\n");
 }
@@ -90,6 +90,7 @@ int main(int ac, char **av)
 
     kx_context_t *ctx = make_context();
     ctx->options.case_threshold = 16;
+    ctx->options.max_call_depth = 1024;
     char lname[LONGNAME_MAX] = {0};
     char param[LONGNAME_MAX] = {0};
     int opt;
@@ -98,7 +99,7 @@ int main(int ac, char **av)
         case '-':
             get_long_option(optarg, lname, param);
             if (!strcmp(lname, "native-call-max-depth")) {
-                ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 128;
+                ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 1024;
             } else if (!strcmp(lname, "with-native")) {
                 ctx->options.with_native = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "exception-detail-info")) {

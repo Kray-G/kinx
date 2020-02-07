@@ -1,0 +1,20 @@
+function sum(n) {
+    var sum = 0;
+    while (n--) {
+        sum += n;
+    }
+    return sum;
+}
+
+native sumn(n) {
+    var sum = 0;
+    while (n--) {
+        sum += n;
+    }
+    return sum;
+}
+
+System.println(sum(100));
+System.println(sumn(100));
+
+var a = 100;
