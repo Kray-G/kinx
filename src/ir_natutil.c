@@ -5,7 +5,7 @@
 
 int64_t kxn_print_val(sljit_sw val)
 {
-    printf("val = %lld, %p\n", val, (void*)val);
+    printf("val = %"PRId64", %p\n", val, (void*)val);
     return 0;
 }
 
