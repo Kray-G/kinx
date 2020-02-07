@@ -176,7 +176,6 @@ typedef struct kx_native_context_ {
 extern int64_t kxn_print_val(sljit_sw val);
 extern sljit_sw native_get_var_int(sljit_sw *args);
 extern sljit_sw native_get_var_int_addr(sljit_sw *args);
-extern sljit_sw native_set_exception_value(sljit_sw *exc, int64_t value);
 
 static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalue);
 
@@ -451,7 +450,7 @@ static void set_exception(kx_native_context_t *nctx, int on)
     sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S0), 4 * KXN_WDSZ, SLJIT_IMM, on);
 }
 
-static void set_exception_value(kx_native_context_t *nctx, int r0, int value)
+static void set_exception_value(kx_native_context_t *nctx, int value)
 {
     sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S2), 0, SLJIT_IMM, value);
 }
@@ -468,7 +467,7 @@ static int check_divide_by_zero(kx_native_context_t *nctx, int val)
 {
     if (val == 0) {
         set_exception(nctx, 1);
-        set_exception_value(nctx, -1, KX_NAT_DIVIDE_BY_ZERO);
+        set_exception_value(nctx, KX_NAT_DIVIDE_BY_ZERO);
         if (kv_size(nctx->except_stack) == 0) {
             do_native_finally_all(nctx, 1);
             sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
@@ -485,7 +484,7 @@ static void check_divide_by_zero_reg(kx_native_context_t *nctx, int r0)
 {
     sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_NOT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
     set_exception(nctx, 1);
-    set_exception_value(nctx, -1, KX_NAT_DIVIDE_BY_ZERO);
+    set_exception_value(nctx, KX_NAT_DIVIDE_BY_ZERO);
     if (kv_size(nctx->except_stack) == 0) {
         do_native_finally_all(nctx, 1);
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
@@ -1255,7 +1254,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
         sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_LESS, SLJIT_R0, 0, SLJIT_IMM, nctx->max_call_depth);
         set_exception(nctx, 1);
-        set_exception_value(nctx, -1, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
+        set_exception_value(nctx, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
         do_native_finally_all(nctx, 1);
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
 
