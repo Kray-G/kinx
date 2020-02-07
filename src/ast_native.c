@@ -161,9 +161,8 @@ typedef struct kx_native_context_ {
 
 /*
     Register Layout in calling.
-        S0: SHARE [ ctx, frmv, lexv, func_me, ExceptionFlag ]
+        S0: SHARE [ ctx, frmv, lexv, func_me, ExceptionFlag, exceptionCode ]
         S1: LOCAL [ ArgCount, Depth, Arguments... ]
-        S2: EXCPT [ exceptionCode, traceLen, StackTraceInfo... ]
 
     Function Local Var Area Layout
         0 - (Args-1): Copy of received arguments,
@@ -452,7 +451,7 @@ static void set_exception(kx_native_context_t *nctx, int on)
 
 static void set_exception_value(kx_native_context_t *nctx, int value)
 {
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S2), 0, SLJIT_IMM, value);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S0), 5 * KXN_WDSZ, SLJIT_IMM, value);
 }
 
 static void check_exception(kx_native_context_t *nctx)
@@ -819,7 +818,6 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->local_vars+1) * KXN_WDSZ, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
         sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->local_vars * KXN_WDSZ);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_S2, 0);
 
         sljit_emit_icall(nctx->C, SLJIT_CALL,
             SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG1(SW) | SLJIT_ARG1(SW),

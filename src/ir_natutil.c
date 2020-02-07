@@ -47,7 +47,7 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         (sljit_sw)nfnc->lex,
         (sljit_sw)func,
         0, /* exc flag */
-        0, /* temp */
+        0, /* exc code */
     };
     sljit_sw exc[256] = {0};
     int64_t v = (int64_t)func(info, arglist, exc);
@@ -55,7 +55,7 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     kv_shrink(ctx->stack, count);
     push_i(ctx->stack, v);
     if (info[4] != 0) {
-        return exc[0] ? exc[0] : KX_NAT_UNKNOWN_ERROR;
+        return info[5] ? info[5] : KX_NAT_UNKNOWN_ERROR;
     }
     return 0;
 }
