@@ -817,6 +817,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         }
 
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->local_vars+1) * KXN_WDSZ, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
         sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->local_vars * KXN_WDSZ);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_S2, 0);
 
@@ -827,12 +828,12 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         release_reg(nctx, r1);
         release_reg_multi(nctx, 1, 2);
         restore_regs(nctx, 0, 6, -1);
-        check_exception(nctx);
         r0 = get_rreg(nctx);
         if (reg(r0) != SLJIT_RETURN_REG) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_RETURN_REG, 0);
         }
 
+        check_exception(nctx);
         break;
     }
 
@@ -1252,23 +1253,15 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
 
         /* check depth */
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
+        sljit_emit_op2(nctx->C, SLJIT_ADD, SLJIT_R0, 0, SLJIT_R0, 0, SLJIT_IMM, 1);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ, SLJIT_R0, 0);
         sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_LESS, SLJIT_R0, 0, SLJIT_IMM, nctx->max_call_depth);
         set_exception(nctx, 1);
         set_exception_value(nctx, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
-        do_native_finally_all(nctx, 1);
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
 
-        /* depth count up */
-        sljit_set_label(next, sljit_emit_label(nctx->C));
-        sljit_emit_op1(nctx->C, SLJIT_MOV,
-            SLJIT_MEM1(SLJIT_SP), (nctx->local_vars + 1) * KXN_WDSZ,
-            SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
-        sljit_emit_op2(nctx->C, SLJIT_ADD,
-            SLJIT_MEM1(SLJIT_SP), (nctx->local_vars + 1) * KXN_WDSZ,
-            SLJIT_MEM1(SLJIT_SP), (nctx->local_vars + 1) * KXN_WDSZ,
-            SLJIT_IMM, 1);
-
         /* function body */
+        sljit_set_label(next, sljit_emit_label(nctx->C));
         for (int i = 0; i < node->count_args; ++i) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), i * KXN_WDSZ,
                 SLJIT_MEM1(SLJIT_S1), (i+KXN_LOCALVAR_OFFSET) * KXN_WDSZ);
