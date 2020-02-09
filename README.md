@@ -34,7 +34,7 @@ Sharing the definition of **C Style Syntax**, it is below.
 *   etc.
 
 For example that is C, C++, Java, JavaScript, C#, and so on.
-If you agree, push the star.
+If you agree, or if you don't agree, anyway push the star.
 
 ## Features
 
