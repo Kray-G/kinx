@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <kvec.h>
+#include <stdarg.h>
 #include <ir.h>
 
 typedef struct kx_yyin_ {
