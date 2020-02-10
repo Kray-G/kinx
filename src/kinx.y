@@ -103,6 +103,7 @@
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
 %type<intval> NativeType
+%type<intval> TypeName
 
 %%
 
@@ -460,9 +461,9 @@ DeclAssignExpressionList
 
 DeclAssignExpression
     : NAME { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
-    | NAME ':' TYPE { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), NULL); }
+    | NAME ':' TypeName { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), NULL); }
     | NAME '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
-    | NAME ':' TYPE '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), $5); }
+    | NAME ':' TypeName '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), $5); }
     ;
 
 FunctionDeclStatement
@@ -481,7 +482,7 @@ NativeKeyword
 
 NativeType
     : { $$ = KX_UNKNOWN_T; }
-    | ':' TYPE { $$ = $2; }
+    | ':' TypeName { $$ = $2; }
     ;
 
 AnonymousFunctionDeclExpression
@@ -530,7 +531,12 @@ ArgumentList
 
 Argument
     : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | NAME ':' TYPE { $$ = kx_gen_var_object($1, $3); }
+    | NAME ':' TypeName { $$ = kx_gen_var_object($1, $3); }
+    ;
+
+TypeName
+    : TYPE  { $$ = $1; }
+    | NATIVE { $$ = KX_NFNC_T; }
     ;
 
 ClassCallArgumentList_Opts

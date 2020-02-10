@@ -112,6 +112,14 @@ kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs)
     return kx_gen_obj(type, 0, lhs, NULL, NULL);
 }
 
+kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t)
+{
+    kx_object_t *obj = kx_gen_obj(KXOP_CAST, 0, lhs, NULL, NULL);
+    obj->optional = f;
+    obj->value.i = t;
+    return obj;
+}
+
 kx_object_t *kx_gen_import_object(const char *name)
 {
     kx_object_t *obj = kx_gen_obj(KXOP_IMPORT, 0, NULL, NULL, NULL);

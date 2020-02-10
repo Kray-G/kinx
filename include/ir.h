@@ -234,19 +234,34 @@ enum irop {
     Code Generator.
 */
 
+#define KXN_MAX_FUNC_ARGS (31)
+
+#define KXN_UNKNOWN_ERROR (1)
+#define KXN_TOO_MUSH_ARGS (2)
+#define KXN_INVALID_FUNCTION (3)
+#define KXN_UNSUPPORTED_TYPE (4)
+#define KXN_DIVIDE_BY_ZERO (5)
+#define KXN_TOO_DEEP_TO_CALL_FUNC (6)
+#define KXN_TYPE_MISMATCH (7)
+#define KXN_MAX_EXCEPTION (KXN_TOO_DEEP_TO_CALL_FUNC)
+
+#define KXN_EXC_FLAG (4)
+#define KXN_EXC_CODE (5)
+#define KXN_STACK_TRACE_MAX (256)
+
 kvec_init_t(int);
 kvec_init_t(uint32_t);
 struct kx_object_;
 
-typedef sljit_sw (*kx_native_funcp_t)(sljit_sw*, sljit_sw*, sljit_sw*);
+typedef sljit_sw (*kx_native_funcp_t)(sljit_sw*, sljit_sw*);
 
 typedef struct kxn_func_ {
-    kx_native_funcp_t func; /* !MUST BE TOP! easy to access by native function */
     const char *name;
     int exec_size;
     int args;
     int ret_type;
-    int arg_types;
+    uint8_t arg_types[KXN_MAX_FUNC_ARGS+1];
+    kx_native_funcp_t func;
 } kxn_func_t;
 
 typedef struct kx_code_ {
@@ -420,10 +435,10 @@ kvec_init_t(kx_frm_t);
 kvec_init_pt(kx_frm_t);
 
 typedef struct kx_fnc_ {
-    kxn_func_t native;  /* !MUST BE TOP! easy to access by native function */
     uint8_t mark;
     kx_code_t *jp;
     call_direct_func_t func;
+    kxn_func_t native;
     struct kx_frm_ *lex;
     struct kx_val_ val;
     const char *method;
