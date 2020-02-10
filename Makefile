@@ -120,7 +120,6 @@ SOFILES = \
     kxinteger.so \
     kxdouble.so \
     kxarray.so \
-    kxfile.so \
     kxmath.so \
     kxregex.so
 PICOBJS = \
