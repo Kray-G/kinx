@@ -8,11 +8,10 @@ function check(name, test) {
 
     try {
         test();
+        System.println("    a = %{a}, b = %{b}, c = %{c}, d = %{d}");
     } catch (e) {
         System.println("Exception: ", e.what());
     }
-    System.println("    a = %{a}, b = %{b}, c = %{c}, d = %{d}");
-
 }
 
 native test1_native() {
@@ -27,7 +26,7 @@ native test1_native() {
     }
 }
 
-native test_native(f) {
+native test_native(f:native) {
     try {
         try {
             return f();
