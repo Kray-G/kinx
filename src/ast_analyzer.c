@@ -350,6 +350,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
         node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->optional : node->lhs->var_type;
+        if (node->lhs->var_type == KX_FNC_T && node->lhs->optional == KX_UNKNOWN_T) {
+            kx_yyerror_line("Can not call a native function without returning type.", node->file, node->line);
+        }
         break;
 
     case KXOP_TYPEOF:
