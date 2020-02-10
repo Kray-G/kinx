@@ -8,6 +8,7 @@ typedef struct kxana_context_ {
     int lvalue;
     int decl;
     int depth;
+    int in_catch;
     int in_native;
     int class_id;
     kx_object_t *class_node;
@@ -425,13 +426,18 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
         kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        int in_catch = ctx->in_catch;
+        ctx->in_catch = 0;
         int size = kv_size(table->list);
         analyze_ast(node->lhs, ctx);
         kv_shrinkto(table->list, size);
+        ctx->in_catch = 1;
         analyze_ast(node->rhs, ctx);
+        ctx->in_catch = 0;
         kv_shrinkto(table->list, size);
         analyze_ast(node->ex, ctx);
         kv_shrinkto(table->list, size);
+        ctx->in_catch = in_catch;
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
@@ -443,7 +449,13 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         break;
     case KXST_THROW:      /* lhs: expr */
-        analyze_ast(node->lhs, ctx);
+        if (node->lhs) {
+            analyze_ast(node->lhs, ctx);
+        } else {
+            if (!ctx->in_catch) {
+                kx_yyerror_line("Can not use throw without expression outside catch clause.", node->file, node->line);
+            }
+        }
         break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         if (ctx->in_native) {
