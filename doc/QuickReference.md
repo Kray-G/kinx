@@ -805,7 +805,7 @@ System.println("a = %{a}"); // a = 50
 ```
 
 Look at the above example.
-You can also use `break` statement  with if modifier as below.
+You can also use `break` statement with if modifier as below.
 
 ```javascript
 break if (a == 0);          // without label
@@ -825,7 +825,7 @@ for (var i = 0; i < 10; ++i) {
 }
 ```
 
-Same as `break`, you can also use `continue` statement  with if modifier.
+Same as `break`, you can also use `continue` statement with if modifier.
 
 ```javascript
 continue if (a == 0);           // without label
@@ -842,6 +842,13 @@ return;         // return without value, this means `return null`
 return value;   // return with value
 ```
 
+Same as `break`, you can also use `return` statement with if modifier.
+
+```javascript
+return if (a == 0);             // without label
+return value if (a == 0);       // with label
+```
+
 #### `throw` Statement
 
 `throw` statement throws an exception to inform some error.
@@ -852,6 +859,13 @@ This means the same exception as the exception caught by `catch` is thrown.
 ```javascript
 throw RuntimeException("message");  // with exception message
 throw;                              // throw the same exception as the exception caught by `catch`
+```
+
+Same as `break`, you can also use `throw` statement with if modifier.
+
+```javascript
+throw if (a == 0);                                  // without label
+throw RuntimeException("something") if (a == 0);    // with label
 ```
 
 #### Label Statement
