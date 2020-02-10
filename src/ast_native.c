@@ -825,8 +825,8 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
             /* recursive call of this function */
             r1 = get_rreg(nctx);
             sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r1), 0, SLJIT_MEM1(SLJIT_S0), 3 * KXN_WDSZ);
-        } else if (node->lhs->type == KXOP_VAR) {
-            r1 = nativejit_ast(nctx, node->lhs, 0); /* local variable */
+        } else {
+            r1 = nativejit_ast(nctx, node->lhs, 0); /* local or lexical variable */
         }
 
         int index = set_args(nctx, node->rhs, nctx->local_vars + KXN_LOCALVAR_OFFSET);

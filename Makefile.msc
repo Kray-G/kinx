@@ -23,6 +23,7 @@ OBJS = \
     src/ir_aotdump.obj \
     src/kstr.obj \
     src/lexer.obj \
+    src/fileutil.obj \
     src/loadlib.obj \
     src/main.obj \
     src/parser.obj \
@@ -114,13 +115,14 @@ SOFILES = \
     kxinteger.dll \
     kxdouble.dll \
     kxarray.dll \
+    kxfile.dll \
     kxmath.dll \
     kxregex.dll
 PICOBJS = \
     src/bign.obj \
     src/bigz.obj \
     src/allocutil.obj \
-    src/loadlib.obj \
+    src/fileutil.obj \
     src/kstr.obj
 TESTCORE = \
     apply \
