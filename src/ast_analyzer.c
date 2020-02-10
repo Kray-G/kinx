@@ -37,9 +37,6 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
                         sym->lexical_index = i - 1;
                     }
                 }
-                if (sym->base->var_type == KX_UNKNOWN_T && ctx->in_native) {
-                    sym->base->var_type = KX_INT_T; // automatically set it.
-                }
                 return sym;
             }
         }
@@ -184,12 +181,25 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXVL_UNKNOWN:
 
     case KXVL_INT:
+        node->var_type = KX_INT_T;
+        break;
     case KXVL_DBL:
+        node->var_type = KX_DBL_T;
+        break;
     case KXVL_STR:
+        node->var_type = KX_CSTR_T;
+        break;
     case KXVL_BIG:
+        node->var_type = KX_BIG_T;
+        break;
     case KXVL_NULL:
+        node->var_type = KX_UND_T;
+        break;
     case KXVL_TRUE:
+        node->var_type = KX_INT_T;
+        break;
     case KXVL_FALSE:
+        node->var_type = KX_INT_T;
         break;
 
     case KXOP_VAR: {
@@ -203,6 +213,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
         node->var_type = sym->base->var_type;
+        if (sym->base->var_type == KX_NFNC_T) {
+            node->optional = sym->base->optional;
+        }
         break;
     }
     case KXOP_KEYVALUE:
@@ -272,6 +285,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         ctx->decl = decl;
         analyze_ast(node->rhs, ctx);
+        if (node->rhs && node->lhs->type == KXOP_VAR) {
+            node->lhs->var_type = node->rhs->var_type;
+        }
         break;
     }
     case KXOP_ASSIGN:
@@ -290,6 +306,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         ctx->lvalue = lvalue;
         analyze_ast(node->rhs, ctx);
+        if (node->lhs->type == KXOP_VAR) {
+            node->lhs->var_type = node->rhs->var_type;
+        }
         make_cast(node, node->lhs, node->rhs);
         break;
     }
@@ -330,7 +349,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
-        node->var_type = KX_INT_T;
+        node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->optional : node->lhs->var_type;
         break;
 
     case KXOP_TYPEOF:
@@ -505,6 +524,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         if (node->type == KXST_NATIVE) {
             kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
             sym->base->var_type = KX_NFNC_T;
+            sym->base->optional = node->optional;
         } else {
             if (ctx->in_native) {
                 kx_yyerror_line("Do not define function in native function.", node->file, node->line);
@@ -522,7 +542,13 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
         }
 
-        ctx->in_native = node->type == KXST_NATIVE;
+        if (node->type == KXST_NATIVE) {
+            ctx->in_native = 1;
+            node->var_type = KX_NFNC_T;
+        } else {
+            ctx->in_native = 0;
+            node->var_type = KX_FNC_T;
+        }
         if (ctx->func) {
             ctx->func->lexical_refs = 1;
         }
