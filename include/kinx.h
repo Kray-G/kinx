@@ -157,6 +157,7 @@ enum opecode {
     KXOP_CALL,
     KXOP_IMPORT,
     KXOP_TYPEOF,
+    KXOP_CAST,
 
     /* ternary expression */
     KXOP_TER,
@@ -291,6 +292,7 @@ extern kx_object_t *kx_gen_big_object(const char *val);
 extern kx_object_t *kx_gen_str_object(const char *val);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
+extern kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_import_object(const char *name);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
@@ -333,20 +335,6 @@ extern int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);
 extern int get_bin_item(kx_val_t *v);
-
-#define KX_NAT_MAX_FUNC_ARGS (31)
-
-#define KX_NAT_UNKNOWN_ERROR (1)
-#define KX_NAT_TOO_MUSH_ARGS (2)
-#define KX_NAT_INVALID_FUNCTION (3)
-#define KX_NAT_UNSUPPORTED_TYPE (4)
-#define KX_NAT_DIVIDE_BY_ZERO (5)
-#define KX_NAT_TOO_DEEP_TO_CALL_FUNC (6)
-#define KX_NAT_TYPE_MISMATCH (7)
-#define KX_NAT_MAX_EXCEPTION (KX_NAT_TOO_DEEP_TO_CALL_FUNC)
-
-#define KXN_EXC_FLAG (4)
-#define KXN_EXC_CODE (5)
 
 /* for import library */
 
