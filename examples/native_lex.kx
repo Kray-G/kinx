@@ -6,4 +6,17 @@ native test(n) {
     return b + n;
 }
 
-System.println(test(10));
+System.println("test(10) = ", test(10));
+
+native mul2(a) {
+    return a * 2;
+}
+
+var x, y;
+native test2(i) {
+    return x = y = mul2(i); # calling a lexical native function.
+}
+
+System.println("test2(10) = ", test2(10));
+System.println("x = ", x);
+System.println("y = ", y);

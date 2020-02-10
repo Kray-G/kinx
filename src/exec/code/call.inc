@@ -33,27 +33,31 @@ default: \
 switch (r) { \
 case KX_NAT_UNKNOWN_ERROR: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unknown error occurred"); \
-    break; \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
 case KX_NAT_TOO_MUSH_ARGS: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too much argument"); \
-    break; \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
 case KX_NAT_INVALID_FUNCTION: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Invalid function address"); \
-    break; \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
 case KX_NAT_UNSUPPORTED_TYPE: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unsupported argument type"); \
-    break; \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
 case KX_NAT_DIVIDE_BY_ZERO: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Divide by zero"); \
-    break; \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
 case KX_NAT_TOO_DEEP_TO_CALL_FUNC: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too deep to call function"); \
-    break; \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KX_NAT_TYPE_MISMATCH: { \
+    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Type mismatch"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
 default: \
     break; \
@@ -64,9 +68,9 @@ default: \
 { \
     if (!fn) { \
         fn = method_missing(ctx, name, host); \
-    } \
-    if (!fn) { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
+        if (!fn) { \
+            THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
+        } \
     } \
     if (fn->typ || fn->wht) { \
         THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
