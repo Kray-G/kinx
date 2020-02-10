@@ -9,7 +9,7 @@ function check(name, test) {
     try {
         test();
     } catch (e) {
-        ;
+        System.println("Exception: ", e.what());
     }
     System.println("    a = %{a}, b = %{b}, c = %{c}, d = %{d}");
 
