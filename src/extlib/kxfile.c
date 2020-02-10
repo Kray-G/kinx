@@ -359,7 +359,7 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KEX_SET_PROP_INT(obj, "APPEND", KXFILE_MODE_APPEND);
         KEX_SET_METHOD("load", obj, File_load);
         KEX_SET_METHOD("close", obj, File_close);
-        KEX_SET_METHOD("readline", obj, File_readline);
+        KEX_SET_METHOD("readLine", obj, File_readline);
         KEX_SET_METHOD("print", obj, File_print);
         KEX_SET_METHOD("println", obj, File_println);
         KX_ADJST_STACK();
