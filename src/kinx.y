@@ -481,7 +481,7 @@ NativeKeyword
     ;
 
 NativeType
-    : { $$ = KX_UNKNOWN_T; }
+    : { $$ = KX_INT_T; }
     | ':' TypeName { $$ = $2; }
     ;
 

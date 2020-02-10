@@ -357,6 +357,16 @@ typedef struct kx_bltin_def_ {
 } \
 /**/
 
+static inline const char *static_format(const char *f, ...)
+{
+    static char buf[2048] = {0};
+    va_list ap;
+    va_start(ap, f);
+    vsnprintf(buf, 2047, f, ap);
+    va_end(ap);
+    return buf;
+}
+
 static inline const char *get_typename(int type)
 {
     switch (type) {
