@@ -29,6 +29,7 @@ OBJS = \
     ir_natutil.o \
     kstr.o \
     lexer.o \
+    fileutil.o \
     loadlib.o \
     main.o \
     parser.o \
@@ -120,13 +121,14 @@ SOFILES = \
     kxinteger.so \
     kxdouble.so \
     kxarray.so \
+    kxfile.so \
     kxmath.so \
     kxregex.so
 PICOBJS = \
     bignpic.o \
     bigzpic.o \
     allocutilpic.o \
-    loadlibpic.o \
+    fileutilpic.o \
     kstrpic.o
 TESTCORE = \
     apply \
@@ -241,7 +243,7 @@ bigzpic.o: src/bigz.c
 allocutilpic.o: src/allocutil.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
-loadlibpic.o: src/loadlib.c
+fileutilpic.o: src/fileutil.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 kstrpic.o: src/kstr.c

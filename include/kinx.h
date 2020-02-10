@@ -456,7 +456,9 @@ static inline int64_t get_arg_int(int n, int args, kx_context_t *ctx)
     if (args > 0) {
         kvec_t(kx_val_t) *stack = &(ctx->stack);
         kx_val_t val = kv_last_by(*stack, n);
-        if (val.type == KX_INT_T) {
+        if (val.type == KX_UND_T) {
+            return 0;
+        } else if (val.type == KX_INT_T) {
             return val.value.iv;
         } else if (val.type == KX_DBL_T) {
             return (int64_t)val.value.dv;
