@@ -342,7 +342,11 @@ extern int get_bin_item(kx_val_t *v);
 #define KX_NAT_UNSUPPORTED_TYPE (4)
 #define KX_NAT_DIVIDE_BY_ZERO (5)
 #define KX_NAT_TOO_DEEP_TO_CALL_FUNC (6)
+#define KX_NAT_TYPE_MISMATCH (7)
 #define KX_NAT_MAX_EXCEPTION (KX_NAT_TOO_DEEP_TO_CALL_FUNC)
+
+#define KXN_EXC_FLAG (4)
+#define KXN_EXC_CODE (5)
 
 /* for import library */
 
