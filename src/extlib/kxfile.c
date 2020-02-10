@@ -78,9 +78,10 @@ static fileinfo_t *create_fileinfo(const char *file, int mode)
     return fi;
 }
 
-static void free_fileinfo(fileinfo_t *fi)
+static void free_fileinfo(void *p)
 {
-    if (fi) {
+    if (p) {
+        fileinfo_t *fi = (fileinfo_t *)p;
         if (fi->fp) {
             fclose(fi->fp);
         }
