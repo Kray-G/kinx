@@ -596,6 +596,23 @@ static void update_case_jmp(kx_module_t *module, kx_object_t *node, int block_st
     kv_destroy(node->case_src_pos);
 }
 
+static int setup_arg_types(kx_object_t *node, kx_code_t *code, int index)
+{
+    if (!node || index > KXN_MAX_FUNC_ARGS) {
+        return index;
+    }
+    if (node->type == KXST_EXPRLIST) {
+        index = setup_arg_types(node->lhs, code, index);
+        index = setup_arg_types(node->rhs, code, index);
+    }
+    if (node->type == KXOP_VAR) {
+        code->value2.n.arg_types[index] = (uint8_t)node->var_type;
+    } else {
+        code->value2.n.arg_types[index] = (uint8_t)KX_UNKNOWN_T;
+    }
+    return index + 1;
+}
+
 static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana, int lvalue)
 {
     if (!node) {
@@ -879,6 +896,11 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     case KXOP_TYPEOF: {
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = node->value.i } }));
+        break;
+    }
+    case KXOP_CAST: {
+        /* do nothing */
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
         break;
     }
 
@@ -1441,8 +1463,18 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
             FILELINE(ana), .op = KX_PUSHNF,
             .value1 = { .s = const_str(node->value.s) },
-            .value2 = { .n = { .func = nf.func, .args = node->count_args, .ret_type = nf.ret_type, .arg_types = nf.arg_types,  } },
+            .value2 = {
+                .n = {
+                    .func = nf.func,
+                    .args = node->count_args,
+                    .ret_type = nf.ret_type,
+                }
+            },
         }));
+        int n = setup_arg_types(node->lhs, &kv_last(get_block(module, ana->block)->code), 0);
+        if (n > KXN_MAX_FUNC_ARGS) {
+            kx_yyerror_line_fmt("Too many native function arguments.", node->file, node->line);
+        }
         break;
     }
     default:

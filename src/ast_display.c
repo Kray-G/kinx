@@ -278,6 +278,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXOP_TYPEOF:
         printf("(typeof) is %s\n", get_typename(node->value.i));
         break;
+    case KXOP_CAST:
+        printf("(cast) from %s to %s\n", get_typename(node->optional), get_typename(node->value.i));
+        display_ast(node->lhs, indent + 1, 0);
+        break;
 
     case KXOP_TER:
         printf("(call)\n");

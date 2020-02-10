@@ -38,9 +38,7 @@ typedef struct kx_native_context_ {
     int label_depth;
     int local_vars;
     int max_call_depth;
-    int nfunc_addr;
     int ret_type;
-    int arg_types;
     khash_t(nativefunc) *nfuncs;
     int regs[KXN_MAX_REGS];
     int save[KXN_MAX_REGS];
@@ -487,7 +485,7 @@ static int check_divide_by_zero(kx_native_context_t *nctx, int val)
 {
     if (val == 0) {
         set_exception(nctx, 1);
-        set_exception_code(nctx, KX_NAT_DIVIDE_BY_ZERO);
+        set_exception_code(nctx, KXN_DIVIDE_BY_ZERO);
         do_exception(nctx, 0);
         return 1;
     }
@@ -498,7 +496,7 @@ static void check_divide_by_zero_reg(kx_native_context_t *nctx, int r0)
 {
     sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_NOT_EQUAL, reg(r0), 0, SLJIT_IMM, 0);
     set_exception(nctx, 1);
-    set_exception_code(nctx, KX_NAT_DIVIDE_BY_ZERO);
+    set_exception_code(nctx, KXN_DIVIDE_BY_ZERO);
     do_exception(nctx, 0);
     sljit_set_label(next, sljit_emit_label(nctx->C));
 }
@@ -575,24 +573,31 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
                 sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r0), 0, SLJIT_MEM1(SLJIT_SP), node->index * KXN_WDSZ);
             }
         } else if (lvalue) {
-            KXN_CALL_NATIVE3(r0, native_get_var_int_addr, SW, SW, SW, SW, {
-                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, node->lexical);
-                sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, node->index);
-            });
+            if (node->var_type == KX_INT_T) {
+                KXN_CALL_NATIVE3(r0, native_get_var_int_addr, SW, SW, SW, SW, {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, node->lexical);
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, node->index);
+                });
+            } else {
+                kx_yyerror_line("Type mismatch in native function", node->file, node->line);
+            }
         } else {
-            if (nctx->nfunc_addr) {
+            /* r-value */
+            if (node->var_type == KX_INT_T) {
+                KXN_CALL_NATIVE3(r0, native_get_var_int, SW, SW, SW, SW, {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, node->lexical);
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, node->index);
+                });                
+            } else if (node->var_type == KX_NFNC_T) {
                 KXN_CALL_NATIVE3(r0, native_get_var_nfunc, SW, SW, SW, SW, {
                     sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
                     sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, node->lexical);
                     sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, node->index);
                 });
             } else {
-                KXN_CALL_NATIVE3(r0, native_get_var_int, SW, SW, SW, SW, {
-                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
-                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, node->lexical);
-                    sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, node->index);
-                });
+                kx_yyerror_line("Type mismatch in native function", node->file, node->line);
             }
         }
         break;
@@ -815,8 +820,6 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
     case KXOP_CALL: {
         save_regs(nctx, 0, 6, -1);
         reserve_reg_multi(nctx, 1, 2);
-        int nfunc_addr = nctx->nfunc_addr;
-        nctx->nfunc_addr = 1;
         int r1;
         if (node->lhs->type == KXOP_VAR && strcmp(nctx->func_name, node->lhs->value.s) == 0) {
             /* recursive call of this function */
@@ -825,7 +828,6 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         } else if (node->lhs->type == KXOP_VAR) {
             r1 = nativejit_ast(nctx, node->lhs, 0); /* local variable */
         }
-        nctx->nfunc_addr = nfunc_addr;
 
         int index = set_args(nctx, node->rhs, nctx->local_vars + KXN_LOCALVAR_OFFSET);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
@@ -850,6 +852,11 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
 
     case KXOP_TYPEOF:
         break;
+
+    case KXOP_CAST: {
+        r0 = nativejit_ast(nctx, node->lhs, 0);
+        break;
+    }
 
     case KXOP_TER: {
         kx_object_t *cond = node->lhs;
@@ -1268,7 +1275,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ, SLJIT_R0, 0);
         sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_LESS, SLJIT_R0, 0, SLJIT_IMM, nctx->max_call_depth);
         set_exception(nctx, 1);
-        set_exception_code(nctx, KX_NAT_TOO_DEEP_TO_CALL_FUNC);
+        set_exception_code(nctx, KXN_TOO_DEEP_TO_CALL_FUNC);
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
 
         /* function body */
@@ -1320,7 +1327,6 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node)
         .name = node->value.s,
         .func = (void*)SLJIT_FUNC_OFFSET(code),
         .ret_type = nctx.ret_type,
-        .arg_types = nctx.arg_types,
         .exec_size = nctx.C->executable_size,
     };
     set_native_function_info(&nctx, node, nctx.func_name, nf);

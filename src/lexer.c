@@ -99,6 +99,8 @@ static int get_keyword_token(const char *val)
     case 'd':
         if (strcmp(val, "do") == 0)             return DO;
         if (strcmp(val, "default") == 0)        return DEFAULT;
+        /* type */
+        if (strcmp(val, "double") == 0)         { kx_yylval.intval = KX_DBL_T; return TYPE; }
         break;
     case 'e':
         if (strcmp(val, "else") == 0)           return ELSE;
@@ -123,7 +125,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "isArray") == 0)        { kx_yylval.intval = KX_ARY_T; return TYPEOF; }
         if (strcmp(val, "isObject") == 0)       { kx_yylval.intval = KX_OBJ_T; return TYPEOF; }
         /* type */
-        if (strcmp(val, "int") == 0)            { kx_yylval.intval = KX_INT_T; return TYPE; }
+        if (strcmp(val, "integer") == 0)        { kx_yylval.intval = KX_INT_T; return TYPE; }
         break;
     case 'n':
         if (strcmp(val, "null") == 0)           return NUL;
@@ -140,6 +142,8 @@ static int get_keyword_token(const char *val)
         break;
     case 's':
         if (strcmp(val, "switch") == 0)         return SWITCH;
+        /* type */
+        if (strcmp(val, "string") == 0)         { kx_yylval.intval = KX_STR_T; return TYPE; }
         break;
     case 't':
         if (strcmp(val, "throw") == 0)          return THROW;

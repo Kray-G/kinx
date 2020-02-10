@@ -31,31 +31,31 @@ default: \
 
 #define KX_NATIVE_FUNCTION_ERROR(r) \
 switch (r) { \
-case KX_NAT_UNKNOWN_ERROR: { \
+case KXN_UNKNOWN_ERROR: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unknown error occurred"); \
     /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
-case KX_NAT_TOO_MUSH_ARGS: { \
+case KXN_TOO_MUSH_ARGS: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too much argument"); \
     /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
-case KX_NAT_INVALID_FUNCTION: { \
+case KXN_INVALID_FUNCTION: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Invalid function address"); \
     /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
-case KX_NAT_UNSUPPORTED_TYPE: { \
+case KXN_UNSUPPORTED_TYPE: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unsupported argument type"); \
     /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
-case KX_NAT_DIVIDE_BY_ZERO: { \
+case KXN_DIVIDE_BY_ZERO: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Divide by zero"); \
     /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
-case KX_NAT_TOO_DEEP_TO_CALL_FUNC: { \
+case KXN_TOO_DEEP_TO_CALL_FUNC: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too deep to call function"); \
     /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
-case KX_NAT_TYPE_MISMATCH: { \
+case KXN_TYPE_MISMATCH: { \
     THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Type mismatch"); \
     /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
 } \
