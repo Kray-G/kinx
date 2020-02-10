@@ -39,12 +39,14 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         switch (v->type) {
         case KX_INT_T:
             if (type != KX_INT_T) {
+printf("?????\n");
                 return KXN_TYPE_MISMATCH;
             }
             arglist[j] = (sljit_sw)(v->value.iv);
             break;
         case KX_NFNC_T:
             if (type != KX_NFNC_T) {
+printf("?????\n");
                 return KXN_TYPE_MISMATCH;
             }
             arglist[j] = (sljit_sw)(v->value.fn->native.func);
@@ -60,10 +62,10 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         (sljit_sw)frmv,
         (sljit_sw)nfnc->lex,
         (sljit_sw)func,
-        0,      /* exc flag */
-        0,      /* exc code */
-        0,      /* stack trace length */
-        exc,    /* stack trace array */
+        0,              /* exc flag */
+        0,              /* exc code */
+        0,              /* stack trace length */
+        (sljit_sw)exc,  /* stack trace array */
     };
     int64_t v = (int64_t)func(info, arglist);
 

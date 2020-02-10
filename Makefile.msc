@@ -120,6 +120,7 @@ PICOBJS = \
     src/bign.obj \
     src/bigz.obj \
     src/allocutil.obj \
+    src/loadlib.obj \
     src/kstr.obj
 TESTCORE = \
     apply \
@@ -195,6 +196,9 @@ kxdouble.dll: src/extlib/kxdouble.c $(PICOBJS)
 
 kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
+
+kxfile.dll: src/extlib/kxfile.c $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxfile.c $(PICOBJS)
 
 kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxmath.c $(PICOBJS)
