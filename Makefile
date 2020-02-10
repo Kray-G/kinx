@@ -120,12 +120,14 @@ SOFILES = \
     kxinteger.so \
     kxdouble.so \
     kxarray.so \
+    kxfile.so \
     kxmath.so \
     kxregex.so
 PICOBJS = \
     bignpic.o \
     bigzpic.o \
     allocutilpic.o \
+    loadlibpic.o \
     kstrpic.o
 TESTCORE = \
     apply \
@@ -196,6 +198,9 @@ kxdouble.so: src/extlib/kxdouble.c $(PICOBJS)
 kxarray.so: src/extlib/kxarray.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
+kxfile.so: src/extlib/kxfile.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+
 kxmath.so: src/extlib/kxmath.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -lm
 
@@ -235,6 +240,9 @@ bigzpic.o: src/bigz.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 allocutilpic.o: src/allocutil.c
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
+
+loadlibpic.o: src/loadlib.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 kstrpic.o: src/kstr.c

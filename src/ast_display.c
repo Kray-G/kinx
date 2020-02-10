@@ -2,6 +2,28 @@
 #include <inttypes.h>
 #include <parser.h>
 
+static inline const char *get_short_typename(int type)
+{
+    switch (type) {
+    case KX_UND_T:  return "null";
+    case KX_INT_T:  return "int";
+    case KX_BIG_T:  return "bign";
+    case KX_DBL_T:  return "dbl";
+    case KX_CSTR_T: return "cstr";
+    case KX_STR_T:  return "str";
+    case KX_LVAL_T: return "-";
+    case KX_OBJ_T:  return "obj";
+    case KX_FNC_T:  return "fnc";
+    case KX_FRM_T:  return "-";
+    case KX_BFNC_T: return "bfnc";
+    case KX_NFNC_T: return "nfnc";
+    case KX_ADDR_T: return "-";
+    case KX_ANY_T:  return "-";
+    case KX_ARY_T:  return "ary";
+    }
+    return "... unknown";
+}
+
 static void print_indent(kx_object_t *node, int indent)
 {
     while (indent--) {
@@ -25,25 +47,25 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
 
     case KXVL_INT:
-        printf("(i:%"PRId64")\n", node->value.i);
+        printf("(i:%"PRId64"):%s\n", node->value.i, get_short_typename(node->var_type));
         break;
     case KXVL_DBL:
-        printf("(d:%f)\n", node->value.d);
+        printf("(d:%f):%s\n", node->value.d, get_short_typename(node->var_type));
         break;
     case KXVL_STR:
-        printf("(s:\"%s\")\n", node->value.s);
+        printf("(s:\"%s\"):%s\n", node->value.s, get_short_typename(node->var_type));
         break;
     case KXVL_BIG:
-        printf("(b:\"%s\")\n", node->value.s);
+        printf("(b:\"%s\"):%s\n", node->value.s, get_short_typename(node->var_type));
         break;
     case KXVL_NULL:
-        printf("null\n");
+        printf("null:%s\n", get_short_typename(node->var_type));
         break;
     case KXVL_TRUE:
-        printf("true\n");
+        printf("true:%s\n", get_short_typename(node->var_type));
         break;
     case KXVL_FALSE:
-        printf("false\n");
+        printf("false:%s\n", get_short_typename(node->var_type));
         break;
 
     case KXOP_VAR:
@@ -55,9 +77,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
             }
         } else {
             if (node->lexical_refs) {
-                printf("%c(var:%s):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, get_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
+                printf("%c(var:%s):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
             } else {
-                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_typename(node->var_type), node->lexical, node->index);
+                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index);
             }
         }
         break;
@@ -67,43 +89,43 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
 
     case KXOP_NOT:
-        printf("(!)\n");
+        printf("(!):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXOP_POSITIVE:
-        printf("(+)\n");
+        printf("(+):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXOP_NEGATIVE:
-        printf("(-)\n");
+        printf("(-):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXOP_INC:
-        printf("(++X)\n");
+        printf("(++X):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         break;
     case KXOP_DEC:
-        printf("(--X)\n");
+        printf("(--X):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         break;
     case KXOP_INCP:       /* postfix */
-        printf("(X++)\n");
+        printf("(X++):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         break;
     case KXOP_DECP:       /* postfix */
-        printf("(X--)\n");
+        printf("(X--):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         break;
     case KXOP_MKBIN:
-        printf("(make-binary)\n");
+        printf("(make-binary):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXOP_MKARY:
-        printf("(make-array)\n");
+        printf("(make-array):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXOP_MKOBJ:
-        printf("(make-object)\n");
+        printf("(make-object):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         break;
 
@@ -113,162 +135,162 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN:
-        printf("(=)\n");
+        printf("(=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_SHL:
-        printf("(<<=)\n");
+        printf("(<<=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_SHR:
-        printf("(>>=)\n");
+        printf("(>>=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_ADD:
-        printf("(+=)\n");
+        printf("(+=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_SUB:
-        printf("(-=)\n");
+        printf("(-=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_MUL:
-        printf("(*=)\n");
+        printf("(*=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_DIV:
-        printf("(/=)\n");
+        printf("(/=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_MOD:
-        printf("(%%=)\n");
+        printf("(%%=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_AND:
-        printf("(&=)\n");
+        printf("(&=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_OR:
-        printf("(|=)\n");
+        printf("(|=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN_XOR:
-        printf("(^=)\n");
+        printf("(^=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_SHL:
-        printf("(<<)\n");
+        printf("(<<):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_SHR:
-        printf("(>>)\n");
+        printf("(>>):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ADD:
-        printf("(+)\n");
+        printf("(+):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_SUB:
-        printf("(-)\n");
+        printf("(-):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_MUL:
-        printf("(*)\n");
+        printf("(*):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_DIV:
-        printf("(/)\n");
+        printf("(/):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_MOD:
-        printf("(%%)\n");
+        printf("(%%):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_AND:
-        printf("(&)\n");
+        printf("(&):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_OR:
-        printf("(|)\n");
+        printf("(|):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_XOR:
-        printf("(^)\n");
+        printf("(^):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_LAND:
-        printf("(&&)\n");
+        printf("(&&):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_LOR:
-        printf("(||)\n");
+        printf("(||):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_IDX:
-        printf("(ref)\n");
+        printf("(ref):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, lvalue);
         break;
     case KXOP_EQEQ:
-        printf("(==)\n");
+        printf("(==):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_NEQ:
-        printf("(!=)\n");
+        printf("(!=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_LE:
-        printf("(<=)\n");
+        printf("(<=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_LT:
-        printf("(<)\n");
+        printf("(<):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_GE:
-        printf("(>=)\n");
+        printf("(>=):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_GT:
-        printf("(>)\n");
+        printf("(>):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_LGE:
-        printf("(<=>)\n");
+        printf("(<=>):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_CALL:
-        printf("(call)\n");
+        printf("(call):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
@@ -276,10 +298,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("(import) %s\n", node->value.s);
         break;
     case KXOP_TYPEOF:
-        printf("(typeof) is %s\n", get_typename(node->value.i));
+        printf("(typeof) is %s\n", get_short_typename(node->value.i));
         break;
     case KXOP_CAST:
-        printf("(cast) from %s to %s\n", get_typename(node->optional), get_typename(node->value.i));
+        printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_short_typename(node->value.i));
         display_ast(node->lhs, indent + 1, 0);
         break;
 
@@ -388,10 +410,12 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
         printf("(for-init)\n");
         display_ast(node->lhs, indent + 1, 0);
+        print_indent(node, indent + 1);
         printf("(for-cond)\n");
-        display_ast(node->rhs, indent + 1, 0);
+        display_ast(node->rhs, indent + 2, 0);
+        print_indent(node, indent + 1);
         printf("(for-inc)\n");
-        display_ast(node->ex, indent + 1, 0);
+        display_ast(node->ex, indent + 2, 0);
         break;
     case KXST_TRY:        /* lhs: try, rhs: catch: ex: finally */
         printf("(try)\n");
@@ -443,7 +467,7 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
     case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: optional: return type */
         printf("ret:%s native(%s)\n",
-            get_typename(node->optional),
+            get_short_typename(node->optional),
             node->value.s);
         if (node->lhs) {
             print_indent(node, indent + 1);
