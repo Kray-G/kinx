@@ -11,6 +11,7 @@ typedef struct kxana_context_ {
     int in_catch;
     int in_native;
     int class_id;
+    int arg_index;
     kx_object_t *class_node;
     kx_object_t *func;
     kx_object_t *switch_stmt;
@@ -210,9 +211,35 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
             return;
         }
+        if (ctx->decl) {
+            if (ctx->arg_index < 0) {
+                kx_yyerror_line("Rest argument must be used only at the last argument", node->file, node->line);
+            }
+            if (node->var_type == KX_SPR_T) {
+                node->lhs = kx_gen_bassign_object(KXOP_ASSIGN,
+                    kx_gen_var_object(node->value.s, KX_OBJ_T),
+                    kx_gen_bexpr_object(KXOP_CALL,
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("arguments")),
+                        kx_gen_int_object(ctx->arg_index)
+                    )
+                );
+                int arg_index = ctx->arg_index;
+                int lvalue = ctx->lvalue;
+                ctx->lvalue = 0;
+                int decl = ctx->decl;
+                ctx->decl = 0;
+                analyze_ast(node->lhs, ctx);
+                ctx->lvalue = lvalue;
+                ctx->decl = decl;
+                ctx->arg_index = arg_index;
+                ctx->arg_index = -1;
+            } else {
+                ++(ctx->arg_index);
+            }
+        }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
-        node->var_type = sym->base->var_type;
+        node->var_type = (sym->base->var_type == KX_SPR_T && !ctx->decl) ? KX_OBJ_T : sym->base->var_type;
         if (sym->base->var_type == KX_NFNC_T) {
             node->optional = sym->base->optional;
         }
@@ -346,7 +373,6 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_GE:
     case KXOP_GT:
     case KXOP_LGE:
-    case KXOP_CALL:
         node->count_args = count_args(node->rhs);
         if (ctx->func && node->count_args > ctx->func->callargs_max) {
             ctx->func->callargs_max = node->count_args;
@@ -358,6 +384,25 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             kx_yyerror_line("Can not call a native function without returning type.", node->file, node->line);
         }
         break;
+    case KXOP_CALL: {
+        node->count_args = count_args(node->rhs);
+        if (ctx->func && node->count_args > ctx->func->callargs_max) {
+            ctx->func->callargs_max = node->count_args;
+        }
+        int lvalue = ctx->lvalue;
+        int decl = ctx->decl;
+        ctx->lvalue = 0;
+        ctx->decl = 0;
+        analyze_ast(node->lhs, ctx);
+        analyze_ast(node->rhs, ctx);
+        ctx->lvalue = 0;
+        ctx->decl = 0;
+        node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->optional : node->lhs->var_type;
+        if (node->lhs->var_type == KX_FNC_T && node->lhs->optional == KX_UNKNOWN_T) {
+            kx_yyerror_line("Can not call a native function without returning type.", node->file, node->line);
+        }
+        break;
+    }
 
     case KXOP_TYPEOF:
         if (ctx->in_native) {
@@ -369,6 +414,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     case KXOP_CAST: {
         /* do nothing */
+        break;
+    }
+    case KXOP_SPREAD: {
+        analyze_ast(node->lhs, ctx);
         break;
     }
 
@@ -508,7 +557,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         ctx->decl = 1;
         if (node->lhs) {
             node->count_args = count_args(node->lhs);
+            ctx->arg_index = 0;
             analyze_ast(node->lhs, ctx);
+            ctx->arg_index = 0;
         } else {
             node->count_args = 0;
         }
@@ -566,7 +617,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         ctx->decl = 1;
         if (node->lhs) {
             node->count_args = count_args(node->lhs);
+            ctx->arg_index = 0;
             analyze_ast(node->lhs, ctx);
+            ctx->arg_index = 0;
         } else {
             node->count_args = 0;
         }

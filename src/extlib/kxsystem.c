@@ -303,12 +303,15 @@ int System_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
 static int System_arguments(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = allocate_obj(ctx);
-    if (args > 0) {
-        kvec_t(kx_val_t) *stack = &(ctx->stack);
-        for (int i = 1; i <= args; ++i) {
-            kx_val_t *val = &kv_last_by(*stack, i);
-            KEX_PUSH_ARRAY_VAL(obj, *val);
-        }
+
+    int start = (args > 0) ? (int)get_arg_int(1, args, ctx) : 0;
+
+    kvec_t(kx_val_t) *stack = &(ctx->stack);
+    int count = kv_A(*stack, frmv->id - 2).value.iv;
+    for (int i = 0; i < count; ++i) {
+        if (i < start) continue;
+        kx_val_t *val = &kv_A(*stack, frmv->id - (i + 4));
+        KEX_PUSH_ARRAY_VAL(obj, *val);
     }
 
     KX_ADJST_STACK();

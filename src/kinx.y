@@ -28,7 +28,7 @@
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
 %token NUL TRUE FALSE
-%token IMPORT USING DARROW SQ DQ MLSTR BINEND
+%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -102,6 +102,7 @@
 %type<obj> Argument
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
+%type<obj> SpreadItem
 %type<intval> NativeType
 %type<intval> TypeName
 
@@ -432,7 +433,9 @@ Comma_Opt
 
 ArrayItemList
     : AssignExpression
+    | DOTS3 SpreadItem { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | ArrayItemList ',' DOTS3 SpreadItem { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
     ;
 
 AssignExpressionList
@@ -448,6 +451,7 @@ KeyValueList
 KeyValue
     : STR ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    | DOTS3 SpreadItem { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
     ;
 
 VarDeclStatement
@@ -532,6 +536,7 @@ ArgumentList
 Argument
     : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | NAME ':' TypeName { $$ = kx_gen_var_object($1, $3); }
+    | DOTS3 NAME { $$ = kx_gen_var_object($2, KX_SPR_T); }
     ;
 
 TypeName
@@ -551,7 +556,16 @@ CallArgumentList_Opts
 
 CallArgumentList
     : AssignExpression
+    | DOTS3 SpreadItem { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | CallArgumentList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $3, $1); }
+    | CallArgumentList ',' DOTS3 SpreadItem { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, kx_gen_uexpr_object(KXOP_SPREAD, $4), $1); }
+    ;
+
+SpreadItem
+    : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | Array { $$ = $1; }
+    | Binary { $$ = $1; }
+    | Object { $$ = $1; }
     ;
 
 %%
