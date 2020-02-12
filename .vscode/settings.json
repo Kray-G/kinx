@@ -16,6 +16,7 @@
         "utility": "c",
         "xmemory0": "c",
         "xtr1common": "c",
-        "disas.h": "c"
+        "disas.h": "c",
+        "xstddef": "c"
     }
 }

@@ -33,6 +33,7 @@ OBJS = \
     loadlib.o \
     main.o \
     parser.o \
+    format.o \
     string.o
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
@@ -129,6 +130,7 @@ PICOBJS = \
     bigzpic.o \
     allocutilpic.o \
     fileutilpic.o \
+    formatpic.o \
     kstrpic.o
 TESTCORE = \
     apply \
@@ -244,6 +246,9 @@ allocutilpic.o: src/allocutil.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 fileutilpic.o: src/fileutil.c
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
+
+formatpic.o: src/format.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 kstrpic.o: src/kstr.c
