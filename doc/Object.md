@@ -106,7 +106,7 @@ ary.length();
 ### Math
 
 `Math` object is mathematical functions to perform mathematical operations.
-These fnctions are also available for `Integer` and `Double` object.
+These functions are also available for `Integer` and `Double` object.
 
 |         Method         |         Meaning          |
 | ---------------------- | ------------------------ |
