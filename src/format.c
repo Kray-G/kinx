@@ -124,7 +124,12 @@ static void kx_format_impl(kstr_t *out, kx_obj_t *obj, const char *fmt)
         fmt = kx_parse_format(fmt, &num, &prec, &sign, &zero);
         if (!*fmt) return;
         if (num > 0) {
-            if (*fmt == '$') {
+            if (*fmt == '%') {
+                fmtpos = num - 1;
+                prec = 0;
+                zero = 0;
+                sign = 0;
+            } else if (*fmt == '$') {
                 ++fmt;
                 if (!*fmt) return;
                 fmtpos = num - 1;
