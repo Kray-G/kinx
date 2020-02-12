@@ -59,6 +59,7 @@ enum irop {
     KX_PUSH_TRUE,
     KX_PUSH_FALSE,
     KX_PUSH_C,
+    KX_SPREAD,
 
     KX_POP_C,
     KX_POP,
@@ -84,6 +85,8 @@ enum irop {
 
     KX_MKBIN,
     KX_MKARY,
+    KX_GETARYV,
+    KX_GETARYA,
     KX_APPLYV,
     KX_APPLYL,
     KX_APPLYVI,
@@ -97,6 +100,7 @@ enum irop {
     KX_APPENDD,
     KX_APPENDS,
     KX_APPENDV,
+    KX_APPENDA, /* spread array and append all */
 
     KX_ADD,
     KX_ADDI,
@@ -421,7 +425,9 @@ enum irexec {
     KX_NFNC_T,
     KX_ADDR_T,
     KX_ANY_T,
+    KX_SPR_T,       /* spread-specified varable */
     KX_ARY_T,       /* used only with typeof */
+    KX_DEF_T,       /* used only with typeof */
 };
 
 typedef struct kx_val_ {
@@ -595,6 +601,7 @@ typedef struct kx_context_ {
     kx_fnc_t *global_method_missing;
 
     int block_index;
+    int spread_additional;
     kvec_t(uint32_t) labels;
     kvec_pt(kx_code_t) fixcode;
 } kx_context_t;
@@ -790,6 +797,16 @@ typedef struct kx_context_ {
 } \
 /**/
 
+#define KEX_SET_PROP_BIG(o, name, bzval) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_BIG_T; \
+    val->value.bz = make_big_alive(ctx, BzCopy(bzval)); \
+} \
+/**/
+
 #define KEX_SET_PROP_ANY(o, name, aval) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -815,8 +832,10 @@ typedef struct kx_context_ {
     khash_t(prop) *p = (o)->prop; \
     khint_t k = kh_put(prop, p, name, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
+    kstr_t *sv = allocate_str(ctx); \
+    ks_append(sv, ks_string(strv)); \
     val->type = KX_STR_T; \
-    val->value.sv = strv; \
+    val->value.sv = sv; \
 } \
 /**/
 

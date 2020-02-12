@@ -11,3 +11,27 @@
     cur = cur->next; \
 } \
 /**/
+
+#define KX_GETARYV_CODE() \
+{ \
+    KEX_POP_STACK_TOP(v2); \
+    KEX_GET_STACK_TOP(v1); \
+    if (v1->type != KX_OBJ_T) { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
+    } \
+    kx_try_getaryv(ctx, cur, v1, v2); \
+    cur = cur->next; \
+} \
+/**/
+
+#define KX_GETARYA_CODE() \
+{ \
+    KEX_POP_STACK_TOP(v2); \
+    KEX_GET_STACK_TOP(v1); \
+    if (v1->type != KX_OBJ_T) { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
+    } \
+    kx_try_getarya(ctx, cur, v1, v2); \
+    cur = cur->next; \
+} \
+/**/

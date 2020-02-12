@@ -304,6 +304,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_short_typename(node->value.i));
         display_ast(node->lhs, indent + 1, 0);
         break;
+    case KXOP_SPREAD:
+        printf("(spread)\n");
+        display_ast(node->lhs, indent + 1, 0);
+        break;
 
     case KXOP_TER:
         printf("(call)\n");

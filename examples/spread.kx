@@ -1,0 +1,92 @@
+function spreadTest(a, name) {
+    System.println("  %{name}:");
+    if (a.isArray) {
+        for (var i = 0; i < a.length(); ++i) {
+            System.println("    %{name}[%{i}] = ", a[i]);
+        }
+    } else if (a.isObject) {
+        var keyset = a.keySet();
+        for (var i = 0; i < keyset.length(); ++i) {
+            System.println("    %{name}.%{keyset[i]} = ", a[keyset[i]]);
+        }
+    } else {
+        System.println("    %{name} = ", a);
+    }
+}
+
+function test(x, y, ...z) {
+    spreadTest(x, "arg-x");
+    spreadTest(y, "arg-y");
+    spreadTest(z, "arg-z");
+    System.println("");
+}
+
+System.println("test(1,2,3,4,5):");
+test(1,2,3,4,5);
+
+function spreadTest2(a, b, c, d, e) {
+    System.println("    a = ", a);
+    System.println("    b = ", b);
+    System.println("    c = ", c);
+    System.println("    d = ", d);
+    System.println("    e = ", e);
+    System.println("");
+}
+
+var x = [1,2,3,4];
+System.println("spread x:");
+spreadTest2(...x);
+
+var y = [...x, 5];
+System.println("spread y:");
+spreadTest2(...y);
+
+var a = <0x01,0x02,0x03,0x04>;
+var z = [...a, 6];
+System.println("spread z:");
+spreadTest2(...z);
+
+z = [...z, ...y, ...z];
+System.println("len = ", z.length());
+spreadTest(z, "[...z, ...y, ...z]");
+
+System.println("spread <1,2,3>:");
+spreadTest2(...<1,2,3>);
+
+System.println("spread [...[1,2], ...[10,20,30]]:");
+spreadTest2(...[1,2], ...[10,20,30]);
+
+function makeArray(...ary) {
+    return ary;
+}
+
+[a, b, ...c] = makeArray(100, 200, 300, 400, 500);
+System.println("l-value [a, b, ...c] = [100, 200, 300, 400, 500]:");
+test(a, b, c[0], c[1], c[2]);
+
+class Test(v1, ...args) {
+    public print() {
+        System.println("class Test: v1 = ", v1);
+        for (var i = 0, l = args.length(); i < l; ++i) {
+            System.println("    args[%{i}] = ", args[i]);
+        }
+        System.println("");
+    }
+}
+
+var instance = new Test(1000, 2000, 3000, 4000, 5000);
+instance.print();
+
+var a = 1;
+var b = 3;
+[a, b] = [b, a];
+System.println("[a, b] = [b, a]:");
+spreadTest2(a, b);
+
+var obj1 = { a: 1, b: 2 };
+var obj2 = { c: 3, d: 4 };
+var mergedObj = { ...obj1, ...obj2, ...{ e: 5, f: 6 }};
+
+System.println("{ ...obj1, ...obj2, ...{ e: 5, f: 6 }}:");
+spreadTest(mergedObj, "mergedObj");
+System.println("");

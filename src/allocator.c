@@ -265,6 +265,7 @@ static void gc_sweep(kx_context_t *ctx)
         } else {
             kx_bin_t *v;
             kl_remove_next(bin, ctx->bin_alive, prevbin, &v);
+            kv_shrinkto(v->bin, 0);
             kv_zero(uint8_t, v->bin);
             kv_push(kx_bin_t*, ctx->bin_dead, v);
         }

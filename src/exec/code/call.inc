@@ -1,6 +1,7 @@
 
 #define KX_CALLBUILTIN_FUNCTION(r) \
-int count = cur->count; \
+int count = cur->count + ctx->spread_additional; \
+ctx->spread_additional = 0; \
 if (fn->method) { \
     push_s((ctx)->stack, fn->method); \
     ++count; \
@@ -40,11 +41,13 @@ default: \
     if (fn->typ || fn->wht) { \
         THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
     } else if (fn->push.type) { \
-        kv_shrink((ctx)->stack, cur->count); \
+        kv_shrink((ctx)->stack, cur->count + ctx->spread_additional); \
+        ctx->spread_additional = 0; \
         push_value((ctx)->stack, fn->push); \
         cur = cur->next; \
     } else { \
-        int count = cur->count; \
+        int count = cur->count + ctx->spread_additional; \
+        ctx->spread_additional = 0; \
         if (fn->method) { \
             push_s((ctx)->stack, fn->method); \
             ++count; \
@@ -79,7 +82,8 @@ default: \
     kx_val_t *fv = &kv_last((ctx)->stack); \
     if (fv->type == KX_FNC_T) { \
         (ctx)->caller = cur; \
-        push_i((ctx)->stack, cur->count); \
+        push_i((ctx)->stack, cur->count + ctx->spread_additional); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fv->value.fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
@@ -91,7 +95,8 @@ default: \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
         kv_remove_last((ctx)->stack); \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count + ctx->spread_additional, fv->value.fn); \
+        ctx->spread_additional = 0; \
         KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
@@ -115,7 +120,8 @@ default: \
     if (fv->type == KX_FNC_T) { \
         (ctx)->caller = cur; \
         push_value((ctx)->stack, *fv); \
-        push_i((ctx)->stack, cur->count); \
+        push_i((ctx)->stack, cur->count + ctx->spread_additional); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fv->value.fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
@@ -125,7 +131,8 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count + ctx->spread_additional, fv->value.fn); \
+        ctx->spread_additional = 0; \
         KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
@@ -144,7 +151,8 @@ default: \
     if (fv->type == KX_FNC_T) { \
         (ctx)->caller = cur; \
         push_value((ctx)->stack, *fv); \
-        push_i((ctx)->stack, cur->count); \
+        push_i((ctx)->stack, cur->count + ctx->spread_additional); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fv->value.fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
@@ -154,7 +162,8 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count + ctx->spread_additional, fv->value.fn); \
+        ctx->spread_additional = 0; \
         KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
@@ -173,7 +182,8 @@ default: \
     if (fv->type == KX_FNC_T) { \
         (ctx)->caller = cur; \
         push_value((ctx)->stack, *fv); \
-        push_i((ctx)->stack, cur->count); \
+        push_i((ctx)->stack, cur->count + ctx->spread_additional); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fv->value.fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
@@ -183,7 +193,8 @@ default: \
         KX_BUILTIN_FUNCTION_ERROR(r); \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
-        int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+        int64_t r = call_native(ctx, frmv, cur->count + ctx->spread_additional, fv->value.fn); \
+        ctx->spread_additional = 0; \
         KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
@@ -205,13 +216,17 @@ default: \
     if (lv->type != KX_OBJ_T) { \
         kx_fnc_t *fn = NULL; \
         if (lv->type == KX_CSTR_T || lv->type == KX_STR_T) { \
-            fn = search_string_function(ctx, name, lv, cur->count, jumptable); \
+            fn = search_string_function(ctx, name, lv, cur->count + ctx->spread_additional, jumptable); \
+            ctx->spread_additional = 0; \
         } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
-            fn = search_integer_function(ctx, name, lv, cur->count, jumptable); \
+            fn = search_integer_function(ctx, name, lv, cur->count + ctx->spread_additional, jumptable); \
+            ctx->spread_additional = 0; \
         } else if (lv->type == KX_DBL_T) { \
-            fn = search_double_function(ctx, name, lv, cur->count, jumptable); \
+            fn = search_double_function(ctx, name, lv, cur->count + ctx->spread_additional, jumptable); \
+            ctx->spread_additional = 0; \
         } else if (lv->type == KX_BIN_T) { \
-            fn = search_binary_function(ctx, name, lv, cur->count, jumptable); \
+            fn = search_binary_function(ctx, name, lv, cur->count + ctx->spread_additional, jumptable); \
+            ctx->spread_additional = 0; \
         } \
         KX_CALL_FUNCTION(fn, name, lv); \
     } else { \
@@ -224,7 +239,8 @@ default: \
             (ctx)->caller = cur; \
             kx_fnc_t *fn = fv->value.fn; \
             push_value((ctx)->stack, *fv); \
-            push_i((ctx)->stack, cur->count); \
+            push_i((ctx)->stack, cur->count + ctx->spread_additional); \
+            ctx->spread_additional = 0; \
             push_adr((ctx)->stack, cur->next); \
             cur = fn->jp; \
         } else if (fv->type == KX_BFNC_T) { \
@@ -234,7 +250,8 @@ default: \
             KX_BUILTIN_FUNCTION_ERROR(r); \
             cur = cur->next; \
         } else if (fv->type == KX_NFNC_T) { \
-            int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
+            int64_t r = call_native(ctx, frmv, cur->count + ctx->spread_additional, fv->value.fn); \
+            ctx->spread_additional = 0; \
             KX_EXCEPTION_CHECK("NativeFunctionException", r); \
             cur = cur->next; \
         } else { \
