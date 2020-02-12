@@ -38,9 +38,10 @@ static void usage(void)
     printf("    --with-native\n");
     printf("            Use this with -d to dump a compiled native function.\n");
     printf("    --native-call-max-depth\n");
-    printf("            Specify the max depth to call a native fnction. 1024 by default.\n");
+    printf("            Specify the max depth to call a native function. 1024 by default.\n");
     printf("    --case-threshold\n");
-    printf("            Specify the max interval between case's integer value. 16 by default.\n");
+    printf("            Specify the interval threshold between case's integer value.\n");
+    printf("            16 by default, means the interval within 16 will be in the same block.\n");
 }
 
 static void version(void)
