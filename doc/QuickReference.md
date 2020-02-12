@@ -164,6 +164,81 @@ Here is the result.
 You can put expression like 10200 as inner expression in the string.
 ```
 
+##### Formatting
+
+By `%` operator to the string, you can format th string like printf with type-safe.
+You can also use the printf style paraeter, but the most easy way is `%N%` style.
+In this case, `N` is the location of each parameter.
+
+Here is the example below.
+
+```javascript
+var fmt = "This is %1%, I can do %2%.";
+System.println(fmt % "Tom" % "cooking");
+```
+
+Here is the result.
+
+```
+This is Tom, I can do cooking.
+```
+
+If you want to apply parameters separately,
+use `%=` for the format object as below.
+
+```javascript
+var fmt = "This is %1%, I can do %2%.";
+fmt %= "Tom";
+fmt %= "cooking";
+System.println(fmt);
+```
+
+You can also change the parameter order as below.
+
+```javascript
+var fmt = "This is %2%, I can do %1%.";
+fmt %= "cooking";
+fmt %= "Tom";
+System.println(fmt);
+```
+
+If you want to use a printf style with the location information,
+use `%N$...` as below.
+`%` is also available as a type character even this time.
+
+```javascript
+var fmt = "This is %2$-5s, I can do %1$10%. My id is 0x%3$x.";
+fmt %= "cooking";
+fmt %= "Tom";
+fmt %= 255;
+System.println(fmt);
+```
+
+Here is the result.
+
+```
+This is Tom  , I can do    cooking. My id is 0xff.
+```
+
+As you see the above examples,
+`System.println/print` is automatically converting from formatter object to the string.
+Same as that, adding formatter object and string is automatically done as a string.
+
+```javascript
+var fmt = "This is %1%, I can do %2%." % "Tom" % "cooking";
+var s1 = "Nice to meet you. " + fmt;
+System.println(s1);
+var s2 = fmt + " Thank you.";
+System.println(s2);
+```
+
+Here is the result.
+
+```
+Nice to meet you. This is Tom, I can do cooking.
+This is Tom, I can do cooking. Thank you.
+```
+
 ##### Non-Escaping Style
 
 By using the following style, you can use a raw text
@@ -561,11 +636,106 @@ The order of upside of the list is higher.
 |   8   | Equals       | `==`, `!=`                                                                       |
 |   9   | Bit AND      | `&`                                                                              |
 |  10   | Bit XOR      | `^`                                                                              |
-|  11   | Bit OR       | `&#124;`                                                                         |
+|  11   | Bit OR       | <code>&#124;</code>                                                              |
 |  12   | Logical AND  | `&&`                                                                             |
-|  13   | Logical OR   | `&#124;&#124;`                                                                   |
+|  13   | Logical OR   | <code>&#124;&#124;</code>                                                        |
 |  14   | Ternary Expr | ` ? : `, `function(){}`                                                          |
 |  15   | Assignment   | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, `&#124;=`, `^=`, `&&=`, `&#124;&#124;=` |
+
+### Spread/Rest operator
+
+You can use a spread operator to spread array, etc.
+This is almost all similer to ES6, but there are a little differences as below.
+
+*   Object/Array is same internally, so both spreading array to object and spreading object to array are available operations.
+*   Destructuring assignment is available only for array.
+*   Writing the syntax of `...[a, b, c]` in function argument list directly is not supported. Variable name must be written like `...varname`.
+
+#### Arguments in Function Definition
+
+Only for the last argument, you can write a variable name following `...`.
+This means to get arguments as an array from the argument location.
+Here is the sample below.
+
+```javascript
+function sample(a1, a2, ...a3) {
+    /* ... */
+}
+
+sample(1, 2, 3, 4, 5);
+    // a1 = 1
+    // a2 = 2
+    // a3 = [3, 4, 5]
+```
+
+#### Arguments in Function Call
+
+You can write a variable name following `...` in a function call.
+In this case, it is okay to use multiple spread operators.
+And also, you can use the style like `...[a, b, c]` directly.
+Here is the sample below.
+
+```javascript
+function sample(a1, a2, a3) {
+    System.println(a1, ", ", a2, ", ", a3);
+}
+
+var a = [1, 2];
+sample(...a, ...[3, 4, 5]);
+    // a1 = 1
+    // a2 = 2
+    // a3 = 3
+```
+
+#### Destructuring Assignment
+
+Only for array, you can use destructuring assignment as below.
+In this case, you can **NOT** use `var` for declaration.
+Just write an array structure in the left hand side.
+Here is the sample below.
+
+```javascript
+function makeArray(...a1) {
+    return a1;  // returns array constructed by all arguments.
+}
+
+[a, b, ...c] = makeArray(100, 200, 300, 400, 500);
+    // a = 100
+    // b = 200
+    // c = [300, 400, 500]
+```
+
+#### Spreading Object
+
+About Object, kinx is supporting only spreading it.
+Here is the sample below.
+
+```javascript
+var obj1 = { a: 1, b: 2 };
+var obj2 = { c: 3, d: 4 };
+var mergedObj = { ...obj1, ...obj2, ...{ e: 5, f: 6 }};
+    // mergedObj := { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }
+```
+
+#### Spreading Binary
+
+Also about Binary, kinx is supporting only spreading it.
+But binary is directly copied to array by this,
+and array is directly copied to binary data.
+Here is the sample below.
+
+```javascript
+var bin = <0x01, 0x02, 0x03, 0x04>;
+var ary = [...bin];
+    // ary := [1, 2, 3, 4]
+
+var ary = [10, 11, 12, 257];
+var bin = <...ary>;
+    // bin := <0x0a, 0x0b, 0x0c, 0x01>
+```
+
+Note that in binary,
+the value will be wraparounded by 256 as 1 byte.
 
 ## Statement
 ### Basic Statement

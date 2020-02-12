@@ -248,7 +248,13 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         case KX_OBJ_T:
             ++count;
-            fprintf(fi->fp, "[...]");
+            kstr_t *out = kx_format(&val);
+            if (!out) {   
+                printf("[...]");
+            } else {
+                printf("%s", ks_string(out));
+                ks_free(out);
+            }
             break;
         case KX_FNC_T:
         case KX_BFNC_T:
