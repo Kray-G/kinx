@@ -1,6 +1,7 @@
 #include <dbg.h>
 #include <assert.h>
 #include <float.h>
+#include <math.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <kvec.h>
