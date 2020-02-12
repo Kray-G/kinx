@@ -216,10 +216,38 @@ static void apply_array(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana)
     if (node->type == KXST_EXPRLIST) {
         apply_array(ctx, node->lhs, ana);
         apply_array(ctx, node->rhs, ana);
+        return;
+    }
+
+    if (node->type == KXOP_SPREAD) {
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDA }));\
     } else {
         gencode_ast_hook(ctx, node, ana, 0);
         KX_DEF_BINCHKCMD(APPEND);
     }
+}
+
+static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana, int index)
+{
+    kx_module_t *module = ana->module;
+    if (!node) {
+        return index;
+    }
+    if (node->type == KXST_EXPRLIST) {
+        index = apply_getval(ctx, node->lhs, ana, index);
+        index = apply_getval(ctx, node->rhs, ana, index);
+        return index;
+    }
+
+    if (node->type == KXOP_SPREAD) {
+        gencode_ast_hook(ctx, node->lhs, ana, 1);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYA, .value1.i = index }));\
+    } else {
+        gencode_ast_hook(ctx, node, ana, 1);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYV, .value1.i = index }));\
+    }
+    return index + 1;
 }
 
 static void push_vv(kx_object_t *node, kx_analyze_t *ana)
@@ -604,11 +632,45 @@ static int setup_arg_types(kx_object_t *node, kx_code_t *code, int index)
     if (node->type == KXST_EXPRLIST) {
         index = setup_arg_types(node->lhs, code, index);
         index = setup_arg_types(node->rhs, code, index);
+        return index;
     }
     if (node->type == KXOP_VAR) {
         code->value2.n.arg_types[index] = (uint8_t)node->var_type;
     } else {
         code->value2.n.arg_types[index] = (uint8_t)KX_UNKNOWN_T;
+    }
+    return index + 1;
+}
+
+static int count_expressions(kx_object_t *node, kx_code_t *code)
+{
+    if (!node) {
+        return 0;
+    }
+    int count = 1;
+    if (node->type == KXST_EXPRLIST) {
+        count += count_expressions(node->lhs, code);
+    }
+    return count;
+}
+
+static int gencode_spread_vars(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana, int index)
+{
+    if (!node) {
+        return index;
+    }
+
+    if (node->type == KXST_EXPRLIST) {
+        index = gencode_spread_vars(ctx, node->lhs, ana, index);
+        index = gencode_spread_vars(ctx, node->rhs, ana, index);
+        return index;
+    }
+    if (node->type == KXOP_VAR && node->var_type == KX_SPR_T) {
+        if (node->lhs) {
+            gencode_ast_hook(ctx, node->lhs, ana, 0);
+            kx_module_t *module = ana->module;
+            add_pop(ana);
+        }
     }
     return index + 1;
 }
@@ -660,8 +722,13 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_KEYVALUE: {
-        gencode_ast_hook(ctx, node->lhs, ana, 0);
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDK, .value1 = { .s = const_str(node->value.s) } }));
+        if (node->lhs->type == KXOP_SPREAD) {
+            gencode_ast_hook(ctx, node->lhs->lhs, ana, 0);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDA }));\
+        } else {
+            gencode_ast_hook(ctx, node->lhs, ana, 0);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDK, .value1 = { .s = const_str(node->value.s) } }));
+        }
         break;
     }
 
@@ -719,9 +786,13 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     case KXOP_MKARY:
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
-        if (node->lhs) {
-            apply_array(ctx, node->lhs, ana);
+        if (lvalue) {
+            kx_yyerror_line("make array can not used in l-value.", node->file, node->line);
+        } else {
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
+            if (node->lhs) {
+                apply_array(ctx, node->lhs, ana);
+            }
         }
         break;
     case KXOP_MKOBJ:
@@ -755,11 +826,15 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
                     kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SET_GMM }));
                 }
             }
-            gencode_ast_hook(ctx, node->lhs, ana, 1);
-            if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHLV) {
-                last_op(ana) = KX_STOREV;
+            if (node->lhs->type == KXOP_MKARY) {
+                apply_getval(ctx, node->lhs->lhs, ana, 0);
             } else {
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
+                gencode_ast_hook(ctx, node->lhs, ana, 1);
+                if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHLV) {
+                    last_op(ana) = KX_STOREV;
+                } else {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
+                }
             }
         }
         break;
@@ -901,6 +976,11 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     case KXOP_CAST: {
         /* do nothing */
         gencode_ast_hook(ctx, node->lhs, ana, 0);
+        break;
+    }
+    case KXOP_SPREAD: {
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SPREAD }));
         break;
     }
 
@@ -1391,6 +1471,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         ana->block = block;
         int enter = kv_size(get_block(module, block)->code);
         kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_ENTER }));
+        gencode_spread_vars(ctx, node->lhs, ana, 0);
         if (node->ex) {
             gencode_ast_hook(ctx, node->ex, ana, 0);
         }
@@ -1438,6 +1519,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         ana->block = block;
         int enter = kv_size(get_block(module, block)->code);
         kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_ENTER }));
+        gencode_spread_vars(ctx, node->lhs, ana, 0);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         int pushes = count_pushes(get_function(module, cur), ana);
         kv_A(get_block(module, block)->code, enter).value1.i = pushes + 1;
@@ -1473,7 +1555,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }));
         int n = setup_arg_types(node->lhs, &kv_last(get_block(module, ana->block)->code), 0);
         if (n > KXN_MAX_FUNC_ARGS) {
-            kx_yyerror_line_fmt("Too many native function arguments.", node->file, node->line);
+            kx_yyerror_line("Too many native function arguments.", node->file, node->line);
         }
         break;
     }

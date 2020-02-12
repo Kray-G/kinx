@@ -116,6 +116,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "import") == 0)         { g_import = 1; return IMPORT; }
         /* typeof */
         if (strcmp(val, "isUndefined") == 0)    { kx_yylval.intval = KX_UND_T; return TYPEOF; }
+        if (strcmp(val, "isDefined") == 0)      { kx_yylval.intval = KX_DEF_T; return TYPEOF; }
         if (strcmp(val, "isInteger") == 0)      { kx_yylval.intval = KX_INT_T; return TYPEOF; }
         if (strcmp(val, "isBigInteger") == 0)   { kx_yylval.intval = KX_BIG_T; return TYPEOF; }
         if (strcmp(val, "isString") == 0)       { kx_yylval.intval = KX_STR_T; return TYPEOF; }
@@ -440,12 +441,23 @@ HEAD_OF_YYLEX:
     case ')':
     case ':':
     case ',':
-    case '.':
     case '?':
     case ';': {
         int ch = kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);
         return ch;
+    }
+    case '.': {
+        kx_lex_next(kx_lexinfo);
+        if (kx_lexinfo.ch == '.') {
+            kx_lex_next(kx_lexinfo);
+            if (kx_lexinfo.ch == '.') {
+                kx_lex_next(kx_lexinfo);
+                return DOTS3;
+            }
+            return ERROR;
+        }
+        return '.';
     }
     case '\'':
         kx_lexinfo.ch = SQ;

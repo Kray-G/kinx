@@ -123,3 +123,15 @@
     cur = cur->next; \
 } \
 /**/
+
+#define KX_SPREAD_CODE() \
+{ \
+    /* spread the top of stack */ \
+    KEX_POP_STACK_TOP(v1); \
+    if (v1->type != KX_OBJ_T && v1->type != KX_BIN_T) { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Can not spread values for non-array/binary object."); \
+    } \
+    kx_try_spread(ctx, cur, v1); \
+    cur = cur->next; \
+} \
+/**/

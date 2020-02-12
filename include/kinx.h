@@ -86,6 +86,7 @@ enum functype {
     KXFT_PUBLIC,
     KXFT_PRIVATE,
     KXFT_PROTECTED,
+    KXFT_SYSINTERNAL,
 };
 
 enum casetype {
@@ -159,6 +160,7 @@ enum opecode {
     KXOP_IMPORT,
     KXOP_TYPEOF,
     KXOP_CAST,
+    KXOP_SPREAD,
 
     /* ternary expression */
     KXOP_TER,
@@ -314,6 +316,10 @@ extern int kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t 
 extern int kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
+extern void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern void kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
+extern void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
@@ -390,6 +396,7 @@ static inline const char *get_typename(int type)
     case KX_NFNC_T: return "native-function";
     case KX_ADDR_T: return "-";
     case KX_ANY_T:  return "-";
+    case KX_SPR_T:  return "...array";
     case KX_ARY_T:  return "array";
     }
     return "... unknown";
