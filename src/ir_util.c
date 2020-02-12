@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <float.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <kvec.h>
@@ -713,4 +714,281 @@ int get_bin_item(kx_val_t *v)
     case KX_DBL_T:  return (uint8_t)(int)v->value.dv;
     }
     return -1;
+}
+
+/*
+    Calculation Helpers.
+*/
+
+#include "exec/code/_inlines.inc"
+
+#define KX_MOD_MOD_I(v1, val) { \
+    if (val == 0 && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
+        exc = KXN_DIVIDE_BY_ZERO; \
+        break; \
+    } \
+    if ((v1)->type == KX_INT_T) { \
+        int64_t v1val = (v1)->value.iv; \
+        int64_t v2val = (val); \
+        (v1)->value.iv %= v2val; \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = 0; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ r; \
+        BigZ b2 = BzFromInteger(val); \
+        BigZ q = BzDivide((v1)->value.bz, b2, &r); \
+        (v1)->value.bz = make_big_alive(ctx, r); \
+        BzFree(b2); \
+        BzFree(q); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.dv = fmod((v1)->value.dv, (double)val); \
+        break; \
+    } \
+    case KX_CSTR_T:\
+    case KX_STR_T: { \
+        const char *fmtstr = (v1)->type == KX_CSTR_T ? (v1)->value.pv : ks_string((v1)->value.sv); \
+        kx_obj_t *obj = allocate_obj(ctx); \
+        KEX_SET_PROP_CSTR(obj, "_format", fmtstr); \
+        KEX_PUSH_ARRAY_INT(obj, val); \
+        (v1)->type = KX_OBJ_T; \
+        (v1)->value.ov = obj; \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kx_obj_t *obj = (v1)->value.ov; \
+        kx_val_t *v = NULL; \
+        KEX_GET_PROP(v, obj, "_format"); \
+        if (v && v->type == KX_STR_T) { \
+            KEX_PUSH_ARRAY_INT(obj, val); \
+        } else { \
+            exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_MOD_MOD_B(v1, val) { \
+    switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = 0; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_INT_T: { \
+        if ((v1)->value.iv != 0) { \
+            BigZ r; \
+            BigZ bi = BzFromInteger((v1)->value.iv); \
+            BigZ q = BzDivide(bi, val, &r); \
+            (v1)->value.bz = make_big_alive(ctx, r); \
+            (v1)->type = KX_BIG_T; \
+            BzFree(bi); \
+            BzFree(q); \
+            KX_BIGINT_CHKINT(v1); \
+        } \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ r; \
+        BigZ q = BzDivide((v1)->value.bz, val, &r); \
+        if (BzGetSign(r) == BZ_ZERO) { \
+            BzFree(r); \
+            BzFree(q); \
+            (v1)->value.iv = 0; \
+            (v1)->type = KX_INT_T; \
+        } else { \
+            BzFree(q); \
+            (v1)->value.bz = make_big_alive(ctx, r); \
+            (v1)->type = KX_BIG_T; \
+            KX_BIGINT_CHKINT(v1); \
+        } \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.dv = fmod((v1)->value.dv, BzToDouble(val)); \
+        break; \
+    } \
+    case KX_CSTR_T:\
+    case KX_STR_T: { \
+        const char *fmtstr = (v1)->type == KX_CSTR_T ? (v1)->value.pv : ks_string((v1)->value.sv); \
+        kx_obj_t *obj = allocate_obj(ctx); \
+        KEX_SET_PROP_CSTR(obj, "_format", fmtstr); \
+        KEX_PUSH_ARRAY_BIG(obj, val); \
+        (v1)->type = KX_OBJ_T; \
+        (v1)->value.ov = obj; \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kx_obj_t *obj = (v1)->value.ov; \
+        kx_val_t *v = NULL; \
+        KEX_GET_PROP(v, obj, "_format"); \
+        if (v && v->type == KX_STR_T) { \
+            KEX_PUSH_ARRAY_BIG(obj, val); \
+        } else { \
+            exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_MOD_MOD_D(v1, val) { \
+    if (val < DBL_EPSILON && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
+        exc = KXN_DIVIDE_BY_ZERO; \
+        break; \
+    } \
+    switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = 0; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_INT_T: { \
+        (v1)->value.dv = fmod((double)(v1)->value.iv, val); \
+        (v1)->type = KX_DBL_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        (v1)->value.dv = fmod(BzToDouble((v1)->value.bz), val); \
+        (v1)->type = KX_DBL_T; \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.dv = fmod((v1)->value.dv, val); \
+        break; \
+    } \
+    case KX_CSTR_T:\
+    case KX_STR_T: { \
+        const char *fmtstr = (v1)->type == KX_CSTR_T ? (v1)->value.pv : ks_string((v1)->value.sv); \
+        kx_obj_t *obj = allocate_obj(ctx); \
+        KEX_SET_PROP_CSTR(obj, "_format", fmtstr); \
+        KEX_PUSH_ARRAY_DBL(obj, val); \
+        (v1)->type = KX_OBJ_T; \
+        (v1)->value.ov = obj; \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kx_obj_t *obj = (v1)->value.ov; \
+        kx_val_t *v = NULL; \
+        KEX_GET_PROP(v, obj, "_format"); \
+        if (v && v->type == KX_STR_T) { \
+            KEX_PUSH_ARRAY_DBL(obj, val); \
+        } else { \
+            exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_MOD_MOD_S(v1, val) { \
+    switch ((v1)->type) { \
+    case KX_CSTR_T:\
+    case KX_STR_T: { \
+        const char *fmtstr = (v1)->type == KX_CSTR_T ? (v1)->value.pv : ks_string((v1)->value.sv); \
+        kx_obj_t *obj = allocate_obj(ctx); \
+        KEX_SET_PROP_CSTR(obj, "_format", fmtstr); \
+        KEX_PUSH_ARRAY_CSTR(obj, val); \
+        (v1)->type = KX_OBJ_T; \
+        (v1)->value.ov = obj; \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kx_obj_t *obj = (v1)->value.ov; \
+        kx_val_t *v = NULL; \
+        KEX_GET_PROP(v, obj, "_format"); \
+        if (v && v->type == KX_STR_T) { \
+            KEX_PUSH_ARRAY_CSTR(obj, val); \
+        } else { \
+            exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_MOD_MOD_V(v1, v2) {\
+    if ((v2)->type == KX_INT_T) { \
+        KX_MOD_MOD_I(v1, (v2)->value.iv); \
+    } else switch ((v2)->type) { \
+    case KX_UND_T: { \
+        KX_MOD_MOD_S(v1, "(undefined)"); \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        KX_MOD_MOD_B(v1, (v2)->value.bz); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        KX_MOD_MOD_D(v1, (v2)->value.dv); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        KX_MOD_MOD_S(v1, (v2)->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_MOD_MOD_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+
+int kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    int exc = 0;
+    do {
+        KX_MOD_MOD_V(v1, v2);
+    } while (0);
+    return exc;
+}
+
+int kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_MOD_MOD_I(v1, cur->value1.i);
+    } while (0);
+    return exc;
+}
+
+int kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_MOD_MOD_D(v1, cur->value1.d);
+    } while (0);
+    return exc;
+}
+
+int kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_MOD_MOD_S(v1, cur->value1.s);
+    } while (0);
+    return exc;
 }

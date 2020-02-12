@@ -54,10 +54,17 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             ++count;
             printf("<...>");
             break;
-        case KX_OBJ_T:
+        case KX_OBJ_T: {
             ++count;
-            printf("[...]");
+            kstr_t *out = kx_format(&val);
+            if (!out) {   
+                printf("[...]");
+            } else {
+                printf("%s", ks_string(out));
+                ks_free(out);
+            }
             break;
+        }
         case KX_FNC_T:
         case KX_BFNC_T:
             ++count;
@@ -293,6 +300,22 @@ int System_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
+static int System_arguments(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = allocate_obj(ctx);
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        for (int i = 1; i <= args; ++i) {
+            kx_val_t *val = &kv_last_by(*stack, i);
+            KEX_PUSH_ARRAY_VAL(obj, *val);
+        }
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "makeSuper", System_makeSuper },
     { "print", System_print },
@@ -302,6 +325,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "SystemTimer_create", SystemTimer_create },
     { "parseInt", System_parseInt },
     { "parseDouble", System_parseDouble },
+    { "arguments", System_arguments },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

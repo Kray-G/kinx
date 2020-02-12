@@ -29,41 +29,6 @@ default: \
 } \
 /**/
 
-#define KX_NATIVE_FUNCTION_ERROR(r) \
-switch (r) { \
-case KXN_UNKNOWN_ERROR: { \
-    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unknown error occurred"); \
-    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
-} \
-case KXN_TOO_MUSH_ARGS: { \
-    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too much argument"); \
-    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
-} \
-case KXN_INVALID_FUNCTION: { \
-    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Invalid function address"); \
-    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
-} \
-case KXN_UNSUPPORTED_TYPE: { \
-    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Unsupported argument type"); \
-    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
-} \
-case KXN_DIVIDE_BY_ZERO: { \
-    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Divide by zero"); \
-    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
-} \
-case KXN_TOO_DEEP_TO_CALL_FUNC: { \
-    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Too deep to call function"); \
-    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
-} \
-case KXN_TYPE_MISMATCH: { \
-    THROW_SYSTEM_EXCEPTION("NativeFunctionException", "Type mismatch"); \
-    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
-} \
-default: \
-    break; \
-} \
-/**/
-
 #define KX_CALL_FUNCTION(fn, name, host) \
 { \
     if (!fn) { \
@@ -127,7 +92,7 @@ default: \
     } else if (fv->type == KX_NFNC_T) { \
         kv_remove_last((ctx)->stack); \
         int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
-        KX_NATIVE_FUNCTION_ERROR(r); \
+        KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
@@ -161,7 +126,7 @@ default: \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
         int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
-        KX_NATIVE_FUNCTION_ERROR(r); \
+        KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
@@ -190,7 +155,7 @@ default: \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
         int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
-        KX_NATIVE_FUNCTION_ERROR(r); \
+        KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
@@ -219,7 +184,7 @@ default: \
         cur = cur->next; \
     } else if (fv->type == KX_NFNC_T) { \
         int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
-        KX_NATIVE_FUNCTION_ERROR(r); \
+        KX_EXCEPTION_CHECK("NativeFunctionException", r); \
         cur = cur->next; \
     } else { \
         kx_fnc_t *fn = NULL; \
@@ -270,7 +235,7 @@ default: \
             cur = cur->next; \
         } else if (fv->type == KX_NFNC_T) { \
             int64_t r = call_native(ctx, frmv, cur->count, fv->value.fn); \
-            KX_NATIVE_FUNCTION_ERROR(r); \
+            KX_EXCEPTION_CHECK("NativeFunctionException", r); \
             cur = cur->next; \
         } else { \
             kx_fnc_t *fn = search_array_function(ctx, name, lv); \
