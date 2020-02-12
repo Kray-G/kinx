@@ -308,6 +308,12 @@ extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name,
 
 extern int eval_string(const char *code, kx_context_t *ctx);
 extern int eval_file(const char *file, kx_context_t *ctx);
+extern kstr_t *kx_format(kx_val_t *objval);
+
+extern int kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
+extern int kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
@@ -331,7 +337,6 @@ extern kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, 
 extern kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
-extern void longjmp_hook(sljit_sw r);
 extern int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int check_typeof(kx_val_t *v1, int type);

@@ -306,10 +306,14 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         ctx->lvalue = lvalue;
         analyze_ast(node->rhs, ctx);
+        if (node->rhs->var_type == KX_CSTR_T) {
+            node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
+            node->rhs->var_type = KX_STR_T;
+        }
         if (node->lhs->type == KXOP_VAR) {
             node->lhs->var_type = node->rhs->var_type;
         }
-        make_cast(node, node->lhs, node->rhs);
+        node->var_type = node->lhs->var_type;
         break;
     }
     case KXOP_SHL:
