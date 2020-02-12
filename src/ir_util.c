@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <assert.h>
 #include <float.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -692,6 +693,7 @@ int check_typeof(kx_val_t *v1, int type)
 {
     switch (type) {
     case KX_UND_T:  return v1->type == KX_UND_T;
+    case KX_DEF_T:  return v1->type != KX_UND_T;
     case KX_INT_T:  return v1->type == KX_INT_T || v1->type == KX_BIG_T;
     case KX_BIG_T:  return v1->type == KX_BIG_T;
     case KX_DBL_T:  return v1->type == KX_DBL_T;
@@ -991,4 +993,135 @@ int kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         KX_MOD_MOD_S(v1, cur->value1.s);
     } while (0);
     return exc;
+}
+
+int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    int exc = 0;
+    if (v1->type == KX_OBJ_T) {
+        if (v2->type == KX_OBJ_T) {
+            kx_obj_t *obj2 = v2->value.ov;
+            int len = kv_size(obj2->ary);
+            for (int i = 0; i < len; ++i) {
+                kv_push(kx_val_t, v1->value.ov->ary, kv_A(obj2->ary, i));
+            }
+            for (khint_t k = 0; k < kh_end(obj2->prop); ++k) {
+                if (kh_exist(obj2->prop, k)) {
+                    const char *key = kh_key(obj2->prop, k);
+                    kx_val_t *v = &kh_value(obj2->prop, k);
+                    if (v->type == KX_STR_T) {
+                        KEX_SET_PROP_STR(v1->value.ov, key, v->value.sv);
+                    } else if (v->type == KX_CSTR_T) {
+                        KEX_SET_PROP_CSTR(v1->value.ov, key, v->value.pv);
+                    } else if (v->type == KX_BIG_T) {
+                        KEX_SET_PROP_BIG(v1->value.ov, key, v->value.bz);
+                    } else {
+                        KEX_SET_PROP(v1->value.ov, key, v);
+                    }
+                }
+            }
+        } else if (v2->type == KX_BIN_T) {
+            int len = kv_size(v2->value.bn->bin);
+            for (int i = 0; i < len; ++i) {
+                int64_t val = (int64_t)kv_A(v2->value.bn->bin, i);
+                kv_push(kx_val_t, v1->value.ov->ary,
+                    ((kx_val_t){ .type = KX_INT_T, .value.iv = val }));
+            }
+        } else {
+            exc = KXN_UNSUPPORTED_OPERATOR;
+        }
+    } else if (v1->type == KX_BIN_T) {
+        if (v2->type == KX_OBJ_T) {
+            kx_obj_t *obj2 = v2->value.ov;
+            int len = kv_size(obj2->ary);
+            for (int i = 0; i < len; ++i) {
+                kx_val_t *v = &kv_A(obj2->ary, i);
+                if (v->type == KX_INT_T) {
+                    kv_push(uint8_t, v1->value.bn->bin, v->value.iv);
+                } else if (v->type == KX_DBL_T) {
+                    kv_push(uint8_t, v1->value.bn->bin, (uint8_t)v->value.dv);
+                } else if (v->type == KX_BIG_T) {
+                    kv_push(uint8_t, v1->value.bn->bin, (uint8_t)0xFF);
+                } else {
+                    kv_push(uint8_t, v1->value.bn->bin, (uint8_t)0x00);
+                }
+            }
+        } else if (v2->type == KX_BIN_T) {
+            kv_append(uint8_t, v1->value.bn->bin, v2->value.bn->bin);
+        } else {
+            exc = KXN_UNSUPPORTED_OPERATOR;
+        }
+    } else {
+        exc = KXN_UNSUPPORTED_OPERATOR;
+    }
+    return exc;
+}
+
+void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    if (v1->type == KX_OBJ_T) {
+        kx_obj_t *obj = v1->value.ov;
+        int len = kv_size(obj->ary);
+        if (len == 0) {
+            push_undef((ctx)->stack);
+        } else {
+            ctx->spread_additional += --len;
+            for (int i = len; i >= 0; --i) {
+                push_value((ctx)->stack, kv_A(obj->ary, i));
+            }
+        }
+    } else { /* KX_BIN_T */
+        kvec_t(uint8_t) *bin = &(v1->value.bn->bin);
+        int len = kv_size(*bin);
+        if (len == 0) {
+            push_undef((ctx)->stack);
+        } else {
+            ctx->spread_additional += --len;
+            for (int i = len; i >= 0; --i) {
+                push_i((ctx)->stack, kv_A(*bin, i));
+            }
+        }
+    }
+}
+
+void kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    assert(v2->type == KX_LVAL_T);
+    kx_val_t *vp = v2->value.lv;
+    int len = kv_size(v1->value.ov->ary);
+    if (cur->value1.i < len) {
+        kx_val_t *v = &kv_A(v1->value.ov->ary, cur->value1.i);
+        if (v->type == KX_STR_T) {
+            vp->type = KX_STR_T;
+            vp->value.sv = allocate_str(ctx);
+            ks_append(vp->value.sv, ks_string(v->value.sv));
+        } else if (v->type == KX_BIG_T) {
+            vp->type = KX_BIG_T;
+            vp->value.bz = make_big_alive(ctx, BzCopy(v->value.bz));
+        } else {
+            *vp = *v; /* structure copy. */
+        }
+    } else {
+        vp->type = KX_UND_T;
+    }
+}
+
+void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    assert(v2->type == KX_LVAL_T);
+    kx_val_t *vp = v2->value.lv;
+    kx_obj_t *obj = allocate_obj(ctx);
+    int len = kv_size(v1->value.ov->ary);
+    for (int i = cur->value1.i; i < len; ++i) {
+        kx_val_t *v = &kv_A(v1->value.ov->ary, i);
+        if (v->type == KX_STR_T) {
+            KEX_PUSH_ARRAY_STR(obj, ks_string(v->value.sv));
+        } else if (v->type == KX_BIG_T) {
+            KEX_PUSH_ARRAY_BIG(obj, v->value.bz);
+        } else {
+            KEX_PUSH_ARRAY_VAL(obj, *v);
+        }
+    }
+    vp->type = KX_OBJ_T;
+    vp->value.ov = obj;
 }

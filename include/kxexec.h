@@ -55,6 +55,7 @@
     &&LBL_KX_PUSH_TRUE, \
     &&LBL_KX_PUSH_FALSE, \
     &&LBL_KX_PUSH_C, \
+    &&LBL_KX_SPREAD, \
     &&LBL_KX_POP_C, \
     &&LBL_KX_POP, \
     &&LBL_KX_STORE, \
@@ -75,6 +76,8 @@
     &&LBL_KX_DECVX, \
     &&LBL_KX_MKBIN, \
     &&LBL_KX_MKARY, \
+    &&LBL_KX_GETARYV, \
+    &&LBL_KX_GETARYA, \
     &&LBL_KX_APPLYV, \
     &&LBL_KX_APPLYL, \
     &&LBL_KX_APPLYVI, \
@@ -87,6 +90,7 @@
     &&LBL_KX_APPENDD, \
     &&LBL_KX_APPENDS, \
     &&LBL_KX_APPENDV, \
+    &&LBL_KX_APPENDA, \
     &&LBL_KX_ADD, \
     &&LBL_KX_ADDI, \
     &&LBL_KX_ADDD, \

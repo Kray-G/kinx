@@ -84,7 +84,13 @@ int Integer_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to convert to double");
 }
 
+int Integer_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Integer do not have a length method.");
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
+    { "length", Integer_length },
     { "parseInt", Integer_parseInt },
     { "parseDouble", Integer_parseDouble },
 };
