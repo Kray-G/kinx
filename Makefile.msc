@@ -27,6 +27,7 @@ OBJS = \
     src/loadlib.obj \
     src/main.obj \
     src/parser.obj \
+    src/format.obj \
     src/string.obj
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
@@ -123,6 +124,7 @@ PICOBJS = \
     src/bigz.obj \
     src/allocutil.obj \
     src/fileutil.obj \
+    src/format.obj \
     src/kstr.obj
 TESTCORE = \
     apply \

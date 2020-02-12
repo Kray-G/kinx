@@ -243,11 +243,51 @@ enum irop {
 #define KXN_DIVIDE_BY_ZERO (5)
 #define KXN_TOO_DEEP_TO_CALL_FUNC (6)
 #define KXN_TYPE_MISMATCH (7)
+#define KXN_UNSUPPORTED_OPERATOR (8)
 #define KXN_MAX_EXCEPTION (KXN_TOO_DEEP_TO_CALL_FUNC)
 
 #define KXN_EXC_FLAG (4)
 #define KXN_EXC_CODE (5)
 #define KXN_STACK_TRACE_MAX (256)
+
+#define KX_EXCEPTION_CHECK(typ, r) \
+switch (r) { \
+case KXN_UNKNOWN_ERROR: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Unknown error occurred"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KXN_TOO_MUSH_ARGS: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Too much argument"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KXN_INVALID_FUNCTION: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Invalid function address"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KXN_UNSUPPORTED_TYPE: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Unsupported argument type"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KXN_DIVIDE_BY_ZERO: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Divide by zero"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KXN_TOO_DEEP_TO_CALL_FUNC: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Too deep to call function"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KXN_TYPE_MISMATCH: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Type mismatch"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+case KXN_UNSUPPORTED_OPERATOR: { \
+    THROW_SYSTEM_EXCEPTION(typ, "Unsupported operator"); \
+    /* break; THROW_SYSTEM_EXCEPTION() will do KX_GOTO() at the end. */ \
+} \
+default: \
+    break; \
+} \
+/**/
 
 kvec_init_t(int);
 kvec_init_t(uint32_t);
@@ -831,6 +871,20 @@ typedef struct kx_context_ {
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_INT_T; \
     top->value.iv = (val); \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_BIG(o, val) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_BIG_T; \
+    top->value.bz = make_big_alive(ctx, BzCopy(val)); \
+} \
+/**/
+
+#define KEX_PUSH_ARRAY_DBL(o, val) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_DBL_T; \
+    top->value.dv = (val); \
 } \
 /**/
 
