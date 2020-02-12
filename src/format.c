@@ -5,7 +5,7 @@
 #define KX_APPEND_CH(out, ch) { outbuf[0] = ch; outbuf[1] = 0; ks_append(out, outbuf); }
 #define KX_FMT_SIGN(sign) ((sign) == 0 ? "" : ((sign) > 0 ? "-" : "+")) 
 
-static kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec, int sign, int zero, const char *fmt64, int fmtdbl)
+static void kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec, int sign, int zero, const char *fmt64, int fmtdbl)
 {
     char *buf;
     char fmtbuf[KX_MAX_BUF] = {0};
