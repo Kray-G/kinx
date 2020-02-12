@@ -185,6 +185,18 @@
         ks_append((v1)->value.sv, val); \
         break; \
     } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_append(sv, ks_string(out)); \
+            ks_append(sv, val); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -234,6 +246,24 @@
             kv_append(kx_val_t, o1->ary, o2->ary); \
             (v1)->value.ov = o1;\
             break; \
+        } else if ((v1)->type == KX_CSTR_T) { \
+            kstr_t *out = kx_format(v2); \
+            if (out) { \
+                kstr_t *sv = allocate_str(ctx); \
+                ks_append(sv, (v1)->value.pv); \
+                ks_append(sv, ks_string(out)); \
+                ks_free(out); \
+                (v1)->type = KX_STR_T; \
+                (v1)->value.sv = sv; \
+                break; \
+            } \
+        } else if ((v1)->type == KX_CSTR_T || (v1)->type == KX_STR_T) { \
+            kstr_t *out = kx_format(v2); \
+            if (out) { \
+                ks_append(v1->value.sv, ks_string(out)); \
+                ks_free(out); \
+                break; \
+            } \
         } \
         /* fall through */ \
     } \
