@@ -126,6 +126,7 @@ static void kx_format_impl(kstr_t *out, kx_obj_t *obj, const char *fmt)
         if (num > 0) {
             if (*fmt == '%') {
                 fmtpos = num - 1;
+                num = 0;
                 prec = 0;
                 zero = 0;
                 sign = 0;

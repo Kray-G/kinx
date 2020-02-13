@@ -1541,22 +1541,18 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: optional: return type */
-        kxn_func_t nf = start_nativejit_ast(ctx, node);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
             FILELINE(ana), .op = KX_PUSHNF,
             .value1 = { .s = const_str(node->value.s) },
-            .value2 = {
-                .n = {
-                    .func = nf.func,
-                    .args = node->count_args,
-                    .ret_type = nf.ret_type,
-                }
-            },
         }));
         int n = setup_arg_types(node->lhs, &kv_last(get_block(module, ana->block)->code), 0);
         if (n > KXN_MAX_FUNC_ARGS) {
             kx_yyerror_line("Too many native function arguments.", node->file, node->line);
         }
+        kxn_func_t nf = start_nativejit_ast(ctx, node, kv_last(get_block(module, ana->block)->code).value2.n.arg_types, n);
+        kv_last(get_block(module, ana->block)->code).value2.n.func = nf.func;
+        kv_last(get_block(module, ana->block)->code).value2.n.args = node->count_args;
+        kv_last(get_block(module, ana->block)->code).value2.n.ret_type = nf.ret_type;
         break;
     }
     default:

@@ -58,6 +58,19 @@
         ks_appendf((v1)->value.sv, "%d", val); \
         break; \
     } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_append(sv, ks_string(out)); \
+            ks_appendf(sv, "%d", val); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -102,6 +115,21 @@
         BzFreeString(buf); \
         break; \
     } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_append(sv, ks_string(out)); \
+            char *buf = BzToString(val, 10, 0); \
+            ks_append((v1)->value.sv, buf); \
+            BzFreeString(buf); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -137,6 +165,19 @@
     case KX_STR_T: { \
         ks_appendf((v1)->value.sv, "%g", val); \
         break; \
+    } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_append(sv, ks_string(out)); \
+            ks_appendf((v1)->value.sv, "%g", val); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        /* fall through */ \
     } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
@@ -239,33 +280,9 @@
         break; \
     } \
     case KX_OBJ_T: { \
-        if ((v1)->type == KX_OBJ_T) { \
-            kx_obj_t *o1 = allocate_obj(ctx); \
-            kv_copy(kx_val_t, o1->ary, (v1)->value.ov->ary); \
-            kx_obj_t *o2 = (v2)->value.ov; \
-            kv_append(kx_val_t, o1->ary, o2->ary); \
-            (v1)->value.ov = o1;\
-            break; \
-        } else if ((v1)->type == KX_CSTR_T) { \
-            kstr_t *out = kx_format(v2); \
-            if (out) { \
-                kstr_t *sv = allocate_str(ctx); \
-                ks_append(sv, (v1)->value.pv); \
-                ks_append(sv, ks_string(out)); \
-                ks_free(out); \
-                (v1)->type = KX_STR_T; \
-                (v1)->value.sv = sv; \
-                break; \
-            } \
-        } else if ((v1)->type == KX_CSTR_T || (v1)->type == KX_STR_T) { \
-            kstr_t *out = kx_format(v2); \
-            if (out) { \
-                ks_append(v1->value.sv, ks_string(out)); \
-                ks_free(out); \
-                break; \
-            } \
-        } \
-        /* fall through */ \
+        int r = kx_try_add_v2obj(ctx, cur, v1, v2); \
+        KX_EXCEPTION_CHECK("SystemException", r); \
+        break; \
     } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
