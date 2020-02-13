@@ -833,7 +833,12 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
             r1 = nativejit_ast(nctx, node->lhs, 0); /* local or lexical variable */
         }
 
+        int s1 = get_sreg(nctx);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, reg(s1), 0, reg(r1), 0);
         int index = set_args(nctx, node->rhs, nctx->local_vars + KXN_LOCALVAR_OFFSET);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, reg(r1), 0, reg(s1), 0);
+        release_reg(nctx, s1);
+
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->local_vars+1) * KXN_WDSZ, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
         sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->local_vars * KXN_WDSZ);
@@ -1318,7 +1323,7 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
             sljit_set_label(mismatched[i], type_mismatch);
         }
         set_exception(nctx, 1);
-        set_exception_code(nctx, KXN_TOO_DEEP_TO_CALL_FUNC);
+        set_exception_code(nctx, KXN_TYPE_MISMATCH);
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
 
         kx_free(nctx->finallies);
