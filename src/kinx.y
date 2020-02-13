@@ -78,7 +78,6 @@
 %type<obj> PropertyName
 %type<type> IncDec_Opt
 %type<obj> Factor
-%type<obj> String
 %type<obj> Binary
 %type<obj> Array
 %type<obj> Object
@@ -105,6 +104,7 @@
 %type<obj> SpreadItem
 %type<intval> NativeType
 %type<intval> TypeName
+%type<intval> ReturnType_Opt
 
 %%
 
@@ -361,11 +361,11 @@ Factor
     | NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
-    | String
+    | STR { $$ = kx_gen_str_object($1); }
     | Array
     | Binary
     | Object
-    | IMPORT '(' STR ')' { $$ = kx_gen_import_object($3); }
+    | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }
     | '(' AssignExpression ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     | '@' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
@@ -401,11 +401,6 @@ PropertyName
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
     | USING { $$ = kx_gen_str_object("using"); } 
-    ;
-
-String
-    : STR { $$ = kx_gen_str_object($1); }
-    | String STR { $$ = kx_gen_bexpr_object(KXOP_ADD, $1, kx_gen_str_object($2)); }
     ;
 
 Array
@@ -465,9 +460,9 @@ DeclAssignExpressionList
 
 DeclAssignExpression
     : NAME { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
-    | NAME ':' TypeName { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), NULL); }
+    | NAME ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
     | NAME '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
-    | NAME ':' TypeName '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, $3), $5); }
+    | NAME ':' TypeName ReturnType_Opt '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
     ;
 
 FunctionDeclStatement
@@ -535,13 +530,18 @@ ArgumentList
 
 Argument
     : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | NAME ':' TypeName { $$ = kx_gen_var_object($1, $3); }
+    | NAME ':' TypeName ReturnType_Opt { $$ = kx_gen_var_type_object($1, $3, $4); }
     | DOTS3 NAME { $$ = kx_gen_var_object($2, KX_SPR_T); }
     ;
 
 TypeName
     : TYPE  { $$ = $1; }
     | NATIVE { $$ = KX_NFNC_T; }
+    ;
+
+ReturnType_Opt
+    : { $$ = KX_UNKNOWN_T; }
+    | '(' TypeName ')' { $$ = $2; }
     ;
 
 ClassCallArgumentList_Opts

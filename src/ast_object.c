@@ -41,6 +41,8 @@ kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *r
     obj->rhs = rhs;
     obj->ex = ex;
     obj->type = type;
+    obj->var_type = KX_UNKNOWN_T;
+    obj->ret_type = KX_UNKNOWN_T;
     obj->optional = optional;
     obj->file = const_str(kx_lexinfo.file);
     obj->line = kx_lexinfo.line;
@@ -57,6 +59,20 @@ kx_object_t *kx_gen_var_object(const char *name, int var_type)
     kx_object_t *obj = kx_gen_obj(KXOP_VAR, 0, NULL, NULL, NULL);
     obj->value.s = name;
     obj->var_type = var_type;
+    return obj;
+}
+
+kx_object_t *kx_gen_var_type_object(const char *name, int var_type, int ret_type)
+{
+    kx_object_t *obj = kx_gen_obj(KXOP_VAR, 0, NULL, NULL, NULL);
+    obj->value.s = name;
+    obj->var_type = var_type;
+    obj->ret_type = (var_type == KX_NFNC_T && ret_type == KX_UNKNOWN_T) ? KX_INT_T : ret_type;
+    if (ret_type != KX_UNKNOWN_T) {
+        if (var_type != KX_NFNC_T && var_type != KX_FNC_T) {
+            kx_yyerror_line("Return type is only used for funciton/native definition.", obj->file, obj->line);
+        }
+    }
     return obj;
 }
 
@@ -270,7 +286,10 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     if (!name) {
         name = kx_gen_name("__anonymous_func", counter++);
     }
-    kx_object_t *obj = kx_gen_obj(type, (type == KXST_NATIVE || pname) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
+    kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE && pname) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
+    if (type == KXST_NATIVE) {
+        obj->ret_type = optional;
+    }
     obj->value.s = name;
     kx_object_t *assign;
     if (!pname && type != KXST_NATIVE) {

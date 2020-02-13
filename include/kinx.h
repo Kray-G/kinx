@@ -185,7 +185,7 @@ enum opecode {
     KXST_THROW,     /* lhs: expr */
     KXST_CLASS,     /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
     KXST_FUNCTION,  /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
-    KXST_NATIVE,    /* s: name, lhs: arglist, rhs: block, optional: return type */
+    KXST_NATIVE,    /* s: name, lhs: arglist, rhs: block, ret_type: return type */
 
     KXST_BREAK,
     KXST_CONTINUE,
@@ -219,6 +219,7 @@ typedef struct kx_object_ {
     /* for values */
     int type;
     int var_type;
+    int ret_type;
     int optional;
     union {
         int64_t     i;
@@ -287,6 +288,7 @@ extern void kx_make_native_mode(void);
 extern void kx_make_bin_mode(void);
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name, int var_type);
+extern kx_object_t *kx_gen_var_type_object(const char *name, int var_type, int ret_type);
 extern kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type);
 extern kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value);
 extern kx_object_t *kx_gen_int_object(int64_t val);
