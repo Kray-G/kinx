@@ -176,7 +176,7 @@ static int get_keyword_token(const char *val)
 static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_multi, int is_trim)
 {
     if (kx_lexinfo.inner.brcount > 0) {
-        kx_yyerror("Can not put a nested inner expression.");
+        kx_yyerror("Can not put a nested inner expression");
         return ERROR;
     }
 

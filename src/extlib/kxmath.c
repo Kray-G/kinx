@@ -8,7 +8,7 @@ KX_DECL_MEM_ALLOCATORS();
 int Math_##name(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 { \
     if (!can_be_arg_dbl(1, args, ctx)) { \
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 1, double is needed."); \
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 1, double is needed"); \
     } \
     double v = get_arg_dbl(1, args, ctx); \
     KX_ADJST_STACK(); \
@@ -20,11 +20,11 @@ int Math_##name(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 int Math_##name(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 { \
     if (!can_be_arg_dbl(1, args, ctx)) { \
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 1, double is needed."); \
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 1, double is needed"); \
     } \
     double v1 = get_arg_dbl(1, args, ctx); \
     if (!can_be_arg_dbl(2, args, ctx)) { \
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 2, double is needed."); \
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 2, double is needed"); \
     } \
     double v2 = get_arg_dbl(2, args, ctx); \
     KX_ADJST_STACK(); \
@@ -36,11 +36,11 @@ int Math_##name(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 int Math_##name(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 { \
     if (!can_be_arg_dbl(1, args, ctx)) { \
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 1, double is needed."); \
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 1, double is needed"); \
     } \
     double v1 = get_arg_dbl(1, args, ctx); \
     if (!can_be_arg_int(2, args, ctx)) { \
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 2, integer is needed."); \
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Type mismatch in argument 2, integer is needed"); \
     } \
     int64_t v2 = get_arg_int(2, args, ctx); \
     KX_ADJST_STACK(); \
