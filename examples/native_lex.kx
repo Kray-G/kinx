@@ -8,14 +8,20 @@ native test(n) {
 
 System.println("test(10) = ", test(10));
 
-native mul2(a) {
-    return a * 2;
+var mul2:native;    # Forward declaration.
+
+native mul2_hook(f:native, a) {
+    return f(a); # type check.
 }
 
 var x, y;
 native test2(i) {
-    return x = y = mul2(i); # calling a lexical native function.
+    return x = y = mul2_hook(mul2, i); # calling a lexical native function.
 }
+
+mul2 = native(a) {
+    return a * 2;
+};
 
 System.println("test2(10) = ", test2(10));
 System.println("x = ", x);

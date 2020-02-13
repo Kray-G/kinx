@@ -225,8 +225,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
                 );
                 int arg_index = ctx->arg_index;
                 int lvalue = ctx->lvalue;
-                ctx->lvalue = 0;
                 int decl = ctx->decl;
+                ctx->lvalue = 0;
                 ctx->decl = 0;
                 analyze_ast(node->lhs, ctx);
                 ctx->lvalue = lvalue;
@@ -239,7 +239,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
-        node->var_type = (sym->base->var_type == KX_SPR_T && !ctx->decl) ? KX_OBJ_T : sym->base->var_type;
+        node->var_type = (sym->base->var_type == KX_SPR_T && !ctx->decl) ? KX_UNKNOWN_T : sym->base->var_type;
         if (sym->base->var_type == KX_NFNC_T) {
             node->optional = sym->base->optional;
         }
@@ -605,7 +605,6 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             node->var_type = KX_NFNC_T;
         } else {
             ctx->in_native = 0;
-            node->var_type = KX_FNC_T;
         }
         if (ctx->func) {
             ctx->func->lexical_refs = 1;

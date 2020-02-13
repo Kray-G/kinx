@@ -448,7 +448,6 @@ But there are limitations below.
 *   Integer value is not automatically promoted to big integer, just overfow it.
 *   Can not call a script function. Only can call a native function.
 *   `switch-case` is not supported.
-*   Forward declaration of a native function is not supported.
 *   Can access to the lexical scope and variables, but only for an integer value.
 *   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
 *   Support 64bit only. Libraries are supporting x64, ARM, MIPS, but sorry I can not test it except x64 Windows or Linux.
