@@ -1,4 +1,4 @@
-# native function can access lexical variable if it is integer.
+# native function can access lexical variable.
 
 var a = 1;
 native test(n) {
@@ -8,7 +8,7 @@ native test(n) {
 
 System.println("test(10) = ", test(10));
 
-var mul2:native;    # Forward declaration.
+var mul2:native;    # Forward declaration. Same as 'mul2:native(int)'
 
 native mul2_hook(f:native, a) {
     return f(a); # type check.
