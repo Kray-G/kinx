@@ -1540,7 +1540,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }));
         break;
     }
-    case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: optional: return type */
+    case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
             FILELINE(ana), .op = KX_PUSHNF,
             .value1 = { .s = const_str(node->value.s) },

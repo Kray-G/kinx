@@ -78,7 +78,6 @@ static int count_args(kx_object_t *node)
 
 static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
 {
-    node->var_type = KX_UNKNOWN_T;
     if (!lhs || !rhs) {
         return;
     }
@@ -207,7 +206,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
         if (!sym) {
             if (!ctx->decl && !ctx->lvalue) {
-                kx_yyerror_line_fmt("Symbol(%s) is not found.", node->file, node->line, node->value.s);
+                kx_yyerror_line_fmt("Symbol(%s) is not found", node->file, node->line, node->value.s);
             }
             return;
         }
@@ -241,50 +240,50 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         node->lexical = sym->lexical_index;
         node->var_type = (sym->base->var_type == KX_SPR_T && !ctx->decl) ? KX_UNKNOWN_T : sym->base->var_type;
         if (sym->base->var_type == KX_NFNC_T) {
-            node->optional = sym->base->optional;
+            node->ret_type = sym->base->ret_type;
         }
         break;
     }
     case KXOP_KEYVALUE:
         if (ctx->in_native) {
-            kx_yyerror_line("Can not use key-value object in native function.", node->file, node->line);
+            kx_yyerror_line("Can not use key-value object in native function", node->file, node->line);
             break;
         }
         analyze_ast(node->lhs, ctx);
         break;
 
     case KXOP_NOT:
-        node->var_type = node->lhs->var_type;
         analyze_ast(node->lhs, ctx);
+        node->var_type = node->lhs->var_type;
         break;
     case KXOP_POSITIVE:
-        node->var_type = node->lhs->var_type;
         analyze_ast(node->lhs, ctx);
+        node->var_type = node->lhs->var_type;
         break;
     case KXOP_NEGATIVE:
-        node->var_type = node->lhs->var_type;
         analyze_ast(node->lhs, ctx);
+        node->var_type = node->lhs->var_type;
         break;
     case KXOP_INC:
-        node->var_type = node->lhs->var_type;
         analyze_ast(node->lhs, ctx);
+        node->var_type = node->lhs->var_type;
         break;
     case KXOP_DEC:
-        node->var_type = node->lhs->var_type;
         analyze_ast(node->lhs, ctx);
+        node->var_type = node->lhs->var_type;
         break;
     case KXOP_INCP:       /* postfix */
-        node->var_type = node->lhs->var_type;
         analyze_ast(node->lhs, ctx);
+        node->var_type = node->lhs->var_type;
         break;
     case KXOP_DECP:       /* postfix */
-        node->var_type = node->lhs->var_type;
         analyze_ast(node->lhs, ctx);
+        node->var_type = node->lhs->var_type;
         break;
     case KXOP_MKBIN:
         node->var_type = KX_BIN_T;
         if (ctx->in_native) {
-            kx_yyerror_line("Can not use binary object in native function.", node->file, node->line);
+            kx_yyerror_line("Can not use binary object in native function", node->file, node->line);
             break;
         }
         analyze_ast(node->lhs, ctx);
@@ -292,7 +291,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_MKARY:
         node->var_type = KX_OBJ_T;
         if (ctx->in_native) {
-            kx_yyerror_line("Can not use array object in native function.", node->file, node->line);
+            kx_yyerror_line("Can not use array object in native function", node->file, node->line);
             break;
         }
         analyze_ast(node->lhs, ctx);
@@ -300,7 +299,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_MKOBJ:
         node->var_type = KX_OBJ_T;
         if (ctx->in_native) {
-            kx_yyerror_line("Can not use key-value object in native function.", node->file, node->line);
+            kx_yyerror_line("Can not use key-value object in native function", node->file, node->line);
             break;
         }
         analyze_ast(node->lhs, ctx);
@@ -361,7 +360,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     case KXOP_IDX:
         if (ctx->in_native) {
-            kx_yyerror_line("Can not use apply index operation in native function.", node->file, node->line);
+            kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
         }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
@@ -379,16 +378,12 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
-        node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->optional : node->lhs->var_type;
-        if (node->lhs->var_type == KX_FNC_T && node->lhs->optional == KX_UNKNOWN_T) {
-            kx_yyerror_line("Can not call a native function without returning type.", node->file, node->line);
+        node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->ret_type : node->lhs->var_type;
+        if (node->lhs->var_type == KX_NFNC_T && node->lhs->ret_type == KX_UNKNOWN_T) {
+            kx_yyerror_line("Can not call a native function without returning type", node->file, node->line);
         }
         break;
     case KXOP_CALL: {
-        node->count_args = count_args(node->rhs);
-        if (ctx->func && node->count_args > ctx->func->callargs_max) {
-            ctx->func->callargs_max = node->count_args;
-        }
         int lvalue = ctx->lvalue;
         int decl = ctx->decl;
         ctx->lvalue = 0;
@@ -397,16 +392,28 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->rhs, ctx);
         ctx->lvalue = 0;
         ctx->decl = 0;
-        node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->optional : node->lhs->var_type;
-        if (node->lhs->var_type == KX_FNC_T && node->lhs->optional == KX_UNKNOWN_T) {
-            kx_yyerror_line("Can not call a native function without returning type.", node->file, node->line);
+        if ((node->lhs->var_type == KX_CSTR_T || node->lhs->var_type == KX_STR_T) && (node->rhs->var_type == KX_CSTR_T || node->rhs->var_type == KX_STR_T)) {
+            node->type = KXOP_ADD;
+            make_cast(node, node->lhs, node->rhs);
+        } else {
+            node->count_args = count_args(node->rhs);
+            if (ctx->func && node->count_args > ctx->func->callargs_max) {
+                ctx->func->callargs_max = node->count_args;
+            }
+            if (ctx->in_native && node->lhs->var_type != KX_NFNC_T) {
+                kx_yyerror_line("Can not call a non-native function from native function", node->file, node->line);
+            }
+            node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->ret_type : node->lhs->var_type;
+            if (node->lhs->var_type == KX_NFNC_T && node->lhs->ret_type == KX_UNKNOWN_T) {
+                kx_yyerror_line("Can not call a native function without returning type", node->file, node->line);
+            }
         }
         break;
     }
 
     case KXOP_TYPEOF:
         if (ctx->in_native) {
-            kx_yyerror_line("Can not use type property in native function.", node->file, node->line);
+            kx_yyerror_line("Can not use type property in native function", node->file, node->line);
             break;
         }
         analyze_ast(node->lhs, ctx);
@@ -521,20 +528,33 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     }
     case KXST_RET:        /* lhs: expr */
-        analyze_ast(node->lhs, ctx);
+        if (node->lhs) {
+            analyze_ast(node->lhs, ctx);
+            if (ctx->in_native || ctx->func->ret_type != KX_UNKNOWN_T) {
+                if (ctx->func->ret_type != node->lhs->var_type) {
+                    kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(ctx->func->ret_type), get_typename(node->lhs->var_type));
+                }
+            }
+        } else {
+            if (ctx->in_native || ctx->func->ret_type != KX_UNKNOWN_T) {
+                if (ctx->func->ret_type != KX_UND_T) {
+                    kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(ctx->func->ret_type), get_typename(KX_UND_T));
+                }
+            }
+        }
         break;
     case KXST_THROW:      /* lhs: expr */
         if (node->lhs) {
             analyze_ast(node->lhs, ctx);
         } else {
             if (!ctx->in_catch) {
-                kx_yyerror_line("Can not use throw without expression outside catch clause.", node->file, node->line);
+                kx_yyerror_line("Can not use throw without expression outside catch clause", node->file, node->line);
             }
         }
         break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         if (ctx->in_native) {
-            kx_yyerror_line("Do not define class in native function.", node->file, node->line);
+            kx_yyerror_line("Do not define class in native function", node->file, node->line);
             break;
         }
         kx_object_t *class_node = ctx->class_node;
@@ -576,16 +596,16 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     }
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
-    case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: optional: return type */
+    case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         int depth = ctx->depth;
         ++ctx->depth;
         if (node->type == KXST_NATIVE) {
             kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
             sym->base->var_type = KX_NFNC_T;
-            sym->base->optional = node->optional;
+            sym->base->ret_type = node->ret_type;
         } else {
             if (ctx->in_native) {
-                kx_yyerror_line("Do not define function in native function.", node->file, node->line);
+                kx_yyerror_line("Do not define function in native function", node->file, node->line);
                 break;
             }
             if (node->optional != KXFT_ANONYMOUS) {

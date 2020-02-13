@@ -21,7 +21,7 @@ static inline const char *get_short_typename(int type)
     case KX_ANY_T:  return "-";
     case KX_ARY_T:  return "ary";
     }
-    return "... unknown";
+    return "unknown";
 }
 
 static void print_indent(kx_object_t *node, int indent)
@@ -469,9 +469,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         }
         display_ast(node->rhs, indent + 1, 0);
         break;
-    case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: optional: return type */
+    case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         printf("ret:%s native(%s)\n",
-            get_short_typename(node->optional),
+            get_short_typename(node->ret_type),
             node->value.s);
         if (node->lhs) {
             print_indent(node, indent + 1);
