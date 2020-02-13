@@ -70,7 +70,7 @@ kx_object_t *kx_gen_var_type_object(const char *name, int var_type, int ret_type
     obj->ret_type = (var_type == KX_NFNC_T && ret_type == KX_UNKNOWN_T) ? KX_INT_T : ret_type;
     if (ret_type != KX_UNKNOWN_T) {
         if (var_type != KX_NFNC_T && var_type != KX_FNC_T) {
-            kx_yyerror_line("Return type is only used for funciton/native definition.", obj->file, obj->line);
+            kx_yyerror_line("Return type is only used for funciton/native definition", obj->file, obj->line);
         }
     }
     return obj;
