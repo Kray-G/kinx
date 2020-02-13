@@ -33,23 +33,24 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     sljit_sw arglist[256] = {0};
     arglist[0] = nargs;
     arglist[1] = 0; /* depth */
+    int type_offset = KXN_MAX_FUNC_ARGS + 1;
     for (int i = 1, j = 2, k = 0; i <= nargs; ++i, ++j, ++k) {
         uint8_t type = nfnc->native.arg_types[k];
         kx_val_t *v = &kv_last_by(ctx->stack, i);
         switch (v->type) {
         case KX_INT_T:
             if (type != KX_INT_T) {
-printf("?????\n");
                 return KXN_TYPE_MISMATCH;
             }
             arglist[j] = (sljit_sw)(v->value.iv);
+            arglist[j+type_offset] = KX_INT_T;
             break;
         case KX_NFNC_T:
             if (type != KX_NFNC_T) {
-printf("?????\n");
                 return KXN_TYPE_MISMATCH;
             }
             arglist[j] = (sljit_sw)(v->value.fn->native.func);
+            arglist[j+type_offset] = KX_NFNC_T;
             break;
         default:
             return KXN_UNSUPPORTED_TYPE;

@@ -312,6 +312,11 @@ extern int eval_string(const char *code, kx_context_t *ctx);
 extern int eval_file(const char *file, kx_context_t *ctx);
 extern kstr_t *kx_format(kx_val_t *objval);
 
+extern int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
+extern int kx_try_div(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
+extern int kx_try_div_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_div_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern int kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
@@ -323,7 +328,7 @@ extern void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_v
 
 extern void start_analyze_ast(kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
-extern kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node);
+extern kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *args, int argn);
 extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module, const char *name);
 extern void ir_code_dump_one(int addr, kx_code_t *code);
 extern void ir_dump(kx_context_t *ctx);
