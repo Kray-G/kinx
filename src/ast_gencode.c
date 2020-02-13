@@ -787,7 +787,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     case KXOP_MKARY:
         if (lvalue) {
-            kx_yyerror_line("make array can not used in l-value.", node->file, node->line);
+            kx_yyerror_line("make array can not used in l-value", node->file, node->line);
         } else {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
             if (node->lhs) {
@@ -1547,7 +1547,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }));
         int n = setup_arg_types(node->lhs, &kv_last(get_block(module, ana->block)->code), 0);
         if (n > KXN_MAX_FUNC_ARGS) {
-            kx_yyerror_line("Too many native function arguments.", node->file, node->line);
+            kx_yyerror_line("Too many native function arguments", node->file, node->line);
         }
         kxn_func_t nf = start_nativejit_ast(ctx, node, kv_last(get_block(module, ana->block)->code).value2.n.arg_types, n);
         kv_last(get_block(module, ana->block)->code).value2.n.func = nf.func;
