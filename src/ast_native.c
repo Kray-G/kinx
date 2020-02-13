@@ -39,6 +39,9 @@ typedef struct kx_native_context_ {
     int local_vars;
     int max_call_depth;
     int ret_type;
+    uint8_t *args;
+    int arg_count;
+    int max_call_arg;
     khash_t(nativefunc) *nfuncs;
     int regs[KXN_MAX_REGS];
     int save[KXN_MAX_REGS];
@@ -515,6 +518,7 @@ static int set_args(kx_native_context_t *nctx, kx_object_t *node, int index)
 
     int r0 = nativejit_ast(nctx, node, 0);
     sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), index * KXN_WDSZ, reg(r0), 0);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (index + (KXN_MAX_FUNC_ARGS + 1)) * KXN_WDSZ, SLJIT_IMM, node->var_type);
     release_reg(nctx, r0);
     return index + 1;
 }
@@ -1261,16 +1265,17 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         nctx->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
         nctx->func_name = node->value.s;
         nctx->local_vars = node->local_vars;
-        int max_call_arg = node->count_args > KXN_MAX_NATIVE_ARGS ? node->count_args : KXN_MAX_NATIVE_ARGS;
+        int max_call_arg = nctx->max_call_arg = node->count_args > KXN_MAX_NATIVE_ARGS ? node->count_args : KXN_MAX_NATIVE_ARGS;
         sljit_emit_enter(nctx->C, 0, SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
             /*scratch*/     6,
             /*saved*/       6,
             /*fscratch*/    0,
             /*fsaved*/      0,
-            /*local*/       node->local_vars * KXN_WDSZ +   /* Local Variables */
-                            KXN_WDSZ +                      /* CallArgsLength */
-                            KXN_WDSZ +                      /* Depth */
-                            max_call_arg * KXN_WDSZ         /* Call arguments */
+            /*local*/       (node->local_vars * KXN_WDSZ) +         /* Local Variables */
+                            KXN_WDSZ +                              /* CallArgsLength */
+                            KXN_WDSZ +                              /* Depth */
+                            ((KXN_MAX_FUNC_ARGS + 1) * KXN_WDSZ) +  /* Call arguments */
+                            ((KXN_MAX_FUNC_ARGS + 1) * KXN_WDSZ)    /* Types of call arguments */
         );
 
         /* check depth */
@@ -1282,8 +1287,17 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         set_exception_code(nctx, KXN_TOO_DEEP_TO_CALL_FUNC);
         sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
 
-        /* function body */
+        /* arguments type check */
         sljit_set_label(next, sljit_emit_label(nctx->C));
+        int type_offset = (KXN_MAX_FUNC_ARGS + 1) * KXN_WDSZ;
+        sljump_t *mismatched[KXN_MAX_FUNC_ARGS + 1] = {0};
+        for (int i = 0; i < node->count_args; ++i) {
+            mismatched[i] = sljit_emit_cmp(nctx->C, SLJIT_NOT_EQUAL,
+                SLJIT_MEM1(SLJIT_S1), (i+KXN_LOCALVAR_OFFSET) * KXN_WDSZ + type_offset,
+                SLJIT_IMM, nctx->args[i]);
+        }
+
+        /* function body */
         for (int i = 0; i < node->count_args; ++i) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), i * KXN_WDSZ,
                 SLJIT_MEM1(SLJIT_S1), (i+KXN_LOCALVAR_OFFSET) * KXN_WDSZ);
@@ -1296,6 +1310,17 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
         }
         */
         nativejit_ast(nctx, node->rhs, 0);
+    	sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
+
+        /* type mismatch */
+        sllabel_t *type_mismatch = sljit_emit_label(nctx->C);
+        for (int i = 0; i < node->count_args; ++i) {
+            sljit_set_label(mismatched[i], type_mismatch);
+        }
+        set_exception(nctx, 1);
+        set_exception_code(nctx, KXN_TOO_DEEP_TO_CALL_FUNC);
+        sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_IMM, 0);
+
         kx_free(nctx->finallies);
         nctx->finallies = finallies;
         break;
@@ -1307,12 +1332,14 @@ static int nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalu
     return r0;
 }
 
-kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node)
+kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *args, int argn)
 {
     kx_native_context_t nctx = {0};
     if (node->type != KXST_NATIVE) {
         return (kxn_func_t){ .func = 0 };
     }
+    nctx.args = args;
+    nctx.arg_count = argn;
     nctx.nfuncs = ctx->nfuncs;
     nctx.max_call_depth = ctx->options.max_call_depth;
     nctx.C = sljit_create_compiler(NULL);
@@ -1323,7 +1350,6 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node)
 
     nativejit_ast(&nctx, node, 0);
 
-	sljit_emit_return(nctx.C, SLJIT_MOV, SLJIT_RETURN_REG, 0);
 	void *code = (void*)sljit_generate_code(nctx.C);
 	sljit_free_compiler(nctx.C);
 
