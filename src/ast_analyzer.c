@@ -21,6 +21,12 @@ static const kxana_symbol_t kx_empty_symbols = {0};
 
 static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, kxana_context_t *ctx)
 {
+    static char temp[256] = {0};
+    if (!name) {
+        static tempid = 0;
+        sprintf(temp, "_temp%d", tempid);
+        name = temp;
+    }
     int stack = kv_size(ctx->symbols);
     for (int i = 1; i <= stack; ++i) {
         kxana_symbol_t* table = &(kv_last_by(ctx->symbols, i));
@@ -314,19 +320,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         if (node->rhs && node->lhs->type == KXOP_VAR) {
             node->lhs->var_type = node->rhs->var_type;
         }
+        node->var_type = node->lhs->var_type;
         break;
     }
-    case KXOP_ASSIGN:
-    case KXOP_ASSIGN_SHL:
-    case KXOP_ASSIGN_SHR:
-    case KXOP_ASSIGN_ADD:
-    case KXOP_ASSIGN_SUB:
-    case KXOP_ASSIGN_MUL:
-    case KXOP_ASSIGN_DIV:
-    case KXOP_ASSIGN_MOD:
-    case KXOP_ASSIGN_AND:
-    case KXOP_ASSIGN_OR:
-    case KXOP_ASSIGN_XOR: {
+    case KXOP_ASSIGN: {
         int lvalue = ctx->lvalue;
         ctx->lvalue = 1;
         analyze_ast(node->lhs, ctx);

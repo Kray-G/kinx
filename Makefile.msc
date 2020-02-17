@@ -19,8 +19,10 @@ OBJS = \
     src/ir_fix.obj \
     src/ir_util.obj \
     src/ir_aotcore.obj \
-    src/ir_natutil.obj \
     src/ir_aotdump.obj \
+    src/ir_natutil.obj \
+    src/nir_compile.obj \
+    src/nir_dump.obj \
     src/kstr.obj \
     src/lexer.obj \
     src/fileutil.obj \

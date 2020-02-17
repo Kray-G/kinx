@@ -27,6 +27,8 @@ OBJS = \
     ir_aotcore.o \
     ir_aotdump.o \
     ir_natutil.o \
+    nir_compile.o \
+    nir_dump.o \
     kstr.o \
     lexer.o \
     fileutil.o \
