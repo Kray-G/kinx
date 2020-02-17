@@ -125,16 +125,6 @@ enum opecode {
     /* binary expression */
     KXOP_DECL,
     KXOP_ASSIGN,
-    KXOP_ASSIGN_SHL,
-    KXOP_ASSIGN_SHR,
-    KXOP_ASSIGN_ADD,
-    KXOP_ASSIGN_SUB,
-    KXOP_ASSIGN_MUL,
-    KXOP_ASSIGN_DIV,
-    KXOP_ASSIGN_MOD,
-    KXOP_ASSIGN_AND,
-    KXOP_ASSIGN_OR,
-    KXOP_ASSIGN_XOR,
     KXOP_ASSIGN_END,
     KXOP_SHL = KXOP_ASSIGN_END,
     KXOP_SHR,
@@ -237,6 +227,7 @@ typedef struct kx_object_ {
     int count_args;
     int callargs_max;
     int func;
+    int regno;
 
     const char *file;
     uint32_t line;

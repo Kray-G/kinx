@@ -150,16 +150,14 @@ kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 
 kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
-    #define IS_ASSIGN(type) (KXOP_ASSIGN <= (type) && (type) < KXOP_ASSIGN_END)
-    if (!IS_ASSIGN(lhs->type)) {
+    if (KXOP_ASSIGN != lhs->type) {
         return kx_gen_bexpr_object(type, lhs, rhs);
     }
     kx_object_t *p = lhs;
-    while (IS_ASSIGN(p->rhs->type)) {
+    while (KXOP_ASSIGN == p->rhs->type) {
         p = p->rhs;
     }
     p->rhs = kx_gen_bexpr_object(type, p->rhs, rhs);
-    #undef IS_ASSIGN
     return lhs;
 }
 
