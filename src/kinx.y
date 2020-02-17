@@ -247,16 +247,16 @@ Modifier_Opt
 AssignExpression
     : TernaryExpression
     | AssignExpression '=' TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, $3); }
-    | AssignExpression SHLEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHL, $1, $3); }
-    | AssignExpression SHREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SHR, $1, $3); }
-    | AssignExpression ADDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_ADD, $1, $3); }
-    | AssignExpression SUBEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_SUB, $1, $3); }
-    | AssignExpression MULEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_MUL, $1, $3); }
-    | AssignExpression DIVEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_DIV, $1, $3); }
-    | AssignExpression MODEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_MOD, $1, $3); }
-    | AssignExpression ANDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_AND, $1, $3); }
-    | AssignExpression OREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_OR, $1, $3); }
-    | AssignExpression XOREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN_XOR, $1, $3); }
+    | AssignExpression SHLEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHL, $1, $3)); }
+    | AssignExpression SHREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHR, $1, $3)); }
+    | AssignExpression ADDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_ADD, $1, $3)); }
+    | AssignExpression SUBEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SUB, $1, $3)); }
+    | AssignExpression MULEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MUL, $1, $3)); }
+    | AssignExpression DIVEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_DIV, $1, $3)); }
+    | AssignExpression MODEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MOD, $1, $3)); }
+    | AssignExpression ANDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_AND, $1, $3)); }
+    | AssignExpression OREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_OR, $1, $3)); }
+    | AssignExpression XOREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_XOR, $1, $3)); }
     | AssignExpression LANDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LAND, $1, $3)); }
     | AssignExpression LOREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LOR, $1, $3)); }
     ;

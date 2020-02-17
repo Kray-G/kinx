@@ -1,0 +1,7 @@
+
+var b = 1.7;
+native:dbl test(a:dbl) {
+    return a + b;
+}
+
+System.println(test(1.5));
