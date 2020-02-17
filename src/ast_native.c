@@ -1,5 +1,6 @@
 #include <dbg.h>
 #include <assert.h>
+#include <inttypes.h>
 #include <kinx.h>
 #include <kxnative.h>
 #include <jit.h>
@@ -1177,7 +1178,7 @@ static void optimize_jmp(kx_native_context_t *nctx)
 void native_dump_temp(unsigned char *f, const char *name, int size)
 {
     printf("\n");
-    printf("%s: (native-base:0x%08llx)\n", name, (uint64_t)f);
+    printf("%s: (native-base:0x%08"PRIx64")\n", name, (uint64_t)f);
     native_dump(f, size);
 }
 

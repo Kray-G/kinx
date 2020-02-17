@@ -23,7 +23,7 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
 {
     static char temp[256] = {0};
     if (!name) {
-        static tempid = 0;
+        static int tempid = 0;
         sprintf(temp, "_temp%d", tempid);
         name = temp;
     }
