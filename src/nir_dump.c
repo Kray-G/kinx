@@ -1,5 +1,6 @@
 #include <dbg.h>
 #include <assert.h>
+#include <inttypes.h>
 #include <kinx.h>
 #include <kxnative.h>
 
@@ -25,13 +26,13 @@ static void natir_display_op(kxn_operand_t *operand)
         printf("$(%d,%d)", operand->lex, operand->idx);
         break;
     case KXNOP_IMM:
-        printf("%lld", operand->iv);
+        printf("%"PRId64, operand->iv);
         break;
     case KXNOP_XMM:
         printf("%g", operand->dv);
         break;
     case KXNOP_S0:
-        printf("[rec-call]", operand->dv);
+        printf("[rec-call]");
         break;
     }
 }
