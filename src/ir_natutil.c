@@ -45,6 +45,14 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
             arglist[j] = (sljit_sw)(v->value.iv);
             arglist[j+type_offset] = KX_INT_T;
             break;
+        case KX_DBL_T:
+            if (type != KX_DBL_T) {
+                return KXN_TYPE_MISMATCH;
+            }
+            union { sljit_sw sw; double dw; } conv = { .dw = v->value.dv };
+            arglist[j] = conv.sw;
+            arglist[j+type_offset] = KX_DBL_T;
+            break;
         case KX_NFNC_T:
             if (type != KX_NFNC_T) {
                 return KXN_TYPE_MISMATCH;
@@ -68,92 +76,85 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         0,              /* stack trace length */
         (sljit_sw)exc,  /* stack trace array */
     };
-    int64_t v = (int64_t)func(info, arglist);
 
-    kv_shrink(ctx->stack, count);
-    push_i(ctx->stack, v);
+    switch (nfnc->native.ret_type) {
+    case KX_INT_T: {
+        int64_t v = (int64_t)func(info, arglist);
+        kv_shrink(ctx->stack, count);
+        push_i(ctx->stack, v);
+        break;
+    }
+    case KX_DBL_T: {
+        union { sljit_sw sw; double dw; } conv = { .sw = func(info, arglist) };
+        kv_shrink(ctx->stack, count);
+        push_d(ctx->stack, conv.dw);
+        break;
+    }
+    default:
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+        kv_shrink(ctx->stack, count);
+        push_i(ctx->stack, 0);
+        break;
+    }
+
     if (info[KXN_EXC_FLAG] != 0) {
         return info[KXN_EXC_CODE] ? info[KXN_EXC_CODE] : KXN_UNKNOWN_ERROR;
     }
     return 0;
 }
 
-static sljit_sw native_get_var_int_of(sljit_sw *info, kx_context_t *ctx, kx_frm_t *frm, int index)
-{
-    if ((kv_A(frm->v, index)).type == KX_INT_T) {
-        return (sljit_sw)(kv_A(frm->v, index)).value.iv;
-    }
-    info[KXN_EXC_FLAG] = 1;
-    info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
-    return 0;
-}
+#define KX_DEF_NATIVE_HELPER(addr_api, prop, proptype, rettype) \
+    static rettype native_get_var_##addr_api##_of(sljit_sw *info, kx_context_t *ctx, kx_frm_t *frm, int index) \
+    { \
+        if ((kv_A(frm->v, index)).type == proptype) { \
+            return (rettype)(kv_A(frm->v, index)).value.prop; \
+        } \
+        info[KXN_EXC_FLAG] = 1; \
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH; \
+        return 0; \
+    } \
+    rettype native_get_var_##addr_api(sljit_sw *args) \
+    { \
+        sljit_sw *info = (sljit_sw *)args[0]; \
+        int64_t lex = (int64_t)args[1]; \
+        int64_t index = (int64_t)args[2]; \
+        kx_context_t *ctx = (kx_context_t *)info[0]; \
+        if (lex == 0) { \
+            return native_get_var_##addr_api##_of(info, ctx, (kx_frm_t *)info[1], index); \
+        } else if (lex == 1) { \
+            return native_get_var_##addr_api##_of(info, ctx, (kx_frm_t *)info[2], index); \
+        } \
+        kx_frm_t *lexv = (kx_frm_t *)info[2]; \
+        while (lexv && --lex) { \
+            lexv = lexv->lex; \
+        } \
+        return native_get_var_##addr_api##_of(info, ctx, lexv, index); \
+    } \
+    static rettype *native_get_var_##addr_api##_addr_of(sljit_sw *info, kx_context_t *ctx, kx_frm_t *frm, int index) \
+    { \
+        (kv_A(frm->v, index)).type = proptype;  /* type changed, because it is l-value */ \
+        return (rettype *)&((kv_A(frm->v, index)).value.prop); \
+    } \
+    rettype *native_get_var_##addr_api##_addr(sljit_sw *args) \
+    { \
+        sljit_sw *info = (sljit_sw *)args[0]; \
+        int64_t lex = (int64_t)args[1]; \
+        int64_t index = (int64_t)args[2]; \
+        kx_context_t *ctx = (kx_context_t *)info[0]; \
+        if (lex == 0) { \
+            return (rettype *)native_get_var_##addr_api##_addr_of(info, ctx, (kx_frm_t *)info[1], index); \
+        } else if (lex == 1) { \
+            return (rettype *)native_get_var_##addr_api##_addr_of(info, ctx, (kx_frm_t *)info[2], index); \
+        } \
+        kx_frm_t *lexv = (kx_frm_t *)info[2]; \
+        while (lexv && --lex) { \
+            lexv = lexv->lex; \
+        } \
+        return (rettype *)native_get_var_##addr_api##_addr_of(info, ctx, lexv, index); \
+    } \
+    /**/
 
-sljit_sw native_get_var_int(sljit_sw *args)
-{
-    sljit_sw *info = (sljit_sw *)args[0];
-    int64_t lex = (int64_t)args[1];
-    int64_t index = (int64_t)args[2];
-    kx_context_t *ctx = (kx_context_t *)info[0];
-    if (lex == 0) {
-        return native_get_var_int_of(info, ctx, (kx_frm_t *)info[1], index);
-    } else if (lex == 1) {
-        return native_get_var_int_of(info, ctx, (kx_frm_t *)info[2], index);
-    }
-    kx_frm_t *lexv = (kx_frm_t *)info[2];
-    while (lexv && --lex) {
-        lexv = lexv->lex;
-    }
-    return native_get_var_int_of(info, ctx, lexv, index);
-}
-
-static sljit_sw native_get_var_nfunc_of(sljit_sw *info, kx_context_t *ctx, kx_frm_t *frm, int index)
-{
-    if ((kv_A(frm->v, index)).type == KX_NFNC_T) {
-        return (sljit_sw)(kv_A(frm->v, index)).value.fn->native.func;
-    }
-    info[KXN_EXC_FLAG] = 1;
-    info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
-    return 0;
-}
-
-sljit_sw native_get_var_nfunc(sljit_sw *args)
-{
-    sljit_sw *info = (sljit_sw *)args[0];
-    int64_t lex = (int64_t)args[1];
-    int64_t index = (int64_t)args[2];
-    kx_context_t *ctx = (kx_context_t *)info[0];
-    if (lex == 0) {
-        return native_get_var_nfunc_of(info, ctx, (kx_frm_t *)info[1], index);
-    } else if (lex == 1) {
-        return native_get_var_nfunc_of(info, ctx, (kx_frm_t *)info[2], index);
-    }
-    kx_frm_t *lexv = (kx_frm_t *)info[2];
-    while (lexv && --lex) {
-        lexv = lexv->lex;
-    }
-    return native_get_var_nfunc_of(info, ctx, lexv, index);
-}
-
-static int64_t *native_get_var_int_addr_of(sljit_sw *info, kx_context_t *ctx, kx_frm_t *frm, int index)
-{
-    (kv_A(frm->v, index)).type = KX_INT_T;  /* make it integer, because it is l-value */
-    return &((kv_A(frm->v, index)).value.iv);
-}
-
-sljit_sw native_get_var_int_addr(sljit_sw *args)
-{
-    sljit_sw *info = (sljit_sw *)args[0];
-    int64_t lex = (int64_t)args[1];
-    int64_t index = (int64_t)args[2];
-    kx_context_t *ctx = (kx_context_t *)info[0];
-    if (lex == 0) {
-        return (sljit_sw)native_get_var_int_addr_of(info, ctx, (kx_frm_t *)info[1], index);
-    } else if (lex == 1) {
-        return (sljit_sw)native_get_var_int_addr_of(info, ctx, (kx_frm_t *)info[2], index);
-    }
-    kx_frm_t *lexv = (kx_frm_t *)info[2];
-    while (lexv && --lex) {
-        lexv = lexv->lex;
-    }
-    return (sljit_sw)native_get_var_int_addr_of(info, ctx, lexv, index);
-}
+KX_DEF_NATIVE_HELPER(int, iv, KX_INT_T, sljit_sw)
+KX_DEF_NATIVE_HELPER(dbl, dv, KX_DBL_T, sljit_f64)
+KX_DEF_NATIVE_HELPER(nfunc, fn->native.func, KX_NFNC_T, sljit_sw)

@@ -99,16 +99,6 @@
         break;\
     }\
 /**/
-#define KX_DEF_ASSIGNCMD(CMD) \
-    case KXOP_ASSIGN_##CMD: {\
-        gencode_ast_hook(ctx, node->lhs, ana, 0);\
-        gencode_ast_hook(ctx, node->rhs, ana, 0);\
-        KX_DEF_BINCHKCMD(CMD);\
-        gencode_ast_hook(ctx, node->lhs, ana, 1);\
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));\
-        break;\
-    }\
-/**/
 
 static const kx_block_t kx_empty_block = {0};
 static const kx_function_t kx_empty_func = {0};
@@ -839,16 +829,6 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
-    KX_DEF_ASSIGNCMD(SHL);
-    KX_DEF_ASSIGNCMD(SHR);
-    KX_DEF_ASSIGNCMD(ADD);
-    KX_DEF_ASSIGNCMD(SUB);
-    KX_DEF_ASSIGNCMD(MUL);
-    KX_DEF_ASSIGNCMD(DIV);
-    KX_DEF_ASSIGNCMD(MOD);
-    KX_DEF_ASSIGNCMD(AND);
-    KX_DEF_ASSIGNCMD(OR);
-    KX_DEF_ASSIGNCMD(XOR);
 
     KX_DEF_BINCMD(SHL);
     KX_DEF_BINCMD(SHR);
