@@ -134,7 +134,6 @@ typedef struct kx_native_context_ {
     uint8_t *args;
     int in_finally;
     kx_finally_vec_t *finallies;
-    khash_t(nativefunc) *nfuncs;
     kvec_t(kxn_block_t) block_list;
     kvec_t(kx_label_t) continue_list;
     kvec_t(kx_label_t) break_list;
