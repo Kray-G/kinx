@@ -444,15 +444,19 @@ After replacing `function` by `native`, it was shortened to 30 ms.
 
 But there are limitations below.
 
-*   Currently you can use the type of integer only.
+*   Currently you can use the type of integer and double only.
+*   All variables are defined as a type. Available type is `int`, `dbl`, or `native`.
+    *   If type information is omitted, the type become automatically `int`.
+    *   `native` function's return type is shown like `native<int>`.
+    *   Even in this case, you can omit `<int>` like just `native` and automatically make it `int`. 
 *   Integer value is not automatically promoted to big integer, just overfow it.
 *   Can not call a script function. Only can call a native function.
 *   `switch-case` is not supported.
-*   Can access to the lexical scope and variables, but only for an integer value.
+*   Can access to the lexical scope and variables, but only for an integer value, a double value, and a native function.
 *   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
 *   Support 64bit only. Libraries are supporting x64, ARM, MIPS, but sorry I can not test it except x64 Windows or Linux.
 
-I will challenge to remove those, but the performance may be a little slower.
+I will challenge to remove those, but the performance may be a little slower in some case.
 
 ##### `lambda`
 
