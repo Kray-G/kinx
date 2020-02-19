@@ -428,14 +428,16 @@ static void ir_native_dump(kx_context_t *ctx)
 
 void ir_dump(kx_context_t *ctx)
 {
+    ir_native_dump(ctx);
+    printf("\n");
+
+    printf("*** VM Section ***\n");
     int llen = kv_size(ctx->labels);
     int len = kv_size(ctx->module);
     for (int i = 0; i < len; ++i) {
         kx_module_t *module = &kv_A(ctx->module, i);
         ir_module_dump(llen, module, &(ctx->labels));
     }
-
-    ir_native_dump(ctx);
 }
 
 void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode)
