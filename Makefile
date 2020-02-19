@@ -3,6 +3,7 @@ PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
 LIBDIR = $(PREFIX)/lib
 SRCDIR = $(CURDIR)$(.CURDIR)
+DEPFILE	= Makefile.dep
 
 CC = gcc
 CFLAGS = -DKX_DIRECT_THREAD -Iinclude -O2 \
@@ -37,6 +38,7 @@ OBJS = \
     parser.o \
     format.o \
     string.o
+SRCS = $(patsubst %.o,src/%.c,$(OBJS))
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
     src/jit/sljitConfigInternal.h \
@@ -295,4 +297,159 @@ src/ir_aotcore.o: src/ir_aotcore.c $(SLJIT_DEP)
 	./timex $(CC) -c $(CFLAGS) -o $@ src/ir_aotcore.c
 
 src/ir_exec.c: include/ir.h include/kinx.h $(IR_EXEC_DEP)
+
+depend: $(DEPFILE)
+
+$(DEPFILE): $(SRCS)
+	$(CC) $(CFLAGS) -MM $(SRCS) > $(DEPFILE)
+
+allocator.o: src/allocator.c include/dbg.h include/kinx.h include/kvec.h \
+ include/ir.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+alloccore.o: src/alloccore.c
+allocutil.o: src/allocutil.c include/dbg.h include/ir.h include/kvec.h \
+ include/khash.h include/klist.h include/kstr.h include/bigz.h \
+ include/bign.h include/jit.h include/../src/jit/sljitLir.h \
+ include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+ast_analyzer.o: src/ast_analyzer.c include/dbg.h include/parser.h \
+ include/kinx.h include/kvec.h include/ir.h include/khash.h \
+ include/klist.h include/kstr.h include/bigz.h include/bign.h \
+ include/jit.h include/../src/jit/sljitLir.h \
+ include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/parser.tab.h
+ast_display.o: src/ast_display.c include/dbg.h include/parser.h \
+ include/kinx.h include/kvec.h include/ir.h include/khash.h \
+ include/klist.h include/kstr.h include/bigz.h include/bign.h \
+ include/jit.h include/../src/jit/sljitLir.h \
+ include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/parser.tab.h
+ast_gencode.o: src/ast_gencode.c include/dbg.h include/kvec.h \
+ include/kinx.h include/ir.h include/khash.h include/klist.h \
+ include/kstr.h include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+ast_object.o: src/ast_object.c include/dbg.h include/kinx.h \
+ include/kvec.h include/ir.h include/khash.h include/klist.h \
+ include/kstr.h include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+ast_native.o: src/ast_native.c include/dbg.h include/kinx.h \
+ include/kvec.h include/ir.h include/khash.h include/klist.h \
+ include/kstr.h include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/kxnative.h
+bign.o: src/bign.c include/dbg.h include/bign.h
+bigz.o: src/bigz.c include/dbg.h include/bigz.h include/bign.h
+getopt.o: src/getopt.c include/dbg.h include/getopt.h
+global.o: src/global.c include/dbg.h include/kinx.h include/kvec.h \
+ include/ir.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+ir_dump.o: src/ir_dump.c include/dbg.h include/kvec.h include/kinx.h \
+ include/ir.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+ir_exec.o: src/ir_exec.c include/dbg.h include/kvec.h include/kstr.h \
+ include/kinx.h include/ir.h include/khash.h include/klist.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/kxexec.h \
+ src/exec/code/_except.inc src/exec/code/_inlines.inc \
+ src/exec/code/haltnop.inc src/exec/code/enter.inc src/exec/code/call.inc \
+ src/exec/code/ret.inc src/exec/code/throw.inc src/exec/code/catch.inc \
+ src/exec/code/jmp.inc src/exec/code/push.inc src/exec/code/pop.inc \
+ src/exec/code/store.inc src/exec/code/not.inc src/exec/code/neg.inc \
+ src/exec/code/inc.inc src/exec/code/dec.inc src/exec/code/mkary.inc \
+ src/exec/code/append.inc src/exec/code/apply.inc src/exec/code/add.inc \
+ src/exec/code/sub.inc src/exec/code/mul.inc src/exec/code/div.inc \
+ src/exec/code/mod.inc src/exec/code/and.inc src/exec/code/or.inc \
+ src/exec/code/xor.inc src/exec/code/shl.inc src/exec/code/shr.inc \
+ src/exec/code/eqeq.inc src/exec/code/neq.inc src/exec/code/le.inc \
+ src/exec/code/lt.inc src/exec/code/ge.inc src/exec/code/gt.inc \
+ src/exec/code/lge.inc
+ir_fix.o: src/ir_fix.c include/dbg.h include/kvec.h include/ir.h \
+ include/khash.h include/klist.h include/kstr.h include/bigz.h \
+ include/bign.h include/jit.h include/../src/jit/sljitLir.h \
+ include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+ir_util.o: src/ir_util.c include/dbg.h include/kvec.h include/kstr.h \
+ include/kinx.h include/ir.h include/khash.h include/klist.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/kxexec.h \
+ src/exec/code/_inlines.inc
+ir_aotcore.o: src/ir_aotcore.c include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h src/jit/sljitLir.c \
+ src/jit/sljitLir.h src/jit/sljitUtils.c src/jit/sljitExecAllocator.c \
+ src/jit/sljitNativeX86_common.c src/jit/sljitNativeX86_64.c
+ir_aotdump.o: src/ir_aotdump.c include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h src/disasm/disas.h \
+ src/disasm/arch/x86/x86load.h src/disasm/arch/x86/../../common/file.h \
+ src/disasm/arch/x86/../../common/trie.h \
+ src/disasm/arch/x86/../../common/table.h src/disasm/arch/x86/x86.h \
+ src/disasm/arch/x86/../../dis.h \
+ src/disasm/arch/x86/../../common/common.h \
+ src/disasm/arch/x86/../../common/common.h \
+ src/disasm/arch/x86/x86strings.h src/disasm/arch/x86/x86load.h \
+ src/disasm/arch/x86/x86asm.h src/disasm/arch/x86/x86.h \
+ src/disasm/arch/mips/mload.h src/disasm/arch/mips/../../common/file.h \
+ src/disasm/arch/mips/../../common/trie.h \
+ src/disasm/arch/mips/../../common/table.h src/disasm/arch/mips/mips.h \
+ src/disasm/arch/mips/../../common/common.h \
+ src/disasm/arch/mips/../../dis.h src/disasm/arch/mips/mload.h \
+ src/disasm/arch/mips/mstrings.h src/disasm/arch/arm/aload.h \
+ src/disasm/arch/arm/../../common/file.h \
+ src/disasm/arch/arm/../../common/trie.h \
+ src/disasm/arch/arm/../../common/table.h src/disasm/arch/arm/arm.h \
+ src/disasm/arch/arm/aload.h src/disasm/arch/arm/astrings.h \
+ src/disasm/arch/arm/../../common/common.h \
+ src/disasm/arch/arm/../../dis.h src/disasm/dis.h src/disasm/dss.h \
+ src/disasm/common/table.h src/disasm/lex.h src/disasm/sym.h \
+ src/disasm/common/trie.h
+ir_natutil.o: src/ir_natutil.c include/kinx.h include/kvec.h include/ir.h \
+ include/dbg.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+nir_compile.o: src/nir_compile.c include/dbg.h include/kinx.h \
+ include/kvec.h include/ir.h include/khash.h include/klist.h \
+ include/kstr.h include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/kxnative.h
+nir_dump.o: src/nir_dump.c include/dbg.h include/kinx.h include/kvec.h \
+ include/ir.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/kxnative.h
+kstr.o: src/kstr.c include/dbg.h include/kstr.h
+lexer.o: src/lexer.c include/dbg.h include/parser.h include/kinx.h \
+ include/kvec.h include/ir.h include/khash.h include/klist.h \
+ include/kstr.h include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/parser.tab.h
+fileutil.o: src/fileutil.c include/dbg.h include/fileutil.h
+loadlib.o: src/loadlib.c include/dbg.h include/fileutil.h
+main.o: src/main.c include/dbg.h include/kinx.h include/kvec.h \
+ include/ir.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/getopt.h
+parser.o: src/parser.c include/kvec.h include/kinx.h include/ir.h \
+ include/dbg.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/parser.tab.h
+format.o: src/format.c include/kinx.h include/kvec.h include/ir.h \
+ include/dbg.h include/khash.h include/klist.h include/kstr.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h
+string.o: src/string.c include/dbg.h include/khash.h
 
