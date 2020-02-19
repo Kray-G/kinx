@@ -205,10 +205,10 @@ static int gen_kxn_block(kx_native_context_t *nctx)
         Args - : Arguments to call (copied from S1).
 */
 
-static void set_native_function_info(kx_native_context_t *nctx, kx_object_t *node, const char *name, kxn_func_t nf)
+static void set_native_function_info(kx_context_t *ctx, kx_object_t *node, const char *name, kxn_func_t nf)
 {
     int absent;
-    khash_t(nativefunc) *nfuncs = nctx->nfuncs;
+    khash_t(nativefunc) *nfuncs = ctx->nfuncs;
     khint_t k = kh_put(nativefunc, nfuncs, name, &absent);
     if (!absent) {
         kx_yyerror_line_fmt("Native function(%s) is duplicated", node->file, node->line, name);
@@ -1189,7 +1189,6 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *ar
         return (kxn_func_t){ .func = 0 };
     }
 
-    nctx.nfuncs = ctx->nfuncs;
     nctx.max_call_depth = ctx->options.max_call_depth;
     nctx.args = args;
     nctx.arg_count = argn;
@@ -1210,9 +1209,10 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *ar
         .ret_type = nctx.ret_type,
         .exec_size = nctx.C->executable_size,
     };
-    set_native_function_info(&nctx, node, nctx.func_name, nf);
-    // native_dump_temp((unsigned char *)nf.func, nf.name, nf.exec_size);
+    set_native_function_info(ctx, node, nctx.func_name, nf);
 
-// exit(1);
+    if (ctx->options.dump) {
+        natir_display_function(&nctx);
+    }
     return nf;
 }
