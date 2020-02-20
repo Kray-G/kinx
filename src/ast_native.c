@@ -1221,5 +1221,10 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *ar
     if (ctx->options.dump) {
         natir_display_function(&nctx);
     }
+
+    kv_destroy(nctx.block_list);
+    kv_destroy(nctx.continue_list);
+    kv_destroy(nctx.break_list);
+    kv_destroy(nctx.catch_list);
     return nf;
 }
