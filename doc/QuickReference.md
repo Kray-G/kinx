@@ -487,7 +487,33 @@ div = 5
 ##### Fiber
 
 Now Fiber is supported.
-The function is suspended and returned some value by `yield`.
+The function is suspended and return some value by `yield`.
+
+Here is the simple example below.
+
+```javascript
+var fiber = new Fiber(function() {
+    System.println("fiber 1");
+    yield;
+    System.println("fiber 2");
+});
+
+System.println("main 1");
+fiber.resume();
+System.println("main 2");
+fiber.resume();
+System.println("main 3");
+```
+
+The result is:
+
+```
+main 1
+fiber 1
+main 2
+fiber 2
+main 3
+```
 
 See example below, `yield` will return the value and received some value from `resume`.
 The return value from `resume` is an array of arguments.
