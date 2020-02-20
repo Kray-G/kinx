@@ -49,6 +49,70 @@ int Math_##name(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 } \
 /**/
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#pragma comment(lib, "advapi32.lib")
+HCRYPTPROV g_handle = (HCRYPTPROV)NULL;
+#else
+#include <stdio.h>
+FILE* g_handle = NULL;
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+void Math_initialize(void)
+{
+    if (!CryptAcquireContext(&g_handle,
+                                NULL,
+                                NULL,
+                                PROV_RSA_FULL,
+                                CRYPT_SILENT)) {
+        if (GetLastError() != (DWORD)NTE_BAD_KEYSET) {
+            g_handle = (HCRYPTPROV)NULL;
+            return;
+        }
+        if (!CryptAcquireContext(&g_handle,
+                                    NULL,
+                                    NULL,
+                                    PROV_RSA_FULL,
+                                    CRYPT_SILENT | CRYPT_NEWKEYSET)) {
+            g_handle = (HCRYPTPROV)NULL;
+            return;
+        }
+    }
+}
+
+void Math_finalize(void)
+{
+    if (g_handle)
+        CryptReleaseContext(g_handle, 0);
+}
+
+uint32_t Math_random_impl(void)
+{
+    uint32_t result;
+    CryptGenRandom(g_handle, sizeof(result), (BYTE*)&result);
+    return result;
+}
+#else
+void Math_initialize(void)
+{
+    g_handle = fopen("/dev/urandom", "rb");
+}
+
+void Math_finalize(void)
+{
+    if (g_handle)
+        fclose(g_handle);
+}
+
+uint32_t Math_random_impl(void)
+{
+    uint32_t result;
+    fread(&result, sizeof(result), 1, g_handle);
+    return result;
+}
+#endif
+
 KX_DEF_MATH_FUNCTION(acos)
 KX_DEF_MATH_FUNCTION(asin)
 KX_DEF_MATH_FUNCTION(atan)
@@ -69,6 +133,17 @@ KX_DEF_MATH_FUNCTION(ceil)
 KX_DEF_MATH_FUNCTION(fabs)
 KX_DEF_MATH_FUNCTION(floor)
 KX_DEF_MATH_FUNCTION2(fmod)
+
+int Math_random(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (!g_handle) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Can not initialize for random");
+    }
+    double rnd = ((double)(Math_random_impl() % 0x7fffffff)) / 0x7fffffff;
+    KX_ADJST_STACK();
+    push_d(ctx->stack, rnd);
+    return 0;
+}
 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "acos",   Math_acos  },   /* double acos(double x)                    */
@@ -91,6 +166,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "fabs",   Math_fabs  },   /* double fabs(double x)                    */
     { "floor",  Math_floor },   /* double floor(double x)                   */
     { "fmod",   Math_fmod  },   /* double fmod(double x, double y)          */
+    { "random", Math_random  }, /* Random value from 0 to 1                 */
 };
 
-KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
+KX_DLL_DECL_FNCTIONS(kx_bltin_info, Math_initialize, Math_finalize);

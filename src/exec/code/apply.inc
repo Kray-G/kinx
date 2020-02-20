@@ -89,12 +89,13 @@ do { \
                 KEX_SET_PROP(obj, name, &empty_value); \
                 KEX_GET_PROP(val, obj, name); \
             } \
-        } else if (v2->type == KX_INT_T) { \
-            if (v2->value.iv >= kv_size(obj->ary)) { \
-                kv_resize_if(kx_val_t, obj->ary, v2->value.iv+1); \
-                kv_shrinkto(obj->ary, v2->value.iv+1); \
+        } else if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
+            int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
+            if (index >= kv_size(obj->ary)) { \
+                kv_resize_if(kx_val_t, obj->ary, index+1); \
+                kv_shrinkto(obj->ary, index+1); \
             } \
-            val = &(kv_A(obj->ary, v2->value.iv)); \
+            val = &(kv_A(obj->ary, index)); \
         } else if (v2->type == KX_CSTR_T) { \
             const char *name = v2->value.pv; \
             KEX_GET_PROP(val, obj, name); \
@@ -178,15 +179,17 @@ do { \
             obj = lv->value.ov; \
             if (v2->type == KX_STR_T || v2->type == KX_CSTR_T) { \
                 KEX_GET_PROP(val, obj, name); \
-            } else if (v2->type == KX_INT_T) { \
-                if (v2->value.iv < 0) { \
+            } else if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
+                int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
+                if (index < 0) { \
                     int sz = kv_size(obj->ary); \
-                    int64_t i = v2->value.iv; \
-                    do { i += sz; } while (i < 0); \
-                    val = &(kv_A(obj->ary, i)); \
+                    do { index += sz; } while (index < 0); \
+                    val = &(kv_A(obj->ary, index)); \
                 } else { \
-                    val = &(kv_A(obj->ary, (v2->value.iv % kv_size(obj->ary)))); \
+                    val = &(kv_A(obj->ary, (index % kv_size(obj->ary)))); \
                 } \
+            } else { \
+                THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
             } \
         } \
         if (!val) { \

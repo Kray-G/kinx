@@ -1,0 +1,38 @@
+function quicksort(a, first, last) {
+    var i = first;
+    var j = last;
+    var x = a[(first + last) / 2];
+    var t;
+    while (true) {
+        while (a[i] < x) i++;
+        while (x < a[j]) j--;
+        if (i >= j) break;
+
+        t = a[i]; a[i] = a[j]; a[j] = t;
+        ++i; --j;
+    }
+    if (first  < i - 1)
+        quicksort(a, first , i - 1);
+    if (j + 1 < last)
+        quicksort(a, j + 1, last);
+}
+
+function demo(N) {
+    var a; // array
+
+    System.print("Before:");
+    for (var i = 0; i < N; i++) {
+        a[i] = Integer.parseInt(Math.random() * 100);
+        System.print(" %2d" % a[i]);
+    }
+    System.print("\n");
+
+    quicksort(a, 0, N - 1);
+
+    System.print("After: ");
+    for (var i = 0; i < N; i++)
+        System.print(" %2d" % a[i]);
+    System.print("\n");
+}
+
+demo(20);
