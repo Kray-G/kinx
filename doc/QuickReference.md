@@ -529,6 +529,62 @@ Stack Trace Information:
         at <main-block>(<unknown>:16)
 ```
 
+Another sample of Fiber.
+This is calculating fibonacci number.
+
+```javascript
+var fib = new Fiber(function() {
+    var a = 0, b = 1;
+    while (true) {
+        yield b;
+        [a, b] = [b, a + b];
+    }
+});
+
+var r = 35.times().map(&(i) => fib.resume());
+r.each(&(v, i) => System.println("fibonacci[%2d] = %7d" % i % v));
+```
+
+Here is the result.
+
+```
+fibonacci[ 0] =       1
+fibonacci[ 1] =       1
+fibonacci[ 2] =       2
+fibonacci[ 3] =       3
+fibonacci[ 4] =       5
+fibonacci[ 5] =       8
+fibonacci[ 6] =      13
+fibonacci[ 7] =      21
+fibonacci[ 8] =      34
+fibonacci[ 9] =      55
+fibonacci[10] =      89
+fibonacci[11] =     144
+fibonacci[12] =     233
+fibonacci[13] =     377
+fibonacci[14] =     610
+fibonacci[15] =     987
+fibonacci[16] =    1597
+fibonacci[17] =    2584
+fibonacci[18] =    4181
+fibonacci[19] =    6765
+fibonacci[20] =   10946
+fibonacci[21] =   17711
+fibonacci[22] =   28657
+fibonacci[23] =   46368
+fibonacci[24] =   75025
+fibonacci[25] =  121393
+fibonacci[26] =  196418
+fibonacci[27] =  317811
+fibonacci[28] =  514229
+fibonacci[29] =  832040
+fibonacci[30] = 1346269
+fibonacci[31] = 2178309
+fibonacci[32] = 3524578
+fibonacci[33] = 5702887
+fibonacci[34] = 9227465
+```
+
 #### Class
 
 Kinx is strongly supporting OOP (Object Oriented Programming).
