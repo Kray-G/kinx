@@ -58,7 +58,7 @@ If you agree, or if you don't agree, anyway push the star.
 
 > **IMPORTANT**  
 > If you faced a crash of the `kinx` executable, please try `make clean all` to re-build everything.
-> Sometimes changing a structure in common header will cause a crash because dependencies in Makefile is imcomplete.
+> Sometimes changing a structure in common header will cause a crash because dependencies in Makefile are imcomplete.
 
 #### Windows
 
@@ -153,9 +153,9 @@ That is a simple fibonacci function and execute it with time measurement like be
 $ time ./kinx examples/fib.kx
 fib(34) = 9227465
 
-real    0m0.578s
-user    0m0.516s
-sys     0m0.016s
+real    0m0.718s
+user    0m0.609s
+sys     0m0.000s
 ```
 
 Replace `function` to `native`.
@@ -176,12 +176,12 @@ Let's execute it and measure it!
 $ time ./kinx examples/native_fib.kx
 fib(34) = 9227465
 
-real    0m0.092s
-user    0m0.031s
-sys     0m0.000s
+real    0m0.167s
+user    0m0.063s
+sys     0m0.016s
 ```
 
-How nice it is 10x or more faster.
+How nice it is around 10x faster.
 
 But you have to know the limitations with native function.
 See [Quick Reference Guide](doc/QuickReference.md) for details.
