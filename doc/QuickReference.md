@@ -358,7 +358,7 @@ only when the object has a array value.
 
 #### Function
 
-##### `function`
+##### Normal Function
 
 `function` is the object, and can be assigned to a variable.
 And a function name is a variable name which have a function object itself.
@@ -373,29 +373,7 @@ var other = name;
 System.println(other(1, 2));    // 3
 ```
 
-A function has a lexical scope, so you can also use it as a closure.
-
-```javascript
-function newCounter() {
-    var i = 0;          // a lexical variable.
-
-    return function() { // an anonymous function.
-        ++i;            // a reference to a lexical variable.
-        return i;
-    };
-}
-
-var c1 = newCounter();
-System.println(c1()); // 1
-System.println(c1()); // 2
-System.println(c1()); // 3
-System.println(c1()); // 4
-System.println(c1()); // 5
-```
-
-You can use an anonymous function inside an expression as above.
-
-##### `native`
+##### Native Function
 
 `native` function is the function which is compiled to the machine native code.
 It is very fast but there are some limitations.
@@ -458,7 +436,31 @@ But there are limitations below.
 
 I will challenge to remove those, but the performance may be a little slower in some case.
 
-##### `lambda`
+##### Closure
+
+A function has a lexical scope, so you can also use it as a closure.
+
+```javascript
+function newCounter() {
+    var i = 0;          // a lexical variable.
+
+    return function() { // an anonymous function.
+        ++i;            // a reference to a lexical variable.
+        return i;
+    };
+}
+
+var c1 = newCounter();
+System.println(c1()); // 1
+System.println(c1()); // 2
+System.println(c1()); // 3
+System.println(c1()); // 4
+System.println(c1()); // 5
+```
+
+You can use an anonymous function inside an expression as above.
+
+##### Lambda
 
 A function is used as lambda inside expession with the style of `&(args) => expression`.
 About its functionality it is same as anonymous function.
@@ -480,6 +482,50 @@ add = 12
 sub = 8
 mul = 20
 div = 5
+```
+
+##### Fiber
+
+Now Fiber is supported.
+The function is suspended and returned some value by `yield`.
+See example below, `yield` will return the value and received some value from `resume`.
+The return value from `resume` is an array of arguments.
+
+```javascript
+var fiber = new Fiber(function(a1, ...a2) {
+    System.println("Fiber 1");
+    System.println("    a1 = %d, a2 = [%s]" % a1 % a2.join(', '));
+    [b1, ...b2] = yield 1;
+    System.println("Fiber 2");
+    System.println("    b1 = %d, b2 = [%s]" % b1 % b2.join(', '));
+    [c1, ...c2] = yield 2;
+    System.println("Fiber 3");
+    System.println("    c1 = %d, c2 = [%s]" % c1 % c2.join(', '));
+    return a1 + b1 + c1;
+});
+
+System.println("try[1] = ", fiber.resume(100, 200, 300));
+System.println("try[2] = ", fiber.resume(200, 300, 400));
+System.println("try[3] = ", fiber.resume(300, 400, 500));
+System.println("try[4] = ", fiber.resume(400, 500, 600));  // => FiberException
+```
+
+Here is the result.
+
+```
+Fiber 1
+    a1 = 100, a2 = [200, 300]
+try[1] = 1
+Fiber 2
+    b1 = 200, b2 = [300, 400]
+try[2] = 2
+Fiber 3
+    c1 = 300, c2 = [400, 500]
+try[3] = 600
+Uncaught exception: No one catch the exception.
+FiberException: Fiber has been already dead
+Stack Trace Information:
+        at <main-block>(<unknown>:16)
 ```
 
 #### Class

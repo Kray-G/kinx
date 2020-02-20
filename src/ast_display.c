@@ -207,6 +207,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, lvalue);
         break;
+    case KXOP_YIELD:
+        printf("(yield)\n");
+        display_ast(node->lhs, indent + 1, 0);
+        break;
     case KXOP_EQEQ:
         printf("(==):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
