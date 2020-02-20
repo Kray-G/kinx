@@ -130,6 +130,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_RET_NULL:
         printf("%-23s null", "ret");
         break;
+    case KX_YIELD:
+        printf("yield");
+        break;
     case KX_THROW:
         printf("throw");
         break;
