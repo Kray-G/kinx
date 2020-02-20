@@ -1,6 +1,6 @@
 # Script Kinx [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-Small scripting language with C like style syntax.
+Small scripting language with C like style syntax, with native function with JIT.
 
 ## Introduction
 
