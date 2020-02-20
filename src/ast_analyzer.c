@@ -207,6 +207,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXVL_FALSE:
         node->var_type = KX_INT_T;
         break;
+    case KXVL_REGEX:
+        node->var_type = KX_OBJ_T;
+        break;
 
     case KXOP_VAR: {
         kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
@@ -369,16 +372,19 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_GE:
     case KXOP_GT:
     case KXOP_LGE:
-        node->count_args = count_args(node->rhs);
-        if (ctx->func && node->count_args > ctx->func->callargs_max) {
-            ctx->func->callargs_max = node->count_args;
-        }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
-        node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->ret_type : node->lhs->var_type;
-        if (node->lhs->var_type == KX_NFNC_T && node->lhs->ret_type == KX_UNKNOWN_T) {
-            kx_yyerror_line("Can not call a native function without returning type", node->file, node->line);
-        }
+        node->var_type = KX_INT_T;
+        break;
+    case KXOP_REGEQ:
+        analyze_ast(node->lhs, ctx);
+        analyze_ast(node->rhs, ctx);
+        node->var_type = KX_OBJ_T;
+        break;
+    case KXOP_REGNE:
+        analyze_ast(node->lhs, ctx);
+        analyze_ast(node->rhs, ctx);
+        node->var_type = KX_INT_T;
         break;
     case KXOP_CALL: {
         int lvalue = ctx->lvalue;

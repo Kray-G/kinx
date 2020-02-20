@@ -1,0 +1,26 @@
+var a = "a=aaabbb,aabb=baaa,b=bbaaaa";
+
+System.println("%{a}:");
+while (group = (a =~ /=\w+/)) {
+    System.println("    found");
+    var l = group.length();
+    for (var i = 0; i < l; ++i) {
+        System.println("        [%2d,%2d) = '%s'"
+            % group[i].begin
+            % group[i].end
+            % a.subString(group[i].begin, group[i].end));
+    }
+}
+
+a = "abbb/aabbbaaa/bbbaa/aa";
+System.println("%{a}:");
+while (group = (a =~ %m(a+/))) {
+    System.println("    found");
+    var l = group.length();
+    for (var i = 0; i < l; ++i) {
+        System.println("        [%2d,%2d) = '%s'"
+            % group[i].begin
+            % group[i].end
+            % a.subString(group[i].begin, group[i].end));
+    }
+}

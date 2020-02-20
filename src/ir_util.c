@@ -673,6 +673,8 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
         ctx->dbllib = obj;
     } else if (!strcmp(name, "kxarray")) {
         ctx->arylib = obj;
+    } else if (!strcmp(name, "kxregex")) {
+        ctx->regexlib = obj;
     }
     int l = p->get_bltin_count();
     for (int i = 0; i < l; ++i) {
@@ -717,6 +719,96 @@ int get_bin_item(kx_val_t *v)
     case KX_DBL_T:  return (uint8_t)(int)v->value.dv;
     }
     return -1;
+}
+
+void kx_set_regex(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
+{
+    #define KX_MAX_REGEX_BUF (64)
+    const char *name = cur->value2.s;
+    int len = kv_size(ctx->regex);
+    if (len <= cur->value1.i) {
+        int sz = (cur->value1.i + 1) * 2;
+        if (sz < KX_MAX_REGEX_BUF) sz = KX_MAX_REGEX_BUF;
+        kv_resize(kx_regex_t, ctx->regex, sz);
+        kv_shrinkto(ctx->regex, sz);
+        for (int i = len; i < sz; ++i) {
+            kx_regex_t *p = &kv_A(ctx->regex, i);
+            p->pattern = NULL;
+            p->obj = NULL;
+        }
+    }
+
+    kx_regex_t *p = &kv_A(ctx->regex, cur->value1.i);
+    if (!p->pattern) {
+        p->pattern = name;
+        p->obj = NULL;
+        kx_val_t *val = NULL;
+        KEX_GET_PROP(val, ctx->regexlib, "create");
+        if (val && val->type == KX_BFNC_T) {
+            kx_fnc_t *fn = val->value.fn;
+            push_s(ctx->stack, name);
+            int r = fn->func(1, frmv, fn->lex, ctx);
+            if (r == 0 && kv_last(ctx->stack).type == KX_OBJ_T) {
+                p->obj = kv_last(ctx->stack).value.ov;
+            }
+            kv_remove_last((ctx)->stack);
+        }
+        if (!p->obj) {
+            p->obj = allocate_obj(ctx);
+        }
+    }
+    push_obj(ctx->stack, p->obj);
+}
+
+int kx_regex_eq(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int eq)
+{
+    int exc = 0;
+    kx_obj_t *re = NULL;
+    const char *str = NULL;
+    if (v1->type == KX_OBJ_T && (v2->type == KX_STR_T || v2->type == KX_CSTR_T)) {
+        re = v1->value.ov;
+        str = v2->type == KX_CSTR_T ? v2->value.pv : ks_string(v2->value.sv);
+    } else if (v2->type == KX_OBJ_T && (v1->type == KX_STR_T || v1->type == KX_CSTR_T)) {
+        re = v2->value.ov;
+        str = v1->type == KX_CSTR_T ? v1->value.pv : ks_string(v1->value.sv);
+    }
+    if (!re || !str) {
+        return KXN_UNSUPPORTED_OPERATOR;
+    }
+    kx_val_t *val1 = NULL;
+    KEX_GET_PROP(val1, re, "isRegex");
+    if (!val1 || val1->type != KX_INT_T || val1->value.iv == 0) {
+        return KXN_UNSUPPORTED_OPERATOR;
+    }
+
+    val1 = NULL;
+    KEX_GET_PROP(val1, re, "source");
+    if (!val1 || val1->type != KX_STR_T || strcmp(ks_string(val1->value.sv), str) != 0) {
+        val1 = NULL;
+        KEX_GET_PROP(val1, re, "reset");
+        if (!val1 || val1->type != KX_BFNC_T) {
+            exc = KXN_UNSUPPORTED_OPERATOR;
+            return exc;
+        }
+        kx_fnc_t *fn = val1->value.fn;
+        push_s((ctx)->stack, str);
+        push_obj((ctx)->stack, re);
+        exc = fn->func(2, frmv, fn->lex, ctx);
+        if (exc != 0) {
+            return exc;
+        }
+    }
+
+    val1 = NULL;
+    KEX_GET_PROP(val1, re, eq ? "find_eq" : "find_ne");
+    if (!val1 || val1->type != KX_BFNC_T) {
+        return KXN_UNSUPPORTED_OPERATOR;
+    }
+
+    kx_fnc_t *fn = val1->value.fn;
+    push_obj((ctx)->stack, re);
+    exc = fn->func(1, frmv, fn->lex, ctx);
+    return exc;
 }
 
 /*
@@ -801,7 +893,7 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
 /* div */
 
 #define KX_DIV_DIV_I(v1, val) { \
-    if (val == 0) { \
+    if (val == 0 && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T) { \
         exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \
@@ -939,7 +1031,7 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
 } \
 /**/
 #define KX_DIV_DIV_D(v1, val) { \
-    if (val < DBL_EPSILON) { \
+    if (val < DBL_EPSILON && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T) { \
         exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \
@@ -1130,7 +1222,7 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
 /* mod */
 
 #define KX_MOD_MOD_I(v1, val) { \
-    if (val == 0 && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
+    if (val == 0 && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T && (v1)->type != KX_OBJ_T) { \
         exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \
@@ -1253,7 +1345,7 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
 } \
 /**/
 #define KX_MOD_MOD_D(v1, val) { \
-    if (val < DBL_EPSILON && ((v1)->type != KX_CSTR_T || (v1)->type != KX_STR_T)) { \
+    if (val < DBL_EPSILON && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T && (v1)->type != KX_OBJ_T) { \
         exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \

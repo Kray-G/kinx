@@ -371,7 +371,7 @@ ir_exec.o: src/ir_exec.c include/dbg.h include/kvec.h include/kstr.h \
  src/exec/code/xor.inc src/exec/code/shl.inc src/exec/code/shr.inc \
  src/exec/code/eqeq.inc src/exec/code/neq.inc src/exec/code/le.inc \
  src/exec/code/lt.inc src/exec/code/ge.inc src/exec/code/gt.inc \
- src/exec/code/lge.inc
+ src/exec/code/lge.inc src/exec/code/regeq.inc
 ir_fix.o: src/ir_fix.c include/dbg.h include/kvec.h include/ir.h \
  include/khash.h include/klist.h include/kstr.h include/bigz.h \
  include/bign.h include/jit.h include/../src/jit/sljitLir.h \

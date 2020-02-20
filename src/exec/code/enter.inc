@@ -67,7 +67,7 @@
     kv_shrinkto(frm->v, max_vars); \
     int max_args = cur->count; \
     kx_val_t* stack = ((ctx)->stack).a + ssize - 2;\
-    int args = (*stack).value.iv; \
+    int args = stack->value.iv; \
     lexv = frm->lex = (*(--stack)).value.fn->lex; \
     if (args < max_args) { \
         kx_val_t *v = (frm->v).a; \

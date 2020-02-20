@@ -426,6 +426,9 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                 .op1 = { .type = KXNOP_IMM, .iv = 0 }
         }));
         break;
+    case KXVL_REGEX:
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
 
     case KXOP_VAR: {
         if (lvalue) {
@@ -670,11 +673,15 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         KXN_DEFINE_CMP(KXNOP_GT);
         break;
     }
-
     case KXOP_LGE: {
         KXN_DEFINE_CMP(KXNOP_LGE);
         break;
     }
+    case KXOP_REGEQ:
+    case KXOP_REGNE:
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
+
     case KXOP_CALL: {
         if (node->lhs->type == KXOP_VAR && strcmp(nctx->func_name, node->lhs->value.s) == 0) {
             /* recursive call of this function */

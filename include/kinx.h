@@ -105,6 +105,7 @@ enum opecode {
     KXVL_NULL,
     KXVL_TRUE,
     KXVL_FALSE,
+    KXVL_REGEX,
 
     /* special node */
     KXOP_VAR,
@@ -146,6 +147,8 @@ enum opecode {
     KXOP_GE,
     KXOP_GT,
     KXOP_LGE,
+    KXOP_REGEQ,
+    KXOP_REGNE,
     KXOP_CALL,
     KXOP_IMPORT,
     KXOP_TYPEOF,
@@ -277,6 +280,7 @@ extern const char *const_str2(const char* classname, const char* name);
 extern void free_nodes(void);
 extern void kx_make_native_mode(void);
 extern void kx_make_bin_mode(void);
+extern void kx_make_regex_mode(int onoff);
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_var_object(const char *name, int var_type);
 extern kx_object_t *kx_gen_var_type_object(const char *name, int var_type, int ret_type);
@@ -291,6 +295,7 @@ extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_import_object(const char *name);
+extern kx_object_t *kx_gen_regex_object(const char *pattern, int eq);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_texpr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
@@ -305,6 +310,8 @@ extern int eval_string(const char *code, kx_context_t *ctx);
 extern int eval_file(const char *file, kx_context_t *ctx);
 extern kstr_t *kx_format(kx_val_t *objval);
 
+extern void kx_set_regex(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
+extern int kx_regex_eq(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int eq);
 extern int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern int kx_try_div(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern int kx_try_div_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
