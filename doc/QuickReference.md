@@ -393,12 +393,12 @@ System.println("fib(34) = ", fib(34));
 $ time ./kinx examples/fib.kx
 fib(34) = 9227465
 
-real    0m0.578s
-user    0m0.516s
-sys     0m0.016s
+real    0m0.718s
+user    0m0.609s
+sys     0m0.000s
 ```
 
-In my environment, calculating a fibonacci number 34 takes about 500 ms.
+In my environment, calculating a fibonacci number 34 takes about 600 ms.
 
 ```javascript
 native fib(n) {
@@ -413,12 +413,12 @@ System.println("fib(34) = ", fib(34));
 $ time ./kinx examples/native_fib.kx
 fib(34) = 9227465
 
-real    0m0.092s
-user    0m0.031s
-sys     0m0.000s
+real    0m0.167s
+user    0m0.063s
+sys     0m0.016s
 ```
 
-After replacing `function` by `native`, it was shortened to 30 ms.
+After replacing `function` by `native`, it was shortened to 60 ms.
 
 But there are limitations below.
 
