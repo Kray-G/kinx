@@ -16,18 +16,18 @@ void native_dump(unsigned char *bytes, int size)
     ds_decode(ds, bytes, size, 0x0);
     struct dis *dis = NULL;
 
-	int biter = 0;
-	DS_FOREACH(ds, dis) {
-		printf("%8"PRIx64":   ", dis->address);
-		for (int m = 0, t = dis->used_bytes; m < 10; m++, t = m < dis->used_bytes) {
+    int biter = 0;
+    DS_FOREACH(ds, dis) {
+        printf("%8"PRIx64":   ", dis->address);
+        for (int m = 0, t = dis->used_bytes; m < 10; m++, t = m < dis->used_bytes) {
             if (t) {
                 printf("%02x ", bytes[biter++]);
             } else {
                 printf("   ");
             }
         }
-		printf("    %-8s%s\n", dis->mnemonic, dis->op_squash);
-	}
+        printf("    %-8s%s\n", dis->mnemonic, dis->op_squash);
+    }
 
     ds_destroy(ds);
     #else
