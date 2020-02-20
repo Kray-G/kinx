@@ -180,7 +180,7 @@ sys     0m0.000s
 How nice it is 10x or more faster.
 
 But you have to know the limitations with native function.
-See [the reference guide](doc/QuickReference.md) for details.
+See [Quick Reference Guide](doc/QuickReference.md) for details.
 
 ### Extending Functionalities
 
@@ -237,7 +237,6 @@ Here is a plan to add.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
-* [ ] Regular expression literal like `/pattern/`, and operations of `=~` & `!~`.
 * [ ] `const` for constant value.
 * [ ] Some Optimizations.
 
