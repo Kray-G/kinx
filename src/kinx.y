@@ -88,6 +88,8 @@
 %type<obj> AssignExpressionList
 %type<obj> KeyValueList
 %type<obj> KeyValue
+%type<strval> VarName
+%type<strval> KeySpecialName
 %type<obj> VarDeclStatement
 %type<obj> DeclAssignExpressionList
 %type<obj> DeclAssignExpression
@@ -367,7 +369,7 @@ Factor
     | DBL { $$ = kx_gen_dbl_object($1); }
     | BIGINT { $$ = kx_gen_big_object($1); }
     | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
-    | NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | STR { $$ = kx_gen_str_object($1); }
@@ -379,6 +381,12 @@ Factor
     | '(' AssignExpression ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     | '@' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
+    | '@' TYPEOF { $$ = kx_gen_typeof_object(kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
+    ;
+
+VarName
+    : NAME { $$ = $1; }
+    | TYPE { $$ = kx_gen_typestr_object($1); }
     ;
 
 PropertyName
@@ -398,7 +406,7 @@ PropertyName
     | DEFAULT { $$ = kx_gen_str_object("default"); }
     | NEW { $$ = kx_gen_str_object("new"); }
     | VAR { $$ = kx_gen_str_object("var"); }
-    | NATIVE { $$ = kx_gen_str_object("nativ"); }
+    | NATIVE { $$ = kx_gen_str_object("native"); }
     | FUNCTION { $$ = kx_gen_str_object("function"); }
     | PUBLIC { $$ = kx_gen_str_object("public"); }
     | PRIVATE { $$ = kx_gen_str_object("private"); }
@@ -410,7 +418,7 @@ PropertyName
     | TRUE { $$ = kx_gen_str_object("true"); }
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
-    | USING { $$ = kx_gen_str_object("using"); } 
+    | USING { $$ = kx_gen_str_object("using"); }
     ;
 
 Array
@@ -456,7 +464,40 @@ KeyValueList
 KeyValue
     : STR ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    | KeySpecialName ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 SpreadItem { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
+    ;
+
+KeySpecialName
+    : IF { $$ = "if"; }
+    | ELSE { $$ = "else"; }
+    | WHILE { $$ = "while"; }
+    | DO { $$ = "do"; }
+    | FOR { $$ = "for"; }
+    | TRY { $$ = "try"; }
+    | CATCH { $$ = "catch"; }
+    | FINALLY { $$ = "finally"; }
+    | BREAK { $$ = "break"; }
+    | CONTINUE { $$ = "continue"; }
+    | SWITCH { $$ = "switch"; }
+    | CASE { $$ = "case"; }
+    | NEW { $$ = "new"; }
+    | VAR { $$ = "var"; }
+    | NATIVE { $$ = "native"; }
+    | FUNCTION { $$ = "function"; }
+    | PUBLIC { $$ = "public"; }
+    | PRIVATE { $$ = "private"; }
+    | PROTECTED { $$ = "protectd"; }
+    | CLASS { $$ = "class"; }
+    | RETURN { $$ = "return"; }
+    | THROW { $$ = "throw"; }
+    | NUL { $$ = "null"; }
+    | TRUE { $$ = "true"; }
+    | FALSE { $$ = "false"; }
+    | IMPORT { $$ = "import"; }
+    | USING { $$ = "using"; }
+    | TYPE { $$ = kx_gen_typestr_object($1); }
+    | TYPEOF { $$ = kx_gen_typeofstr_object($1); }
     ;
 
 Regex
@@ -553,9 +594,9 @@ ArgumentList
     ;
 
 Argument
-    : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | NAME ':' TypeName ReturnType_Opt { $$ = kx_gen_var_type_object($1, $3, $4); }
-    | DOTS3 NAME { $$ = kx_gen_var_object($2, KX_SPR_T); }
+    : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_var_type_object($1, $3, $4); }
+    | DOTS3 VarName { $$ = kx_gen_var_object($2, KX_SPR_T); }
     ;
 
 TypeName

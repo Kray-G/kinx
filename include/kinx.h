@@ -290,6 +290,8 @@ extern kx_object_t *kx_gen_int_object(int64_t val);
 extern kx_object_t *kx_gen_dbl_object(double val);
 extern kx_object_t *kx_gen_big_object(const char *val);
 extern kx_object_t *kx_gen_str_object(const char *val);
+extern const char *kx_gen_typestr_object(int t);
+extern const char *kx_gen_typeofstr_object(int t);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t);
