@@ -16,11 +16,10 @@
     } else if ((v)->type == KX_DBL_T) { \
         tf = fabs((v)->value.dv) >= DBL_EPSILON; \
     } else if ((v)->type == KX_OBJ_T) { \
-        khash_t(prop) *p = (v)->value.ov->prop; \
-        khint_t it = kh_get(prop, p, "_False"); \
-        if (it != kh_end(p)) { \
-            kx_val_t *f = &(kh_value(p, it));\
-            tf = f->type != KX_INT_T || f->value.iv != 0; \
+        kx_val_t *val = NULL; \
+        KEX_GET_PROP(val, (v)->value.ov, "_False"); \
+        if (val && val->type == KX_INT_T && val->value.iv != 0) { \
+            tf = 0; \
         } else { \
             tf = 1; \
         } \
@@ -46,11 +45,10 @@
     } else if ((v)->type == KX_DBL_T) { \
         tf = fabs((v)->value.dv) < DBL_EPSILON; \
     } else if ((v)->type == KX_OBJ_T) { \
-        khash_t(prop) *p = (v)->value.ov->prop; \
-        khint_t it = kh_get(prop, p, "_False"); \
-        if (it != kh_end(p)) { \
-            kx_val_t *f = &(kh_value(p, it));\
-            tf = f->type == KX_INT_T && f->value.iv == 0; \
+        kx_val_t *val = NULL; \
+        KEX_GET_PROP(val, (v)->value.ov, "_False"); \
+        if (val && val->type == KX_INT_T && val->value.iv != 0) { \
+            tf = 1; \
         } else { \
             tf = 0; \
         } \

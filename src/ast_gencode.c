@@ -149,6 +149,7 @@ static int count_pushes(kx_function_t *function, kx_analyze_t *ana)
             case KX_PUSH_NULL:
             case KX_PUSH_TRUE:
             case KX_PUSH_FALSE:
+            case KX_PUSH_REGEX:
             case KX_PUSH_C:
                 pushes++;
                 break;
@@ -698,6 +699,9 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     case KXVL_FALSE:
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_FALSE }));
         break;
+    case KXVL_REGEX:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_REGEX, .value1 = { .i = node->optional }, .value2 = { .s = const_str(node->value.s) } }));
+        break;
 
     case KXOP_VAR: {
         if (lvalue) {
@@ -919,6 +923,20 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     KX_DEF_BINCMD_COMP(GE);
     KX_DEF_BINCMD_COMP(GT);
     KX_DEF_BINCMD_COMP(LGE);
+
+    case KXOP_REGEQ: {
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        gencode_ast_hook(ctx, node->rhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_REGEQ }));
+        break;
+    }
+    case KXOP_REGNE: {
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        gencode_ast_hook(ctx, node->rhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_REGNE }));
+        break;
+    }
+
     case KXOP_CALL: {
         if (node->rhs) {
             gencode_ast_hook(ctx, node->rhs, ana, 0);

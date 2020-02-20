@@ -43,6 +43,7 @@
 #include "exec/code/ge.inc"
 #include "exec/code/gt.inc"
 #include "exec/code/lge.inc"
+#include "exec/code/regeq.inc"
 
 static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
 {
@@ -96,6 +97,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_PUSH_NULL) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_TRUE) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_FALSE) { KX_GOTO(); }
+    KX_CASE_(KX_PUSH_REGEX) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_C) { KX_GOTO(); }
     KX_CASE_(KX_SPREAD) { KX_GOTO(); }
 
@@ -241,6 +243,9 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_LGED) { KX_GOTO(); }
     KX_CASE_(KX_LGES) { KX_GOTO(); }
     KX_CASE_(KX_LGEV) { KX_GOTO(); }
+
+    KX_CASE_(KX_REGEQ) { KX_GOTO(); }
+    KX_CASE_(KX_REGNE) { KX_GOTO(); }
 
     KX_CASE_(KX_EQEQ_V0V0) { KX_GOTO(); }
     KX_CASE_(KX_NEQ_V0V0) { KX_GOTO(); }

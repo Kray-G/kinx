@@ -7,7 +7,7 @@ while (re.find()) {
     var group = re.group;
     var l = group.length();
     for (var i = 0; i < l; ++i) {
-        System.println("        [", group[i].begin, ", ", group[i].end, "]");
+        System.println("        [", group[i].begin, ", ", group[i].end, ")");
     }
 }
 
@@ -19,6 +19,6 @@ if (re.matches()) {
     var group = re.group;
     var l = group.length();
     for (var i = 0; i < l; ++i) {
-        System.println("        [", group[i].begin, ", ", group[i].end, "]");
+        System.println("        [", group[i].begin, ", ", group[i].end, ")");
     }
 }

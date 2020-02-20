@@ -58,6 +58,7 @@ enum irop {
     KX_PUSH_NULL,
     KX_PUSH_TRUE,
     KX_PUSH_FALSE,
+    KX_PUSH_REGEX,
     KX_PUSH_C,
     KX_SPREAD,
 
@@ -203,6 +204,9 @@ enum irop {
     KX_LGED,
     KX_LGES,
     KX_LGEV,
+
+    KX_REGEQ,
+    KX_REGNE,
 
     KX_EQEQ_V0V0,
     KX_NEQ_V0V0,
@@ -550,6 +554,12 @@ typedef struct kx_bltin_ {
     bltin_initfin_t finalizer;
 } kx_bltin_t;
 
+typedef struct kx_regex_ {
+    const char *pattern;
+    kx_obj_t *obj;
+} kx_regex_t;
+kvec_init_t(kx_regex_t);
+
 typedef struct kx_options_ {
     int dump:1;
     int ast:1;
@@ -564,6 +574,7 @@ typedef struct kx_options_ {
 
 KHASH_MAP_INIT_STR(importlib, kx_bltin_t*)
 KHASH_MAP_INIT_STR(nativefunc, kxn_func_t)
+KHASH_MAP_INIT_STR(regex, kx_regex_t*)
 
 typedef struct kx_context_ {
     kx_frm_t *frmv;
@@ -598,12 +609,14 @@ typedef struct kx_context_ {
     kx_obj_t *intlib;
     kx_obj_t *dbllib;
     kx_obj_t *arylib;
+    kx_obj_t *regexlib;
     kx_fnc_t *global_method_missing;
 
     int block_index;
     int spread_additional;
     kvec_t(uint32_t) labels;
     kvec_pt(kx_code_t) fixcode;
+    kvec_t(kx_regex_t) regex;
 } kx_context_t;
 
 #if defined(KX_EXEC_DEBUG)

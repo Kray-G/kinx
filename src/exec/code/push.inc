@@ -30,6 +30,13 @@
 } \
 /**/
 
+#define KX_PUSH_REGEX_CODE() \
+{ \
+    kx_set_regex(ctx, frmv, cur); \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_PUSHI_CODE() \
 { \
     push_i((ctx)->stack, cur->value1.i); \
