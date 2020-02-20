@@ -800,7 +800,7 @@ while (group = (a =~ /\w+\//)) {
         System.println("found[%2d,%2d) = %s"
             % group[i].begin
             % group[i].end
-            % a.subString(group[i].begin, group[i].end));
+            % a.subString(group[i].begin, group[i].end - group[i].begin));
     }
 }
 ```
@@ -814,7 +814,7 @@ while (group = (a =~ %m(\w+/))) {
         System.println("found[%2d,%2d) = %s"
             % group[i].begin
             % group[i].end
-            % a.subString(group[i].begin, group[i].end));
+            % a.subString(group[i].begin, group[i].end - group[i].begin));
     }
 }
 ```
