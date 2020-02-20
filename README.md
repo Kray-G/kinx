@@ -56,6 +56,10 @@ If you agree, or if you don't agree, anyway push the star.
 
 ### How to Build
 
+> **IMPORTANT**  
+> If you faced a crash of the `kinx` executable, please try `make clean all` to re-build everything.
+> Sometimes changing a structure in common header will cause a crash because dependencies in Makefile is imcomplete.
+
 #### Windows
 
 On Windows, tested with Visual Studio 2017 Express Edition with x64.
