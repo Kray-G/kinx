@@ -17,11 +17,15 @@
 
 `String` object is used to operate for a text.
 
-|          Method           |               Meaning               |
-| ------------------------- | ----------------------------------- |
-| `String.length(str)`      | Returns the length of a string.     |
-| `String.parseInt(val)`    | Converts `val` to an integer value. |
-| `String.parseDouble(val)` | Converts `val` to a double value.   |
+|               Method                |               Meaning               |
+| ----------------------------------- | ----------------------------------- |
+| `String.length(str)`                | Returns the length of a string.     |
+| `String.trim(str)`                  | Trims whitespaces from a string.    |
+| `String.subString(str, start, end)` | Returns a sub string from a string. |
+| `String.parseInt(str)`              | Converts `val` to an integer value. |
+| `String.parseDouble(str)`           | Converts `val` to a double value.   |
+| `String.toInt(str)`                 | Same as `parseInt`.                 |
+| `String.toDouble(str)`              | Same as `parseDouble`.              |
 
 There is a special use case for this object.
 The following 2 example means the same work.
@@ -90,10 +94,12 @@ bin.length();
 
 `Array` object is used to operate for an array object like `[1,2,3]`.
 
-|              Method              |                   Meaning                    |
-| -------------------------------- | -------------------------------------------- |
-| `Array.length(ary)`              | Returns the length of an array.              |
-| `Array.each(ary, callback, idx)` | Loop and call `callback` with index of `idx` |
+|              Method              |                        Meaning                        |
+| -------------------------------- | ----------------------------------------------------- |
+| `Array.length(ary)`              | Returns the length of an array.                       |
+| `Array.join(ary, delim)`         | Returns the string of joining array items by `delim`. |
+| `Array.keySet(obj)`              | Returns the array of keys.                            |
+| `Array.each(ary, callback, idx)` | Loop and call `callback` with index of `idx`          |
 
 There is a special use case for this object.
 The following 2 example means the same work.
@@ -108,28 +114,29 @@ ary.length();
 `Math` object is mathematical functions to perform mathematical operations.
 These functions are also available for `Integer` and `Double` object.
 
-|         Method         |         Meaning          |
-| ---------------------- | ------------------------ |
-| `Math.acos(dbl)`       | Calculation of `acos()`  |
-| `Math.asin(dbl)`       | Calculation of `asin()`  |
-| `Math.atan(dbl)`       | Calculation of `atan()`  |
-| `Math.atan2(dbl, dbl)` | Calculation of `atan2()` |
-| `Math.cos(dbl)`        | Calculation of `cos()`   |
-| `Math.sin(dbl)`        | Calculation of `sin()`   |
-| `Math.tan(dbl)`        | Calculation of `tan()`   |
-| `Math.cosh(dbl)`       | Calculation of `cosh()`  |
-| `Math.sinh(dbl)`       | Calculation of `sinh()`  |
-| `Math.tanh(dbl)`       | Calculation of `tanh()`  |
-| `Math.exp(dbl)`        | Calculation of `exp()`   |
-| `Math.ldexp(dbl, int)` | Calculation of `ldexp()` |
-| `Math.log(dbl)`        | Calculation of `log()`   |
-| `Math.log10(dbl)`      | Calculation of `log10()` |
-| `Math.pow(dbl, dbl)`   | Calculation of `pow()`   |
-| `Math.sqrt(dbl)`       | Calculation of `sqrt()`  |
-| `Math.ceil(dbl)`       | Calculation of `ceil()`  |
-| `Math.fabs(dbl)`       | Calculation of `fabs()`  |
-| `Math.floor(dbl)`      | Calculation of `floor()` |
-| `Math.fmod(dbl)`       | Calculation of `fmod()`  |
+|         Method         |                    Meaning                    |
+| ---------------------- | --------------------------------------------- |
+| `Math.acos(dbl)`       | Calculation of `acos()`                       |
+| `Math.asin(dbl)`       | Calculation of `asin()`                       |
+| `Math.atan(dbl)`       | Calculation of `atan()`                       |
+| `Math.atan2(dbl, dbl)` | Calculation of `atan2()`                      |
+| `Math.cos(dbl)`        | Calculation of `cos()`                        |
+| `Math.sin(dbl)`        | Calculation of `sin()`                        |
+| `Math.tan(dbl)`        | Calculation of `tan()`                        |
+| `Math.cosh(dbl)`       | Calculation of `cosh()`                       |
+| `Math.sinh(dbl)`       | Calculation of `sinh()`                       |
+| `Math.tanh(dbl)`       | Calculation of `tanh()`                       |
+| `Math.exp(dbl)`        | Calculation of `exp()`                        |
+| `Math.ldexp(dbl, int)` | Calculation of `ldexp()`                      |
+| `Math.log(dbl)`        | Calculation of `log()`                        |
+| `Math.log10(dbl)`      | Calculation of `log10()`                      |
+| `Math.pow(dbl, dbl)`   | Calculation of `pow()`                        |
+| `Math.sqrt(dbl)`       | Calculation of `sqrt()`                       |
+| `Math.ceil(dbl)`       | Calculation of `ceil()`                       |
+| `Math.fabs(dbl)`       | Calculation of `fabs()`                       |
+| `Math.floor(dbl)`      | Calculation of `floor()`                      |
+| `Math.fmod(dbl)`       | Calculation of `fmod()`                       |
+| `Math.random()`        | Returns a random value from 0 to 1 as double. |
 
 ### SystemTimer
 
