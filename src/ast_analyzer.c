@@ -364,7 +364,13 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         }
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
+        node->var_type = KX_UNKNOWN_T;
         break;
+    case KXOP_YIELD:
+        analyze_ast(node->lhs, ctx);
+        node->var_type = KX_OBJ_T;
+        break;
+
     case KXOP_EQEQ:
     case KXOP_NEQ:
     case KXOP_LE:

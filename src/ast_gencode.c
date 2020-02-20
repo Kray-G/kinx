@@ -780,13 +780,9 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     case KXOP_MKARY:
-        if (lvalue) {
-            kx_yyerror_line("make array can not used in l-value", node->file, node->line);
-        } else {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
-            if (node->lhs) {
-                apply_array(ctx, node->lhs, ana);
-            }
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
+        if (node->lhs) {
+            apply_array(ctx, node->lhs, ana);
         }
         break;
     case KXOP_MKOBJ:
@@ -916,6 +912,11 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
+    case KXOP_YIELD:
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_YIELD }));
+        break;
+
     KX_DEF_BINCMD_COMP(EQEQ);
     KX_DEF_BINCMD_COMP(NEQ);
     KX_DEF_BINCMD_COMP(LE);

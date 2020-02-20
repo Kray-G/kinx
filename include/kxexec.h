@@ -33,6 +33,7 @@
     &&LBL_KX_RETVL0, \
     &&LBL_KX_RETVL1, \
     &&LBL_KX_RET_NULL, \
+    &&LBL_KX_YIELD, \
     &&LBL_KX_THROW, \
     &&LBL_KX_THROWA, \
     &&LBL_KX_THROWE, \
@@ -226,6 +227,7 @@
     struct kx_code_ *cur = kv_head(*fixcode); \
     kx_frm_t *frmv = (ctx)->frmv; \
     kx_frm_t *lexv = (ctx)->lexv; \
+    kx_fnc_t *fnco = NULL; \
 /**/
 #define KX_EXEC_FIX_JMPADDR(fixcode, start) \
     int len = kv_size(*fixcode) - 1; \

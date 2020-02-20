@@ -13,81 +13,59 @@
     --------------------------
 */
 
-#if defined(KX_EXEC_DEBUG)
-#define KX_ENTER_CODE() \
-{ \
-    int expand = cur->value1.i; \
-    kv_expand_if(kx_val_t, (ctx)->stack, expand); \
-    kx_frm_t *frm = allocate_frm(ctx); \
-    frm->caller = (ctx)->caller; \
-    frm->prv = frmv; \
-    frm->id = kv_size((ctx)->stack); \
-    int max_vars = cur->value2.i; \
-    kv_resize(kx_val_t, frm->v, max_vars); \
-    kv_shrinkto(frm->v, max_vars); \
-    lexv = frm->lex = kv_last_by((ctx)->stack, 3).value.fn->lex; \
-    int max_args = cur->count; \
-    int args = kv_last_by((ctx)->stack, 2).value.iv; \
-    if (args < max_args) { \
-        int i; \
-        for (i = 0; i < args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
-            kv_A(frm->v, i).frm = frm->id; \
-            kv_A(frm->v, i).idx = i; \
-        } \
-        for ( ; i < max_args; ++i) { \
-            kx_val_t *v = &kv_A(frm->v, i); \
-            v->type = KX_UND_T; \
-            v->frm = frm->id; \
-            v->idx = i; \
-        } \
-    } else {\
-        int i; \
-        for (i = 0; i < max_args; ++i) { \
-            kv_A(frm->v, i) = kv_last_by((ctx)->stack, i+4); \
-            kv_A(frm->v, i).frm = frm->id; \
-            kv_A(frm->v, i).idx = i; \
-        } \
-    } \
-    push_frm((ctx)->stack, frm); \
-    frmv = frm; \
-    cur = cur->next; \
-} \
-/**/
-#else
 #define KX_ENTER_CODE() \
 { \
     kv_expand_if(kx_val_t, (ctx)->stack, cur->value1.i); \
-    kx_frm_t *frm = allocate_frm(ctx); \
-    frm->caller = (ctx)->caller; \
-    frm->prv = frmv; \
-    int ssize = frm->id = kv_size((ctx)->stack); \
-    int max_vars = cur->value2.i; \
-    kv_resize_if(kx_val_t, frm->v, max_vars); \
-    kv_shrinkto(frm->v, max_vars); \
-    int max_args = cur->count; \
-    kx_val_t* stack = ((ctx)->stack).a + ssize - 2;\
+    int ssize = kv_size((ctx)->stack); \
+    kx_val_t *stack = ((ctx)->stack).a + ssize - 2;\
     int args = stack->value.iv; \
-    lexv = frm->lex = (*(--stack)).value.fn->lex; \
-    if (args < max_args) { \
-        kx_val_t *v = (frm->v).a; \
-        kx_val_t *e = v + max_args; \
+    fnco = (*(--stack)).value.fn; \
+    if (fnco->fbfrm) { \
+        if (!fnco->fbpos) { \
+            fnco->fbfrm = NULL; \
+            THROW_SYSTEM_EXCEPTION("FiberException", "Fiber has been already dead"); \
+        } \
+        kx_frm_t *frm = fnco->fbfrm; \
+        frm->caller = (ctx)->caller; \
+        frm->prv = frmv; \
+        lexv = frm->lex = fnco->lex; \
+        frmv = frm; \
+        kx_obj_t *obj = allocate_obj(ctx); \
         for (int i = 0; i < args; ++i) { \
-             *v++ = *(--stack); \
+            kv_push(kx_val_t, obj->ary, *(--stack)); \
         } \
-        while (v != e) { \
-            (v++)->type = KX_UND_T; \
+        push_frm((ctx)->stack, frm); \
+        push_obj((ctx)->stack, obj); \
+        cur = fnco->fbpos; \
+    } else { \
+        kx_frm_t *frm = allocate_frm(ctx); \
+        frm->id = ssize; \
+        frm->caller = (ctx)->caller; \
+        frm->prv = frmv; \
+        int max_vars = cur->value2.i; \
+        kv_resize_if(kx_val_t, frm->v, max_vars); \
+        kv_shrinkto(frm->v, max_vars); \
+        int max_args = cur->count; \
+        lexv = frm->lex = fnco->lex; \
+        if (args < max_args) { \
+            kx_val_t *v = (frm->v).a; \
+            kx_val_t *e = v + max_args; \
+            for (int i = 0; i < args; ++i) { \
+                *v++ = *(--stack); \
+            } \
+            while (v != e) { \
+                (v++)->type = KX_UND_T; \
+            } \
+        } else {\
+            kx_val_t *v = (frm->v).a; \
+            kx_val_t *e = v + max_args; \
+            while (v != e) { \
+                *v++ = *(--stack); \
+            } \
         } \
-    } else {\
-        kx_val_t *v = (frm->v).a; \
-        kx_val_t *e = v + max_args; \
-        while (v != e) { \
-            *v++ = *(--stack); \
-        } \
+        push_frm((ctx)->stack, frm); \
+        frmv = frm; \
+        cur = cur->next; \
     } \
-    push_frm((ctx)->stack, frm); \
-    frmv = frm; \
-    cur = cur->next; \
 } \
 /**/
-#endif

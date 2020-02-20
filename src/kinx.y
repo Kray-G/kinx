@@ -24,7 +24,7 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
-%token NEW VAR NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
+%token NEW VAR NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
@@ -53,6 +53,8 @@
 %type<obj> CatchStatement_Opt
 %type<obj> FinallyStatement_Opt
 %type<obj> ReturnStatement
+%type<obj> YieldStatement
+%type<obj> YieldExpression
 %type<obj> ThrowStatement
 %type<obj> ExpressionStatement
 %type<obj> Modifier_Opt
@@ -132,6 +134,7 @@ Statement
     | ForStatement
     | TryCatchStatement
     | ReturnStatement
+    | YieldStatement
     | ThrowStatement
     | ExpressionStatement
     | DefinitionStatement
@@ -224,6 +227,17 @@ BreakStatement
 
 ReturnStatement
     : RETURN AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_RET, $2, NULL, NULL)); }
+    ;
+
+YieldStatement
+    : YieldExpression ';' { $$ = kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL); }
+    ;
+
+YieldExpression
+    : YIELD AssignExpression { $$ = kx_gen_uexpr_object(KXOP_YIELD, $2); }
+    | YIELD { $$ = kx_gen_uexpr_object(KXOP_YIELD, kx_gen_special_object(KXVL_NULL)); }
+    | AssignExpression '=' YIELD AssignExpression { $$ = $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_uexpr_object(KXOP_YIELD, $4)); }
+    | AssignExpression '=' YIELD { $$ = $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_uexpr_object(KXOP_YIELD, kx_gen_special_object(KXVL_NULL))); }
     ;
 
 ThrowStatement
