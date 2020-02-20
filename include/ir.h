@@ -33,6 +33,7 @@ enum irop {
     KX_RETVL0,
     KX_RETVL1,
     KX_RET_NULL,
+    KX_YIELD,
 
     KX_THROW,
     KX_THROWA,
@@ -496,6 +497,9 @@ typedef struct kx_fnc_ {
     const char *typ;
     const char *wht;
     kx_val_t push;
+    /* Fiber */
+    struct kx_frm_ *fbfrm;
+    kx_code_t *fbpos;
 } kx_fnc_t;
 kvec_init_t(kx_fnc_t);
 kvec_init_pt(kx_fnc_t);
@@ -579,6 +583,7 @@ KHASH_MAP_INIT_STR(regex, kx_regex_t*)
 typedef struct kx_context_ {
     kx_frm_t *frmv;
     kx_frm_t *lexv;
+    kx_fnc_t *fnco;
     kvec_t(kx_val_t) stack;
     kvec_t(kx_exc_t) exception;
 

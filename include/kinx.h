@@ -140,6 +140,7 @@ enum opecode {
     KXOP_LAND,
     KXOP_LOR,
     KXOP_IDX,       /* array/object index */
+    KXOP_YIELD,
     KXOP_EQEQ,
     KXOP_NEQ,
     KXOP_LE,

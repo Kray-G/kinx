@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <inttypes.h>
 #include <kinx.h>
 
 KX_DECL_MEM_ALLOCATORS();
@@ -36,6 +37,58 @@ int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         }
         KX_ADJST_STACK();
         push_obj(ctx->stack, ary);
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
+int Array_join(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        const char *delm = get_arg_str(2, args, ctx);
+        kstr_t *str = allocate_str(ctx);
+        int len = kv_size(obj->ary);
+        int last = len - 1;
+        for (int i = 0; i < len; ++i) {
+            kx_val_t *v = &kv_A(obj->ary, i);
+            switch (v->type) {
+            case KX_INT_T:
+                ks_appendf(str, "%"PRId64, v->value.iv);
+                break;
+            case KX_DBL_T:
+                ks_appendf(str, "%g", v->value.dv);
+                break;
+            case KX_BIG_T: {
+                char *buf = BzToString(v->value.bz, 10, 0);
+                ks_append(str, buf);
+                BzFreeString(buf);
+                break;
+            }
+            case KX_CSTR_T:
+                ks_append(str, v->value.pv);
+                break;
+            case KX_STR_T:
+                ks_append(str, ks_string(v->value.sv));
+                break;
+            case KX_OBJ_T: {
+                kstr_t *out = kx_format(v);
+                if (out) {
+                    ks_append(str, ks_string(out));
+                    ks_free(out);
+                }
+                break;
+            }
+            default:
+                break;
+            }
+            if (delm && i != last) {
+                ks_append(str, delm);
+            }
+        }
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, str);
         return 0;
     }
 
@@ -88,6 +141,7 @@ int Array_printStackTrace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Array_length },
     { "keySet", Array_keySet },
+    { "join", Array_join },
     { "printStackTrace", Array_printStackTrace },
 };
 

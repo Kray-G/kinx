@@ -1,0 +1,11 @@
+
+var fib = new Fiber(function() {
+    var a = 0, b = 1;
+    while (true) {
+        yield b;
+        [a, b] = [b, a + b];
+    }
+});
+
+var r = 35.times().map(&(i) => fib.resume());
+r.each(&(v, i) => System.println("fibonacci[%2d] = %7d" % i % v));

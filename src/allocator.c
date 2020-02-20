@@ -301,6 +301,8 @@ static void gc_sweep(kx_context_t *ctx)
             v->wht = NULL;
             v->native.func = NULL;
             v->push.type = KX_UND_T;
+            v->fbfrm = NULL;
+            v->fbpos = NULL;
             kv_push(kx_fnc_t*, ctx->fnc_dead, v);
         }
     }

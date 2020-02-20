@@ -123,60 +123,6 @@ void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv)
     printf("print_stack done.\n"); fflush(stdout);
 }
 
-void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
-{
-    printf("Uncaught exception: No one catch the exception.\n");
-    kx_val_t *sp = NULL;
-    KEX_GET_PROP(sp, obj, "_type");
-    if (sp && sp->type == KX_STR_T) {
-        printf("%s: ", ks_string(sp->value.sv));
-    }
-    sp = NULL;
-    KEX_GET_PROP(sp, obj, "_what");
-    if (sp && sp->type == KX_STR_T) {
-        printf("%s", ks_string(sp->value.sv));
-    }
-    if (ctx->options.exception_detail_info) {
-        sp = NULL;
-        KEX_GET_PROP(sp, obj, "_instr");
-        if (sp && sp->type == KX_INT_T) {
-            printf(", ip(%"PRId64":0x%04"PRIx64")", sp->value.iv, sp->value.iv);
-        }
-    }
-    printf("\n");
-    printf("Stack Trace Information:\n");
-    kx_val_t *trace = NULL;
-    KEX_GET_PROP(trace, obj, "_trace");
-    if (trace && trace->type == KX_OBJ_T) {
-        kx_obj_t *obj = trace->value.ov;
-        int l = kv_size(obj->ary);
-        for (int i = 0; i < l; ) {
-            kx_val_t *v1 = &(kv_A(obj->ary, i++));
-            if (v1->type != KX_CSTR_T) break;
-            const char *file = v1->value.pv;
-            if (i < 0) break;
-
-            v1 = &(kv_A(obj->ary, i++));
-            if (v1->type != KX_CSTR_T) break;
-            const char *func = v1->value.pv;
-            if (i < 0) break;
-
-            v1 = &(kv_A(obj->ary, i++));
-            if (v1->type != KX_INT_T) break;
-            int line = v1->value.iv;
-
-            if (!strcmp(func, "_main")) {
-                printf("        at <main-block>(%s:%d)\n", file, line);
-            } else {
-                printf("        at function %s(%s:%d)\n", func, file, line);
-            }
-        }
-    }
-    if (ctx->options.exception_detail_info) {
-        print_stack(ctx, NULL, NULL);
-    }
-}
-
 void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht)
 {
     if (!typ) {
@@ -253,6 +199,82 @@ void update_exception_object(kx_context_t *ctx, kx_exc_t *e)
     }
 }
 
+void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
+{
+    /* check frames */ {
+        kx_val_t *trace = NULL;
+        KEX_GET_PROP(trace, obj, "_trace");
+        if (trace && trace->type == KX_OBJ_T) {
+            int ssp = kv_size((ctx)->stack);
+            for (int sp = ssp - 1; sp > 0; --sp) {
+                kx_val_t *v = &(kv_A((ctx)->stack, sp));
+                if (v->type == KX_FRM_T) {
+                    kx_frm_t *fr = v->value.fr;
+                    if (fr->caller) {
+                        KEX_PUSH_ARRAY_CSTR(trace->value.ov, fr->caller->file);
+                        KEX_PUSH_ARRAY_CSTR(trace->value.ov, fr->caller->func);
+                        KEX_PUSH_ARRAY_INT(trace->value.ov, fr->caller->line);
+                    }
+                }
+            }
+        }
+    }
+
+    printf("Uncaught exception: No one catch the exception.\n");
+    kx_val_t *sp = NULL;
+    KEX_GET_PROP(sp, obj, "_type");
+    if (sp && sp->type == KX_STR_T) {
+        printf("%s: ", ks_string(sp->value.sv));
+    }
+    sp = NULL;
+    KEX_GET_PROP(sp, obj, "_what");
+    if (sp && sp->type == KX_STR_T) {
+        printf("%s", ks_string(sp->value.sv));
+    }
+    if (ctx->options.exception_detail_info) {
+        sp = NULL;
+        KEX_GET_PROP(sp, obj, "_instr");
+        if (sp && sp->type == KX_INT_T) {
+            printf(", ip(%"PRId64":0x%04"PRIx64")", sp->value.iv, sp->value.iv);
+        }
+    }
+    printf("\n");
+    printf("Stack Trace Information:\n");
+    kx_val_t *trace = NULL;
+    KEX_GET_PROP(trace, obj, "_trace");
+    if (trace && trace->type == KX_OBJ_T) {
+        kx_obj_t *obj = trace->value.ov;
+        int l = kv_size(obj->ary);
+        for (int i = 0; i < l; ) {
+            kx_val_t *v1 = &(kv_A(obj->ary, i++));
+            if (v1->type != KX_CSTR_T) break;
+            const char *file = v1->value.pv;
+            if (i < 0) break;
+
+            v1 = &(kv_A(obj->ary, i++));
+            if (v1->type != KX_CSTR_T) break;
+            const char *func = v1->value.pv;
+            if (i < 0) break;
+
+            v1 = &(kv_A(obj->ary, i++));
+            if (v1->type != KX_INT_T) break;
+            int line = v1->value.iv;
+
+            if (func[0] == '_' && func[1] == '_') {
+                continue;
+            }
+            if (!strncmp(func, "_main", 5)) {
+                printf("        at <main-block>(%s:%d)\n", file, line);
+            } else {
+                printf("        at function %s(%s:%d)\n", func, file, line);
+            }
+        }
+    }
+    if (ctx->options.exception_detail_info) {
+        print_stack(ctx, NULL, NULL);
+    }
+}
+
 static inline const char *startup_code()
 {
     static const char *code =
@@ -267,6 +289,11 @@ static inline const char *startup_code()
         "var File:obj = _import('kxfile');\n"
         "var SystemTimer = { create: System.SystemTimer_create };\n"
         "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };\n"
+        "class Fiber(coroutine) {\n"
+            "public resume(...val) {\n"
+                "return coroutine(...val);\n"
+            "}\n"
+        "}\n"
         "(function() {\n"
             "Array.each = function(ary, callback) {\n"
                 "var len = ary.length();\n"
@@ -274,10 +301,25 @@ static inline const char *startup_code()
                     "callback(ary[i], i);\n"
                 "}\n"
             "};\n"
-            "Integer.times = function(val, callback) {\n"
-                "for (var i = 0; i < val; ++i) {\n"
-                    "callback(i, i);\n"
+            "Array.map = function(ary, callback) {\n"
+                "var len = ary.length();\n"
+                "for (var i = 0; i < len; ++i) {\n"
+                    "ary[i] = callback(ary[i], i);\n"
                 "}\n"
+                "return ary;\n"
+            "};\n"
+            "Integer.times = function(val, callback) {\n"
+                "var ary = [];\n"
+                "if (callback) {\n"
+                    "for (var i = 0; i < val; ++i) {\n"
+                        "ary[i] = callback(i, i);\n"
+                    "}\n"
+                "} else {\n"
+                    "for (var i = 0; i < val; ++i) {\n"
+                        "ary[i] = i;\n"
+                    "}\n"
+                "}\n"
+                "return ary;\n"
             "};\n"
             "Integer.upto = function(val, max, callback) {\n"
                 "var index = 0;\n"
