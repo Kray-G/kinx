@@ -143,6 +143,25 @@ kx_object_t *kx_gen_import_object(const char *name)
     return obj;
 }
 
+kx_object_t *kx_gen_regex_object(const char *pattern, int eq)
+{
+    static int id = 0;
+
+    if (eq) {
+        kstr_t *s = ks_new();
+        ks_append(s, "=");
+        ks_append(s, pattern);
+        kx_object_t *obj = kx_gen_obj(KXVL_REGEX, id++, NULL, NULL, NULL);
+        obj->value.s = const_str(ks_string(s));
+        ks_free(s);
+        return obj;
+    }
+
+    kx_object_t *obj = kx_gen_obj(KXVL_REGEX, id++, NULL, NULL, NULL);
+    obj->value.s = const_str(pattern);
+    return obj;
+}
+
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
     return kx_gen_obj(type, 0, lhs, rhs, NULL);

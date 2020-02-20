@@ -2,6 +2,8 @@
 #include <kinx.h>
 #include "onig/src/oniguruma.h"
 
+#define KX_REGEX_RET_OBJ (2)
+
 KX_DECL_MEM_ALLOCATORS();
 
 typedef struct regex_pack_ {
@@ -93,8 +95,16 @@ kx_obj_t *make_group_object(kx_context_t *ctx, regex_pack_t *r)
     return group;
 }
 
-int Regex_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+kx_obj_t *make_empty_obj(kx_context_t *ctx)
 {
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "_False", 1);
+    return obj;
+}
+
+int Regex_find_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, int ret)
+{
+    int nret = ret ? 0 : 1;
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_REGEX_GET_RPACK(r, obj);
     if (!r) {
@@ -110,7 +120,11 @@ int Regex_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (index < 0 || len <= index) {
         r->start = 0;
         KX_ADJST_STACK();
-        push_i(ctx->stack, 0);
+        if (ret == KX_REGEX_RET_OBJ) {
+            push_obj(ctx->stack, make_empty_obj(ctx)); /* empty object */
+        } else {
+            push_i(ctx->stack, nret);
+        }
         return 0;
     }
 
@@ -119,7 +133,11 @@ int Regex_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     int rx = onig_search(r->reg, str, end, str + index, end, r->region, ONIG_OPTION_NONE);
     if (rx == ONIG_MISMATCH) {
         KX_ADJST_STACK();
-        push_i(ctx->stack, 0);
+        if (ret == KX_REGEX_RET_OBJ) {
+            push_obj(ctx->stack, make_empty_obj(ctx)); /* empty object */
+        } else {
+            push_i(ctx->stack, nret);
+        }
         return 0;
     }
     int searched = r->region->end[0];
@@ -129,12 +147,30 @@ int Regex_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         r->start = searched;
     }
 
-    kx_obj_t *group = make_group_object(ctx, r);
-    KEX_SET_PROP_OBJ(obj, "group", group);
-
     KX_ADJST_STACK();
-    push_i(ctx->stack, 1);
+    kx_obj_t *group = make_group_object(ctx, r);
+    if (ret == KX_REGEX_RET_OBJ) {
+        push_obj(ctx->stack, group);
+    } else {
+        KEX_SET_PROP_OBJ(obj, "group", group);
+        push_i(ctx->stack, ret);
+    }
     return 0;
+}
+
+int Regex_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return Regex_find_impl(args, frmv, lexv, ctx, 1);
+}
+
+int Regex_find_eq(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return Regex_find_impl(args, frmv, lexv, ctx, KX_REGEX_RET_OBJ);
+}
+
+int Regex_find_ne(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return Regex_find_impl(args, frmv, lexv, ctx, 0);
 }
 
 int Regex_matches(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -178,13 +214,16 @@ int Regex_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kx_obj_t *obj = allocate_obj(ctx);
-        KEX_SET_PROP_CSTR(obj, "source", str);
+        KEX_SET_PROP_INT(obj, "isRegex", 1);
+        KEX_SET_PROP_CSTR(obj, "pattern", str);
         kx_any_t *r = allocate_any(ctx);
         r->p = Regex_compile_impl(str);
         r->any_free = Regex_free;
         KEX_SET_PROP_ANY(obj, "_pack", r);
         KEX_SET_METHOD("matches", obj, Regex_matches);
         KEX_SET_METHOD("find", obj, Regex_find);
+        KEX_SET_METHOD("find_eq", obj, Regex_find_eq);
+        KEX_SET_METHOD("find_ne", obj, Regex_find_ne);
         KEX_SET_METHOD("reset", obj, Regex_reset);
         KX_ADJST_STACK();
         push_obj(ctx->stack, obj);

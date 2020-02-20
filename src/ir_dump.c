@@ -205,6 +205,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_PUSH_FALSE:
         printf("push_false");
         break;
+    case KX_PUSH_REGEX:
+        printf("%-23s /%s/", "push_regex", code->value2.s);
+        break;
 
     case KX_PUSH_C:
         printf("%-23s .L%"PRId64"(%x)", "pushc", code->value1.i, code->addr);
@@ -339,6 +342,13 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     KX_IROP_COMP(GE,   ge);
     KX_IROP_COMP(GT,   gt);
     KX_IROP_COMP(LGE,  lge);
+
+    case KX_REGEQ:
+        printf("regeq");
+        break;
+    case KX_REGNE:
+        printf("regne");
+        break;
 
     case KX_TYPEOF:
         printf("%-23s is %s", "typeof", get_typename(code->value1.i));

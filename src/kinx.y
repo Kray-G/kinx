@@ -26,9 +26,9 @@
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
 %token NEW VAR NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
-%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ
+%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
-%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3
+%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -73,6 +73,7 @@
 %type<obj> ShiftExpression
 %type<obj> Expression
 %type<obj> Term
+%type<obj> RegexMatch
 %type<obj> PrefixExpression
 %type<obj> PostfixExpression
 %type<obj> PropertyName
@@ -81,6 +82,8 @@
 %type<obj> Binary
 %type<obj> Array
 %type<obj> Object
+%type<obj> Regex
+%type<strval> RegexString
 %type<obj> ArrayItemList
 %type<obj> AssignExpressionList
 %type<obj> KeyValueList
@@ -102,7 +105,7 @@
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
 %type<obj> SpreadItem
-%type<intval> NativeType
+%type<intval> NativeType_Opt
 %type<intval> TypeName
 %type<intval> ReturnType_Opt
 
@@ -324,10 +327,16 @@ Expression
     ;
 
 Term
+    : RegexMatch
+    | Term '*' RegexMatch { $$ = kx_gen_bexpr_object(KXOP_MUL, $1, $3); }
+    | Term '/' RegexMatch { $$ = kx_gen_bexpr_object(KXOP_DIV, $1, $3); }
+    | Term '%' RegexMatch { $$ = kx_gen_bexpr_object(KXOP_MOD, $1, $3); }
+    ;
+
+RegexMatch
     : PrefixExpression
-    | Term '*' PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_MUL, $1, $3); }
-    | Term '/' PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_DIV, $1, $3); }
-    | Term '%' PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_MOD, $1, $3); }
+    | RegexMatch REGEQ PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGEQ, $1, $3); }
+    | RegexMatch REGNE PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGNE, $1, $3); }
     ;
 
 PrefixExpression
@@ -365,6 +374,7 @@ Factor
     | Array
     | Binary
     | Object
+    | Regex
     | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }
     | '(' AssignExpression ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
@@ -449,6 +459,20 @@ KeyValue
     | DOTS3 SpreadItem { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
     ;
 
+Regex
+    : '/' RegexStart RegexString { $$ = kx_gen_regex_object($3, 0); }
+    | DIVEQ RegexStart RegexString { $$ = kx_gen_regex_object($3, 1); }
+    | REGPF RegexString { $$ = kx_gen_regex_object($2, 0); }
+    ;
+
+RegexStart
+    : { kx_make_regex_mode('/'); }
+    ;
+
+RegexString
+    : '(' STR ')' { $$ = $2; }
+    ;
+
 VarDeclStatement
     : VAR DeclAssignExpressionList ';' { $$ = $2; }
     ;
@@ -472,21 +496,21 @@ FunctionDeclStatement
 
 NormalFunctionDeclStatement
     : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, $4, $6, NULL); }
-    | NativeKeyword NativeType NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, $3, $5, $7, NULL); }
+    | NativeKeyword NativeType_Opt NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, $3, $5, $7, NULL); }
     ;
 
 NativeKeyword
     : NATIVE { kx_make_native_mode(); }
     ;
 
-NativeType
+NativeType_Opt
     : { $$ = KX_INT_T; }
-    | ':' TypeName { $$ = $2; }
+    | '<' TypeName '>' { $$ = $2; }
     ;
 
 AnonymousFunctionDeclExpression
     : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
-    | NativeKeyword NativeType '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, NULL, $4, $6, NULL); }
+    | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, NULL, $4, $6, NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW LogicalOrExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, kx_gen_stmt_object(KXST_RET, $6, NULL, NULL), NULL); }
     ;
 
