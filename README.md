@@ -1,6 +1,6 @@
 # Script Kinx [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-Small scripting language with C like style syntax, with native function with JIT.
+Small scripting language with C like style syntax, with native function by JIT.
 
 ## Introduction
 
@@ -19,7 +19,7 @@ Kinx can be the best platform for any libraries which you want to use or your ow
 *   **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
 *   **Object-Oriented**. Of cource you can do the object-oriented programming.
 *   C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
-*   **Native function** by AOT/JIT compiling supported with some limitations. Very fast.
+*   **Native function** by JIT compiling supported with some limitations. Very fast.
 *   **Dynamic typing**, but you can also specify the type.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Garbage Collection**, and so on.
 
