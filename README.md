@@ -36,9 +36,9 @@ C style syntax is the most fitting in the programmer's hand, I guess.
 
 Any other languages are also all good solution, but for me...
 
-*   Python is greate. But it is too far from C style. Indentend style is a little cramped.
-*   Ruby is also greate. But it is too far from C style. Too many typing for `end`.
-*   JavaScript is very good for me, and it is a C like style. But node.js is too heavyweight.
+*   Ruby is greate. But it is too far from C style. Too many typing for `end`.
+*   Python is also greate. But it is too far from C style. Indentend style is a little cramped and too many typing for `self`.
+*   JavaScript is very good for me, and it is a C like style. But node.js is too heavy.
 
 #### What is C Style Syntax?
 

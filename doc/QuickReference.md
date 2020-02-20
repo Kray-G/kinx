@@ -664,7 +664,7 @@ You can avoid troubles of escaping with using `%m` prefix.
 
 Here is the example below.
 
-```
+```javascript
 var a = "111/aaa/bbb/ccc/ddd";
 while (group = (a =~ /\w+\//)) {
     for (var i = 0, len = group.length(); i < len; ++i) {
@@ -678,7 +678,7 @@ while (group = (a =~ /\w+\//)) {
 
 This is same as below.
 
-```
+```javascript
 var a = "111/aaa/bbb/ccc/ddd";
 while (group = (a =~ %m(\w+/))) {
     for (var i = 0, len = group.length(); i < len; ++i) {
