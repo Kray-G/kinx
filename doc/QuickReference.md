@@ -488,6 +488,7 @@ div = 5
 
 Now Fiber is supported.
 The function is suspended and returned some value by `yield`.
+
 See example below, `yield` will return the value and received some value from `resume`.
 The return value from `resume` is an array of arguments.
 

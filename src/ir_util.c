@@ -263,8 +263,12 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
             if (func[0] == '_' && func[1] == '_') {
                 continue;
             }
-            if (!strncmp(func, "_main", 5)) {
-                printf("        at <main-block>(%s:%d)\n", file, line);
+            if (strlen(func) > 4 && func[0] == '_' && func[1] == 'm' && func[2] == 'a' && func[3] == 'i' && func[4] == 'n') {
+                if (!strcmp(func, "_main1")) {
+                    printf("        at <main-block>(%s:%d)\n", file, line);
+                } else {
+                    printf("        at <eval-block>(%s:%d)\n", file, line);
+                }
             } else {
                 printf("        at function %s(%s:%d)\n", func, file, line);
             }
