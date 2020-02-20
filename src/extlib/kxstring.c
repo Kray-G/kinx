@@ -66,9 +66,9 @@ int String_subString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         int b = args > 1 ? get_arg_int(2, args, ctx) : 0;
-        int e = args > 2 ? get_arg_int(3, args, ctx) : strlen(str);
+        int l = args > 2 ? get_arg_int(3, args, ctx) : strlen(str);
         kstr_t *s = allocate_str(ctx);
-        ks_append_n(s, str + b, e - b);
+        ks_append_n(s, str + b, l);
         KX_ADJST_STACK();
         push_sv(ctx->stack, s);
         return 0;

@@ -21,7 +21,7 @@
 | ----------------------------------- | ----------------------------------- |
 | `String.length(str)`                | Returns the length of a string.     |
 | `String.trim(str)`                  | Trims whitespaces from a string.    |
-| `String.subString(str, start, end)` | Returns a sub string from a string. |
+| `String.subString(str, start, len)` | Returns a sub string from a string. |
 | `String.parseInt(str)`              | Converts `val` to an integer value. |
 | `String.parseDouble(str)`           | Converts `val` to a double value.   |
 | `String.toInt(str)`                 | Same as `parseInt`.                 |
