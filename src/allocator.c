@@ -61,6 +61,7 @@ kx_context_t *make_context(void)
     ctx->global_method_missing = NULL;
     kv_init(ctx->labels);
     kv_init(ctx->fixcode);
+    kv_init(ctx->regex);
     init_allocation(ctx);
     return ctx;
 }
@@ -530,5 +531,6 @@ void context_cleanup(kx_context_t *ctx)
     builtin_cleanup(ctx);
     kv_destroy(ctx->labels);
     kv_destroy(ctx->fixcode);
+    kv_destroy(ctx->regex);
     kx_free(ctx);
 }

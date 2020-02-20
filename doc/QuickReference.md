@@ -632,18 +632,71 @@ The order of upside of the list is higher.
 |   1   | Factor       | Variable, Number, String, ...                                                    |
 |   2   | Postfix      | `++`, `--`, `[]`, `.`, `()`                                                      |
 |   3   | Prefix       | `!`, `+`, `-`, `++`, `--`                                                        |
-|   4   | Mul,...      | `*`, `/`, `%`                                                                    |
-|   5   | Add,...      | `+`, `-`                                                                         |
-|   6   | Shift        | `<<`, `>>`                                                                       |
-|   7   | Compare      | `<`, `>`, `>=`, `<=`                                                             |
-|   8   | Equals       | `==`, `!=`                                                                       |
-|   9   | Bit AND      | `&`                                                                              |
-|  10   | Bit XOR      | `^`                                                                              |
-|  11   | Bit OR       | <code>&#124;</code>                                                              |
-|  12   | Logical AND  | `&&`                                                                             |
-|  13   | Logical OR   | <code>&#124;&#124;</code>                                                        |
-|  14   | Ternary Expr | ` ? : `, `function(){}`                                                          |
-|  15   | Assignment   | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, `&#124;=`, `^=`, `&&=`, `&#124;&#124;=` |
+|   4   | Matching     | `=~`, `!~`                                                                       |
+|   5   | Mul,...      | `*`, `/`, `%`                                                                    |
+|   6   | Add,...      | `+`, `-`                                                                         |
+|   7   | Shift        | `<<`, `>>`                                                                       |
+|   8   | Compare      | `<`, `>`, `>=`, `<=`                                                             |
+|   9   | Equals       | `==`, `!=`                                                                       |
+|  10   | Bit AND      | `&`                                                                              |
+|  11   | Bit XOR      | `^`                                                                              |
+|  12   | Bit OR       | <code>&#124;</code>                                                              |
+|  13   | Logical AND  | `&&`                                                                             |
+|  14   | Logical OR   | <code>&#124;&#124;</code>                                                        |
+|  15   | Ternary Expr | ` ? : `, `function(){}`                                                          |
+|  16   | Assignment   | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, `&#124;=`, `^=`, `&&=`, `&#124;&#124;=` |
+
+### Pattern-Matching operator
+
+Pattern-matching operator is `=~` and `!~`.
+`=~` means returning a group object if matched, otherwise returning the object of `False`.
+`!~` means true(1) if not matched, otherwise false(0).
+
+You can use both `Regex =~ String` and `String =~ Regex`.
+The `Regex` object is also able to be a literal of `/.../` style.
+When it is a `/.../` style, that is like a raw string without escaping,
+and it can be especially escaped like `/...\/.../` only for `/`.
+
+If you do not want to use escaping `/`, you can use `%m` prefix for a regex literal,
+and any character or some brackets like raw string with `%m` prefix is available for raw string of `Regex` object.
+For example, `/..\/"./` is same as `%m"../\"."`, `%m(../".)`, and so on.
+You can avoid troubles of escaping with using `%m` prefix.
+
+Here is the example below.
+
+```
+var a = "111/aaa/bbb/ccc/ddd";
+while (group = (a =~ /\w+\//)) {
+    for (var i = 0, len = group.length(); i < len; ++i) {
+        System.println("found[%2d,%2d) = %s"
+            % group[i].begin
+            % group[i].end
+            % a.subString(group[i].begin, group[i].end));
+    }
+}
+```
+
+This is same as below.
+
+```
+var a = "111/aaa/bbb/ccc/ddd";
+while (group = (a =~ %m(\w+/))) {
+    for (var i = 0, len = group.length(); i < len; ++i) {
+        System.println("found[%2d,%2d) = %s"
+            % group[i].begin
+            % group[i].end
+            % a.subString(group[i].begin, group[i].end));
+    }
+}
+```
+
+Note that used in condition, the reset of regex object will be done when:
+
+*   The first time, including successfully completed and ended at the previous loop.
+*   The string has been changed.
+
+There is no chance to be reset except the above conditions.
+Especially, you should watch out when breaking a loop in halfway or using it in `if-condition` inside a loop.
 
 ### Spread/Rest operator
 

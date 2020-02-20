@@ -54,6 +54,7 @@
     &&LBL_KX_PUSH_NULL, \
     &&LBL_KX_PUSH_TRUE, \
     &&LBL_KX_PUSH_FALSE, \
+    &&LBL_KX_PUSH_REGEX, \
     &&LBL_KX_PUSH_C, \
     &&LBL_KX_SPREAD, \
     &&LBL_KX_POP_C, \
@@ -176,6 +177,8 @@
     &&LBL_KX_LGED, \
     &&LBL_KX_LGES, \
     &&LBL_KX_LGEV, \
+    &&LBL_KX_REGEQ, \
+    &&LBL_KX_REGNE, \
     &&LBL_KX_EQEQ_V0V0, \
     &&LBL_KX_NEQ_V0V0, \
     &&LBL_KX_LE_V0V0, \

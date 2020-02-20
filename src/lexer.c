@@ -7,6 +7,7 @@
 static char kx_strbuf[KX_BUF_MAX] = {0};
 static int g_import = 0;
 static int g_binmode = 0;
+static int g_regexmode = 0;
 static const char *varname = NULL;
 static const char *modulename = NULL;
 
@@ -25,6 +26,11 @@ void setup_lexinfo(const char *file, kx_yyin_t *yyin)
 void kx_make_bin_mode(void)
 {
     g_binmode = 1;
+}
+
+void kx_make_regex_mode(int br)
+{
+    g_regexmode = br;
 }
 
 static int load_using_module(const char *name, int no_error)
@@ -418,6 +424,16 @@ HEAD_OF_YYLEX:
     if (g_import > 0) {
         return process_import();
     }
+    if (g_regexmode) {
+        kx_lexinfo.is_multi = g_regexmode;
+        kx_lexinfo.is_trim = 1;
+        kx_lexinfo.tempbuf[0] = kx_lexinfo.ch;
+        kx_lexinfo.tempbuf[1] = 0;
+        kx_lexinfo.restart = kx_lexinfo.tempbuf;
+        kx_lexinfo.ch = MLSTR;
+        g_regexmode = 0;
+        return '(';
+    }
 
     int pos = 0, is_zero = 0;
     switch (kx_lexinfo.ch) {
@@ -490,12 +506,20 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
             return DARROW;
         }
+        if (kx_lexinfo.ch == '~') {
+            kx_lex_next(kx_lexinfo);
+            return REGEQ;
+        }
         return '=';
     case '!':
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == '=') {
             kx_lex_next(kx_lexinfo);
             return NEQ;
+        }
+        if (kx_lexinfo.ch == '~') {
+            kx_lex_next(kx_lexinfo);
+            return REGNE;
         }
         return '!';
     case '>':
@@ -639,6 +663,12 @@ HEAD_OF_YYLEX:
         if (kx_lexinfo.ch == '=') {
             kx_lex_next(kx_lexinfo);
             return MODEQ;
+        }
+        if (kx_lexinfo.ch == 'm') {
+            kx_lex_next(kx_lexinfo);
+            g_regexmode = kx_lexinfo.ch;
+            kx_lex_next(kx_lexinfo);
+            return REGPF;
         }
         kx_lexinfo.is_trim = 0;
         if (kx_lexinfo.ch == '-') {
