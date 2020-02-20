@@ -1037,8 +1037,8 @@ throw;                              // throw the same exception as the exception
 Same as `break`, you can also use `throw` statement with if modifier.
 
 ```javascript
-throw if (a == 0);                                  // without label
-throw RuntimeException("something") if (a == 0);    // with label
+throw if (a == 0);                                  // without exception
+throw RuntimeException("something") if (a == 0);    // with exception
 ```
 
 #### Label Statement
