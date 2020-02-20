@@ -12,6 +12,22 @@ The design goal for this language is to be extendable, lightweight,
 and easy to use for user's own purpose.
 Kinx can be the best platform for any libraries which you want to use or your own library.
 
+### Features
+
+*   **Extendable**. Contributers are able to extend features easily for your own use.
+*   **Lightweight**. You can start using this without a lot of work.
+*   **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
+*   **Object-Oriented**. Of cource you can do the object-oriented programming.
+*   C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
+*   **Native function** by AOT/JIT compiling supported with some limitations. Very fast.
+*   **Dynamic typing**, but you can also specify the type.
+*   **Classes** and inheritance, **Higher order functions**, **Lexical scoping** and **Closures**, and so on.
+
+### Language Details
+
+There is [Quick Reference Guide](doc/QuickReference.md).
+Please see [Quick Reference Guide](doc/QuickReference.md) for your understanding.
+
 ### Motivation
 
 I guess almost all programmers want a lightweight scripting language with C style syntax
@@ -35,20 +51,6 @@ Sharing the definition of **C Style Syntax**, it is below.
 
 For example that is C, C++, Java, JavaScript, C#, and so on.
 If you agree, or if you don't agree, anyway push the star.
-
-## Features
-
-* **Extendable**. Contributers are able to extend features easily for your own use.
-* **Lightweight**. You can start using this without a lot of work.
-* **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
-* **Object-Oriented**. Of cource you can do the object-oriented programming.
-* C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
-* **Native function** by AOT/JIT compiling supported with some limitations.
-
-### Language Details
-
-There is [the reference guide](doc/QuickReference.md).
-Please see [the reference guide](doc/QuickReference.md) for your understanding.
 
 ## Getting Started
 
