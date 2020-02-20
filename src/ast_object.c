@@ -111,6 +111,38 @@ kx_object_t *kx_gen_str_object(const char *val)
     return obj;
 }
 
+const char *kx_gen_typestr_object(int t)
+{
+    switch (t) {
+    case KX_UND_T:  return "null";
+    case KX_INT_T:  return "int";
+    case KX_BIG_T:  return "big";
+    case KX_DBL_T:  return "dbl";
+    case KX_STR_T:  return "str";
+    case KX_BIN_T:  return "bin";
+    case KX_OBJ_T:  return "obj";
+    case KX_FNC_T:  return "fnc";
+    }
+    return "-";
+}
+
+const char *kx_gen_typeofstr_object(int t)
+{
+    switch (t) {
+    case KX_UND_T:  return "isUndefined";
+    case KX_INT_T:  return "isInteger";
+    case KX_BIG_T:  return "isBigInteger";
+    case KX_DBL_T:  return "isDouble";
+    case KX_STR_T:  return "isString";
+    case KX_BIN_T:  return "isBinary";
+    case KX_OBJ_T:  return "isObject";
+    case KX_FNC_T:  return "isFunction";
+    case KX_ARY_T:  return "isArray";
+    case KX_DEF_T:  return "isDefined";
+    }
+    return "-";
+}
+
 kx_object_t *kx_gen_big_object(const char *val)
 {
     kx_object_t *obj = kx_gen_obj(KXVL_BIG, 0, NULL, NULL, NULL);
