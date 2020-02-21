@@ -262,7 +262,7 @@ formatpic.o: src/format.c
 kstrpic.o: src/kstr.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
-kc-jsonpic.o.o: src/extlib/kc-json/kc-json.c
+kc-jsonpic.o: src/extlib/kc-json/kc-json.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
