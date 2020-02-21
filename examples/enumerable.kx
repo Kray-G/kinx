@@ -1,0 +1,61 @@
+
+# This is a Fiber example.
+
+class Enamerable(src_) {
+    # := filter
+    public where(f) {
+        var pf = src_;
+        src_ = new Fiber(&{
+            while (true) {
+                var v = pf.resume();
+                if (f(v)) {
+                    yield v;
+                }
+            }
+        });
+        return this;
+    }
+
+    # := map
+    public select(f) {
+        var pf = src_;
+        src_ = new Fiber(&{
+            while (true) {
+                var v = pf.resume();
+                yield f(v);
+            }
+        });
+        return this;
+    }
+
+    public take(n) {
+        var pf = src_;
+        src_ = new Fiber(&{
+            for (var i = 0; i < n; ++i) {
+                yield pf.resume();
+            }
+        });
+        return this;
+    }
+
+    public writeln() {
+        try {
+            while (true) {
+                var v = src_.resume();
+                System.println(v);
+            }
+        } catch (e) {
+            ;
+        }
+    }
+}
+
+var Inf = new Fiber(&{
+    var i = 0;
+    while (true) {
+        yield i;
+        ++i;
+    }
+});
+
+new Enamerable(Inf).where(&(v) => v % 2 == 0).select(&(v) => v * 3).take(10).writeln();
