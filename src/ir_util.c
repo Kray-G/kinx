@@ -291,6 +291,7 @@ static inline const char *startup_code()
         "var Math:obj = _import('kxmath');\n"
         "var Regex:obj = _import('kxregex');\n"
         "var File:obj = _import('kxfile');\n"
+        "var JSON:obj = _import('kxjson');;\n"
         "var SystemTimer = { create: System.SystemTimer_create };\n"
         "function RuntimeException(msg) { return { _type: 'RuntimeException', _what: msg }; };\n"
         "class Fiber(coroutine) {\n"
