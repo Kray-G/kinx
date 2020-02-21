@@ -583,12 +583,12 @@ static inline int __json_lex_make_keyword(void)
 
 #define JSON_CHAR_MAP(ch) \
     switch (ch) { \
-    case '\\': ch = '\\\\'; break; \
-    case '\'': ch = '\'';   break; \
-    case '"':  ch = '"';    break; \
-    case 'n':  ch = '\n';   break; \
-    case 'r':  ch = '\r';   break; \
-    case 't':  ch = '\t';   break; \
+    case '\\': ch = '\\'; break; \
+    case '\'': ch = '\''; break; \
+    case '"':  ch = '"';  break; \
+    case 'n':  ch = '\n'; break; \
+    case 'r':  ch = '\r'; break; \
+    case 't':  ch = '\t'; break; \
     } \
 /**/
 
