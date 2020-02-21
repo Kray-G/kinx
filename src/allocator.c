@@ -153,6 +153,9 @@ static void gc_mark_fnc(kx_fnc_t *c)
     }
 
     c->mark = 1;
+    if (c->fbfrm) {
+        gc_mark_frm(c->fbfrm);
+    }
     if (c->lex) {
         gc_mark_frm(c->lex);
     }
