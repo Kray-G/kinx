@@ -228,7 +228,7 @@ See [Class Design](doc/HowClassWorks.md) for how class works.
 Currently many functionalities are too lack, I would like to add objects and methods as soon as possible.
 Many functionalities added in the future will be created by above strategy.
 
-For current supported objects, see [here](doc/Object.md).
+For current supported objects, see [here](doc/Reference/_Index.md).
 
 ## TODO
 
