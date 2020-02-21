@@ -699,7 +699,7 @@ static inline int __json_yylex_impl()
     return JSON_TOKEN_ERROR;
 }
 
-static inline int __json_yylex()
+int __json_yylex()
 {
     #if !defined(JSON_PARSER_DEBUG)
     return __json_yylex_impl();
