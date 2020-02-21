@@ -1,0 +1,28 @@
+
+function display(obj, key, indent) {
+    if (obj.isArray) {
+        System.println("  " * indent, "item[%{key}]:");
+        for (var i = 0, l = obj.length(); i < l; ++i) {
+            display(obj[i], i, indent+1);
+        }
+    } else if (obj.isObject) {
+        System.println("  " * indent, "item[%{key}]:");
+        var keys = obj.keySet();
+        for (var i = 0, l = keys.length(); i < l; ++i) {
+            var k = keys[i];
+            display(obj[k], k, indent+1);
+        }
+    } else {
+        System.println("  " * indent, "item[%{key}] = ", obj);
+    }
+}
+
+display(JSON.parse(%{
+    [ "Sample" + " (" + 1 + ")",
+        { "x": 410, "y": 150 * (20 + 1), "type": "link", "path": "/Applications" },
+        {
+            "p1": { "x": 130, "y": 150, "type": "file" },
+            "p2": { "x": 230, "y": 90, "type": "directory" }
+        }
+    ]
+}));
