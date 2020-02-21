@@ -1155,6 +1155,7 @@ LABEL: {
     while (1) {
         break LABEL if (++a == 50);
     }
+    a = 100;
 }
 System.println("a = %{a}"); // a = 50
 ```
