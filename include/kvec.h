@@ -112,6 +112,8 @@ int main() {
 			(v1).n = (v1).n + (v0).n;								\
 			(v1).m = (v1).n<<1;										\
 			(v1).a = (type*)kx_realloc((v1).a, sizeof(type) * (v1).m);	\
+		} else {													\
+			(v1).n = (v1).n + (v0).n;								\
 		}															\
 		memcpy((v1).a + v1n, (v0).a, sizeof(type) * (v0).n);		\
 	} while (0)
@@ -122,9 +124,15 @@ int main() {
 			(v1).n = (v1).n + (v0).n;								\
 			(v1).m = (v1).n<<1;										\
 			(v1).a = (type*)kx_realloc((v1).a, sizeof(type) * (v1).m);	\
+		} else {													\
+			(v1).n = (v1).n + (v0).n;								\
 		}															\
-		memmove((v1).a + (v0).n, (v1).a, sizeof(type) * (v1).n);	\
+		memmove((v1).a + (v0).n, (v1).a, sizeof(type) * v1n);		\
 		memcpy((v1).a, (v0).a, sizeof(type) * (v0).n);				\
+	} while (0)
+
+#define kv_unshift(type, v1) do {									\
+		memmove((v1).a, (v1).a + 1, sizeof(type) * (--(v1).n));		\
 	} while (0)
 
 #endif
