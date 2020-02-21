@@ -568,6 +568,7 @@ AnonymousFunctionDeclExpression
     | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, NULL, $4, $6, NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW LogicalOrExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, kx_gen_stmt_object(KXST_RET, $6, NULL, NULL), NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $6, NULL); }
+    | '&' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, NULL, $2, NULL); }
     ;
 
 ClassFunctionDeclStatement
