@@ -17,6 +17,7 @@
         "xmemory0": "c",
         "xtr1common": "c",
         "disas.h": "c",
-        "xstddef": "c"
+        "xstddef": "c",
+        "kc-json.h": "c"
     }
 }

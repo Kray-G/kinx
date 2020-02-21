@@ -30,7 +30,8 @@ OBJS = \
     src/main.obj \
     src/parser.obj \
     src/format.obj \
-    src/string.obj
+    src/string.obj \
+    src/extlib/kc-json/kc-json.obj
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
     src/jit/sljitConfigInternal.h \
@@ -120,7 +121,8 @@ SOFILES = \
     kxarray.dll \
     kxfile.dll \
     kxmath.dll \
-    kxregex.dll
+    kxregex.dll \
+    kxjson.dll
 PICOBJS = \
     src/bign.obj \
     src/bigz.obj \
@@ -211,6 +213,9 @@ kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
+
+kxjson.dll: src/extlib/kxjson.c src/extlib/kc-json/kc-json.h src/extlib/kc-json/kc-json.obj $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxjson.c $(PICOBJS) src/extlib/kc-json/kc-json.obj
 
 src/parser.c: kx.tab.c
 	move /y kx.tab.c src/parser.c; 

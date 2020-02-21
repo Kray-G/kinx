@@ -128,7 +128,8 @@ SOFILES = \
     kxarray.so \
     kxfile.so \
     kxmath.so \
-    kxregex.so
+    kxregex.so \
+    kxjson.so
 PICOBJS = \
     bignpic.o \
     bigzpic.o \
@@ -214,6 +215,9 @@ kxmath.so: src/extlib/kxmath.c $(PICOBJS)
 kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
 
+kxjson.so: src/extlib/kxjson.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' kc-jsonpic.o
+
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
 
@@ -256,6 +260,9 @@ formatpic.o: src/format.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 kstrpic.o: src/kstr.c
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
+
+kc-jsonpic.o.o: src/extlib/kc-json/kc-json.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
