@@ -950,7 +950,7 @@ static inline void __json_pretty_print(__json_object_t *j, int indent, int comma
         printf("%s", j->value.b ? "true" : "false");
         break;
     case JSON_INTEGER:
-        printf("%lld", j->value.i);
+        printf("%"PRId64, j->value.i);
         break;
     case JSON_REAL:
         printf("%f", j->value.d);
@@ -1081,7 +1081,7 @@ __json_object_t *__json_add(__json_object_t *j1, __json_object_t *j2)
             break;
         case JSON_TEXT: {
             char buf[256] = {0};
-            sprintf(buf, "%lld", j1->value.i);
+            sprintf(buf, "%"PRId64, j1->value.i);
             j1->type = JSON_TEXT;
             j1->value.t = __json_string_alloc(buf);
             string_append(&j1->value.t, j2->value.t);
@@ -1115,7 +1115,7 @@ __json_object_t *__json_add(__json_object_t *j1, __json_object_t *j2)
         switch (j2->type) {
         case JSON_INTEGER: {
             char buf[256] = {0};
-            sprintf(buf, "%lld", j2->value.i);
+            sprintf(buf, "%"PRId64, j2->value.i);
             string_append_cstr(&j1->value.t, buf);
             break;
         }
