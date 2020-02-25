@@ -24,7 +24,7 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
-%token NEW VAR NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD
+%token NEW VAR NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
@@ -422,6 +422,7 @@ PropertyName
     | VAR { $$ = kx_gen_str_object("var"); }
     | NATIVE { $$ = kx_gen_str_object("native"); }
     | FUNCTION { $$ = kx_gen_str_object("function"); }
+    | SYSFUNC { $$ = kx_gen_str_object("_function"); }
     | PUBLIC { $$ = kx_gen_str_object("public"); }
     | PRIVATE { $$ = kx_gen_str_object("private"); }
     | PROTECTED { $$ = kx_gen_str_object("protectd"); }
@@ -499,6 +500,7 @@ KeySpecialName
     | VAR { $$ = "var"; }
     | NATIVE { $$ = "native"; }
     | FUNCTION { $$ = "function"; }
+    | SYSFUNC { $$ = "_function"; }
     | PUBLIC { $$ = "public"; }
     | PRIVATE { $$ = "private"; }
     | PROTECTED { $$ = "protectd"; }
@@ -551,6 +553,7 @@ FunctionDeclStatement
 
 NormalFunctionDeclStatement
     : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, $4, $6, NULL); }
+    | SYSFUNC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, $2, $4, $6, NULL); }
     | NativeKeyword NativeType_Opt NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, $3, $5, $7, NULL); }
     ;
 
@@ -565,6 +568,7 @@ NativeType_Opt
 
 AnonymousFunctionDeclExpression
     : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
+    | SYSFUNC '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, NULL, $3, $5, NULL); }
     | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, NULL, $4, $6, NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW LogicalOrExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, kx_gen_stmt_object(KXST_RET, $6, NULL, NULL), NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $6, NULL); }

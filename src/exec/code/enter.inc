@@ -26,6 +26,7 @@
             THROW_SYSTEM_EXCEPTION("FiberException", "Fiber has been already dead"); \
         } \
         kx_frm_t *frm = fnco->fbfrm; \
+        frm->is_internal = cur->is_internal; \
         frm->caller = (ctx)->caller; \
         frm->prv = frmv; \
         lexv = frm->lex = fnco->lex; \
@@ -40,6 +41,7 @@
     } else { \
         kx_frm_t *frm = allocate_frm(ctx); \
         frm->id = ssize; \
+        frm->is_internal = cur->is_internal; \
         frm->caller = (ctx)->caller; \
         frm->prv = frmv; \
         int max_vars = cur->value2.i; \

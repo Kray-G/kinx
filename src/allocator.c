@@ -320,6 +320,7 @@ static void gc_sweep(kx_context_t *ctx)
             kl_remove_next(frm, ctx->frm_alive, prevfrm, &v);
             kv_push(kx_frm_t*, ctx->frm_dead, v);
             kv_zero(kx_val_t, v->v);
+            v->is_internal = 0;
         }
     }
     kliter_t(val) *pval, *prevval = NULL, *nextval;

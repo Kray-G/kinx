@@ -4,7 +4,7 @@
 
 #define THROW_SYSTEM_EXCEPTION(typ, wht) \
 { \
-    make_exception_object(&((ctx)->excval), ctx, cur, typ, wht); \
+    make_exception_object(&((ctx)->excval), ctx, frmv, cur, typ, wht); \
     if (kv_size((ctx)->exception) == 0) { \
         print_uncaught_exception(ctx, (ctx)->excval.value.ov); \
         goto LBL_KX_END_OF_CODE; \
@@ -22,7 +22,7 @@
 { \
     char wht[512] = {0}; \
     snprintf(wht, 511, fmt, v1); \
-    make_exception_object(&((ctx)->excval), ctx, cur, typ, wht); \
+    make_exception_object(&((ctx)->excval), ctx, frmv, cur, typ, wht); \
     if (kv_size((ctx)->exception) == 0) { \
         print_uncaught_exception(ctx, (ctx)->excval.value.ov); \
         goto LBL_KX_END_OF_CODE; \
