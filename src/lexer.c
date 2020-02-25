@@ -92,6 +92,7 @@ static int get_keyword_token(const char *val)
     case '_':
         if (strcmp(val, "__END__") == 0)        { kx_lexinfo.ch = 0; return 0; }
         if (strcmp(val, "_import") == 0)        return IMPORT;
+        if (strcmp(val, "_function") == 0)      return SYSFUNC;
         break;
     case 'b':
         if (strcmp(val, "break") == 0)          return BREAK;

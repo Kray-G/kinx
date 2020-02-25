@@ -617,7 +617,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
                 kx_yyerror_line("Do not define function in native function", node->file, node->line);
                 break;
             }
-            if (node->optional != KXFT_ANONYMOUS) {
+            if (node->value.s) {
                 int lvalue = ctx->lvalue;
                 ctx->lvalue = 1;
                 kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
