@@ -241,7 +241,6 @@ Here is a plan to add.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
-* [ ] `const` for constant value.
 * [ ] Some Optimizations.
 
 ## Undocumented Memo
@@ -257,6 +256,15 @@ Here is an example.
 for (var i = 0, len = $$.length(); i < len; ++i) {
     System.println("arg[%{i}] = ", $$[i]);
 }
+```
+
+### const
+
+You can use a constant value with `const` keyword.
+
+```javascript
+const a = 100;
+a = 20; // error.
 ```
 
 ### Type Property

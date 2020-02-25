@@ -24,7 +24,7 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
-%token NEW VAR NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD
+%token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
@@ -426,6 +426,7 @@ PropertyName
     | DEFAULT { $$ = kx_gen_str_object("default"); }
     | NEW { $$ = kx_gen_str_object("new"); }
     | VAR { $$ = kx_gen_str_object("var"); }
+    | CONST { $$ = kx_gen_str_object("const"); }
     | NATIVE { $$ = kx_gen_str_object("native"); }
     | FUNCTION { $$ = kx_gen_str_object("function"); }
     | SYSFUNC { $$ = kx_gen_str_object("_function"); }
@@ -504,6 +505,7 @@ KeySpecialName
     | CASE { $$ = "case"; }
     | NEW { $$ = "new"; }
     | VAR { $$ = "var"; }
+    | CONST { $$ = "const"; }
     | NATIVE { $$ = "native"; }
     | FUNCTION { $$ = "function"; }
     | SYSFUNC { $$ = "_function"; }
@@ -538,6 +540,7 @@ RegexString
 
 VarDeclStatement
     : VAR DeclAssignExpressionList ';' { $$ = $2; }
+    | CONST DeclAssignExpressionList ';' { $2->optional = KXDC_CONST; $$ = $2; }
     ;
 
 DeclAssignExpressionList

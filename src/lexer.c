@@ -102,6 +102,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "catch") == 0)          return CATCH;
         if (strcmp(val, "case") == 0)           return CASE;
         if (strcmp(val, "continue") == 0)       return CONTINUE;
+        if (strcmp(val, "const") == 0)          return CONST;
         break;
     case 'd':
         if (strcmp(val, "do") == 0)             return DO;
