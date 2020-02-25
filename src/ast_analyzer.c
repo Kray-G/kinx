@@ -346,6 +346,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_SHR:
     case KXOP_ADD:
     case KXOP_SUB:
+    case KXOP_POW:
     case KXOP_MUL:
     case KXOP_DIV:
     case KXOP_MOD:

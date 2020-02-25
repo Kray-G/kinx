@@ -25,7 +25,7 @@
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
 %token NEW VAR NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD
-%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR
+%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF
@@ -75,6 +75,7 @@
 %type<obj> ShiftExpression
 %type<obj> Expression
 %type<obj> Term
+%type<obj> Exponentiation
 %type<obj> RegexMatch
 %type<obj> PrefixExpression
 %type<obj> PostfixExpression
@@ -343,10 +344,15 @@ Expression
     ;
 
 Term
+    : Exponentiation
+    | Term '*' Exponentiation { $$ = kx_gen_bexpr_object(KXOP_MUL, $1, $3); }
+    | Term '/' Exponentiation { $$ = kx_gen_bexpr_object(KXOP_DIV, $1, $3); }
+    | Term '%' Exponentiation { $$ = kx_gen_bexpr_object(KXOP_MOD, $1, $3); }
+    ;
+
+Exponentiation
     : RegexMatch
-    | Term '*' RegexMatch { $$ = kx_gen_bexpr_object(KXOP_MUL, $1, $3); }
-    | Term '/' RegexMatch { $$ = kx_gen_bexpr_object(KXOP_DIV, $1, $3); }
-    | Term '%' RegexMatch { $$ = kx_gen_bexpr_object(KXOP_MOD, $1, $3); }
+    | Exponentiation POW RegexMatch { $$ = kx_gen_bexpr_object(KXOP_POW, $1, $3); }
     ;
 
 RegexMatch

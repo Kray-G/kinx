@@ -629,6 +629,10 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
             return MULEQ;
         }
+        if (kx_lexinfo.ch == '*') {
+            kx_lex_next(kx_lexinfo);
+            return POW;
+        }
         return '*';
     case '/':
         kx_lex_next(kx_lexinfo);
