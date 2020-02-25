@@ -224,8 +224,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             kx_yyerror_line("Can not assign values to the 'const' variable", node->file, node->line);
             break;
         }
+        kx_object_t *n = NULL;
         if (!ctx->lvalue && sym->optional == KXDC_CONST && sym->base->init) {
-            kx_object_t *n = NULL;
             switch (sym->base->init->type) {
             case KXVL_INT:
                 n = kx_gen_int_object(sym->base->init->value.i);
@@ -252,10 +252,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             if (n) {
                 node->lhs = n;
                 analyze_ast(node->lhs, ctx);    // expanding const value.
-                break;
             }
         }
-        if (ctx->decl) {
+        if (!n && ctx->decl) {
             if (ctx->arg_index < 0) {
                 kx_yyerror_line("Rest argument must be used only at the last argument", node->file, node->line);
             }
@@ -367,12 +366,27 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
     }
     case KXOP_ASSIGN: {
-        int lvalue = ctx->lvalue;
-        ctx->lvalue = 1;
-        analyze_ast(node->lhs, ctx);
-        ctx->lvalue = 0;
-        analyze_ast(node->rhs, ctx);
-        ctx->lvalue = lvalue;
+        int decl = -1;
+        if (node->lhs->type == KXOP_VAR) {
+            kxana_symbol_t *sym = search_symbol_table(node, node->lhs->value.s, ctx);
+            if (sym && sym->base->optional == KXDC_CONST && !sym->base->init) {
+                node->lhs->init = sym->base->init = node->rhs;
+                decl = ctx->decl;
+                ctx->decl = 1;
+                analyze_ast(node->lhs, ctx);
+                ctx->decl = 0;
+                analyze_ast(node->rhs, ctx);
+                ctx->decl = decl;
+            }
+        }
+        if (decl < 0) {
+            int lvalue = ctx->lvalue;
+            ctx->lvalue = 1;
+            analyze_ast(node->lhs, ctx);
+            ctx->lvalue = 0;
+            analyze_ast(node->rhs, ctx);
+            ctx->lvalue = lvalue;
+        }
         if (node->rhs->var_type == KX_CSTR_T) {
             node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
             node->rhs->var_type = KX_STR_T;
