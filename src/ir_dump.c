@@ -393,7 +393,9 @@ static void ir_block_dump(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
     printf(KX_BLOCK_INDENT ".L%d\n", block->index);
     for (int i = 0; i < len; ++i) {
         kx_code_t *code = &kv_A(block->code, i);
-        ir_code_dump(blockadr, i, code);
+        if (strcmp(code->file, "<startup>") != 0) {
+            ir_code_dump(blockadr, i, code);
+        }
     }
 }
 
@@ -421,12 +423,21 @@ static void ir_module_dump(int llen, kx_module_t *module, kvec_t(uint32_t) *labe
     int len = kv_size(*(module->funclist));
     for (int i = 0; i < len; ++i) {
         kx_function_t *func = &kv_A(*(module->funclist), i);
-        ir_function_dump(llen, module, labels, func);
+        if (!func->is_internal) {
+            ir_function_dump(llen, module, labels, func);
+        }
     }
 }
 
 static void ir_native_dump(kx_context_t *ctx)
 {
+    static int is_displayed = 0;
+    if (!is_displayed) {
+        is_displayed = 1;
+        if (ctx->options.dump) {
+            printf("*** Native Section ***\n");
+        }
+    }
     for (khint_t k = 0; k < kh_end(ctx->nfuncs); ++k) {
         if (kh_exist(ctx->nfuncs, k)) {
             kxn_func_t nf = kh_value(ctx->nfuncs, k);
