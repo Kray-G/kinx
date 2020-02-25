@@ -367,6 +367,7 @@ typedef struct KXFT_FUNCTION_ {
     const char *name;
     int pushes;
     int64_t addr;
+    uint8_t is_internal;
     kvec_t(int) block;
     khash_t(label) *label;
 } kx_function_t;

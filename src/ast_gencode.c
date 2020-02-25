@@ -1540,6 +1540,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         kv_remove_last(ana->fidxlist);
 
         kx_function_t *funcp = get_function(module, cur);
+        funcp->is_internal = node->optional == KXFT_SYSFUNC;
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
             FILELINE(ana), .op = KX_PUSHF,
             .value1 = { .s = const_str(funcp->name) },
