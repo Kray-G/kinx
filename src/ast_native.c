@@ -584,6 +584,10 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         KXN_DEFINE_BOP_F(KXNOP_SUB);
         break;
     }
+    case KXOP_POW: {
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
+    }
     case KXOP_MUL: {
         KXN_DEFINE_BOP_F(KXNOP_MUL);
         break;

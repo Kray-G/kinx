@@ -329,6 +329,11 @@ void ir_code_dump_one(int addr, kx_code_t *code)
 
     KX_IROP(ADD,  add);
     KX_IROP(SUB,  sub);
+
+    case KX_POW:
+        printf("pow");
+        break;
+
     KX_IROP(MUL,  mul);
     KX_IROP(DIV,  div);
     KX_IROP(MOD,  mod);

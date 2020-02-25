@@ -196,6 +196,14 @@ kx_object_t *kx_gen_regex_object(const char *pattern, int eq)
 
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
+    if (type == KXOP_POW && lhs->rhs) {
+        kx_object_t *p = lhs;
+        while (KXOP_POW == p->rhs->type) {
+            p = p->rhs;
+        }
+        p->rhs = kx_gen_obj(type, 0, p->rhs, rhs, NULL);
+        return lhs;
+    }
     return kx_gen_obj(type, 0, lhs, rhs, NULL);
 }
 
