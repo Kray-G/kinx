@@ -334,6 +334,7 @@ typedef struct kx_code_ {
     const char *file;
     const char *func;
     uint32_t line;
+    uint8_t is_internal;
 } kx_code_t;
 kvec_init_t(kx_code_t);
 kvec_init_pt(kx_code_t);
@@ -476,6 +477,7 @@ KHASH_MAP_INIT_STR(prop, kx_val_t)
 
 typedef struct kx_frm_ {
     uint8_t mark;
+    uint8_t is_internal;
     int32_t id;
     struct kx_frm_ *prv;
     struct kx_frm_ *lex;

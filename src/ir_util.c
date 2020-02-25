@@ -123,7 +123,7 @@ void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv)
     printf("print_stack done.\n"); fflush(stdout);
 }
 
-void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const char *typ, const char *wht)
+void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, const char *typ, const char *wht)
 {
     if (!typ) {
         *v = kv_pop(ctx->stack);
@@ -168,9 +168,11 @@ void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_code_t *cur, const
     KEX_GET_PROP(trace, v->value.ov, "_trace");
     if (!trace || trace->type != KX_OBJ_T) {
         kx_obj_t *obj = allocate_obj(ctx);
-        KEX_PUSH_ARRAY_CSTR(obj, cur->file);
-        KEX_PUSH_ARRAY_CSTR(obj, cur->func);
-        KEX_PUSH_ARRAY_INT(obj, cur->line);
+        if (!frmv->is_internal) {
+            KEX_PUSH_ARRAY_CSTR(obj, cur->file);
+            KEX_PUSH_ARRAY_CSTR(obj, cur->func);
+            KEX_PUSH_ARRAY_INT(obj, cur->line);
+        }
         KEX_SET_PROP_OBJ(v->value.ov, "_trace", obj);
     }
 }
@@ -188,7 +190,7 @@ void update_exception_object(kx_context_t *ctx, kx_exc_t *e)
                 kx_val_t *v = &(kv_A((ctx)->stack, sp));
                 if (v->type == KX_FRM_T) {
                     kx_frm_t *fr = v->value.fr;
-                    if (fr->caller) {
+                    if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
                         KEX_PUSH_ARRAY_CSTR(trace->value.ov, fr->caller->file);
                         KEX_PUSH_ARRAY_CSTR(trace->value.ov, fr->caller->func);
                         KEX_PUSH_ARRAY_INT(trace->value.ov, fr->caller->line);
@@ -210,7 +212,7 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
                 kx_val_t *v = &(kv_A((ctx)->stack, sp));
                 if (v->type == KX_FRM_T) {
                     kx_frm_t *fr = v->value.fr;
-                    if (fr->caller) {
+                    if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
                         KEX_PUSH_ARRAY_CSTR(trace->value.ov, fr->caller->file);
                         KEX_PUSH_ARRAY_CSTR(trace->value.ov, fr->caller->func);
                         KEX_PUSH_ARRAY_INT(trace->value.ov, fr->caller->line);
@@ -223,13 +225,21 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
     printf("Uncaught exception: No one catch the exception.\n");
     kx_val_t *sp = NULL;
     KEX_GET_PROP(sp, obj, "_type");
-    if (sp && sp->type == KX_STR_T) {
-        printf("%s: ", ks_string(sp->value.sv));
+    if (sp) {
+        if (sp->type == KX_CSTR_T) {
+            printf("%s: ", sp->value.pv);
+        } else if (sp->type == KX_STR_T) {
+            printf("%s: ", ks_string(sp->value.sv));
+        }        
     }
     sp = NULL;
     KEX_GET_PROP(sp, obj, "_what");
-    if (sp && sp->type == KX_STR_T) {
-        printf("%s", ks_string(sp->value.sv));
+    if (sp) {
+        if (sp->type == KX_CSTR_T) {
+            printf("%s", sp->value.pv);
+        } else if (sp->type == KX_STR_T) {
+            printf("%s", ks_string(sp->value.sv));
+        }        
     }
     if (ctx->options.exception_detail_info) {
         sp = NULL;
@@ -260,9 +270,6 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
             if (v1->type != KX_INT_T) break;
             int line = v1->value.iv;
 
-            if (func[0] == '_' && func[1] == '_') {
-                continue;
-            }
             if (strlen(func) > 4 && func[0] == '_' && func[1] == 'm' && func[2] == 'a' && func[3] == 'i' && func[4] == 'n') {
                 if (!strcmp(func, "_main1")) {
                     printf("        at <main-block>(%s:%d)\n", file, line);
@@ -302,19 +309,19 @@ static inline const char *startup_code()
         "if (!System.isInitialized) {\n"
             "(function() {\n"
                 "System.isInitialized = 1;\n"
-                "String.apply = function(str, func) {\n"
+                "String.apply = _function(str, func) {\n"
                     "return func(str);\n"
                 "};\n"
-                "Array.apply = function(ary, func) {\n"
+                "Array.apply = _function(ary, func) {\n"
                     "return func(ary);\n"
                 "};\n"
-                "Array.each = function(ary, callback) {\n"
+                "Array.each = _function(ary, callback) {\n"
                     "var len = ary.length();\n"
                     "for (var i = 0; i < len; ++i) {\n"
                         "callback(ary[i], i);\n"
                     "}\n"
                 "};\n"
-                "Array.map = function(ary, callback) {\n"
+                "Array.map = _function(ary, callback) {\n"
                     "var ret = [];\n"
                     "var len = ary.length();\n"
                     "for (var i = 0; i < len; ++i) {\n"
@@ -322,7 +329,7 @@ static inline const char *startup_code()
                     "}\n"
                     "return ret;\n"
                 "};\n"
-                "Array.filter = function(ary, callback) {\n"
+                "Array.filter = _function(ary, callback) {\n"
                     "var ret = [];\n"
                     "var len = ary.length();\n"
                     "for (var i = 0; i < len; ++i) {\n"
@@ -330,7 +337,7 @@ static inline const char *startup_code()
                     "}\n"
                     "return ret;\n"
                 "};\n"
-                "Array.reduce = function(ary, callback, initr) {\n"
+                "Array.reduce = _function(ary, callback, initr) {\n"
                     "var r = initr;\n"
                     "var len = ary.length();\n"
                     "for (var i = 0; i < len; ++i) {\n"
@@ -338,9 +345,9 @@ static inline const char *startup_code()
                     "}\n"
                     "return r;\n"
                 "};\n"
-                "Array.sort = function(ary, comp) {\n"
+                "Array.sort = _function(ary, comp) {\n"
                 "};\n"
-                "Integer.times = function(val, callback) {\n"
+                "Integer.times = _function(val, callback) {\n"
                     "var ary = [];\n"
                     "if (callback) {\n"
                         "for (var i = 0; i < val; ++i) {\n"
@@ -353,36 +360,36 @@ static inline const char *startup_code()
                     "}\n"
                     "return ary;\n"
                 "};\n"
-                "Integer.upto = function(val, max, callback) {\n"
+                "Integer.upto = _function(val, max, callback) {\n"
                     "var index = 0;\n"
                     "for (var i = val; i <= max; ++i) {\n"
                         "callback(i, index++);\n"
                     "}\n"
                 "};\n"
-                "Integer.downto = function(val, min, callback) {\n"
+                "Integer.downto = _function(val, min, callback) {\n"
                     "var index = 0;\n"
                     "for (var i = val; i >= min; --i) {\n"
                         "callback(i, index++);\n"
                     "}\n"
                 "};\n"
-                "Integer.methodMissing = function(d, method, a0) {\n"
+                "Integer.methodMissing = _function(d, method, a0) {\n"
                     "var item = Math[method];\n"
                     "if (item.isFunction) {\n"
-                        "Integer[method] = item;\n"
+                        "Integer[method] = &(v1, v2) => item(v1, v2);\n"
                         "return Integer[method](Double.parseDouble(d), Double.parseDouble(a0));\n"
                     "}\n"
-                    "return d;\n"
+                    "throw RuntimeException('Method not found for Integer');\n"
                 "};\n"
-                "Double.methodMissing = function(d, method, a0) {\n"
+                "Double.methodMissing = _function(d, method, a0) {\n"
                     "var item = Math[method];\n"
                     "if (item.isFunction) {\n"
                         "Double[method] = &(v1, v2) => item(v1, v2);\n"
                         "return Double[method](Double.parseDouble(d), Double.parseDouble(a0));\n"
                     "}\n"
-                    "return d;\n"
+                    "throw RuntimeException('Method not found for Double');\n"
                 "};\n"
                 "File._setup(File);\n"
-                "File.create = function(name, mode) {\n"
+                "File.create = _function(name, mode) {\n"
                     "var f = File._create(name, mode);\n"
                     "f.eachLine = function(func) {\n"
                         "var lineno = 1; \n"
@@ -394,7 +401,7 @@ static inline const char *startup_code()
                     "};\n"
                     "return f;\n"
                 "};\n"
-                "File.open = function(name, mode, func) {\n"
+                "File.open = _function(name, mode, func) {\n"
                     "var f;\n"
                     "if (func.isUndefined && mode.isFunction) {\n"
                         "func = mode;\n"
