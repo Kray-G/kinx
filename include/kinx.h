@@ -538,6 +538,7 @@ kx_calloc_t kx_calloc = NULL; \
 kx_free_t kx_free = NULL; \
 kx_strdup_t kx_strdup = NULL; \
 kx_strndup_t kx_strndup = NULL; \
+kx_const_str_t kx_const_str = NULL; \
 /**/
 
 #ifndef KX_DLL
@@ -550,7 +551,7 @@ extern char *kx_strndup_impl(const char *s, size_t n);
 #endif
 
 #define KX_DLL_DECL_FNCTIONS(kx_bltin_info, initfunc, finfunc) \
-    DllExport void set_allocator(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f, kx_strdup_t sd, kx_strndup_t snd) \
+    DllExport void set_allocator(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f, kx_strdup_t sd, kx_strndup_t snd, kx_const_str_t cs) \
     { \
         kx_malloc = m;\
         kx_realloc = r;\
@@ -558,6 +559,7 @@ extern char *kx_strndup_impl(const char *s, size_t n);
         kx_free = f;\
         kx_strdup = sd;\
         kx_strndup = snd;\
+        kx_const_str = cs;\
     } \
     DllExport void initialize(void) \
     { \
