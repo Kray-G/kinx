@@ -197,8 +197,8 @@
 { \
     if (fnco && !fnco->fbfrm) { \
         fnco->fbfrm = frmv; \
-        fnco->fbpos = cur->next; \
     } \
+    fnco->fbpos = cur->next; \
     kx_val_t *v = &kv_pop((ctx)->stack); \
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
