@@ -43,6 +43,7 @@ kx_context_t *make_context(void)
         kx_free = kx_free_impl;
         kx_strdup = kx_strdup_impl;
         kx_strndup = kx_strndup_impl;
+        kx_const_str = const_str;
     }
 
     kx_context_t *ctx = kx_calloc(1, sizeof(kx_context_t));

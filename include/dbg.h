@@ -21,14 +21,16 @@ typedef void *(*kx_calloc_t)(size_t count, size_t size);
 typedef void (*kx_free_t)(void *p);
 typedef char *(*kx_strdup_t)(const char *s);
 typedef char *(*kx_strndup_t)(const char *s, size_t n);
+typedef const char *(*kx_const_str_t)(const char* name);
 
-typedef void (*set_allocator_t)(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f, kx_strdup_t sd, kx_strndup_t snd);
+typedef void (*set_allocator_t)(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f, kx_strdup_t sd, kx_strndup_t snd, kx_const_str_t cs);
 extern kx_malloc_t kx_malloc;
 extern kx_realloc_t kx_realloc;
 extern kx_calloc_t kx_calloc;
 extern kx_free_t kx_free;
 extern kx_strdup_t kx_strdup;
 extern kx_strndup_t kx_strndup;
+extern kx_const_str_t kx_const_str;
 
 #define KXDBG(msg) printf("%s:%d: %s\n", __FILE__, __LINE__, msg);
 
