@@ -59,6 +59,7 @@ DECL_VAR:
         ++(ctx->func->local_vars);
         sym.lexical_index = 0;
         sym.base = node;
+        sym.optional = node->optional;
         if (node->var_type == KX_UNKNOWN_T && ctx->in_native) {
             node->var_type = KX_INT_T;  // automatically set it.
         }
@@ -217,7 +218,42 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             if (!ctx->decl && !ctx->lvalue) {
                 kx_yyerror_line_fmt("Symbol(%s) is not found", node->file, node->line, node->value.s);
             }
-            return;
+            break;
+        }
+        if (ctx->lvalue && sym->optional == KXDC_CONST) {
+            kx_yyerror_line("Can not assign values to the 'const' variable", node->file, node->line);
+            break;
+        }
+        if (!ctx->lvalue && sym->optional == KXDC_CONST && sym->base->init) {
+            kx_object_t *n = NULL;
+            switch (sym->base->init->type) {
+            case KXVL_INT:
+                n = kx_gen_int_object(sym->base->init->value.i);
+                break;
+            case KXVL_DBL:
+                n = kx_gen_dbl_object(sym->base->init->value.d);
+                break;
+            case KXVL_STR:
+                n = kx_gen_str_object(sym->base->init->value.s);
+                break;
+            case KXVL_BIG:
+                n = kx_gen_big_object(sym->base->init->value.s);
+                break;
+            case KXVL_NULL:
+                n = kx_gen_special_object(KXVL_NULL);
+                break;
+            case KXVL_TRUE:
+                n = kx_gen_special_object(KXVL_TRUE);
+                break;
+            case KXVL_FALSE:
+                n = kx_gen_special_object(KXVL_FALSE);
+                break;
+            }
+            if (n) {
+                node->lhs = n;
+                analyze_ast(node->lhs, ctx);    // expanding const value.
+                break;
+            }
         }
         if (ctx->decl) {
             if (ctx->arg_index < 0) {
@@ -317,6 +353,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_DECL: {
         int decl = ctx->decl;
         ctx->decl = 1;
+        if (node->lhs->type == KXOP_VAR) {
+            node->lhs->optional = node->optional;
+            node->lhs->init = node->rhs;
+        }
         analyze_ast(node->lhs, ctx);
         ctx->decl = decl;
         analyze_ast(node->rhs, ctx);
@@ -330,8 +370,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         int lvalue = ctx->lvalue;
         ctx->lvalue = 1;
         analyze_ast(node->lhs, ctx);
-        ctx->lvalue = lvalue;
+        ctx->lvalue = 0;
         analyze_ast(node->rhs, ctx);
+        ctx->lvalue = lvalue;
         if (node->rhs->var_type == KX_CSTR_T) {
             node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
             node->rhs->var_type = KX_STR_T;
@@ -362,9 +403,14 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_IDX:
         if (ctx->in_native) {
             kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
+            break;
         }
+        int lvalue = ctx->lvalue;
+        ctx->lvalue = 1;
         analyze_ast(node->lhs, ctx);
+        ctx->lvalue = 0;
         analyze_ast(node->rhs, ctx);
+        ctx->lvalue = lvalue;
         node->var_type = KX_UNKNOWN_T;
         break;
     case KXOP_YIELD:
