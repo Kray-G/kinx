@@ -79,6 +79,10 @@ extern int kx_yylex();
 #define kx_is_oct_number(ctx) (((ctx).ch == '_') || ('0' <= (ctx).ch && (ctx).ch <= '7'))
 #define kx_is_hex_number(ctx) (((ctx).ch == '_') || ('0' <= (ctx).ch && (ctx).ch <= '9') || ('a' <= (ctx).ch && (ctx).ch <= 'f') || ('A' <= (ctx).ch && (ctx).ch <= 'F'))
 
+enum decltype {
+    KXDC_CONST = 1,
+};
+
 enum functype {
     KXFT_CLASS,
     KXFT_FUNCTION,
@@ -193,6 +197,7 @@ typedef struct kxana_symbol_ {
     int start;
     int local_index;
     int lexical_index;
+    int optional;
     struct kx_object_ *base;
     kvec_nt(struct kxana_symbol_) list;
 } kxana_symbol_t;
@@ -209,7 +214,7 @@ typedef struct kx_object_ {
     struct kx_object_ *lhs;
     struct kx_object_ *rhs;
     struct kx_object_ *ex;
-    struct kx_object_ *init; /* class initializer function node */
+    struct kx_object_ *init; /* class initializer function node, or const variable's rhs */
 
     /* for values */
     int type;
