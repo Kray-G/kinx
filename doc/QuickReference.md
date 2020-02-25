@@ -1225,6 +1225,32 @@ throw if (a == 0);                                  // without exception
 throw RuntimeException("something") if (a == 0);    // with exception
 ```
 
+#### `yield` Statement
+
+`yield` statement will return from the function as a Fiber in halfway.
+`yield` can return a value to the host.
+
+```javascript
+yield 10;   // with expression
+yield;      // without expression
+```
+
+Same as `break`, you can also use `yield` statement with if modifier.
+
+```javascript
+yield if (a == 0);  // with modifier
+```
+
+`yield` will return back from the host with arguments.
+That arguments is packed and sent as a array,
+and for example if you need the value of only one, you can use spread/rest operator to get it.
+
+```
+[a, ...b] = yield;
+```
+
+The example above means that the variable `a` receives first argument and the variable `b` receives all of rest arguments as array.
+
 #### Label Statement
 
 Label statement is just defined the location on the source code.

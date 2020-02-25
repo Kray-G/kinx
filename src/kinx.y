@@ -231,7 +231,7 @@ ReturnStatement
     ;
 
 YieldStatement
-    : YieldExpression ';' { $$ = kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL); }
+    : YieldExpression Modifier_Opt ';' { $$ = kx_gen_modifier($2, kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL)); }
     ;
 
 YieldExpression
