@@ -221,7 +221,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             break;
         }
         if (ctx->lvalue && sym->optional == KXDC_CONST) {
-            kx_yyerror_line("Can not assign values to the 'const' variable", node->file, node->line);
+            kx_yyerror_line("Can not assign a value to the 'const' variable", node->file, node->line);
             break;
         }
         kx_object_t *n = NULL;
