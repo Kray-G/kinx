@@ -135,10 +135,6 @@ int main(int ac, char **av)
         }
     }
 
-    if (ctx->options.dump) {
-        printf("*** Native Section ***\n");
-    }
-
     kx_lexinfo.quiet = 0;
     if (ctx->options.src_stdin || ac <= optind) {
         r = eval_file(NULL, ctx);
