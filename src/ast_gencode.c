@@ -706,6 +706,8 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     case KXOP_VAR: {
         if (lvalue) {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHLV, .value1 = { .idx = node->lexical }, .value2 = { .idx = node->index } }));
+        } else if (node->lhs) {
+            gencode_ast_hook(ctx, node->lhs, ana, 0);
         } else {
             if ((code_size(module, ana) > 0) && last_stvx(ana, node->lexical, node->index)) {
                 last_op(ana) = KX_STOREV;
