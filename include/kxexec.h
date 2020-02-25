@@ -103,6 +103,7 @@
     &&LBL_KX_SUBD, \
     &&LBL_KX_SUBS, \
     &&LBL_KX_SUBV, \
+    &&LBL_KX_POW, \
     &&LBL_KX_MUL, \
     &&LBL_KX_MULI, \
     &&LBL_KX_MULD, \

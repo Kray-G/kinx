@@ -28,6 +28,7 @@
 #include "exec/code/apply.inc"
 #include "exec/code/add.inc"
 #include "exec/code/sub.inc"
+#include "exec/code/pow.inc"
 #include "exec/code/mul.inc"
 #include "exec/code/div.inc"
 #include "exec/code/mod.inc"
@@ -154,6 +155,8 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_SUBD) { KX_GOTO(); }
     KX_CASE_(KX_SUBS) { KX_GOTO(); }
     KX_CASE_(KX_SUBV) { KX_GOTO(); }
+
+    KX_CASE_(KX_POW) { KX_GOTO(); }
 
     KX_CASE_(KX_MUL) { KX_GOTO(); }
     KX_CASE_(KX_MULI) { KX_GOTO(); }

@@ -834,6 +834,14 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     KX_DEF_BINCMD(SHR);
     KX_DEF_BINCMD(ADD);
     KX_DEF_BINCMD(SUB);
+
+    case KXOP_POW: {
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        gencode_ast_hook(ctx, node->rhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POW }));
+        break;
+    }
+
     KX_DEF_BINCMD(MUL);
     KX_DEF_BINCMD(DIV);
     KX_DEF_BINCMD(MOD);

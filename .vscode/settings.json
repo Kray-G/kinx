@@ -18,6 +18,7 @@
         "xtr1common": "c",
         "disas.h": "c",
         "xstddef": "c",
-        "kc-json.h": "c"
+        "kc-json.h": "c",
+        "cmath": "c"
     }
 }

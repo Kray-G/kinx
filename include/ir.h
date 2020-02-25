@@ -116,6 +116,8 @@ enum irop {
     KX_SUBS,
     KX_SUBV,
 
+    KX_POW,
+
     KX_MUL,
     KX_MULI,
     KX_MULD,
@@ -253,7 +255,7 @@ enum irop {
 #define KXN_TOO_DEEP_TO_CALL_FUNC (6)
 #define KXN_TYPE_MISMATCH (7)
 #define KXN_UNSUPPORTED_OPERATOR (8)
-#define KXN_MAX_EXCEPTION (KXN_TOO_DEEP_TO_CALL_FUNC)
+#define KXN_MAX_EXCEPTION (KXN_UNSUPPORTED_OPERATOR)
 
 #define KXN_EXC_FLAG (4)
 #define KXN_EXC_CODE (5)
@@ -630,12 +632,12 @@ typedef struct kx_context_ {
 #define KEX_GC_TICK (1)
 #define KEX_DEFAULT_STACK (5)
 #else
-#define KEX_GC_TICK ((8192)*2)
+#define KEX_GC_TICK (8192)
 #define KEX_DEFAULT_STACK (1024)
 #endif
 
 #define KX_INIT_FRM_COUNT (512)
-#define KX_INIT_KXN_COUNT (512)
+#define KX_INIT_KXN_COUNT (8)
 
 #define allocate_defstr(ctx) (kv_size((ctx)->str_dead) > 0 ? (kstr_t *)kv_pop((ctx)->str_dead) : (kstr_t *)ks_new())
 #define allocate_def(ctx, typ) (kv_size((ctx)->typ##_dead) > 0 ? (kx_##typ##_t *)kv_pop((ctx)->typ##_dead) : (kx_##typ##_t *)kx_calloc(1, sizeof(kx_##typ##_t)))
