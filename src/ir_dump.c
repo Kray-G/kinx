@@ -393,9 +393,7 @@ static void ir_block_dump(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
     printf(KX_BLOCK_INDENT ".L%d\n", block->index);
     for (int i = 0; i < len; ++i) {
         kx_code_t *code = &kv_A(block->code, i);
-        if (strcmp(code->file, "<startup>") != 0) {
-            ir_code_dump(blockadr, i, code);
-        }
+        ir_code_dump(blockadr, i, code);
     }
 }
 
