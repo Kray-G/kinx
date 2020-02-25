@@ -131,6 +131,7 @@ enum opecode {
     KXOP_SHR,
     KXOP_ADD,
     KXOP_SUB,
+    KXOP_POW,
     KXOP_MUL,
     KXOP_DIV,
     KXOP_MOD,
@@ -324,6 +325,14 @@ extern int kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t 
 extern int kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_mul(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
+extern int kx_try_mul_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_mul_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_mul_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_pow(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
+extern int kx_try_pow_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_pow_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern int kx_try_pow_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern void kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
