@@ -335,7 +335,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     if (!name) {
         name = kx_gen_name("__anonymous_func", counter++);
     }
-    kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE && pname) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
+    kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
     if (type == KXST_NATIVE) {
         obj->ret_type = optional;
     }
