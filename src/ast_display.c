@@ -415,8 +415,15 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("(throw)\n");
         display_ast(node->lhs, indent + 1, 0);
         break;
+    case KXST_MIXIN:
+        printf("(mixin)\n");
+        if (node->lhs)  {
+            display_ast(node->lhs, indent, 0);
+        }
+        display_ast(node->rhs, indent + 1, 0);
+        break;
     case KXST_CLASS:      /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
-        printf("(class: %s) [refs:%d]\n", node->value.s, node->lexical_refs);
+        printf("(%s: %s) [refs:%d]\n", node->optional == KXFT_CLASS ? "class" : "module", node->value.s, node->lexical_refs);
         if (node->lhs) {
             print_indent(node, indent + 1);
             printf("(argument)\n");
@@ -430,16 +437,20 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
-        printf("(%s: %s) [refs:%d]\n",
-            node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function",
-            node->value.s,
-            node->lexical_refs);
-        if (node->lhs) {
-            print_indent(node, indent + 1);
-            printf("(argument)\n");
-            display_ast(node->lhs, indent + 2, 0);
+        if (node->optional == KXFT_SYSFUNC) {
+            printf("(system-function)\n");
+        } else {
+            printf("(%s: %s) [refs:%d]\n",
+                node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function",
+                node->value.s,
+                node->lexical_refs);
+            if (node->lhs) {
+                print_indent(node, indent + 1);
+                printf("(argument)\n");
+                display_ast(node->lhs, indent + 2, 0);
+            }
+            display_ast(node->rhs, indent + 1, 0);
         }
-        display_ast(node->rhs, indent + 1, 0);
         break;
     case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         printf("ret:%s native(%s)\n",

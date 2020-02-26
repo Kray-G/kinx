@@ -136,6 +136,10 @@ static int get_keyword_token(const char *val)
         /* type */
         if (strcmp(val, "int") == 0)            { kx_yylval.intval = KX_INT_T; return TYPE; }
         break;
+    case 'm':
+        if (strcmp(val, "module") == 0)         return MODULE;
+        if (strcmp(val, "mixin") == 0)          return MIXIN;
+        break;
     case 'n':
         if (strcmp(val, "null") == 0)           return NUL;
         if (strcmp(val, "new") == 0)            return NEW;
