@@ -121,8 +121,7 @@ SOFILES = \
     kxarray.dll \
     kxfile.dll \
     kxmath.dll \
-    kxregex.dll \
-    kxjson.dll
+    kxregex.dll
 PICOBJS = \
     src/bign.obj \
     src/bigz.obj \
@@ -186,8 +185,8 @@ kinx: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
     copy /y src\disasm\spec\x86.spec .
     copy /y src\disasm\spec\mips.spec .
 
-kxsystem.dll: src/extlib/kxsystem.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsystem.c $(PICOBJS)
+kxsystem.dll: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h src/extlib/kc-json/kc-json.obj $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsystem.c $(PICOBJS) src/extlib/kc-json/kc-json.obj
 
 kxstring.dll: src/extlib/kxstring.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxstring.c $(PICOBJS)
@@ -212,9 +211,6 @@ kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
-
-kxjson.dll: src/extlib/kxjson.c src/extlib/kc-json/kc-json.h src/extlib/kc-json/kc-json.obj $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxjson.c $(PICOBJS) src/extlib/kc-json/kc-json.obj
 
 src/parser.c: kx.tab.c
 	move /y kx.tab.c src/parser.c; 
