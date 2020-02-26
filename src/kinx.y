@@ -64,6 +64,7 @@
 %type<obj> LabelStatement
 %type<obj> AssignExpression_Opt
 %type<obj> AssignExpression
+%type<obj> AssignRightHandSide
 %type<obj> AssignExpressionList_Opt
 %type<obj> TernaryExpression
 %type<obj> FunctionExpression
@@ -112,6 +113,7 @@
 %type<obj> Argument
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
+%type<obj> CallArgument
 %type<obj> SpreadItem
 %type<intval> NativeType_Opt
 %type<intval> TypeName
@@ -280,19 +282,24 @@ Modifier_Opt
 
 AssignExpression
     : TernaryExpression
-    | AssignExpression '=' TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, $3); }
-    | AssignExpression SHLEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHL, $1, $3)); }
-    | AssignExpression SHREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHR, $1, $3)); }
-    | AssignExpression ADDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_ADD, $1, $3)); }
-    | AssignExpression SUBEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SUB, $1, $3)); }
-    | AssignExpression MULEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MUL, $1, $3)); }
-    | AssignExpression DIVEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_DIV, $1, $3)); }
-    | AssignExpression MODEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MOD, $1, $3)); }
-    | AssignExpression ANDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_AND, $1, $3)); }
-    | AssignExpression OREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_OR, $1, $3)); }
-    | AssignExpression XOREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_XOR, $1, $3)); }
-    | AssignExpression LANDEQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LAND, $1, $3)); }
-    | AssignExpression LOREQ TernaryExpression { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LOR, $1, $3)); }
+    | AssignExpression '=' AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, $3); }
+    | AssignExpression SHLEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHL, $1, $3)); }
+    | AssignExpression SHREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHR, $1, $3)); }
+    | AssignExpression ADDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_ADD, $1, $3)); }
+    | AssignExpression SUBEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SUB, $1, $3)); }
+    | AssignExpression MULEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MUL, $1, $3)); }
+    | AssignExpression DIVEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_DIV, $1, $3)); }
+    | AssignExpression MODEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MOD, $1, $3)); }
+    | AssignExpression ANDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_AND, $1, $3)); }
+    | AssignExpression OREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_OR, $1, $3)); }
+    | AssignExpression XOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_XOR, $1, $3)); }
+    | AssignExpression LANDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LAND, $1, $3)); }
+    | AssignExpression LOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LOR, $1, $3)); }
+    ;
+
+AssignRightHandSide
+    : TernaryExpression
+    | '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
     ;
 
 TernaryExpression
@@ -448,6 +455,7 @@ PropertyName
     | PRIVATE { $$ = kx_gen_str_object("private"); }
     | PROTECTED { $$ = kx_gen_str_object("protectd"); }
     | CLASS { $$ = kx_gen_str_object("class"); }
+    | MODULE { $$ = kx_gen_str_object("module"); }
     | RETURN { $$ = kx_gen_str_object("return"); }
     | THROW { $$ = kx_gen_str_object("throw"); }
     | NUL { $$ = kx_gen_str_object("null"); }
@@ -472,8 +480,7 @@ BinStart
     ;
 
 Object
-    : '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
-    | '{' KeyValueList Comma_Opt '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, $2); }
+    : '{' KeyValueList Comma_Opt '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, $2); }
     ;
 
 Comma_Opt
@@ -528,6 +535,7 @@ KeySpecialName
     | PRIVATE { $$ = "private"; }
     | PROTECTED { $$ = "protectd"; }
     | CLASS { $$ = "class"; }
+    | MODULE { $$ = "module"; }
     | RETURN { $$ = "return"; }
     | THROW { $$ = "throw"; }
     | NUL { $$ = "null"; }
@@ -668,10 +676,15 @@ CallArgumentList_Opts
     ;
 
 CallArgumentList
-    : AssignExpression
+    : CallArgument
     | DOTS3 SpreadItem { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
-    | CallArgumentList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $3, $1); }
+    | CallArgumentList ',' CallArgument { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $3, $1); }
     | CallArgumentList ',' DOTS3 SpreadItem { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, kx_gen_uexpr_object(KXOP_SPREAD, $4), $1); }
+    ;
+
+CallArgument
+    : AssignExpression
+    | '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
     ;
 
 SpreadItem
