@@ -128,8 +128,7 @@ SOFILES = \
     kxarray.so \
     kxfile.so \
     kxmath.so \
-    kxregex.so \
-    kxjson.so
+    kxregex.so
 PICOBJS = \
     bignpic.o \
     bigzpic.o \
@@ -188,8 +187,8 @@ kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	cp -f src/disasm/spec/x86.spec .
 	cp -f src/disasm/spec/mips.spec .
 
-kxsystem.so: src/extlib/kxsystem.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-jsonpic.o
 
 kxstring.so: src/extlib/kxstring.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
@@ -214,9 +213,6 @@ kxmath.so: src/extlib/kxmath.c $(PICOBJS)
 
 kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
-
-kxjson.so: src/extlib/kxjson.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' kc-jsonpic.o
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
