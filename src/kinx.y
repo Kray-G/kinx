@@ -24,7 +24,7 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
-%token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD
+%token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
@@ -56,6 +56,8 @@
 %type<obj> YieldStatement
 %type<obj> YieldExpression
 %type<obj> ThrowStatement
+%type<obj> MixinStatement
+%type<obj> MixinModuleList
 %type<obj> ExpressionStatement
 %type<obj> Modifier_Opt
 %type<obj> BreakStatement
@@ -101,6 +103,7 @@
 %type<obj> AnonymousFunctionDeclExpression
 %type<obj> ClassFunctionDeclStatement
 %type<obj> ClassDeclStatement
+%type<obj> ModuleDeclStatement
 %type<obj> Inherit_Opt
 %type<obj> ClassArgumentList_Opts
 %type<obj> ClassCallArgumentList_Opts
@@ -137,6 +140,7 @@ Statement
     | ReturnStatement
     | YieldStatement
     | ThrowStatement
+    | MixinStatement
     | ExpressionStatement
     | DefinitionStatement
     | BreakStatement
@@ -153,6 +157,7 @@ DefinitionStatement
     : VarDeclStatement
     | FunctionDeclStatement
     | ClassDeclStatement
+    | ModuleDeclStatement
     ;
 
 LabelStatement
@@ -243,6 +248,15 @@ YieldExpression
 
 ThrowStatement
     : THROW AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_THROW, $2, NULL, NULL)); }
+    ;
+
+MixinStatement
+    : MIXIN MixinModuleList ';' { $$ = $2; }
+    ;
+
+MixinModuleList
+    : NAME { $$ = kx_gen_stmt_object(KXST_MIXIN, NULL, kx_gen_var_object($1, KX_OBJ_T), NULL); }
+    | MixinModuleList ',' NAME { kx_gen_stmt_object(KXST_MIXIN, $1, kx_gen_var_object($3, KX_OBJ_T), NULL); }
     ;
 
 ExpressionStatement
@@ -458,7 +472,8 @@ BinStart
     ;
 
 Object
-    : '{' KeyValueList Comma_Opt '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, $2); }
+    : '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
+    | '{' KeyValueList Comma_Opt '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, $2); }
     ;
 
 Comma_Opt
@@ -592,6 +607,10 @@ ClassFunctionDeclStatement
 
 ClassDeclStatement
     : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KXFT_CLASS, $2, $3, $5, $4); }
+    ;
+
+ModuleDeclStatement
+    : MODULE NAME BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KXFT_MODULE, $2, NULL, $3, NULL); }
     ;
 
 Inherit_Opt
