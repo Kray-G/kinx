@@ -1,0 +1,18 @@
+module Printable {
+    public print() {
+        System.print(@value);
+    }
+    public println() {
+        System.println(@value);
+    }
+}
+
+class Value(v) {
+    mixin Printable;
+    private initialize() {
+        @value = v;
+    }
+}
+
+var v = new Value(100);
+v.println();    // 100

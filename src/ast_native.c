@@ -1121,6 +1121,9 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         }
         break;
     }
+    case KXST_MIXIN:
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;

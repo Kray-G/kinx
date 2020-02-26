@@ -247,6 +247,38 @@ Here is a plan to add.
 
 Now there is no document about following items, but I will write it as soon as possible.
 
+### Module
+
+`module` keyword will create a module to add some methods to a class instance additionally.
+To add methods, use `mixin` keyword in a class.
+This mechanism is useful for adding same methods to various classes.
+This means that the functionality itself can be separated from classes.
+
+See example below.
+the `this` in the `Printable` module means the instance of the class used `mixin`,
+which means the instance of the `Value` class by the example.
+
+```javascript
+module Printable {
+    public print() {
+        System.print(@value);
+    }
+    public println() {
+        System.println(@value);
+    }
+}
+
+class Value(v) {
+    mixin Printable;
+    private initialize() {
+        @value = v;
+    }
+}
+
+var v = new Value(100);
+v.println();    // 100
+```
+
 ### Command Line Arguments
 
 The variable named `$$` is an array of command line arguments.

@@ -168,8 +168,7 @@ TESTCORE = \
 
 all: timex kinx $(SOFILES)
 
-yacc: myacc
-	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
+yacc: kx.tab.h src/parser.c include/parser.tab.h
 
 timex:
 	$(CC) $(CFLAGS) /Fetimex timex.c
