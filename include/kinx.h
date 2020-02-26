@@ -85,6 +85,7 @@ enum decltype {
 
 enum functype {
     KXFT_CLASS,
+    KXFT_MODULE,
     KXFT_FUNCTION,
     KXFT_ANONYMOUS,
     KXFT_PUBLIC,
@@ -182,6 +183,7 @@ enum opecode {
     KXST_CATCH,     /* lhs: name, rhs: block */
     KXST_RET,       /* lhs: expr */
     KXST_THROW,     /* lhs: expr */
+    KXST_MIXIN,     /* lhs: next, rhs: first */
     KXST_CLASS,     /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
     KXST_FUNCTION,  /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
     KXST_NATIVE,    /* s: name, lhs: arglist, rhs: block, ret_type: return type */

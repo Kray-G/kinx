@@ -622,6 +622,19 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
         }
         break;
+    case KXST_MIXIN:
+        if (node->lhs)  {
+            analyze_ast(node->lhs, ctx);
+        }
+        kxana_symbol_t *sym = search_symbol_table(node, "this", ctx);
+        if (!sym) {
+            kx_yyerror_line("Invalid mixin statement", node->file, node->line);
+            break;
+        }
+        node->index = sym->local_index;
+        node->lexical = sym->lexical_index;
+        analyze_ast(node->rhs, ctx);
+        break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         if (ctx->in_native) {
             kx_yyerror_line("Do not define class in native function", node->file, node->line);

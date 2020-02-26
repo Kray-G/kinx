@@ -1464,6 +1464,15 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
+    case KXST_MIXIN: {
+        if (node->lhs)  {
+            gencode_ast_hook(ctx, node->lhs, ana, 0);
+        }
+        push_vv(node, ana);
+        gencode_ast_hook(ctx, node->rhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CALLS, .value1 = { .s = const_str("extend") }, .count = 1 }));
+        break;
+    }
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         kx_finally_vec_t *finallies = ana->finallies;
         ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
@@ -1484,7 +1493,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         if (node->ex) {
             gencode_ast_hook(ctx, node->ex, ana, 0);
         }
-        assert(node->rhs->type == KXST_STMTLIST);
+        assert(node->rhs->type == KXST_STMTLIST || node->rhs->type == KXST_BLOCK);
         gencode_ast_hook(ctx, node->rhs->lhs, ana, 0);
         if (node->init) {
             kx_function_t *func = get_function(module, node->init->func);
