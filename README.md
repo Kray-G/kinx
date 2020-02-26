@@ -237,7 +237,6 @@ Here is a plan to add.
 
 * [ ] Adding many methods to `String` and `Array`.
 * [ ] `namespace` block.
-* [ ] `module` to add function easily to object.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
 * [ ] `SQLite` object to support SQLite database access.
