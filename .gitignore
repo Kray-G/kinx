@@ -15,3 +15,5 @@ timeit.dat
 /arm.ins
 /x86.spec
 /mips.spec
+*.pdb
+*.res

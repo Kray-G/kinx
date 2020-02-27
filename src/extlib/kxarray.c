@@ -39,8 +39,25 @@ int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         kx_obj_t *ary = allocate_obj(ctx);
         for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
             if (kh_exist(obj->prop, k)) {
-                const char *key = kh_key(obj->prop, k);
-                KEX_PUSH_ARRAY_STR(ary, key);
+                kx_val_t *val = &kh_val(obj->prop, k);
+                switch (val->type) {
+                case KX_UND_T:
+                case KX_INT_T:
+                case KX_DBL_T:
+                case KX_BIG_T:
+                case KX_CSTR_T:
+                case KX_STR_T:
+                case KX_BIN_T:
+                case KX_OBJ_T:
+                case KX_FNC_T:
+                case KX_BFNC_T:
+                case KX_NFNC_T: {
+                    const char *key = kh_key(obj->prop, k);
+                    KEX_PUSH_ARRAY_STR(ary, key);
+                }
+                default:
+                    ;
+                }
             }
         }
         KX_ADJST_STACK();
