@@ -284,7 +284,10 @@ static void gc_sweep(kx_context_t *ctx)
             kx_any_t *v;
             kl_remove_next(any, ctx->any_alive, prevany, &v);
             if (v->p) {
-                v->any_free(v->p);
+                if (v->any_free) {
+                    v->any_free(v->p);
+                }
+                v->any_free = NULL;
                 v->p = NULL;
             }
             kv_push(kx_any_t*, ctx->any_dead, v);
@@ -397,7 +400,9 @@ static void gc_object_cleanup(kx_context_t *ctx)
     kliter_t(any) *pany;
     for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
         kx_any_t *o = kl_val(pany);
-        o->any_free(o->p);
+        if (o->p && o->any_free) {
+            o->any_free(o->p);
+        }
         kx_free(o);
     }
     kliter_t(fnc) *pfnc;
@@ -437,7 +442,9 @@ static void gc_object_cleanup(kx_context_t *ctx)
     l = kv_size(ctx->any_dead);
     for (i = 0; i < l; ++i) {
         kx_any_t *o = kv_A(ctx->any_dead, i);
-        o->any_free(o->p);
+        if (o->p && o->any_free) {
+            o->any_free(o->p);
+        }
         kx_free(o);
     }
     l = kv_size(ctx->fnc_dead);
