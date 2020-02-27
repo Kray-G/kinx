@@ -19,6 +19,7 @@
         "disas.h": "c",
         "xstddef": "c",
         "kc-json.h": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "time.h": "c"
     }
 }

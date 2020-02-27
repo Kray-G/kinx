@@ -627,7 +627,7 @@ extern char *kx_strndup_impl(const char *s, size_t n);
     f->val.type = KX_OBJ_T; \
     f->val.value.ov = thisobj; \
     f->method = NULL; \
-    KEX_SET_PROP_BFNC(obj, name, f); \
+    KEX_SET_PROP_BFNC(thisobj, name, f); \
 } \
 /**/
 
