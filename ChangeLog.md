@@ -8,8 +8,6 @@ The goal is to release the first version.
 
 ### TODO for Goal of This Version
 
-*   [ ] `switch-case` in natve function.
 *   [ ] Supporting `namespace`.
 *   [ ] Supporting `SQLite`.
 *   [ ] Supporting `Xml`.
-*   [ ] Supporting `Zip`.
