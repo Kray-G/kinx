@@ -128,7 +128,8 @@ SOFILES = \
     kxarray.so \
     kxfile.so \
     kxmath.so \
-    kxregex.so
+    kxregex.so \
+    kxzip.so
 PICOBJS = \
     bignpic.o \
     bigzpic.o \
@@ -213,6 +214,13 @@ kxmath.so: src/extlib/kxmath.c $(PICOBJS)
 
 kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
+
+kxzip.so: src/extlib/kxzip.c $(PICOBJS)
+	cp -f src/extlib/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
+	chmod +x libz.so.1.2.11
+	ln -s libz.so.1.2.11 libz.so.1
+	ln -s libz.so.1 libz.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
