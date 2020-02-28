@@ -6,12 +6,10 @@ The goal is to release the first version.
 
 *   Basic functionalities supported.
 
-### TODO for Goal of Thi Version
+### TODO for Goal of This Version
 
 *   [ ] `switch-case` in natve function.
 *   [ ] Supporting `namespace`.
-*   [ ] Supporting `module`.
-*   [ ] Supporting `const`.
 *   [ ] Supporting `SQLite`.
 *   [ ] Supporting `Xml`.
 *   [ ] Supporting `Zip`.
