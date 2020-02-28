@@ -1,6 +1,6 @@
 import Zip;
 
-var z = new Zip("examples/zip/ziptest.zip", File.READ|File.APPEND);
+var z = new Zip("examples/zip/ziptest.zip", File.READ|File.WRITE);
 z.setPassword("text");
 z.addFile("README.md", {
     method: "bzip2",

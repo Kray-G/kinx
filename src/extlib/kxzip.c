@@ -239,6 +239,10 @@ static int add_buffer(kx_context_t *ctx, kx_obj_t *obj, const char *zipfile, int
 {
     int32_t err = MZ_OK;
     void *writer = NULL;
+    KX_ZIP_GET_INT_OPTION(added, obj, "added", 0);
+    if (added > 0) {
+        append = 1;
+    }
 
     mz_zip_writer_create(&writer);
     mz_zip_writer_set_compress_level(writer, method == MZ_COMPRESS_METHOD_STORE ? 0 : level);
@@ -266,6 +270,7 @@ static int add_buffer(kx_context_t *ctx, kx_obj_t *obj, const char *zipfile, int
         return err;
     }
 
+    KEX_SET_PROP_INT(obj, "added", added + 1);
     err = read_files(ctx, obj, zipfile);
     return err;
 }
@@ -274,6 +279,10 @@ static int add_file(kx_context_t *ctx, kx_obj_t *obj, const char *zipfile, int a
 {
     int32_t err = MZ_OK;
     void *writer = NULL;
+    KX_ZIP_GET_INT_OPTION(added, obj, "added", 0);
+    if (added > 0) {
+        append = 1;
+    }
 
     mz_zip_writer_create(&writer);
 
@@ -296,6 +305,7 @@ static int add_file(kx_context_t *ctx, kx_obj_t *obj, const char *zipfile, int a
         return err;
     }
 
+    KEX_SET_PROP_INT(obj, "added", added + 1);
     err = read_files(ctx, obj, zipfile);
     return err;
 }
@@ -660,6 +670,7 @@ int Zip_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     KEX_SET_PROP_CSTR(obj, "filename", zipfile);
     KEX_SET_PROP_INT(obj, "mode", mode);
+    KEX_SET_PROP_INT(obj, "added", 0);
     KEX_SET_METHOD("read", obj, Zip_extract);
     KEX_SET_METHOD("extract", obj, Zip_extract);
     KEX_SET_METHOD("extractTo", obj, Zip_extract_to);
