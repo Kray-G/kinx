@@ -32,6 +32,18 @@ int Array_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return throw_invalid_object(args, ctx);
 }
 
+static int is_hidden_key(const char *key)
+{
+    if (!key) {
+        return 1;
+    }
+    int pos = strlen(key) - strlen(":hidden");
+    if (pos < 0) {
+        return 0;
+    }
+    return strstr(key, ":hidden") == (key + pos);
+}
+
 int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -39,6 +51,10 @@ int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         kx_obj_t *ary = allocate_obj(ctx);
         for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
             if (kh_exist(obj->prop, k)) {
+                const char *key = kh_key(obj->prop, k);
+                if (is_hidden_key(key)) {
+                    continue;
+                }
                 kx_val_t *val = &kh_val(obj->prop, k);
                 switch (val->type) {
                 case KX_UND_T:
@@ -52,7 +68,6 @@ int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 case KX_FNC_T:
                 case KX_BFNC_T:
                 case KX_NFNC_T: {
-                    const char *key = kh_key(obj->prop, k);
                     KEX_PUSH_ARRAY_STR(ary, key);
                 }
                 default:
