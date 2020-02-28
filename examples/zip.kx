@@ -1,0 +1,42 @@
+import Zip;
+
+var z = new Zip("examples/zip/ziptest.zip", File.READ|File.APPEND);
+z.setPassword("text");
+z.addFile("README.md", {
+    method: "bzip2",
+    aes: true,
+});
+z.addFile("README.md");
+z.addString("test/test1.txt", {
+    content: "test/test\n",
+    aes: true,  # Can not use aes option for addString, that means no effect for addString.
+});
+z.addString("test/test2.txt", {
+    content: "test/test\n",
+    password: "text2",
+});
+
+System.println("totalFiles = ", z.totalFiles);
+z.each(function(e) {
+    System.println("%s:" % e.filename);
+    e.keySet().each(&(key) => {
+        if (e[key].isFunction || e[key].isObject || e[key].isUndefined) {
+            return;
+        }
+        if (key == "crc32") {
+            System.println("    %-14d = %10X" % key % e[key]);
+        } else if (key != "time" && key != "filename") {
+            System.println("    %-14d = %10d" % key % e[key]);
+        }
+    });
+    e.time.keySet().each(&(k) => {
+        System.println("      time.%-7d = %10d" % k % e.time[k]);
+    });
+    # if (e.filename == "README.md") {
+    #     e.extractTo("READMEXX.md", { password: "text" });
+    # }
+});
+
+var file = z.read("README.md", { password: "text" });
+System.println(file);
+#z.extractTo("README.md", "READMEXX.md", { password: "text", skip: true });

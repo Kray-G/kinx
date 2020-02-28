@@ -121,7 +121,8 @@ SOFILES = \
     kxarray.dll \
     kxfile.dll \
     kxmath.dll \
-    kxregex.dll
+    kxregex.dll \
+    kxzip.dll
 PICOBJS = \
     src/bign.obj \
     src/bigz.obj \
@@ -165,7 +166,7 @@ TESTCORE = \
 .SUFFIXES :
 .SUFFIXES : .c .obj
 
-all: timex kinx $(SOFILES)
+all: timex kinx zlib.dll $(SOFILES)
 
 yacc: kx.tab.h src/parser.c include/parser.tab.h
 
@@ -211,6 +212,21 @@ kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
+
+kxzip.dll: src/extlib/kxzip.c src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib $(PICOBJS)
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxzip.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
+
+zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
+	copy /y src\extlib\zip\x64\vs2017\zlib.dll zlib.dll
+
+zip/x64/vs2017/minizip.lib:
+	echo Build minizip.lib first.
+
+src/extlib/zip/x64/vs2017/zlib.dll:
+	echo Build minizip.lib first.
+
+src/extlib/zip/x64/vs2017/zlib.lib:
+	echo Build minizip.lib first.
 
 src/parser.c: kx.tab.c
 	move /y kx.tab.c src/parser.c; 
