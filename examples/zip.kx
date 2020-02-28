@@ -1,23 +1,23 @@
 import Zip;
 
-var z = new Zip("examples/zip/ziptest.zip", File.READ|File.WRITE);
-z.setPassword("text");
-z.addFile("README.md", {
+var zip = new Zip("examples/zip/ziptest.zip", File.READ|File.WRITE);
+zip.setPassword("text");
+zip.addFile("README.md", {
     method: "bzip2",
     aes: true,
 });
-z.addFile("README.md");
-z.addString("test/test1.txt", {
+zip.addFile("README.md");
+zip.addString("test/test1.txt", {
     content: "test/test\n",
     aes: true,  # Can not use aes option for addString, that means no effect for addString.
 });
-z.addString("test/test2.txt", {
+zip.addString("test/test2.txt", {
     content: "test/test\n",
     password: "text2",
 });
 
-System.println("totalFiles = ", z.totalFiles);
-z.each(function(e) {
+System.println("totalFiles = ", zip.totalFiles);
+zip.each(function(e) {
     System.println("%s:" % e.filename);
     e.keySet().each(&(key) => {
         if (e[key].isFunction || e[key].isObject || e[key].isUndefined) {
@@ -33,10 +33,11 @@ z.each(function(e) {
         System.println("      time.%-7d = %10d" % k % e.time[k]);
     });
     # if (e.filename == "README.md") {
-    #     e.extractTo("READMEXX.md", { password: "text" });
+    #     e.extractTo("READMEXX.md", { password: "text", overwrite: true });
     # }
 });
 
-var file = z.read("README.md", { password: "text" });
+var file = zip.read("README.md", { password: "text" });
 System.println(file);
-#z.extractTo("README.md", "READMEXX.md", { password: "text", skip: true });
+zip.find("README.md")
+    .extractTo("READMEXX.md", { password: "text", skip: true });
