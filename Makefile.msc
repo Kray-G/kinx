@@ -174,7 +174,8 @@ timex:
 	$(CC) $(CFLAGS) /Fetimex timex.c
 
 clean:
-	del /S /Q *.obj *.dll *.exp
+	del /S /Q *.obj *.exp
+	del /Q *.dll
 	del kx.output timex.exe kinx.exe myacc.exe test.exe
 
 kinx: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
