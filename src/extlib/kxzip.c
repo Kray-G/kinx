@@ -1,4 +1,11 @@
 #include <dbg.h>
+#include <string.h>
+#if defined(_WIN32) || defined(_WIN64)
+#define STRICMP(s1, s2) stricmp(s1, s2)
+#else
+#include <string.h>
+#define STRICMP(s1, s2) strcasecmp(s1, s2)
+#endif
 #include <kinx.h>
 
 #include "zip/include/mz.h"
@@ -408,11 +415,11 @@ int Zip_add_buffer(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
     uint16_t method = MZ_COMPRESS_METHOD_DEFLATE;
     if (method_string) {
-        if (!stricmp(method_string, "store")) {
+        if (!STRICMP(method_string, "store")) {
             method = MZ_COMPRESS_METHOD_STORE;
-        } else if (!stricmp(method_string, "bzip2")) {
+        } else if (!STRICMP(method_string, "bzip2")) {
             method = MZ_COMPRESS_METHOD_BZIP2;
-        } else if (!stricmp(method_string, "lzma")) {
+        } else if (!STRICMP(method_string, "lzma")) {
             method = MZ_COMPRESS_METHOD_LZMA;
         }
     }
@@ -456,11 +463,11 @@ int Zip_add_file(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
     uint16_t method = MZ_COMPRESS_METHOD_DEFLATE;
     if (method_string) {
-        if (!stricmp(method_string, "store")) {
+        if (!STRICMP(method_string, "store")) {
             method = MZ_COMPRESS_METHOD_STORE;
-        } else if (!stricmp(method_string, "bzip2")) {
+        } else if (!STRICMP(method_string, "bzip2")) {
             method = MZ_COMPRESS_METHOD_BZIP2;
-        } else if (!stricmp(method_string, "lzma")) {
+        } else if (!STRICMP(method_string, "lzma")) {
             method = MZ_COMPRESS_METHOD_LZMA;
         }
     }
