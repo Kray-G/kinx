@@ -7,11 +7,11 @@ db.exec("CREATE TABLE IF NOT EXISTS mytable "
         "name TEXT NOT NULL"
     ")"
 );
+var ins = db.prepare("INSERT INTO mytable (name) VALUES (?)");
 for (var i = 0; i < 20; ++i) {
-    db.exec("INSERT INTO mytable (name) VALUES (\"name(%{i})\")");
+    ins.bind("name(%{i})").exec();
 }
 
-var rc = 1;
 var c, r = db.prepare("SELECT * FROM mytable WHERE (id > ? AND id < ?) OR id = ?")
             .bind(2)
             .bind(8, 10)    # bind() can be separated.
@@ -20,7 +20,7 @@ var c, r = db.prepare("SELECT * FROM mytable WHERE (id > ? AND id < ?) OR id = ?
 while (c = r.next()) {
     var cols = c.columnName;
     var vals = c.value;
-    System.println("Record[%d]" % rc++);
+    System.println("Record[%d]" % vals[0]);
     for (var i = 0, len = cols.length(); i < len; ++i) {
         System.println("    %-8s = %s" % cols[i] % vals[i]);
     }
