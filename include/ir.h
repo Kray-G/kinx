@@ -810,6 +810,14 @@ typedef struct kx_context_ {
 } \
 /**/
 
+#define KEX_SET_PROP_UND(o, name) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_UND_T; \
+} \
+/**/
 #define KEX_SET_PROP_INT(o, name, ival) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -819,7 +827,15 @@ typedef struct kx_context_ {
     val->value.iv = ival; \
 } \
 /**/
-
+#define KEX_SET_PROP_DBL(o, name, dval) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_DBL_T; \
+    val->value.iv = dval; \
+} \
+/**/
 #define KEX_SET_PROP_BIG(o, name, bzval) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -829,7 +845,6 @@ typedef struct kx_context_ {
     val->value.bz = make_big_alive(ctx, BzCopy(bzval)); \
 } \
 /**/
-
 #define KEX_SET_PROP_ANY(o, name, aval) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -839,7 +854,6 @@ typedef struct kx_context_ {
     val->value.av = aval; \
 } \
 /**/
-
 #define KEX_SET_PROP_OBJ(o, name, kexobj) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -849,7 +863,15 @@ typedef struct kx_context_ {
     val->value.ov = kexobj; \
 } \
 /**/
-
+#define KEX_SET_PROP_BIN(o, name, binobj) { \
+    int absent;\
+    khash_t(prop) *p = (o)->prop; \
+    khint_t k = kh_put(prop, p, name, &absent); \
+    kx_val_t *val = &(kh_value(p, k)); \
+    val->type = KX_BIN_T; \
+    val->value.bn = binobj; \
+} \
+/**/
 #define KEX_SET_PROP_STR(o, name, strv) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -861,7 +883,6 @@ typedef struct kx_context_ {
     val->value.sv = sv; \
 } \
 /**/
-
 #define KEX_SET_PROP_CSTR(o, name, cstr) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -873,7 +894,6 @@ typedef struct kx_context_ {
     val->value.sv = sv; \
 } \
 /**/
-
 #define KEX_SET_PROP_FNC(o, name, fncv) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -883,7 +903,6 @@ typedef struct kx_context_ {
     val->value.fn = fncv; \
 } \
 /**/
-
 #define KEX_SET_PROP_BFNC(o, name, fncv) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
@@ -893,7 +912,6 @@ typedef struct kx_context_ {
     val->value.fn = fncv; \
 } \
 /**/
-
 #define KEX_GET_PROP(dst, o, name) { \
     khash_t(prop) *p = (o)->prop; \
     khint_t k = kh_get(prop, p, name); \
@@ -908,35 +926,41 @@ typedef struct kx_context_ {
     *top = (val); \
 } \
 /**/
-
+#define KEX_PUSH_ARRAY_UND(o) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_UND_T; \
+} \
+/**/
 #define KEX_PUSH_ARRAY_INT(o, val) { \
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_INT_T; \
     top->value.iv = (val); \
 } \
 /**/
-
 #define KEX_PUSH_ARRAY_BIG(o, val) { \
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_BIG_T; \
     top->value.bz = make_big_alive(ctx, BzCopy(val)); \
 } \
 /**/
-
 #define KEX_PUSH_ARRAY_DBL(o, val) { \
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_DBL_T; \
     top->value.dv = (val); \
 } \
 /**/
-
+#define KEX_PUSH_ARRAY_BIN(o, binobj) { \
+    kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
+    top->type = KX_BIN_T; \
+    top->value.bn = binobj; \
+} \
+/**/
 #define KEX_PUSH_ARRAY_CSTR(o, val) { \
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_CSTR_T; \
-    top->value.pv = const_str(val); \
+    top->value.pv = kx_const_str(val); \
 } \
 /**/
-
 #define KEX_PUSH_ARRAY_STR(o, val) { \
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_STR_T; \
@@ -945,14 +969,12 @@ typedef struct kx_context_ {
     top->value.sv = s; \
 } \
 /**/
-
 #define KEX_PUSH_ARRAY_OBJ(o, val) { \
     kx_val_t *top = kv_pushp(kx_val_t, (o)->ary); \
     top->type = KX_OBJ_T; \
     top->value.ov = val; \
 } \
 /**/
-
 #define KEX_GET_ARRAY_ITEM(dst, o, i) { \
     if ((i) < kv_size((o)->ary)) { \
         dst = &(kv_A((o)->ary, i)); \
