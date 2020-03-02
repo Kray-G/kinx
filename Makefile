@@ -217,14 +217,20 @@ kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
 
 kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o -pthread
 
-kxzip.so: src/extlib/kxzip.c $(PICOBJS)
+kxzip.so: src/extlib/kxzip.c $(PICOBJS) libz.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+
+libz.so: libz.so.1
+	ln -s libz.so.1 libz.so
+
+libz.so.1: libz.so.1.2.11
+	ln -s libz.so.1.2.11 libz.so.1
+
+libz.so.1.2.11: src/extlib/zip/x64/gcc/libz.so.1.2.11
 	cp -f src/extlib/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
 	chmod +x libz.so.1.2.11
-	ln -s libz.so.1.2.11 libz.so.1
-	ln -s libz.so.1 libz.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
@@ -273,7 +279,7 @@ kstrpic.o: src/kstr.c
 kc-jsonpic.o: src/extlib/kc-json/kc-json.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
-sqlite3.o: src/extlib/sqlite3/sqlite3.c
+sqlite3.o: src/extlib/sqlite/sqlite3.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
