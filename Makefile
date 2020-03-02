@@ -129,6 +129,7 @@ SOFILES = \
     kxfile.so \
     kxmath.so \
     kxregex.so \
+    kxsqlite.so \
     kxzip.so
 PICOBJS = \
     bignpic.o \
@@ -215,6 +216,9 @@ kxmath.so: src/extlib/kxmath.c $(PICOBJS)
 kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
 
+kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o
+
 kxzip.so: src/extlib/kxzip.c $(PICOBJS)
 	cp -f src/extlib/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
 	chmod +x libz.so.1.2.11
@@ -267,6 +271,9 @@ kstrpic.o: src/kstr.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 kc-jsonpic.o: src/extlib/kc-json/kc-json.c
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
+
+sqlite3.o: src/extlib/sqlite3/sqlite3.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c

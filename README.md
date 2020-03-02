@@ -235,11 +235,10 @@ For current supported objects, see [here](doc/Reference/_Index.md).
 Now development is very early stage, I need to add many functionalities.
 Here is a plan to add.
 
-* [ ] Adding many methods to `String` and `Array`.
+* [ ] Adding many methods to `String`, `Array`, and `File`.
 * [ ] `namespace` block.
 * [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
-* [ ] `SQLite` object to support SQLite database access.
 * [ ] Some Optimizations.
 
 ## Undocumented Memo
