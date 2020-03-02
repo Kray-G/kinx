@@ -122,6 +122,7 @@ SOFILES = \
     kxfile.dll \
     kxmath.dll \
     kxregex.dll \
+    kxsqlite.dll \
     kxzip.dll
 PICOBJS = \
     src/bign.obj \
@@ -214,6 +215,9 @@ kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
 
+kxsqlite.dll: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
+
 kxzip.dll: src/extlib/kxzip.c src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxzip.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
 
@@ -228,6 +232,12 @@ src/extlib/zip/x64/vs2017/zlib.dll:
 
 src/extlib/zip/x64/vs2017/zlib.lib:
 	echo Build minizip.lib first.
+
+sqlite3.obj:
+	cd src\extlib\sqlite
+	$(CC) /O2 /MT /c sqlite3.c
+	copy /y sqlite3.obj ..\..\..
+	cd ..\..\..
 
 src/parser.c: kx.tab.c
 	move /y kx.tab.c src/parser.c; 
