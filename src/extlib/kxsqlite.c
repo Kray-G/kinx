@@ -208,6 +208,8 @@ int SQLite_prepare_exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
         KX_THROW_BLTIN_EXCEPTION("SqliteException", static_format("Failed to exec statement, %s", err));
     }
 
+    kv_shrinkto(binder->ary, 0);
+    sqlite3_reset(st->stmt);
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);
     return 0;
@@ -291,6 +293,9 @@ int SQLite_prepare_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
         KX_THROW_BLTIN_EXCEPTION("SqliteException", static_format("Failed to exec statement, %s", err));
     }
 
+    KX_SQLITE_GET_OBJ(binder, obj, "_bind");
+    kv_shrinkto(binder->ary, 0);
+    sqlite3_reset(st->stmt);
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);
     return 0;
