@@ -1,0 +1,27 @@
+import SQLite;
+
+var db = new SQLite("database.db");
+db.exec("CREATE TABLE IF NOT EXISTS mytable "
+    "("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "name TEXT NOT NULL"
+    ")"
+);
+for (var i = 0; i < 20; ++i) {
+    db.exec("INSERT INTO mytable (name) VALUES (\"name(%{i})\")");
+}
+
+var rc = 1;
+var c, r = db.prepare("SELECT * FROM mytable WHERE (id > ? AND id < ?) OR id = ?")
+            .bind(2)
+            .bind(8, 10)    # bind() can be separated.
+            .query();       # do binding & ready to next().
+
+while (c = r.next()) {
+    var cols = c.columnName;
+    var vals = c.value;
+    System.println("Record[%d]" % rc++);
+    for (var i = 0, len = cols.length(); i < len; ++i) {
+        System.println("    %-8s = %s" % cols[i] % vals[i]);
+    }
+}
