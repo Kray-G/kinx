@@ -8,6 +8,8 @@ The goal is to release the first version.
 
 ### TODO for Goal of This Version
 
-*   [ ] Supporting `namespace`.
-*   [ ] Supporting `SQLite`.
-*   [ ] Supporting `Xml`.
+* [ ] Adding many methods to `String`, `Array`, and `File`.
+* [ ] `namespace` block.
+* [ ] `XmlDom` object to support Xml.
+* [ ] `Network` object to support Network protocal access.
+* [ ] Some Optimizations.
