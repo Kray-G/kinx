@@ -413,13 +413,13 @@ Factor
     | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
-    | STR { $$ = kx_gen_str_object($1); }
     | Array
     | Binary
     | Object
     | Regex
     | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }
     | '(' AssignExpression ')' { $$ = $2; }
+    | '(' STR ')' { $$ = kx_gen_str_object($2); }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     | '@' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
     | '@' TYPEOF { $$ = kx_gen_typeof_object(kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
@@ -506,7 +506,7 @@ KeyValueList
     ;
 
 KeyValue
-    : STR ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    : '(' STR ')' ':' AssignExpression { $$ = kx_gen_keyvalue_object($2, $5); }
     | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | KeySpecialName ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 SpreadItem { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
@@ -602,7 +602,7 @@ AnonymousFunctionDeclExpression
     : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
     | SYSFUNC '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, NULL, $3, $5, NULL); }
     | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, NULL, $4, $6, NULL); }
-    | '&' '(' ArgumentList_Opts ')' DARROW LogicalOrExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, kx_gen_stmt_object(KXST_RET, $6, NULL, NULL), NULL); }
+    | '&' '(' ArgumentList_Opts ')' DARROW TernaryExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, kx_gen_stmt_object(KXST_RET, $6, NULL, NULL), NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $6, NULL); }
     | '&' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, NULL, $2, NULL); }
     ;
@@ -684,6 +684,7 @@ CallArgumentList
 
 CallArgument
     : AssignExpression
+    | STR { $$ = kx_gen_str_object($1); }
     | '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
     ;
 

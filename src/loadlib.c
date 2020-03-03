@@ -91,6 +91,10 @@ const char *kxlib_file_exists(const char *file)
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);
     }
+    checkfile = make_path_with(get_exe_path(), "lib/std", file);
+    if (file_exists(checkfile)) {
+        return alloc_string(checkfile);
+    }
     checkfile = make_path_with(get_exe_path(), ".."PATH_DELIM"lib", file);
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);

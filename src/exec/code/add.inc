@@ -62,8 +62,7 @@
         kstr_t *out = kx_format(v1); \
         if (out) { \
             kstr_t *sv = allocate_str(ctx); \
-            ks_append(sv, ks_string(out)); \
-            ks_appendf(sv, "%d", val); \
+            ks_appendf(sv, "%s%d", ks_string(out), val); \
             ks_free(out); \
             (v1)->type = KX_STR_T; \
             (v1)->value.sv = sv; \
