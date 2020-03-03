@@ -30,6 +30,29 @@
         (v1)->value.dv += 1.0; \
         break; \
     } \
+    case KX_CSTR_T: { \
+        kstr_t *s = allocate_str(ctx); \
+        ks_appendf(s, "%s1", (v1)->value.pv); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_STR_T: { \
+        ks_append((v1)->value.sv, "1"); \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_appendf(sv, "%s1", ks_string(out)); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
