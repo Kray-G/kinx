@@ -7,10 +7,12 @@ db.exec("CREATE TABLE IF NOT EXISTS mytable "
         "name TEXT NOT NULL"
     ")"
 );
-var ins = db.prepare("INSERT INTO mytable (name) VALUES (?)");
-for (var i = 0; i < 20; ++i) {
-    ins.bind("name(%{i})").exec();
-}
+db.transaction(&{
+    var ins = db.prepare("INSERT INTO mytable (name) VALUES (?)");
+    for (var i = 0; i < 20; ++i) {
+        ins.bind("name(%{i})").exec();
+    }
+});
 
 var c, r = db.prepare("SELECT * FROM mytable WHERE (id > ? AND id < ?) OR id = ?")
             .bind(2)

@@ -1,0 +1,21 @@
+
+SQLite.create = _function(name) {
+    var db = SQLite._create(name);
+    db.transaction = function(func) {
+        if (db.inTransaction) {
+            return func();
+        }
+        db.inTransaction = true;
+        try {
+            db.exec("BEGIN");
+            return func();
+        } catch (e) {
+            System.try(&{ db.exec("ROLLBACK"); }).else();
+            db.inTransaction = false;
+        } finally {
+            System.try(&{ db.exec("COMMIT"); }).else();
+            db.inTransaction = false;
+        }
+    };
+    return db;
+};

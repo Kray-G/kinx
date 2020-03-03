@@ -390,7 +390,7 @@ int SQLite_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "create", SQLite_create },
+    { "_create", SQLite_create },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

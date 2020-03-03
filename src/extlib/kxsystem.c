@@ -1,6 +1,7 @@
 #include <dbg.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <time.h>
 #include <kinx.h>
 #include "kc-json/kc-json.h"
 
@@ -350,7 +351,6 @@ int System_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         break;
     }
 
-
     KX_ADJST_STACK();
     push_i(ctx->stack, r);
     return 0;
@@ -417,6 +417,28 @@ static int System_arguments(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     return 0;
 }
 
+static int System_sleep(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    int msec = (args > 0) ? (int)get_arg_int(1, args, ctx) : 0;
+    #if defined(_WIN32) || defined(_WIN64)
+    Sleep(msec);
+    #else
+    const int C_WAIT_ADJUST = 10;       // for nanosleep adjustment
+    const int C_MSEC_UNIT = 1000000;    // msec unit
+    struct timespec t;
+    if (msec > C_WAIT_ADJUST) {
+        msec -= C_WAIT_ADJUST;
+    }
+    t.tv_sec = (time_t)((msec) / 1000);
+    t.tv_nsec = ((msec) % 1000) * C_MSEC_UNIT;
+    nanosleep(&t, NULL);
+    #endif
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "makeSuper", System_makeSuper },
     { "print", System_print },
@@ -428,6 +450,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "parseDouble", System_parseDouble },
     { "arguments", System_arguments },
     { "parseJson", JSON_parse },
+    { "sleep", System_sleep },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

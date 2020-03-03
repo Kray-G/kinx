@@ -209,10 +209,11 @@ static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_
     kx_lexinfo.inner.quote = quote == '"' ? DQ : quote == '\'' ? SQ : quote;
     kx_lexinfo.is_multi = is_multi;
     kx_lexinfo.is_trim = is_trim;
-    kx_lexinfo.tempbuf[0] = '(';
-    kx_lexinfo.tempbuf[1] = 0;
+    kx_lexinfo.tempbuf[0] = '+';
+    kx_lexinfo.tempbuf[1] = '(';
+    kx_lexinfo.tempbuf[2] = 0;
     kx_lexinfo.restart = kx_lexinfo.tempbuf;
-    kx_lexinfo.ch = '+';
+    kx_lexinfo.ch = ')';
     return STR;
 }
 
@@ -457,8 +458,9 @@ HEAD_OF_YYLEX:
             --kx_lexinfo.inner.brcount;
             if (kx_lexinfo.inner.brcount == 0) {
                 // restart analyzing a quoted string.
-                kx_lexinfo.tempbuf[0] = kx_lexinfo.inner.quote;
-                kx_lexinfo.tempbuf[1] = 0;
+                kx_lexinfo.tempbuf[0] = '(';
+                kx_lexinfo.tempbuf[1] = kx_lexinfo.inner.quote;
+                kx_lexinfo.tempbuf[2] = 0;
                 kx_lexinfo.restart = kx_lexinfo.tempbuf;
                 kx_lexinfo.ch = '+';
                 return ')';
