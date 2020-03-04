@@ -8,18 +8,37 @@ https://github.com/GNOME/libxml2
 
 ### Windows
 
-```
-$ cd win32
-$ mkdir dist
-$ cscript configure.js compiler=msvc iconv=no debug=no cruntime=/MT prefix=dist include=$(KINX)\src\extlib\zip\include lib=$(KINX)\src\extlib\zip\x64\vs2017
-$ nmake -f Makefile all install
-```
+Here is the procedure to build with Visual Studio 2017 x64 version. And the compile option is `/MT` for static link.
 
+1. Clone it.
+    ```
+    $ git clone https://github.com/nmoinvaz/minizip
+    ```
 
-```
-./autogen.sh
-mkdir dist
-./configure --with-zlib=/home/kazuya/github/minizip/dist/install/zlib --without-python --without-ftp --without-http --prefix=/home/kazuya/github/libxml2/dist
-make
-make install
-```
+2. build and install to dist directory.
+    ```
+    $ cd win32
+    $ mkdir dist
+    $ cscript configure.js compiler=msvc iconv=no debug=no cruntime=/MT prefix=dist include=$(KINX)\src\extlib\zip\include lib=$(KINX)\src\extlib\zip\x64\vs2017
+    $ nmake -f Makefile all install
+    ```
+
+This repository has `libxml2.lib` and `libxml2.dll`, which is built by Visual Studio 2017 x64 version. If you need it compiled by another compiler, follow the above procedure.
+
+### Linux
+
+1. Clone it.
+    ```
+    $ git clone https://github.com/nmoinvaz/minizip
+    ```
+
+2. Build it.
+    ```
+    ./autogen.sh
+    mkdir dist
+    ./configure --with-zlib=$(minizip)/dist/install/zlib --with-pic --without-python --without-ftp --without-http --prefix=$(libxml2)/dist
+    make
+    make install
+    ```
+
+This repository has `libxml2.a`, which is built by gcc 7.4.0. If you need it compiled by another compiler, follow the above procedure.
