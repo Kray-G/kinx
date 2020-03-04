@@ -1,6 +1,7 @@
 #include <dbg.h>
 #include <kinx.h>
 #include "libxml2/include/libxml2/libxml/xmlreader.h"
+#include "libxml2/include/libxml2/libxml/xpath.h"
 
 KX_DECL_MEM_ALLOCATORS();
 
@@ -26,12 +27,32 @@ if (obj) { \
     r = (kx_xmlnode_t *)(val->value.av->p); \
 } \
 /**/
+#define KX_XML_GET_NODE_NOERR(r, obj) \
+kx_xmlnode_t *r = NULL; \
+if (obj) { \
+    kx_val_t *val = NULL; \
+    KEX_GET_PROP(val, obj, "_node"); \
+    if (val && val->type == KX_ANY_T) { \
+        r = (kx_xmlnode_t *)(val->value.av->p); \
+    } \
+} \
+/**/
+#define KX_XML_GET_HOST(r, obj) \
+kx_obj_t *r = NULL; \
+if (obj) { \
+    kx_val_t *val = NULL; \
+    KEX_GET_PROP(val, obj, "_host"); \
+    if (val && val->type == KX_OBJ_T) { \
+        r = val->value.ov; \
+    } \
+} \
+/**/
 #define KX_XML_GET_CHILDREN(r, obj) \
 kx_obj_t *r = NULL; \
 if (obj) { \
     kx_val_t *val = NULL; \
     KEX_GET_PROP(val, obj, "_children"); \
-    if (val && val->type != KX_OBJ_T) { \
+    if (val && val->type == KX_OBJ_T) { \
         r = val->value.ov; \
     } \
 } \
@@ -48,6 +69,7 @@ typedef struct kx_xmlnode_ {
 } kx_xmlnode_t;
 
 static kx_obj_t *create_node(kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr cur);
+static int XML_nodeset_xpath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
 
 static void xml_initialize(void)
 {
@@ -192,6 +214,121 @@ static int get_element_by_tagname(int args, kx_context_t *ctx, kx_xml_t *xml, xm
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, robj);
+    return 0;
+}
+
+static void make_xpath_result(kx_obj_t *obj, kx_context_t *ctx, kx_xml_t *xml, xmlNodeSetPtr nodes)
+{
+    int size = (nodes) ? nodes->nodeNr : 0;
+    for (int i = 0; i < size; ++i) {
+        if (nodes->nodeTab[i]->type == XML_ELEMENT_NODE) {
+            xmlNodePtr cur = nodes->nodeTab[i];
+            kx_obj_t *node = create_node(ctx, xml, cur);
+            KEX_PUSH_ARRAY_OBJ(obj, node);
+        }
+    }
+}
+
+static int XML_nodeset_xpath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *nodeset = get_arg_obj(1, args, ctx);
+    KX_XML_GET_HOST(obj, nodeset);
+    KX_XML_GET_NODE(node, obj);
+    const char *expr = get_arg_str(2, args, ctx);
+
+    xmlXPathContextPtr xpathctx = xmlXPathNewContext(node->xml->doc);
+    if (xpathctx == NULL) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to create an XPath context");
+    }
+
+    kx_obj_t *ret = allocate_obj(ctx);
+    int len = kv_size(nodeset->ary);
+    for (int i = 0; i < len; ++i) {
+        kx_val_t *v = &kv_A(nodeset->ary, i);
+        if (v->type == KX_OBJ_T) {
+            kx_obj_t *nobj = v->value.ov;
+            KX_XML_GET_NODE_NOERR(node, nobj);
+            if (node) {
+                xpathctx->node = node->p;
+                xmlXPathObjectPtr xpathobj = xmlXPathEvalExpression(expr, xpathctx);
+                if (xpathobj) {
+                    make_xpath_result(ret, ctx, node->xml, xpathobj->nodesetval);
+                    xmlXPathFreeObject(xpathobj);
+                }
+            }
+        }
+    }
+    KEX_SET_PROP_OBJ(ret, "_host", obj);
+    KEX_SET_METHOD("xpath", ret, XML_nodeset_xpath);
+
+    xmlXPathFreeContext(xpathctx);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, ret);
+    return 0;
+}
+
+static int XML_node_xpath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_XML_GET_NODE(node, obj);
+    const char *expr = get_arg_str(2, args, ctx);
+
+    xmlXPathContextPtr xpathctx = xmlXPathNewContext(node->xml->doc);
+    if (xpathctx == NULL) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to create an XPath context");
+    }
+
+    xpathctx->node = node->p;
+    xmlXPathObjectPtr xpathobj = xmlXPathEvalExpression(expr, xpathctx);
+    if (xpathobj == NULL) {
+        xmlXPathFreeContext(xpathctx);
+        xmlFreeDoc(node->xml->doc);
+        KX_THROW_BLTIN_EXCEPTION("XmlException", static_format("Failed to evaluate xpath expression(%s)", expr));
+    }
+
+    kx_obj_t *ret = allocate_obj(ctx);
+    make_xpath_result(ret, ctx, node->xml, xpathobj->nodesetval);
+    KEX_SET_PROP_OBJ(ret, "_host", obj);
+    KEX_SET_METHOD("xpath", ret, XML_nodeset_xpath);
+
+    xmlXPathFreeObject(xpathobj);
+    xmlXPathFreeContext(xpathctx);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, ret);
+    return 0;
+}
+
+static int XML_xpath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_XML_GET_DOC(xml, obj);
+    const char *expr = get_arg_str(2, args, ctx);
+
+    xmlXPathContextPtr xpathctx = xmlXPathNewContext(xml->doc);
+    if (xpathctx == NULL) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to create an XPath context");
+    }
+
+    xmlXPathObjectPtr xpathobj = xmlXPathEvalExpression(expr, xpathctx);
+    if (xpathobj == NULL) {
+        xmlXPathFreeContext(xpathctx);
+        xmlFreeDoc(xml->doc);
+        KX_THROW_BLTIN_EXCEPTION("XmlException", static_format("Failed to evaluate xpath expression(%s)", expr));
+    }
+
+    kx_obj_t *ret = allocate_obj(ctx);
+    make_xpath_result(ret, ctx, xml, xpathobj->nodesetval);
+    kx_obj_t *root = create_node(ctx, xml, xmlDocGetRootElement(xml->doc));
+    KEX_SET_PROP_OBJ(ret, "_host", root);
+    KEX_SET_METHOD("xpath", ret, XML_nodeset_xpath);
+
+    xmlXPathFreeObject(xpathobj);
+    xmlXPathFreeContext(xpathctx);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, ret);
     return 0;
 }
 
@@ -452,7 +589,7 @@ static int XML_node_content(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     return 0;
 }
 
-kstr_t *build_qname(kx_context_t *ctx, const char *ncname, xmlNsPtr ns)
+static kstr_t *build_qname(kx_context_t *ctx, const char *ncname, xmlNsPtr ns)
 {
     kstr_t *sv = allocate_str(ctx);
     if (!ncname) {
@@ -465,7 +602,7 @@ kstr_t *build_qname(kx_context_t *ctx, const char *ncname, xmlNsPtr ns)
     return sv;
 }
 
-int XML_node_attributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_attributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -489,7 +626,7 @@ int XML_node_attributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
-int XML_node_setAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_setAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -506,7 +643,7 @@ int XML_node_setAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     return 0;
 }
 
-int XML_node_setAttributeNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_setAttributeNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -542,7 +679,7 @@ int XML_node_setAttributeNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     return 0;
 }
 
-int XML_node_removeAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_removeAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -568,7 +705,7 @@ int XML_node_removeAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     return 0;
 }
 
-int XML_node_removeAttributeNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_removeAttributeNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -597,7 +734,7 @@ int XML_node_removeAttributeNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     return 0;
 }
 
-int XML_node_hasChildren(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_hasChildren(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -609,7 +746,7 @@ int XML_node_hasChildren(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     return 0;
 }
 
-int XML_node_hasAttributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_hasAttributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -621,7 +758,7 @@ int XML_node_hasAttributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     return 0;
 }
 
-int XML_node_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -630,7 +767,7 @@ int XML_node_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     return get_element_by_id(args, ctx, node->xml, node->p, id);
 }
 
-int XML_node_getElementByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_getElementByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
@@ -709,10 +846,12 @@ static kx_obj_t *create_node(kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr cur)
     KEX_SET_METHOD("getElementById", obj, XML_node_getElementById);
     KEX_SET_METHOD("getElementByTagName", obj, XML_node_getElementByTagName);
 
+    KEX_SET_METHOD("xpath", obj, XML_node_xpath);
+
     return obj;
 }
 
-int XML_documentElement(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_documentElement(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -724,7 +863,7 @@ int XML_documentElement(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
-int XML_createElement(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_createElement(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -741,7 +880,7 @@ int XML_createElement(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     return 0;
 }
 
-int XML_createTextNode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_createTextNode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -755,7 +894,7 @@ int XML_createTextNode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
-int XML_createProcessingInstruction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_createProcessingInstruction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -773,7 +912,7 @@ int XML_createProcessingInstruction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     return 0;
 }
 
-int XML_createComment(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_createComment(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -787,7 +926,7 @@ int XML_createComment(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     return 0;
 }
 
-int XML_createCdataSection(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_createCdataSection(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -801,7 +940,7 @@ int XML_createCdataSection(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     return 0;
 }
 
-int XML_createEntityReference(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_createEntityReference(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -818,7 +957,7 @@ int XML_createEntityReference(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     return 0;
 }
 
-int XML_createElementNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_createElementNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -854,7 +993,7 @@ int XML_createElementNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
-int XML_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -864,7 +1003,7 @@ int XML_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return get_element_by_id(args, ctx, xml, node, id);
 }
 
-int XML_getElementByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_getElementByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
@@ -894,12 +1033,14 @@ static int xml_parse(int args, kx_context_t *ctx, kx_xml_t *xml)
     KEX_SET_METHOD("getElementById", obj, XML_getElementById);
     KEX_SET_METHOD("getElementByTagName", obj, XML_getElementByTagName);
 
+    KEX_SET_METHOD("xpath", obj, XML_xpath);
+
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
     return 0;
 } 
 
-int XML_parseString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_parseString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *xml_text = get_arg_str(1, args, ctx);
     if (!xml_text) {
@@ -918,7 +1059,7 @@ int XML_parseString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return xml_parse(args, ctx, xml);
 }
 
-int XML_parseFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_parseFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *filename = get_arg_str(1, args, ctx);
     kx_xml_t *xml = parseFile(args, ctx, filename);
