@@ -477,7 +477,7 @@ int XML_node_attributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 
         xmlChar* value = xmlNodeListGetString(node->xml->doc, attr->children, 1);
         KEX_SET_PROP_CSTR(a, "name", attr->name);
-        KEX_SET_PROP_CSTR(a, "value", value ? value : "");
+        KEX_SET_PROP_CSTR(a, "value", value ? (const char *)value : "");
         KEX_PUSH_ARRAY_OBJ(ret, a);
 
         xmlFree(value); 
@@ -659,10 +659,10 @@ static kx_obj_t *create_node(kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr cur)
 
     KEX_SET_PROP_INT(obj, "type", n->p->type);
     KEX_SET_PROP_STR(obj, "name", build_qname(ctx, n->p->name, n->p->ns));
-    KEX_SET_PROP_CSTR(obj, "tagName", n->p->name ? n->p->name : "");
-    KEX_SET_PROP_CSTR(obj, "localName", n->p->name ? n->p->name : "");
-    KEX_SET_PROP_CSTR(obj, "namespaceURI", (n->p->ns && n->p->ns->href) ? n->p->ns->href : "");
-    KEX_SET_PROP_CSTR(obj, "prefix", (n->p->ns && n->p->ns->prefix) ? n->p->ns->prefix : "");
+    KEX_SET_PROP_CSTR(obj, "tagName", n->p->name ? (const char *)n->p->name : "");
+    KEX_SET_PROP_CSTR(obj, "localName", n->p->name ? (const char *)n->p->name : "");
+    KEX_SET_PROP_CSTR(obj, "namespaceURI", (n->p->ns && n->p->ns->href) ? (const char *)n->p->ns->href : "");
+    KEX_SET_PROP_CSTR(obj, "prefix", (n->p->ns && n->p->ns->prefix) ? (const char *)n->p->ns->prefix : "");
     char *content = NULL;
     switch (n->p->type) {
     case XML_TEXT_NODE:
