@@ -21,7 +21,26 @@ function displayXml(doc, node, indent) {
     }
 }
 
-var doc = Xml.parseFile("examples/xml_sample.xml");
+var doc = Xml.parseString(%{
+<?xml version="1.0" encoding="UTF-8" ?>
+<cars>
+<car country="JP" id="1">
+    <name>motorcycle</name>
+    <price>150</price>
+    <img file="car1.jpg"/>
+</car>
+<car country="US" id="2">
+    <name>truck</name>
+    <price>500</price>
+    <img file="car2.jpg"/>
+</car>
+<car country="DE" id="3">
+    <name>car</name>
+    <price>200</price>
+    <img file="car3.jpg"/>
+</car>
+</cars>
+});
 var root = doc.documentElement();
 displayXml(doc, root);
 
@@ -35,4 +54,11 @@ System.println("getElementByTagName:");
 var els = root.getElementByTagName("img");
 if (els.isArray) {
     els.each(&(el) => displayXml(doc, el));
+}
+
+System.println("");
+System.println("XPath:");
+var nodes = doc.xpath("//car").xpath("price");
+if (nodes.isArray) {
+    nodes.each(&(el) => displayXml(doc, el));
 }
