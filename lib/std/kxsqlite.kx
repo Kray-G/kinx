@@ -1,6 +1,6 @@
 
-SQLite.create = _function(name) {
-    var db = SQLite._create(name);
+SQLite.create = _function(...args) {
+    var db = SQLite._create(...args);
     db.transaction = function(func) {
         if (db.inTransaction) {
             return func();
