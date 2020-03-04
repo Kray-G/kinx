@@ -14,17 +14,6 @@ function displayXml(doc, node, indent) {
     }
     System.println("");
 
-    if (node.hasChildren()) {
-        var nn = doc.createElementNS("http://aaa.bbb", "ns:added");
-        var n2 = doc.createElementNS("http://aaa.bbb", "ns:added2");
-        var n3 = doc.createElementNS("http://aaa.bbb", "ns:added3");
-        var n4 = doc.createElementNS("http://aaa.bbb", "ns:added4");
-        n2.setAttribute("ns:prop", "samething");
-        node.appendChild(nn);
-        node.replaceChild(nn, n2);
-        n2.insertBefore(n3);
-        n2.insertAfter(n4);
-    }
     var child = node.firstChild();
     while (child) {
         displayXml(doc, child, indent + 1);
@@ -36,8 +25,6 @@ var doc = Xml.parseFile("examples/xml_sample.xml");
 var root = doc.documentElement();
 displayXml(doc, root);
 
-System.println("");
-System.println("getElementById:");
 var el = root.getElementById("3");
 if (el) {
     el.remove();
