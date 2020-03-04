@@ -237,7 +237,6 @@ Here is a plan to add.
 
 * [ ] Adding many methods to `String`, `Array`, and `File`.
 * [ ] `namespace` block.
-* [ ] `XmlDom` object to support Xml.
 * [ ] `Network` object to support Network protocal access.
 * [ ] Some Optimizations.
 
