@@ -28,7 +28,7 @@
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
-%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF
+%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF NAMESPACE
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -42,6 +42,8 @@
 %type<obj> StatementList
 %type<obj> Statement
 %type<obj> BlockStatement
+%type<obj> NamespaceStatement
+%type<strval> NamespaceName
 %type<obj> DefinitionStatement
 %type<obj> IfStatement
 %type<obj> WhileStatement
@@ -133,6 +135,7 @@ StatementList
 
 Statement
     : BlockStatement
+    | NamespaceStatement
     | IfStatement
     | WhileStatement
     | DoWhileStatement
@@ -154,6 +157,15 @@ Statement
 BlockStatement
     : '{' '}' { $$ = NULL; }
     | '{' StatementList '}' { $$ = kx_gen_block_object($2); }
+    ;
+
+NamespaceStatement
+    : NAMESPACE NamespaceName '{' '}' { $$ = NULL; }
+    | NAMESPACE NamespaceName '{' StatementList '}' { $$ = kx_gen_namespace_object($2, $4); }
+    ;
+
+NamespaceName
+    : NAME { $$ = kx_gen_namespace_name_object($1); }
     ;
 
 DefinitionStatement

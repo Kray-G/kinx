@@ -3,6 +3,7 @@
 #include <kinx.h>
 
 static int sg_native = 0; /* use this for ... something? */
+static kvec_pt(kx_object_t) ns_stack;
 
 kx_object_t *kx_obj_alloc(void)
 {
@@ -155,6 +156,37 @@ kx_object_t *kx_gen_block_object(kx_object_t *blk)
     return kx_gen_obj(KXST_BLOCK, 0, blk, NULL, NULL);
 }
 
+const char *kx_gen_namespace_name_object(const char *name)
+{
+    kv_push(kx_object_t*, ns_stack, kx_gen_str_object(name));
+    return name;
+}
+
+kx_object_t *kx_gen_namespace_object(const char *name, kx_object_t *blk)
+{
+    kx_object_t *callns = NULL;
+    int len = kv_size(ns_stack);
+    if (len > 1) {
+        kx_object_t *last = kv_last_by(ns_stack, 2);
+        kx_object_t *nassign = kx_gen_bassign_object(KXOP_ASSIGN,
+            kx_gen_bassign_object(KXOP_IDX,
+                kx_gen_var_object(last->value.s, KX_OBJ_T),
+                kx_gen_str_object(name)),
+            kx_gen_var_object(name, KX_OBJ_T)
+        );
+        blk = kx_gen_bexpr_object(KXST_STMTLIST, nassign, blk);
+    }
+    blk = kx_gen_bexpr_object(KXOP_CALL,
+        kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, NULL, blk, NULL),
+        NULL
+    );
+    kx_object_t *namevar = kx_gen_var_object(name, KX_OBJ_T);
+    kx_object_t *assign = kx_gen_bassign_object(KXOP_ASSIGN, namevar, kx_gen_bassign_object(KXOP_LUNDEF, namevar, kx_gen_uexpr_object(KXOP_MKOBJ, NULL)));
+    kx_object_t *stmt = kx_gen_bexpr_object(KXST_STMTLIST, assign, blk);
+    kv_pop(ns_stack);
+    return stmt;
+}
+
 kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs)
 {
     return kx_gen_obj(type, 0, lhs, NULL, NULL);
@@ -196,6 +228,13 @@ kx_object_t *kx_gen_regex_object(const char *pattern, int eq)
 
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
+    if (type == KXOP_IDX && lhs && lhs->rhs) {
+        kx_object_t *create = lhs->rhs;
+        if (create->type == KXVL_STR && !strcmp(create->value.s, "create")) {
+            lhs->rhs = rhs;
+            return kx_gen_obj(type, 0, lhs, create, NULL);
+        }
+    }
     if (type == KXOP_POW && lhs->rhs) {
         kx_object_t *p = lhs;
         while (KXOP_POW == p->rhs->type) {
@@ -337,7 +376,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
         kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
         rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
     }
-    if (!ex && optional == KXFT_CLASS) {
+    if (!ex && type == KXST_CLASS) {
         ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this", KX_OBJ_T), kx_gen_uexpr_object(KXOP_MKOBJ, NULL));
     }
 
@@ -358,10 +397,10 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
             assign = obj;
         } else if (optional == KXFT_MODULE) {
             assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name, KX_OBJ_T), kx_gen_str_object("extend"));
-            assign = kx_gen_bassign_object(KXOP_ASSIGN, assign, obj);
+            assign = kx_gen_bassign_object(KXOP_DECL, assign, obj);
         } else if (optional == KXFT_CLASS) {
             assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name, KX_OBJ_T), kx_gen_str_object("create"));
-            assign = kx_gen_bassign_object(KXOP_ASSIGN, assign, obj);
+            assign = kx_gen_bassign_object(KXOP_DECL, assign, obj);
         } else {
             assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name, KX_UNKNOWN_T), obj);
         }
@@ -384,5 +423,19 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
         stmt = assign;
         break;
     }
+    if (pname && type == KXST_CLASS) {
+        int len = kv_size(ns_stack);
+        if (len > 0) {
+            kx_object_t *last = kv_last(ns_stack);
+            kx_object_t *cassign = kx_gen_bassign_object(KXOP_ASSIGN,
+                kx_gen_bexpr_object(KXOP_IDX,
+                    kx_gen_var_object(last->value.s, KX_OBJ_T),
+                    kx_gen_str_object(pname)),
+                kx_gen_var_object(pname, KX_OBJ_T)
+            );
+            stmt = kx_gen_bexpr_object(KXST_STMTLIST, stmt, cassign);
+        }
+    }
+
     return stmt;
 }
