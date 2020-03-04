@@ -21,6 +21,9 @@
         "kc-json.h": "c",
         "cmath": "c",
         "time.h": "c",
-        "future": "cpp"
+        "future": "cpp",
+        "functional": "c",
+        "thread": "c",
+        "xlocnum": "c"
     }
 }
