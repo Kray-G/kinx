@@ -6,6 +6,13 @@
 *.s
 *.output
 *.c.parser
+*.o
+*.so*
+*.dep
+kinx
+timex
+myacc
+benchmark
 src/parser.c
 include/parser.tab.h
 timeit.dat
