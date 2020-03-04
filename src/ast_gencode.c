@@ -892,6 +892,27 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         ana->block = out;
         break;
     }
+    case KXOP_LUNDEF: {
+        int block = ana->block;
+        int cond, alt, out;
+
+        cond = new_block(ana);
+        get_block(module, block)->tf[0] = cond;
+        ana->block = cond;
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_DEF_T } }));
+        alt = new_block(ana);
+        out = new_block(ana);
+        get_block(module, ana->block)->tf[0] = out;
+        get_block(module, ana->block)->tf[1] = alt;
+        ana->block = alt;
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
+        gencode_ast_hook(ctx, node->rhs, ana, 0);
+
+        ana->block = out;
+        break;
+    }
     case KXOP_IDX: {
         gencode_ast_hook(ctx, node->lhs, ana, 1);
         gencode_ast_hook(ctx, node->rhs, ana, 0);

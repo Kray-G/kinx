@@ -410,6 +410,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_XOR:
     case KXOP_LAND:
     case KXOP_LOR:
+    case KXOP_LUNDEF:
         analyze_ast(node->lhs, ctx);
         analyze_ast(node->rhs, ctx);
         make_cast(node, node->lhs, node->rhs);
