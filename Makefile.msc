@@ -123,7 +123,8 @@ SOFILES = \
     kxmath.dll \
     kxregex.dll \
     kxsqlite.dll \
-    kxzip.dll
+    kxzip.dll \
+    kxxml.dll
 PICOBJS = \
     src/bign.obj \
     src/bigz.obj \
@@ -167,7 +168,7 @@ TESTCORE = \
 .SUFFIXES :
 .SUFFIXES : .c .obj
 
-all: timex kinx zlib.dll $(SOFILES)
+all: timex kinx zlib.dll libxml2.dll $(SOFILES)
 
 yacc: kx.tab.h src/parser.c include/parser.tab.h
 
@@ -221,8 +222,14 @@ kxsqlite.dll: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 kxzip.dll: src/extlib/kxzip.c src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxzip.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
 
+kxxml.dll: src/extlib/kxxml.c $(PICOBJS) sqlite3.obj
+	$(CC) /LD /DKX_DLL $(CFLAGS) /I src/extlib/libxml2/include/libxml2 /Fe$@ src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/vs2017/libxml2.lib
+
 zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
 	copy /y src\extlib\zip\x64\vs2017\zlib.dll zlib.dll
+
+libxml2.dll:
+	copy /y src\extlib\libxml2\x64\vs2017\libxml2.dll libxml2.dll
 
 zip/x64/vs2017/minizip.lib:
 	echo Build minizip.lib first.
