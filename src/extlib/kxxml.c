@@ -91,7 +91,19 @@ static void free_old_node(xmlNodePtr old)
 static kx_xml_t *parseFile(int args, kx_context_t *ctx, const char *filename)
 {
     kx_xml_t *xml = (kx_xml_t *)kx_calloc(1, sizeof(kx_xml_t));
-    xml->doc = xmlReadFile(filename, NULL, 0);
+    xml->doc = xmlParseFile(filename);
+    if (xml->doc == NULL) {
+        kx_free(xml);
+        return NULL;
+    }
+    xml->ref = 1;
+    return xml;
+}
+
+static kx_xml_t *parseDoc(int args, kx_context_t *ctx, const char *xml_text)
+{
+    kx_xml_t *xml = (kx_xml_t *)kx_calloc(1, sizeof(kx_xml_t));
+    xml->doc = xmlParseDoc(xml_text);
     if (xml->doc == NULL) {
         kx_free(xml);
         return NULL;
@@ -862,18 +874,8 @@ int XML_getElementByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     return get_element_by_tagname(args, ctx, xml, node, tagname);
 }
 
-// int XML_parseString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-// {
-// }
-
-int XML_parseFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int xml_parse(int args, kx_context_t *ctx, kx_xml_t *xml)
 {
-    const char *filename = get_arg_str(1, args, ctx);
-    kx_xml_t *xml = parseFile(args, ctx, filename);
-    if (!xml) {
-        KX_THROW_BLTIN_EXCEPTION("XmlException", static_format("Failed to parse the file(%s)", filename));
-    }
-
     kx_any_t *doc = allocate_any(ctx);
     doc->p = xml;
     doc->any_free = free_doc;
@@ -895,10 +897,39 @@ int XML_parseFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
     return 0;
+} 
+
+int XML_parseString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *xml_text = get_arg_str(1, args, ctx);
+    if (!xml_text) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to parse because of no xml text");
+    }
+    while (*xml_text != '\0' && (*xml_text == '\n' || *xml_text == '\r' || *xml_text == ' ' || *xml_text == '\t')) {
+        ++xml_text;
+    }
+    if (*xml_text == '\0') {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to parse because of no xml text");
+    }
+    kx_xml_t *xml = parseDoc(args, ctx, xml_text);
+    if (!xml) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to parse a document string");
+    }
+    return xml_parse(args, ctx, xml);
+}
+
+int XML_parseFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *filename = get_arg_str(1, args, ctx);
+    kx_xml_t *xml = parseFile(args, ctx, filename);
+    if (!xml) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", static_format("Failed to parse the file(%s)", filename));
+    }
+    return xml_parse(args, ctx, xml);
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    // { "parseString", XML_parseString },
+    { "parseString", XML_parseString },
     { "parseFile", XML_parseFile },
 };
 
