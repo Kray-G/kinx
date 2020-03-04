@@ -236,13 +236,17 @@ Now development is very early stage, I need to add many functionalities.
 Here is a plan to add.
 
 * [ ] Adding many methods to `String`, `Array`, and `File`.
-* [ ] `namespace` block.
 * [ ] `Network` object to support Network protocal access.
 * [ ] Some Optimizations.
 
 ## Undocumented Memo
 
 Now there is no document about following items, but I will write it as soon as possible.
+
+### Namespace
+
+Namespace is now available.
+See the example of [examples/namespacex.kx](examples/namespacex.kx)
 
 ### Module
 
