@@ -1,6 +1,6 @@
 import SQLite;
 
-var db = new SQLite("database.db");
+var db = new SQLite("database.db", 3000);
 db.exec("CREATE TABLE IF NOT EXISTS mytable "
     "("
         "id INTEGER PRIMARY KEY AUTOINCREMENT, "

@@ -372,6 +372,8 @@ int SQLite_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!db) {
         KX_THROW_BLTIN_EXCEPTION("SqliteException", static_format("Can not open databse file(%s)", dbfile));
     }
+    int tmout = (args > 1) ? get_arg_int(2, args, ctx) : 0;
+    sqlite3_busy_timeout(db->conn, tmout);
 
     kx_obj_t *obj = allocate_obj(ctx);
     db->obj = obj;
