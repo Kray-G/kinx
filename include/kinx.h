@@ -145,6 +145,7 @@ enum opecode {
     KXOP_XOR,
     KXOP_LAND,
     KXOP_LOR,
+    KXOP_LUNDEF,
     KXOP_IDX,       /* array/object index */
     KXOP_YIELD,
     KXOP_EQEQ,
@@ -422,6 +423,7 @@ static inline const char *get_typename(int type)
     case KX_ANY_T:  return "-";
     case KX_SPR_T:  return "...array";
     case KX_ARY_T:  return "array";
+    case KX_DEF_T:  return "!null";
     }
     return "... unknown";
 }
