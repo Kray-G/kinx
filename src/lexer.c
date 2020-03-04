@@ -144,6 +144,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "null") == 0)           return NUL;
         if (strcmp(val, "new") == 0)            return NEW;
         if (strcmp(val, "native") == 0)         return NATIVE;
+        if (strcmp(val, "namespace") == 0)      return NAMESPACE;
         break;
     case 'o':
         /* type */
