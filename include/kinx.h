@@ -303,6 +303,8 @@ extern kx_object_t *kx_gen_str_object(const char *val);
 extern const char *kx_gen_typestr_object(int t);
 extern const char *kx_gen_typeofstr_object(int t);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
+extern kx_object_t *kx_gen_namespace_object(const char *name, kx_object_t *blk);
+extern const char *kx_gen_namespace_name_object(const char *name);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);

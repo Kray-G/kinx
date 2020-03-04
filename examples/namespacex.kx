@@ -1,0 +1,32 @@
+
+namespace Name1 {
+
+    class X {
+        public methodX() {
+            System.println("x1");
+        }
+    }
+
+    var x = new X();
+    x.methodX();
+
+    namespace Name2 {
+
+        class X {
+            public methodX() {
+                System.println("x2");
+            }
+        }
+
+        var x = new X();
+        x.methodX();
+
+    } # namespace Name2
+
+} # namespace Name1
+
+var x1 = new Name1.X();
+x1.methodX();
+
+var x2 = new Name1.Name2.X();
+x2.methodX();
