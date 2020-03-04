@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cars>
+  <car country="JP" id="1">
+    <name>motorcycle</name>
+    <price>150</price>
+    <img file="car1.jpg"/>
+  </car>
+  <car country="US" id="2">
+    <name>truck</name>
+    <price>500</price>
+    <img file="car2.jpg"/>
+  </car>
+  <car country="DE" id="3">
+    <name>car</name>
+    <price>200</price>
+    <img file="car3.jpg"/>
+  </car>
+</cars>

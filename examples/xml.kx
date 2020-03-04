@@ -1,0 +1,51 @@
+import Xml;
+
+function displayXml(doc, node, indent) {
+    System.print("  " * indent);
+    if (node.type == Xml.ELEMENT_NODE) {
+        System.print("ELEM %s" % node.name);
+    } else if (node.type == Xml.TEXT_NODE) {
+        System.print("TEXT %s" % node.value.trim());
+    }
+
+    var attr = node.attributes();
+    for (var i = 0, len = attr.length(); i < len; ++i) {
+        System.print("[%s=%s]" % attr[i].name % attr[i].value);
+    }
+    System.println("");
+
+    if (node.hasChildren()) {
+        var nn = doc.createElementNS("http://aaa.bbb", "ns:added");
+        var n2 = doc.createElementNS("http://aaa.bbb", "ns:added2");
+        var n3 = doc.createElementNS("http://aaa.bbb", "ns:added3");
+        var n4 = doc.createElementNS("http://aaa.bbb", "ns:added4");
+        n2.setAttribute("ns:prop", "samething");
+        node.appendChild(nn);
+        node.replaceChild(nn, n2);
+        n2.insertBefore(n3);
+        n2.insertAfter(n4);
+    }
+    var child = node.firstChild();
+    while (child) {
+        displayXml(doc, child, indent + 1);
+        child = child.nextSibling();
+    }
+}
+
+var doc = Xml.parseFile("examples/xml_sample.xml");
+var root = doc.documentElement();
+displayXml(doc, root);
+
+System.println("");
+System.println("getElementById:");
+var el = root.getElementById("3");
+if (el) {
+    el.remove();
+}
+
+System.println("");
+System.println("getElementByTagName:");
+var els = root.getElementByTagName("img");
+if (els.isArray) {
+    els.each(&(el) => displayXml(doc, el));
+}
