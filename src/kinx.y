@@ -25,8 +25,8 @@
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
 %token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN
-%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW
-%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ SHLEQ SHREQ REGEQ REGNE
+%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
+%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF
 %token<strval> NAME
@@ -68,6 +68,7 @@
 %type<obj> AssignExpressionList_Opt
 %type<obj> TernaryExpression
 %type<obj> FunctionExpression
+%type<obj> LogicalUndefExpression
 %type<obj> LogicalOrExpression
 %type<obj> LogicalAndExpression
 %type<obj> BitOrExpression
@@ -295,6 +296,7 @@ AssignExpression
     | AssignExpression XOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_XOR, $1, $3)); }
     | AssignExpression LANDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LAND, $1, $3)); }
     | AssignExpression LOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LOR, $1, $3)); }
+    | AssignExpression LUNDEFEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LUNDEF, $1, $3)); }
     ;
 
 AssignRightHandSide
@@ -304,12 +306,17 @@ AssignRightHandSide
 
 TernaryExpression
     : FunctionExpression
-    | LogicalOrExpression '?' LogicalOrExpression ':' LogicalOrExpression { $$ = kx_gen_texpr_object($1, $3, $5); }
+    | LogicalUndefExpression '?' LogicalUndefExpression ':' LogicalUndefExpression { $$ = kx_gen_texpr_object($1, $3, $5); }
     ;
 
 FunctionExpression
     : AnonymousFunctionDeclExpression
-    | LogicalOrExpression
+    | LogicalUndefExpression
+    ;
+
+LogicalUndefExpression
+    : LogicalOrExpression
+    | LogicalUndefExpression LUNDEF LogicalOrExpression { $$ = kx_gen_bexpr_object(KXOP_LUNDEF, $1, $3); }
     ;
 
 LogicalOrExpression

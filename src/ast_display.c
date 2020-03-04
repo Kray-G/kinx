@@ -20,6 +20,7 @@ static inline const char *get_short_typename(int type)
     case KX_ADDR_T: return "-";
     case KX_ANY_T:  return "-";
     case KX_ARY_T:  return "ary";
+    case KX_DEF_T:  return "!null";
     }
     return "unknown";
 }
@@ -204,6 +205,11 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
     case KXOP_LOR:
         printf("(||):%s\n", get_short_typename(node->var_type));
+        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->rhs, indent + 1, 0);
+        break;
+    case KXOP_LUNDEF:
+        printf("(??):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
