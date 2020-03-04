@@ -130,7 +130,8 @@ SOFILES = \
     kxmath.so \
     kxregex.so \
     kxsqlite.so \
-    kxzip.so
+    kxzip.so \
+    kxxml.so
 PICOBJS = \
     bignpic.o \
     bigzpic.o \
@@ -221,6 +222,9 @@ kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
 
 kxzip.so: src/extlib/kxzip.c $(PICOBJS) libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+
+kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a libz.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libxml2/include/libxml2 src/extlib/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
 libz.so: libz.so.1
 	ln -s libz.so.1 libz.so
