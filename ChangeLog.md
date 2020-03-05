@@ -8,6 +8,6 @@ The goal is to release the first version.
 
 ### TODO for Goal of This Version
 
-* [ ] Adding many methods to `String`, `Array`, and `File`.
+* [ ] Adding many methods to `Array` and `File`.
 * [ ] `Network` object to support Network protocal access.
 * [ ] Some Optimizations.
