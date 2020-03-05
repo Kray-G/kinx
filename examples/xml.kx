@@ -62,3 +62,7 @@ var nodes = doc.xpath("//car").xpath("price");
 if (nodes.isArray) {
     nodes.each(&(el) => displayXml(doc, el));
 }
+
+var xmlWriter = new Xml.Writer(System);
+xmlWriter.write(doc);
+xmlWriter.write(root);

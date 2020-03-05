@@ -109,6 +109,24 @@ int String_endsWith(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
 }
 
+int String_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    const char *chk = get_arg_str(2, args, ctx);
+    if (str && chk) {
+        if (strstr(str, chk)) {
+            KX_ADJST_STACK();
+            push_i(ctx->stack, 1);
+            return 0;
+        }
+        KX_ADJST_STACK();
+        push_i(ctx->stack, 0);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", String_length },
     { "parseInt", String_parseInt },
@@ -121,7 +139,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "endsWith", String_endsWith },
     // { "split", String_split },
     // { "replace", String_replace },
-    // { "find", String_find },
+    { "find", String_find },
     // { "findFirstOf", String_findFirstOf },
     // { "findFirstNotOf", String_findFirstNotOf },
     // { "findLastOf", String_findLastOf },
