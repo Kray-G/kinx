@@ -265,17 +265,13 @@ typedef struct kx_case_info_ {
 } kx_case_info_t;
 
 #define KX_CASE_TO_DEFAULT(info, module, ana, jmpcmd) \
-    if (last_op(ana) != jmpcmd) { \
-        kv_push(int, info->default_case->case_src_pos, code_size(module, ana)); \
-        kv_push(int, info->default_case->case_src_block, ana->block); \
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = jmpcmd, .value1 = { .i = 0 } })); \
-    } \
+    kv_push(int, info->default_case->case_src_pos, code_size(module, ana)); \
+    kv_push(int, info->default_case->case_src_block, ana->block); \
+    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = jmpcmd, .value1 = { .i = 0 } })); \
 /**/
 #define KX_CASE_TO_OTHER(info, module, ana, jmpcmd) \
     if (info->other_block > 0) { \
-        if (last_op(ana) != jmpcmd) { \
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = jmpcmd, .value1 = { .i = get_block(module, info->other_block)->index } })); \
-        } \
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = jmpcmd, .value1 = { .i = get_block(module, info->other_block)->index } })); \
     } else { \
         KX_CASE_TO_DEFAULT(info, module, ana, jmpcmd); \
     } \
@@ -548,17 +544,19 @@ static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_
     kv_sort(kx_object_t*, caseinfo.sorted_int_cases, case_int_cond);
 
     int len = kv_size(caseinfo.sorted_int_cases);
-    int prev = kv_head(caseinfo.sorted_int_cases)->lhs->value.i - ctx->options.case_threshold - 1;
-    kx_objvec_t *block = NULL;
-    for (int i = 0; i < len; ++i) {
-        p = kv_A(caseinfo.sorted_int_cases, i);
-        int value = p->lhs->value.i;
-        if ((value - prev) > ctx->options.case_threshold) {
-            kv_push(kx_objvec_t, caseinfo.case_int_block, (kx_objvec_t){0});
-            block = &kv_last(caseinfo.case_int_block);
+    if (len > 0) {
+        int prev = kv_head(caseinfo.sorted_int_cases)->lhs->value.i - ctx->options.case_threshold - 1;
+        kx_objvec_t *block = NULL;
+        for (int i = 0; i < len; ++i) {
+            p = kv_A(caseinfo.sorted_int_cases, i);
+            int value = p->lhs->value.i;
+            if ((value - prev) > ctx->options.case_threshold) {
+                kv_push(kx_objvec_t, caseinfo.case_int_block, (kx_objvec_t){0});
+                block = &kv_last(caseinfo.case_int_block);
+            }
+            kv_push(kx_object_t*, *block, p);
+            prev = value;
         }
-        kv_push(kx_object_t*, *block, p);
-        prev = value;
     }
 
     int bk1 = -1, jz1 = -1;
