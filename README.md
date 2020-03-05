@@ -1,8 +1,8 @@
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
-<center>
+<p align="center">
 <img src="doc/kinx.png" width="35%"/>
-<p>Small scripting language with C like style syntax, with native function by JIT.</p>
-</center>
+</p>
+<p align="center">Small scripting language with C like style syntax, with native function by JIT.</p>
 
 ## Introduction
 
