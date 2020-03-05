@@ -19,11 +19,11 @@ Xml.NAMESPACE_DECL      = 18;
 Xml.XINCLUDE_START      = 19;
 Xml.XINCLUDE_END        = 20;
 
-class XmlExceptionClass(what) {
+class XmlException(what) {
     @_type = "XmlException";
     @_what = what;
 }
-XmlException = XmlExceptionClass.create;
+XmlException = XmlException.create;
 
 namespace Xml {
 
@@ -43,7 +43,7 @@ namespace Xml {
                 }
                 if (node.hasChildren()) {
                     var child = node.firstChild();
-                    if (!child.nextSibling() && child.type == Xml.TEXT_NODE && !child.value.find("\n")) {
+                    if (!child.nextSibling() && child.type == Xml.TEXT_NODE && child.value.find("\n") >= 0) {
                         var value = child.value.trim();
                         printer_.print(">%s" % value);
                     } else {
