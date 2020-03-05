@@ -1,4 +1,4 @@
-# How to build OpenSSL
+# How to build libCurl
 
 ## libCurl
 
