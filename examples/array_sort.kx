@@ -1,0 +1,20 @@
+
+function demo(N) {
+    var a; // array
+
+    System.print("Before:");
+    for (var i = 0; i < N; i++) {
+        a[i] = Integer.parseInt(Math.random() * 100);
+        System.print(" %2d" % a[i]);
+    }
+    System.print("\n");
+
+    a.sort(&(a, b) => a <=> b);
+
+    System.print("After: ");
+    for (var i = 0; i < N; i++)
+        System.print(" %2d" % a[i]);
+    System.print("\n");
+}
+
+demo(20);
