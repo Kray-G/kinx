@@ -168,7 +168,7 @@ TESTCORE = \
 .SUFFIXES :
 .SUFFIXES : .c .obj
 
-all: timex kinx zlib.dll libxml2.dll $(SOFILES)
+all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES)
 
 yacc: kx.tab.h src/parser.c include/parser.tab.h
 
@@ -230,6 +230,12 @@ zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
 
 libxml2.dll:
 	copy /y src\extlib\libxml2\x64\vs2017\libxml2.dll libxml2.dll
+
+libssl-3.dll:
+	copy /y src\extlib\openssl\x64\vs2017\libssl-3.dll libssl-3.dll
+
+libcrypto-3.dll:
+	copy /y src\extlib\openssl\x64\vs2017\libcrypto-3.dll libcrypto-3.dll
 
 zip/x64/vs2017/minizip.lib:
 	echo Build minizip.lib first.
