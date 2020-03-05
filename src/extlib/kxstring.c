@@ -109,18 +109,275 @@ int String_endsWith(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
 }
 
+int String_splitByString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    const char *cond = get_arg_str(2, args, ctx);
+    if (!cond) cond = "";
+    if (str) {
+        kx_obj_t *res = allocate_obj(ctx);
+        if (cond[0] == 0) {
+            const char *p = str;
+            while (*p) {
+                char buf[2] = {*p, 0};
+                KEX_PUSH_ARRAY_STR(res, buf);
+                ++p;
+            }
+        } else {
+            kstr_t *sv = allocate_str(ctx);
+            int width = strlen(cond);
+            const char *start = str;
+            const char *p = strstr(str, cond);
+            while (p) {
+                ks_append_n(sv, start, p - start);
+                KEX_PUSH_ARRAY_STR(res, ks_string(sv));
+                ks_clear(sv);
+                start = p + width;
+                p = strstr(start, cond);
+            }
+            ks_append(sv, start);
+            KEX_PUSH_ARRAY_STR(res, ks_string(sv));
+        }
+        KX_ADJST_STACK();
+        push_obj(ctx->stack, res);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "No string value");
+}
+
+static int string_find_impl(const char *str, const char *chk)
+{
+    const char *p = strstr(str, chk);
+    if (p) {
+        return p - str;
+    }
+    return -1;
+}
+
+static int string_find_first_of_impl(const char *str, const char *chk)
+{
+    const char *sp = str;
+    while (*sp) {
+        const char *cp = chk;
+        while (*cp) {
+            if (*sp == *cp) {
+                return sp - str;
+            }
+            ++cp;
+        }
+        ++sp;
+    }
+    return -1;
+}
+
+static int string_find_first_not_of_impl(const char *str, const char *chk)
+{
+    const char *sp = str;
+    while (*sp) {
+        const char *cp = chk;
+        while (*cp) {
+            if (*sp != *cp) {
+                return sp - str;
+            }
+            ++cp;
+        }
+        ++sp;
+    }
+    return -1;
+}
+
+static int string_find_last_of_impl(const char *str, const char *chk)
+{
+    int slen = strlen(str);
+    int clen = strlen(chk);
+    const char *sp = str + slen - 1;
+    while (str <= sp) {
+        const char *cp = chk + clen - 1;
+        while (chk <= cp) {
+            if (*sp == *cp) {
+                return sp - str;
+            }
+            --cp;
+        }
+        --sp;
+    }
+    return -1;
+}
+
+static int string_find_last_not_of_impl(const char *str, const char *chk)
+{
+    int slen = strlen(str);
+    int clen = strlen(chk);
+    const char *sp = str + slen - 1;
+    while (str <= sp) {
+        const char *cp = chk + clen - 1;
+        while (chk <= cp) {
+            if (*sp != *cp) {
+                return sp - str;
+            }
+            --cp;
+        }
+        --sp;
+    }
+    return -1;
+}
+
 int String_find(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
     const char *chk = get_arg_str(2, args, ctx);
     if (str && chk) {
-        if (strstr(str, chk)) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, string_find_impl(str, chk));
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_findFirstOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    const char *chk = get_arg_str(2, args, ctx);
+    if (str && chk) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, string_find_first_of_impl(str, chk));
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_findFirstNotOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    const char *chk = get_arg_str(2, args, ctx);
+    if (str && chk) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, string_find_first_not_of_impl(str, chk));
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_findLastOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    const char *chk = get_arg_str(2, args, ctx);
+    if (str && chk) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, string_find_last_of_impl(str, chk));
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_findLastNotOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    const char *chk = get_arg_str(2, args, ctx);
+    if (str && chk) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, string_find_last_not_of_impl(str, chk));
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_stem(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        kstr_t *sv = allocate_str(ctx);
+        int len = strlen(str);
+        int pos = string_find_last_of_impl(str, "\\/");
+        if (pos >= 0) {
+            ks_append(sv, str + pos + 1);
+        } else {
+            ks_append(sv, str);
+        }
+        KX_ADJST_STACK();
+        pos = string_find_last_of_impl(ks_string(sv), ".");
+        if (pos >= 0) {
+            sv = ks_slice(sv, 0, pos);
+        }
+        push_sv(ctx->stack, sv);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_filename(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        kstr_t *sv = allocate_str(ctx);
+        int len = strlen(str);
+        int pos = string_find_last_of_impl(str, "\\/");
+        if (pos >= 0) {
             KX_ADJST_STACK();
-            push_i(ctx->stack, 1);
+            ks_append(sv, str + pos + 1);
+            push_sv(ctx->stack, sv);
             return 0;
         }
         KX_ADJST_STACK();
-        push_i(ctx->stack, 0);
+        ks_append(sv, str);
+        push_sv(ctx->stack, sv);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_extension(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        kstr_t *sv = allocate_str(ctx);
+        int len = strlen(str);
+        int pos = string_find_last_of_impl(str, "\\/");
+        if (pos >= 0) {
+            ks_append(sv, str + pos + 1);
+        } else {
+            ks_append(sv, str);
+        }
+        KX_ADJST_STACK();
+        pos = string_find_last_of_impl(ks_string(sv), ".");
+        if (pos >= 0) {
+            kstr_t *sv2 = allocate_str(ctx);
+            ks_append(sv2, ks_string(sv) + pos);
+            push_sv(ctx->stack, sv2);
+        } else {
+            ks_clear(sv);
+            push_sv(ctx->stack, sv);
+        }
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
+}
+
+int String_parentPath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        kstr_t *sv = allocate_str(ctx);
+        int len = strlen(str);
+        int pos = string_find_last_of_impl(str, "\\/");
+        if (pos >= 0) {
+            KX_ADJST_STACK();
+            ks_append(sv, str);
+            sv = ks_slice(sv, 0, pos);
+            push_sv(ctx->stack, sv);
+            return 0;
+        }
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, sv);
         return 0;
     }
 
@@ -137,17 +394,17 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "subString", String_subString },
     { "startsWith", String_startsWith },
     { "endsWith", String_endsWith },
-    // { "split", String_split },
+    { "splitByString", String_splitByString },
     // { "replace", String_replace },
     { "find", String_find },
-    // { "findFirstOf", String_findFirstOf },
-    // { "findFirstNotOf", String_findFirstNotOf },
-    // { "findLastOf", String_findLastOf },
-    // { "findLastNotOf", String_findLastNotOf },
-    // { "stem", String_stem },
-    // { "extension", String_extension },
-    // { "filename", String_filename },
-    // { "parentPath", String_parentPath },
+    { "findFirstOf", String_findFirstOf },
+    { "findFirstNotOf", String_findFirstNotOf },
+    { "findLastOf", String_findLastOf },
+    { "findLastNotOf", String_findLastNotOf },
+    { "stem", String_stem },
+    { "extension", String_extension },
+    { "filename", String_filename },
+    { "parentPath", String_parentPath },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
