@@ -3,7 +3,7 @@
 #include <kinx.h>
 
 static int sg_native = 0; /* use this for ... something? */
-static kvec_pt(kx_object_t) ns_stack;
+static kvec_pt(kx_object_t) ns_stack = {0};
 
 kx_object_t *kx_obj_alloc(void)
 {
