@@ -209,6 +209,48 @@ int Regex_matches(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Regex_splitOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_REGEX_GET_RPACK(r, obj);
+    if (!r) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid Regex object");
+    }
+    const char *str = get_arg_str(2, args, ctx);
+    int index = 0;
+    int len = strlen(str);
+    const unsigned char *end = str + len;
+    kx_obj_t *res = allocate_obj(ctx);
+    kstr_t *sv = allocate_str(ctx);
+
+    while (index < len) {        
+        onig_region_clear(r->region);
+        int rx = onig_search(r->reg, str + index, end, str + index, end, r->region, ONIG_OPTION_NONE);
+        if (rx == ONIG_MISMATCH) {
+            ks_append(sv, str + index);
+            KEX_PUSH_ARRAY_STR(res, ks_string(sv));
+            break;
+        }
+        int found_start = r->region->beg[0];
+        int found_end = r->region->end[0];
+        if (found_start == found_end) {
+            ks_append_n(sv, str + index, 1);
+            KEX_PUSH_ARRAY_STR(res, ks_string(sv));
+            ks_clear(sv);
+            ++index;
+        } else {
+            ks_append_n(sv, str + index, found_start);
+            KEX_PUSH_ARRAY_STR(res, ks_string(sv));
+            ks_clear(sv);
+            index += found_end;
+        }
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, res);
+    return 0;
+}
+
 int Regex_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
@@ -225,6 +267,7 @@ int Regex_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KEX_SET_METHOD("find_eq", obj, Regex_find_eq);
         KEX_SET_METHOD("find_ne", obj, Regex_find_ne);
         KEX_SET_METHOD("reset", obj, Regex_reset);
+        KEX_SET_METHOD("splitOf", obj, Regex_splitOf);
         KX_ADJST_STACK();
         push_obj(ctx->stack, obj);
         return 0;
