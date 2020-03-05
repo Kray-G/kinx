@@ -146,6 +146,42 @@ int String_splitByString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     KX_THROW_BLTIN_EXCEPTION("SystemException", "No string value");
 }
 
+int String_replaceByString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    const char *cond = get_arg_str(2, args, ctx);
+    const char *newstr = get_arg_str(3, args, ctx);
+    if (!newstr) newstr = "";
+    if (str) {
+        kstr_t *sv = allocate_str(ctx);
+        if (cond[0] == 0) {
+            const char *p = str;
+            while (*p) {
+                char buf[2] = {*p, 0};
+                ks_append(sv, buf);
+                ks_append(sv, newstr);
+                ++p;
+            }
+        } else {
+            int width = strlen(cond);
+            const char *start = str;
+            const char *p = strstr(str, cond);
+            while (p) {
+                ks_append_n(sv, start, p - start);
+                ks_append(sv, newstr);
+                start = p + width;
+                p = strstr(start, cond);
+            }
+            ks_append(sv, start);
+        }
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, sv);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "No string value");
+}
+
 static int string_find_impl(const char *str, const char *chk)
 {
     const char *p = strstr(str, chk);
@@ -395,7 +431,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "startsWith", String_startsWith },
     { "endsWith", String_endsWith },
     { "splitByString", String_splitByString },
-    // { "replace", String_replace },
+    { "replaceByString", String_replaceByString },
     { "find", String_find },
     { "findFirstOf", String_findFirstOf },
     { "findFirstNotOf", String_findFirstNotOf },
