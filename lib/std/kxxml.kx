@@ -43,7 +43,7 @@ namespace Xml {
                 }
                 if (node.hasChildren()) {
                     var child = node.firstChild();
-                    if (!child.nextSibling() && child.type == Xml.TEXT_NODE && child.value.find("\n") >= 0) {
+                    if (!child.nextSibling() && child.type == Xml.TEXT_NODE && child.value.find("\n") < 0) {
                         var value = child.value.trim();
                         printer_.print(">%s" % value);
                     } else {
