@@ -18,3 +18,72 @@ Xml.ENTITY_DECL         = 17;
 Xml.NAMESPACE_DECL      = 18;
 Xml.XINCLUDE_START      = 19;
 Xml.XINCLUDE_END        = 20;
+
+class XmlExceptionClass(what) {
+    @_type = "XmlException";
+    @_what = what;
+}
+XmlException = XmlExceptionClass.create;
+
+namespace Xml {
+
+    class Writer(printer_, opts_) {
+
+        @tab = opts_.tab || "\t";
+
+        private writeImpl(node, indent) {
+            if (node.type == Xml.ELEMENT_NODE) {
+                printer_.print(@tab * indent);
+                printer_.print("<%s" % node.tagName);
+                if (node.hasAttributes()) {
+                    var attr = node.attributes();
+                    for (var i = 0, len = attr.length(); i < len; ++i) {
+                        System.print(' %s="%s"' % attr[i].name % attr[i].value);
+                    }
+                }
+                if (node.hasChildren()) {
+                    var child = node.firstChild();
+                    if (!child.nextSibling() && child.type == Xml.TEXT_NODE && !child.value.find("\n")) {
+                        var value = child.value.trim();
+                        printer_.print(">%s" % value);
+                    } else {
+                        printer_.print(">\n");
+                        while (child) {
+                            writeImpl(child, indent + 1);
+                            child = child.nextSibling();
+                        }
+                        printer_.print(@tab * indent);
+                    }
+                    printer_.print("</%s>\n" % node.tagName);
+                } else {
+                    printer_.print(" />\n");
+                }
+            } else if (node.type == Xml.TEXT_NODE) {
+                var value = node.value.trim();
+                if (value) {
+                    printer_.print(@tab * indent);
+                    printer_.print("%s\n" % value);
+                }
+            }
+        }
+
+        public write(xml) {
+            if (!xml.isObject) {
+                throw XmlException("Invalid Xml Node object");
+            }
+            var node;
+            if (xml._doc.isDefined) {
+                node = xml.documentElement();
+            }
+            if (xml._node.isDefined) {
+                node = xml;
+            }
+            if (node.isUndefined) {
+                throw XmlException("Invalid Xml Node object");
+            }
+            writeImpl(node);
+        }
+
+    }
+
+}
