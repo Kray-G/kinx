@@ -15,9 +15,6 @@
     if (fnco) { \
         fnco->fbpos = NULL; \
     } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
-    } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
@@ -37,9 +34,6 @@
     lexv = frmv->lex; \
     if (fnco) { \
         fnco->fbpos = NULL; \
-    } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
     } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
@@ -61,9 +55,6 @@
     if (fnco) { \
         fnco->fbpos = NULL; \
     } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
-    } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
@@ -84,9 +75,6 @@
     if (fnco) { \
         fnco->fbpos = NULL; \
     } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
-    } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
@@ -106,9 +94,6 @@
     lexv = frmv->lex; \
     if (fnco) { \
         fnco->fbpos = NULL; \
-    } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
     } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
@@ -140,9 +125,6 @@
     lexv = frmv->lex; \
     if (fnco) { \
         fnco->fbpos = NULL; \
-    } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
     } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
@@ -187,9 +169,6 @@
     if (fnco) { \
         fnco->fbpos = NULL; \
     } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
-    } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
@@ -209,9 +188,6 @@
     lexv = frmv->lex; \
     if (fnco) { \
         fnco->fbpos = NULL; \
-    } \
-    if (kv_size((ctx)->stack) < 4) { \
-        goto LBL_KX_END_OF_CODE; \
     } \
     fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
