@@ -1,4 +1,4 @@
-[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+<p align="right"><img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat"/></p>
 <p align="center">
 <img src="doc/kinx.png" width="35%"/>
 </p>
