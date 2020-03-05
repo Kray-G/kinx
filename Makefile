@@ -236,6 +236,15 @@ libz.so.1.2.11: src/extlib/zip/x64/gcc/libz.so.1.2.11
 	cp -f src/extlib/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
 	chmod +x libz.so.1.2.11
 
+libcurl.so.4.6.0:
+	cp -f src/extlib/libcurl/x64/gcc/libcurl.so.4.6.0 ./libcurl.so.4.6.0
+
+libssl.so.3:
+	cp -f src/extlib/openssl/x64/gcc/libssl.so.3 ./libssl.so.3
+
+libcrypto.so.3:
+	cp -f src/extlib/openssl/x64/gcc/libcrypto.so.3 ./libcrypto.so.3
+
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c; 
 
