@@ -12,7 +12,7 @@ Here is the procedure to build with Visual Studio 2017 x64 version. And the comp
 
 1. Clone it.
     ```
-    $ git clone https://github.com/nmoinvaz/minizip
+    $ git clone https://github.com/GNOME/libxml2.git
     ```
 
 2. build and install to dist directory.
@@ -29,7 +29,7 @@ This repository has `libxml2.lib` and `libxml2.dll`, which is built by Visual St
 
 1. Clone it.
     ```
-    $ git clone https://github.com/nmoinvaz/minizip
+    $ git clone https://github.com/GNOME/libxml2.git
     ```
 
 2. Build it.
