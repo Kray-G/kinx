@@ -1,0 +1,64 @@
+
+namespace Net {
+
+    class Http {
+        var curl_ = Net.createCurlHandler();
+        var dbgCallback_;
+        var settings_ = [];
+
+        public reset() {
+            settings_ = [];
+            dbgCallback_ = null;
+            debugDetail = false;
+        }
+
+        public sslVerifyPeer(tf) {
+            settings_.push(&{
+                curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYPEER, tf);
+            });
+        }
+
+        public sslVerifyHost(tf) {
+            settings_.push(&{
+                curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYHOST, tf);
+            });
+        }
+
+        public setDebugDetail(tf, opts) {
+            curl_.debugDetail = tf && ((opts.hex ?? 1) << 1) | tf;
+        }
+
+        public setDebug(callback) {
+            dbgCallback_ = callback;
+            settings_.push(&{
+                curl_.setOptionInt(Net.CURLOPT_VERBOSE, 1);
+            });
+        }
+
+        private doHttpMethod(callback) {
+            var func = callback.isFunction ? callback : System.print;
+            do {
+                curl_.perform();
+                if (curl_.debugInfo.length() > 0) {
+                    if (dbgCallback_.isFunction) {
+                        dbgCallback_(curl_.debugInfo);
+                    }
+                    curl_.debugInfo = "";
+                }
+                if (curl_.received.length() > 0) {
+                    func(curl_.received);
+                    curl_.received = "";
+                }
+                curl_.wait(1000);
+            } while (curl_.isRunning);
+        }
+
+        public get(url, callback) {
+            curl_.setupNewHandler();
+            settings_.each(&(setfunc) => setfunc());
+            curl_.setOptionString(Net.CURLOPT_URL, url);
+            doHttpMethod(callback);
+        }
+    }
+
+}
