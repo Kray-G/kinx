@@ -1,7 +1,5 @@
 <p align="right"><img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat"/></p>
-<p align="center">
-<img src="doc/kinx.png" height="84px" />
-</p>
+<p align="center"><img src="doc/kinx.png" height="84px" /></p>
 <p align="center">Small scripting language with C like style syntax, with native function by JIT.</p>
 
 ## Introduction
@@ -245,6 +243,14 @@ Here is a plan to add.
 ## Undocumented Memo
 
 Now there is no document about following items, but I will write it as soon as possible.
+
+### libCurl
+
+Now libcurl package is included in Kinx. example
+Simple HTTP Get client library is [`net/http.kx`](lib/std/net/http.kx) in `lib/std` folder from [`kxnet.kx`](lib/std/kxnet.kx).
+This is very poor but will be easy to upgrade it.
+
+Simple HTTP Get client is also [`http.kx`](examples/http.kx) in example folder.
 
 ### Namespace
 
