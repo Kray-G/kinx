@@ -2,16 +2,17 @@ import Net;
 
 var http = new Net.Http();
 
-http.sslVerifyPeer(false);
-http.sslVerifyHost(false);
-
-# http.setDebugDetail(false);
+# http.setDebugDetail(true, { hex: false });
 # http.setDebug(&(info) => {
 #     System.println("DBG> ", info);
 # });
 
 function get(http, url) {
     System.println("URL = %{url}");
+    http.addHeader("X-Hook-K1", "What is this?");
+    http.addHeader("X-Hook-K3");
+    http.sslVerifyPeer(false);
+    http.sslVerifyHost(false);
     var length = 0;
     http.get(url, &(data) => {
         System.println("Received: %d" % data.length());
