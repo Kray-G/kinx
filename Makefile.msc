@@ -123,6 +123,7 @@ SOFILES = \
     kxmath.dll \
     kxregex.dll \
     kxsqlite.dll \
+    kxnet.dll \
     kxzip.dll \
     kxxml.dll
 PICOBJS = \
@@ -219,10 +220,17 @@ kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
 kxsqlite.dll: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 
+kxnet.dll: src/extlib/kxnet.c $(PICOBJS) libssl-3.dll libcrypto-3.dll
+	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxnet.c $(PICOBJS) \
+		src\extlib\libcurl\x64\vs2017\libcurl_a.lib \
+		src\extlib\openssl\x64\vs2017\libssl.lib \
+		src\extlib\openssl\x64\vs2017\libcrypto.lib \
+		src\extlib\zip\x64\vs2017\zlib.lib
+
 kxzip.dll: src/extlib/kxzip.c src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxzip.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
 
-kxxml.dll: src/extlib/kxxml.c $(PICOBJS) sqlite3.obj
+kxxml.dll: src/extlib/kxxml.c $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /I src/extlib/libxml2/include/libxml2 /Fe$@ src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/vs2017/libxml2.lib
 
 zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
