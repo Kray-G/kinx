@@ -306,6 +306,21 @@ int Net_perform(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Net_performEnd(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_XML_GET_CURLINFO(ci, obj);
+
+    if (ci->sl) {
+        curl_slist_free_all(ci->sl);
+        ci->sl = NULL;
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 static size_t Net_writeCallback(void *ptr, size_t size, size_t nmemb, void *userp)
 {
     kx_obj_t *obj = (kx_obj_t *)userp;
@@ -456,6 +471,7 @@ int Net_createCurlHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("wait", obj, Net_wait);
     KEX_SET_METHOD("poll", obj, Net_poll);
     KEX_SET_METHOD("perform", obj, Net_perform);
+    KEX_SET_METHOD("performEnd", obj, Net_performEnd);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
