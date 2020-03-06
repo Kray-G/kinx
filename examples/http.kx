@@ -1,0 +1,26 @@
+import Net;
+
+var http = new Net.Http();
+
+http.sslVerifyPeer(false);
+http.sslVerifyHost(false);
+
+# http.setDebugDetail(false);
+# http.setDebug(&(info) => {
+#     System.println("DBG> ", info);
+# });
+
+function get(http, url) {
+    System.println("URL = %{url}");
+    var length = 0;
+    http.get(url, &(data) => {
+        System.println("Received: %d" % data.length());
+        length += data.length();
+    });
+    System.println("Total = %d bytes" % length);
+    System.println("");
+}
+
+get(http, "https://ja.wikipedia.org/wiki/OpenSSL");
+get(http, "https://curl.haxx.se/libcurl/c/multi-debugcallback.html");
+get(http, "http://herumi.in.coocan.jp/soft/xbyak.html");
