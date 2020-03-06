@@ -4,24 +4,19 @@ namespace Net {
     class Http {
         var curl_ = Net.createCurlHandler();
         var dbgCallback_;
-        var settings_ = [];
 
         public reset() {
-            settings_ = [];
+            curl_.resetHandler();
             dbgCallback_ = null;
             debugDetail = false;
         }
 
         public sslVerifyPeer(tf) {
-            settings_.push(&{
-                curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYPEER, tf);
-            });
+            curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYPEER, tf);
         }
 
         public sslVerifyHost(tf) {
-            settings_.push(&{
-                curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYHOST, tf);
-            });
+            curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYHOST, tf);
         }
 
         public setDebugDetail(tf, opts) {
@@ -30,9 +25,7 @@ namespace Net {
 
         public setDebug(callback) {
             dbgCallback_ = callback;
-            settings_.push(&{
-                curl_.setOptionInt(Net.CURLOPT_VERBOSE, 1);
-            });
+            curl_.setOptionInt(Net.CURLOPT_VERBOSE, 1);
         }
 
         private doHttpMethod(callback) {
@@ -54,8 +47,7 @@ namespace Net {
         }
 
         public get(url, callback) {
-            curl_.setupNewHandler();
-            settings_.each(&(setfunc) => setfunc());
+            curl_.setupHandler();
             curl_.setOptionString(Net.CURLOPT_URL, url);
             doHttpMethod(callback);
         }

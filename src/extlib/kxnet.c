@@ -89,8 +89,9 @@ static kx_curl_info_t *new_ci(void)
 {
     kx_curl_info_t *ci = (kx_curl_info_t *)kx_calloc(1, sizeof(kx_curl_info_t));
     ci->mh = curl_multi_init();
-    ci->eh = NULL;
     ci->sl = NULL;
+    ci->eh = curl_easy_init();
+    curl_multi_add_handle(ci->mh, ci->eh);
     return ci;
 }
 
@@ -98,9 +99,7 @@ static void free_ci(void *obj)
 {
     kx_curl_info_t *ci = (kx_curl_info_t *)obj;
     curl_multi_remove_handle(ci->mh, ci->eh);
-    if (ci->eh) {
-        curl_easy_cleanup(ci->eh);
-    }
+    curl_easy_cleanup(ci->eh);
     curl_multi_cleanup(ci->mh);
     if (ci->sl) {
         curl_slist_free_all(ci->sl);
@@ -110,21 +109,29 @@ static void free_ci(void *obj)
 
 /* main functions */
 
-int Net_setupNewHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Net_setupHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_CURLINFO(ci, obj);
 
-    if (ci->eh) {
-        curl_multi_remove_handle(ci->mh, ci->eh);
-        curl_easy_cleanup(ci->eh);
-    }
-    ci->eh = curl_easy_init();
+    curl_multi_remove_handle(ci->mh, ci->eh);
+    curl_multi_add_handle(ci->mh, ci->eh);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Net_resetHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_XML_GET_CURLINFO(ci, obj);
+
+    curl_easy_reset(ci->eh);
     curl_easy_setopt(ci->eh, CURLOPT_WRITEFUNCTION, Net_writeCallback);
     curl_easy_setopt(ci->eh, CURLOPT_WRITEDATA, obj);
     curl_easy_setopt(ci->eh, CURLOPT_DEBUGFUNCTION, Net_debugCallback);
     curl_easy_setopt(ci->eh, CURLOPT_DEBUGDATA, obj);
-    curl_multi_add_handle(ci->mh, ci->eh);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -435,7 +442,13 @@ int Net_createCurlHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_PROP_CSTR(obj, "received", "");
     KEX_SET_PROP_CSTR(obj, "debugInfo", "");
 
-    KEX_SET_METHOD("setupNewHandler", obj, Net_setupNewHandler);
+    curl_easy_setopt(ci->eh, CURLOPT_WRITEFUNCTION, Net_writeCallback);
+    curl_easy_setopt(ci->eh, CURLOPT_WRITEDATA, obj);
+    curl_easy_setopt(ci->eh, CURLOPT_DEBUGFUNCTION, Net_debugCallback);
+    curl_easy_setopt(ci->eh, CURLOPT_DEBUGDATA, obj);
+
+    KEX_SET_METHOD("setupHandler", obj, Net_setupHandler);
+    KEX_SET_METHOD("resetHandler", obj, Net_resetHandler);
     KEX_SET_METHOD("setOptionInt", obj, Net_setOptionInt);
     KEX_SET_METHOD("setOptionString", obj, Net_setOptionString);
     KEX_SET_METHOD("setOptionSlist", obj, Net_setOptionSlist);
