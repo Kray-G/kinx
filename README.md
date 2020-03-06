@@ -252,6 +252,9 @@ This is very poor but will be easy to upgrade it.
 
 Simple HTTP Get client is also [`http.kx`](examples/http.kx) in example folder.
 
+Note that OpenSSL is also included.
+OpenSSL version is 3.0.0, which is not released officially but means the license is Apache 2.0.
+
 ### Namespace
 
 Namespace is now available.
