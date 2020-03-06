@@ -14,7 +14,7 @@ static const char *modulename = NULL;
 void setup_lexinfo(const char *file, kx_yyin_t *yyin)
 {
     kx_lexinfo.restart = NULL;
-    kx_lexinfo.file = file;
+    kx_lexinfo.file = const_str(file);
     kx_lexinfo.line = 1;
     kx_lexinfo.pos = 1;
     kx_lexinfo.newline = 0;
@@ -40,17 +40,17 @@ static int load_using_module(const char *name, int no_error)
     const char *file = NULL;
     if (!(file = kxlib_file_exists(libname))) {
         snprintf(libname, 255, "%s.kx", name);
-    }
-    if (!(file = kxlib_file_exists(libname))) {
-        if (!no_error) {
-            char buf[256] = {0};
-            snprintf(buf, 255, "File not found(%s)", libname);
-            kx_yywarning(buf);
+        if (!(file = kxlib_file_exists(libname))) {
+            if (!no_error) {
+                char buf[256] = {0};
+                snprintf(buf, 255, "File not found(%s)", libname);
+                kx_yywarning(buf);
+            }
+            while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
+                kx_lex_next(kx_lexinfo);
+            }
+            return no_error ? ';' : ERROR;
         }
-        while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
-            kx_lex_next(kx_lexinfo);
-        }
-        return no_error ? ';' : ERROR;
     }
 
     kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
@@ -405,8 +405,14 @@ int kx_yylex_x();
 int kx_yylex()
 {
     int ch = kx_yylex_x();
-    if (isgraph(ch)) printf("ret '%c' (kx_lexinfo.ch = %d)\n", ch, kx_lexinfo.ch);
-    else printf("ret %d\n", ch);
+    if (isgraph(ch)) {
+        printf("ret '%c' (kx_lexinfo.ch = %d)\n", ch, kx_lexinfo.ch);
+    } else {
+        if (ch == NAME) {
+            printf("NAME = %s\n", kx_yylval.strval);
+        }
+        printf("ret %d\n", ch);
+    }
     return ch;
 }
 
