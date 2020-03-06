@@ -131,6 +131,7 @@ SOFILES = \
     kxregex.so \
     kxsqlite.so \
     kxzip.so \
+    kxnet.so \
     kxxml.so
 PICOBJS = \
     bignpic.o \
@@ -223,6 +224,9 @@ kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
 kxzip.so: src/extlib/kxzip.c $(PICOBJS) libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
+kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so.3 libcrypto.so.3
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libcurl/x64/gcc/libcurl.a src/extlib/openssl/x64/gcc/libssl.a src/extlib/openssl/x64/gcc/libcrypto.a src/extlib/zip/x64/gcc/libminizip.a -pthread -ldl -L. -lz
+
 kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libxml2/include/libxml2 src/extlib/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
@@ -235,9 +239,6 @@ libz.so.1: libz.so.1.2.11
 libz.so.1.2.11: src/extlib/zip/x64/gcc/libz.so.1.2.11
 	cp -f src/extlib/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
 	chmod +x libz.so.1.2.11
-
-libcurl.so.4.6.0:
-	cp -f src/extlib/libcurl/x64/gcc/libcurl.so.4.6.0 ./libcurl.so.4.6.0
 
 libssl.so.3:
 	cp -f src/extlib/openssl/x64/gcc/libssl.so.3 ./libssl.so.3
