@@ -8,7 +8,7 @@ namespace Net {
         public reset() {
             curl_.resetHandler();
             dbgCallback_ = null;
-            debugDetail = false;
+            curl_.debugDetail = false;
         }
 
         public sslVerifyPeer(tf) {
@@ -26,6 +26,25 @@ namespace Net {
         public setDebug(callback) {
             dbgCallback_ = callback;
             curl_.setOptionInt(Net.CURLOPT_VERBOSE, 1);
+        }
+
+        public addHeader(key, value) {
+            if (value.isUndefined) {
+                curl_.appendSlist("%{key};");
+            } else {
+                curl_.appendSlist("%{key}: %{value}");
+            }
+        }
+
+        public removeHeader(key) {
+            curl_.appendSlist("%{key}:");
+        }
+
+        public setRedirect(tf, opts) {
+            curl_.setOptionInt(Net.CURLOPT_FOLLOWLOCATION, tf);
+            if (opts.max.isInteger) {
+                curl_.setOptionInt(Net.CURLOPT_MAXREDIRS, opts.max);
+            }
         }
 
         private doHttpMethod(callback) {
@@ -47,9 +66,15 @@ namespace Net {
         }
 
         public get(url, callback) {
-            curl_.setupHandler();
-            curl_.setOptionString(Net.CURLOPT_URL, url);
-            doHttpMethod(callback);
+            try {
+                curl_.setupHandler();
+                curl_.setOptionString(Net.CURLOPT_URL, url);
+                curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+                doHttpMethod(callback);
+            } finally {
+                curl_.performEnd();
+                curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            }
         }
     }
 
