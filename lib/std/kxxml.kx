@@ -19,15 +19,15 @@ Xml.NAMESPACE_DECL      = 18;
 Xml.XINCLUDE_START      = 19;
 Xml.XINCLUDE_END        = 20;
 
-class XmlException(what) {
+_class XmlException(what) {
     @_type = "XmlException";
     @_what = what;
 }
 XmlException = XmlException.create;
 
-namespace Xml {
+_namespace Xml {
 
-    class Writer(printer_, opts_) {
+    _class Writer(printer_, opts_) {
 
         @tab = opts_.tab || "\t";
 

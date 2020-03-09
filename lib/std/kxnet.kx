@@ -1,4 +1,4 @@
-namespace Net {
+_namespace Net {
     Net.CURLOPT_WRITEDATA = 10000 + 1;
     Net.CURLOPT_URL = 10000 + 2;
     Net.CURLOPT_PORT = 3;

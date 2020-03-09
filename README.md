@@ -22,7 +22,7 @@ Kinx can be the best platform for any libraries which you want to use or your ow
 *   **Native function** by JIT compiling supported with some limitations. Very fast.
 *   **Dynamic typing**, but you can also specify the type.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
-*   Including libraries of **Zip**, **Xml**, **SQLite3**, **Regular Expression**, etc.
+*   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, etc.
 
 ### Language Details
 
