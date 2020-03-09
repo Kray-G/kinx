@@ -376,7 +376,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
         kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
         rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
     }
-    if (!ex && type == KXST_CLASS) {
+    if (!ex && type == KXST_CLASS && optional == KXFT_CLASS) {
         ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this", KX_OBJ_T), kx_gen_uexpr_object(KXOP_MKOBJ, NULL));
     }
 
