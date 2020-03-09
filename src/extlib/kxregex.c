@@ -80,8 +80,9 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-kx_obj_t *make_group_object(kx_context_t *ctx, regex_pack_t *r)
+kx_obj_t *make_group_object(kx_context_t *ctx, const char *str, regex_pack_t *r)
 {
+    kstr_t *s = ks_new();
     kx_obj_t *group = allocate_obj(ctx);
     int num = r->region->num_regs;
     for (int i = 0; i < num; ++i) {
@@ -90,8 +91,13 @@ kx_obj_t *make_group_object(kx_context_t *ctx, regex_pack_t *r)
         int e = r->region->end[i];
         KEX_SET_PROP_INT(item, "begin", b);
         KEX_SET_PROP_INT(item, "end", e);
+        kstr_t *s = allocate_str(ctx);
+        ks_clear(s);
+        ks_append_n(s, str + b, e - b);
+        KEX_SET_PROP_CSTR(item, "string", ks_string(s));
         KEX_PUSH_ARRAY_OBJ(group, item);
     }
+    ks_free(s);
     return group;
 }
 
@@ -148,7 +154,7 @@ int Regex_find_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
     }
 
     KX_ADJST_STACK();
-    kx_obj_t *group = make_group_object(ctx, r);
+    kx_obj_t *group = make_group_object(ctx, str, r);
     if (ret == KX_REGEX_RET_OBJ) {
         push_obj(ctx->stack, group);
     } else {
@@ -201,7 +207,7 @@ int Regex_matches(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         return 0;
     }
 
-    kx_obj_t *group = make_group_object(ctx, r);
+    kx_obj_t *group = make_group_object(ctx, str, r);
     KEX_SET_PROP_OBJ(obj, "group", group);
 
     KX_ADJST_STACK();
