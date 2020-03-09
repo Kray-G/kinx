@@ -454,11 +454,8 @@ int File_static_exists(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         KX_THROW_BLTIN_EXCEPTION("FileException", "Needs the file name to check existance");
     }
     int32_t r = mz_os_file_exists(target);
-    if (r != MZ_OK) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to check existance");
-    }
     KX_ADJST_STACK();
-    push_i(ctx->stack, 1);
+    push_i(ctx->stack, r == MZ_OK);
     return 0;
 }
 
