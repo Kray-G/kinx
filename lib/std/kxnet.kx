@@ -272,6 +272,9 @@ namespace Net {
     Net.CURLOPT_SASL_AUTHZID = 10000 + 289;
     Net.CURLOPT_MAIL_RCPT_ALLLOWFAILS = 290;
 
+    Net.CURLAUTH_BASIC = 0x01;
+    Net.CURLAUTH_DIGEST = 0x02;
+
 }
 
 using net.http;
