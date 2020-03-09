@@ -12,10 +12,11 @@
 #define CURL_STATICLIB 
 #include "libcurl/include/curl/curl.h"
 
+static size_t Net_headerCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 static size_t Net_writeCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 static int Net_debugCallback(CURL *handle, curl_infotype type, char *data, size_t size, void *userptr);
 
-#define KX_XML_GET_CURLINFO(r, obj) \
+#define KX_NET_GET_CURLINFO(r, obj) \
 kx_curl_info_t *r = NULL; \
 if (obj) { \
     kx_val_t *val = NULL; \
@@ -26,7 +27,7 @@ if (obj) { \
     r = (kx_curl_info_t *)(val->value.av->p); \
 } \
 /**/
-#define KX_XML_GET_IS_RUNNING(r, obj) \
+#define KX_NET_GET_IS_RUNNING(r, obj) \
 int r = 0; \
 if (obj) { \
     kx_val_t *val = NULL; \
@@ -36,7 +37,7 @@ if (obj) { \
     } \
 } \
 /**/
-#define KX_XML_GET_DEBUG_DETAIL(r, obj) \
+#define KX_NET_GET_DEBUG_DETAIL(r, obj) \
 int r = 0; \
 if (obj) { \
     kx_val_t *val = NULL; \
@@ -46,7 +47,7 @@ if (obj) { \
     } \
 } \
 /**/
-#define KX_XML_GET_BUFFER(r, obj, name) \
+#define KX_NET_GET_BUFFER(r, obj, name) \
 kstr_t *r = 0; \
 if (obj) { \
     kx_val_t *val = NULL; \
@@ -56,7 +57,7 @@ if (obj) { \
     } \
 } \
 /**/
-#define KX_XML_GET_BUFFER_AS_CSTR(r, obj, name) \
+#define KX_NET_GET_BUFFER_AS_CSTR(r, obj, name) \
 const char *r = 0; \
 if (obj) { \
     kx_val_t *val = NULL; \
@@ -66,11 +67,24 @@ if (obj) { \
     } \
 } \
 /**/
+#define KX_NET_RESET_STR_BUFFER(vname, obj, name) \
+KX_NET_GET_BUFFER(vname, obj, name); \
+if (!vname) { \
+    KX_NET_GET_BUFFER_AS_CSTR(cstr, obj, name); \
+    if (cstr) { \
+        KEX_SET_PROP_CSTR(obj, name, cstr); \
+    } else { \
+        KEX_SET_PROP_CSTR(obj, name, ""); \
+    } \
+    KX_NET_GET_BUFFER(vname, obj, name); \
+} \
+/**/
 
 typedef struct kx_curl_info_ {
     CURLM *mh;
     CURL *eh;
     struct curl_slist *sl;
+    char *cr;
 } kx_curl_info_t;
 
 KX_DECL_MEM_ALLOCATORS();
@@ -91,6 +105,7 @@ static kx_curl_info_t *new_ci(void)
     ci->mh = curl_multi_init();
     ci->sl = NULL;
     ci->eh = curl_easy_init();
+    ci->cr = NULL;
     curl_multi_add_handle(ci->mh, ci->eh);
     return ci;
 }
@@ -104,6 +119,9 @@ static void free_ci(void *obj)
     if (ci->sl) {
         curl_slist_free_all(ci->sl);
     }
+    if (ci->cr) {
+        kx_free(ci->cr);
+    }
     kx_free(ci);
 }
 
@@ -112,7 +130,7 @@ static void free_ci(void *obj)
 int Net_setupHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
 
     curl_multi_remove_handle(ci->mh, ci->eh);
     curl_multi_add_handle(ci->mh, ci->eh);
@@ -125,7 +143,7 @@ int Net_setupHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
 int Net_resetHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
 
     curl_easy_reset(ci->eh);
     curl_easy_setopt(ci->eh, CURLOPT_WRITEFUNCTION, Net_writeCallback);
@@ -141,7 +159,7 @@ int Net_resetHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
 int Net_setOptionInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
     if (args != 3) {
         KX_THROW_BLTIN_EXCEPTION("NetException", "Needs two arguments");
     }
@@ -154,6 +172,10 @@ int Net_setOptionInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     if (r > 0) {
         KX_THROW_BLTIN_EXCEPTION("NetException", static_format("%s", curl_easy_strerror(r)));
     }
+    if (optcode == CURLOPT_HEADER && !data) {
+        curl_easy_setopt(ci->eh, CURLOPT_HEADERFUNCTION, Net_headerCallback);
+        curl_easy_setopt(ci->eh, CURLOPT_HEADERDATA, obj);
+    }
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -163,7 +185,7 @@ int Net_setOptionInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
 int Net_setOptionString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
     if (args != 3) {
         KX_THROW_BLTIN_EXCEPTION("NetException", "Needs two arguments");
     }
@@ -172,7 +194,13 @@ int Net_setOptionString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     if (!data) {
         KX_THROW_BLTIN_EXCEPTION("NetException", "Failed because no string data");
     }
-    int r = curl_easy_setopt(ci->eh, optcode, data);
+    int r;
+    if (optcode == CURLOPT_CUSTOMREQUEST) {
+        ci->cr = kx_strdup(data);
+        r = curl_easy_setopt(ci->eh, CURLOPT_CUSTOMREQUEST, ci->cr);
+    } else {
+        r = curl_easy_setopt(ci->eh, optcode, data);
+    }
     if (r == CURLE_UNKNOWN_OPTION) {
         KX_THROW_BLTIN_EXCEPTION("NetException", "Unknown option code");
     }
@@ -188,7 +216,7 @@ int Net_setOptionString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 int Net_setOptionSlist(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
     if (args != 2) {
         KX_THROW_BLTIN_EXCEPTION("NetException", "Needs an option code");
     }
@@ -209,7 +237,7 @@ int Net_setOptionSlist(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
 int Net_appendSlist(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
     const char *data = get_arg_str(2, args, ctx);
     if (!data) {
         KX_THROW_BLTIN_EXCEPTION("NetException", "Failed because no string data");
@@ -228,7 +256,7 @@ int Net_appendSlist(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 int Net_wait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
     int timout = get_arg_int(2, args, ctx);
 
     int numfds;
@@ -245,7 +273,7 @@ int Net_wait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 int Net_poll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
     int timout = get_arg_int(2, args, ctx);
 
     int numfds;
@@ -262,28 +290,11 @@ int Net_poll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 int Net_perform(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
-    KX_XML_GET_IS_RUNNING(still_running, obj);
-    KX_XML_GET_BUFFER(sv, obj, "received");
-    if (!sv) {
-        KX_XML_GET_BUFFER_AS_CSTR(cstr, obj, "received");
-        if (cstr) {
-            KEX_SET_PROP_CSTR(obj, "received", cstr);
-        } else {
-            KEX_SET_PROP_CSTR(obj, "received", "");
-        }
-        KX_XML_GET_BUFFER(sv, obj, "received");
-    }
-    KX_XML_GET_BUFFER(sd, obj, "debugInfo");
-    if (!sd) {
-        KX_XML_GET_BUFFER_AS_CSTR(cstr, obj, "debugInfo");
-        if (cstr) {
-            KEX_SET_PROP_CSTR(obj, "debugInfo", cstr);
-        } else {
-            KEX_SET_PROP_CSTR(obj, "debugInfo", "");
-        }
-        KX_XML_GET_BUFFER(sd, obj, "debugInfo");
-    }
+    KX_NET_GET_CURLINFO(ci, obj);
+    KX_NET_GET_IS_RUNNING(still_running, obj);
+    KX_NET_RESET_STR_BUFFER(hd, obj, "header");
+    KX_NET_RESET_STR_BUFFER(sv, obj, "received");
+    KX_NET_RESET_STR_BUFFER(sd, obj, "debugInfo");
 
     CURLMcode mc = curl_multi_perform(ci->mh, &still_running);
     if (mc > 0) {
@@ -306,14 +317,20 @@ int Net_perform(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Net_performEnd(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Net_perfromEnd(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_XML_GET_CURLINFO(ci, obj);
+    KX_NET_GET_CURLINFO(ci, obj);
 
     if (ci->sl) {
         curl_slist_free_all(ci->sl);
         ci->sl = NULL;
+        curl_easy_setopt(ci->eh, CURLOPT_HTTPHEADER, NULL);
+    }
+    if (ci->cr) {
+        kx_free(ci->cr);
+        ci->cr = NULL;
+        curl_easy_setopt(ci->eh, CURLOPT_CUSTOMREQUEST, NULL);
     }
 
     KX_ADJST_STACK();
@@ -321,11 +338,24 @@ int Net_performEnd(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+static size_t Net_headerCallback(void *ptr, size_t size, size_t nmemb, void *userp)
+{
+    kx_obj_t *obj = (kx_obj_t *)userp;
+    size_t bufsz = size * nmemb;
+    KX_NET_GET_BUFFER(sv, obj, "header");
+    if (!sv) {
+        return bufsz;
+    }
+
+    ks_append_n(sv, (char *)ptr, bufsz);
+    return bufsz;
+}
+
 static size_t Net_writeCallback(void *ptr, size_t size, size_t nmemb, void *userp)
 {
     kx_obj_t *obj = (kx_obj_t *)userp;
     size_t bufsz = size * nmemb;
-    KX_XML_GET_BUFFER(sv, obj, "received");
+    KX_NET_GET_BUFFER(sv, obj, "received");
     if (!sv) {
         return bufsz;
     }
@@ -395,8 +425,8 @@ static void try_append_data_in_text(kstr_t *sd, char *data, size_t size)
 static int Net_debugCallback(CURL *handle, curl_infotype type, char *data, size_t size, void *userptr)
 {
     kx_obj_t *obj = (kx_obj_t *)userptr;
-    KX_XML_GET_DEBUG_DETAIL(debug_detail, obj);
-    KX_XML_GET_BUFFER(sd, obj, "debugInfo");
+    KX_NET_GET_DEBUG_DETAIL(debug_detail, obj);
+    KX_NET_GET_BUFFER(sd, obj, "debugInfo");
     if (!sd) {
         return 0;
     }
@@ -454,6 +484,7 @@ int Net_createCurlHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     kx_obj_t *obj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(obj, "_curl", info);
     KEX_SET_PROP_INT(obj, "isRunning", 0);
+    KEX_SET_PROP_CSTR(obj, "header", "");
     KEX_SET_PROP_CSTR(obj, "received", "");
     KEX_SET_PROP_CSTR(obj, "debugInfo", "");
 
@@ -471,7 +502,7 @@ int Net_createCurlHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("wait", obj, Net_wait);
     KEX_SET_METHOD("poll", obj, Net_poll);
     KEX_SET_METHOD("perform", obj, Net_perform);
-    KEX_SET_METHOD("performEnd", obj, Net_performEnd);
+    KEX_SET_METHOD("perfromEnd", obj, Net_perfromEnd);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);

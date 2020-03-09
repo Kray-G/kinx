@@ -4,6 +4,7 @@ namespace Net {
     class Http {
         var curl_ = Net.createCurlHandler();
         var dbgCallback_;
+        var postData_;
 
         public reset() {
             curl_.resetHandler();
@@ -21,6 +22,26 @@ namespace Net {
 
         public setDebugDetail(tf, opts) {
             curl_.debugDetail = tf && ((opts.hex ?? 1) << 1) | tf;
+        }
+
+        public setUserPassword(user, pass) {
+            curl_.setOptionInt(Net.CURLOPT_USERPWD, user + ":" + pass);
+        }
+
+        public setProxy(url) {
+            curl_.setOptionInt(Net.CURLOPT_PROXY, url);
+        }
+
+        public setProxyUserPassword(user, pass) {
+            curl_.setOptionInt(Net.CURLOPT_PROXYUSERPWD, user + ":" + pass);
+        }
+
+        public setTimeout(millisec) {
+            curl_.setOptionInt(Net.CURLOPT_TIMEOUT_MS, millisec);
+            curl_.setOptionInt(Net.CURLOPT_CONNECTTIMEOUT_MS, millisec);
+            curl_.setOptionInt(Net.CURLOPT_ACCEPTTIMEOUT_MS, millisec);
+            curl_.setOptionInt(Net.CURLOPT_EXPECT_100_TIMEOUT_MS, millisec);
+            curl_.setOptionInt(Net.CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, millisec);
         }
 
         public setDebug(callback) {
@@ -47,34 +68,95 @@ namespace Net {
             }
         }
 
-        private doHttpMethod(callback) {
-            var func = callback.isFunction ? callback : System.print;
-            do {
-                curl_.perform();
-                if (curl_.debugInfo.length() > 0) {
-                    if (dbgCallback_.isFunction) {
-                        dbgCallback_(curl_.debugInfo);
+        public setPostData(data) {
+            # Use this only when POST, otherwise ignore it.
+            postData_ = data;
+        }
+
+        private doHttpMethod(hder, body) {
+            try {
+                curl_.setOptionInt(Net.CURLOPT_HTTPAUTH, Net.CURLAUTH_BASIC|Net.CURLAUTH_DIGEST);
+                do {
+                    curl_.perform();
+                    if (curl_.debugInfo.length() > 0) {
+                        if (dbgCallback_.isFunction) {
+                            dbgCallback_(curl_.debugInfo);
+                        }
+                        curl_.debugInfo = "";
                     }
-                    curl_.debugInfo = "";
-                }
-                if (curl_.received.length() > 0) {
-                    func(curl_.received);
-                    curl_.received = "";
-                }
-                curl_.wait(1000);
-            } while (curl_.isRunning);
+                    if (curl_.header.length() > 0) {
+                        if (hder.isFunction) {
+                            hder(curl_.header);
+                        }
+                        curl_.header = "";
+                    }
+                    if (curl_.received.length() > 0) {
+                        if (body.isFunction) {
+                            body(curl_.received);
+                        }
+                        curl_.received = "";
+                    }
+                    curl_.wait(1000);
+                } while (curl_.isRunning);
+            } finally {
+                curl_.perfromEnd();
+            }
+        }
+
+        public head(url, callback) {
+            curl_.setupHandler();
+            curl_.setOptionInt(Net.CURLOPT_NOBODY, 1);
+            curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
+            curl_.setOptionString(Net.CURLOPT_URL, url);
+            curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            doHttpMethod(callback, null);
         }
 
         public get(url, callback) {
-            try {
-                curl_.setupHandler();
-                curl_.setOptionString(Net.CURLOPT_URL, url);
-                curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
-                doHttpMethod(callback);
-            } finally {
-                curl_.performEnd();
-                curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            curl_.setupHandler();
+            curl_.setOptionString(Net.CURLOPT_URL, url);
+            curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            var body = callback.body;
+            var hder = callback.header;
+            if (!body && !hder) {
+                body = callback;
             }
+            body ||=  System.println;
+            doHttpMethod(hder, body);
+        }
+
+        public post(url, callback) {
+            curl_.setupHandler();
+            curl_.setOptionString(Net.CURLOPT_URL, url);
+            curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            curl_.setOptionInt(Net.CURLOPT_POST, 1);
+            curl_.setOptionInt(Net.CURLOPT_POSTFIELDS, postData_);
+            var body = callback.body;
+            var hder = callback.header;
+            if (!body && !hder) {
+                body = callback;
+            }
+            body ||=  System.println;
+            doHttpMethod(hder, body);
+        }
+
+        public put(url, callback) {
+            curl_.setOptionString(Net.CURLOPT_CUSTOMREQUEST, "PUT");
+            return post(url, callback);
+        }
+
+        public delete(url, callback) {
+            curl_.setupHandler();
+            curl_.setOptionString(Net.CURLOPT_URL, url);
+            curl_.setOptionString(Net.CURLOPT_CUSTOMREQUEST, "DELETE");
+            curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            var body = callback.body;
+            var hder = callback.header;
+            if (!body && !hder) {
+                body = callback;
+            }
+            body ||=  System.println;
+            doHttpMethod(hder, body);
         }
     }
 
