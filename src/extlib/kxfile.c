@@ -358,6 +358,7 @@ int File_static_direntry(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     if (!entry) {
         KX_ADJST_STACK();
         push_i(ctx->stack, 0);
+        return 0;
     }
 
     KX_ADJST_STACK();
@@ -375,6 +376,7 @@ int File_static_dirclose(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
         KX_THROW_BLTIN_EXCEPTION("FileException", "Directory has been already closed");
     }
     int32_t r = mz_os_close_dir(di->dir);
+    di->dir = NULL;
     if (r != MZ_OK) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to close directory");
     }
@@ -467,11 +469,8 @@ int File_static_is_directory(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
         KX_THROW_BLTIN_EXCEPTION("FileException", "Needs the file name to check if directory");
     }
     int32_t r = mz_os_is_dir(target);
-    if (r != MZ_OK) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to check if directory");
-    }
     KX_ADJST_STACK();
-    push_i(ctx->stack, 1);
+    push_i(ctx->stack, r == MZ_OK);
     return 0;
 }
 
