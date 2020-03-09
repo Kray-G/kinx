@@ -8,7 +8,7 @@ while (group = (a =~ /=\w+/)) {
         System.println("        [%2d,%2d) = '%s'"
             % group[i].begin
             % group[i].end
-            % a.subString(group[i].begin, group[i].end - group[i].begin));
+            % group[i].string);
     }
 }
 
@@ -21,6 +21,6 @@ while (group = (a =~ %m(a+/))) {
         System.println("        [%2d,%2d) = '%s'"
             % group[i].begin
             % group[i].end
-            % a.subString(group[i].begin, group[i].end - group[i].begin));
+            % group[i].string);
     }
 }
