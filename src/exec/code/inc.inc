@@ -62,8 +62,10 @@
 
 #define KX_INC_CODE() \
 { \
-    KEX_GET_STACK_TOP(v1); \
+    KEX_POP_STACK_TOP(v1); \
+    v1 = (v1->type == KX_LVAL_T) ? v1->value.lv : v1; \
     KX_INC_INC(v1); \
+    push_value((ctx)->stack, *v1); \
     cur = cur->next; \
 } \
 /**/
