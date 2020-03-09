@@ -267,6 +267,7 @@ extern void *load_library(const char *name, const char *envname);
 extern void *get_libfunc(void *h, const char *name);
 extern void unload_library(void *h);
 extern const char *kxlib_file_exists(const char *file);
+extern const char *kxlib_exec_file_exists(const char *file);
 
 extern void setup_lexinfo(const char *file, kx_yyin_t *yyin);
 extern int kx_yyparse(void);
