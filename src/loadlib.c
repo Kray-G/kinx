@@ -27,6 +27,13 @@ static const char* make_path_with(const char* base, const char* rel, const char*
     return buf;
 }
 
+static const char* make_path_with_ext(const char* base, const char* rel, const char* name, const char* ext)
+{
+    static char buf[4096] = {0};
+    snprintf(buf, 4095, "%s\\%s\\%s%s", base, rel, name, ext);
+    return buf;
+}
+
 void *load_library(const char *name, const char *envname)
 {
     char libname[PATH_MAX] = {0};
@@ -56,6 +63,13 @@ static const char* make_path_with(const char* base, const char* rel, const char*
 {
     static char buf[4096] = {0};
     snprintf(buf, 4095, "%s/%s/%s", base, rel, name);
+    return buf;
+}
+
+static const char* make_path_with_ext(const char* base, const char* rel, const char* name, const char* ext)
+{
+    static char buf[4096] = {0};
+    snprintf(buf, 4095, "%s/%s/%s%s", base, rel, name, ext);
     return buf;
 }
 
@@ -91,11 +105,20 @@ const char *kxlib_file_exists(const char *file)
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);
     }
-    checkfile = make_path_with(get_exe_path(), "lib/std", file);
+    checkfile = make_path_with(get_exe_path(), "lib"PATH_DELIM"std", file);
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);
     }
     checkfile = make_path_with(get_exe_path(), ".."PATH_DELIM"lib", file);
+    if (file_exists(checkfile)) {
+        return alloc_string(checkfile);
+    }
+    return NULL;
+}
+
+const char *kxlib_exec_file_exists(const char *file)
+{
+    const char *checkfile = make_path_with_ext(get_exe_path(), "lib"PATH_DELIM"exec", file, ".kx");
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);
     }
