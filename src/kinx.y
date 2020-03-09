@@ -595,8 +595,8 @@ DeclAssignExpressionList
 DeclAssignExpression
     : NAME { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
     | NAME ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
-    | NAME '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
-    | NAME ':' TypeName ReturnType_Opt '=' AssignExpression { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
+    | NAME '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
+    | NAME ':' TypeName ReturnType_Opt '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
     ;
 
 FunctionDeclStatement
