@@ -367,6 +367,14 @@ void gc_mark_and_sweep(kx_context_t *ctx)
         gc_mark_val(c);
     }
 
+    int rsz = kv_size(ctx->regex);
+    for (int i = 0; i < rsz; ++i) {
+        kx_regex_t *p = &kv_A(ctx->regex, i);
+        if (p && p->obj) {
+            gc_mark_obj(p->obj);
+        }
+    }
+
     gc_sweep(ctx);
     #if defined(KX_EXEC_DEBUG)
     print_gc_info(ctx);
