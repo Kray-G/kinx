@@ -1,5 +1,3 @@
-import Zip;
-
 var zip = new Zip("examples/zip/ziptest.zip", File.READ|File.WRITE);
 zip.setPassword("text");
 zip.addFile("README.md", {
