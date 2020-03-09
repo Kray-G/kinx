@@ -185,6 +185,7 @@ enum opecode {
     KXST_RET,       /* lhs: expr */
     KXST_THROW,     /* lhs: expr */
     KXST_MIXIN,     /* lhs: next, rhs: first */
+    KXST_SYSCLASS,  /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
     KXST_CLASS,     /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
     KXST_FUNCTION,  /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
     KXST_NATIVE,    /* s: name, lhs: arglist, rhs: block, ret_type: return type */
@@ -303,7 +304,7 @@ extern kx_object_t *kx_gen_str_object(const char *val);
 extern const char *kx_gen_typestr_object(int t);
 extern const char *kx_gen_typeofstr_object(int t);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
-extern kx_object_t *kx_gen_namespace_object(const char *name, kx_object_t *blk);
+extern kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t *blk);
 extern const char *kx_gen_namespace_name_object(const char *name);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t);

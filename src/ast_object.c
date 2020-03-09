@@ -162,7 +162,7 @@ const char *kx_gen_namespace_name_object(const char *name)
     return name;
 }
 
-kx_object_t *kx_gen_namespace_object(const char *name, kx_object_t *blk)
+kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t *blk)
 {
     kx_object_t *callns = NULL;
     int len = kv_size(ns_stack);
@@ -177,7 +177,7 @@ kx_object_t *kx_gen_namespace_object(const char *name, kx_object_t *blk)
         blk = kx_gen_bexpr_object(KXST_STMTLIST, nassign, blk);
     }
     blk = kx_gen_bexpr_object(KXOP_CALL,
-        kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, NULL, blk, NULL),
+        kx_gen_func_object(KXST_FUNCTION, internal ? KXFT_SYSFUNC : KXFT_FUNCTION, NULL, NULL, blk, NULL),
         NULL
     );
     kx_object_t *namevar = kx_gen_var_object(name, KX_OBJ_T);
@@ -362,10 +362,13 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
         rhs = kx_gen_bexpr_object(KXST_STMTLIST,
             rhs,
             kx_gen_stmt_object(KXST_EXPR,
-                kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, "instanceOf",
-                    kx_gen_var_object("classobj", KX_UNKNOWN_T),
-                    kx_gen_bexpr_object(KXST_STMTLIST, instanceOf, NULL),
-                NULL),
+                kx_gen_bassign_object(KXOP_ASSIGN,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object("instanceOf")),
+                    kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, NULL,
+                        kx_gen_var_object("classobj", KX_UNKNOWN_T),
+                        kx_gen_bexpr_object(KXST_STMTLIST, instanceOf, NULL),
+                    NULL)
+                ),
             NULL, NULL)
         );
         rhs = kx_gen_bexpr_object(KXST_STMTLIST,
@@ -376,7 +379,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
         kx_object_t *ret = kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL);
         rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
     }
-    if (!ex && type == KXST_CLASS && optional == KXFT_CLASS) {
+    if (!ex && (type == KXST_CLASS || type == KXST_SYSCLASS) && optional == KXFT_CLASS) {
         ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this", KX_OBJ_T), kx_gen_uexpr_object(KXOP_MKOBJ, NULL));
     }
 
@@ -423,7 +426,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
         stmt = assign;
         break;
     }
-    if (pname && type == KXST_CLASS) {
+    if (pname && (type == KXST_CLASS || type == KXST_SYSCLASS)) {
         int len = kv_size(ns_stack);
         if (len > 0) {
             kx_object_t *last = kv_last(ns_stack);
