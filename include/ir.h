@@ -709,6 +709,13 @@ typedef struct kx_context_ {
         top->value.bz = make_big_alive(ctx, BzFromString(v, 10, BZ_UNTIL_END)); \
     } while (0);\
 /**/
+#define push_big(st, v) \
+    do {\
+        kx_val_t *top = &kv_push_undef(st);\
+        top->type = KX_BIG_T;\
+        top->value.bz = make_big_alive(ctx, v); \
+    } while (0);\
+/**/
 #define push_f(st, jmp, lexv) \
     do {\
         kx_fnc_t *fnc = allocate_fnc(ctx); \
