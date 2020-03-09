@@ -94,6 +94,7 @@ int main(int ac, char **av)
     ctx->options.max_call_depth = 1024;
     char lname[LONGNAME_MAX] = {0};
     char param[LONGNAME_MAX] = {0};
+    char *execname = NULL;
     int opt;
     while ((opt = getopt(ac, av, "vhdDui")) != -1) {
         switch (opt) {
@@ -109,6 +110,11 @@ int main(int ac, char **av)
                 ctx->options.native_verbose = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "case-threshold")) {
                 ctx->options.case_threshold = param[0] ? strtol(param, NULL, 0) : 16;
+            } else if (!strcmp(lname, "exec")) {
+                if (param[0]) {
+                    execname = param;
+                }
+                break;
             }
             break;
         case 'd':
@@ -136,13 +142,25 @@ int main(int ac, char **av)
     }
 
     kx_lexinfo.quiet = 0;
-    if (ctx->options.src_stdin || ac <= optind) {
+    if (execname) {
+        const char *execfile = kxlib_exec_file_exists(execname);
+        if (!execfile) {
+            fprintf(stderr, "No internal execution code(%s).\n", execname);
+            r = 1;
+            goto CLEANUP;
+        }
+        r = eval_file(execfile, ctx);
+        if (r < 0) {
+            r = 1;
+            goto CLEANUP;
+        }
+    } else if (ctx->options.src_stdin) {
         r = eval_file(NULL, ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
         }
-    } else {
+    } else if (optind < ac) {
         const char *file = av[optind];
         if (file && !file_exists(file)) {
             fprintf(stderr, "File not found: %s.\n", file);
@@ -154,6 +172,10 @@ int main(int ac, char **av)
             r = 1;
             goto CLEANUP;
         }
+    } else {
+        fprintf(stderr, "No execution file specified.\n");
+        r = 1;
+        goto CLEANUP;
     }
 
     if (ctx->options.ast || ctx->options.dump) {
