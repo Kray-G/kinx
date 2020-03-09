@@ -428,6 +428,13 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         }
         display_ast(node->rhs, indent + 1, 0);
         break;
+    case KXST_SYSCLASS:
+        if (node->optional == KXFT_CLASS) {
+            printf("(system-class)\n");
+        } else {
+            printf("(system-module)\n");
+        }
+        break;
     case KXST_CLASS:      /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         printf("(%s: %s) [refs:%d]\n", node->optional == KXFT_CLASS ? "class" : "module", node->value.s, node->lexical_refs);
         if (node->lhs) {

@@ -24,11 +24,11 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
-%token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN
+%token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN SYSCLASS SYSMODULE
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
-%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF NAMESPACE
+%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF NAMESPACE SYSNS
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -161,7 +161,9 @@ BlockStatement
 
 NamespaceStatement
     : NAMESPACE NamespaceName '{' '}' { $$ = NULL; }
-    | NAMESPACE NamespaceName '{' StatementList '}' { $$ = kx_gen_namespace_object($2, $4); }
+    | SYSNS NamespaceName '{' '}' { $$ = NULL; }
+    | NAMESPACE NamespaceName '{' StatementList '}' { $$ = kx_gen_namespace_object(0, $2, $4); }
+    | SYSNS NamespaceName '{' StatementList '}' { $$ = kx_gen_namespace_object(1, $2, $4); }
     ;
 
 NamespaceName
@@ -634,10 +636,12 @@ ClassFunctionDeclStatement
 
 ClassDeclStatement
     : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KXFT_CLASS, $2, $3, $5, $4); }
+    | SYSCLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object(KXST_SYSCLASS, KXFT_CLASS, $2, $3, $5, $4); }
     ;
 
 ModuleDeclStatement
     : MODULE NAME BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KXFT_MODULE, $2, NULL, $3, NULL); }
+    | SYSMODULE NAME BlockStatement { $$ = kx_gen_func_object(KXST_SYSCLASS, KXFT_MODULE, $2, NULL, $3, NULL); }
     ;
 
 Inherit_Opt

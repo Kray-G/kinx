@@ -93,6 +93,9 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "__END__") == 0)        { kx_lexinfo.ch = 0; return 0; }
         if (strcmp(val, "_import") == 0)        return IMPORT;
         if (strcmp(val, "_function") == 0)      return SYSFUNC;
+        if (strcmp(val, "_class") == 0)         return SYSCLASS;
+        if (strcmp(val, "_module") == 0)        return SYSMODULE;
+        if (strcmp(val, "_namespace") == 0)     return SYSNS;
         break;
     case 'b':
         if (strcmp(val, "break") == 0)          return BREAK;

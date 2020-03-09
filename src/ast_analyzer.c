@@ -636,6 +636,7 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         node->lexical = sym->lexical_index;
         analyze_ast(node->rhs, ctx);
         break;
+    case KXST_SYSCLASS:
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         if (ctx->in_native) {
             kx_yyerror_line("Do not define class in native function", node->file, node->line);
@@ -701,6 +702,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
                 if (ctx->class_node && !strcmp(node->value.s, "initialize")) {
                     ctx->class_node->init = node;
                 }
+            }
+            if (ctx->class_node && ctx->class_node->type  == KXST_SYSCLASS) {
+                node->optional = KXFT_SYSFUNC;
             }
         }
 

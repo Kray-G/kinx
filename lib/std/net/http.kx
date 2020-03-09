@@ -1,7 +1,7 @@
 
-namespace Net {
+_namespace Net {
 
-    class Http {
+    _class Http {
         var curl_ = Net.createCurlHandler();
         var dbgCallback_;
         var postData_;

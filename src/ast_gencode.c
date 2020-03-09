@@ -1492,6 +1492,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CALLS, .value1 = { .s = const_str("extend") }, .count = 1 }));
         break;
     }
+    case KXST_SYSCLASS:
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         kx_finally_vec_t *finallies = ana->finallies;
         ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
@@ -1535,6 +1536,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         kv_remove_last(ana->fidxlist);
 
         kx_function_t *funcp = get_function(module, cur);
+        funcp->is_internal = node->type == KXST_SYSCLASS;
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
             FILELINE(ana), .op = KX_PUSHF,
             .value1 = { .s = const_str(funcp->name) },

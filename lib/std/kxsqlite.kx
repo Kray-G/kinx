@@ -1,7 +1,7 @@
 
 SQLite.create = _function(...args) {
     var db = SQLite._create(...args);
-    db.transaction = function(func) {
+    db.transaction = _function(func) {
         if (db.inTransaction) {
             return func();
         }
@@ -10,10 +10,10 @@ SQLite.create = _function(...args) {
             db.exec("BEGIN");
             return func();
         } catch (e) {
-            System.try(&{ db.exec("ROLLBACK"); }).else();
+            System.try(_function() { db.exec("ROLLBACK"); }).else();
             db.inTransaction = false;
         } finally {
-            System.try(&{ db.exec("COMMIT"); }).else();
+            System.try(_function() { db.exec("COMMIT"); }).else();
             db.inTransaction = false;
         }
     };
