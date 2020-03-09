@@ -130,7 +130,6 @@ SOFILES = \
     kxmath.so \
     kxregex.so \
     kxsqlite.so \
-    kxzip.so \
     kxnet.so \
     kxxml.so
 PICOBJS = \
@@ -209,8 +208,8 @@ kxdouble.so: src/extlib/kxdouble.c $(PICOBJS)
 kxarray.so: src/extlib/kxarray.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
-kxfile.so: src/extlib/kxfile.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+kxfile.so: src/extlib/kxfile.c $(PICOBJS) libz.so
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
 kxmath.so: src/extlib/kxmath.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -lm
@@ -220,9 +219,6 @@ kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 
 kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o -pthread
-
-kxzip.so: src/extlib/kxzip.c $(PICOBJS) libz.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
 kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so.3 libcrypto.so.3
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libcurl/x64/gcc/libcurl.a src/extlib/openssl/x64/gcc/libssl.a src/extlib/openssl/x64/gcc/libcrypto.a src/extlib/zip/x64/gcc/libminizip.a -pthread -ldl -L. -lz
