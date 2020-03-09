@@ -1233,7 +1233,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         if (node->rhs) {
             get_block(module, thend)->tf[0] = cond;
             get_block(module, cond)->tf[0] = thtop;
-            if (node->lhs->type == KXVL_INT && node->lhs->value.i != 0) {
+            if (node->lhs->type == KXVL_TRUE || (node->lhs->type == KXVL_INT && node->lhs->value.i != 0)) {
                 get_block(module, stmt)->tf[0] = thtop;
             } else {
                 get_block(module, stmt)->tf[0] = cond;
@@ -1340,7 +1340,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         if (node->rhs) {
             get_block(module, thend)->tf[0] = condtop;
             get_block(module, condend)->tf[0] = thtop;
-            if (forcond->rhs && forcond->rhs->type == KXVL_INT && forcond->rhs->value.i != 0) {
+            if (forcond->rhs && (forcond->rhs->type == KXVL_TRUE || (forcond->rhs->type == KXVL_INT && forcond->rhs->value.i != 0))) {
                 get_block(module, stmt)->tf[0] = thtop;
             } else {
                 get_block(module, stmt)->tf[0] = condend;
@@ -1616,14 +1616,14 @@ static void append_jmp(kx_block_t *block, kx_analyze_t *ana)
         int othw = block->tf[1];
         if (next && othw) {
             if (get_block(module, next)->index == block->index + 1) {
-                if (len > 0 && kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i == 0) {
+                if (len > 0 && (kv_last(block->code).op == KX_PUSH_TRUE || (kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i == 0))) {
                     kv_last(block->code).op = KX_JMP;
                     kv_last(block->code).value1.i = get_block(module, othw)->index;
                 } else {
                     kv_push(kx_code_t, block->code, ((kx_code_t){ .op = KX_JZ, .value1 = { .i = get_block(module, othw)->index } }));
                 }
             } else {
-                if (len > 0 && kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i != 0) {
+                if (len > 0 && (kv_last(block->code).op == KX_PUSH_TRUE || (kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i != 0))) {
                     kv_last(block->code).op = KX_JMP;
                     kv_last(block->code).value1.i = get_block(module, next)->index;
                 } else {
