@@ -1,5 +1,3 @@
-import Xml;
-
 function displayXml(doc, node, indent) {
     System.print("  " * indent);
     if (node.type == Xml.ELEMENT_NODE) {
