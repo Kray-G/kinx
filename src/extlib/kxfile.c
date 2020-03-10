@@ -130,11 +130,10 @@ if (obj) { \
 static const char *get_mode(int mode)
 {
     static char mode_str[4] = {0};
-    int bt   = mode & 0x01;
+    int bin  = (mode & 0x01) == KXFILE_MODE_BINARY;
     int newf = mode & KXFILE_MODE_NEW;
-    int rwa  = (mode >> 4) & 0x08;
     int pos = 1;
-    if ((rwa & KXFILE_MODE_READ) == KXFILE_MODE_READ && (rwa & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
+    if ((mode & KXFILE_MODE_READ) == KXFILE_MODE_READ && (mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
         if (newf) {
             mode_str[0] = 'w';
             mode_str[1] = '+';
@@ -143,21 +142,18 @@ static const char *get_mode(int mode)
             mode_str[1] = '+';
         }
         ++pos;
-    } else if ((rwa & KXFILE_MODE_READ) == KXFILE_MODE_READ) {
+    } else if ((mode & KXFILE_MODE_READ) == KXFILE_MODE_READ) {
         mode_str[0] = 'r';
-    } else if ((rwa & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
+    } else if ((mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
         mode_str[0] = 'w';
     } else {
         mode_str[0] = 'r';
     }
 
-    switch (bt) {
-    case KXFILE_MODE_BINARY:
-        mode_str[pos] = 'b';
-        break;
-    case KXFILE_MODE_TEXT:
-        break;
+    if (bin) {
+        mode_str[pos++] = 'b';
     }
+    mode_str[pos] = 0;
     return mode_str;
 }
 
@@ -168,6 +164,9 @@ static fileinfo_t *create_fileinfo(const char *file, int mode)
     }
     fileinfo_t *fi = kx_calloc(1, sizeof(fileinfo_t));
     fi->fp = fopen(file, get_mode(mode));
+    if (!fi->fp) {
+        return NULL;
+    }
     fi->filename = file;
     fi->mode = mode;
     fi->is_text = (fi->mode & KXFILE_MODE_BINARY) != KXFILE_MODE_BINARY;
@@ -301,6 +300,9 @@ int File_static_load(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     const char *str = get_arg_str(1, args, ctx);
     int mode = get_arg_int(2, args, ctx);
     fileinfo_t *fi = create_fileinfo(str, mode|KXFILE_MODE_READ);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", static_format("File open failed: %s", strerror(errno)));
+    }
     return File_load_impl(args, ctx, fi, 1);
 }
 
@@ -714,31 +716,38 @@ int File_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
+    if (!str) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No file name");
+    }
     int mode = get_arg_int(2, args, ctx);
-    if (str) {
-        kx_obj_t *obj = allocate_obj(ctx);
-        KEX_SET_PROP_CSTR(obj, "source", str);
-        kx_any_t *r = allocate_any(ctx);
-        r->p = create_fileinfo(str, mode);
-        r->any_free = free_fileinfo;
-        KEX_SET_PROP_ANY(obj, "_pack", r);
-        KEX_SET_PROP_INT(obj, "BINARY", KXFILE_MODE_BINARY);
-        KEX_SET_PROP_INT(obj, "TEXT", KXFILE_MODE_TEXT);
-        KEX_SET_PROP_INT(obj, "NEW", KXFILE_MODE_NEW);
-        KEX_SET_PROP_INT(obj, "READ", KXFILE_MODE_READ);
-        KEX_SET_PROP_INT(obj, "WRITE", KXFILE_MODE_WRITE);
-        KEX_SET_PROP_INT(obj, "APPEND", KXFILE_MODE_APPEND);
-        KEX_SET_METHOD("load", obj, File_load);
-        KEX_SET_METHOD("close", obj, File_close);
-        KEX_SET_METHOD("readLine", obj, File_readline);
-        KEX_SET_METHOD("print", obj, File_print);
-        KEX_SET_METHOD("println", obj, File_println);
-        KX_ADJST_STACK();
-        push_obj(ctx->stack, obj);
-        return 0;
+    if (!mode) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File mode");
     }
 
-    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_CSTR(obj, "source", str);
+    kx_any_t *r = allocate_any(ctx);
+    fileinfo_t *fi = create_fileinfo(str, mode);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", static_format("File open failed: %s", strerror(errno)));
+    }
+    r->p = fi;
+    r->any_free = free_fileinfo;
+    KEX_SET_PROP_ANY(obj, "_pack", r);
+    KEX_SET_PROP_INT(obj, "BINARY", KXFILE_MODE_BINARY);
+    KEX_SET_PROP_INT(obj, "TEXT", KXFILE_MODE_TEXT);
+    KEX_SET_PROP_INT(obj, "NEW", KXFILE_MODE_NEW);
+    KEX_SET_PROP_INT(obj, "READ", KXFILE_MODE_READ);
+    KEX_SET_PROP_INT(obj, "WRITE", KXFILE_MODE_WRITE);
+    KEX_SET_PROP_INT(obj, "APPEND", KXFILE_MODE_APPEND);
+    KEX_SET_METHOD("load", obj, File_load);
+    KEX_SET_METHOD("close", obj, File_close);
+    KEX_SET_METHOD("readLine", obj, File_readline);
+    KEX_SET_METHOD("print", obj, File_print);
+    KEX_SET_METHOD("println", obj, File_println);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
 }
 
 int Zip_extract_entry(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
