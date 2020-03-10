@@ -289,7 +289,8 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
 static inline const char *startup_code()
 {
     static const char *code =
-        "var System, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Xml, Net, SQLite, Zip, JSON, SystemTimer, RuntimeException, Fiber, True, False;\n"
+        "var System, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Xml;\n"
+        "var Net, SQLite, Zip, JSON, SystemTimer, SystemException, RuntimeException, FileException, Fiber, True, False;\n"
         "(_function() {\n"
             "System = _import('kxsystem');\n"
             "String = _import('kxstring');\n"
@@ -311,11 +312,12 @@ static inline const char *startup_code()
             "True = { _False: 0, isFalse: 1, isTrue: 0 };\n"
             "False = { _False: 1, isFalse: 0, isTrue: 1 };\n"
             "SystemTimer = { create: System.SystemTimer_create };\n"
-            "_class RuntimeException(what) {\n"
-                "@_type = 'RuntimeException';\n"
-                "@_what = what;\n"
-            "}\n"
+            "_class RuntimeException(what) { @_type = 'RuntimeException'; @_what = what; }\n"
             "RuntimeException = RuntimeException.create;\n"
+            "_class SystemException(what) { @_type = 'SystemException'; @_what = what; }\n"
+            "SystemException = SystemException.create;\n"
+            "_class FileException(what) { @_type = 'FileException'; @_what = what; }\n"
+            "FileException = FileException.create;\n"
             "Fiber.create = _function(coroutine) {\n"
                 "var this;\n"
                 "this.resume = _function(...val) {\n"
@@ -468,7 +470,7 @@ static inline const char *startup_code()
                         "throw RuntimeException('Method not found for Double');\n"
                     "};\n"
                     "Directory.close = File.dirclose;\n"
-                    "Directory.walk = function(dirname, func, opts) {\n"
+                    "Directory.walk = _function(dirname, func, opts) {\n"
                         "var dir = File.diropen(dirname);\n"
                         "try {\n"
                             "opts ??= { i: 0 };\n"
@@ -489,7 +491,7 @@ static inline const char *startup_code()
                     "};\n"
                     "Directory.recursiveWalk = _function(dirname, func, opts) {\n"
                         "opts ??= { i: 0 };\n"
-                        "Directory.walk(dirname, function(entry, i) {\n"
+                        "Directory.walk(dirname, _function(entry, i) {\n"
                             "var r = func(entry, i);\n"
                             "return false if (r.isDefined && !r);\n"
                             "if (File.isDirectory(entry)) {\n"
@@ -519,6 +521,9 @@ static inline const char *startup_code()
                     "};\n"
                     "File.open = _function(name, mode, func) {\n"
                         "var f;\n"
+                        "if (name.isUndefined) {\n"
+                            "throw FileException('No file name');\n"
+                        "}\n"
                         "if (func.isUndefined && mode.isFunction) {\n"
                             "func = mode;\n"
                             "mode = File.TEXT|File.READ;\n"
@@ -1646,6 +1651,16 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
     } \
     case KX_STR_T: { \
         KX_MOD_MOD_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v2); \
+        if (out) { \
+            KX_MOD_MOD_S(v1, ks_string(out)); \
+            ks_free(out); \
+            break; \
+        } \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
     default: \
