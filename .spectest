@@ -1,0 +1,23 @@
+{
+    "root": "doc/spec",
+
+    "topLevelFilePattern": "(README|CONTENTS)\\.md",
+    "linkPattern": "\\[([^\\]]+)\\]\\s*\\(([^\\)]+\\.md)\\)",
+
+    "targetNamePattern": "^#\\s+(.+)",
+
+    "startTestPattern": "^##+\\s+Examples",
+    "endTestPattern": "",
+    "testNamePattern": "^##+\\s+Example\\s+[0-9]+[\\.\\)]?\\s+(.+)",
+
+    "startCodePattern": "^##+\\s+Code.*",
+    "startResultPattern": "^##+\\s+Result.*",
+
+    "codeBlockStart": "^```",
+    "codeBlockEnd": "^```",
+
+    "testfile": "",
+    "resultfile": "",
+    "compiler": "",
+    "interpreter": "./kinx"
+}
