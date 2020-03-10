@@ -91,6 +91,8 @@ static int get_keyword_token(const char *val)
     switch (val[0]) {
     case '_':
         if (strcmp(val, "__END__") == 0)        { kx_lexinfo.ch = 0; return 0; }
+        if (strcmp(val, "__LINE__") == 0)       { kx_yylval.intval = kx_lexinfo.line; return INT; }
+        if (strcmp(val, "__FILE__") == 0)       { kx_yylval.strval = kx_const_str(kx_lexinfo.file); return STR; }
         if (strcmp(val, "_import") == 0)        return IMPORT;
         if (strcmp(val, "_function") == 0)      return SYSFUNC;
         if (strcmp(val, "_class") == 0)         return SYSCLASS;
