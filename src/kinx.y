@@ -95,6 +95,7 @@
 %type<strval> RegexString
 %type<obj> ArrayItemList
 %type<obj> AssignExpressionList
+%type<obj> AssignExpressionObjList
 %type<obj> KeyValueList
 %type<obj> KeyValue
 %type<strval> VarName
@@ -287,7 +288,7 @@ AssignExpression_Opt
 
 AssignExpressionList_Opt
     : { $$ = NULL; }
-    | AssignExpressionList
+    | AssignExpressionObjList
     ;
 
 Modifier_Opt
@@ -405,7 +406,7 @@ RegexMatch
 
 PrefixExpression
     : PostfixExpression
-    | '!' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
+    | '!' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
     | '+' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_POSITIVE, $2); }
     | '-' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_NEGATIVE, $2); }
     | INC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_INC, $2); }
@@ -519,6 +520,13 @@ ArrayItemList
 AssignExpressionList
     : AssignExpression
     | AssignExpressionList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRSEQ, $1, $3); }
+    ;
+
+AssignExpressionObjList
+    : AssignExpression
+    | '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
+    | AssignExpressionObjList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRSEQ, $1, $3); }
+    | AssignExpressionObjList ',' '{' '}' { $$ = kx_gen_bexpr_object(KXST_EXPRSEQ, $1, kx_gen_uexpr_object(KXOP_MKOBJ, NULL)); }
     ;
 
 KeyValueList
