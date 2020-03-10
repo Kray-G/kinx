@@ -809,80 +809,89 @@ typedef struct kx_context_ {
     } while (0);\
 /**/
 
-#define KEX_SET_PROP(o, name, kexvalp) { \
+#define KEX_SET_PROP(o, namep, kexvalp) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kh_value(p, k) = *(kexvalp); \
 } \
 /**/
 
-#define KEX_SET_PROP_UND(o, name) { \
+#define KEX_SET_PROP_UND(o, namep) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_UND_T; \
 } \
 /**/
-#define KEX_SET_PROP_INT(o, name, ival) { \
+#define KEX_SET_PROP_INT(o, namep, ival) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_INT_T; \
     val->value.iv = ival; \
 } \
 /**/
-#define KEX_SET_PROP_DBL(o, name, dval) { \
+#define KEX_SET_PROP_DBL(o, namep, dval) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_DBL_T; \
     val->value.iv = dval; \
 } \
 /**/
-#define KEX_SET_PROP_BIG(o, name, bzval) { \
+#define KEX_SET_PROP_BIG(o, namep, bzval) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_BIG_T; \
     val->value.bz = make_big_alive(ctx, BzCopy(bzval)); \
 } \
 /**/
-#define KEX_SET_PROP_ANY(o, name, aval) { \
+#define KEX_SET_PROP_ANY(o, namep, aval) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_ANY_T; \
     val->value.av = aval; \
 } \
 /**/
-#define KEX_SET_PROP_OBJ(o, name, kexobj) { \
+#define KEX_SET_PROP_OBJ(o, namep, kexobj) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_OBJ_T; \
     val->value.ov = kexobj; \
 } \
 /**/
-#define KEX_SET_PROP_BIN(o, name, binobj) { \
+#define KEX_SET_PROP_BIN(o, namep, binobj) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_BIN_T; \
     val->value.bn = binobj; \
 } \
 /**/
-#define KEX_SET_PROP_STR(o, name, strv) { \
+#define KEX_SET_PROP_STR(o, namep, strv) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     kstr_t *sv = allocate_str(ctx); \
     ks_append(sv, ks_string(strv)); \
@@ -890,10 +899,11 @@ typedef struct kx_context_ {
     val->value.sv = sv; \
 } \
 /**/
-#define KEX_SET_PROP_CSTR(o, name, cstr) { \
+#define KEX_SET_PROP_CSTR(o, namep, cstr) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     kstr_t *sv = allocate_str(ctx); \
     ks_append(sv, cstr); \
@@ -901,27 +911,30 @@ typedef struct kx_context_ {
     val->value.sv = sv; \
 } \
 /**/
-#define KEX_SET_PROP_FNC(o, name, fncv) { \
+#define KEX_SET_PROP_FNC(o, namep, fncv) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_FNC_T; \
     val->value.fn = fncv; \
 } \
 /**/
-#define KEX_SET_PROP_BFNC(o, name, fncv) { \
+#define KEX_SET_PROP_BFNC(o, namep, fncv) { \
     int absent;\
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_put(prop, p, name, &absent); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_BFNC_T; \
     val->value.fn = fncv; \
 } \
 /**/
-#define KEX_GET_PROP(dst, o, name) { \
+#define KEX_GET_PROP(dst, o, namep) { \
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_get(prop, p, name); \
+    const char *constn = kx_const_str(namep); \
+    khint_t k = kh_get(prop, p, constn); \
     if (k != kh_end(p)) { \
         dst = &(kh_value(p, k)); \
     } \
