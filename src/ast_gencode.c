@@ -175,9 +175,9 @@ static void do_finally(kx_context_t *ctx, kx_analyze_t *ana, int popc)
     int len = kv_size(*(ana->finallies));
     if (len > 0) {
         gencode_ast_hook(ctx, kv_last(*(ana->finallies)), ana, 0);
-        if (popc && ana->in_try) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_POP_C }));
-        }
+    }
+    if (popc && ana->in_try) {
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_POP_C }));
     }
 }
 
@@ -912,7 +912,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_IDX: {
-        gencode_ast_hook(ctx, node->lhs, ana, 1);
+        gencode_ast_hook(ctx, node->lhs, ana, lvalue);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         if (code_size(module, ana) == 0) {
             if (lvalue) { 
