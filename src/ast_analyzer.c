@@ -423,9 +423,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
             break;
         }
-        int lvalue = ctx->lvalue;
-        ctx->lvalue = 1;
+        /* 1 when lvalue */
         analyze_ast(node->lhs, ctx);
+        int lvalue = ctx->lvalue;
         ctx->lvalue = 0;
         analyze_ast(node->rhs, ctx);
         ctx->lvalue = lvalue;
