@@ -1,0 +1,390 @@
+
+_class TestException(what) { @_type = 'TestException'; @_what = what; }
+TestException = TestException.create;
+
+class SpecTestCase(id_, index_, testinfo_, spectest_) {
+
+    @suite = id_;
+    @name = testinfo_.name;
+    @code = testinfo_.code;
+    @result = testinfo_.result;
+    @id = "(%02d)-[%04d]" % id_ % index_;
+    @progress = spectest_.progress;
+    var compiler_ = spectest_.spec.compiler;
+    var interpreter_ = spectest_.spec.interpreter;
+    var testfile_ = spectest_.spec.testfile;
+    var resfile_ = spectest_.spec.resultfile;
+
+    public setup() {
+    }
+
+    public teardown() {
+    }
+
+    public test() {
+        if (!testfile_) {
+            throw TestException("No test code temporary file name");
+        }
+        if (!resfile_) {
+            throw TestException("No test result temporary file name");
+        }
+        var res = {
+            name: @name,
+            id: @id,
+        };
+        @progress.startTestCase();
+        try {
+            var code = @code.join('\n');
+            res.code = code;
+            File.open(testfile_, File.TEXT|File.WRITE, function(f) {
+                f.println(code);
+            });
+            if (compiler_) {
+                System.exec(compiler_ + " " + testfile_ + " > NUL 2>&1");
+            }
+            System.exec(interpreter_ + " > " + resfile_);
+            var buf = File.load(resfile_);
+            res.actual = buf.trim();
+            var rvl = @result.join('\n');
+            res.expect = rvl.trim();
+            res.failed = res.actual != res.expect;
+        } catch (e) {
+            res.message = "%{e.type()}: %{e.what()}";
+            res.failed = true;
+        } finally {
+            File.unlink(resfile_);
+            File.unlink(testfile_);
+        }
+        @progress.endTestCase();
+        return res;
+    }
+
+    public print() {
+        System.println("  Test Case [%d]: %s" % index_ % @name);
+        System.println("    Test Code:");
+        @code.each(function(line, i) {
+            System.println("    %4d: %s" % i % line);
+        });
+        System.println("    Test Result:");
+        @result.each(function(line, i) {
+            System.println("    %4d: %s" % i % line);
+        });
+        System.println("");
+    }
+
+}
+
+class SpecTestCaseForKinx(id_, index_, testinfo_, spectest_) : SpecTestCase(id_, index_, testinfo_, spectest_) {
+
+    var system_, buf_;
+    @progress = spectest_.progress;
+
+    public setup() {
+        if (spectest_.isKinx)
+        system_.print = System.print;
+        system_.println = System.println;
+        buf_ = "";
+        System.print = function(...args) {
+            buf_ += args.join('');
+        };
+        System.println = function(...args) {
+            buf_ += args.join('\n');
+        };
+    }
+
+    public teardown() {
+        System.print = system_.print;
+        System.println = system_.println;
+    }
+
+    public test() {
+        var res = {
+            name: @name,
+            id: @id,
+        };
+        @progress.startTestCase();
+        try {
+            var code = @code.join('\n');
+            res.code = code;
+            code.eval();
+            res.actual = buf_.trim();
+            var rvl = @result.join('\n');
+            res.expect = rvl.trim();
+            res.failed = res.actual != res.expect;
+        } catch (e)  {
+            res.message = "%{e.type()}: %{e.what()}";
+            res.failed = true;
+        }
+        @progress.endTestCase();
+        return res;
+    }
+
+}
+
+class SpecTestSuite(id_, info_, spectest_) {
+
+    @testCaseList = [];
+    @progress = spectest_.progress;
+
+    public initialize() {
+        var testCaseClass = spectest_.spec.isKinx ? SpecTestCaseForKinx : SpecTestCase;
+        var test = info_.test;
+        for (var i = 0, len = test.length(); i < len; ++i) {
+            var testcase = new testCaseClass(id_, i, test[i], spectest_);
+            @testCaseList.push(testcase);
+        }
+    }
+
+    public test() {
+        var res = [];
+        @progress.startSuite(info_.targetName);
+        @testCaseList.each(function(testcase) {
+            testcase.setup();
+            var r = testcase.test();
+            testcase.teardown();
+            res.push(r);
+        });
+        @progress.endSuite();
+        return {
+            entry: info_.name,
+            name: info_.targetName,
+            result: res,
+        };
+    }
+
+    public print() {
+        System.println("Entry: %s" % info_.name);
+        System.println("* Test Target: %s" % info_.targetName);
+        @testCaseList.each(function(testcase) {
+            testcase.print();
+        });
+    }
+
+}
+
+class SpecTestEntry(id_, entry_, spectest_) {
+    @link = [];
+    @nolink = [];
+    var info_ = { name: entry_, test: [] };
+
+    private makeTest(testarea) {
+        var index = 0;
+        var spec_ = spectest_.spec;
+        var ctx = { testcode: false, result: false, inCode: false };
+        testarea.each(function(line) {
+            if (g = (line =~ spec_.testNamePattern)) {
+                info_.test.push({
+                    name: g[1].string,
+                    code: [],
+                    result: []
+                });
+                ctx.testcode = false;
+                ctx.result = false;
+                return;
+            } else if (line =~ spec_.startCodePattern) {
+                ctx.testcode = true;
+                ctx.result = false;
+                return;
+            } else if (line =~ spec_.startResultPattern) {
+                ctx.testcode = false;
+                ctx.result = true;
+                return;
+            } else if (!ctx.inCode && line =~ spec_.codeBlockStart) {
+                ctx.inCode = true;
+                return;
+            } else if (ctx.inCode && line =~ spec_.codeBlockEnd) {
+                ctx.inCode = false;
+                return;
+            }
+            if (ctx.inCode) {
+                if (info_.test.length() == 0) {
+                    System.println("Warning: no test name");
+                } else if (ctx.testcode) {
+                    info_.test[-1].code.push(line);
+                } else if (ctx.result) {
+                    info_.test[-1].result.push(line);
+                }
+            }
+        });
+    }
+
+    private listupLinks() {
+        var spec_ = spectest_.spec;
+        var started = false;
+        var ppath = entry_.parentPath();
+        var file = new File(entry_, File.TEXT|File.READ);
+        var testarea = [];
+        file.eachLine(function(line, i) {
+            var g;
+            if (started) {
+                if (spec_.endTestCasePattern && line =~ spec_.endTestCasePattern) {
+                    started = false;
+                    return;
+                }
+                testarea.push(line);
+                return;
+            }
+            if (g = (line =~ spec_.linkPattern)) {
+                var mdfile = ppath / g[2].string;
+                if (File.exists(mdfile)) {
+                    @link.push(mdfile);
+                } else {
+                    @nolink.push(mdfile);
+                }
+                return;
+            }
+            if (!info_.targetName && (g = (line =~ spec_.targetNamePattern))) {
+                info_.targetName = g[1].string;
+                return;
+            }
+            if (g = (line =~ spec_.startTestPattern)) {
+                started = true;
+                return;
+            }
+        });
+        file.close();
+        info_.hasTest = testarea.length() > 0;
+        makeTest(testarea);
+        @suite = new SpecTestSuite(id_, info_, spectest_);
+    }
+
+    public setup() {
+        listupLinks();
+        @link.each(_function(mdfile) {
+            spectest_.addEntry(mdfile);
+        });
+        # @nolink.each(_function(mdfile) {
+        #     System.println("no-entry: %s" % mdfile);
+        # });
+    }
+
+    public test() {
+        if (info_.hasTest) {
+            return @suite.test();
+        }
+        return {};
+    }
+
+    public print() {
+        if (info_.hasTest) {
+            @suite.print();
+        }
+    }
+}
+
+class SpecTestProgress(system_) {
+
+    public startTest() {
+    }
+
+    public endTest() {
+        system_.println("");
+    }
+
+    public startSuite(name) {
+        system_.print("<[%s]" % name);
+    }
+
+    public endSuite() {
+        system_.print(">");
+    }
+
+    public startTestCase() {
+        system_.print("*");
+    }
+
+    public endTestCase() {
+    }
+
+}
+
+class SpecTest(args_) {
+    var spec_, top_;
+    var id_ = 0;
+    var analyzed_ = false;
+
+    private initialize() {
+        @target = {};
+        spec_ = JSON.parse(File.load(".spectest"));
+        @spec.topLevelFilePattern = new Regex(spec_.topLevelFilePattern || %{README|CONTENTS)\.md});
+        @spec.linkPattern = new Regex(spec_.linkPattern);
+        @spec.targetNamePattern = new Regex(spec_.targetNamePattern);
+        @spec.startTestPattern = new Regex(spec_.startTestPattern);
+        @spec.endTestCasePattern = spec_.endTestCasePattern ? new Regex(spec_.endTestCasePattern) : null;
+        @spec.testNamePattern = new Regex(spec_.testNamePattern);
+        @spec.startCodePattern = new Regex(spec_.startCodePattern);
+        @spec.startResultPattern = new Regex(spec_.startResultPattern);
+        @spec.codeBlockStart = new Regex(spec_.codeBlockStart);
+        @spec.codeBlockEnd = new Regex(spec_.codeBlockEnd);
+        @spec.compiler = spec_.compiler;
+        @spec.interpreter = spec_.interpreter;
+        @spec.testfile = spec_.testfile;
+        @spec.resultfile = spec_.resultfile;
+        @spec.isKinx = !spec_.compiler && spec_.interpreter && (spec_.interpreter.endsWith("kinx") || spec_.interpreter.endsWith("kinx.exe"));
+        @root = spec_.root;
+        @options = {};
+        @progress = new SpecTestProgress({
+            print: System.print,
+            println: System.println,
+        });
+    }
+
+    public addEntry(entry) {
+        if (@target[entry].isUndefined) {
+            @target[entry] = new SpecTestEntry(id_++, entry, this);
+            @target[entry].setup();
+        }
+    }
+
+    public analyze() {
+        Directory.recursiveWalk(spec_.root, &(entry, i) => {
+            if (entry.extension() == ".md") {
+                if (!top_ && spec_.topLevelFilePattern && entry =~ spec_.topLevelFilePattern) {
+                    top_ = entry;
+                }
+                @addEntry(entry);
+            }
+        });
+        analyzed_ = true;
+        System.println("top = ", top_);
+    }
+
+    public start() {
+        if (!analyzed_) {
+            analyze();
+        }
+        var res = [];
+        @progress.startTest();
+        @target.keySet().each(function(entry) {
+            var r = @target[entry].test();
+            if (r.entry) {
+                res.push(r);
+            }
+        });
+        @progress.endTest();
+        return res;
+    }
+
+    public print() {
+        if (!analyzed_) {
+            analyze();
+        }
+        @target.keySet().each(function(entry) {
+            @target[entry].print();
+        });
+    }
+}
+
+# try {
+    var st = new SpecTest();
+    var r = st.start();
+    r.each(&(testsuite) => {
+        System.println("Entry: %s" % testsuite.entry);
+        System.println("Test Name: %s" % testsuite.name);
+        testsuite.result.each(&(testcase) => {
+            System.println("    TestCase%s : %s (%s)" % testcase.id % (testcase.failed ? "Failed" : "Successful") % testcase.name);
+        });
+    });
+# } catch (e) {
+#     ;
+# }
