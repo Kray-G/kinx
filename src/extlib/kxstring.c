@@ -128,14 +128,21 @@ int String_splitByString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
             int width = strlen(cond);
             const char *start = str;
             const char *p = strstr(str, cond);
+            const char *end = start + strlen(str);
             while (p) {
                 ks_append_n(sv, start, p - start);
                 KEX_PUSH_ARRAY_STR(res, ks_string(sv));
                 ks_clear(sv);
                 start = p + width;
-                p = strstr(start, cond);
+                if (start < end) {
+                    p = strstr(start, cond);
+                } else {
+                    p = NULL;
+                }
             }
-            ks_append(sv, start);
+            if (start < end) {
+                ks_append(sv, start);
+            }
             KEX_PUSH_ARRAY_STR(res, ks_string(sv));
         }
         KX_ADJST_STACK();
@@ -152,7 +159,7 @@ int String_replaceByString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     const char *cond = get_arg_str(2, args, ctx);
     const char *newstr = get_arg_str(3, args, ctx);
     if (!newstr) newstr = "";
-    if (str) {
+    if (str && cond) {
         kstr_t *sv = allocate_str(ctx);
         if (cond[0] == 0) {
             const char *p = str;
@@ -166,13 +173,20 @@ int String_replaceByString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
             int width = strlen(cond);
             const char *start = str;
             const char *p = strstr(str, cond);
+            const char *end = start + strlen(str);
             while (p) {
                 ks_append_n(sv, start, p - start);
                 ks_append(sv, newstr);
                 start = p + width;
-                p = strstr(start, cond);
+                if (start < end) {
+                    p = strstr(start, cond);
+                } else {
+                    p = NULL;
+                }
             }
-            ks_append(sv, start);
+            if (start < end) {
+                ks_append(sv, start);
+            }
         }
         KX_ADJST_STACK();
         push_sv(ctx->stack, sv);
