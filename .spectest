@@ -16,8 +16,9 @@
     "codeBlockStart": "^```",
     "codeBlockEnd": "^```",
 
-    "testfile": "",
-    "resultfile": "",
+    "testfile": "test.kx",
+    "resultfile": "result.txt",
     "compiler": "",
-    "interpreter": "./kinx"
+    "interpreter": "kinx test.kx",
+    "interpreterPath": "."
 }

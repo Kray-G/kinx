@@ -2,9 +2,48 @@
 _class TestException(what) { @_type = 'TestException'; @_what = what; }
 TestException = TestException.create;
 
+class SpecTestResult(res_) {
+
+    private indentSpaces(indent, add) {
+        return ("    " * (indent || 0)) + (add * " ");
+    }
+
+    private showIndent(indent) {
+        System.print(indentSpaces(indent));
+    }
+
+    public showResult(indent) {
+        indent ??= 0;
+        if (res_.name) {
+            showIndent(indent);
+            if(res_.isTestCase) {
+                var len = res_.name.length();
+                var dotlen = len < 57 ? (60 - len - (indent * 4)) : 3;
+                var dot = dotlen * ".";
+                System.println("Case[%d] (%s) %s %s" % res_.index % res_.name % dot % (res_.failed ? "failed" : "successful"));
+                if (res_.failed) {
+                    var idt = indent + 1;
+                    var seplen = 78 - (indent * 4);
+                    showIndent(idt);
+                    System.println("-" * seplen);
+                    showIndent(idt);
+                    System.println("Expected: ", res_.expect.replace("\n", "\n"+indentSpaces(idt, 10)));
+                    showIndent(idt);
+                    System.println("-" * seplen);
+                    showIndent(idt);
+                    System.println("Actual:   ", res_.actual.replace("\n", "\n"+indentSpaces(idt, 10)));
+                }
+            } else {
+                System.println(res_.name);
+            }
+        }
+    }
+
+}
+
 class SpecTestCase(id_, index_, testinfo_, spectest_) {
 
-    @suite = id_;
+    @entry = id_;
     @name = testinfo_.name;
     @code = testinfo_.code;
     @result = testinfo_.result;
@@ -14,6 +53,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
     var interpreter_ = spectest_.spec.interpreter;
     var testfile_ = spectest_.spec.testfile;
     var resfile_ = spectest_.spec.resultfile;
+    var result_;
 
     public setup() {
     }
@@ -31,8 +71,10 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
         var res = {
             name: @name,
             id: @id,
+            index: index_,
+            isTestCase: true,
         };
-        @progress.startTestCase();
+        @progress.startTestCase(@name);
         try {
             var code = @code.join('\n');
             res.code = code;
@@ -55,68 +97,31 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
             File.unlink(resfile_);
             File.unlink(testfile_);
         }
-        @progress.endTestCase();
-        return res;
+        @progress.endTestCase(res.failed ? "failed" : "success");
+        result_ = new SpecTestResult(res);
+    }
+
+    public showResult(indent) {
+        if (result_) {
+            result_.showResult(indent);
+        }
     }
 
     public print() {
-        System.println("  Test Case [%d]: %s" % index_ % @name);
-        System.println("    Test Code:");
+        System.println("  Case[%d]: %s" % index_ % @name);
+        System.println("    Code:");
         @code.each(function(line, i) {
             System.println("    %4d: %s" % i % line);
         });
-        System.println("    Test Result:");
+        System.println("    Result:");
         @result.each(function(line, i) {
             System.println("    %4d: %s" % i % line);
         });
         System.println("");
     }
 
-}
-
-class SpecTestCaseForKinx(id_, index_, testinfo_, spectest_) : SpecTestCase(id_, index_, testinfo_, spectest_) {
-
-    var system_, buf_;
-    @progress = spectest_.progress;
-
-    public setup() {
-        if (spectest_.isKinx)
-        system_.print = System.print;
-        system_.println = System.println;
-        buf_ = "";
-        System.print = function(...args) {
-            buf_ += args.join('');
-        };
-        System.println = function(...args) {
-            buf_ += args.join('\n');
-        };
-    }
-
-    public teardown() {
-        System.print = system_.print;
-        System.println = system_.println;
-    }
-
-    public test() {
-        var res = {
-            name: @name,
-            id: @id,
-        };
-        @progress.startTestCase();
-        try {
-            var code = @code.join('\n');
-            res.code = code;
-            code.eval();
-            res.actual = buf_.trim();
-            var rvl = @result.join('\n');
-            res.expect = rvl.trim();
-            res.failed = res.actual != res.expect;
-        } catch (e)  {
-            res.message = "%{e.type()}: %{e.what()}";
-            res.failed = true;
-        }
-        @progress.endTestCase();
-        return res;
+    public count() {
+        return 1;
     }
 
 }
@@ -125,39 +130,104 @@ class SpecTestSuite(id_, info_, spectest_) {
 
     @testCaseList = [];
     @progress = spectest_.progress;
+    var result_;
 
     public initialize() {
-        var testCaseClass = spectest_.spec.isKinx ? SpecTestCaseForKinx : SpecTestCase;
         var test = info_.test;
         for (var i = 0, len = test.length(); i < len; ++i) {
-            var testcase = new testCaseClass(id_, i, test[i], spectest_);
+            var testcase = new SpecTestCase(id_, i, test[i], spectest_);
             @testCaseList.push(testcase);
         }
     }
 
     public test() {
-        var res = [];
         @progress.startSuite(info_.targetName);
         @testCaseList.each(function(testcase) {
             testcase.setup();
-            var r = testcase.test();
+            testcase.test();
             testcase.teardown();
-            res.push(r);
         });
         @progress.endSuite();
-        return {
-            entry: info_.name,
+        result_ = new SpecTestResult({
+            file: info_.name,
             name: info_.targetName,
-            result: res,
-        };
+        });
+    }
+
+    public showResult(indent) {
+        if (result_) {
+            result_.showResult(indent);
+        }
+        @testCaseList.each(function(testcase) {
+            testcase.showResult(indent + 1);
+        });
     }
 
     public print() {
         System.println("Entry: %s" % info_.name);
-        System.println("* Test Target: %s" % info_.targetName);
+        System.println("* %s" % info_.targetName);
         @testCaseList.each(function(testcase) {
             testcase.print();
         });
+    }
+
+    public count() {
+        return @testCaseList.reduce(&(r, tc) => r + tc.count());
+    }
+
+}
+
+class SpecTestNolinkEntry(id_, entry_, spectest_) {
+
+    @progress = spectest_.progress;
+    var result_;
+
+    public test() {
+        @progress.startSuite(entry_.stem());
+        @progress.startTestCase("-");
+        @progress.endTestCase("warning");
+        @progress.endSuite();
+        result_ = new SpecTestResult({
+            name: "Entry(nolink): "+entry_,
+        });
+    }
+
+    public showResult(indent) {
+        if (result_) {
+            result_.showResult(indent);
+        }
+    }
+
+    public print() {
+    }
+
+    public count() {
+        return 1;
+    }
+
+}
+
+class SpecTestSkipEntry(id_, entry_, spectest_) {
+
+    var result_;
+
+    public test() {
+        return new SpecTestResult({
+            name: "Entry(skipped): "+entry_,
+        });
+    }
+
+    public showResult(indent) {
+        if (result_) {
+            result_.showResult(indent);
+        }
+    }
+
+    public print() {
+    }
+
+    public count() {
+        return 0;
     }
 
 }
@@ -165,7 +235,11 @@ class SpecTestSuite(id_, info_, spectest_) {
 class SpecTestEntry(id_, entry_, spectest_) {
     @link = [];
     @nolink = [];
+    @entry = [];
+    @progress = spectest_.progress;
     var info_ = { name: entry_, test: [] };
+    var suite_;
+    var result_;
 
     private makeTest(testarea) {
         var index = 0;
@@ -243,38 +317,78 @@ class SpecTestEntry(id_, entry_, spectest_) {
             }
         });
         file.close();
-        info_.hasTest = testarea.length() > 0;
         makeTest(testarea);
-        @suite = new SpecTestSuite(id_, info_, spectest_);
+        suite_ = new SpecTestSuite(id_, info_, spectest_);
     }
 
     public setup() {
         listupLinks();
         @link.each(_function(mdfile) {
-            spectest_.addEntry(mdfile);
+            @addEntry(mdfile);
         });
-        # @nolink.each(_function(mdfile) {
-        #     System.println("no-entry: %s" % mdfile);
-        # });
+        @nolink.each(_function(mdfile) {
+            @entry.push(new SpecTestNolinkEntry(id_++, mdfile, spectest_));
+        });
+    }
+
+    public addEntry(entry) {
+        if (!spectest_.isEntried(entry)) {
+            spectest_.addEntry(entry);
+            var e = new SpecTestEntry(id_++, entry, spectest_);
+            @entry.push(e);
+            e.setup();
+        } else {
+            @entry.push(new SpecTestSkipEntry(id_++, entry, spectest_));
+        }
     }
 
     public test() {
-        if (info_.hasTest) {
-            return @suite.test();
+        @progress.startSuite(entry_);
+        if (suite_) {
+            suite_.test();
         }
-        return {};
+        @entry.each(function(e) {
+            e.test();
+        });
+        @progress.endSuite();
+        result_ = new SpecTestResult({
+            name: "Entry: "+entry_,
+        });
+    }
+
+    public showResult(indent) {
+        if (result_) {
+            result_.showResult(indent);
+        }
+        suite_.showResult(indent + 1);
+        @entry.each(function(entry) {
+            entry.showResult(indent + 1);
+        });
     }
 
     public print() {
-        if (info_.hasTest) {
-            @suite.print();
-        }
+        suite_.print();
+        @entry.each(function(entry) {
+            System.println("");
+            entry.print();
+        });
+    }
+
+    public count() {
+        return @entry.reduce(&(r, ts) => r + ts.count()) + suite_.count();
     }
 }
 
 class SpecTestProgress(system_) {
 
-    public startTest() {
+    @info = {};
+
+    public startTest(opts) {
+        @info.total = opts.total;
+        @info.done = 0;
+        @info.success = 0;
+        @info.failed = 0;
+        @info.warning = 0;
     }
 
     public endTest() {
@@ -282,26 +396,51 @@ class SpecTestProgress(system_) {
     }
 
     public startSuite(name) {
-        system_.print("<[%s]" % name);
+        system_.print("<");
     }
 
     public endSuite() {
         system_.print(">");
     }
 
-    public startTestCase() {
-        system_.print("*");
+    public startTestCase(name) {
     }
 
-    public endTestCase() {
+    public endTestCase(result) {
+        switch (result) {
+        case "success":
+            system_.print("*");
+            ++(@info.success);
+            break;
+        case "failed":
+            system_.print("E");
+            ++(@info.failed);
+            break;
+        case "warning":
+            system_.print("W");
+            ++(@info.warning);
+            break;
+        }
+        ++(@info.done);
+    }
+
+    public showResult() {
+        System.println("");
+        System.println("<Test Result>");
+        System.println("    Total Test Cases: %8d" % @info.total);
+        System.println("        Successful  : %8d" % @info.success);
+        System.println("        Failed      : %8d" % @info.failed);
+        System.println("        Warning     : %8d" % @info.warning);
     }
 
 }
 
 class SpecTest(args_) {
-    var spec_, top_;
+    var spec_;
+    var top_;
     var id_ = 0;
     var analyzed_ = false;
+    var result_;
 
     private initialize() {
         @target = {};
@@ -320,7 +459,6 @@ class SpecTest(args_) {
         @spec.interpreter = spec_.interpreter;
         @spec.testfile = spec_.testfile;
         @spec.resultfile = spec_.resultfile;
-        @spec.isKinx = !spec_.compiler && spec_.interpreter && (spec_.interpreter.endsWith("kinx") || spec_.interpreter.endsWith("kinx.exe"));
         @root = spec_.root;
         @options = {};
         @progress = new SpecTestProgress({
@@ -329,62 +467,63 @@ class SpecTest(args_) {
         });
     }
 
+    public isEntried(entry) {
+        return @target[entry];
+    }
+
     public addEntry(entry) {
-        if (@target[entry].isUndefined) {
-            @target[entry] = new SpecTestEntry(id_++, entry, this);
-            @target[entry].setup();
-        }
+        @target[entry] = true;
     }
 
     public analyze() {
-        Directory.recursiveWalk(spec_.root, &(entry, i) => {
+        Directory.walk(spec_.root, &(entry, i) => {
             if (entry.extension() == ".md") {
-                if (!top_ && spec_.topLevelFilePattern && entry =~ spec_.topLevelFilePattern) {
-                    top_ = entry;
+                if (spec_.topLevelFilePattern && entry =~ spec_.topLevelFilePattern) {
+                    @addEntry(entry);
+                    top_ = new SpecTestEntry(id_++, entry, this);
+                    top_.setup();
+                    return false;
                 }
-                @addEntry(entry);
             }
         });
         analyzed_ = true;
-        System.println("top = ", top_);
     }
 
     public start() {
         if (!analyzed_) {
             analyze();
         }
-        var res = [];
-        @progress.startTest();
-        @target.keySet().each(function(entry) {
-            var r = @target[entry].test();
-            if (r.entry) {
-                res.push(r);
-            }
-        });
+        @progress.startTest({ total: @count() });
+        top_.test();
         @progress.endTest();
-        return res;
+    }
+
+    public showResult(indent) {
+        top_.showResult(indent);
     }
 
     public print() {
         if (!analyzed_) {
             analyze();
         }
-        @target.keySet().each(function(entry) {
-            @target[entry].print();
-        });
+        top_.print();
+    }
+
+    public count() {
+        if (!analyzed_) {
+            analyze();
+        }
+        return top_.count();
     }
 }
 
 # try {
+    # st.print();
     var st = new SpecTest();
-    var r = st.start();
-    r.each(&(testsuite) => {
-        System.println("Entry: %s" % testsuite.entry);
-        System.println("Test Name: %s" % testsuite.name);
-        testsuite.result.each(&(testcase) => {
-            System.println("    TestCase%s : %s (%s)" % testcase.id % (testcase.failed ? "Failed" : "Successful") % testcase.name);
-        });
-    });
+    System.println("Test Cout = " + st.count());
+    st.start();
+    st.showResult();
+    st.progress.showResult();
 # } catch (e) {
 #     ;
 # }
