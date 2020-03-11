@@ -88,7 +88,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
             index: index_,
             isTestCase: true,
         };
-        @progress.startTestCase(@name);
+        @progress.startTestCase(index_, @name);
         var tmr = new SystemTimer();
         try {
             var code = @code.join('\n');
@@ -113,7 +113,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
             File.unlink(testfile_);
         }
         res.elapsed = tmr.elapsed();
-        @progress.endTestCase(res.failed ? "failed" : "success");
+        @progress.endTestCase(res.failed ? "failed" : "successful");
         result_ = new SpecTestResult(res);
     }
 
@@ -207,10 +207,10 @@ class SpecTestNolinkEntry(id_, entry_, spectest_) {
     var result_;
 
     public test() {
-        @progress.startSuite(entry_.stem());
-        @progress.startTestCase("-");
+        @progress.startEntry(entry_.stem());
+        @progress.startTestCase(0, "-");
         @progress.endTestCase("warning");
-        @progress.endSuite();
+        @progress.endEntry();
         result_ = new SpecTestResult({
             name: "Entry(nolink): "+entry_,
         });
@@ -367,14 +367,14 @@ class SpecTestEntry(id_, entry_, spectest_) {
     }
 
     public test() {
-        @progress.startSuite(entry_);
+        @progress.startEntry(entry_);
         if (suite_) {
             suite_.test();
         }
         @entry.each(function(e) {
             e.test();
         });
-        @progress.endSuite();
+        @progress.endEntry();
         result_ = new SpecTestResult({
             name: "Entry: "+entry_,
         });
@@ -419,6 +419,14 @@ class SpecTestProgress(system_) {
         system_.println("");
     }
 
+    public startEntry(name) {
+        system_.print("[");
+    }
+
+    public endEntry() {
+        system_.print("]");
+    }
+
     public startSuite(name) {
         system_.print("<");
     }
@@ -427,12 +435,12 @@ class SpecTestProgress(system_) {
         system_.print(">");
     }
 
-    public startTestCase(name) {
+    public startTestCase(index, name) {
     }
 
     public endTestCase(result) {
         switch (result) {
-        case "success":
+        case "successful":
             system_.print("*");
             ++(@info.success);
             break;
@@ -459,12 +467,109 @@ class SpecTestProgress(system_) {
 
 }
 
+class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
+
+    var indent_ = 0;
+    var dotlen_;
+
+    private showIndent() {
+        system_.print("    " * indent_);
+    }
+
+    public endTest() {
+    }
+
+    public startEntry(name) {
+        showIndent();
+        system_.println("Entry: %s" % name);
+        ++indent_;
+    }
+
+    public endEntry() {
+        --indent_;
+    }
+
+    public startSuite(name) {
+        showIndent();
+        system_.println("Suite: %s" % name);
+        ++indent_;
+    }
+
+    public endSuite() {
+        --indent_;
+    }
+
+    public startTestCase(index, name) {
+        showIndent();
+        system_.print("Case[%d]: %s" % index % name);
+        dotlen_ = 60 - name.length() - 6 - (indent_ * 4);
+        if (dotlen_ < 0) dotlen_ = 3; 
+    }
+
+    public endTestCase(result) {
+        switch (result) {
+        case "successful":
+            system_.println(" %s successful" % (dotlen_ * '.'));
+            ++(@info.success);
+            break;
+        case "failed":
+            system_.println(" %s failed" % (dotlen_ * '.'));
+            ++(@info.failed);
+            break;
+        case "warning":
+            system_.println(" %s warning" % (dotlen_ * '.'));
+            ++(@info.warning);
+            break;
+        }
+        ++(@info.done);
+    }
+
+}
+
 class SpecTest(args_) {
     var spec_;
     var top_;
     var id_ = 0;
     var analyzed_ = false;
     var result_;
+
+    private hasOptArg(opts, ch) {
+        for (var i = 0, len = opts.length(); i < len; ++i) {
+            if (opts[i] == ch && ((i + 1) < len) && opts[i+1] == ':'[0]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private getopt(args, opts) {
+        for (var i = 0, len = args.length(); i < len; i++) {
+            var argstr = args[i];
+            if (argstr[0] == '-'[0] && argstr[1] != '-'[0]) {
+                var arg, type = argstr[1];
+                if (hasOptArg(opts, type)) {
+                    i++;
+                    arg = args[i];
+                } else {
+                    arg = "";
+                }
+                yield {
+                    type: argstr[1],
+                    arg: arg,
+                };
+            }
+        }
+    }
+
+    public analyzeOptions(args) {
+        while (c = getopt(args, "v")) {
+            switch (c.type) {
+            case 'v'[0]:
+                @options.verbose = true;
+                break;
+            }
+        }
+    }
 
     private initialize() {
         @target = {};
@@ -485,10 +590,6 @@ class SpecTest(args_) {
         @spec.resultfile = spec_.resultfile;
         @root = spec_.root;
         @options = {};
-        @progress = new SpecTestProgress({
-            print: System.print,
-            println: System.println,
-        });
     }
 
     public isEntried(entry) {
@@ -496,10 +597,21 @@ class SpecTest(args_) {
     }
 
     public addEntry(entry) {
+        # System.println("entry = ", entry);
         @target[entry] = true;
+        # System.println("entry = ", entry);
     }
 
     public analyze() {
+        @progress = @options.verbose
+            ? new SpecTestProgressDetail({
+                print: System.print,
+                println: System.println,
+            })
+            : new SpecTestProgress({
+                print: System.print,
+                println: System.println,
+            });
         Directory.walk(spec_.root, &(entry, i) => {
             if (entry.extension() == ".md") {
                 if (spec_.topLevelFilePattern && entry =~ spec_.topLevelFilePattern) {
@@ -524,6 +636,7 @@ class SpecTest(args_) {
 
     public showResult(indent) {
         top_.showResult(indent);
+        @progress.showResult();
     }
 
     public print() {
@@ -544,10 +657,10 @@ class SpecTest(args_) {
 # try {
     # st.print();
     var st = new SpecTest();
+    st.analyzeOptions($$);
     System.println("Test Cout = " + st.count());
     st.start();
-    st.showResult();
-    st.progress.showResult();
+    # st.showResult();
 # } catch (e) {
 #     ;
 # }
