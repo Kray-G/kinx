@@ -95,7 +95,11 @@ void print_value(kx_val_t *v, int recursive)
         break;
     }
     case KX_ADDR_T:
-        printf("(adr) 0x%x\n", v->value.jp->i);
+        if (v->value.jp) {
+            printf("(adr) index:0x%x\n", v->value.jp->i);
+        } else {
+            printf("(adr) NULL\n");
+        }
         break;
     default:
         printf("unknown(%d)\n", v->type);
