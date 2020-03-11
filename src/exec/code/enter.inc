@@ -35,6 +35,7 @@
         for (int i = 0; i < args; ++i) { \
             kv_push(kx_val_t, obj->ary, *(--stack)); \
         } \
+        frm->id = kv_size((ctx)->stack); \
         push_frm((ctx)->stack, frm); \
         push_obj((ctx)->stack, obj); \
         cur = fnco->fbpos; \
@@ -47,23 +48,15 @@
         int max_vars = cur->value2.i; \
         kv_resize_if(kx_val_t, frm->v, max_vars); \
         kv_shrinkto(frm->v, max_vars); \
-        int max_args = cur->count; \
+        int max_args = args > cur->count ? cur->count : args; \
         lexv = frm->lex = fnco->lex; \
-        if (args < max_args) { \
-            kx_val_t *v = (frm->v).a; \
-            kx_val_t *e = v + max_args; \
-            for (int i = 0; i < args; ++i) { \
-                *v++ = *(--stack); \
-            } \
-            while (v != e) { \
-                (v++)->type = KX_UND_T; \
-            } \
-        } else {\
-            kx_val_t *v = (frm->v).a; \
-            kx_val_t *e = v + max_args; \
-            while (v != e) { \
-                *v++ = *(--stack); \
-            } \
+        kx_val_t *v = (frm->v).a; \
+        kx_val_t *e = v + max_vars; \
+        for (int i = 0; i < max_args; ++i) { \
+            *v++ = *(--stack); \
+        } \
+        while (v != e) { \
+            (v++)->type = KX_UND_T; \
         } \
         push_frm((ctx)->stack, frm); \
         frmv = frm; \
