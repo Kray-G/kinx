@@ -392,12 +392,12 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
         printf("(for-init)\n");
         display_ast(node->lhs, indent + 1, 0);
-        print_indent(node, indent + 1);
+        print_indent(node, indent);
         printf("(for-cond)\n");
-        display_ast(node->rhs, indent + 2, 0);
-        print_indent(node, indent + 1);
+        display_ast(node->rhs, indent + 1, 0);
+        print_indent(node, indent);
         printf("(for-inc)\n");
-        display_ast(node->ex, indent + 2, 0);
+        display_ast(node->ex, indent + 1, 0);
         break;
     case KXST_TRY:        /* lhs: try, rhs: catch: ex: finally */
         printf("(try)\n");
