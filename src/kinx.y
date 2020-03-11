@@ -210,21 +210,21 @@ ForStatement
             kx_gen_stmt_object(KXST_FORCOND,
                 $4,
                 $6,
-                kx_gen_stmt_object(KXST_EXPR, $8, NULL, NULL)),
+                $8 == NULL ? NULL : kx_gen_stmt_object(KXST_EXPR, $8, NULL, NULL)),
             $10, NULL); }
     | FOR '(' AssignExpressionList ';' AssignExpressionList_Opt ';' AssignExpressionList_Opt ')' Statement
         { $$ = kx_gen_stmt_object(KXST_FOR,
             kx_gen_stmt_object(KXST_FORCOND,
                 kx_gen_stmt_object(KXST_EXPR, $3, NULL, NULL),
                 $5,
-                kx_gen_stmt_object(KXST_EXPR, $7, NULL, NULL)),
+                $7 == NULL ? NULL : kx_gen_stmt_object(KXST_EXPR, $7, NULL, NULL)),
             $9, NULL); }
     | FOR '(' ';' AssignExpressionList_Opt ';' AssignExpressionList_Opt ')' Statement
         { $$ = kx_gen_stmt_object(KXST_FOR,
             kx_gen_stmt_object(KXST_FORCOND,
                 NULL,
                 $4,
-                kx_gen_stmt_object(KXST_EXPR, $6, NULL, NULL)),
+                $6 == NULL ? NULL : kx_gen_stmt_object(KXST_EXPR, $6, NULL, NULL)),
             $8, NULL); }
     ;
 
