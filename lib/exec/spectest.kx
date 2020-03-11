@@ -18,9 +18,17 @@ class SpecTestResult(res_) {
             showIndent(indent);
             if(res_.isTestCase) {
                 var len = res_.name.length();
-                var dotlen = len < 57 ? (60 - len - (indent * 4)) : 3;
+                var dotlen = len < 47 ? (50 - len - (indent * 4)) : 3;
                 var dot = dotlen * ".";
-                System.println("Case[%d] (%s) %s %s" % res_.index % res_.name % dot % (res_.failed ? "failed" : "successful"));
+                var sec = (res_.elapsed).toInt();
+                var m10 = ((res_.elapsed * 100).toInt() % 100);
+                System.println("Case[%d] (%s) %s %-10s (%3d.%02ds)"
+                    % res_.index
+                    % res_.name
+                    % dot
+                    % (res_.failed ? "failed" : "successful")
+                    % sec
+                    % m10);
                 if (res_.failed) {
                     var idt = indent + 1;
                     var seplen = 78 - (indent * 4);
@@ -34,7 +42,13 @@ class SpecTestResult(res_) {
                     System.println("Actual:   ", res_.actual.replace("\n", "\n"+indentSpaces(idt, 10)));
                 }
             } else {
-                System.println(res_.name);
+                if (res_.elapsed) {
+                    var sec = (res_.elapsed).toInt();
+                    var m10 = ((res_.elapsed * 100).toInt() % 100);
+                    System.println("%s (%d.%02ds)" % res_.name % sec % m10);
+                } else {
+                    System.println(res_.name);
+                }
             }
         }
     }
@@ -75,6 +89,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
             isTestCase: true,
         };
         @progress.startTestCase(@name);
+        var tmr = new SystemTimer();
         try {
             var code = @code.join('\n');
             res.code = code;
@@ -82,7 +97,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
                 f.println(code);
             });
             if (compiler_) {
-                System.exec(compiler_ + " " + testfile_ + " > NUL 2>&1");
+                System.exec(compiler_ + " " + testfile_);
             }
             System.exec(interpreter_ + " > " + resfile_);
             var buf = File.load(resfile_);
@@ -97,6 +112,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
             File.unlink(resfile_);
             File.unlink(testfile_);
         }
+        res.elapsed = tmr.elapsed();
         @progress.endTestCase(res.failed ? "failed" : "success");
         result_ = new SpecTestResult(res);
     }
@@ -142,15 +158,23 @@ class SpecTestSuite(id_, info_, spectest_) {
 
     public test() {
         @progress.startSuite(info_.targetName);
+        var tmr = new SystemTimer();
         @testCaseList.each(function(testcase) {
-            testcase.setup();
-            testcase.test();
-            testcase.teardown();
+            try {
+                testcase.setup();
+                testcase.test();
+            } catch (e) {
+                ;
+            } finally {
+                testcase.teardown();
+            }
         });
+        var elapsed = tmr.elapsed();
         @progress.endSuite();
         result_ = new SpecTestResult({
             file: info_.name,
             name: info_.targetName,
+            elapsed: elapsed,
         });
     }
 
