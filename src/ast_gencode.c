@@ -1302,6 +1302,27 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         int cont_label = ana->cont_label;
         kx_object_t *forcond = node->lhs;
 
+        if (!forcond->lhs && !forcond->rhs && !forcond->ex) {
+            if (node->rhs) {
+                ana->break_label = stmt;
+                ana->cont_label = stmt;
+                int tb = new_block(ana);
+                ana->block = tb;
+                gencode_ast_hook(ctx, node->rhs, ana, 0);
+                get_block(module, ana->block)->tf[0] = stmt;
+            } else {
+                get_block(module, stmt)->tf[0] = stmt;
+            }
+            int out = new_block(ana);
+            get_block(module, stmt)->tf[2] = out;
+            get_block(module, stmt)->tf[3] = stmt;
+            ana->cont_label = cont_label;
+            ana->break_label = break_label;
+            ana->contblock = stmt;
+            ana->block = out;
+            break;
+        }
+
         if (forcond->lhs) {
             int init = new_block(ana);
             ana->block = init;
@@ -1318,6 +1339,8 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             ana->block = thtop;
             gencode_ast_hook(ctx, node->rhs, ana, 0);
             thend = ana->block;
+        } else {
+            thend = stmt;
         }
 
         int condtop, condend;
