@@ -92,6 +92,7 @@ int Double_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Double_length },
     { "parseInt", Double_parseInt },
+    { "toInt", Double_parseInt },
     { "parseDouble", Double_parseDouble },
 };
 
