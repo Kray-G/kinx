@@ -113,6 +113,7 @@ int main(int ac, char **av)
             } else if (!strcmp(lname, "exec")) {
                 if (param[0]) {
                     execname = param;
+                    goto END_OF_OPT;
                 }
                 break;
             }
@@ -141,6 +142,7 @@ int main(int ac, char **av)
         }
     }
 
+END_OF_OPT:
     kx_lexinfo.quiet = 0;
     if (execname) {
         const char *execfile = kxlib_exec_file_exists(execname);
@@ -200,7 +202,7 @@ int main(int ac, char **av)
     push_obj(ctx->stack, obj);
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
-    push_adr(ctx->stack, kv_A(ctx->fixcode, 1));
+    push_adr(ctx->stack, NULL);
     r = ir_exec(ctx);
 
 CLEANUP:
