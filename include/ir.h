@@ -933,8 +933,7 @@ typedef struct kx_context_ {
 /**/
 #define KEX_GET_PROP(dst, o, namep) { \
     khash_t(prop) *p = (o)->prop; \
-    const char *constn = kx_const_str(namep); \
-    khint_t k = kh_get(prop, p, constn); \
+    khint_t k = kh_get(prop, p, namep); \
     if (k != kh_end(p)) { \
         dst = &(kh_value(p, k)); \
     } \
