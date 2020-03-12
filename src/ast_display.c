@@ -278,6 +278,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXOP_TYPEOF:
         printf("(typeof) is %s\n", get_short_typename(node->value.i));
         break;
+    case KXOP_ENUM:
+        printf("(enum value) %s = %d\n", node->value.s, node->optional);
+        break;
     case KXOP_CAST:
         printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_short_typename(node->value.i));
         display_ast(node->lhs, indent + 1, 0);

@@ -117,6 +117,7 @@ static int get_keyword_token(const char *val)
         break;
     case 'e':
         if (strcmp(val, "else") == 0)           return ELSE;
+        if (strcmp(val, "enum") == 0)           return ENUM;
         break;
     case 'f':
         if (strcmp(val, "function") == 0)       return FUNCTION;
