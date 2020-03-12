@@ -12,7 +12,7 @@ To change the interpreter per test code, add `(interpreter)` name after the subj
 Note that **Ruby** and **Python** must be installed
 and the path for all interpreters must be set, to run this benchmark.
 
-To run this benchmark, do the ommand below.
+To run this benchmark, do the command below under the root of Kinx repository.
 
 ```
 $ ./kinx --exec:spectest -v -f doc/benchmark/.spectest
