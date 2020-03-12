@@ -4,14 +4,15 @@
 ## Overview
 
 This is Kinx specification, and examples are test code as is.
-This test system is well-known style of BDD(Behavior Driven Development),
-and in this product it is especially named as **SpecTest**.
-**SpecTest** is developped based on the idea of **Tests as Documentation** and **Specification by Example**.
+This is right just a specification document, but this is also test codes at the same time.
+I named this system as **SpecTest**, and this documentation is also provided as an example of the **SpecTest**.
 Writing documentation means writing tests, and those examples written in that are becoming test codes as is.
 
 As for the detail of **SpecTest**, that will be described in another,
-but it system is not only for Kinx but also for any other systems.
-You can also use this system for your product developed not by Kinx.
+but **SpecTest** is not only for Kinx but also for any other systems.
+You can also use **SpecTest** for your product developed not by Kinx.
+
+As an example of **SpecTest**, I prepared another [here](../benchmark/README.md).
 
 ### How to Run
 
@@ -21,10 +22,6 @@ and **SpecTest** will automatically load a `.spectest` file and run the tests.
 ```
 $ ./kinx --exec:spectest -v
 ```
-
-### Another Example
-
-As an example of **SpecTest**, I prepared another [here](../benchmark/README.md).
 
 ## Statement
 
