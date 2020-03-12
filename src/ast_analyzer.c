@@ -423,6 +423,22 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
             break;
         }
+        if (!ctx->lvalue && node->lhs && node->rhs) {
+            if (node->lhs->type == KXVL_STR && node->rhs->type == KXVL_INT) {
+                const char *str = node->lhs->value.s;
+                int len = strlen(str);
+                int index = node->rhs->value.i;
+                if (index < 0) {
+                    while (index < 0) index += len;
+                } else if (len <= index) {
+                    index %= len;
+                }
+                node->lhs->type = KXVL_INT;
+                node->lhs->value.i = (int64_t)str[index];
+                node->rhs = NULL;
+                break;
+            }
+        }
         /* 1 when lvalue */
         analyze_ast(node->lhs, ctx);
         int lvalue = ctx->lvalue;

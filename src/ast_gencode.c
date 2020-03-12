@@ -445,11 +445,11 @@ static void gen_bin_search_block(kx_context_t *ctx, kx_analyze_t *ana, kx_case_i
     /* if all values are missed, goto default. that code is already done. */
 }
 
-static void gen_seq_search_block(kx_context_t *ctx, kx_analyze_t *ana, kx_case_info_t *info, int jlen)
+static void gen_seq_search_block(kx_context_t *ctx, kx_analyze_t *ana, kx_case_info_t *info, int intcase_len)
 {
     kx_module_t *module = ana->module;
-    int last = jlen - 1;
-    for (int j = 0; j < jlen; ++j) {
+    int last = intcase_len - 1;
+    for (int j = 0; j < intcase_len; ++j) {
         kx_objvec_t *case_block = &kv_A(info->case_int_block, j);
         int len = kv_size(*case_block);
         if (len == 0) {
@@ -560,38 +560,42 @@ static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_
     }
 
     int bk1 = -1, jz1 = -1;
+    int intcase_len = kv_size(caseinfo.case_int_block);
     int others = kv_size(caseinfo.case_others);
-    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
-    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_INT_T } }));
-    if (others) {
-        bk1 = ana->block;
-        jz1 = kv_size(get_block(module, bk1)->code);
-        caseinfo.other_block = new_block(ana);
-    } else {
-        kv_push(int, caseinfo.default_case->case_src_pos, code_size(module, ana));
-        kv_push(int, caseinfo.default_case->case_src_block, ana->block);
-    }
-    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1 = { .i = 0 } }));
+    if (intcase_len > 0) {
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_INT_T } }));
+        if (others) {
+            bk1 = ana->block;
+            jz1 = kv_size(get_block(module, bk1)->code);
+            caseinfo.other_block = new_block(ana);
+        } else {
+            kv_push(int, caseinfo.default_case->case_src_pos, code_size(module, ana));
+            kv_push(int, caseinfo.default_case->case_src_block, ana->block);
+        }
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1 = { .i = 0 } }));
 
-    int jlen = kv_size(caseinfo.case_int_block);
-    if (jlen < 4) {
-        gen_seq_search_block(ctx, ana, &caseinfo, jlen);
-    } else {
-        gen_bin_search_block(ctx, ana, &caseinfo, 0, jlen-1);
+        if (intcase_len < 4) {
+            gen_seq_search_block(ctx, ana, &caseinfo, intcase_len);
+        } else {
+            gen_bin_search_block(ctx, ana, &caseinfo, 0, intcase_len-1);
+        }
     }
 
     if (others) {
         /* other cases are defined if-else sequence */
-        kv_A(get_block(module, bk1)->code, jz1).value1.i = get_block(module, caseinfo.other_block)->index;
-        get_block(module, ana->block)->tf[0] = caseinfo.other_block;
-        ana->block = caseinfo.other_block;
+        if (bk1 >= 0 && jz1 >= 0) {
+            kv_A(get_block(module, bk1)->code, jz1).value1.i = get_block(module, caseinfo.other_block)->index;
+            get_block(module, ana->block)->tf[0] = caseinfo.other_block;
+            ana->block = caseinfo.other_block;
+        }
         gen_if_else_case_block(ctx, ana, &caseinfo, &(caseinfo.case_others), kv_size(caseinfo.case_others), 0);
     }
 
     /* finalize */
     kv_destroy(caseinfo.sorted_int_cases);
     kv_destroy(caseinfo.case_others);
-    for (int j = 0; j < jlen; ++j) {
+    for (int j = 0; j < intcase_len; ++j) {
         kx_objvec_t *case_block = &kv_A(caseinfo.case_int_block, j);
         kv_destroy(*case_block);
     }
@@ -912,6 +916,10 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_IDX: {
+        if (!node->rhs) {
+            gencode_ast_hook(ctx, node->lhs, ana, 0);
+            break;
+        }
         gencode_ast_hook(ctx, node->lhs, ana, lvalue);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         if (code_size(module, ana) == 0) {
