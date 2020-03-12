@@ -113,7 +113,8 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
             File.unlink(testfile_);
         }
         res.elapsed = tmr.elapsed();
-        @progress.endTestCase(res.failed ? "failed" : "successful");
+        res.result = res.failed ? "failed" : "successful";
+        @progress.endTestCase(res, res.elapsed);
         result_ = new SpecTestResult(res);
     }
 
@@ -209,7 +210,7 @@ class SpecTestNolinkEntry(id_, entry_, spectest_) {
     public test() {
         @progress.startEntry(entry_.stem());
         @progress.startTestCase(0, "-");
-        @progress.endTestCase("warning");
+        @progress.endTestCase({ result: "warning" }, 0.0);
         @progress.endEntry();
         result_ = new SpecTestResult({
             name: "Entry(nolink): "+entry_,
@@ -347,8 +348,16 @@ class SpecTestEntry(id_, entry_, spectest_) {
 
     public setup() {
         listupLinks();
+        var entries = [];
         @link.each(_function(mdfile) {
-            @addEntry(mdfile);
+            var e = @addEntry(mdfile);
+            if (e) {
+                # Setup it later because the order by written it in document is more natural.
+                entries.push(e);
+            }
+        });
+        entries.each(_function(e) {
+            e.setup();
         });
         @nolink.each(_function(mdfile) {
             @entry.push(new SpecTestNolinkEntry(id_++, mdfile, spectest_));
@@ -360,10 +369,10 @@ class SpecTestEntry(id_, entry_, spectest_) {
             spectest_.addEntry(entry);
             var e = new SpecTestEntry(id_++, entry, spectest_);
             @entry.push(e);
-            e.setup();
-        } else {
-            @entry.push(new SpecTestSkipEntry(id_++, entry, spectest_));
+            return e;
         }
+        @entry.push(new SpecTestSkipEntry(id_++, entry, spectest_));
+        # return nothing.
     }
 
     public test() {
@@ -431,15 +440,15 @@ class SpecTestProgress(system_) {
         system_.print("<");
     }
 
-    public endSuite() {
+    public endSuite(elapsed) {
         system_.print(">");
     }
 
     public startTestCase(index, name) {
     }
 
-    public endTestCase(result) {
-        switch (result) {
+    public endTestCase(res, elapsed) {
+        switch (res.result) {
         case "successful":
             system_.print("*");
             ++(@info.success);
@@ -472,8 +481,12 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
     var indent_ = 0;
     var dotlen_;
 
-    private showIndent() {
-        system_.print("    " * indent_);
+    private indentSpaces(indent, add) {
+        return ("    " * (indent ?? indent_)) + (add * " ");
+    }
+
+    private showIndent(indent) {
+        system_.print("    " * (indent ?? indent_));
     }
 
     public endTest() {
@@ -495,7 +508,7 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
         ++indent_;
     }
 
-    public endSuite() {
+    public endSuite(elapsed) {
         --indent_;
     }
 
@@ -506,22 +519,36 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
         if (dotlen_ < 0) dotlen_ = 3; 
     }
 
-    public endTestCase(result) {
-        switch (result) {
+    public endTestCase(res, elapsed) {
+        var sec = (elapsed).toInt();
+        var m10 = ((elapsed * 100).toInt() % 100);
+        switch (res.result) {
         case "successful":
-            system_.println(" %s successful" % (dotlen_ * '.'));
+            system_.println(" %s successful (%3d.%02ds)" % (dotlen_ * '.') % sec % m10);
             ++(@info.success);
             break;
         case "failed":
-            system_.println(" %s failed" % (dotlen_ * '.'));
+            system_.println(" %s failed     (%3d.%02ds)" % (dotlen_ * '.') % sec % m10);
             ++(@info.failed);
             break;
         case "warning":
-            system_.println(" %s warning" % (dotlen_ * '.'));
+            system_.println(" %s warning    (%3d.%02ds)" % (dotlen_ * '.') % sec % m10);
             ++(@info.warning);
             break;
         }
         ++(@info.done);
+        if (res.failed) {
+            var idt = indent_ + 1;
+            var seplen = 78 - (indent_ * 4);
+            showIndent(idt);
+            System.println("-" * seplen);
+            showIndent(idt);
+            System.println("Expected: ", res.expect.replace("\n", "\n"+indentSpaces(idt, 10)));
+            showIndent(idt);
+            System.println("-" * seplen);
+            showIndent(idt);
+            System.println("Actual:   ", res.actual.replace("\n", "\n"+indentSpaces(idt, 10)));
+        }
     }
 
 }
@@ -597,9 +624,7 @@ class SpecTest(args_) {
     }
 
     public addEntry(entry) {
-        # System.println("entry = ", entry);
         @target[entry] = true;
-        # System.println("entry = ", entry);
     }
 
     public analyze() {
@@ -635,6 +660,9 @@ class SpecTest(args_) {
     }
 
     public showResult(indent) {
+        System.println("");
+        System.println("<Test Result Detail>");
+        System.println("");
         top_.showResult(indent);
         @progress.showResult();
     }
@@ -660,7 +688,7 @@ class SpecTest(args_) {
     st.analyzeOptions($$);
     System.println("Test Cout = " + st.count());
     st.start();
-    # st.showResult();
+    st.showResult();
 # } catch (e) {
 #     ;
 # }
