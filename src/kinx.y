@@ -592,7 +592,7 @@ RegexString
 
 VarDeclStatement
     : VAR DeclAssignExpressionList ';' { $$ = $2; }
-    | CONST DeclAssignExpressionList ';' { $2->optional = KXDC_CONST; $$ = $2; }
+    | CONST DeclAssignExpressionList ';' { $$ = kx_add_const($2); }
     ;
 
 DeclAssignExpressionList
