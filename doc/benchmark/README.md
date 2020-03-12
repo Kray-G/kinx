@@ -15,7 +15,7 @@ Note that **Ruby** and **Python** must be installed, and the path must be set to
 
 ### Example 1. fibonacci(Kinx Native)
 
-#### Code (Kinx)
+#### Code (kinx)
 
 ```javascript
 native fib(n) {
