@@ -3,6 +3,11 @@
 #include <assert.h>
 #include <parser.h>
 #include <kvec.h>
+#include <khash.h>
+
+KHASH_MAP_INIT_STR(enum_value, int)
+typedef khash_t(enum_value) *enum_map_t;
+kvec_init_t(enum_map_t);
 
 typedef struct kxana_context_ {
     int lvalue;
@@ -16,6 +21,7 @@ typedef struct kxana_context_ {
     kx_object_t *func;
     kx_object_t *switch_stmt;
     kvec_t(kxana_symbol_t) symbols;
+    kvec_t(enum_map_t) enval;
 } kxana_context_t;
 static const kxana_symbol_t kx_empty_symbols = {0};
 
@@ -177,6 +183,16 @@ static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
     }
 }
 
+static int lookup_enum_value(kxana_context_t *ctx, const char *name, int *ret)
+{
+    khint_t k = kh_get(enum_value, kv_last(ctx->enval), name);
+    if (k != kh_end(kv_last(ctx->enval))) {
+        *ret = kh_value(kv_last(ctx->enval), k);
+        return 1;
+    }
+    return 0;
+}
+
 static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
 {
     if (!node) {
@@ -213,6 +229,13 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
 
     case KXOP_VAR: {
+        int enumv = 0;
+        int is_enum_value = lookup_enum_value(ctx, node->value.s, &enumv);
+        if (is_enum_value) {
+            node->lhs = kx_gen_int_object(enumv);
+            analyze_ast(node->lhs, ctx);    // expanding const value.
+            break;
+        }
         kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
         if (!sym) {
             if (!ctx->decl && !ctx->lvalue) {
@@ -513,6 +536,16 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         /* do nothing */
         break;
     }
+    case KXOP_ENUM: {
+        int absent;
+        khint_t k = kh_put(enum_value, kv_last(ctx->enval), node->value.s, &absent);
+        if (absent) {
+            kh_value(kv_last(ctx->enval), k) = node->optional;
+        } else {
+            kx_yyerror_line("The enum name was duplicated in the same scope", node->file, node->line);
+        }
+        break;
+    }
     case KXOP_SPREAD: {
         analyze_ast(node->lhs, ctx);
         break;
@@ -661,6 +694,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             kx_yyerror_line("Do not define class in native function", node->file, node->line);
             break;
         }
+        enum_map_t enval = kh_init(enum_value);
+        kv_push(enum_map_t, ctx->enval, enval);
+
         kx_object_t *class_node = ctx->class_node;
         ctx->class_node = node;
         int depth = ctx->depth;
@@ -697,6 +733,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         kv_remove_last(ctx->symbols);
         ctx->depth = depth;
         ctx->class_node = class_node;
+
+        kh_destroy(enum_value, enval);
+        kv_pop(ctx->enval);
         break;
     }
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
@@ -727,6 +766,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
         }
 
+        enum_map_t enval = kh_init(enum_value);
+        kv_push(enum_map_t, ctx->enval, enval);
+
         if (node->type == KXST_NATIVE) {
             ctx->in_native = 1;
             node->var_type = KX_NFNC_T;
@@ -756,6 +798,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         kv_remove_last(ctx->symbols);
         ctx->depth = depth;
         ctx->in_native = 0;
+
+        kh_destroy(enum_value, enval);
+        kv_pop(ctx->enval);
         break;
     }
     default:
@@ -766,6 +811,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
 void start_analyze_ast(kx_object_t *node)
 {
     kxana_context_t ctx = {0};
+    enum_map_t enval = kh_init(enum_value);
+    kv_push(enum_map_t, ctx.enval, enval);
+
     kv_push(kxana_symbol_t, ctx.symbols, kx_empty_symbols);
     ctx.func = node;
     ctx.decl = 1;
@@ -780,4 +828,7 @@ void start_analyze_ast(kx_object_t *node)
         kv_destroy(table->list);
     }
     kv_destroy(ctx.symbols);
+
+    kh_destroy(enum_value, enval);
+    kv_destroy(ctx.enval);
 }
