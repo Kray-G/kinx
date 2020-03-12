@@ -18,7 +18,7 @@ for (var i = 0; i < 10; ++i) {
 2. The condition field.
 3. The increment field.
 
-### The initializing feld.
+### The initialization field.
 
 In the initialization field, you can write any expression or declaration.
 If it is a declaration, the variable is available only in `for` scope.
