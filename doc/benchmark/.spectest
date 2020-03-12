@@ -1,24 +1,11 @@
 {
     "root": "doc/benchmark",
 
-    "topLevelFilePattern": "(README|CONTENTS)\\.md",
-    "linkPattern": "\\[([^\\]]+)\\]\\s*\\(([^\\)]+\\.md)\\)",
-
-    "targetNamePattern": "^#\\s+(.+)",
-
-    "startTestPattern": "^##+\\s+Examples",
-    "endTestPattern": "",
-    "testNamePattern": "^##+\\s+Example\\s+[0-9]+[\\.\\)]?\\s+(.+)",
-
-    "startCodePattern": "^##+\\s+Code(?:\\s+\\(([^\\)]+)\\))?.*",
-    "startResultPattern": "^##+\\s+Result.*",
-
-    "codeBlockStart": "^```",
-    "codeBlockEnd": "^```",
-
     "testfile": "test.kx",
     "resultfile": "result.txt",
-    "compiler": "",
-    "interpreter": "kinx",
-    "interpreterPath": "."
+    "interpreter": "kinx test.kx",
+
+    "ignoreFiles": [
+        "doc/spec/../benchmark/README.md"
+    ]
 }
