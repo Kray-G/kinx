@@ -244,6 +244,50 @@ Here is a plan to add.
 
 Now there is no document about following items, but I will write it as soon as possible.
 
+### enum
+
+`enum` is now supported.
+The sequencial integer number can be defined by `enum`.
+See the example below.
+
+```javascript
+enum {
+    C_VAL_UNKNOWN,      // => 0
+    C_VAL_INTEGER = 2,  // => 2
+    C_VAL_STRING,       // => 3
+}
+```
+
+The number is started from zero, but you can also set it any integer value from any place you want.
+The scope of `enum` is in Class, Module, Namespace, Function.
+`enum` value can be defined as a different value each scope,
+but that value becomes invalid out of scope.
+The same name of `enum` name can not be used in the same scope.
+
+Here is the example below.
+
+```javascript
+enum {
+    C_VAL_UNKNOWN, C_VAL_INTEGER, C_VAL_STRING,
+}
+
+namespace X {
+
+    enum {
+        C_VAL_UNKNOWN = 100, C_VAL_INTEGER, C_VAL_STRING,
+    }
+
+    System.println(C_VAL_UNKNOWN);  // => 100
+    System.println(C_VAL_INTEGER);  // => 101
+    System.println(C_VAL_STRING);   // => 102
+
+}
+
+System.println(C_VAL_UNKNOWN);  // => 0
+System.println(C_VAL_INTEGER);  // => 1
+System.println(C_VAL_STRING);   // => 2
+```
+
 ### libCurl
 
 Now libcurl package is included in Kinx. example

@@ -3,6 +3,7 @@
 #include <kinx.h>
 
 static int sg_native = 0; /* use this for ... something? */
+static int sg_enum_counter = 0;
 static kvec_pt(kx_object_t) ns_stack = {0};
 
 kx_object_t *kx_obj_alloc(void)
@@ -211,6 +212,28 @@ kx_object_t *kx_add_const(kx_object_t *node)
     if (node->type == KXOP_DECL) {
         node->optional = KXDC_CONST;
     }
+    return node;
+}
+
+kx_object_t *kx_gen_enum_object(const char *name)
+{
+    kx_object_t *obj = kx_gen_obj(KXOP_ENUM, sg_enum_counter, NULL, NULL, NULL);
+    obj->value.s = name;
+    ++sg_enum_counter;
+    return obj;
+}
+
+kx_object_t *kx_gen_enum_object_with(const char *name, int val)
+{
+    kx_object_t *obj = kx_gen_obj(KXOP_ENUM, val, NULL, NULL, NULL);
+    obj->value.s = name;
+    sg_enum_counter = val + 1;
+    return obj;
+}
+
+kx_object_t *kx_gen_enum_reset(kx_object_t *node)
+{
+    sg_enum_counter = 0;
     return node;
 }
 

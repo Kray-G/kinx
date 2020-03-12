@@ -1014,6 +1014,10 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         break;
     }
+    case KXOP_ENUM: {
+        /* do nothing */
+        break;
+    }
     case KXOP_SPREAD: {
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SPREAD }));
