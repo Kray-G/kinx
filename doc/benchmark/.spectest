@@ -4,8 +4,4 @@
     "testfile": "test.kx",
     "resultfile": "result.txt",
     "interpreter": "kinx",
-
-    "ignoreFiles": [
-        "doc/spec/../benchmark/README.md"
-    ]
 }
