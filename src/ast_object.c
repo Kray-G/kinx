@@ -200,6 +200,20 @@ kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t)
     return obj;
 }
 
+kx_object_t *kx_add_const(kx_object_t *node)
+{
+    if (node->lhs) {
+        kx_add_const(node->lhs);
+    }
+    if (node->rhs) {
+        kx_add_const(node->rhs);
+    }
+    if (node->type == KXOP_DECL) {
+        node->optional = KXDC_CONST;
+    }
+    return node;
+}
+
 kx_object_t *kx_gen_import_object(const char *name)
 {
     kx_object_t *obj = kx_gen_obj(KXOP_IMPORT, 0, NULL, NULL, NULL);
