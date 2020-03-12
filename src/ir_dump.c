@@ -49,7 +49,7 @@ case KX_##CMD##_V0I:\
     printf("%-23s $0(%"PRId64"), %"PRId64, #cmd "_v0i", code->value1.i, code->value2.i);\
     break;\
 case KX_##CMD##_IV0:\
-    printf("%-23s %"PRId64", $0(%"PRId64")", #cmd "_v0i", code->value1.i, code->value2.i);\
+    printf("%-23s %"PRId64", $0(%"PRId64")", #cmd "_iv0", code->value1.i, code->value2.i);\
     break;\
 /**/
 
