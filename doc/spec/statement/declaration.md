@@ -3,7 +3,7 @@
 
 ## Overview
 
-Declaration statement is to declare variables.
+Declaration statement is the statement to declare variables.
 
 ```javascript
 var a; // initializing 'a' to null
@@ -12,7 +12,7 @@ var a; // initializing 'a' to null
 ### Declaration with initializer
 
 Declaration of a variable has initializer to initialize it.
-If no initializer, the variable should be `null` automatically.
+If there is no initializer, the variable should be `null` automatically.
 
 ```javascript
 var a = 10; // initializing 'a' to 10 as integer.
@@ -60,7 +60,7 @@ System.println(a);
 5
 ```
 
-### Example 2. With initializer of expression
+### Example 3. With initializer of expression
 
 #### Code
 
