@@ -43,7 +43,7 @@ System.println(fib(34));
 
 #### Code (ruby)
 
-```javascript
+```ruby
 def fib(n)
   if n < 3
     return n;
@@ -53,6 +53,28 @@ def fib(n)
 end
 
 puts fib(34)
+```
+
+#### Result
+
+```
+9227465
+```
+
+### Example 4. fibonacci(Python)
+
+#### Code (python)
+
+```python
+import sys
+
+def fib(n):
+    if n < 3:
+        return n
+    else:
+        return fib(n-1) + fib(n-2)
+
+print fib(int(34))
 ```
 
 #### Result
