@@ -9,7 +9,14 @@ This means it can be an easy benchmark system.
 
 To change the interpreter per test code, add `(interpreter)` name after the subject of `#### Code` like examples below.
 
-Note that **Ruby** and **Python** must be installed and the path must be set, to run this benchmark.
+Note that **Ruby** and **Python** must be installed
+and the path for all interpreters must be set, to run this benchmark.
+
+To run this benchmark, do the ommand below.
+
+```
+$ ./kinx --exec:spectest -v -f doc/benchmark/.spectest
+```
 
 ## Examples
 

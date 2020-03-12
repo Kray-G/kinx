@@ -56,7 +56,7 @@ static void get_long_option(const char *optarg, char *lname, char *param)
     int i, head = 0;
     for (i = 0; i < LONGNAME_MAX && optarg[i]; ++i) {
         char c = optarg[i];
-        if (c == '=') {
+        if (c == '=' || c == ':') {
             lname[i] = 0;
             head = i + 1;
             continue;
