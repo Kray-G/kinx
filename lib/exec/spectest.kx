@@ -2,6 +2,28 @@
 _class TestException(what) { @_type = 'TestException'; @_what = what; }
 TestException = TestException.create;
 
+SpecTestTemplate.markdown = {
+    "topLevelFilePattern": "(README|CONTENTS)\\.md",
+    "linkPattern": "\\[([^\\]]+)\\]\\s*\\(([^\\)]+\\.md)\\)",
+
+    "targetNamePattern": "^#\\s+(.+)",
+
+    "startTestPattern": "^##+\\s+Examples",
+    "endTestPattern": "",
+    "testNamePattern": "^##+\\s+Example\\s+[0-9]+[\\.\\)]?\\s+(.+)",
+
+    "startCodePattern": "^##+\\s+Code(?:\\s+\\(([^\\)]+)\\))?.*",
+    "startResultPattern": "^##+\\s+Result.*",
+
+    "codeBlockStart": "^```",
+    "codeBlockEnd": "^```",
+
+    "testfile": "test.kx",
+    "resultfile": "result.txt",
+    "compiler": "",
+    "interpreter": "kinx",
+};
+
 class SpecTestResult(res_) {
 
     private indentSpaces(indent, add) {
@@ -617,7 +639,7 @@ class SpecTest(args_) {
     private loadSpecFile() {
         @options = {};
         analyzeOptions();
-        spec_ = JSON.parse(File.load(@options.file || ".spectest"));
+        spec_ = SpecTestTemplate.markdown.extend(JSON.parse(File.load(@options.file || ".spectest")));
         @spec.topLevelFilePattern = new Regex(spec_.topLevelFilePattern || %{README|CONTENTS)\.md});
         @spec.linkPattern = new Regex(spec_.linkPattern);
         @spec.targetNamePattern = new Regex(spec_.targetNamePattern);
