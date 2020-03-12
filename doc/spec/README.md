@@ -29,6 +29,9 @@ This statement will be described also in `Module` section again.
 *   [expression](statement/expression.md)
 *   [mixin](statement/mixin.md)
 
+By the way, declaration of a Function or a Class, etc,
+is described not in this section but in **Definitions** section.
+
 ### Flow Control
 
 Flow control is a branch, a loop, returning from a function, throwing a exception, etc.
