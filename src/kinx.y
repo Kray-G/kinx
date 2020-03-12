@@ -23,7 +23,7 @@
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT
+%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT ENUM
 %token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN SYSCLASS SYSMODULE
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
@@ -44,6 +44,8 @@
 %type<obj> BlockStatement
 %type<obj> NamespaceStatement
 %type<strval> NamespaceName
+%type<obj> EnumStatement
+%type<obj> EnumList
 %type<obj> DefinitionStatement
 %type<obj> IfStatement
 %type<obj> WhileStatement
@@ -137,6 +139,7 @@ StatementList
 Statement
     : BlockStatement
     | NamespaceStatement
+    | EnumStatement
     | IfStatement
     | WhileStatement
     | DoWhileStatement
@@ -169,6 +172,17 @@ NamespaceStatement
 
 NamespaceName
     : NAME { $$ = kx_gen_namespace_name_object($1); }
+    ;
+
+EnumStatement
+    : ENUM '{' EnumList Comma_Opt '}' { $$ = kx_gen_enum_reset($3); }
+    ;
+
+EnumList
+    : NAME { $$ = kx_gen_enum_object($1); }
+    | NAME '=' INT { $$ = kx_gen_enum_object_with($1, $3); }
+    | EnumList ',' NAME { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object($3)); }
+    | EnumList ',' NAME '=' INT { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object_with($3, $5)); }
     ;
 
 DefinitionStatement
