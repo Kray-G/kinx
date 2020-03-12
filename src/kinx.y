@@ -69,6 +69,7 @@
 %type<obj> AssignExpression_Opt
 %type<obj> AssignExpression
 %type<obj> AssignRightHandSide
+%type<obj> ObjectSpecialSyntax
 %type<obj> AssignExpressionList_Opt
 %type<obj> TernaryExpression
 %type<obj> FunctionExpression
@@ -330,7 +331,13 @@ AssignExpression
 
 AssignRightHandSide
     : TernaryExpression
-    | '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
+    | ObjectSpecialSyntax
+    ;
+
+ObjectSpecialSyntax
+    : '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
+    | '{' '}' '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_uexpr_object(KXOP_MKOBJ, NULL), $4); }
+    | ObjectSpecialSyntax '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
 
 TernaryExpression
