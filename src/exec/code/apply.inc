@@ -91,6 +91,10 @@ do { \
             } \
         } else if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
             int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
+            if (index < 0) { \
+                int sz = kv_size(obj->ary); \
+                do { index += sz; } while (index < 0); \
+            } \
             if (index >= kv_size(obj->ary)) { \
                 kv_resize_if(kx_val_t, obj->ary, index+1); \
                 kv_shrinkto(obj->ary, index+1); \
