@@ -4,7 +4,7 @@
 ## Overview
 
 This is Kinx specification, and examples are test code as is.
-This test system is well-known style of BDD(Behaviour Driven Development),
+This test system is well-known style of BDD(Behavior Driven Development),
 and in this product it is especially named as **SpecTest**.
 **SpecTest** is developped based on the idea of **Tests as Documentation** and **Specification by Example**.
 Writing documentation means writing tests, and those examples are becoming test codes as is.
