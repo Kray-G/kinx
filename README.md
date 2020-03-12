@@ -29,6 +29,11 @@ Kinx can be the best platform for any libraries which you want to use or your ow
 There is [Quick Reference Guide](doc/QuickReference.md).
 Please see [Quick Reference Guide](doc/QuickReference.md) for your understanding.
 
+For the detail of Kinx specification, see [Kinx Specification](doc/spec/README.md).
+This document is also including **Test Codes**.
+I named this system as **SpecTest**, but currntly there is no documentation of **SpecTest**.
+I am going to write it as soon as possible.
+
 ### Motivation
 
 I guess almost all programmers want a lightweight scripting language with C style syntax
@@ -106,6 +111,8 @@ Here is current available options.
 | `--with-native`           | Dump compiled code of a native function. Use with `-d`.               |
 | `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.     |
 | `--case-threshold`        | Specify the max interval between case's integer value. 16 by default. |
+|                           |                                                                       |
+| `--exec:spectest`         | Run the **SpecTest**.                                                 |
 
 ## Examples
 
