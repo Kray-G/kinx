@@ -25,6 +25,8 @@ $ ./kinx --exec:spectest -v
 
 # Kinx Specification
 
+> Note that writing specifications is incomplete. Some links are still under construction.
+
 Actual specification is described from here.
 I divided the section for the description of SpecTest, but actually it do not have to be separated.
 SpecTest will recognize the test code by the rule of `.spectest` file regardless of the structure of document.
