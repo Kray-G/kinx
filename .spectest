@@ -3,7 +3,7 @@
 
     "testfile": "test.kx",
     "resultfile": "result.txt",
-    "interpreter": "kinx test.kx",
+    "interpreter": "kinx",
 
     "ignoreFiles": [
         "doc/spec/../benchmark/README.md"
