@@ -13,6 +13,19 @@ As for the detail of **SpecTest**, that will be described in another,
 but it system is not only for Kinx but also for any other systems.
 You can also use this system for your product developed not by Kinx.
 
+### How to Run
+
+Execute the command below under `kinx` repository's root to run the **SpecTest** of Kinx,
+and **SpecTest** will automatically load a `.spectest` file and run the tests.
+
+```
+$ ./kinx --exec:spectest -v
+```
+
+### Another Example
+
+As an example of **SpecTest**, I prepared another [here](../benchmark/README.md).
+
 ## Statement
 
 Statement is almost near the C or JavaScript syntax.
