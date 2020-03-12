@@ -1,5 +1,5 @@
 
-# Kinx Specifiation
+# Kinx Specifiation with SpecTest
 
 ## Overview
 
@@ -22,6 +22,12 @@ and **SpecTest** will automatically load a `.spectest` file and run the tests.
 ```
 $ ./kinx --exec:spectest -v
 ```
+
+# Kinx Specifiation
+
+Actual specification is described from here.
+I divided the section for the description of SpecTest, but actually it do not have to be separated.
+SpecTest will recognize the test code by the rule of `.spectest` file regardless of the structure of document.
 
 ## Statement
 
