@@ -10,7 +10,7 @@
     "endTestPattern": "",
     "testNamePattern": "^##+\\s+Example\\s+[0-9]+[\\.\\)]?\\s+(.+)",
 
-    "startCodePattern": "^##+\\s+Code.*",
+    "startCodePattern": "^##+\\s+Code(?:\\s*\\((.+)\\))?",
     "startResultPattern": "^##+\\s+Result.*",
 
     "codeBlockStart": "^```",
