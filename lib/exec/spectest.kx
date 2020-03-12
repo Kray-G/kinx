@@ -269,10 +269,10 @@ class SpecTestEntry(id_, entry_, spectest_) {
     var info_ = { name: entry_, test: [] };
     var suite_;
     var result_;
+    var spec_ = spectest_.spec;
 
     private makeTest(testarea) {
         var index = 0;
-        var spec_ = spectest_.spec;
         var ctx = { testcode: false, result: false, inCode: false };
         testarea.each(function(line) {
             var g;
@@ -316,7 +316,6 @@ class SpecTestEntry(id_, entry_, spectest_) {
     }
 
     private listupLinks() {
-        var spec_ = spectest_.spec;
         var started = false;
         var ppath = entry_.parentPath();
         var file = new File(entry_, File.TEXT|File.READ);
@@ -334,7 +333,9 @@ class SpecTestEntry(id_, entry_, spectest_) {
             if (g = (line =~ spec_.linkPattern)) {
                 var mdfile = ppath / g[2].string;
                 if (File.exists(mdfile)) {
-                    @link.push(mdfile);
+                    if (!spec_.ignoreFiles[mdfile]) {
+                        @link.push(mdfile);
+                    }
                 } else {
                     @nolink.push(mdfile);
                 }
@@ -631,6 +632,12 @@ class SpecTest(args_) {
         @spec.interpreter = spec_.interpreter;
         @spec.testfile = spec_.testfile;
         @spec.resultfile = spec_.resultfile;
+        @spec.ignoreFiles = {};
+        if (spec_.ignoreFiles.isArray) {
+            spec_.ignoreFiles.each(&(e) => {
+                @spec.ignoreFiles[e] = true;
+            });
+        }
         @root = spec_.root;
     }
 

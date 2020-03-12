@@ -20,5 +20,9 @@
     "resultfile": "result.txt",
     "compiler": "",
     "interpreter": "kinx test.kx",
-    "interpreterPath": "."
+    "interpreterPath": ".",
+
+    "ignoreFiles": [
+        "doc/spec/../benchmark/README.md"
+    ]
 }
