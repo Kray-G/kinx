@@ -7,7 +7,7 @@ This is Kinx specification, and examples are test code as is.
 This test system is well-known style of BDD(Behavior Driven Development),
 and in this product it is especially named as **SpecTest**.
 **SpecTest** is developped based on the idea of **Tests as Documentation** and **Specification by Example**.
-Writing documentation means writing tests, and those examples are becoming test codes as is.
+Writing documentation means writing tests, and those examples written in that are becoming test codes as is.
 
 As for the detail of **SpecTest**, that will be described in another,
 but it system is not only for Kinx but also for any other systems.
@@ -79,7 +79,7 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 ## Library
 
 Kinx has many useful libraries and you can use those once you install this product.
-Kinx goal is a glue between libraries, and Kinx will include many of useful libraries also in future.
+Kinx goal is to become a glue between libraries, and Kinx will include many of useful libraries also in future.
 
 ### Primitives
 
