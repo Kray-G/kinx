@@ -177,7 +177,7 @@
     KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value2.i); \
     push_value((ctx)->stack, *v1p); \
     KEX_GET_STACK_TOP(v1); \
-    KX_LE_LE_I(v1, cur->value1.i); /* same meaning */ \
+    KX_LT_LT_I(v1, cur->value1.i); /* same meaning */ \
     cur = cur->next; \
 } \
 /**/
