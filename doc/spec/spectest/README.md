@@ -48,7 +48,7 @@ Here is the simple template of a specification document.
     #### Code
     
     This is an important mark to start a test code.
-    In this section, you ca write a test case as an example in code block.
+    In this section, you can write a test case as an example in code block.
     
     ```language
     Test code here
