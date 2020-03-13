@@ -70,7 +70,8 @@ Here is the simple template of a specification document.
 For your more understanding, you can see the actual specification file of Kinx below.
 It will help you.
 
-*   [declaration.md](../statement/declaration.md)
+*   [declaration.md](../statement/declaration.md) ... Testing for declaration.
+*   [benchmark/README.md](../../benchmark/README.md) ... Example for using multiple interpreters.
 
 ### `.spectest` File
 
