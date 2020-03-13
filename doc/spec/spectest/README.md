@@ -19,10 +19,64 @@ If you want to see a kind of examples soon, see [here](#example).
 
 ### `.spectest` File
 
+#### Setup The File
+
+Write `.spectest` file first.
+This is written in Json style.
+SpecTest will expect there is a `.spectest` file to load in the current directory.
+
 #### Markdown Template
 
+SpecTest will work the rule from `.spectest`.
+That rule is based on **Markdown** by default and you can write some differences.
 
-### Example
+> Note that currently there is no template but for Markdown.
+> In future some templates will be added for other document styles.
+
+#### The Sample of `.spectest` File
+
+See the example below.
+This is the actual `.spectest` file of Kinx itself.
+
+```json
+{
+    "root": "doc/spec",
+
+    "testfile": "test.kx",
+    "resultfile": "result.txt",
+    "interpreter": "kinx",
+
+    "ignoreFiles": [
+        "doc/spec/../benchmark/README.md",
+        "doc/spec/spectest/README.md"
+    ]
+}
+```
+
+#### Rules
+
+The items of `.spectest` file is below.
+
+|         Key         |                    Default                     |                                          Meaning                                           |
+| ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| topLevelFilePattern | <code>"(README&#124;CONTENTS)\\.md"</code>     | Root document for SpecTest.                                                                |
+| linkPattern         | `"\\[([^\\]]+)\\]\\s*\\(([^\\)]+\\.md)\\)"`    | Link pattern to traverse document tree.                                                    |
+| targetNamePattern   | `"^#\\s+(.+)"`                                 | The line of TestSuite name.                                                                |
+| startTestPattern    | `"^##+\\s+Examples"`                           | The line to recognize to start a test code area.                                           |
+| endTestPattern      | `""`                                           | The line to recognize to end a test code area.                                             |
+| testNamePattern     | `"^##+\\s+Example\\s+[0-9]+[\\.\\)]?\\s+(.+)"` | The line of TestCase name.                                                                 |
+| startCodePattern    | `"^##+\\s+Code(?:\\s+\\(([^\\)]+)\\))?.*"`     | The line to recognize to start a test code section.                                        |
+| startResultPattern  | `"^##+\\s+Result.*"`                           | The line to recognize to start a test result section.                                      |
+| codeBlockStart      | `"^```"`                                       | The line to recognize to start a test code.                                                |
+| codeBlockEnd        | `"^```"`                                       | The line to recognize to end a test code.                                                  |
+| testfile            | `"test.kx"`                                    | Temporary test code file name.                                                             |
+| resultfile          | `"result.txt"`                                 | Temporary test result file name.                                                           |
+| compiler            | `""`                                           | *Currently Not supported*. This will be supported when supporting to use compiler.         |
+| interpreter         | `"kinx"`                                       | Interpreter command name. It is necessary to set the environment variable PATH in advance. |
+
+Note that **testfile** and **resultfile** will be removed after testing.
+
+## Example
 
 This an example of a **SpecTest** working for [Kinx Specification](../README.md).
 SpecTest will automatically recognize a test code in your markdown document,
