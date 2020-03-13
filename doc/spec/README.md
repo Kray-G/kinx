@@ -140,7 +140,8 @@ This will help your understanding.
 
 #### Sort
 
-*   [QuickSort](algorithm/qsort.md)
+*   [Quicksort](algorithm/qsort.md)
+*   [Merge Sort](algorithm/mergesort.md)
 
 
 ---
