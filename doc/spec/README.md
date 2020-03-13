@@ -8,9 +8,11 @@ This is right just a specification document, but this is also test codes at the 
 I named this system as **SpecTest**, and this documentation is also provided as an example of the **SpecTest**.
 Writing documentation means writing tests, and those examples written in that are becoming test codes as is.
 
-As for the detail of **SpecTest**, that will be described in [here](spectest/README.md),
+As for the detail of **SpecTest**, that will be described in the link below,
 but **SpecTest** is designed to not only for Kinx but also for any other systems.
 This means you can also use **SpecTest** for your product developed not by Kinx.
+
+*   See **[SpecTest](spectest/README.md)** for detail.
 
 As an example of **SpecTest**, I prepared another [here](../benchmark/README.md).
 
