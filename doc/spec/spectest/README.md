@@ -17,6 +17,56 @@ If you want to see a kind of examples soon, see [here](#example).
 
 ## How to Use
 
+### Write Specification
+
+By default, write a specification with the markdown style below.
+Here is the simple template of a specification document.
+
+    # TestSuite name
+    
+    The top level header is an important mark to show a test suite name.
+    
+    For any other places, you can write any text document for your specification with nothing to care about tests.
+    Everything is okay.
+    
+    ## Subject...
+    ### Subject 2...
+    
+    Also don't have t o care about test here.
+    ...
+    
+    ## Examples
+    
+    This subject of `## Examples` is important.
+    This means starting test area.
+    
+    ### Example 1. TestCase Name.
+    
+    This subject of `### Example N. ...` is also important.
+    This means starting a test case and it shows a test case's name.
+    
+    #### Code
+    
+    This is an important mark to start a test code.
+    In this section, you ca write a test case as an example in code block.
+    
+    ```language
+    Test code here
+    ```
+    
+    Note that `language` comment is ignored for testing because interpreter is specified in the rule file.
+    And you can write anything except inside code block.
+    
+    #### Result
+    
+    This is an important mark to start an expected result in code block.
+    
+    ```language
+    Expected result
+    ```
+    
+    Any other lines are the places you can write anything.
+
 ### `.spectest` File
 
 #### Setup The File
