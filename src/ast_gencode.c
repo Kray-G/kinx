@@ -1244,7 +1244,6 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         int cond = new_block(ana);
         if (node->rhs) {
             get_block(module, thend)->tf[0] = cond;
-            get_block(module, cond)->tf[0] = thtop;
             if (node->lhs->type == KXVL_TRUE || (node->lhs->type == KXVL_INT && node->lhs->value.i != 0)) {
                 get_block(module, stmt)->tf[0] = thtop;
             } else {
@@ -1252,11 +1251,15 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             }
         } else {
             get_block(module, stmt)->tf[0] = cond;
-            get_block(module, cond)->tf[0] = cond;
         }
         ana->block = cond;
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         cond = ana->block;
+        if (node->rhs) {
+            get_block(module, cond)->tf[0] = thtop;
+        } else {
+            get_block(module, cond)->tf[0] = cond;
+        }
 
         int out = new_block(ana);
         get_block(module, cond)->tf[1] = out;
