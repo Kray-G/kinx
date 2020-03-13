@@ -7,7 +7,7 @@ Do you write a test code?
 You know it is very important to make a test code, but it is one of tough work these days.
 **SpecTest** will help you a little smaller work of that.
 
-### Waht is SpecTest?
+### What is SpecTest?
 
 **SpecTest** is a testing system based on **Specification By Example**.
 That is one of thought in **Behavior Driven Development**.
