@@ -59,7 +59,7 @@ The items of `.spectest` file is below.
 
 |         Key         |                    Default                     |                                          Meaning                                           |
 | ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| topLevelFilePattern | <code>"(README&#124;CONTENTS)\\.md"</code>     | Root document for SpecTest.                                                                |
+| topLevelFilePattern | <code>"(README&#124;CONTENTS)\\\\.md"</code>   | Root document for SpecTest.                                                                |
 | linkPattern         | `"\\[([^\\]]+)\\]\\s*\\(([^\\)]+\\.md)\\)"`    | Link pattern to traverse document tree.                                                    |
 | targetNamePattern   | `"^#\\s+(.+)"`                                 | The line of TestSuite name.                                                                |
 | startTestPattern    | `"^##+\\s+Examples"`                           | The line to recognize to start a test code area.                                           |
