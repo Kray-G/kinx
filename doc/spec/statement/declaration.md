@@ -28,6 +28,21 @@ var a, b;
 var x = 10, y;
 ```
 
+### Constant value
+
+Variable can be constant by declaration with `const`.
+
+```javascript
+const a = 10; // initializing 'a' to 10 as integer and it is constant value.
+```
+
+Constant value can not be modified and it will be compile error when trying to change that variable's value.
+
+```javascript
+const a = 10;
+a = 20; // error.
+```
+
 ## Examples
 
 ### Example 1. Normal case
@@ -77,4 +92,111 @@ System.println(a);
 
 ```
 2 ** 8 = 256
+```
+
+### Example 4. Multiple variable declaration
+
+#### Code
+
+```javascript
+var a, b = 10, c, d = "abc";
+System.println(a.isUndefined ? "null" : a);
+System.println(b.isUndefined ? "null" : b);
+System.println(c.isUndefined ? "null" : b);
+System.println(d.isUndefined ? "null" : d);
+```
+
+#### Result
+
+```
+null
+10
+null
+abc
+```
+
+### Example 5. Constant value (1)
+
+#### Code
+
+```javascript
+const a = 10;
+a = 20;
+```
+
+#### Result
+
+```
+Error: Can not assign a value to the 'const' variable near the test.kx:2
+```
+
+### Example 6. Constant value (2)
+
+#### Code
+
+If you did not initialize a constant variable, you can initialize it only one time by assignment.
+
+```javascript
+const a;
+a = 20;
+System.println(a);
+```
+
+#### Result
+
+```
+20
+```
+
+### Example 7. Constant value (3)
+
+#### Code
+
+It should be error when initializing twice.
+
+```javascript
+const a;
+a = 20;
+a = 30; // error.
+```
+
+#### Result
+
+```
+Error: Can not assign a value to the 'const' variable near the test.kx:3
+```
+
+### Example 7. Constant value (4)
+
+#### Code
+
+Even if it is Object, it should be compile error.
+
+```javascript
+const a = { x: 10 };
+a = { y: 20 };
+```
+
+#### Result
+
+```
+Error: Can not assign a value to the 'const' variable near the test.kx:2
+```
+
+### Example 6. Constant value (5)
+
+#### Code
+
+But the object member can be modified.
+
+```javascript
+const a = { x: 10 };
+a.x = 20;
+System.println(a.x);
+```
+
+#### Result
+
+```
+20
 ```
