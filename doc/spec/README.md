@@ -145,6 +145,10 @@ This will help your understanding.
 *   [Quicksort](algorithm/qsort.md)
 *   [Merge Sort](algorithm/mergesort.md)
 
+#### Verification
+
+*   [CRC32](algorithm/crc32.md)
+
 
 ---
 
