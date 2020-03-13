@@ -23,6 +23,7 @@ Kinx can be the best platform for any libraries which you want to use or your ow
 *   **Dynamic typing**, but you can also specify the type.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
 *   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, etc.
+*   Useful Testing System named as **[SpecTest](doc/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
 
 ### Language Details
 
