@@ -6,6 +6,7 @@
     "interpreter": "kinx",
 
     "ignoreFiles": [
-        "doc/spec/../benchmark/README.md"
+        "doc/spec/../benchmark/README.md",
+        "doc/spec/spectest/README.md"
     ]
 }
