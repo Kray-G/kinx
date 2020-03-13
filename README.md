@@ -32,8 +32,8 @@ Please see [Quick Reference Guide](doc/QuickReference.md) for your understanding
 
 For the detail of Kinx specification, see [Kinx Specification](doc/spec/README.md).
 This document is also including **Test Codes**.
-I named this system as **SpecTest**, but currently there is no documentation of **SpecTest**.
-I am going to write it as soon as possible.
+I named this system as **SpecTest**.
+See **[SpecTest](doc/spec/spectest/README.md)** for detail.
 
 ### Motivation
 
