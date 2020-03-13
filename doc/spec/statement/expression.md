@@ -102,7 +102,7 @@ System.println(a);
 #### Code
 
 ```javascript
-a = 2 ** (3 ** 4);
+a = 2 ** 3 ** 4;
 System.println(a);
 ```
 
