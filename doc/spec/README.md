@@ -44,6 +44,7 @@ Some of expression rules will be described in `expression` section.
 This statement will be described also in `Module` section again.
 
 *   [declaration](statement/declaration.md)
+*   [enum](statement/enum.md)
 *   [expression](statement/expression.md)
 *   [mixin](statement/mixin.md)
 
@@ -64,6 +65,7 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 
 *   [if-else](statement/if_else.md)
 *   [switch-case](statement/switch_case.md)
+*   [try-catch-finally](statement/try_catch_finally.md)
 
 #### Loop
 
@@ -130,6 +132,16 @@ because now the networking library is needed by many developpers.
 I provide Http library only, but it is based on libcurl.
 Therefore adding a library based on the same technology must be easy.
 I strongly want **contributers**. How about you?
+
+### Algorithm and Data Structure
+
+Here are some algorithms and data structures.
+This will help your understanding.
+
+#### Sort
+
+*   [QuickSort](algorithm/qsort.md)
+
 
 ---
 
