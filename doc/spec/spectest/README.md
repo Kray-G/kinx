@@ -19,8 +19,9 @@ If you want to see a kind of examples soon, see [here](#example).
 
 ### Write Specification
 
-By default, write a specification with the markdown style below.
+First, write a specification with the markdown style below.
 Here is the simple template of a specification document.
+SpecTest will work with markdown by default.
 
     # TestSuite name
     
@@ -32,7 +33,7 @@ Here is the simple template of a specification document.
     ## Subject...
     ### Subject 2...
     
-    Also don't have t o care about test here.
+    Also don't have to care about test here.
     ...
     
     ## Examples
