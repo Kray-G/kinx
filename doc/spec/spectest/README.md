@@ -48,7 +48,7 @@ SpecTest will work with markdown by default.
     
     #### Code
     
-    This is an important mark to start a test code.
+    `#### Code` is an important mark to start a test code.
     In this section, you can write a test case as an example in code block.
     
     ```language
@@ -60,7 +60,8 @@ SpecTest will work with markdown by default.
     
     #### Result
     
-    This is an important mark to start an expected result in code block.
+    `#### Result` is also an important mark to start an expected result in code block.
+    This section will show the result corresponding to the test shown in `Code` section.
     
     ```language
     Expected result
