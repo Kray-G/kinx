@@ -439,7 +439,19 @@ static int System_sleep(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
+static int System_globalExceptionMap(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    static kx_obj_t *s_map = NULL;
+    if (!s_map) {
+        s_map = allocate_obj(ctx);
+    }
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, s_map);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
+    { "_globalExceptionMap", System_globalExceptionMap },
     { "makeSuper", System_makeSuper },
     { "print", System_print },
     { "println", System_println },
