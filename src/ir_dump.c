@@ -270,10 +270,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("%-23s %s", "decv", gen_varloc(code));
         break;
     case KX_INCP:
-        printf("%-23s %s", "incp", gen_varloc(code));
+        printf("incp");
         break;
     case KX_DECP:
-        printf("%-23s %s", "decp", gen_varloc(code));
+        printf("decp");
         break;
     case KX_INCVP:
         printf("%-23s %s", "incvp", gen_varloc(code));
