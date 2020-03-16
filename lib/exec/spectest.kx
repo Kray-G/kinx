@@ -298,6 +298,11 @@ class SpecTestEntry(id_, entry_, spectest_) {
     private makeTest(testarea) {
         var index = 0;
         var ctx = { testcode: false, result: false, inCode: false };
+        spec_.testNamePattern.reset("");
+        spec_.startCodePattern.reset("");
+        spec_.startResultPattern.reset("");
+        spec_.codeBlockStart.reset("");
+        spec_.codeBlockEnd.reset("");
         testarea.each(function(line) {
             var g;
             if (g = (line =~ spec_.testNamePattern)) {
@@ -441,7 +446,7 @@ class SpecTestEntry(id_, entry_, spectest_) {
     }
 
     public count() {
-        return @entry.reduce(&(r, ts) => r + ts.count()) + suite_.count();
+        return @entry.reduce(&(r, ts) => r + ts.count(), 0) + suite_.count();
     }
 }
 
