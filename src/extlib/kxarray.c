@@ -200,6 +200,7 @@ int Array_printStackTrace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
             }
         }
     }
+    fflush(stdout);
 
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);

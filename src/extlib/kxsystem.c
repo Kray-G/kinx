@@ -171,6 +171,7 @@ int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             break;
         }
     }
+    fflush(stdout);
     KX_ADJST_STACK();
     push_i(ctx->stack, count);
     return 0;
@@ -180,6 +181,7 @@ int System_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     System_print(args, frmv, lexv, ctx);
     printf("\n");
+    fflush(stdout);
     return 0;
 }
 
