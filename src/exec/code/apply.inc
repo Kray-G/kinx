@@ -185,12 +185,12 @@ do { \
                 KEX_GET_PROP(val, obj, name); \
             } else if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
                 int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
+                int sz = kv_size(obj->ary); \
                 if (index < 0) { \
-                    int sz = kv_size(obj->ary); \
                     do { index += sz; } while (index < 0); \
                     val = &(kv_A(obj->ary, index)); \
-                } else { \
-                    val = &(kv_A(obj->ary, (index % kv_size(obj->ary)))); \
+                } else if (sz != 0) { \
+                    val = &(kv_A(obj->ary, (index % sz))); \
                 } \
             } else { \
                 THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
