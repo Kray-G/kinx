@@ -1,5 +1,5 @@
 
-# Return statement
+# Yield statement
 
 ## Overview
 
