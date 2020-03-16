@@ -1406,7 +1406,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     }
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
         int block = ana->block;
-        int try, catch, out, tryjmp;
+        int try, catch, scatch, out, tryjmp;
         try = new_block(ana);
         if (node->ex) {
             kv_push(kx_object_t*, *(ana->finallies), node->ex);
@@ -1424,7 +1424,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         try = ana->block;
 
         out = new_block(ana);
-        catch = new_block(ana);
+        scatch = catch = new_block(ana);
         ana->block = catch;
         if (node->rhs) {
             gencode_ast_hook(ctx, node->rhs, ana, 0);
@@ -1438,7 +1438,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             kv_remove_last(*(ana->finallies));
         }
 
-        kv_A(get_block(module, tryjmp)->code, pushc).value1.i = get_block(module, catch)->index;
+        kv_A(get_block(module, tryjmp)->code, pushc).value1.i = get_block(module, scatch)->index;
         get_block(module, try)->tf[0] = out;
         if (node->rhs) {
             get_block(module, catch)->tf[0] = out;
