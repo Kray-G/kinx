@@ -96,7 +96,7 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
 *   [Lambda](statement/lambda.md)
 *   [Closure](statement/closure.md)
-*   [Fiber](statement/module.md)
+*   [Fiber](statement/fiber.md)
 
 ## Library
 
