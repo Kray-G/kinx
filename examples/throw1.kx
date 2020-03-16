@@ -58,7 +58,6 @@ try {
 }
 catch (e) {
     System.println("%{e.type()}: %{e.what()}");
-    # System.println(e._type, ": ", e._what);
     e.printStackTrace();
 }
 finally {

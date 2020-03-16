@@ -1,5 +1,4 @@
 # The root function to throw exception.
-function RuntimeException(msg) { return { _type: "RuntimeException", _what: msg }; }
 
 function func1() {
     try {
@@ -56,8 +55,7 @@ try {
     func3();
 }
 catch (e) {
-    # System.println("%{e.type()}: %{e.what()}");
-    System.println(e._type, ": ", e._what);
+    System.println("%{e.type()}: %{e.what()}");
     e.printStackTrace();
 }
 finally {

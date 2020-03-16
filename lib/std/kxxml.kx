@@ -19,11 +19,8 @@ Xml.NAMESPACE_DECL      = 18;
 Xml.XINCLUDE_START      = 19;
 Xml.XINCLUDE_END        = 20;
 
-_class XmlException(what) {
-    @_type = "XmlException";
-    @_what = what;
-}
-XmlException = XmlException.create;
+XmlExceptionClass = DefineException('XmlException');
+XmlException = XmlExceptionClass.create;
 
 _namespace Xml {
 
