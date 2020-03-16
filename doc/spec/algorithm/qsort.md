@@ -17,7 +17,6 @@ function quicksort(a, first, last) {
     var i = first;
     var j = last;
     var x = a[(first + last) / 2];
-    var t;
     while (true) {
         while (a[i] < x) i++;
         while (x < a[j]) j--;
