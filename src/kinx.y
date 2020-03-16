@@ -89,7 +89,7 @@
 %type<obj> PrefixExpression
 %type<obj> PostfixExpression
 %type<obj> PropertyName
-%type<type> IncDec_Opt
+%type<type> PostIncDec
 %type<obj> Factor
 %type<obj> Binary
 %type<obj> Array
@@ -435,16 +435,16 @@ PrefixExpression
     ;
 
 PostfixExpression
-    : Factor IncDec_Opt { $$ = (($2 < 0) ? $1 : kx_gen_uexpr_object($2, $1)); }
+    : Factor
+    | PostfixExpression PostIncDec { $$ = kx_gen_uexpr_object($2, $1); }
     | PostfixExpression '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | PostfixExpression '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | PostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
 
-IncDec_Opt
-    : { $$ = -1; }
-    | INC { $$ = KXOP_INCP; }
+PostIncDec
+    : INC { $$ = KXOP_INCP; }
     | DEC { $$ = KXOP_DECP; }
     ;
 
