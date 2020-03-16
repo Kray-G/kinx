@@ -231,14 +231,12 @@ var f =
 "    try {\n"
 "        try {\n"
 "            System.println('Nothing is thrown, good.');\n"
-"        }\n"
-"        finally {\n"
+"        } finally {\n"
 "            System.println('finally: func1-1');\n"
 "        }\n"
 "        System.println('Throw exception');\n"
 "        throw RuntimeException('Oh, it\\'s a careless mistake!');\n"
-"    }\n"
-"    finally {\n"
+"    } finally {\n"
 "        System.println('finally: func1-2');\n"
 "    }\n"
 "}\n"
@@ -249,16 +247,13 @@ function func2() {
     try {
         try {
             f.eval();
-        }
-        finally {
+        } finally {
             System.println('finally: func2-1');
         }
-    }
-    catch (e) {
+    } catch (e) {
         System.println('catch: func2');
         throw;
-    }
-    finally {
+    } finally {
         System.println('finally: func2-2');
     }
 }
@@ -268,12 +263,10 @@ function func3() {
     try {
         try {
             func2();
-        }
-        finally {
+        } finally {
             System.println('finally: func3-1');
         }
-    }
-    finally {
+    } finally {
         System.println('finally: func3-2');
     }
 }
@@ -281,15 +274,12 @@ function func3() {
 # Starts the test.
 try {
     func3();
-}
-catch (e) {
+} catch (e) {
     System.println("%{e.type()}: %{e.what()}");
     e.printStackTrace();
-}
-finally {
+} finally {
     System.println('finally: main-block');
 }
-
 System.println("end-of-program.");
 ```
 
@@ -307,11 +297,11 @@ finally: func3-1
 finally: func3-2
 RuntimeException: Oh, it's a careless mistake!
 Stack Trace Information:
-        at function func1(<eval>:10)
-        at <eval-block>(<eval>:16)
-        at function func2(test.kx:23)
-        at function func3(test.kx:42)
-        at <main-block>(test.kx:55)
+        at function func1(<eval>:9)
+        at <eval-block>(<eval>:14)
+        at function func2(test.kx:21)
+        at function func3(test.kx:37)
+        at <main-block>(test.kx:48)
 finally: main-block
 end-of-program.
 ```
