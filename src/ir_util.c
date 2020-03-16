@@ -288,12 +288,13 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
     if (ctx->options.exception_detail_info) {
         print_stack(ctx, NULL, NULL);
     }
+    fflush(stdout);
 }
 
 static inline const char *startup_code()
 {
     static const char *code =
-        "var System, DefineException, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Xml;\n"
+        "var System, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Xml;\n"
         "var Net, SQLite, Zip, JSON, SystemTimer, Fiber, True, False;\n"
         "var SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass;\n"
         "var SystemException, RuntimeException, FileException;\n"
@@ -315,7 +316,7 @@ static inline const char *startup_code()
             "True = { _False: 0, isFalse: 1, isTrue: 0 };\n"
             "False = { _False: 1, isFalse: 0, isTrue: 1 };\n"
             "SystemTimer = { create: System.SystemTimer_create };\n"
-            "DefineException = (_function() {\n"
+            "System.defineException = (_function() {\n"
                 "var excmap = System._globalExceptionMap();\n"
                 "return _function(type) {\n"
                     "if (excmap[type]) {\n"
@@ -329,11 +330,11 @@ static inline const char *startup_code()
                     "return ExceptionClassTemplate;\n"
                 "};\n"
             "})();\n"
-            "RuntimeExceptionClass = DefineException('RuntimeException');\n"
+            "RuntimeExceptionClass = System.defineException('RuntimeException');\n"
             "RuntimeException = RuntimeExceptionClass.create;\n"
-            "SystemExceptionClass = DefineException('SystemException');\n"
+            "SystemExceptionClass = System.defineException('SystemException');\n"
             "SystemException = SystemExceptionClass.create;\n"
-            "FileExceptionClass = DefineException('FileException');\n"
+            "FileExceptionClass = System.defineException('FileException');\n"
             "FileException = FileExceptionClass.create;\n"
             "using kxsqlite;\n"
             "using kxxml;\n"
