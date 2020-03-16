@@ -1,5 +1,8 @@
 <p align="center"><img src="../../spectest.png" height="84px" /></p>
-<p align="center">Writing a specification means writing a test, and examples are becoming test codes as is.</p>
+<p align="center">
+<strong>Language Independent Testing Framework for Behavior-Driven Development</strong><br />
+Writing a specification means writing a test, and examples are becoming test codes as is.
+</p>
 
 ## Overview
 
