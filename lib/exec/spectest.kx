@@ -1,6 +1,6 @@
 
-_class TestException(what) { @_type = 'TestException'; @_what = what; }
-TestException = TestException.create;
+var TestExceptionClass = System.defineException('TestException');
+var TestException = TestExceptionClass.create;
 
 SpecTestTemplate = {
     markdown: {
