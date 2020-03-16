@@ -143,6 +143,7 @@ This will help your understanding.
 #### Sort
 
 *   [Quicksort](algorithm/qsort.md)
+*   [Heaport](algorithm/heapsort.md)
 *   [Merge Sort](algorithm/mergesort.md)
 
 #### Verification
