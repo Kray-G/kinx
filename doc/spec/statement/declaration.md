@@ -102,7 +102,7 @@ System.println(a);
 var a, b = 10, c, d = "abc";
 System.println(a.isUndefined ? "null" : a);
 System.println(b.isUndefined ? "null" : b);
-System.println(c.isUndefined ? "null" : b);
+System.println(c.isUndefined ? "null" : c);
 System.println(d.isUndefined ? "null" : d);
 ```
 
