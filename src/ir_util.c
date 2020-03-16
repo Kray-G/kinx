@@ -737,10 +737,10 @@ kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[
 
 kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
-    if (method[0] == 'e' && !strcmp(method, "eval")) {
+    if (method[0] == 'e' && method && !strcmp(method, "eval")) {
         return do_eval(ctx, host, count, jumptable);
     }
-    if (!ctx->strlib) {
+    if (!ctx->strlib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
@@ -768,7 +768,7 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
 
 kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
-    if (!ctx->binlib) {
+    if (!ctx->binlib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
@@ -796,7 +796,7 @@ kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t
 
 kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
-    if (!ctx->intlib) {
+    if (!ctx->intlib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
@@ -824,7 +824,7 @@ kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_
 
 kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
-    if (!ctx->dbllib) {
+    if (!ctx->dbllib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
@@ -852,7 +852,7 @@ kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t
 
 kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
-    if (!ctx->arylib) {
+    if (!ctx->arylib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
