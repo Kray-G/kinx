@@ -63,7 +63,7 @@ SpecTest will work with markdown by default.
     `#### Result` is also an important mark to start an expected result in code block.
     This section will show the result corresponding to the test shown in `Code` section.
     
-    ```language
+    ```
     Expected result
     ```
     
@@ -79,9 +79,8 @@ It will help you.
 
 #### Setup The File
 
-Write `.spectest` file first.
-This is written in Json style.
-SpecTest will expect there is a `.spectest` file to load in the current directory.
+Write `.spectest` file in Json format.
+SpecTest will expect there is a `.spectest` file to load in the current directory by default.
 
 #### Markdown Template
 
