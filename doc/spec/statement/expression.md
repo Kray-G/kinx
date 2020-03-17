@@ -39,9 +39,30 @@ Here is the order to calculate values.
 In this list, only for exponent operator and assignment operator the evaluation direction is right to left.
 Otherwise it is left to right.
 
-### Special Operator
+## Expressions/Operations
 
-Almost all operators are maybe familier with programmers, but some of operators will be not.
+The individual operations are described below.
+
+*   [Assignment](expression/assign.md)
+*   [Ternary Expression](expression/ternary.md)
+*   [Logical UNDEF Operation](expression/logical_undef.md)
+*   [Logical OR Operation](expression/logical_or.md)
+*   [Logical AND Operation](expression/logical_and.md)
+*   [Bit OR Operation](expression/bitl_or.md)
+*   [Bit XOR Operation](expression/bit_xor.md)
+*   [Bit AND Operation](expression/bit_and.md)
+*   [Comparison](expression/Comparison.md)
+*   [Bit Shift Operation](expression/bit_shift.md)
+*   [Addition/Subtraction](expression/add_sub.md)
+*   [Multiplication/Division](expression/mul_div.md)
+*   [Exponentiation](expression/exponent.md)
+*   [Matching Operation](expression/matching.md)
+*   [Unary Expression](expression/prefix.md)
+*   [Postfix Operation](expression/postfix.md)
+
+### Special Description
+
+Almost all operators above may be familiar with programmers, but some of operators will be not.
 Here is describing those.
 
 #### `**` - Exponent Operator
