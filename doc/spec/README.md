@@ -197,7 +197,8 @@ This will help your understanding.
 #### Game
 
 *   [Life Game](algorithm/lifegame.md)
-
+*   [N Queens](algorithm/nqueens.md)
+*   [Knight Tour](algorithm/knight.md)
 
 ---
 
