@@ -38,8 +38,6 @@ SpecTest will recognize the test code by the rule of `.spectest` file regardless
 Here is a command line specification.
 
 *   [arguments](command/arguments.md)
-*   [version](command/version.md)
-*   [help](command/help.md)
 
 ## Statement
 
@@ -99,30 +97,31 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
 ### Object Definitions
 
-*   [Function](statement/function.md)
-*   [Class](statement/class.md)
-*   [Module](statement/module.md)
+*   [Function](definition/function.md)
+*   [Class](definition/class.md)
+*   [Module](definition/module.md)
+*   [Native](definition/native.md)
 
 ### Special Objects
 
-*   [Lambda](statement/lambda.md)
-*   [Closure](statement/closure.md)
-*   [Fiber](statement/fiber.md)
+*   [Lambda](definition/lambda.md)
+*   [Closure](definition/closure.md)
+*   [Fiber](definition/fiber.md)
 
 ## Type Check
 
 The following properties are used to check the type of a variable.
 
-*   [isUndefined](lib/typecheck/is_undefined.md)
-*   [isDefined](lib/typecheck/is_defined.md)
-*   [isInteger](lib/typecheck/is_integer.md)
-*   [isDouble](lib/typecheck/is_double.md)
-*   [isString](lib/typecheck/is_string.md)
-*   [isArray](lib/typecheck/is_array.md)
-*   [isObject](lib/typecheck/is_object.md)
-*   [isFunction](lib/typecheck/is_function.md)
-*   [isTrue](lib/typecheck/is_true.md)
-*   [isFalse](lib/typecheck/is_false.md)
+*   [isUndefined](typecheck/is_undefined.md)
+*   [isDefined](typecheck/is_defined.md)
+*   [isInteger](typecheck/is_integer.md)
+*   [isDouble](typecheck/is_double.md)
+*   [isString](typecheck/is_string.md)
+*   [isArray](typecheck/is_array.md)
+*   [isObject](typecheck/is_object.md)
+*   [isFunction](typecheck/is_function.md)
+*   [isTrue](typecheck/is_true.md)
+*   [isFalse](typecheck/is_false.md)
 
 ## Library
 
@@ -143,7 +142,6 @@ but the description is included in this section because its feature is near a li
 
 *   [eval()](lib/function/eval.md)
 *   [DefineException()](lib/function/define_exception.md)
-*   [JSON.parse()](lib/function/parse_json.md)
 
 ### Standard Objects
 
@@ -157,6 +155,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [File](lib/basic/file.md)
 *   [Directory](lib/basic/directory.md)
 *   [Regex](lib/basic/regex.md)
+*   [JSON](lib/basic/json.md)
 *   [Xml](lib/basic/xml.md)
 *   [Zip](lib/basic/zip.md)
 
