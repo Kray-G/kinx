@@ -1,6 +1,6 @@
 
 CC = cl
-CFLAGS = /nologo /O2 /MT /Iinclude /Isrc/jit
+CFLAGS = /nologo /O2 /MT /Iinclude /Isrc/jit /DYYMALLOC=kx_malloc /DYYFREE=kx_free
 OBJS = \
     src/allocator.obj \
     src/alloccore.obj \
@@ -256,17 +256,11 @@ sqlite3.obj:
 	copy /y sqlite3.obj ..\..\..
 	cd ..\..\..
 
-src/parser.c: kx.tab.c
-	move /y kx.tab.c src/parser.c; 
+src/parser.c: src/bison.parser.c
+	copy /y src\bison.parser.c src\parser.c
 
-include/parser.tab.h: kx.tab.h
-	move /y kx.tab.h include/parser.tab.h;
-
-kx.tab.c: myacc
-	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
-
-kx.tab.h: myacc
-	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
+include/parser.tab.h: include/bison.parser.tab.h
+	copy /y include\bison.parser.tab.h include\parser.tab.h
 
 myacc: myacc.exe
 
