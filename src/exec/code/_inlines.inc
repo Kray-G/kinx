@@ -17,11 +17,12 @@
         tf = fabs((v)->value.dv) >= DBL_EPSILON; \
     } else if ((v)->type == KX_OBJ_T) { \
         kx_val_t *val = NULL; \
-        KEX_GET_PROP(val, (v)->value.ov, "_False"); \
+        kx_obj_t *obj = (v)->value.ov; \
+        KEX_GET_PROP(val, obj, "_False"); \
         if (val && val->type == KX_INT_T && val->value.iv != 0) { \
             tf = 0; \
         } else { \
-            tf = 1; \
+            tf = kv_size(obj->ary) > 0; \
         } \
     } else if ((v)->type == KX_FNC_T) { \
         tf = 1; \
@@ -46,11 +47,12 @@
         tf = fabs((v)->value.dv) < DBL_EPSILON; \
     } else if ((v)->type == KX_OBJ_T) { \
         kx_val_t *val = NULL; \
-        KEX_GET_PROP(val, (v)->value.ov, "_False"); \
+        kx_obj_t *obj = (v)->value.ov; \
+        KEX_GET_PROP(val, obj, "_False"); \
         if (val && val->type == KX_INT_T && val->value.iv != 0) { \
             tf = 1; \
         } else { \
-            tf = 0; \
+            tf = kv_size(obj->ary) == 0; \
         } \
     } else if ((v)->type == KX_FNC_T) { \
         tf = 0; \
