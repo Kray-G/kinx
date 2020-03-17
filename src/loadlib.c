@@ -4,6 +4,7 @@
 
 extern const char *alloc_string(const char *str);
 extern const char *kxlib_file_exists(const char *file);
+extern const char *kxlib_file_exists_no_current(const char *file);
 
 #if defined(_WIN32) || defined(_WIN64)
 #define KCC_WINDOWS
@@ -41,11 +42,11 @@ void *load_library(const char *name, const char *envname)
     strcpy(libname, name);
     strcat(libname, ".dll");
 
-    const char *libflle = kxlib_file_exists(libname);
-    if (!libflle) {
+    const char *libfile = kxlib_file_exists_no_current(libname);
+    if (!libfile) {
         return NULL;
     }
-    return (void*)LoadLibrary(libflle);
+    return (void*)LoadLibrary(libfile);
 }
 
 void *get_libfunc(void *h, const char *name)
@@ -85,11 +86,11 @@ void *load_library(const char *name, const char *envname)
     strcpy(libname, name);
     strcat(libname, ".so");
 
-    const char *libflle = kxlib_file_exists(libname);
-    if (!libflle) {
+    const char *libfile = kxlib_file_exists_no_current(libname);
+    if (!libfile) {
         return NULL;
     }
-    return dlopen(libflle, RTLD_LAZY);
+    return dlopen(libfile, RTLD_LAZY);
 }
 
 void *get_libfunc(void *h, const char *name)
@@ -103,11 +104,8 @@ void unload_library(void *h)
 }
 #endif
 
-const char *kxlib_file_exists(const char *file)
+const char *kxlib_file_exists_no_current(const char *file)
 {
-    if (file_exists(file)) {
-        return file;
-    }
     const char *checkfile = make_path(get_exe_path(), file);
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);
@@ -134,4 +132,12 @@ const char *kxlib_exec_file_exists(const char *file)
         return alloc_string(checkfile);
     }
     return NULL;
+}
+
+const char *kxlib_file_exists(const char *file)
+{
+    if (file_exists(file)) {
+        return file;
+    }
+    return kxlib_file_exists_no_current(file);
 }
