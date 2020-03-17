@@ -1,13 +1,24 @@
 # Change Log
 
-## V0.1.0 (development)
+## V1.0.0 (Future Planned)
 
-The goal is to release the first version.
+The goal is to release as the first version.
 
-*   Basic functionalities supported.
+*   Basic functionalities.
+*   Documentation complete.
+*   REPL (Read-Eval-Print Loop).
+*   Multiple syntax errors by panic mode.
+*   Library mode like `libkinx.so`.
+*   User selectable installation.
 
-### TODO for Goal of This Version
+---
 
-* [ ] Adding many methods to `Array` and `File`.
-* [ ] `Network` object to support Network protocal access.
-* [ ] Some Optimizations.
+## V0.1.0 (Current Development)
+
+The goal is to release as the preview version.
+
+*   Basic functionalities support.
+
+### TODO
+
+* [ ] Installation.

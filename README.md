@@ -241,60 +241,13 @@ For current supported objects, see [here](doc/Reference/_Index.md).
 
 ## TODO
 
-Now development is very early stage, I need to add many functionalities.
-Here is a plan to add.
-
-* [ ] Adding many methods to `Array` and `File`.
-* [ ] `Network` object to support Network protocal access.
-* [ ] Some Optimizations.
+See [ChangeLog.md](ChangeLog.md) for a current status.
 
 ## Undocumented Memo
 
-Now there is no document about following items, but I will write it as soon as possible.
-
-### enum
-
-`enum` is now supported.
-The sequencial integer number can be defined by `enum`.
-See the example below.
-
-```javascript
-enum {
-    C_VAL_UNKNOWN,      // => 0
-    C_VAL_INTEGER = 2,  // => 2
-    C_VAL_STRING,       // => 3
-}
-```
-
-The number is started from zero, but you can also set it any integer value from any place you want.
-The scope of `enum` is in Class, Module, Namespace, Function.
-`enum` value can be defined as a different value each scope,
-but that value becomes invalid out of scope.
-The same name of `enum` name can not be used in the same scope.
-
-Here is the example below.
-
-```javascript
-enum {
-    C_VAL_UNKNOWN, C_VAL_INTEGER, C_VAL_STRING,
-}
-
-namespace X {
-
-    enum {
-        C_VAL_UNKNOWN = 100, C_VAL_INTEGER, C_VAL_STRING,
-    }
-
-    System.println(C_VAL_UNKNOWN);  // => 100
-    System.println(C_VAL_INTEGER);  // => 101
-    System.println(C_VAL_STRING);   // => 102
-
-}
-
-System.println(C_VAL_UNKNOWN);  // => 0
-System.println(C_VAL_INTEGER);  // => 1
-System.println(C_VAL_STRING);   // => 2
-```
+For specification, see [Kinx Specification](doc/spec/README.md).
+But now there is no document about following items.
+I will write it as soon as possible.
 
 ### libCurl
 
@@ -353,15 +306,6 @@ Here is an example.
 for (var i = 0, len = $$.length(); i < len; ++i) {
     System.println("arg[%{i}] = ", $$[i]);
 }
-```
-
-### const
-
-You can use a constant value with `const` keyword.
-
-```javascript
-const a = 100;
-a = 20; // error.
 ```
 
 ### Type Property
