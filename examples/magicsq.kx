@@ -1,0 +1,11 @@
+const N = 19;   // odd number
+var a = [];
+
+var k = 0;
+for (var i = - (N / 2).toInt(), end = (N / 2).toInt(); i <= end; i++)
+    for (var j = 0; j < N; j++)
+        a[(j - i + N) % N][(j + i + N) % N] = ++k;
+for (var i = 0; i < N; i++) {
+    for (var j = 0; j < N; j++) System.print("%4d" % a[i][j]);
+    System.print("\n");
+}

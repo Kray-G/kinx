@@ -447,7 +447,7 @@ static inline const char *startup_code()
                     "}\n"
                     "Array.sort = _function(ary, comp) {\n"
                         "ary = ary.clone();\n"
-                        "_quicksort(ary, 0, ary.length() - 1, comp ?? (&(a,b) => a<=>b));\n"
+                        "_quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));\n"
                         "return ary;\n"
                     "};\n"
                     "Array.clone = (_function() {\n"
