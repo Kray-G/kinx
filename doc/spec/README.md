@@ -150,6 +150,10 @@ This will help your understanding.
 
 *   [CRC32](algorithm/crc32.md)
 
+#### Game
+
+*   [Life](algorithm/life.md)
+
 
 ---
 
