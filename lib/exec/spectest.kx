@@ -13,7 +13,7 @@ SpecTestTemplate = {
         "endTestPattern": "",
         "testNamePattern": "^##+\\s+Example\\s+[0-9]+[\\.\\)]?\\s+(.+)",
 
-        "startCodePattern": "^##+\\s+Code(?:\\s+\\(([^\\)]+)\\))?.*",
+        "startCodePattern": "^##+\\s+Code(?:\\s+\\(([^\\)]+)\\))?(?:\\s*\\[(?:(?:args|ARGS|Args)\\s*(?:->|:)\\s*)?(.*)\\])?",
         "startResultPattern": "^##+\\s+Result.*",
 
         "codeBlockStart": "^```",
@@ -89,12 +89,14 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
     @progress = spectest_.progress;
     var compiler_ = spectest_.spec.compiler;
     var interpreter_ = testinfo_.interpreter || spectest_.spec.interpreter;
+    var arguments_ = testinfo_.arguments;
     var testfile_ = spectest_.spec.testfile;
     var resfile_ = spectest_.spec.resultfile;
     var result_;
 
     private initialize() {
         interpreter_ += " " + testfile_;
+        interpreter_ += " " + arguments_ if (arguments_);
     }
 
     public setup() {
@@ -315,8 +317,9 @@ class SpecTestEntry(id_, entry_, spectest_) {
                 ctx.result = false;
                 return;
             } else if (g = (line =~ spec_.startCodePattern)) {
-                if (g[1].string && info_.test.length() > 0) {
-                    info_.test[-1].interpreter = g[1].string;
+                if (info_.test.length() > 0) {
+                    info_.test[-1].interpreter = g[1].string if (g[1].string);
+                    info_.test[-1].arguments = g[2].string if (g[2].string);
                 }
                 ctx.testcode = true;
                 ctx.result = false;
