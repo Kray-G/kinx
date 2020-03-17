@@ -66,9 +66,17 @@ do { \
         if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
             int index = v2->type == KX_INT_T ? v2->value.iv : (int)(v2->value.dv); \
             kx_bin_t *bin = lv->value.bn; \
-            if (index >= kv_size(bin->bin)) { \
-                kv_resize_if(uint8_t, bin->bin, index+1); \
-                kv_shrinkto(bin->bin, index+1); \
+            int sz = kv_size(bin->bin); \
+            if (index < 0) { \
+                do { index += sz; } while (index < 0); \
+            } \
+            if (index >= sz) { \
+                int max = index + 1; \
+                kv_resize_if(uint8_t, bin->bin, max); \
+                kv_shrinkto(bin->bin, max); \
+                for (int i = sz; i < max; ++i) { \
+                    kv_A(bin->bin, i) = 0; \
+                } \
             } \
             KX_PUSH_LVALPOS(lv, kv_size(bin->bin), index); \
         } else { \
@@ -91,13 +99,17 @@ do { \
             } \
         } else if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
             int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
+            int sz = kv_size(obj->ary); \
             if (index < 0) { \
-                int sz = kv_size(obj->ary); \
                 do { index += sz; } while (index < 0); \
             } \
-            if (index >= kv_size(obj->ary)) { \
-                kv_resize_if(kx_val_t, obj->ary, index+1); \
-                kv_shrinkto(obj->ary, index+1); \
+            if (index >= sz) { \
+                int max = index + 1; \
+                kv_resize_if(kx_val_t, obj->ary, max); \
+                kv_shrinkto(obj->ary, max); \
+                for (int i = sz; i < max; ++i) { \
+                    kv_A(obj->ary, i).type = KX_UND_T; \
+                } \
             } \
             val = &(kv_A(obj->ary, index)); \
         } else if (v2->type == KX_CSTR_T) { \
@@ -228,12 +240,20 @@ do { \
             lv->value.ov = allocate_obj(ctx); \
         } \
         kx_obj_t *obj = lv->value.ov; \
-        if (cur->value1.i >= kv_size(obj->ary)) { \
-            int max = cur->value1.i + 1; \
+        int index = cur->value1.i; \
+        int sz = kv_size(obj->ary); \
+        if (index < 0) { \
+            do { index += sz; } while (index < 0); \
+        } \
+        if (index >= sz) { \
+            int max = index + 1; \
             kv_resize_if(kx_val_t, obj->ary, max); \
             kv_shrinkto(obj->ary, max); \
+            for (int i = sz; i < max; ++i) { \
+                kv_A(obj->ary, i).type = KX_UND_T; \
+            } \
         } \
-        kx_val_t *val = &(kv_A(lv->value.ov->ary, cur->value1.i)); \
+        kx_val_t *val = &(kv_A(lv->value.ov->ary, index)); \
         push_lvalue((ctx)->stack, val); \
     } \
     cur = cur->next; \
