@@ -182,8 +182,10 @@ EnumStatement
 EnumList
     : NAME { $$ = kx_gen_enum_object($1); }
     | NAME '=' INT { $$ = kx_gen_enum_object_with($1, $3); }
+    | NAME '=' '-' INT { $$ = kx_gen_enum_object_with($1, -$4); }
     | EnumList ',' NAME { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object($3)); }
     | EnumList ',' NAME '=' INT { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object_with($3, $5)); }
+    | EnumList ',' NAME '=' '-' INT { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object_with($3, -$6)); }
     ;
 
 DefinitionStatement
