@@ -3,6 +3,7 @@
 #include <fileutil.h>
 
 extern const char *alloc_string(const char *str);
+extern const char *kxlib_file_exists(const char *file);
 
 #if defined(_WIN32) || defined(_WIN64)
 #define KCC_WINDOWS
@@ -39,7 +40,12 @@ void *load_library(const char *name, const char *envname)
     char libname[PATH_MAX] = {0};
     strcpy(libname, name);
     strcat(libname, ".dll");
-    return (void*)LoadLibrary(make_path(get_exe_path(), libname));
+
+    const char *libflle = kxlib_file_exists(libname);
+    if (!libflle) {
+        return NULL;
+    }
+    return (void*)LoadLibrary(libflle);
 }
 
 void *get_libfunc(void *h, const char *name)
@@ -78,7 +84,12 @@ void *load_library(const char *name, const char *envname)
     char libname[PATH_MAX] = {0};
     strcpy(libname, name);
     strcat(libname, ".so");
-    return dlopen(make_path(get_exe_path(), libname), RTLD_LAZY);
+
+    const char *libflle = kxlib_file_exists(libname);
+    if (!libflle) {
+        return NULL;
+    }
+    return dlopen(libflle, RTLD_LAZY);
 }
 
 void *get_libfunc(void *h, const char *name)
