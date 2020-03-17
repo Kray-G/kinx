@@ -87,7 +87,7 @@ int main() {
 
 #define kv_push(type, v, x) do {									\
 		if ((v).n == (v).m) {										\
-			(v).m = (v).m? (v).m<<1 : 2;							\
+			(v).m = (v).m? (v).m<<1 : 64;							\
 			(v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m);	\
 		}															\
 		(v).a[(v).n++] = (x);										\
@@ -96,7 +96,7 @@ int main() {
 
 #define kv_push_undef(v) ((v).a[((v).n)++])
 #define kv_pushp(type, v) ((((v).n >= (v).m)?							\
-						   ((v).m = ((v).m? (v).m<<1 : 2),				\
+						   ((v).m = ((v).m? (v).m<<1 : 64),				\
 							(v).a = (type*)kx_realloc((v).a, sizeof(type) * (v).m), 0)	\
 						   : 0), ((v).a + ((v).n++)))
 
@@ -131,7 +131,7 @@ int main() {
 		memcpy((v1).a, (v0).a, sizeof(type) * (v0).n);				\
 	} while (0)
 
-#define kv_unshift(type, v1) do {									\
+#define kv_shift(type, v1) do {										\
 		memmove((v1).a, (v1).a + 1, sizeof(type) * (--(v1).n));		\
 	} while (0)
 
