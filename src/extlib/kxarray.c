@@ -233,8 +233,13 @@ int Array_pop(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     if (obj) {
-        kx_val_t *val = &kv_pop(ctx->stack);
+        int sz = kv_size(obj->ary);
         KX_ADJST_STACK();
+        if (sz == 0) {
+            push_undef(ctx->stack);
+            return 0;
+        }
+        kx_val_t *val = &kv_pop(obj->ary);
         push_value(ctx->stack, *val);
         return 0;
     }
@@ -246,10 +251,15 @@ int Array_shift(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     if (obj) {
-        kx_val_t *val = &kv_head(obj->ary);
+        int sz = kv_size(obj->ary);
         KX_ADJST_STACK();
+        if (sz == 0) {
+            push_undef(ctx->stack);
+            return 0;
+        }
+        kx_val_t *val = &kv_head(obj->ary);
         push_value(ctx->stack, *val);
-        kv_unshift(kx_val_t, obj->ary);
+        kv_shift(kx_val_t, obj->ary);
         return 0;
     }
 
