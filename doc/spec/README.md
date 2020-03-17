@@ -33,6 +33,14 @@ Actual specification is described from here.
 I divided the section for the description of SpecTest, but actually it do not have to be separated.
 SpecTest will recognize the test code by the rule of `.spectest` file regardless of the structure of document.
 
+## Command Line
+
+Here is a command line specification.
+
+*   [arguments](command/arguments.md)
+*   [version](command/version.md)
+*   [help](command/help.md)
+
 ## Statement
 
 Statement is almost near the C or JavaScript syntax.
@@ -62,6 +70,7 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 #### Block
 
 *   [block](statement/block.md)
+*   [namespace](statement/namespace.md)
 
 #### Branch
 
@@ -81,22 +90,37 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 *   [yield](statement/yield.md)
 *   [throw](statement/throw.md)
 
-### Definitions
+## Definitions
 
 Definitions are structured as a Function definition, a Class definition, and a Module definition.
 As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
-#### Object Definition
+### Object Definitions
 
 *   [Function](statement/function.md)
 *   [Class](statement/class.md)
 *   [Module](statement/module.md)
 
-#### Special Object
+### Special Objects
 
 *   [Lambda](statement/lambda.md)
 *   [Closure](statement/closure.md)
 *   [Fiber](statement/fiber.md)
+
+## Type Check
+
+The following properties are used to check the type of a variable.
+
+*   [isUndefined](lib/typecheck/is_undefined.md)
+*   [isDefined](lib/typecheck/is_defined.md)
+*   [isInteger](lib/typecheck/is_integer.md)
+*   [isDouble](lib/typecheck/is_double.md)
+*   [isString](lib/typecheck/is_string.md)
+*   [isArray](lib/typecheck/is_array.md)
+*   [isObject](lib/typecheck/is_object.md)
+*   [isFunction](lib/typecheck/is_function.md)
+*   [isTrue](lib/typecheck/is_true.md)
+*   [isFalse](lib/typecheck/is_false.md)
 
 ## Library
 
@@ -113,7 +137,17 @@ but the description is included in this section because its feature is near a li
 *   [String](lib/primitive/string.md)
 *   [Array](lib/primitive/array.md)
 
-### Basic Objects
+### Functions
+
+*   [eval()](lib/function/eval.md)
+*   [DefineException()](lib/function/define_exception.md)
+*   [JSON.parse()](lib/function/parse_json.md)
+
+### Standard Objects
+
+Here are provided objects as a Kinx Standard.
+
+#### Basic Objects
 
 Basic objects are the list of components usually used in many products.
 The functionality is very simple but powerful, so a lot of developpers will use those naturally.
@@ -124,7 +158,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Xml](lib/basic/xml.md)
 *   [Zip](lib/basic/zip.md)
 
-### Network Objects
+#### Network Objects
 
 Network library is now very few, but it will be increased in future
 because now the networking library is needed by many developpers.
@@ -134,6 +168,14 @@ because now the networking library is needed by many developpers.
 I provide Http library only, but it is based on libcurl.
 Therefore adding a library based on the same technology must be easy.
 I strongly want **contributers**. How about you?
+
+#### Exception Objects
+
+*   [SystemException](lib/exception/system.md)
+*   [FileException](lib/exception/file.md)
+*   [RegexException](lib/exception/regex.md)
+*   [XmlException](lib/exception/xml.md)
+*   [RuntimeException](lib/exception/runtime.md)
 
 ### Algorithm and Data Structure
 
