@@ -1,0 +1,25 @@
+var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p,
+    x, count = 0,
+    ok11 = [];
+
+for (x = -11; x <= 0; x++) ok[x+11] = 0;
+for (x =  1; x <= 16; x++) ok[x+11] = 1;
+for (x = 17; x <= 28; x++) ok[x+11] = 0;
+for (a = 1; a <= 16; a++) {  ok[a+11] = 0;
+for (d = a + 1; d <= 16; d++) {  ok[d+11] = 0;
+for (m = d + 1; m <= 16; m++) {  ok[m+11] = 0;
+p = 34 - a - d - m;
+if (ok[p+11] && a < p) {  ok[p+11] = 0;
+for (b = 1; b <= 16; b++) if (ok[b+11]) { ok[b+11]=0; c = 34 - a - b - d; if (ok[c+11]) { ok[c+11]=0;
+for (f = 1; f <= 16; f++) if (ok[f+11]) { ok[f+11]=0; k = 34 - a - f - p; if (ok[k+11]) { ok[k+11]=0;
+for (g = 1; g <= 16; g++) if (ok[g+11]) { ok[g+11]=0; j = 34 - d - g - m;
+if (ok[j+11]) { ok[j+11]=0; n = 34 - b - f - j; if (ok[n+11]) { ok[n+11]=0; o = 34 - c - g - k; if (ok[o+11]) { ok[o+11]=0;
+for (e = 1; e <= 16; e++) if (ok[e+11]) { ok[e+11]=0; i = 34 - a - e - m;
+if (ok[i+11]) { ok[i+11]=0; h = 34 - e - f - g; if (ok[h+11]) { ok[h+11]=0; l = 34 - i - j - k;
+if (ok[l+11]) {
+    System.print("Solution %d\n" % ++count);
+    System.print("%4d%4d%4d%4d\n%4d%4d%4d%4d\n%4d%4d%4d%4d\n%4d%4d%4d%4d\n"
+        % a % b % c % d % e % f % g % h % i % j % k % l % m % n % o % p);
+    } ok[h+11]=1; } ok[i+11]=1; } ok[e+11]=1; } ok[o+11]=1; } ok[n+11]=1; } ok[j+11]=1; } ok[g+11]=1; } ok[k+11]=1;
+    } ok[f+11]=1; } ok[c+11]=1; } ok[b+11]=1; } ok[p+11]=1; } ok[m+11]=1; } ok[d+11]=1; } ok[a+11]=1;
+}
