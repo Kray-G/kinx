@@ -57,6 +57,8 @@ This statement will be described also in `Module` section again.
 *   [enum](statement/enum.md)
 *   [expression](statement/expression.md)
 *   [mixin](statement/mixin.md)
+*   [using](statement/using.md)
+*   [import](statement/import.md)
 
 By the way, declaration of a Function or a Class, etc,
 is described not in this section but in **Definitions** section.
