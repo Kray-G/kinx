@@ -1,6 +1,6 @@
 
-const N = 22;  /* 縦方向 */
-const M = 78;  /* 横方向 */
+const N = 22;  // Vertical
+const M = 78;  // Horizontal
 var a = [], b = [];
 a[N/2][M/2] = a[N/2-1][M/2] = a[N/2+1][M/2] = a[N/2][M/2-1] = a[N/2-1][M/2+1] = 1;
 
