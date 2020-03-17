@@ -39,8 +39,10 @@
 
 #define KX_DEC_CODE() \
 { \
-    KEX_GET_STACK_TOP(v1); \
+    KEX_POP_STACK_TOP(v1); \
+    v1 = (v1->type == KX_LVAL_T) ? v1->value.lv : v1; \
     KX_DEC_DEC(v1); \
+    push_value((ctx)->stack, *v1); \
     cur = cur->next; \
 } \
 /**/
@@ -48,10 +50,7 @@
 #define KX_DECP_CODE() \
 { \
     KEX_POP_STACK_TOP(v1); \
-    if (v1->type != KX_LVAL_T) { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-    } \
-    v1 = v1->value.lv; \
+    v1 = v1->type == KX_LVAL_T ? v1->value.lv : v1; \
     push_value((ctx)->stack, *v1); \
     KX_DEC_DEC(v1); \
     cur = cur->next; \
