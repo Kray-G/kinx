@@ -145,3 +145,28 @@ System.println(C_VAL_STRING);   // => 2
 1
 2
 ```
+
+### Example 5. The scope
+
+#### Code
+
+
+```javascript
+enum {
+    C_VAL_UNKNOWN = -100,
+    C_VAL_INTEGER,
+    C_VAL_STRING,
+}
+
+System.println(C_VAL_UNKNOWN);  // => -100
+System.println(C_VAL_INTEGER);  // => -99
+System.println(C_VAL_STRING);   // => -98
+```
+
+#### Result
+
+```
+-100
+-99
+-98
+```
