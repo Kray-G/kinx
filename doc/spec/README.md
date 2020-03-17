@@ -180,25 +180,6 @@ I strongly want **contributers**. How about you?
 
 ### Algorithm and Data Structure
 
-Here are some algorithms and data structures.
-This will help your understanding.
+Algorithm and Data structure examples are being described in the page below.
 
-#### Sort
-
-*   [Quicksort](algorithm/qsort.md)
-*   [Heaport](algorithm/heapsort.md)
-*   [Merge Sort](algorithm/mergesort.md)
-
-#### Verification
-
-*   [CRC32](algorithm/crc32.md)
-
-#### Game
-
-*   [Life Game](algorithm/lifegame.md)
-*   [N Queens](algorithm/nqueens.md)
-*   [Knight Tour](algorithm/knight.md)
-
----
-
-Thank you very much in advance.
+*   [Algorithm](algorithm/README.md)
