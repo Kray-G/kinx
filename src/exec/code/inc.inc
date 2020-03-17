@@ -73,10 +73,7 @@
 #define KX_INCP_CODE() \
 { \
     KEX_POP_STACK_TOP(v1); \
-    if (v1->type != KX_LVAL_T) { \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-    } \
-    v1 = v1->value.lv; \
+    v1 = (v1->type == KX_LVAL_T) ? v1->value.lv : v1; \
     push_value((ctx)->stack, *v1); \
     KX_INC_INC(v1); \
     cur = cur->next; \
