@@ -6,7 +6,7 @@ SRCDIR = $(CURDIR)$(.CURDIR)
 DEPFILE	= Makefile.dep
 
 CC = gcc
-CFLAGS = -DKX_DIRECT_THREAD -Iinclude -O2 \
+CFLAGS = -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -Iinclude -O2 \
 	 -Wno-unused-result -Wno-missing-braces -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
 OBJS = \
     allocator.o \
@@ -182,7 +182,6 @@ clean:
 
 kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm
-	rm kx.output
 	cp -f src/disasm/arch/x86/x86.ins .
 	cp -f src/disasm/arch/x86/x64.ins .
 	cp -f src/disasm/arch/mips/mips.ins .
@@ -243,16 +242,18 @@ libcrypto.so.3:
 	cp -f src/extlib/openssl/x64/gcc/libcrypto.so.3 ./libcrypto.so.3
 
 src/parser.c: kx.tab.c
-	mv -f kx.tab.c src/parser.c; 
+	cp -f kx.tab.c src/parser.c
+	mv -f kx.tab.c src/bison.parser.c
 
 include/parser.tab.h: kx.tab.h
-	mv -f kx.tab.h include/parser.tab.h;
+	cp -f kx.tab.h include/parser.tab.h
+	mv -f kx.tab.h include/bison.parser.tab.h
 
 kx.tab.c: myacc
-	./myacc -vd -b kx -y kx_yy -Y KINX_YY src/kinx.y;
+	bison -v -d -b kx -p kx_yy src/kinx.y;
 
 kx.tab.h: myacc
-	./myacc -vd -b kx -y kx_yy -Y KINX_YY src/kinx.y;
+	bison -v -d -b kx -p kx_yy src/kinx.y;
 
 myacc:
 	cd utility; \
