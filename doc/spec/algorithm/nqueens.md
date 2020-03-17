@@ -17,9 +17,10 @@ Here is 8 Queens puzzle algorithm.
 ```javascript
 var a = [], b = [], c = [], x = [];
 var solution = 0;
+const SOLUTIONMAX = 92;
 
 function found(n) {
-    if (++solution < 92) return;
+    if (++solution < SOLUTIONMAX) return;
     System.print("\nSolution %d\n" % solution);
     for (var i = 0; i < n; i++) {
         for (var j = 0; j < n; j++)
