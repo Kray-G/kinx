@@ -21,4 +21,4 @@ The goal is to release as the preview version.
 
 ### TODO
 
-* [ ] Installation.
+* [ ] Easy Installation for Preview.
