@@ -14,6 +14,10 @@ Command line arguments will be used with `$$` as array.
 #### Code [args -> 1 2 3 4 5 6 7 8 end]
 
 ```javascript
+//
+// Command Line Example:
+//  $ ./kinx test.kx 1 2 3 4 5 6 7 8 end
+//
 $$.each(&(e, i) => System.println("Argument[%d] = " % i, e));
 ```
 
