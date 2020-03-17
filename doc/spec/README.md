@@ -152,7 +152,7 @@ This will help your understanding.
 
 #### Game
 
-*   [Life](algorithm/life.md)
+*   [Life Game](algorithm/lifegame.md)
 
 
 ---
