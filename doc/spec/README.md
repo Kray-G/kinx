@@ -136,6 +136,7 @@ but the description is included in this section because its feature is near a li
 *   [Integer](lib/primitive/integer.md)
 *   [Double](lib/primitive/double.md)
 *   [String](lib/primitive/string.md)
+*   [Binary](lib/primitive/binary.md)
 *   [Array](lib/primitive/array.md)
 
 ### Functions
@@ -152,12 +153,15 @@ Here are provided objects as a Kinx Standard.
 Basic objects are the list of components usually used in many products.
 The functionality is very simple but powerful, so a lot of developpers will use those naturally.
 
+*   [System](lib/basic/system.md)
+*   [Math](lib/primitive/math.md)
 *   [File](lib/basic/file.md)
 *   [Directory](lib/basic/directory.md)
 *   [Regex](lib/basic/regex.md)
 *   [JSON](lib/basic/json.md)
 *   [Xml](lib/basic/xml.md)
 *   [Zip](lib/basic/zip.md)
+*   [SQLite](lib/basic/sqlite.md)
 
 #### Network Objects
 
