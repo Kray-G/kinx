@@ -377,20 +377,24 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         break;
 
     case KXOP_DECL: {
-        int decl = ctx->decl;
-        ctx->decl = 1;
-        if (node->lhs->type == KXOP_VAR) {
-            node->lhs->optional = node->optional;
-            node->lhs->init = node->rhs;
+        if (node->lhs->type != KXOP_MKARY) {
+            int decl = ctx->decl;
+            ctx->decl = 1;
+            if (node->lhs->type == KXOP_VAR) {
+                node->lhs->optional = node->optional;
+                node->lhs->init = node->rhs;
+            }
+            analyze_ast(node->lhs, ctx);
+            ctx->decl = decl;
+            analyze_ast(node->rhs, ctx);
+            if (node->rhs && node->lhs->type == KXOP_VAR) {
+                node->lhs->var_type = node->rhs->var_type;
+            }
+            node->var_type = node->lhs->var_type;
+            break;
         }
-        analyze_ast(node->lhs, ctx);
-        ctx->decl = decl;
-        analyze_ast(node->rhs, ctx);
-        if (node->rhs && node->lhs->type == KXOP_VAR) {
-            node->lhs->var_type = node->rhs->var_type;
-        }
-        node->var_type = node->lhs->var_type;
-        break;
+        // if declaration is array, same as assignment. 
+        // fall through
     }
     case KXOP_ASSIGN: {
         int decl = -1;
