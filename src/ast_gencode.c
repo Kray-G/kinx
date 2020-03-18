@@ -802,11 +802,15 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
                     kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SET_GMM }));
                 }
             }
-            gencode_ast_hook(ctx, node->lhs, ana, 1);
-            if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHLV) {
-                last_op(ana) = KX_STOREV;
+            if (node->lhs->type == KXOP_MKARY) {
+                apply_getval(ctx, node->lhs->lhs, ana, 0);
             } else {
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
+                gencode_ast_hook(ctx, node->lhs, ana, 1);
+                if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHLV) {
+                    last_op(ana) = KX_STOREV;
+                } else {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
+                }
             }
             add_pop(ana);
         }
