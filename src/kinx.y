@@ -339,7 +339,10 @@ AssignRightHandSide
 
 ObjectSpecialSyntax
     : '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
+    | ObjectSpecialSyntax PostIncDec { $$ = kx_gen_uexpr_object($2, $1); }
+    | ObjectSpecialSyntax '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | ObjectSpecialSyntax '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | ObjectSpecialSyntax '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | ObjectSpecialSyntax '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
 
@@ -465,6 +468,7 @@ Factor
     | Regex
     | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }
     | '(' AssignExpression ')' { $$ = $2; }
+    | '(' ObjectSpecialSyntax ')' { $$ = $2; }
     | '(' STR ')' { $$ = kx_gen_str_object($2); }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     | '@' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
