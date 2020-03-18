@@ -962,7 +962,7 @@ static int add_file(kx_context_t *ctx, kx_obj_t *obj, const char *zipfile, int a
     }
 
     mz_zip_writer_set_aes(writer, aes);
-    err = mz_zip_writer_add_path(writer, filename, NULL, 0, 1);
+    err = mz_zip_writer_add_path(writer, filename, NULL, 1, 1);
     mz_zip_writer_delete(&writer);
     if (err != MZ_OK) {
         return err;
