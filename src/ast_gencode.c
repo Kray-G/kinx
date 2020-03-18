@@ -43,11 +43,6 @@
     } else switch (last_op(ana)) {\
     case KX_PUSHI:\
         last_op(ana) = KX_##CMD##I;\
-        if (KX_##CMD##I == KX_ADDI && last_value1(ana).i == 1) {\
-            last_op(ana) = KX_INC;\
-        } else if (KX_##CMD##I == KX_SUBI && last_value1(ana).i == 1) {\
-            last_op(ana) = KX_DEC;\
-        }\
         break;\
     case KX_PUSHD:\
         last_op(ana) = KX_##CMD##D;\
