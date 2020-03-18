@@ -46,7 +46,7 @@ class SpecTestResult(res_) {
                 var dot = dotlen * ".";
                 var sec = (res_.elapsed).toInt();
                 var m10 = ((res_.elapsed * 100).toInt() % 100);
-                System.println("Case[%d] (%s) %s %-10s (%3d.%02ds)"
+                System.println("Case[%2d] (%s) %s %-10s (%3d.%02ds)"
                     % res_.index
                     % res_.name
                     % dot
@@ -155,7 +155,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
     }
 
     public print() {
-        System.println("  Case[%d]: %s" % index_ % @name);
+        System.println("  Case[%2d]: %s" % index_ % @name);
         System.println("    Code:");
         @code.each(function(line, i) {
             System.println("    %4d: %s" % i % line);
@@ -559,7 +559,7 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
 
     public startTestCase(index, name) {
         showIndent();
-        system_.print("Case[%d]: %s" % index % name);
+        system_.print("Case[%2d]: %s" % index % name);
         dotlen_ = 60 - name.length() - 6 - (indent_ * 4);
         if (dotlen_ < 0) dotlen_ = 3; 
     }

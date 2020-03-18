@@ -193,6 +193,30 @@ static int lookup_enum_value(kxana_context_t *ctx, const char *name, int *ret)
     return 0;
 }
 
+static void add_const(kxana_context_t *ctx, kx_object_t *decl, kx_object_t *node)
+{
+    if (!node) {
+        return;
+    }
+    if (node->type == KXST_EXPRLIST) {
+        add_const(ctx, decl, node->lhs);
+        add_const(ctx, decl, node->rhs);
+        return;
+    }
+    if (node->type == KXOP_MKARY || node->type == KXOP_SPREAD) {
+        add_const(ctx, decl, node->lhs);
+        return;
+    }
+    if (node->type == KXOP_VAR) {
+        node->optional = decl->optional;
+        node->init = node;  // dummy.
+        int decl = ctx->decl;
+        ctx->decl = 1;
+        search_symbol_table(node, node->value.s, ctx);
+        ctx->decl = decl;
+    }
+}
+
 static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
 {
     if (!node) {
@@ -397,6 +421,9 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         // fall through
     }
     case KXOP_ASSIGN: {
+        if (node->optional == KXDC_CONST && node->lhs->type == KXOP_MKARY) {
+            add_const(ctx, node, node->lhs);
+        }
         int decl = -1;
         if (node->lhs->type == KXOP_VAR) {
             kxana_symbol_t *sym = search_symbol_table(node, node->lhs->value.s, ctx);
