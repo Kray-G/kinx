@@ -19,7 +19,7 @@ Here is the order to calculate values.
 | :---: | ------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
 |   1   | Factor        | Variable, Number, String, ...                                                                                 |       -       |
 |   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
-|   3   | Prefix        | `!`, `+`, `-`, `++`, `--`                                                                                     | left to right |
+|   3   | Prefix        | `!`, `+`, `-`, `*`, `++`, `--`                                                                                | left to right |
 |   4   | Matching      | `=~`, `!~`                                                                                                    | left to right |
 |   5   | Exponent      | `**`                                                                                                          | right to left |
 |   6   | Mul,...       | `*`, `/`, `%`                                                                                                 | left to right |
@@ -64,6 +64,22 @@ The individual operations are described below.
 
 Almost all operators above may be familiar with programmers, but some of operators will be not.
 Here is describing those.
+
+#### Unary `*` - Convert Operator
+
+`*` of unary expression means a convert operator.
+This operator works as below.
+
+|       From        |        To        |                                             Example                                             |
+| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
+| Integer           | String           | `*97` -> `'a'`                                                                                  |
+| BigInteger        | String           | `*122013682599111006870123878542304692625357` -> `'122013682599111006870123878542304692625357'` |
+| Double            | String           | `*1.2` -> `'1.2'`                                                                               |
+| String            | Array            | `*'abc'` -> `[97, 98, 99]`                                                                      |
+| Binary            | String           | `*<97, 98, 99>` -> `'abc'`                                                                      |
+| Object(Formatter) | Formatted String | `*('abc%s' % 'xyz')` -> `'abcxyz'`                                                              |
+| Array(non-Object) | String           | `*[97, 98, 99]` -> `'abc'`                                                                      |
+| ... Otherwise     | null             |                                                                                                 |
 
 #### `**` - Exponent Operator
 
