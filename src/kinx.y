@@ -436,6 +436,7 @@ PrefixExpression
     | '!' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
     | '+' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_POSITIVE, $2); }
     | '-' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_NEGATIVE, $2); }
+    | '*' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_CONV, $2); }
     | INC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_INC, $2); }
     | DEC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_DEC, $2); }
     ;
