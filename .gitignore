@@ -26,3 +26,5 @@ timeit.dat
 *.res
 *.db
 kinx.map
+kx.tab.c
+kx.tab.h
