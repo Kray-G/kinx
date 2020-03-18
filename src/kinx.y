@@ -157,6 +157,7 @@ Statement
     | BreakStatement
     | LabelStatement
     | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
+    | error ';' { yyerrok; }
     ;
 
 BlockStatement
