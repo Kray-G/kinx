@@ -120,6 +120,7 @@ enum opecode {
     KXOP_NOT,
     KXOP_POSITIVE,
     KXOP_NEGATIVE,
+    KXOP_CONV,
     KXOP_INC,
     KXOP_DEC,
     KXOP_INCP,       /* postfix */
