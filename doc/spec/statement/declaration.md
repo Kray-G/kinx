@@ -43,6 +43,24 @@ const a = 10;
 a = 20; // error.
 ```
 
+### Destructuring assignment
+
+Destructuring assignment is supported and spread/rest operator is also available.
+But destructuring assignment for Object is not supported.
+
+```javascript
+var [a, ...b] = [10, 20, 30];
+// => a == 10
+// => b == [20, 30]
+```
+
+Of course, assignment is rejected when it declared as `const`.
+
+```javascript
+const [a, ...b] = [10, 20, 30];
+a = 10; // error.
+```
+
 ## Examples
 
 ### Example 1. Normal case
@@ -199,4 +217,38 @@ System.println(a.x);
 
 ```
 20
+```
+
+### Example 7. Destructuring assignment (1)
+
+#### Code
+
+```javascript
+var [a, ...b] = [10, 20, 30];
+System.println(a);
+System.println(b[1]);
+```
+
+#### Result
+
+```
+10
+30
+```
+
+### Example 7. Destructuring assignment (2)
+
+#### Code
+
+```javascript
+const [a, ...b] = [10, 20, 30];
+a = 10;
+b = 20;
+```
+
+#### Result
+
+```
+Error: Can not assign a value to the 'const' variable near the test.kx:2
+Error: Can not assign a value to the 'const' variable near the test.kx:3
 ```
