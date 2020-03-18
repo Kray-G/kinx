@@ -327,6 +327,14 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
         analyze_ast(node->lhs, ctx);
         node->var_type = node->lhs->var_type;
         break;
+    case KXOP_CONV:
+        node->count_args = count_args(node->lhs);
+        node->lhs = kx_gen_bexpr_object(KXOP_CALL,
+            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("convType")),
+            node->lhs
+        );
+        analyze_ast(node->lhs, ctx);
+        break;
     case KXOP_INC:
         analyze_ast(node->lhs, ctx);
         node->var_type = node->lhs->var_type;
