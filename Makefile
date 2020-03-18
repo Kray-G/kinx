@@ -174,6 +174,31 @@ TESTCORE = \
 
 all: timex kinx $(SOFILES)
 
+install:
+	if [ ! -d /usr/bin/kinxlib ]; then mkdir -p /usr/bin/kinxlib; fi;
+	cp -f ./kinx /usr/bin/kinx
+	cp -rf lib/* /usr/bin/kinxlib/
+	cp -f kxarray.so /usr/bin/kinxlib/
+	cp -f kxbinary.so /usr/bin/kinxlib/
+	cp -f kxdouble.so /usr/bin/kinxlib/
+	cp -f kxfile.so /usr/bin/kinxlib/
+	cp -f kxinteger.so /usr/bin/kinxlib/
+	cp -f kxmath.so /usr/bin/kinxlib/
+	cp -f kxnet.so /usr/bin/kinxlib/
+	cp -f kxregex.so /usr/bin/kinxlib/
+	cp -f kxsqlite.so /usr/bin/kinxlib/
+	cp -f kxstring.so /usr/bin/kinxlib/
+	cp -f kxsystem.so /usr/bin/kinxlib/
+	cp -f kxxml.so /usr/bin/kinxlib/
+	cp -f libcrypto.so.3 /usr/bin/kinxlib/
+	cp -f libonig.so.5.0.0 /usr/bin/kinxlib/
+	ln -sf /usr/bin/kinxlib/libonig.so.5.0.0 /usr/bin/kinxlib/libonig.so.5
+	ln -sf /usr/bin/kinxlib/libonig.so.5 /usr/bin/kinxlib/libonig.so
+	cp -f libssl.so.3 /usr/bin/kinxlib/
+	cp -f libz.so.1.2.11 /usr/bin/kinxlib/
+	ln -sf /usr/bin/kinxlib/libz.so.1 /usr/bin/kinxlib/libz.so
+	ln -sf /usr/bin/kinxlib/libz.so.1.2.11 /usr/bin/kinxlib/libz.so.1
+
 timex:
 	$(CC) $(CFLAGS) -o timex timex.c
 
