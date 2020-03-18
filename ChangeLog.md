@@ -7,7 +7,6 @@ The goal is to release as the first version.
 *   Basic functionalities.
 *   Documentation complete.
 *   REPL (Read-Eval-Print Loop).
-*   Multiple syntax errors by panic mode.
 *   Library mode like `libkinx.so`.
 *   User selectable installation.
 
