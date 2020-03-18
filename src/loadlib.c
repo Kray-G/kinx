@@ -122,6 +122,16 @@ const char *kxlib_file_exists_no_current(const char *file)
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);
     }
+    #if !defined(KCC_WINDOWS)
+    checkfile = make_path_with("/usr/bin", "kinxlib", file);
+    if (file_exists(checkfile)) {
+        return alloc_string(checkfile);
+    }
+    checkfile = make_path_with("/usr/bin", "kinxlib/std", file);
+    if (file_exists(checkfile)) {
+        return alloc_string(checkfile);
+    }
+    #endif
     return NULL;
 }
 
@@ -131,6 +141,12 @@ const char *kxlib_exec_file_exists(const char *file)
     if (file_exists(checkfile)) {
         return alloc_string(checkfile);
     }
+    #if !defined(KCC_WINDOWS)
+    checkfile = make_path_with_ext("/usr/bin", "kinxlib/exec", file, ".kx");
+    if (file_exists(checkfile)) {
+        return alloc_string(checkfile);
+    }
+    #endif
     return NULL;
 }
 
