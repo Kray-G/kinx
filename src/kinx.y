@@ -508,6 +508,7 @@ PropertyName
     | CLASS { $$ = kx_gen_str_object("class"); }
     | MODULE { $$ = kx_gen_str_object("module"); }
     | RETURN { $$ = kx_gen_str_object("return"); }
+    | YIELD { $$ = kx_gen_str_object("yield"); }
     | THROW { $$ = kx_gen_str_object("throw"); }
     | NUL { $$ = kx_gen_str_object("null"); }
     | TRUE { $$ = kx_gen_str_object("true"); }
@@ -595,6 +596,7 @@ KeySpecialName
     | CLASS { $$ = "class"; }
     | MODULE { $$ = "module"; }
     | RETURN { $$ = "return"; }
+    | YIELD { $$ = "yield"; }
     | THROW { $$ = "throw"; }
     | NUL { $$ = "null"; }
     | TRUE { $$ = "true"; }
