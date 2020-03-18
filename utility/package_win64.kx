@@ -1,0 +1,31 @@
+var modules = [
+    "kinx.exe",
+    "kxarray.dll",
+    "kxbinary.dll",
+    "kxdouble.dll",
+    "kxfile.dll",
+    "kxinteger.dll",
+    "kxmath.dll",
+    "kxnet.dll",
+    "kxregex.dll",
+    "kxsqlite.dll",
+    "kxstring.dll",
+    "kxsystem.dll",
+    "kxxml.dll",
+    "libcrypto-3.dll",
+    "libssl-3.dll",
+    "libxml2.dll",
+    "onig.dll",
+    "zlib.dll",
+    "arm.ins",
+    "mips.ins",
+    "x64.ins",
+    "x86.ins",
+    "lib/",
+];
+var zip = new Zip("package_win64.zip", File.READ|File.WRITE);
+modules.each(&(entry) => {
+    System.print("Adding %s... " % entry);
+    zip.addFile(entry);
+    System.println("done");
+});
