@@ -472,6 +472,9 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                 .op1 = { .type = KXNOP_REG, .r = nctx->regno }
         }));
         break;
+    case KXOP_CONV:
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
     case KXOP_INC:
         nativejit_ast(nctx, node->lhs, 1);
         kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){

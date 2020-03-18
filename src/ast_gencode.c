@@ -741,6 +741,11 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_NEG }));
         break;
+    case KXOP_CONV: {
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        kv_last(get_block(module, ana->block)->code).count = node->count_args;
+        break;
+    }
     case KXOP_INC: {
         if (node->lhs->type == KXOP_VAR) {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));

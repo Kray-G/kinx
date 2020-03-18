@@ -104,6 +104,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("(-):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
         break;
+    case KXOP_CONV:
+        printf("(*):%s\n", get_short_typename(node->var_type));
+        display_ast(node->lhs, indent + 1, 0);
+        break;
     case KXOP_INC:
         printf("(++X):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
