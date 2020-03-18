@@ -452,6 +452,95 @@ static int System_globalExceptionMap(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     return 0;
 }
 
+static int System_convType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_val_t val = kv_last_by(ctx->stack, 1);
+    KX_ADJST_STACK();
+    switch (val.type) {
+    case KX_UND_T:
+        push_i(ctx->stack, 0);
+        break;
+    case KX_INT_T: {
+        kstr_t *sv = allocate_str(ctx);
+        ks_appendf(sv, "%c", (int)(val.value.iv & 0xFF));
+        push_sv(ctx->stack, sv);
+        break;
+    }
+    case KX_BIG_T: {
+        char *buf = BzToString(val.value.bz, 10, 0);
+        kstr_t *sv = allocate_str(ctx);
+        ks_append(sv, buf);
+        push_sv(ctx->stack, sv);
+        BzFreeString(buf);
+        break;
+    }
+    case KX_DBL_T: {
+        kstr_t *sv = allocate_str(ctx);
+        ks_appendf(sv, "%g", val.value.dv);
+        push_sv(ctx->stack, sv);
+        break;
+    }
+    case KX_CSTR_T: {
+        kx_obj_t *obj = allocate_obj(ctx);
+        for (const char *p = val.value.pv; *p; ++p) {
+            KEX_PUSH_ARRAY_INT(obj, (int)*p);
+        }
+        push_obj(ctx->stack, obj);
+        break;
+    }
+    case KX_STR_T: {
+        kx_obj_t *obj = allocate_obj(ctx);
+        for (const char *p = ks_string(val.value.sv); *p; ++p) {
+            KEX_PUSH_ARRAY_INT(obj, (int)*p);
+        }
+        push_obj(ctx->stack, obj);
+        break;
+    }
+    case KX_BIN_T: {
+        kstr_t *sv = allocate_str(ctx);
+        kx_bin_t *bin = val.value.bn;
+        int sz = kv_size(bin->bin);
+        for (int i = 0; i < sz; ++i) {
+            ks_appendf(sv, "%c", kv_A(bin->bin, i));
+        }
+        push_sv(ctx->stack, sv);
+        break;
+    }
+    case KX_OBJ_T: {
+        kstr_t *out = kx_format(&val);
+        if (!out) {   
+            kx_obj_t *obj = val.value.ov;
+            if (kv_size(obj->ary) > 0) {
+                kstr_t *sv = allocate_str(ctx);
+                int sz = kv_size(obj->ary);
+                for (int i = 0; i < sz; ++i) {
+                    kx_val_t *v = &kv_A(obj->ary, i);
+                    if (v->type == KX_INT_T) {
+                        ks_appendf(sv, "%c", (int)(v->value.iv & 0xFF));
+                    } else {
+                        ks_append(sv, " ");
+                    }
+                }
+                push_sv(ctx->stack, sv);
+            } else {
+                push_undef(ctx->stack);
+            }
+        } else {
+            kstr_t *sv = allocate_str(ctx);
+            ks_append(sv, ks_string(out));
+            push_sv(ctx->stack, sv);
+            ks_free(out);
+        }
+        break;
+    }
+    default:
+        push_undef(ctx->stack);
+        break;
+    }
+
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "_globalExceptionMap", System_globalExceptionMap },
     { "makeSuper", System_makeSuper },
@@ -465,6 +554,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "arguments", System_arguments },
     { "parseJson", JSON_parse },
     { "sleep", System_sleep },
+    { "convType", System_convType },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
