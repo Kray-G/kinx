@@ -170,7 +170,8 @@ TESTCORE = \
 
 all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES)
 
-yacc: kx.tab.h src/parser.c include/parser.tab.h
+yacc: myacc.exe
+	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
 
 timex:
 	$(CC) $(CFLAGS) /Fetimex timex.c
