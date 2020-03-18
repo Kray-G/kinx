@@ -384,25 +384,27 @@ class SpecTestEntry(id_, entry_, spectest_) {
         });
         file.close();
         makeTest(testarea);
-        suite_ = new SpecTestSuite(id_, info_, spectest_);
     }
 
     public setup() {
         listupLinks();
-        var entries = [];
-        @link.each(_function(mdfile) {
-            var e = @addEntry(mdfile);
-            if (e) {
-                # Setup it later because the order by written it in document is more natural.
-                entries.push(e);
-            }
-        });
-        entries.each(_function(e) {
-            e.setup();
-        });
-        @nolink.each(_function(mdfile) {
-            @entry.push(new SpecTestNolinkEntry(id_++, mdfile, spectest_));
-        });
+        if (!spectest_.options.onlyone || spectest_.options.doChildren) {
+            var entries = [];
+            @link.each(_function(mdfile) {
+                var e = @addEntry(mdfile);
+                if (e) {
+                    # Setup it later because the order by written it in document is more natural.
+                    entries.push(e);
+                }
+            });
+            entries.each(_function(e) {
+                e.setup();
+            });
+            @nolink.each(_function(mdfile) {
+                @entry.push(new SpecTestNolinkEntry(id_++, mdfile, spectest_));
+            });
+        }
+        suite_ = new SpecTestSuite(id_, info_, spectest_);
     }
 
     public addEntry(entry) {
@@ -434,7 +436,9 @@ class SpecTestEntry(id_, entry_, spectest_) {
         if (result_) {
             result_.showResult(indent);
         }
-        suite_.showResult(indent + 1);
+        if (suite_) {
+            suite_.showResult(indent + 1);
+        }
         @entry.each(function(entry) {
             entry.showResult(indent + 1);
         });
@@ -449,7 +453,7 @@ class SpecTestEntry(id_, entry_, spectest_) {
     }
 
     public count() {
-        return @entry.reduce(&(r, ts) => r + ts.count(), 0) + suite_.count();
+        return @entry.reduce(&(r, ts) => r + ts.count(), 0) + (suite_ ? suite_.count() : 0);
     }
 }
 
@@ -594,23 +598,23 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
 
 }
 
-class SpecTest(args_) {
-    var spec_;
-    var top_;
-    var id_ = 0;
-    var analyzed_ = false;
-    var result_;
+class GetOpt {
+
+    var hasArgMap_;
 
     private hasOptArg(opts, ch) {
-        for (var i = 0, len = opts.length(); i < len; ++i) {
-            if (opts[i] == ch && ((i + 1) < len) && opts[i+1] == ':'[0]) {
-                return true;
+        var c = *ch;
+        if (hasArgMap_.isUndefined) {
+            for (var i = 0, len = opts.length(); i < len; ++i) {
+                if (opts[i] == ch && ((i + 1) < len) && opts[i+1] == ':'[0]) {
+                    hasArgMap_[c] = true;
+                }
             }
         }
-        return false;
+        return hasArgMap_[c];
     }
 
-    private getopt(args, opts) {
+    public getopt(args, opts) {
         for (var i = 0, len = args.length(); i < len; i++) {
             var argstr = args[i];
             if (argstr[0] == '-'[0] && argstr[1] != '-'[0]) {
@@ -629,14 +633,32 @@ class SpecTest(args_) {
         }
     }
 
+}
+
+var getopt = new GetOpt().getopt;
+
+class SpecTest(args_) {
+    var spec_;
+    var top_;
+    var id_ = 0;
+    var analyzed_ = false;
+    var result_;
+
     public analyzeOptions() {
-        while (c = getopt(args_, "vf:")) {
+        while (c = getopt(args_, "vf:t:T:")) {
             switch (c.type) {
             case 'v'[0]:
                 @options.verbose = true;
                 break;
             case 'f'[0]:
                 @options.file = c.arg;
+                break;
+            case 't'[0]:
+                @options.onlyone = c.arg;
+                break;
+            case 'T'[0]:
+                @options.onlyone = c.arg;
+                @options.doChildren = true;
                 break;
             }
         }
@@ -692,16 +714,36 @@ class SpecTest(args_) {
                 print: System.print,
                 println: System.println,
             });
-        Directory.walk(spec_.root, &(entry, i) => {
-            if (entry.extension() == ".md") {
-                if (spec_.topLevelFilePattern && entry =~ spec_.topLevelFilePattern) {
-                    @addEntry(entry);
-                    top_ = new SpecTestEntry(id_++, entry, this);
-                    top_.setup();
-                    return false;
+        if (@options.onlyone) {
+            var candidate;
+            Directory.recursiveWalk(spec_.root, &(entry) => {
+                if (entry.extension() == ".md") {
+                    if (entry == @options.onlyone) {
+                        candidate = entry;
+                        return false;
+                    }
+                    if (entry.filename() == @options.onlyone.filename()) {
+                        candidate ??= entry;
+                    }
                 }
+            });
+            if (candidate) {
+                @addEntry(candidate);
+                top_ = new SpecTestEntry(id_++, candidate, this);
+                top_.setup();
             }
-        });
+        } else {
+            Directory.walk(spec_.root, &(entry) => {
+                if (entry.extension() == ".md") {
+                    if (spec_.topLevelFilePattern && entry =~ spec_.topLevelFilePattern) {
+                        @addEntry(entry);
+                        top_ = new SpecTestEntry(id_++, entry, this);
+                        top_.setup();
+                        return false;
+                    }
+                }
+            });
+        }
         analyzed_ = true;
     }
 
