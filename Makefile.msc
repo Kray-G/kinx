@@ -1,5 +1,6 @@
 
 CC = cl
+RC = rc
 CFLAGS = /nologo /O2 /MT /Iinclude /Isrc/jit /DYYMALLOC=kx_malloc /DYYFREE=kx_free
 OBJS = \
     src/allocator.obj \
@@ -163,7 +164,9 @@ TESTCORE = \
     ret \
     haltnop \
     trycatch \
-    fib \
+    fib
+RCFILE = \
+    kinx.res
 
 .SUFFIXES :
 .SUFFIXES : .c .obj
@@ -181,14 +184,17 @@ clean:
 	del /Q *.dll
 	del kx.output timex.exe kinx.exe myacc.exe test.exe
 
-kinx: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
-	$(CC) /Fe$@ /Fmkinx.map $(OBJS) $(DISASM)
+kinx: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM) $(RCFILE)
+	$(CC) /Fe$@ /Fmkinx.map $(OBJS) $(DISASM) $(RCFILE)
     copy /y src\disasm\arch\x86\x86.ins .
     copy /y src\disasm\arch\x86\x64.ins .
     copy /y src\disasm\arch\mips\mips.ins .
     copy /y src\disasm\arch\arm\arm.ins .
     copy /y src\disasm\spec\x86.spec .
     copy /y src\disasm\spec\mips.spec .
+
+kinx.res: kinx.rc
+	$(RC) kinx.rc
 
 kxsystem.dll: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h src/extlib/kc-json/kc-json.obj $(PICOBJS)
 	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsystem.c $(PICOBJS) src/extlib/kc-json/kc-json.obj
