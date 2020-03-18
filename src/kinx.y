@@ -339,7 +339,7 @@ AssignRightHandSide
 
 ObjectSpecialSyntax
     : '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
-    | '{' '}' '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_uexpr_object(KXOP_MKOBJ, NULL), $4); }
+    | ObjectSpecialSyntax '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | ObjectSpecialSyntax '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
     ;
 
