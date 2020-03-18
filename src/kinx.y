@@ -739,8 +739,8 @@ CallArgumentList
 
 CallArgument
     : AssignExpression
+    | ObjectSpecialSyntax
     | STR { $$ = kx_gen_str_object($1); }
-    | '{' '}' { $$ = kx_gen_uexpr_object(KXOP_MKOBJ, NULL); }
     ;
 
 SpreadItem
