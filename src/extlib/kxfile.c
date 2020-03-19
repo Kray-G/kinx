@@ -12,6 +12,7 @@
 #include "zip/include/mz_zip_rw.h"
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
 #define STRICMP(s1, s2) stricmp(s1, s2)
 #else
 #include <string.h>
@@ -56,6 +57,7 @@ typedef struct fileinfo_ {
     const char *filename;
     int mode;
     int is_text;
+    int is_std;
 } fileinfo_t;
 
 typedef struct dirinfo_ {
@@ -127,6 +129,74 @@ if (obj) { \
 } \
 /**/
 
+#if defined(_WIN32) || defined(_WIN64)
+static int kx_kbhit(void)
+{
+    return _kbhit();
+}
+static int kx_getch(void)
+{
+    return _getch();
+}
+#else
+static int kx_kbhit(void)
+{
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+    ch = getch();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+    if (ch != EOF) {
+        ungetc(ch, stdin);
+        return 1;
+    }
+    return 0;
+}
+static int kx_getch(void)
+{
+    int ch;
+    struct termios oldt, newt;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getch();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
+}
+#endif
+
+static int stdin_peek(unsigned int msec)
+{
+    #if defined(_WIN32) || defined(_WIN64)
+    return WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), msec) == WAIT_OBJECT_0;
+    #else
+    if (kx_kbhit()) {
+        return 1;
+    }
+
+    struct timeval tv;
+    fd_set fds;
+    tv.tv_sec  = msec / 1000;
+    tv.tv_usec = (msec % 1000) * 1000;
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+    if (select(STDIN_FILENO+1, &fds, NULL, NULL, &tv) <= 0) {
+        return 0;
+    }
+    return FD_ISSET(STDIN_FILENO, &fds);
+    #endif
+}
+
 static const char *get_mode(int mode)
 {
     static char mode_str[4] = {0};
@@ -157,8 +227,28 @@ static const char *get_mode(int mode)
     return mode_str;
 }
 
+static fileinfo_t *create_std(const char *name, FILE* fp, int mode)
+{
+    fileinfo_t *fi = kx_calloc(1, sizeof(fileinfo_t));
+    fi->fp = fp;
+    fi->filename = name;
+    fi->mode = mode;
+    fi->is_text = 0;
+    fi->is_std = 1;
+    return fi;
+}
+
 static fileinfo_t *create_fileinfo(const char *file, int mode)
 {
+    if (!strcmp(file, "<stdin>")) {
+        return create_std(file, stdin, KXFILE_MODE_READ);
+    }
+    if (!strcmp(file, "<stdout>")) {
+        return create_std(file, stdout, KXFILE_MODE_WRITE);
+    }
+    if (!strcmp(file, "<stderr>")) {
+        return create_std(file, stderr, KXFILE_MODE_WRITE);
+    }
     if (!mode) {
         mode = KXFILE_MODE_READ | KXFILE_MODE_TEXT;
     }
@@ -170,6 +260,7 @@ static fileinfo_t *create_fileinfo(const char *file, int mode)
     fi->filename = file;
     fi->mode = mode;
     fi->is_text = (fi->mode & KXFILE_MODE_BINARY) != KXFILE_MODE_BINARY;
+    fi->is_std = 0;
     return fi;
 }
 
@@ -177,7 +268,7 @@ static void free_fileinfo(void *p)
 {
     if (p) {
         fileinfo_t *fi = (fileinfo_t *)p;
-        if (fi->fp) {
+        if (!fi->is_std && fi->fp) {
             fclose(fi->fp);
         }
         kx_free(fi);
@@ -195,23 +286,6 @@ static void free_dirinfo(void *p)
     }
 }
 
-static int File_open(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_FILE_GET_RPACK(fi, obj);
-    if (!fi) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
-    }
-    if (fi->fp) {
-        fclose(fi->fp);
-    }
-    fi->fp = fopen(fi->filename, get_mode(fi->mode));
-
-    KX_ADJST_STACK();
-    push_obj(ctx->stack, obj);
-    return 0;
-}
-
 static int File_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -221,7 +295,7 @@ static int File_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     }
 
     if (fi->fp) {
-        fclose(fi->fp);
+        if (!fi->is_std) fclose(fi->fp);
         fi->fp = NULL;
     }
 
@@ -232,6 +306,9 @@ static int File_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 
 static int File_load_impl(int args, kx_context_t *ctx, fileinfo_t * fi, int close)
 {
+    if (fi->is_std) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Can't load from standard in/out");
+    }
     int text = 0;
     if (!(fi->mode & KXFILE_MODE_READ)) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
@@ -642,6 +719,9 @@ int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!fi) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
     }
+    if (!(fi->mode & KXFILE_MODE_WRITE)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
+    }
     File_print_impl(args, frmv, lexv, ctx, fi);
     return 0;
 }
@@ -653,8 +733,80 @@ int File_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!fi) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
     }
+    if (!(fi->mode & KXFILE_MODE_WRITE)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
+    }
     File_print_impl(args, frmv, lexv, ctx, fi);
     fprintf(fi->fp, "\n");
+    return 0;
+}
+
+int File_peek(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_FILE_GET_RPACK(fi, obj);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_READ)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
+    }
+
+    int timeout = (int)get_arg_int(2, args, ctx);
+    KX_ADJST_STACK();
+    if (fi->is_std) {
+        int r = stdin_peek(timeout);
+        push_i(ctx->stack, r);
+    } else {
+        int r = feof(fi->fp);
+        push_i(ctx->stack, !r);
+    }
+    return 0;
+}
+
+int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_FILE_GET_RPACK(fi, obj);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_READ)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
+    }
+
+    if (feof(fi->fp)) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, 0);
+        return 0;
+    }
+
+    int ch = fi->is_std ? kx_getch() : fgetc(fi->fp);
+    char buffer[2] = { ch, 0 };
+    kstr_t *s = allocate_str(ctx);
+    ks_append_n(s, buffer, 1);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, s);
+    return 0;
+}
+
+int File_putch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_FILE_GET_RPACK(fi, obj);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_WRITE)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
+    }
+
+    int ch = (int)get_arg_int(2, args, ctx);
+    fputc(ch, fi->fp);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
     return 0;
 }
 
@@ -664,6 +816,9 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_FILE_GET_RPACK(fi, obj);
     if (!fi) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_READ)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
     }
 
     if (feof(fi->fp)) {
@@ -743,6 +898,9 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_METHOD("load", obj, File_load);
     KEX_SET_METHOD("close", obj, File_close);
     KEX_SET_METHOD("readLine", obj, File_readline);
+    KEX_SET_METHOD("peek", obj, File_peek);
+    KEX_SET_METHOD("getch", obj, File_getch);
+    KEX_SET_METHOD("putch", obj, File_putch);
     KEX_SET_METHOD("print", obj, File_print);
     KEX_SET_METHOD("println", obj, File_println);
     KX_ADJST_STACK();
