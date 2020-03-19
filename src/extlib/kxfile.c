@@ -16,6 +16,11 @@
 #define STRICMP(s1, s2) stricmp(s1, s2)
 #else
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <termios.h>
 #define STRICMP(s1, s2) strcasecmp(s1, s2)
 #endif
 #include <kinx.h>
@@ -151,7 +156,7 @@ static int kx_kbhit(void)
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    ch = getch();
+    ch = getchar();
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     fcntl(STDIN_FILENO, F_SETFL, oldf);
     if (ch != EOF) {
@@ -169,7 +174,7 @@ static int kx_getch(void)
     newt = oldt;
     newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    ch = getch();
+    ch = getchar();
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return ch;
 }
@@ -184,15 +189,25 @@ static int stdin_peek(unsigned int msec)
         return 1;
     }
 
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
     struct timeval tv;
     fd_set fds;
     tv.tv_sec  = msec / 1000;
     tv.tv_usec = (msec % 1000) * 1000;
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
+
     if (select(STDIN_FILENO+1, &fds, NULL, NULL, &tv) <= 0) {
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         return 0;
     }
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return FD_ISSET(STDIN_FILENO, &fds);
     #endif
 }
