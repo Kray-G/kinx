@@ -430,9 +430,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             if (sym && sym->base->optional == KXDC_CONST && !sym->base->init) {
                 node->lhs->init = sym->base->init = node->rhs;
                 decl = ctx->decl;
-                ctx->decl = 1;
-                analyze_ast(node->lhs, ctx);
                 ctx->decl = 0;
+                analyze_ast(node->lhs, ctx);
                 analyze_ast(node->rhs, ctx);
                 ctx->decl = decl;
             }
