@@ -738,6 +738,9 @@ int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
     }
     File_print_impl(args, frmv, lexv, ctx, fi);
+    if (fi->is_std) {
+        fflush(fi->fp);
+    }
     return 0;
 }
 
@@ -753,6 +756,9 @@ int File_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
     File_print_impl(args, frmv, lexv, ctx, fi);
     fprintf(fi->fp, "\n");
+    if (fi->is_std) {
+        fflush(fi->fp);
+    }
     return 0;
 }
 
