@@ -1,7 +1,7 @@
 <p align="right"><img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat"/></p>
 <p align="center"><img src="doc/kinxlogo.png" height="84px" /></p>
 <p align="center">
-<strong>First Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
+<strong>Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
 Small scripting language with C like style syntax, with native function by JIT.
 </p>
 
