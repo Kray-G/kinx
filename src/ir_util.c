@@ -298,7 +298,7 @@ static inline const char *startup_code()
         "var Net, SQLite, Zip, JSON, SystemTimer, Fiber, True, False;\n"
         "var SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass;\n"
         "var SystemException, RuntimeException, FileException;\n"
-        "var $stdin, $stdout;\n"
+        "var $stdin, $stdout, $stderr;\n"
         "const STDIN, STDOUT, STDERR;\n"
         "(_function() {\n"
             "System = _import('kxsystem');\n"
