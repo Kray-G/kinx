@@ -2,22 +2,23 @@
 
 ## V1.0.0 (Future Planned)
 
-The goal is to release as the first version.
-
-*   Basic functionalities.
 *   Documentation complete.
 *   REPL (Read-Eval-Print Loop).
 *   Library mode like `libkinx.so`.
+*   Signal Trap.
 *   User selectable installation.
 
----
+## V0.2.0 (Future Planned)
 
-## V0.1.0 (Current Development)
+Updates from v0.1.0.
 
-The goal is to release as the preview version.
+*   Basic functionalities complete.
+    *   Supported Standard I/O.
+        *   `$stdin`, `$stdout`, `$stderr` has same methods as `File`.
+        *   There are constant variables as `STDIN`, `STDOUT`, `STDERR` corresponding to `$stdin`, `$stdout`, `$stderr`.
+    *   Added or modified `File` instance methods.
+        *   Supported `getch`, `putch`, `peek`.
 
-*   Basic functionalities support.
+## V0.1.0 (1st Preview Release)
 
-### TODO
-
-* [ ] Easy Installation for Preview.
+*   Initial Release.
