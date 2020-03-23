@@ -39,7 +39,7 @@ System.println(test(False));    // False object.
 
 ```javascript
 function test(b1, b2, b3) {
-    return b1 ? b2 ? 1 : 2 : b3 ? 3 : 4;;
+    return b1 ? b2 ? 1 : 2 : b3 ? 3 : 4;
 }
 
 System.println(test(0, 0, 0));
