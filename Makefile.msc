@@ -288,7 +288,7 @@ onig.dll:
 test-core: $(OBJS)
 
 .c.obj:
-	$(CC) /c $(CFLAGS) /Fo$*.obj $<
+	$(CC) /c $(CFLAGS) /Fo$*.obj /Fa$*.s $<
 
 src/allocator.obj: src/allocator.c include/dbg.h include/kinx.h include/kvec.h \
  include/ir.h include/khash.h include/klist.h include/kstr.h \
