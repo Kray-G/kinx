@@ -235,6 +235,7 @@ class SpecTestSuite(id_, info_, spectest_) {
 class SpecTestNolinkEntry(id_, entry_, spectest_) {
 
     @progress = spectest_.progress;
+    @isNoLinkEntry = true;
     var result_;
 
     public test() {
@@ -447,8 +448,10 @@ class SpecTestEntry(id_, entry_, spectest_) {
     public print() {
         suite_.print();
         @entry.each(function(entry) {
-            System.println("");
-            entry.print();
+            if (entry.count() > 0 && !entry.isNoLinkEntry) {
+                System.println("");
+                entry.print();
+            }
         });
     }
 
@@ -645,7 +648,7 @@ class SpecTest(args_) {
     var result_;
 
     public analyzeOptions() {
-        while (c = getopt(args_, "vf:t:T:")) {
+        while (c = getopt(args_, "vf:t:T:P")) {
             switch (c.type) {
             case 'v'[0]:
                 @options.verbose = true;
@@ -659,6 +662,9 @@ class SpecTest(args_) {
             case 'T'[0]:
                 @options.onlyone = c.arg;
                 @options.doChildren = true;
+                break;
+            case 'P'[0]:
+                @options.codeView = true;
                 break;
             }
         }
@@ -747,16 +753,13 @@ class SpecTest(args_) {
         analyzed_ = true;
     }
 
-    public start() {
-        if (!analyzed_) {
-            analyze();
-        }
+    private startTest() {
         @progress.startTest({ total: @count() });
         top_.test();
         @progress.endTest();
     }
 
-    public showResult(indent) {
+    private showResult(indent) {
         System.println("");
         System.println("<Test Result Detail>");
         System.println("");
@@ -764,11 +767,23 @@ class SpecTest(args_) {
         @progress.showResult();
     }
 
-    public print() {
+    private printCode() {
         if (!analyzed_) {
             analyze();
         }
         top_.print();
+    }
+
+    public start() {
+        if (!analyzed_) {
+            analyze();
+        }
+        if (@options.codeView) {
+            printCode();
+        } else {
+            startTest();
+            showResult();
+        }
     }
 
     public count() {
@@ -784,7 +799,6 @@ class SpecTest(args_) {
     # st.print();
     System.println("Test Cout = " + st.count());
     st.start();
-    st.showResult();
 # } catch (e) {
 #     ;
 # }
