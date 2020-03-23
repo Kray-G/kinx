@@ -774,7 +774,7 @@ The order of upside of the list is higher.
 |  14   | Logical AND   | `&&`                                                                                                          | left to right |
 |  15   | Logical OR    | <code>&#124;&#124;</code>                                                                                     | left to right |
 |  16   | Logical UNDEF | `??`                                                                                                          | left to right |
-|  17   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | left to right |
+|  17   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | right to left |
 |  18   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
 
 ### Pattern-Matching operator
