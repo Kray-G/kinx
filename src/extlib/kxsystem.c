@@ -104,87 +104,6 @@ int JSON_parse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value to parse");
 }
 
-int System_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    int n, count = 0;
-    char *buf;
-    kvec_t(kx_val_t) *stack = &(ctx->stack);
-    for (int i = 1; i <= args; ++i) {
-        kx_val_t val = kv_last_by(*stack, i);
-        switch (val.type) {
-        case KX_UND_T:
-            ++count;
-            break;
-        case KX_INT_T:
-            ++count;
-            printf("%"PRId64, val.value.iv);
-            break;
-        case KX_BIG_T:
-            ++count;
-            buf = BzToString(val.value.bz, 10, 0);
-            printf("%s", buf);
-            BzFreeString(buf);
-            break;
-        case KX_DBL_T:
-            ++count;
-            printf("%g", val.value.dv);
-            break;
-        case KX_CSTR_T:
-            ++count;
-            if (ctx->options.utf8inout) {
-                printf("%s", val.value.pv);
-            } else {
-                buf = conv_utf82acp_alloc(val.value.pv);
-                printf("%s", buf);
-                conv_free(buf);
-            }
-            break;
-        case KX_STR_T:
-            ++count;
-            if (ctx->options.utf8inout) {
-                printf("%s", ks_string(val.value.sv));
-            } else {
-                buf = conv_utf82acp_alloc(ks_string(val.value.sv));
-                printf("%s", buf);
-                conv_free(buf);
-            }
-            break;
-        case KX_BIN_T:
-            ++count;
-            printf("<...>");
-            break;
-        case KX_OBJ_T: {
-            ++count;
-            kstr_t *out = kx_format(&val);
-            if (!out) {   
-                printf("[...]");
-            } else {
-                printf("%s", ks_string(out));
-                ks_free(out);
-            }
-            break;
-        }
-        case KX_FNC_T:
-        case KX_BFNC_T:
-            ++count;
-            printf("<func:%p>", val.value.fn);
-            break;
-        }
-    }
-    fflush(stdout);
-    KX_ADJST_STACK();
-    push_i(ctx->stack, count);
-    return 0;
-}
-
-int System_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    System_print(args, frmv, lexv, ctx);
-    printf("\n");
-    fflush(stdout);
-    return 0;
-}
-
 int System_exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *cmd = get_arg_str(1, args, ctx);
@@ -544,8 +463,6 @@ static int System_convType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
 static kx_bltin_def_t kx_bltin_info[] = {
     { "_globalExceptionMap", System_globalExceptionMap },
     { "makeSuper", System_makeSuper },
-    { "print", System_print },
-    { "println", System_println },
     { "exec", System_exec },
     { "abort", System_abort },
     { "SystemTimer_create", SystemTimer_create },

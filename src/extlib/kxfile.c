@@ -220,7 +220,7 @@ static const char *get_mode(int mode)
     int pos = 1;
     if ((mode & KXFILE_MODE_READ) == KXFILE_MODE_READ && (mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
         if (newf) {
-            mode_str[0] = 'w';
+            mode_str[0] = 'a';
             mode_str[1] = '+';
         } else {
             mode_str[0] = 'r';
@@ -230,7 +230,7 @@ static const char *get_mode(int mode)
     } else if ((mode & KXFILE_MODE_READ) == KXFILE_MODE_READ) {
         mode_str[0] = 'r';
     } else if ((mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
-        mode_str[0] = 'w';
+        mode_str[0] = newf ? 'w' : 'a';
     } else {
         mode_str[0] = 'r';
     }
@@ -738,6 +738,9 @@ int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
     }
     File_print_impl(args, frmv, lexv, ctx, fi);
+    if (fi->is_std) {
+        fflush(fi->fp);
+    }
     return 0;
 }
 
@@ -753,6 +756,9 @@ int File_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
     File_print_impl(args, frmv, lexv, ctx, fi);
     fprintf(fi->fp, "\n");
+    if (fi->is_std) {
+        fflush(fi->fp);
+    }
     return 0;
 }
 
