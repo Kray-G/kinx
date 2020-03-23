@@ -8,11 +8,18 @@
 *   Signal Trap.
 *   User selectable installation.
 
-## V0.2.0 (Future Planned)
+## V0.3.0 (Curren Development)
+
+Updates from v0.2.0.
+
+*   Updated
+    *   Combining ternary expressions.
+
+## V0.2.0 (2nd Preview Release)
 
 Updates from v0.1.0.
 
-*   Basic functionalities complete.
+*   Updated
     *   Supported Standard I/O.
         *   `$stdin`, `$stdout`, `$stderr` has same methods as `File`.
         *   There are constant variables as `STDIN`, `STDOUT`, `STDERR` corresponding to `$stdin`, `$stdout`, `$stderr`.
