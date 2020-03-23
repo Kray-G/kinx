@@ -33,10 +33,10 @@ Here is the order to calculate values.
 |  14   | Logical AND   | `&&`                                                                                                          | left to right |
 |  15   | Logical OR    | <code>&#124;&#124;</code>                                                                                     | left to right |
 |  16   | Logical UNDEF | `??`                                                                                                          | left to right |
-|  17   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | left to right |
+|  17   | Ternary, ...  | ` ? : `, Anonymous function                                                                                   | right to left |
 |  18   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
 
-In this list, only for exponent operator and assignment operator the evaluation direction is right to left.
+In this list, only for exponent operator, ternary operator, and assignment operator the evaluation direction is right to left.
 Otherwise it is left to right.
 
 ## Expressions/Operations
