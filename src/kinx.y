@@ -348,7 +348,7 @@ ObjectSpecialSyntax
 
 TernaryExpression
     : FunctionExpression
-    | LogicalUndefExpression '?' LogicalUndefExpression ':' LogicalUndefExpression { $$ = kx_gen_texpr_object($1, $3, $5); }
+    | LogicalUndefExpression '?' TernaryExpression ':' TernaryExpression { $$ = kx_gen_texpr_object($1, $3, $5); }
     ;
 
 FunctionExpression
