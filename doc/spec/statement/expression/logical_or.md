@@ -2,7 +2,7 @@
 
 ## Overview
 
-Logical Undef operator is a shortcut operator,
+Logical OR operator is a shortcut operator,
 and when using `||` and LHS is `false`, the RHS will be evaluated.
 
 ```javascript
