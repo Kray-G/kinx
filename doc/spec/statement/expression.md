@@ -48,7 +48,7 @@ The individual operations are described below.
 *   [Logical UNDEF Operation](expression/logical_undef.md)
 *   [Logical OR Operation](expression/logical_or.md)
 *   [Logical AND Operation](expression/logical_and.md)
-*   [Bit OR Operation](expression/bitl_or.md)
+*   [Bit OR Operation](expression/bit_or.md)
 *   [Bit XOR Operation](expression/bit_xor.md)
 *   [Bit AND Operation](expression/bit_and.md)
 *   [Comparison](expression/Comparison.md)
