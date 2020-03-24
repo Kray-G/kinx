@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <dbg.h>
 #include <kinx.h>
 
@@ -84,6 +85,35 @@ int Integer_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to convert to double");
 }
 
+int Integer_toString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t *rdxval = args > 1 ? &kv_last_by(*stack, 2) : NULL;
+        int rdx = (rdxval && rdxval->type == KX_INT_T) ? (int)rdxval->value.iv : 10;
+        kx_val_t val = kv_last_by(*stack, 1);
+        kstr_t *sv = allocate_str(ctx);
+        if (val.type == KX_INT_T) {
+            ks_appendf(sv, rdx == 16 ? "%"PRIx64 : "%"PRId64, val.value.iv);
+        } else if (val.type == KX_DBL_T) {
+            ks_appendf(sv, rdx == 16 ? "%"PRIx64 : "%"PRId64, (int64_t)val.value.dv);
+        } else if (val.type == KX_BIG_T) {
+            char *buf = BzToString(val.value.bz, rdx, 0);
+            ks_append(sv, buf);
+            BzFreeString(buf);
+        } else if (val.type == KX_CSTR_T) {
+            ks_append(sv, val.value.pv);
+        } else if (val.type == KX_STR_T) {
+            ks_append(sv, ks_string(val.value.sv));
+        }
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, sv);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to convert to string");
+}
+
 int Integer_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Integer do not have a length method");
@@ -93,6 +123,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Integer_length },
     { "parseInt", Integer_parseInt },
     { "parseDouble", Integer_parseDouble },
+    { "toDouble", Integer_parseDouble },
+    { "toString", Integer_toString },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
