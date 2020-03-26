@@ -132,13 +132,6 @@
         BzFreeString(buf); \
         break; \
     } \
-    case KX_DBL_T: { \
-        kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%g", (v1)->value.dv, val); \
-        (v1)->value.iv = strcmp(ks_string(s), val) == 0; \
-        (v1)->type = KX_INT_T; \
-        break; \
-    } \
     case KX_CSTR_T: { \
         (v1)->value.iv = strcmp((v1)->value.pv, val) == 0; \
         (v1)->type = KX_INT_T; \
