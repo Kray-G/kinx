@@ -1725,7 +1725,7 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         KX_MOD_MOD_I(v1, (v2)->value.iv); \
     } else switch ((v2)->type) { \
     case KX_UND_T: { \
-        KX_MOD_MOD_S(v1, "(undefined)"); \
+        KX_MOD_MOD_S(v1, "((null))"); \
         break; \
     } \
     case KX_BIG_T: { \
