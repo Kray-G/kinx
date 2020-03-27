@@ -142,3 +142,10 @@
     cur = cur->next; \
 } \
 /**/
+
+#define KX_PUSH_CO_CODE() \
+{ \
+    push_coroutine((ctx)->stack); \
+    cur = cur->next; \
+} \
+/**/

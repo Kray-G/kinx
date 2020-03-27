@@ -20,23 +20,32 @@
     kx_val_t *stack = ((ctx)->stack).a + ssize - 2;\
     int args = stack->value.iv; \
     fnco = (*(--stack)).value.fn; \
-    if (fnco->fbfrm) { \
+    if (fnco->fiber) { \
         if (!fnco->fbpos) { \
-            fnco->fbfrm = NULL; \
+            fnco->fiber = 0; \
             THROW_SYSTEM_EXCEPTION("FiberException", "Fiber has been already dead"); \
         } \
-        kx_frm_t *frm = fnco->fbfrm; \
-        frm->is_internal = cur->is_internal; \
-        frm->caller = (ctx)->caller; \
-        frm->prv = frmv; \
-        lexv = frm->lex = fnco->lex; \
-        frmv = frm; \
         kx_obj_t *obj = allocate_obj(ctx); \
         for (int i = 0; i < args; ++i) { \
             kv_push(kx_val_t, obj->ary, *(--stack)); \
         } \
-        frm->id = kv_size((ctx)->stack); \
-        push_frm((ctx)->stack, frm); \
+        int sz = kv_size(fnco->stack); \
+        kx_frm_t *frm = NULL; \
+        for (int i = 1; i <= sz; ++i) { \
+            kv_push(kx_val_t, (ctx)->stack, kv_last_by(fnco->stack, i)); \
+            if (kv_last((ctx)->stack).type == KX_FRM_T) { \
+                frm = kv_last((ctx)->stack).value.fr; \
+                frm->prv = frmv; \
+                frmv = frm; \
+                frmv->id = kv_size((ctx)->stack); \
+            } \
+        } \
+        if (!frm) { \
+            THROW_SYSTEM_EXCEPTION("FiberException", "Invalid Fiber state"); \
+        } \
+        frm->is_internal = cur->is_internal; \
+        frm->caller = (ctx)->caller; \
+        lexv = frm->lex = fnco->lex; \
         push_obj((ctx)->stack, obj); \
         cur = fnco->fbpos; \
     } else { \

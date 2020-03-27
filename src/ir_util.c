@@ -344,7 +344,7 @@ static inline const char *startup_code()
             "Fiber.create = _function(coroutine) {\n"
                 "var this;\n"
                 "this.resume = _function(...val) {\n"
-                    "return coroutine(...val);\n"
+                    "_coroutine coroutine(...val);\n"
                 "};\n"
                 "return this;\n"
             "};\n"

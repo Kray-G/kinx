@@ -185,6 +185,7 @@ enum opecode {
     KXST_TRY,       /* lhs: try, rhs: catch, ex: finally */
     KXST_CATCH,     /* lhs: name, rhs: block */
     KXST_RET,       /* lhs: expr */
+    KXST_COROUTINE, /* lhs: expr */
     KXST_THROW,     /* lhs: expr */
     KXST_MIXIN,     /* lhs: next, rhs: first */
     KXST_SYSCLASS,  /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
