@@ -94,6 +94,9 @@ void print_value(kx_val_t *v, int recursive)
         }
         break;
     }
+    case KX_COR_T:
+        printf("coroutine\n");
+        break;
     case KX_ADDR_T:
         if (v->value.jp) {
             printf("(adr) index:0x%x\n", v->value.jp->i);
