@@ -81,20 +81,9 @@ static void xml_finalize(void)
     xmlCleanupParser();
 }
 
-static void free_all_node(xmlNodePtr cur)
-{
-    xmlNodePtr p = cur->children;
-    while (p) {
-        free_all_node(p);
-        p = p->next;
-    }
-    xmlFree(p);
-}
-
 static void free_doc_impl(kx_xml_t *xml)
 {
     if (--(xml->ref) == 0) {
-        free_all_node(xmlDocGetRootElement(xml->doc));
         xmlFreeDoc(xml->doc);
         kx_free(xml);
     }
