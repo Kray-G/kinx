@@ -154,8 +154,12 @@ static void gc_mark_fnc(kx_fnc_t *c)
     }
 
     c->mark = 1;
-    if (c->fbfrm) {
-        gc_mark_frm(c->fbfrm);
+    if (kv_size(c->stack) > 0) {
+        int size = kv_size(c->stack);
+        for (int i = 0; i < size; ++i) {
+            kx_val_t *v = &kv_A(c->stack, i);
+            gc_mark_val(v);
+        }
     }
     if (c->lex) {
         gc_mark_frm(c->lex);
@@ -308,7 +312,8 @@ static void gc_sweep(kx_context_t *ctx)
             v->wht = NULL;
             v->native.func = NULL;
             v->push.type = KX_UND_T;
-            v->fbfrm = NULL;
+            v->fiber = 0;
+            kv_shrinkto(v->stack, 0);
             v->fbpos = NULL;
             kv_push(kx_fnc_t*, ctx->fnc_dead, v);
         }

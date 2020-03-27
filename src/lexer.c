@@ -98,6 +98,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "_class") == 0)         return SYSCLASS;
         if (strcmp(val, "_module") == 0)        return SYSMODULE;
         if (strcmp(val, "_namespace") == 0)     return SYSNS;
+        if (strcmp(val, "_coroutine") == 0)     return COROUTINE;
         break;
     case 'b':
         if (strcmp(val, "break") == 0)          return BREAK;
