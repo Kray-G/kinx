@@ -57,6 +57,7 @@
     &&LBL_KX_PUSH_FALSE, \
     &&LBL_KX_PUSH_REGEX, \
     &&LBL_KX_PUSH_C, \
+    &&LBL_KX_PUSH_CO, \
     &&LBL_KX_SPREAD, \
     &&LBL_KX_POP_C, \
     &&LBL_KX_POP, \

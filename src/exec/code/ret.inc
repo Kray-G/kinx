@@ -222,12 +222,25 @@
 */
 #define KX_YIELD_CODE() \
 { \
-    if (fnco && !fnco->fbfrm) { \
-        fnco->fbfrm = frmv; \
+    fnco->fiber = 1; \
+    kv_shrinkto(fnco->stack, 0); \
+    kx_val_t *v = &kv_pop((ctx)->stack); \
+    int found_cor = 0; \
+    int sz = kv_size((ctx)->stack); \
+    kx_frm_t *frm = NULL; \
+    for (int i = sz - 1; i >= 0; --i) { \
+        kv_push(kx_val_t, fnco->stack, kv_A((ctx)->stack, i)); \
+        if (kv_A((ctx)->stack, i).type == KX_COR_T) found_cor = 1; \
+        if (found_cor && kv_A((ctx)->stack, i).type == KX_FRM_T) { \
+            frm = kv_A((ctx)->stack, i).value.fr; \
+            break; \
+        } \
+    } \
+    if (!frm) { \
+        THROW_SYSTEM_EXCEPTION("FiberException", "Invalid yield operator"); \
     } \
     fnco->fbpos = cur->next; \
-    kx_val_t *v = &kv_pop((ctx)->stack); \
-    kv_shrinkto((ctx)->stack, frmv->id); \
+    kv_shrinkto((ctx)->stack, frm->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
     fnco = kv_pop((ctx)->stack).value.fn; \

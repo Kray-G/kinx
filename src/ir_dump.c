@@ -216,6 +216,10 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("%-23s .L%"PRId64"(%x)", "pushc", code->value1.i, code->addr);
         break;
 
+    case KX_PUSH_CO:
+        printf("%-23s %s", "push", "coroutine");
+        break;
+
     case KX_SPREAD:
         printf("spread");
         break;
