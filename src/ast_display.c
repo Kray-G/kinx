@@ -424,6 +424,10 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("(return)\n");
         display_ast(node->lhs, indent + 1, 0);
         break;
+    case KXST_COROUTINE:        /* lhs: expr */
+        printf("(coroutine)\n");
+        display_ast(node->lhs, indent + 1, 0);
+        break;
     case KXST_THROW:      /* lhs: expr */
         printf("(throw)\n");
         display_ast(node->lhs, indent + 1, 0);

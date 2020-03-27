@@ -23,7 +23,7 @@
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT ENUM
+%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT ENUM COROUTINE
 %token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN SYSCLASS SYSMODULE
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
@@ -57,6 +57,7 @@
 %type<obj> CatchStatement_Opt
 %type<obj> FinallyStatement_Opt
 %type<obj> ReturnStatement
+%type<obj> CoroutineStatement
 %type<obj> YieldStatement
 %type<obj> YieldExpression
 %type<obj> ThrowStatement
@@ -149,6 +150,7 @@ Statement
     | ForStatement
     | TryCatchStatement
     | ReturnStatement
+    | CoroutineStatement
     | YieldStatement
     | ThrowStatement
     | MixinStatement
@@ -269,6 +271,10 @@ BreakStatement
 
 ReturnStatement
     : RETURN AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_RET, $2, NULL, NULL)); }
+    ;
+
+CoroutineStatement
+    : COROUTINE AssignExpressionObjList ';' { $$ = kx_gen_stmt_object(KXST_COROUTINE, $2, NULL, NULL); }
     ;
 
 YieldStatement
