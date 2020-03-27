@@ -30,6 +30,7 @@
             kv_push(kx_val_t, obj->ary, *(--stack)); \
         } \
         int sz = kv_size(fnco->stack); \
+        kv_expand_if(kx_val_t, (ctx)->stack, sz); \
         kx_frm_t *frm = NULL; \
         for (int i = 1; i <= sz; ++i) { \
             kv_push(kx_val_t, (ctx)->stack, kv_last_by(fnco->stack, i)); \
@@ -37,7 +38,7 @@
                 frm = kv_last((ctx)->stack).value.fr; \
                 frm->prv = frmv; \
                 frmv = frm; \
-                frmv->id = kv_size((ctx)->stack); \
+                frmv->id = kv_size((ctx)->stack) - 1; \
             } \
         } \
         if (!frm) { \
@@ -45,7 +46,7 @@
         } \
         frm->is_internal = cur->is_internal; \
         frm->caller = (ctx)->caller; \
-        lexv = frm->lex = fnco->lex; \
+        lexv = frm->lex; \
         push_obj((ctx)->stack, obj); \
         cur = fnco->fbpos; \
     } else { \

@@ -101,6 +101,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_PUSH_FALSE) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_REGEX) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_C) { KX_GOTO(); }
+    KX_CASE_(KX_PUSH_CO) { KX_GOTO(); }
     KX_CASE_(KX_SPREAD) { KX_GOTO(); }
 
     KX_CASE_(KX_POP_C) { KX_GOTO(); }
