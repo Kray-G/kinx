@@ -61,6 +61,7 @@ enum irop {
     KX_PUSH_FALSE,
     KX_PUSH_REGEX,
     KX_PUSH_C,
+    KX_PUSH_CO,
     KX_SPREAD,
 
     KX_POP_C,
@@ -435,6 +436,7 @@ enum irexec {
     KX_ADDR_T,
     KX_ANY_T,
     KX_SPR_T,       /* spread-specified varable */
+    KX_COR_T,       /* coroutine start */
     KX_ARY_T,       /* used only with typeof */
     KX_DEF_T,       /* used only with typeof */
 };
@@ -503,7 +505,8 @@ typedef struct kx_fnc_ {
     const char *wht;
     kx_val_t push;
     /* Fiber */
-    struct kx_frm_ *fbfrm;
+    uint8_t fiber;
+    kvec_t(kx_val_t) stack;
     kx_code_t *fbpos;
 } kx_fnc_t;
 kvec_init_t(kx_fnc_t);
@@ -658,6 +661,12 @@ typedef struct kx_context_ {
     do {\
         kx_val_t *top = &kv_push_undef(st);\
         top->type = KX_UND_T;\
+    } while (0);\
+/**/
+#define push_coroutine(st) \
+    do {\
+        kx_val_t *top = &kv_push_undef(st);\
+        top->type = KX_COR_T;\
     } while (0);\
 /**/
 #define push_true(st) \
