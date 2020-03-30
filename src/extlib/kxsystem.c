@@ -472,12 +472,9 @@ int System_isFiberAlive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
         KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
     }
     kx_fnc_t *fnc = val->value.fn;
-    if (!fnc->fiber) {
-        KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
-    }
 
     KX_ADJST_STACK();
-    push_i(ctx->stack, fnc->fbpos != NULL);
+    push_i(ctx->stack, !fnc->fiber || (fnc->fbpos != NULL));
     return 0;
 }
 
