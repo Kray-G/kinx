@@ -23,6 +23,13 @@
     if (fnco->fiber) { \
         if (!fnco->fbpos) { \
             fnco->fiber = 0; \
+            /* Needs a fiber frm of 'resume' function on stack for exception */ \
+            kv_push(kx_val_t, (ctx)->stack, kv_head(fnco->stack)); \
+            kx_frm_t *frm = kv_last((ctx)->stack).value.fr; \
+            frm->id = kv_size((ctx)->stack) - 1; \
+            frm->prv = frmv; \
+            frm->caller = (ctx)->caller; \
+            frmv = frm; \
             THROW_SYSTEM_EXCEPTION("FiberException", "Fiber has been already dead"); \
         } \
         kx_obj_t *obj = allocate_obj(ctx); \
@@ -30,7 +37,7 @@
             kv_push(kx_val_t, obj->ary, *(--stack)); \
         } \
         int sz = kv_size(fnco->stack); \
-        kv_expand_if(kx_val_t, (ctx)->stack, sz); \
+        kv_expand_if(kx_val_t, (ctx)->stack, sz + 1); \
         kx_frm_t *frm = NULL; \
         for (int i = 1; i <= sz; ++i) { \
             kv_push(kx_val_t, (ctx)->stack, kv_last_by(fnco->stack, i)); \
