@@ -471,9 +471,6 @@ int System_isFiberAlive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     if (val->type != KX_FNC_T) {
         KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
     }
-    if (!val) {
-        KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
-    }
     kx_fnc_t *fnc = val->value.fn;
     if (!fnc->fiber) {
         KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
