@@ -465,6 +465,25 @@ static int System_convType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     return 0;
 }
 
+int System_isFiberAlive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_val_t *val = &kv_last(ctx->stack);
+    if (val->type != KX_FNC_T) {
+        KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
+    }
+    if (!val) {
+        KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
+    }
+    kx_fnc_t *fnc = val->value.fn;
+    if (!fnc->fiber) {
+        KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, fnc->fbpos != NULL);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "_globalExceptionMap", System_globalExceptionMap },
     { "makeSuper", System_makeSuper },
@@ -477,6 +496,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "parseJson", JSON_parse },
     { "sleep", System_sleep },
     { "convType", System_convType },
+    { "isFiberAlive", System_isFiberAlive },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
