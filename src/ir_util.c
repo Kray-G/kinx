@@ -265,13 +265,13 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
         for (int i = 0; i < l; ) {
             kx_val_t *v1 = &(kv_A(obj->ary, i++));
             if (v1->type != KX_CSTR_T) break;
+            if (i >= l) break;
             const char *file = v1->value.pv;
-            if (i < 0) break;
 
             v1 = &(kv_A(obj->ary, i++));
             if (v1->type != KX_CSTR_T) break;
+            if (i >= l) break;
             const char *func = v1->value.pv;
-            if (i < 0) break;
 
             v1 = &(kv_A(obj->ary, i++));
             if (v1->type != KX_INT_T) break;
