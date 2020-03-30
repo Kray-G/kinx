@@ -47,12 +47,9 @@ class Enamerable(src_) {
     }
 
     public writeln() {
-        while (true) {
+        while (src_.isAlive()) {
             var v = src_.resume();
             System.println(v);
-            if (!src_.isAlive()) {
-                break;
-            }
         }
     }
 
