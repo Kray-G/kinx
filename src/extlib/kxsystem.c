@@ -371,6 +371,11 @@ static int System_globalExceptionMap(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     return 0;
 }
 
+/*
+    Unary operator*
+        ex) var a = 97;
+            var b = *a; // => "a"
+ */
 static int System_convType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_val_t val = kv_last_by(ctx->stack, 1);
