@@ -2,6 +2,12 @@
 # This is a Fiber example.
 
 class Enamerable(src_) {
+
+    # := initialize fiber.
+    private inirtialize() {
+        src_ = new Fiber(src_);
+    }
+
     # := filter
     public where(f) {
         var pf = src_;
@@ -31,23 +37,25 @@ class Enamerable(src_) {
     public take(n) {
         var pf = src_;
         src_ = new Fiber(&{
+            --n;
             for (var i = 0; i < n; ++i) {
                 yield pf.resume();
             }
+            return pf.resume();
         });
         return this;
     }
 
     public writeln() {
-        try {
-            while (true) {
-                var v = src_.resume();
-                System.println(v);
+        while (true) {
+            var v = src_.resume();
+            System.println(v);
+            if (!src_.isAlive()) {
+                break;
             }
-        } catch (e) {
-            ;
         }
     }
+
 }
 
 var Inf = new Fiber(&{
