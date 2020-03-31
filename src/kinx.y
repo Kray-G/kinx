@@ -28,7 +28,7 @@
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
-%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF NAMESPACE SYSNS
+%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -271,6 +271,7 @@ BreakStatement
 
 ReturnStatement
     : RETURN AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_RET, $2, NULL, NULL)); }
+    | SYSRET_NV ';' { $$ = kx_gen_stmt_object(KXST_SYSRET_NV, NULL, NULL, NULL); }
     ;
 
 CoroutineStatement

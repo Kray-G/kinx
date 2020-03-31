@@ -33,6 +33,7 @@ enum irop {
     KX_RETVL0,
     KX_RETVL1,
     KX_RET_NULL,
+    KX_RET_NV,
     KX_YIELD,
 
     KX_THROW,
@@ -588,6 +589,14 @@ KHASH_MAP_INIT_STR(importlib, kx_bltin_t*)
 KHASH_MAP_INIT_STR(nativefunc, kxn_func_t)
 KHASH_MAP_INIT_STR(regex, kx_regex_t*)
 
+typedef struct kx_signal_ {
+    int sigint_count;
+    int sigterm_count;
+    uint8_t signal_received;
+    uint8_t signal_progress;
+    kx_fnc_t* signal_hook;
+} kx_signal_t;
+
 typedef struct kx_context_ {
     kx_frm_t *frmv;
     kx_frm_t *lexv;
@@ -630,6 +639,8 @@ typedef struct kx_context_ {
     kvec_t(uint32_t) labels;
     kvec_pt(kx_code_t) fixcode;
     kvec_t(kx_regex_t) regex;
+
+    kx_signal_t signal;
 } kx_context_t;
 
 #if defined(KX_EXEC_DEBUG)

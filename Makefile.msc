@@ -175,6 +175,8 @@ all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES)
 
 yacc: myacc.exe
 	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
+	copy /y kx.tab.h include\parser.tab.h
+	copy /y kx.tab.c src\parser.c
 
 timex:
 	$(CC) $(CFLAGS) /Fetimex timex.c
