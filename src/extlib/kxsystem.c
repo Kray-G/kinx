@@ -343,7 +343,26 @@ static int System_sleep(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 {
     int msec = (args > 0) ? (int)get_arg_int(1, args, ctx) : 0;
     #if defined(_WIN32) || defined(_WIN64)
-    Sleep(msec <= 0 ? 1 : msec);
+    systemtimer_t v = {0};
+    QueryPerformanceFrequency(&(v.freq));
+    QueryPerformanceCounter(&(v.start));
+
+    if (msec == 0) {
+        Sleep(1);
+    } else {
+        double endtm = (double)msec / 1000;
+        double elapsed = 0.0;
+        while (elapsed < endtm) {
+            if ((ctx)->signal.signal_received) {
+                break;
+            }
+            LARGE_INTEGER end;
+            QueryPerformanceCounter(&end);
+            elapsed = (double)(end.QuadPart - (v.start).QuadPart) / (v.freq).QuadPart;
+            int sl = (int)((endtm - elapsed) * 1000);
+            Sleep(sl > 100 ? 100 : ((sl > 0) ? sl : 1));
+        }
+    }
     #else
     usleep((msec <= 0 ? 1 : msec) * 1000);
     #endif
