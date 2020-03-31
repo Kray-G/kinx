@@ -294,10 +294,28 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
     fflush(stdout);
 }
 
+kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur)
+{
+    kx_fnc_t *fn = ctx->signal.signal_hook;
+    (ctx)->signal.signal_received = 0;
+    if (fn && fn->jp) {
+        (ctx)->signal.signal_progress = 1;
+        kx_val_t fvx;
+        fvx.type = KX_FNC_T;
+        fvx.value.fn = fn;
+        ctx->caller = cur;
+        push_value(ctx->stack, fvx);
+        push_i(ctx->stack, 0);
+        push_adr(ctx->stack, cur);
+        return fn->jp;
+    }
+    return cur;
+}
+
 static inline const char *startup_code()
 {
     static const char *code =
-        "var System, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Xml;\n"
+        "var System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Xml;\n"
         "var Net, SQLite, Zip, JSON, SystemTimer, Fiber, True, False;\n"
         "var SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass;\n"
         "var SystemException, RuntimeException, FileException;\n"
@@ -355,6 +373,58 @@ static inline const char *startup_code()
                 "};\n"
                 "return this;\n"
             "};\n"
+            "Signal.SIGINT = 1;\n"
+            "Signal.SIGTERM = 2;\n"
+            "Signal.hook = { sigint: [], sigterm: [] };\n"
+            "Signal.trap = _function(sig, func) {\n"
+                "var id = -1;\n"
+                "if (sig == 1) {\n"
+                    "id = Signal.hook.sigint.length();\n"
+                    "Signal.hook.sigint.push(func);\n"
+                "} else if (sig == 2) {\n"
+                    "id = Signal.hook.sigterm.length();\n"
+                    "Signal.hook.sigterm.push(func);\n"
+                "}\n"
+                "return id;\n"
+            "};\n"
+            "Signal.remove = _function(sig, id) {\n"
+                "if (sig == 1) {\n"
+                    "var sz = Signal.hook.sigint.length();\n"
+                    "if (0 <= id && id < sz) {\n"
+                        "Signal.hook.sigint[id] = null;\n"
+                    "}\n"
+                "} else if (sig == 2) {\n"
+                    "var sz = Signal.hook.sigterm.length();\n"
+                    "if (0 <= id && id < sz) {\n"
+                        "Signal.hook.sigterm[id] = null;\n"
+                    "}\n"
+                "}\n"
+            "};\n"
+            "System.setSignalHookFunction(_function() {\n"
+                "var sz, hooks;\n"
+                "sz = Signal.hook.sigint.length();\n"
+                "hooks = Signal.hook.sigint;\n"
+                "while (System.getSigintCount()) {\n"
+                    "for (var i = 0; i < sz; ++i) {\n"
+                        "if (hooks[i].isFunction) {\n"
+                            "var r = hooks[i](Signal.SIGINT);\n"
+                            "if (r.isDefined && !r) return System.halt(); \n"
+                        "}\n"
+                    "}\n"
+                "}\n"
+                "sz = Signal.hook.sigterm.length();\n"
+                "hooks = Signal.hook.sigterm;\n"
+                "while (System.getSigtermCount()) {\n"
+                    "for (var i = 0; i < sz; ++i) {\n"
+                        "if (hooks[i].isFunction) {\n"
+                            "var r = hooks[i](Signal.SIGTERM);\n"
+                            "if (r.isDefined && !r) return System.halt(); \n"
+                        "}\n"
+                    "}\n"
+                "}\n"
+                "System.setSigtermEnded();\n"
+                "_ret_nv;\n"
+            "});\n"
             "if (!System.isInitialized) {\n"
                 "System.isInitialized = 1;\n"
                 "(_function() {\n"
