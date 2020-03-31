@@ -401,6 +401,7 @@ static inline const char *startup_code()
                 "}\n"
             "};\n"
             "System.setSignalHookFunction(_function() {\n"
+                "if (Signal.hook.sigint.length() == 0 && Signal.hook.sigterm.length() == 0) return System.halt();\n"
                 "var sz, hooks;\n"
                 "sz = Signal.hook.sigint.length();\n"
                 "hooks = Signal.hook.sigint;\n"
