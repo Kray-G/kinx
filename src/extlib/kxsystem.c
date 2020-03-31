@@ -153,6 +153,7 @@ typedef struct timer_ {
 } systemtimer_t;
 #else
 #include <sys/time.h>
+#include <unistd.h>
 #include <sys/resource.h>
 typedef struct timer_ {
     struct timeval s;
