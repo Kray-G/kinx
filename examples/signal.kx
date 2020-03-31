@@ -13,4 +13,5 @@ Signal.trap(Signal.SIGTERM, function() {
 
 while (trapped < 10) {
     # System.println("trapped = " + trapped);
+    System.sleep(0);
 }
