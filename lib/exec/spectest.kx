@@ -638,7 +638,7 @@ class GetOpt {
 
 }
 
-var getopt = new GetOpt().getopt;
+var getopt = new Fiber(new GetOpt().getopt).resume;
 
 class SpecTest(args_) {
     var spec_;
