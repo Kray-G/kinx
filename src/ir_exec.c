@@ -58,11 +58,11 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_IMPORT) { KX_GOTO(); }
 
     KX_CASE_(KX_ENTER) { KX_GOTO(); }
-    KX_CASE_(KX_CALL) { KX_GOTO(); }
-    KX_CASE_(KX_CALLV) { KX_GOTO(); }
-    KX_CASE_(KX_CALLVL0) { KX_GOTO(); }
-    KX_CASE_(KX_CALLVL1) { KX_GOTO(); }
-    KX_CASE_(KX_CALLS) { KX_GOTO(); }
+    KX_CASE_(KX_CALL) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_CALLV) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_CALLVL0) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_CALLVL1) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_CALLS) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
 
     KX_CASE_(KX_RET) { KX_GOTO(); }
     KX_CASE_(KX_RETI) { KX_GOTO(); }
@@ -73,6 +73,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_RETVL0) { KX_GOTO(); }
     KX_CASE_(KX_RETVL1) { KX_GOTO(); }
     KX_CASE_(KX_RET_NULL) { KX_GOTO(); }
+    KX_CASE_(KX_RET_NV) { KX_GOTO(); }
     KX_CASE_(KX_YIELD) { KX_GOTO(); }
 
     KX_CASE_(KX_THROW) { KX_GOTO(); }
@@ -81,9 +82,9 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
 
     KX_CASE_(KX_CATCH) { KX_GOTO(); }
 
-    KX_CASE_(KX_JMP) { KX_GOTO(); }
-    KX_CASE_(KX_JZ) { KX_GOTO(); }
-    KX_CASE_(KX_JNZ) { KX_GOTO(); }
+    KX_CASE_(KX_JMP) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_JZ) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_JNZ) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
     KX_CASE_(KX_JMPTBL) { KX_GOTO(); }
 
     KX_CASE_(KX_PUSHI) { KX_GOTO(); }

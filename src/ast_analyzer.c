@@ -704,6 +704,8 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
         }
         break;
+    case KXST_SYSRET_NV:
+        break;
     case KXST_COROUTINE: {
         analyze_ast(node->lhs, ctx);
         break;

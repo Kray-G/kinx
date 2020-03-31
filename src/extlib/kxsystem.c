@@ -478,7 +478,64 @@ int System_isFiberAlive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
+int System_halt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kv_shrinkto(ctx->stack, frmv->id + 1);
+    kx_val_t *val = &kv_last_by(ctx->stack, 2);
+    val->value.jp = NULL; // Clearing a return address means the program ended.
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int System_setSignalHookFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kvec_t(kx_val_t) *stack = &(ctx->stack);
+    kx_val_t *val = &kv_last_by(*stack, 1);
+    if (val->type != KX_FNC_T) {
+        KX_THROW_BLTIN_EXCEPTION("SignalException", "Invalid signal handler");
+    }
+    ctx->signal.signal_hook = val->value.fn;
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int System_getSigintCount(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    KX_ADJST_STACK();
+    if (ctx->signal.sigint_count > 0) {
+        push_i(ctx->stack, ctx->signal.sigint_count--);
+    } else {
+        push_i(ctx->stack, 0);
+    }
+    return 0;
+}
+
+int System_getSigtermCount(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    KX_ADJST_STACK();
+    if (ctx->signal.sigterm_count > 0) {
+        push_i(ctx->stack, ctx->signal.sigterm_count--);
+    } else {
+        push_i(ctx->stack, 0);
+    }
+    return 0;
+}
+
+int System_setSigtermEnded(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    ctx->signal.sigint_count = 0;
+    ctx->signal.sigterm_count = 0;
+    ctx->signal.signal_received = 0;
+    ctx->signal.signal_progress = 0;
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
+    { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
     { "makeSuper", System_makeSuper },
     { "exec", System_exec },
@@ -491,6 +548,10 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "sleep", System_sleep },
     { "convType", System_convType },
     { "isFiberAlive", System_isFiberAlive },
+    { "setSignalHookFunction", System_setSignalHookFunction },
+    { "getSigintCount", System_getSigintCount },
+    { "getSigtermCount", System_getSigtermCount },
+    { "setSigtermEnded", System_setSigtermEnded },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);

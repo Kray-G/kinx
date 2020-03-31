@@ -185,6 +185,7 @@ enum opecode {
     KXST_TRY,       /* lhs: try, rhs: catch, ex: finally */
     KXST_CATCH,     /* lhs: name, rhs: block */
     KXST_RET,       /* lhs: expr */
+    KXST_SYSRET_NV, /* - */
     KXST_COROUTINE, /* lhs: expr */
     KXST_THROW,     /* lhs: expr */
     KXST_MIXIN,     /* lhs: next, rhs: first */
@@ -263,7 +264,7 @@ extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
 extern int g_yyerror;
 extern int g_yywarning;
-
+extern kx_context_t *g_main_thread;
 
 extern int file_exists(const char *p);
 extern void *load_library(const char *name, const char *envname);
