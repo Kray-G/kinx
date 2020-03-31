@@ -24,6 +24,53 @@ extern void init_allocator(void);
 extern int kx_yydebug;
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+BOOL WINAPI kx_signal_handler(DWORD type)
+{
+    if (g_main_thread->signal.sigint_count == 0 && g_main_thread->signal.sigterm_count == 0 && g_main_thread->signal.signal_progress == 0) {
+        g_main_thread->signal.signal_received = 1;
+    }
+
+    switch (type) {
+    case CTRL_C_EVENT:
+        g_main_thread->signal.sigint_count++;
+        break;
+    case CTRL_BREAK_EVENT:
+        g_main_thread->signal.sigterm_count++;
+        break;
+
+    case CTRL_CLOSE_EVENT:
+    	return FALSE;
+    case CTRL_LOGOFF_EVENT:
+    	return FALSE;
+    case CTRL_SHUTDOWN_EVENT:
+    	return FALSE;
+    }
+
+	return TRUE;
+}
+#else
+#include <signal.h>
+void kx_signal_handler(int signum)
+{
+    if (g_main_thread->signal.sigint_count == 0 && g_main_thread->signal.sigterm_count == 0 && g_main_thread->signal.signal_progress == 0) {
+        g_main_thread->signal.signal_received = 1;
+    }
+
+    switch (signum) {
+    case SIGINT:
+        g_main_thread->signal.sigint_count++;
+        break;
+    case SIGTERM:
+        g_main_thread->signal.sigterm_count++;
+        break;
+    default:
+        break;
+    }
+}
+#endif
+
 static void usage(void)
 {
     printf("Usage: " PROGNAME " -[hdDui]\n");
@@ -90,6 +137,7 @@ int main(int ac, char **av)
     }
 
     kx_context_t *ctx = make_context();
+    g_main_thread = ctx;
     ctx->options.case_threshold = 16;
     ctx->options.max_call_depth = 1024;
     char lname[LONGNAME_MAX] = {0};
@@ -191,6 +239,25 @@ END_OF_OPT:
         return 0;
     }
 
+    #if defined(_WIN32) || defined(_WIN64)
+	if (!SetConsoleCtrlHandler(kx_signal_handler, TRUE)) {
+        r = 1;
+        goto CLEANUP;
+	}
+    #else
+    struct sigaction sa_signal;
+    memset(&sa_signal, 0, sizeof(sa_signal));
+    sa_signal.sa_handler = kx_signal_handler;
+    sa_signal.sa_flags = SA_RESTART;
+    if (sigaction(SIGINT, &sa_signal, NULL) < 0) {
+        r = 1;
+        goto CLEANUP;
+    }
+    if (sigaction(SIGTERM, &sa_signal, NULL) < 0) {
+        r = 1;
+        goto CLEANUP;
+    }
+    #endif
     kx_lexinfo.quiet = 1;
     ctx->frmv = allocate_frm(ctx); /* initial frame */
     ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */

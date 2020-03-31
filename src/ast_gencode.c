@@ -1515,6 +1515,9 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
+    case KXST_SYSRET_NV:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET_NV }));
+        break;
     case KXST_COROUTINE: {    /* lhs: expr */
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_CO }));
         gencode_ast_hook(ctx, node->lhs, ana, 0);

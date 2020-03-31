@@ -1,0 +1,16 @@
+var trapped = 0;
+
+Signal.trap(Signal.SIGINT, function() {
+    System.println("SIGINT");
+    ++trapped;
+});
+
+Signal.trap(Signal.SIGTERM, function() {
+    System.println("SIGTERM");
+    ++trapped;
+    return false;
+});
+
+while (trapped < 10) {
+    # System.println("trapped = " + trapped);
+}

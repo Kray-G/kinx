@@ -172,6 +172,28 @@
 /**/
 
 /*
+    Returns with nothing, this is only used by system.
+*/
+#define KX_RET_NV_CODE() \
+{ \
+    kv_shrinkto((ctx)->stack, frmv->id); \
+    kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
+    int count = kv_pop((ctx)->stack).value.iv; \
+    kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
+    if (!radr) { \
+        goto LBL_KX_END_OF_CODE; \
+    } \
+    cur = radr; \
+    frmv = frmv->prv; \
+    lexv = frmv->lex; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
+    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
+} \
+/**/
+
+/*
     Returns with a local variable.
 */
 #define KX_RETVL0_CODE() \
