@@ -342,17 +342,9 @@ static int System_sleep(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 {
     int msec = (args > 0) ? (int)get_arg_int(1, args, ctx) : 0;
     #if defined(_WIN32) || defined(_WIN64)
-    Sleep(msec);
+    Sleep(msec <= 0 ? 1 : msec);
     #else
-    const int C_WAIT_ADJUST = 10;       // for nanosleep adjustment
-    const int C_MSEC_UNIT = 1000000;    // msec unit
-    struct timespec t;
-    if (msec > C_WAIT_ADJUST) {
-        msec -= C_WAIT_ADJUST;
-    }
-    t.tv_sec = (time_t)((msec) / 1000);
-    t.tv_nsec = ((msec) % 1000) * C_MSEC_UNIT;
-    nanosleep(&t, NULL);
+    usleep((msec <= 0 ? 1 : msec) * 1000);
     #endif
 
     KX_ADJST_STACK();
