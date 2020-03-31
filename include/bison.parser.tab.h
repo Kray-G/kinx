@@ -120,14 +120,15 @@ extern int kx_yydebug;
     REGPF = 330,
     NAMESPACE = 331,
     SYSNS = 332,
-    NAME = 333,
-    STR = 334,
-    BIGINT = 335,
-    INT = 336,
-    TYPE = 337,
-    TYPEOF = 338,
-    DBL = 339,
-    BIN = 340
+    SYSRET_NV = 333,
+    NAME = 334,
+    STR = 335,
+    BIGINT = 336,
+    INT = 337,
+    TYPE = 338,
+    TYPEOF = 339,
+    DBL = 340,
+    BIN = 341
   };
 #endif
 
@@ -145,7 +146,7 @@ union YYSTYPE
     const char    *strval;
     const uint8_t *binval;
 
-#line 149 "kx.tab.h" /* yacc.c:1909  */
+#line 150 "kx.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
