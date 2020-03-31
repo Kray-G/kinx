@@ -51,6 +51,7 @@ BOOL WINAPI kx_signal_handler(DWORD type)
 	return TRUE;
 }
 #else
+#include <termios.h>
 #include <signal.h>
 void kx_signal_handler(int signum)
 {
@@ -257,7 +258,14 @@ END_OF_OPT:
         r = 1;
         goto CLEANUP;
     }
+
+    struct termios newf, oldf;
+    tcgetattr(0, &oldf);
+    newf = oldf;
+    newf.c_lflag &= ~ECHO;
+    tcsetattr(0, TCSANOW, &newf);
     #endif
+
     kx_lexinfo.quiet = 1;
     ctx->frmv = allocate_frm(ctx); /* initial frame */
     ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */
@@ -272,6 +280,9 @@ END_OF_OPT:
     push_adr(ctx->stack, NULL);
     r = ir_exec(ctx);
 
+    #if !defined(_WIN32) && !defined(_WIN64)
+    tcsetattr(0, TCSANOW, &oldf);
+    #endif
 CLEANUP:
     context_cleanup(ctx);
     free_nodes();
