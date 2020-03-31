@@ -33,6 +33,7 @@
     &&LBL_KX_RETVL0, \
     &&LBL_KX_RETVL1, \
     &&LBL_KX_RET_NULL, \
+    &&LBL_KX_RET_NV, \
     &&LBL_KX_YIELD, \
     &&LBL_KX_THROW, \
     &&LBL_KX_THROWA, \
@@ -253,6 +254,13 @@
     KX_SETUP_JUMPTABLE(); \
     KX_EXEC_DECL(fixcode); \
     KX_EXEC_FIX_JMPADDR(fixcode, 0); \
+/**/
+
+extern kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur);
+#define KEX_CHECK_SIGNAL(ctx) \
+if ((ctx)->signal.signal_received) { \
+    cur = kx_signal_hook(ctx, cur); \
+} \
 /**/
 
 #endif /* KX_KXEXEC_H */
