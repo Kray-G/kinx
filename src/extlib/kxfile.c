@@ -1236,14 +1236,14 @@ static int extract_file(int args, kx_context_t *ctx, const char *zipfile, const 
     if (err != MZ_OK) {
         mz_zip_reader_delete(&reader);
         KX_ADJST_STACK();
-        push_i(ctx->stack, 1);
+        push_i(ctx->stack, 0);
         return err;
     }
 
     if (mz_zip_reader_entry_is_dir(reader) == MZ_OK) {
         mz_zip_reader_delete(&reader);
         KX_ADJST_STACK();
-        push_i(ctx->stack, 0);
+        push_i(ctx->stack, 1);
         return 0;
     }
 
@@ -1254,7 +1254,7 @@ static int extract_file(int args, kx_context_t *ctx, const char *zipfile, const 
         }
         mz_zip_reader_delete(&reader);
         KX_ADJST_STACK();
-        push_i(ctx->stack, err != MZ_OK);
+        push_i(ctx->stack, err == MZ_OK);
         return err;
     }
 
@@ -1268,7 +1268,7 @@ static int extract_file(int args, kx_context_t *ctx, const char *zipfile, const 
         kx_free(buf);
         mz_zip_reader_delete(&reader);
         KX_ADJST_STACK();
-        push_i(ctx->stack, 1);
+        push_i(ctx->stack, 0);
         return err;
     }
     if (file_info->uncompressed_size < buf_size) {

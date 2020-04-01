@@ -1,17 +1,17 @@
 var zip = new Zip("examples/zip/ziptest.zip", File.READ|File.WRITE);
 zip.setPassword("text");
 zip.addFile("README.md", {
-    method: "bzip2",
-    aes: true,
+    # method: "bzip2",
+    # aes: true,
 });
 zip.addFile("README.md");
 zip.addString("test/test1.txt", {
     content: "test/test\n",
-    aes: true,  # Can not use aes option for addString, that means no effect for addString.
+    # aes: true,  # Can not use aes option for addString, that means no effect for addString.
 });
 zip.addString("test/test2.txt", {
     content: "test/test\n",
-    password: "text2",
+    # password: "text2",
 });
 
 System.println("totalFiles = ", zip.totalFiles);
@@ -35,7 +35,11 @@ zip.each(function(e) {
     # }
 });
 
-var file = zip.read("README.md", { password: "text" });
+# var file = zip.read("README.md", { password: "text" });
+var file = zip.find("README.md")
+              .extract({ password: "text" });
 System.println(file);
 zip.find("README.md")
     .extractTo("READMEXX.md", { password: "text", skip: true });
+
+zip.each(&(e) => e.extractTo("examples/zip/dst" / e.filename, { password: "text", skip: true }));
