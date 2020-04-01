@@ -807,6 +807,7 @@ int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         return 0;
     }
 
+    int ch;
     if (fi->is_std) {
         while (!stdin_peek(100)) {
             volatile uint8_t signal = ctx->signal.signal_received;
@@ -816,9 +817,17 @@ int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 return 0;
             }
         }
+        ch = kx_getch();
+        if (ch == 0x03) {
+            ctx->signal.signal_received = 1;
+            ctx->signal.sigint_count++;
+            KX_ADJST_STACK();
+            push_s(ctx->stack, "");
+            return 0;
+        }
+    } else {
+        ch = fgetc(fi->fp);
     }
-
-    int ch = fi->is_std ? kx_getch() : fgetc(fi->fp);
     char buffer[2] = { ch, 0 };
     kstr_t *s = allocate_str(ctx);
     ks_append_n(s, buffer, 1);
@@ -873,7 +882,8 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         int ch;
         if (fi->is_std) {
             while (!stdin_peek(100)) {
-                if (ctx->signal.signal_received) {
+                volatile uint8_t signal = ctx->signal.signal_received;
+                if (signal) {
                     KX_ADJST_STACK();
                     push_s(ctx->stack, "");
                     return 0;
