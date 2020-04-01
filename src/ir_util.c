@@ -706,8 +706,8 @@ static inline const char *startup_code()
             "STDIN = $stdin = new File('<stdin>', File.READ);\n"
             "STDOUT = $stdout = new File('<stdout>', File.WRITE);\n"
             "STDERR = $stderr = new File('<stderr>', File.WRITE);\n"
-            "System.print = STDOUT.print;\n"
-            "System.println = STDOUT.println;\n"
+            "System.print = _function(...arg) { return $stdout.print(...arg); };\n"
+            "System.println = _function(...arg) { return $stdout.println(...arg); };\n"
         "})();\n"
     ;
     return code;
