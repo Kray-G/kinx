@@ -802,6 +802,17 @@ int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         return 0;
     }
 
+    if (fi->is_std) {
+        while (!stdin_peek(100)) {
+            volatile uint8_t signal = ctx->signal.signal_received;
+            if (signal) {
+                KX_ADJST_STACK();
+                push_s(ctx->stack, "");
+                return 0;
+            }
+        }
+    }
+
     int ch = fi->is_std ? kx_getch() : fgetc(fi->fp);
     char buffer[2] = { ch, 0 };
     kstr_t *s = allocate_str(ctx);
@@ -848,25 +859,42 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         return 0;
     }
 
-    char buffer[2048] = {0};
+    #define BUFFER_MAX (2048)
+    int is_binary = (fi->mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
+    int pos = 0;
+    char buffer[BUFFER_MAX] = {0};
     kstr_t *s = allocate_str(ctx);
     while (1) {
-        char *buf = fgets(buffer, 2047, fi->fp);
-        if (!buf) {
-            break;
+        if (fi->is_std) {
+            while (!stdin_peek(100)) {
+                volatile uint8_t signal = ctx->signal.signal_received;
+                if (signal) {
+                    KX_ADJST_STACK();
+                    push_s(ctx->stack, "");
+                    return 0;
+                }
+            }
         }
-        char *p = strchr(buffer, '\n');
-        if (!p) {
-            p = strchr(buffer, '\r');
+
+        int ch = fi->is_std ? kx_getch() : fgetc(fi->fp);
+        if (!is_binary && ch == '\r') {
+            continue;
         }
-        if (p) {
-            *p = 0;
+        buffer[pos++] = ch;
+        if (pos >= (BUFFER_MAX-1)) {
+            buffer[pos] = 0;
             ks_append(s, buffer);
+            pos = 0;
+        }
+        if (ch == '\n' || feof(fi->fp)) {
             break;
         }
+    }
+    if (pos > 0) {
+        buffer[pos] = 0;
         ks_append(s, buffer);
     }
-    ks_trim_right_char(s, '\r');
+    #undef BUFFER_MAX
 
     KX_ADJST_STACK();
     push_sv(ctx->stack, s);
