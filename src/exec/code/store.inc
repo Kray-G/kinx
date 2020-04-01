@@ -24,7 +24,7 @@
     kx_val_t *v1v = v1; \
     kx_val_t *v2v = v2; \
     if (v1v->type == KX_CSTR_T || v1v->type == KX_STR_T) { \
-        char *pv = v1v->type == KX_STR_T ? ks_string(v1v->value.sv) : (v1v)->value.pv; \
+        const char *pv = v1v->type == KX_STR_T ? ks_string(v1v->value.sv) : (v1v)->value.pv; \
         kstr_t *s = allocate_str(ctx); \
         ks_append_n(s, pv, v1v->pos+1); \
         v1v->type = KX_STR_T; \
