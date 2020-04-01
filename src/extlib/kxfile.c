@@ -216,15 +216,15 @@ static int stdin_peek(unsigned int msec)
 static const char *get_mode(int mode)
 {
     static char mode_str[4] = {0};
-    int bin  = (mode & 0x01) == KXFILE_MODE_BINARY;
+    int bin  = (mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
     int newf = mode & KXFILE_MODE_NEW;
     int pos = 1;
     if ((mode & KXFILE_MODE_READ) == KXFILE_MODE_READ && (mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
         if (newf) {
-            mode_str[0] = 'a';
+            mode_str[0] = 'w';
             mode_str[1] = '+';
         } else {
-            mode_str[0] = 'r';
+            mode_str[0] = 'a';
             mode_str[1] = '+';
         }
         ++pos;
