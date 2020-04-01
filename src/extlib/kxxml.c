@@ -565,6 +565,7 @@ static int XML_node_content(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     if (!textcontent) {
         KX_ADJST_STACK();
         push_undef(ctx->stack);
+        return 0;
     }
 
     kstr_t *sv = allocate_str(ctx);
