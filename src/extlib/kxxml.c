@@ -182,7 +182,7 @@ static int get_element_by_id(int args, kx_context_t *ctx, kx_xml_t *xml, xmlNode
     return 0;
 }
 
-static void get_element_by_tagname_r(kx_obj_t *robj, int args, kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr node, const char *tagname)
+static void get_elements_by_tagname_r(kx_obj_t *robj, int args, kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr node, const char *tagname)
 {
     if (!strcmp(tagname, node->name)) {
         kx_obj_t *n = create_node(ctx, xml, node);
@@ -191,15 +191,15 @@ static void get_element_by_tagname_r(kx_obj_t *robj, int args, kx_context_t *ctx
 
     xmlNodePtr children = node->children;
     while (children) {
-        get_element_by_tagname_r(robj, args, ctx, xml, children, tagname);
+        get_elements_by_tagname_r(robj, args, ctx, xml, children, tagname);
         children = children->next;
     }
 }
 
-static int get_element_by_tagname(int args, kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr node, const char *tagname)
+static int get_elements_by_tagname(int args, kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr node, const char *tagname)
 {
     kx_obj_t *robj = allocate_obj(ctx);
-    get_element_by_tagname_r(robj, args, ctx, xml, node, tagname);
+    get_elements_by_tagname_r(robj, args, ctx, xml, node, tagname);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, robj);
@@ -756,13 +756,13 @@ static int XML_node_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     return get_element_by_id(args, ctx, node->xml, node->p, id);
 }
 
-static int XML_node_getElementByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_node_getElementsByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_NODE(node, obj);
     const char *id = get_arg_str(2, args, ctx);
 
-    return get_element_by_tagname(args, ctx, node->xml, node->p, id);
+    return get_elements_by_tagname(args, ctx, node->xml, node->p, id);
 }
 
 static kx_obj_t *create_node(kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr cur)
@@ -833,7 +833,7 @@ static kx_obj_t *create_node(kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr cur)
     KEX_SET_METHOD("hasAttributes", obj, XML_node_hasAttributes);
 
     KEX_SET_METHOD("getElementById", obj, XML_node_getElementById);
-    KEX_SET_METHOD("getElementByTagName", obj, XML_node_getElementByTagName);
+    KEX_SET_METHOD("getElementsByTagName", obj, XML_node_getElementsByTagName);
 
     KEX_SET_METHOD("xpath", obj, XML_node_xpath);
 
@@ -992,14 +992,14 @@ static int XML_getElementById(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     return get_element_by_id(args, ctx, xml, node, id);
 }
 
-static int XML_getElementByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int XML_getElementsByTagName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_XML_GET_DOC(xml, obj);
     const char *tagname = get_arg_str(2, args, ctx);
 
     xmlNodePtr node = xmlDocGetRootElement(xml->doc);
-    return get_element_by_tagname(args, ctx, xml, node, tagname);
+    return get_elements_by_tagname(args, ctx, xml, node, tagname);
 }
 
 static int xml_parse(int args, kx_context_t *ctx, kx_xml_t *xml)
@@ -1020,7 +1020,7 @@ static int xml_parse(int args, kx_context_t *ctx, kx_xml_t *xml)
     KEX_SET_METHOD("createElementNS", obj, XML_createElementNS);
 
     KEX_SET_METHOD("getElementById", obj, XML_getElementById);
-    KEX_SET_METHOD("getElementByTagName", obj, XML_getElementByTagName);
+    KEX_SET_METHOD("getElementsByTagName", obj, XML_getElementsByTagName);
 
     KEX_SET_METHOD("xpath", obj, XML_xpath);
 
