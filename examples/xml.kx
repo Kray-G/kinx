@@ -49,7 +49,7 @@ if (el) {
 
 System.println("");
 System.println("getElementByTagName:");
-var els = root.getElementByTagName("img");
+var els = root.getElementsByTagName("img");
 if (els.isArray) {
     els.each(&(el) => displayXml(doc, el));
 }
