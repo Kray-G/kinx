@@ -23,14 +23,13 @@
 { \
     kx_val_t *v1v = v1; \
     kx_val_t *v2v = v2; \
-    if (v1v->type == KX_CSTR_T) { \
+    if (v1v->type == KX_CSTR_T || v1v->type == KX_STR_T) { \
+        char *pv = v1v->type == KX_STR_T ? ks_string(v1v->value.sv) : (v1v)->value.pv; \
         kstr_t *s = allocate_str(ctx); \
-        ks_append(s, (v1v)->value.pv); \
+        ks_append_n(s, pv, v1v->pos+1); \
         v1v->type = KX_STR_T; \
         v1v->value.sv = s; \
         KX_SET_STRING_CHAR(ks_string(s)[v1v->pos], v2v) \
-    } else if (v1v->type == KX_STR_T) { \
-        KX_SET_STRING_CHAR(ks_string(v1v->value.sv)[v1v->pos], v2v) \
     } else if (v1v->type == KX_OBJ_T) { \
         KX_SET_OBJECT_ITEM(v1v->value.ov, v2v, v1v->pos) \
     } else { \
