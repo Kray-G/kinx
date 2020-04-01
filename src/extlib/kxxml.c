@@ -486,12 +486,10 @@ static int XML_node_replaceNode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     kx_obj_t *a1 = get_arg_obj(2, args, ctx);
-    kx_obj_t *a2 = get_arg_obj(3, args, ctx);
     KX_XML_GET_NODE(node, obj);
     KX_XML_GET_NODE(n1, a1);
-    KX_XML_GET_NODE(n2, a2);
 
-    xmlNodePtr old = xmlReplaceNode(n1->p, n2->p);
+    xmlNodePtr old = xmlReplaceNode(node->p, n1->p);
     free_old_node(old);
 
     KX_ADJST_STACK();
