@@ -5,9 +5,9 @@ do { \
     const char *pv = pvp; \
     int len = strlen(pv); \
     if (0 <= i) { \
-        push_i((ctx)->stack, pv[i % len]); \
+        push_i((ctx)->stack, len == 0 ? 0 : pv[i % len]); \
     } else { \
-        i = len + i; \
+        i = len == 0 ? 0 : len + i; \
         while (i < 0) i += len; \
         push_i((ctx)->stack, pv[i]); \
     } \
@@ -19,9 +19,9 @@ do { \
     int i = pos; \
     int len = kv_size(bn->bin); \
     if (0 <= i) { \
-        push_i((ctx)->stack, (int)kv_A(bn->bin, i % len)); \
+        push_i((ctx)->stack, len == 0 ? 0 : (int)kv_A(bn->bin, i % len)); \
     } else { \
-        i = len + i; \
+        i = len == 0 ? 0 : len + i; \
         while (i < 0) i += len; \
         push_i((ctx)->stack, (int)kv_A(bn->bin, i)); \
     } \
@@ -32,9 +32,9 @@ do { \
 do { \
     int i = pos; \
     if (0 <= i) { \
-        push_lvalue_pos((ctx)->stack, lv, i % len); \
+        push_lvalue_pos((ctx)->stack, lv, len == 0 ? i : i % len); \
     } else { \
-        i = len + i; \
+        i = len == 0 ? 0 : len + i; \
         while (i < 0) i += len; \
         push_lvalue_pos((ctx)->stack, lv, i); \
     } \
@@ -276,13 +276,13 @@ do { \
         kx_obj_t *obj = NULL; \
         if (lv->type == KX_OBJ_T) { \
             obj = lv->value.ov; \
+            int sz = kv_size(obj->ary); \
             if (cur->value1.i < 0) { \
-                int sz = kv_size(obj->ary); \
                 int64_t i = cur->value1.i; \
                 do { i += sz; } while (i < 0); \
                 val = &(kv_A(obj->ary, i)); \
-            } else { \
-                val = &(kv_A(obj->ary, (cur->value1.i % kv_size(obj->ary)))); \
+            } else if (sz != 0) { \
+                val = &(kv_A(obj->ary, (cur->value1.i % sz))); \
             } \
         } \
         if (!val) { \
