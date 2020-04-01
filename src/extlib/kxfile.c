@@ -864,6 +864,7 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         return 0;
     }
 
+    term_echo(1);
     #define BUFFER_MAX (2048)
     int is_binary = (fi->mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
     int pos = 0;
@@ -892,6 +893,7 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         ks_append(s, buffer);
     }
     #undef BUFFER_MAX
+    term_echo(0);
 
     if (fi->is_std && !ctx->options.utf8inout) {
         char *buf = conv_acp2utf8_alloc(ks_string(s));

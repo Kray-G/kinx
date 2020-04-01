@@ -52,29 +52,29 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
 
     KX_CASE_BEGIN() {
 
-    KX_CASE_(KX_HALT) { KX_GOTO(); }
+    KX_CASE_(KX_HALT) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
     KX_CASE_(KX_NOP) { KX_GOTO(); }
     KX_CASE_(KX_DUP) { KX_GOTO(); }
     KX_CASE_(KX_IMPORT) { KX_GOTO(); }
 
     KX_CASE_(KX_ENTER) { KX_GOTO(); }
-    KX_CASE_(KX_CALL) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
-    KX_CASE_(KX_CALLV) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
-    KX_CASE_(KX_CALLVL0) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
-    KX_CASE_(KX_CALLVL1) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
-    KX_CASE_(KX_CALLS) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_CALL) { KX_GOTO(); }
+    KX_CASE_(KX_CALLV) { KX_GOTO(); }
+    KX_CASE_(KX_CALLVL0) { KX_GOTO(); }
+    KX_CASE_(KX_CALLVL1) { KX_GOTO(); }
+    KX_CASE_(KX_CALLS) { KX_GOTO(); }
 
-    KX_CASE_(KX_RET) { KX_GOTO(); }
-    KX_CASE_(KX_RETI) { KX_GOTO(); }
-    KX_CASE_(KX_RETD) { KX_GOTO(); }
-    KX_CASE_(KX_RETS) { KX_GOTO(); }
-    KX_CASE_(KX_RETB) { KX_GOTO(); }
-    KX_CASE_(KX_RETV) { KX_GOTO(); }
-    KX_CASE_(KX_RETVL0) { KX_GOTO(); }
-    KX_CASE_(KX_RETVL1) { KX_GOTO(); }
-    KX_CASE_(KX_RET_NULL) { KX_GOTO(); }
+    KX_CASE_(KX_RET) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RETI) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RETD) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RETS) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RETB) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RETV) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RETVL0) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RETVL1) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_RET_NULL) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
     KX_CASE_(KX_RET_NV) { KX_GOTO(); }
-    KX_CASE_(KX_YIELD) { KX_GOTO(); }
+    KX_CASE_(KX_YIELD) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
 
     KX_CASE_(KX_THROW) { KX_GOTO(); }
     KX_CASE_(KX_THROWA) { KX_GOTO(); }
@@ -106,7 +106,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_SPREAD) { KX_GOTO(); }
 
     KX_CASE_(KX_POP_C) { KX_GOTO(); }
-    KX_CASE_(KX_POP) { KX_GOTO(); }
+    KX_CASE_(KX_POP) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
 
     KX_CASE_(KX_STORE) { KX_GOTO(); }
     KX_CASE_(KX_STOREV) { KX_GOTO(); }
