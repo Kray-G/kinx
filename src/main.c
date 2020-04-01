@@ -265,6 +265,7 @@ END_OF_OPT:
     newf.c_lflag &= ~ECHO;
     tcsetattr(0, TCSANOW, &newf);
     siginterrupt(SIGINT, 1);
+    siginterrupt(SIGTERM, 1);
     #endif
 
     kx_lexinfo.quiet = 1;
