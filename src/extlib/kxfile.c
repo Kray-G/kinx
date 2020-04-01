@@ -875,53 +875,37 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     #define BUFFER_MAX (2048)
     int is_binary = (fi->mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
-    int pos = 0;
     char buffer[BUFFER_MAX] = {0};
     kstr_t *s = allocate_str(ctx);
     while (1) {
-        int ch;
-        if (fi->is_std) {
-            while (!stdin_peek(100)) {
-                volatile uint8_t signal = ctx->signal.signal_received;
-                if (signal) {
-                    KX_ADJST_STACK();
-                    push_s(ctx->stack, "");
-                    return 0;
-                }
-            }
-            ch = kx_getch();
-            if (ch == 0x03) {
-                ctx->signal.signal_received = 1;
-                ctx->signal.sigint_count++;
-                KX_ADJST_STACK();
-                push_s(ctx->stack, "");
-                return 0;
-            }
-        } else {
-            ch = fgetc(fi->fp);
-        }
-        if (!is_binary && ch == '\r') {
-            continue;
-        }
-        if (ch == '\n' || ch == EOF) {
+        char *buf = fgets(buffer, BUFFER_MAX-1, fi->fp);
+        if (!buf) {
             break;
         }
-        buffer[pos++] = ch;
-        if (fi->is_std) {
-            printf("%c", ch);
+        int found = 0;
+        if (!is_binary) {
+            char *p = buffer;
+            char *d = buffer;
+            while (*p) {
+                if (*p == '\r') {
+                    ++p;
+                    continue;
+                }
+                if (*p == '\n') {
+                    found = 1;
+                    break;
+                }
+                *d++ = *p++;
+            }
+            *d = 0;
+        }
+        ks_append(s, buffer);
+        if (found) {
+            break;
         }
         if (feof(fi->fp)) {
             break;
         }
-        if (pos >= (BUFFER_MAX-1)) {
-            buffer[pos] = 0;
-            ks_append(s, buffer);
-            pos = 0;
-        }
-    }
-    if (pos > 0) {
-        buffer[pos] = 0;
-        ks_append(s, buffer);
     }
     #undef BUFFER_MAX
 
