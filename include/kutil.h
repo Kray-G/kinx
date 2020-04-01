@@ -9,13 +9,29 @@ typedef struct timer_ {
     LARGE_INTEGER freq;
     LARGE_INTEGER start;
 } systemtimer_t;
+static inline void term_echo(int on)
+{
+    // dummy.
+}
 #else
+#include <termios.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/resource.h>
 typedef struct timer_ {
     struct timeval s;
 } systemtimer_t;
+static inline void term_echo(int on)
+{
+    struct termios newf;
+    tcgetattr(0, &newf);
+    if (on) {
+        newf.c_lflag |= ECHO;
+    } else {
+        newf.c_lflag &= ~ECHO;
+    }
+    tcsetattr(0, TCSANOW, &newf);
+}
 #endif
 
 static inline void sleep_ms(kx_context_t *ctx, int msec)
