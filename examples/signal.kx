@@ -7,7 +7,6 @@ Signal.trap(Signal.SIGINT, function() {
 
 Signal.trap(Signal.SIGTERM, function() {
     System.println("SIGTERM");
-    ++trapped;
     return false;
 });
 
