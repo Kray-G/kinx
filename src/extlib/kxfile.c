@@ -1,7 +1,8 @@
 #include <dbg.h>
-#include <kinx.h>
 #include <inttypes.h>
 #include <sys/stat.h>
+#include <kinx.h>
+#include <kutil.h>
 
 #include "zip/include/mz.h"
 #include "zip/include/mz_os.h"
@@ -683,7 +684,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         case KX_CSTR_T:
             ++count;
-            if (ctx->options.utf8inout) {
+            if (!fi->is_std || ctx->options.utf8inout) {
                 fprintf(fi->fp, "%s", val.value.pv);
             } else {
                 buf = conv_utf82acp_alloc(val.value.pv);
@@ -693,7 +694,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         case KX_STR_T:
             ++count;
-            if (ctx->options.utf8inout) {
+            if (!fi->is_std || ctx->options.utf8inout) {
                 fprintf(fi->fp, "%s", ks_string(val.value.sv));
             } else {
                 buf = conv_utf82acp_alloc(ks_string(val.value.sv));
@@ -722,9 +723,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         }
     }
-    KX_ADJST_STACK();
-    push_i(ctx->stack, count);
-    return 0;
+    return count;
 }
 
 int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -737,10 +736,13 @@ int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!(fi->mode & KXFILE_MODE_WRITE)) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
     }
-    File_print_impl(args, frmv, lexv, ctx, fi);
+    int count = File_print_impl(args, frmv, lexv, ctx, fi);
     if (fi->is_std) {
         fflush(fi->fp);
     }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, count);
     return 0;
 }
 
@@ -754,11 +756,14 @@ int File_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!(fi->mode & KXFILE_MODE_WRITE)) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
     }
-    File_print_impl(args, frmv, lexv, ctx, fi);
+    int count = File_print_impl(args, frmv, lexv, ctx, fi);
     fprintf(fi->fp, "\n");
     if (fi->is_std) {
         fflush(fi->fp);
     }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, count);
     return 0;
 }
 
@@ -865,29 +870,21 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     char buffer[BUFFER_MAX] = {0};
     kstr_t *s = allocate_str(ctx);
     while (1) {
-        if (fi->is_std) {
-            while (!stdin_peek(100)) {
-                volatile uint8_t signal = ctx->signal.signal_received;
-                if (signal) {
-                    KX_ADJST_STACK();
-                    push_s(ctx->stack, "");
-                    return 0;
-                }
-            }
-        }
-
-        int ch = fi->is_std ? kx_getch() : fgetc(fi->fp);
+        int ch = fgetc(fi->fp);
         if (!is_binary && ch == '\r') {
             continue;
         }
+        if (ch == '\n' || ch == EOF) {
+            break;
+        }
         buffer[pos++] = ch;
+        if (feof(fi->fp)) {
+            break;
+        }
         if (pos >= (BUFFER_MAX-1)) {
             buffer[pos] = 0;
             ks_append(s, buffer);
             pos = 0;
-        }
-        if (ch == '\n' || feof(fi->fp)) {
-            break;
         }
     }
     if (pos > 0) {
@@ -895,6 +892,13 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         ks_append(s, buffer);
     }
     #undef BUFFER_MAX
+
+    if (fi->is_std && !ctx->options.utf8inout) {
+        char *buf = conv_acp2utf8_alloc(ks_string(s));
+        ks_clear(s);
+        ks_append(s, buf);
+        conv_free(buf);
+    }
 
     KX_ADJST_STACK();
     push_sv(ctx->stack, s);
