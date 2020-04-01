@@ -30,7 +30,6 @@ KX_DECL_MEM_ALLOCATORS();
 
 #define KXFILE_MODE_TEXT   (0x00)
 #define KXFILE_MODE_BINARY (0x01)
-#define KXFILE_MODE_NEW    (0x02)
 #define KXFILE_MODE_READ   (0x10)
 #define KXFILE_MODE_WRITE  (0x20)
 #define KXFILE_MODE_APPEND (0x40)
@@ -217,21 +216,24 @@ static const char *get_mode(int mode)
 {
     static char mode_str[4] = {0};
     int bin  = (mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
-    int newf = mode & KXFILE_MODE_NEW;
+    int appendf = (mode & KXFILE_MODE_APPEND) == KXFILE_MODE_APPEND;
+    int readf = (mode & KXFILE_MODE_READ) == KXFILE_MODE_READ;
+    int writef = (mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE;
     int pos = 1;
-    if ((mode & KXFILE_MODE_READ) == KXFILE_MODE_READ && (mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
-        if (newf) {
-            mode_str[0] = 'w';
-            mode_str[1] = '+';
-        } else {
-            mode_str[0] = 'a';
-            mode_str[1] = '+';
-        }
+    if (readf && writef) {
+        mode_str[0] = 'w';
+        mode_str[1] = '+';
         ++pos;
-    } else if ((mode & KXFILE_MODE_READ) == KXFILE_MODE_READ) {
+    } else if (readf && appendf) {
+        mode_str[0] = 'a';
+        mode_str[1] = '+';
+        ++pos;
+    } else if (readf) {
         mode_str[0] = 'r';
-    } else if ((mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE) {
-        mode_str[0] = newf ? 'w' : 'a';
+    } else if (writef) {
+        mode_str[0] = 'w';
+    } else if (appendf) {
+        mode_str[0] = 'a';
     } else {
         mode_str[0] = 'r';
     }
@@ -931,7 +933,6 @@ int File_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     KEX_SET_PROP_INT(obj, "BINARY", KXFILE_MODE_BINARY);
     KEX_SET_PROP_INT(obj, "TEXT", KXFILE_MODE_TEXT);
-    KEX_SET_PROP_INT(obj, "NEW", KXFILE_MODE_NEW);
     KEX_SET_PROP_INT(obj, "READ", KXFILE_MODE_READ);
     KEX_SET_PROP_INT(obj, "WRITE", KXFILE_MODE_WRITE);
     KEX_SET_PROP_INT(obj, "APPEND", KXFILE_MODE_APPEND);
@@ -964,7 +965,6 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_PROP_ANY(obj, "_pack", r);
     KEX_SET_PROP_INT(obj, "BINARY", KXFILE_MODE_BINARY);
     KEX_SET_PROP_INT(obj, "TEXT", KXFILE_MODE_TEXT);
-    KEX_SET_PROP_INT(obj, "NEW", KXFILE_MODE_NEW);
     KEX_SET_PROP_INT(obj, "READ", KXFILE_MODE_READ);
     KEX_SET_PROP_INT(obj, "WRITE", KXFILE_MODE_WRITE);
     KEX_SET_PROP_INT(obj, "APPEND", KXFILE_MODE_APPEND);
