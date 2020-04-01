@@ -14,6 +14,8 @@ Updates from v0.2.0.
 
 *   Updated
     *   Combining ternary expressions.
+    *   Updated Fiber.
+    *   Supported Signal.
 
 ## V0.2.0 (2nd Preview Release)
 
