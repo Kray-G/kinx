@@ -1049,7 +1049,7 @@ static kx_obj_t *setup_entry(kx_context_t *ctx, kx_obj_t *obj, void *reader, mz_
     }
 
     kx_obj_t *time = allocate_obj(ctx);
-    KEX_SET_PROP_INT(time, "year", tmu_date.tm_year);
+    KEX_SET_PROP_INT(time, "year", (tmu_date.tm_year < 1900) ? (tmu_date.tm_year + 1900) : tmu_date.tm_year);
     KEX_SET_PROP_INT(time, "month", tmu_date.tm_mon + 1);
     KEX_SET_PROP_INT(time, "day", tmu_date.tm_mday);
     KEX_SET_PROP_INT(time, "hour", tmu_date.tm_hour);
