@@ -208,6 +208,10 @@ static void gc_mark_val(kx_val_t *c)
         c->mark = 1;
         gc_mark_obj(c->value.ov);
         break;
+    case KX_LVAL_T:
+        c->mark = 1;
+        gc_mark_val(c->value.lv);
+        break;
     case KX_FNC_T:
         c->mark = 1;
         gc_mark_fnc(c->value.fn);
