@@ -270,12 +270,16 @@ static fileinfo_t *create_fileinfo(const char *file, int mode)
     if (!mode) {
         mode = KXFILE_MODE_READ | KXFILE_MODE_TEXT;
     }
+    char *buf = conv_utf82acp_alloc(file);
     fileinfo_t *fi = kx_calloc(1, sizeof(fileinfo_t));
-    fi->fp = fopen(file, get_mode(mode));
+    fi->fp = fopen(buf, get_mode(mode));
     if (!fi->fp) {
+        kx_free(fi);
+        conv_free(buf);
         return NULL;
     }
-    fi->filename = file;
+    fi->filename = kx_const_str(buf);
+    conv_free(buf);
     fi->mode = mode;
     fi->is_text = (fi->mode & KXFILE_MODE_BINARY) != KXFILE_MODE_BINARY;
     fi->is_std = 0;
@@ -714,7 +718,13 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             if (!out) {   
                 printf("[...]");
             } else {
-                printf("%s", ks_string(out));
+                if (!fi->is_std || ctx->options.utf8inout) {
+                    printf("%s", ks_string(out));
+                } else {
+                    buf = conv_utf82acp_alloc(ks_string(out));
+                    fprintf(fi->fp, "%s", buf);
+                    conv_free(buf);
+                }
                 ks_free(out);
             }
             break;
