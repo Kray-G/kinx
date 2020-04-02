@@ -499,7 +499,7 @@ static inline const char *startup_code()
                         "var ret = [];\n"
                         "var len = ary.length();\n"
                         "for (var i = 0; i < len; ++i) {\n"
-                            "ret.push(callback(ary[i], i));\n"
+                            "ret.push(ary[i]) if (callback(ary[i], i));\n"
                         "}\n"
                         "return ret;\n"
                     "};\n"
