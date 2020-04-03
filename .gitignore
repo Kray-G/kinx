@@ -9,6 +9,7 @@
 *.o
 *.so*
 *.dep
+*.zip
 kinx
 timex
 myacc
@@ -29,3 +30,4 @@ kinx.map
 kx.tab.c
 kx.tab.h
 package_win64.zip
+temp*
