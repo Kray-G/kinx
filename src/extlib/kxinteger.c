@@ -9,7 +9,11 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     if (args > 0) {
         kvec_t(kx_val_t) *stack = &(ctx->stack);
         kx_val_t val = kv_last_by(*stack, 1);
-        if (val.type == KX_INT_T) {
+        if (val.type == KX_UND_T) {
+            KX_ADJST_STACK();
+            push_i(ctx->stack, 0);
+            return 0;
+        } else if (val.type == KX_INT_T) {
             KX_ADJST_STACK();
             push_i(ctx->stack, val.value.iv);
             return 0;
@@ -54,7 +58,11 @@ int Integer_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     if (args > 0) {
         kvec_t(kx_val_t) *stack = &(ctx->stack);
         kx_val_t val = kv_last_by(*stack, 1);
-        if (val.type == KX_INT_T) {
+        if (val.type == KX_UND_T) {
+            KX_ADJST_STACK();
+            push_d(ctx->stack, 0.0);
+            return 0;
+        } else if (val.type == KX_INT_T) {
             double v = (double)val.value.iv;
             KX_ADJST_STACK();
             push_d(ctx->stack, v);
