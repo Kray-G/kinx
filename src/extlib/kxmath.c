@@ -163,7 +163,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "pow",    Math_pow   },   /* double pow(double x, double y)           */
     { "sqrt",   Math_sqrt  },   /* double sqrt(double x)                    */
     { "ceil",   Math_ceil  },   /* double ceil(double x)                    */
-    { "fabs",   Math_fabs  },   /* double fabs(double x)                    */
+    { "fabs",   Math_fabs  },   /* double fabs(double x) for compatibility. */
+    { "abs",    Math_fabs  },   /* double fabs(double x)                    */
     { "floor",  Math_floor },   /* double floor(double x)                   */
     { "fmod",   Math_fmod  },   /* double fmod(double x, double y)          */
     { "random", Math_random  }, /* Random value from 0 to 1                 */
