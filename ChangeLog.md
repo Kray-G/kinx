@@ -6,9 +6,12 @@
 *   REPL (Read-Eval-Print Loop).
 *   Library mode like `libkinx.so`.
 *   Signal Trap.
+*   Some Optimaizations.
 *   User selectable installation.
 
-## V0.3.0 (Curren Development)
+## V0.4.0 (Current Development)
+
+## V0.3.1 (3rd Preview Release)
 
 Updates from v0.2.0.
 
