@@ -2,7 +2,7 @@
 <p align="center"><img src="doc/kinxlogo.png" height="84px" /></p>
 <p align="center">
 <strong>Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
-Small scripting language with C like syntax, with native function by JIT.
+The scripting language which looks like JavaScript, feels like Ruby, and fits the best in C programmers.
 </p>
 
 ## Introduction
