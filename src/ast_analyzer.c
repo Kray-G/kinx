@@ -444,12 +444,21 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
                     break;
                 }
             }
-            int lvalue = ctx->lvalue;
-            ctx->lvalue = 1;
-            analyze_ast(node->lhs, ctx);
-            ctx->lvalue = 0;
-            analyze_ast(node->rhs, ctx);
-            ctx->lvalue = lvalue;
+            if (node->type == KXOP_DECL) {
+                int decl = ctx->decl;
+                ctx->decl = 1;
+                analyze_ast(node->lhs, ctx);
+                ctx->decl = 0;
+                analyze_ast(node->rhs, ctx);
+                ctx->decl = decl;
+            } else {
+                int lvalue = ctx->lvalue;
+                ctx->lvalue = 1;
+                analyze_ast(node->lhs, ctx);
+                ctx->lvalue = 0;
+                analyze_ast(node->rhs, ctx);
+                ctx->lvalue = lvalue;
+            }
         }
         if (node->rhs->var_type == KX_CSTR_T) {
             node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
