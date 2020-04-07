@@ -273,6 +273,8 @@ extern void unload_library(void *h);
 extern const char *kxlib_file_exists(const char *file);
 extern const char *kxlib_exec_file_exists(const char *file);
 
+extern void init_lexer(void);
+extern void free_lexer(void);
 extern void setup_lexinfo(const char *file, kx_yyin_t *yyin);
 extern int kx_yyparse(void);
 extern int kx_yyerror_line(const char *msg, const char* file, const int line);
