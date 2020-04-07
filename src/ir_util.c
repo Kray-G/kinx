@@ -336,6 +336,7 @@ static inline const char *startup_code()
             "SQLite = _import('kxsqlite');\n"
             "Zip.create = File._zipCreate;\n"
             "JSON.parse = System.parseJson;\n"
+            "JSON.stringify = Array.toJsonString;\n"
             "True = { _False: 0, isFalse: 1, isTrue: 0 };\n"
             "False = { _False: 1, isFalse: 0, isTrue: 1 };\n"
             "SystemTimer = { create: System.SystemTimer_create };\n"
