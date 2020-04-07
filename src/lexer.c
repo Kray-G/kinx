@@ -23,6 +23,16 @@ void setup_lexinfo(const char *file, kx_yyin_t *yyin)
     kx_lexinfo.in = *yyin;
 }
 
+void init_lexer(void)
+{
+    kv_init(kx_lex_stack);
+}
+
+void free_lexer(void)
+{
+    kv_destroy(kx_lex_stack);
+}
+
 void kx_make_bin_mode(void)
 {
     g_binmode = 1;
