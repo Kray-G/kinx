@@ -29,6 +29,7 @@ void free_nodes(void)
         kx_free(obj);
         obj = next;
     }
+    kx_obj_mgr = NULL;
 }
 
 void kx_make_native_mode(void)

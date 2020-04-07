@@ -192,6 +192,7 @@ int main(int ac, char **av)
     }
 
 END_OF_OPT:
+    init_lexer();
     kx_lexinfo.quiet = 0;
     if (execname) {
         const char *execfile = kxlib_exec_file_exists(execname);
@@ -240,6 +241,7 @@ END_OF_OPT:
         return 0;
     }
 
+SETUP_SIGNAL:
     #if defined(_WIN32) || defined(_WIN64)
 	if (!SetConsoleCtrlHandler(kx_signal_handler, TRUE)) {
         r = 1;
@@ -289,5 +291,6 @@ CLEANUP:
     context_cleanup(ctx);
     free_nodes();
     free_string();
+    free_lexer();
     return r;
 }
