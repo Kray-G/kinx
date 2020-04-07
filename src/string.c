@@ -10,7 +10,7 @@ typedef struct string_list_ {
 } string_list_t;
 
 KHASH_SET_INIT_STR(conststr)
-static khash_t(conststr) *g_conststr = 0;
+static khash_t(conststr) *g_conststr = NULL;
 static string_list_t *g_head = NULL;
 
 const char *alloc_string(const char *str)
@@ -57,5 +57,7 @@ void free_string(void)
         kx_free(head);
         head = next;
     }
+    g_head = NULL;
     kh_destroy(conststr, g_conststr);
+    g_conststr = NULL;
 }
