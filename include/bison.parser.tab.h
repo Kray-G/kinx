@@ -65,19 +65,19 @@ extern int kx_yydebug;
     VAR = 275,
     CONST = 276,
     NATIVE = 277,
-    SYSFUNC = 278,
-    FUNCTION = 279,
-    PUBLIC = 280,
-    PRIVATE = 281,
-    PROTECTED = 282,
-    CLASS = 283,
-    RETURN = 284,
-    THROW = 285,
-    YIELD = 286,
-    MODULE = 287,
-    MIXIN = 288,
-    SYSCLASS = 289,
-    SYSMODULE = 290,
+    FUNCTION = 278,
+    PUBLIC = 279,
+    PRIVATE = 280,
+    PROTECTED = 281,
+    CLASS = 282,
+    RETURN = 283,
+    THROW = 284,
+    YIELD = 285,
+    MODULE = 286,
+    MIXIN = 287,
+    SYSCLASS = 288,
+    SYSMODULE = 289,
+    SYSFUNC = 290,
     EQEQ = 291,
     NEQ = 292,
     LE = 293,
@@ -116,19 +116,20 @@ extern int kx_yydebug;
     DQ = 326,
     MLSTR = 327,
     BINEND = 328,
-    DOTS3 = 329,
-    REGPF = 330,
-    NAMESPACE = 331,
-    SYSNS = 332,
-    SYSRET_NV = 333,
-    NAME = 334,
-    STR = 335,
-    BIGINT = 336,
-    INT = 337,
-    TYPE = 338,
-    TYPEOF = 339,
-    DBL = 340,
-    BIN = 341
+    DOTS2 = 329,
+    DOTS3 = 330,
+    REGPF = 331,
+    NAMESPACE = 332,
+    SYSNS = 333,
+    SYSRET_NV = 334,
+    NAME = 335,
+    STR = 336,
+    BIGINT = 337,
+    INT = 338,
+    TYPE = 339,
+    TYPEOF = 340,
+    DBL = 341,
+    BIN = 342
   };
 #endif
 
@@ -146,7 +147,7 @@ union YYSTYPE
     const char    *strval;
     const uint8_t *binval;
 
-#line 150 "kx.tab.h" /* yacc.c:1909  */
+#line 151 "kx.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
