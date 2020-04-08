@@ -241,12 +241,11 @@ END_OF_OPT:
         return 0;
     }
 
-SETUP_SIGNAL:
     #if defined(_WIN32) || defined(_WIN64)
-	if (!SetConsoleCtrlHandler(kx_signal_handler, TRUE)) {
+    if (!SetConsoleCtrlHandler(kx_signal_handler, TRUE)) {
         r = 1;
         goto CLEANUP;
-	}
+    }
     #else
     struct sigaction sa_signal;
     memset(&sa_signal, 0, sizeof(sa_signal));

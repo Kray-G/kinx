@@ -512,7 +512,7 @@ HEAD_OF_YYLEX:
                 kx_lex_next(kx_lexinfo);
                 return DOTS3;
             }
-            return ERROR;
+            return DOTS2;
         }
         return '.';
     }
