@@ -496,6 +496,7 @@ RangeFactor
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | '(' AssignExpression ')' { $$ = $2; }
+    | '(' STR ')' { $$ = kx_gen_str_object($2); }
     ;
 
 Factor
