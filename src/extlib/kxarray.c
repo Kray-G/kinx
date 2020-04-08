@@ -523,13 +523,22 @@ static void make_value_str(kstr_t *str, kx_val_t *v, int level)
             ks_append(str, ks_string(out));
             ks_free(out);
         } else {
-            int count = 0;
             kx_obj_t *obj = v->value.ov;
-            if (kv_size(obj->ary) > 0) {
-                count = make_array_str(str, obj, level);
-            }
-            if (count == 0 && kh_size(obj->prop) > 0) {
-                make_object_str(str, obj, level);
+            kx_val_t *val = NULL, *t = NULL, *f = NULL;
+            KEX_GET_PROP(val, obj, "_False");
+            KEX_GET_PROP(t, obj, "isTrue");
+            KEX_GET_PROP(f, obj, "isFalse");
+            if (val && t && f) {
+                int tf = (val->type != KX_INT_T || val->value.iv == 0);
+                ks_append(str, tf ? "true" : "false");
+            } else {
+                int count = 0;
+                if (kv_size(obj->ary) > 0) {
+                    count = make_array_str(str, obj, level);
+                }
+                if (count == 0 && kh_size(obj->prop) > 0) {
+                    make_object_str(str, obj, level);
+                }
             }
         }
         break;

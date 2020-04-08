@@ -67,8 +67,8 @@ static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
         ks_append(val.value.sv, j->value.t.cstr);
         break;
     case JSON_BOOLEAN:
-        val.type = KX_INT_T;
-        val.value.iv = j->value.b;
+        val.type = KX_OBJ_T;
+        val.value.ov = j->value.b ? ctx->true_obj : ctx->false_obj;
         break;
     case JSON_INTEGER:
         val.type = KX_INT_T;
@@ -103,6 +103,22 @@ int JSON_parse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value to parse");
+}
+
+int System_setTrueFalse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    int tf = get_arg_int(1, args, ctx);
+    kx_obj_t *obj = get_arg_obj(2, args, ctx);
+
+    if (tf) {
+        ctx->true_obj = obj;
+    } else {
+        ctx->false_obj = obj;
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
 }
 
 int System_exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -510,9 +526,140 @@ int System_setSigtermEnded(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     return 0;
 }
 
+void print_value(kx_val_t *v, int recursive)
+{
+    switch (v->type) {
+    case KX_UND_T:
+        printf("(und) null\n");
+        break;
+    case KX_INT_T:
+        printf("(int) %"PRId64"\n", v->value.iv);
+        break;
+    case KX_BIG_T: {
+        char *buf = BzToString(v->value.bz, 10, 0);
+        printf("(bigint) %s\n", buf);
+        BzFreeString(buf);
+        break;
+    }
+    case KX_DBL_T:
+        printf("(dbl) %f\n", v->value.dv);
+        break;
+    case KX_CSTR_T:
+        printf("(cstr) %s\n", v->value.pv);
+        break;
+    case KX_BIN_T:
+        printf("(bin) item:%d\n", (int)kv_size(v->value.bn->bin));
+        break;
+    case KX_STR_T:
+        printf("(str) %s\n", ks_string(v->value.sv));
+        break;
+    case KX_LVAL_T:
+        #if defined(KX_EXEC_DEBUG)
+        printf("(lval) (frm:%d)->var[%d]\n", v->value.lv->frm, v->value.lv->idx);
+        printf("   * ");
+        #else
+        printf("(lval) * ");
+        #endif
+        print_value(v->value.lv, 0);
+        break;
+    case KX_OBJ_T: {
+        int props = 0;
+        kx_obj_t *o = v->value.ov;
+        for (int i = kh_begin(o->prop); i != kh_end(o->prop); ++i) {
+            if (!kh_exist(o->prop, i)) continue;
+            ++props;
+        }
+        printf("(obj) props:%d, ary:%d\n", props, (int)kv_size(o->ary));
+        break;
+    }
+    case KX_FNC_T: {
+        kx_frm_t *lex = v->value.fn->lex;
+        if (lex) {
+            printf("(fnc) adr:0x%x, lex:(frm:%d)\n", v->value.fn->jp->i, lex->id);
+        } else {
+            printf("(fnc) adr:0x%x, lex:(none)\n", v->value.fn->jp->i);
+        }
+        break;
+    }
+    case KX_BFNC_T: {
+        kx_frm_t *lex = v->value.fn->lex;
+        if (lex) {
+            printf("(fnc) bltin, lex:(frm:%d)\n", lex->id);
+        } else {
+            printf("(fnc) bltin, lex:(none)\n");
+        }
+        break;
+    }
+    case KX_NFNC_T: {
+        printf("(fnc) native, addr(%p), args(%d)\n", v->value.fn->native.func, v->value.fn->native.args);
+        break;
+    }
+    case KX_FRM_T: {
+        kx_frm_t *frm = v->value.fr;
+        kx_frm_t *lex = frm->lex;
+        if (lex) {
+            printf("(frm:%d, vars:%d) -> lex:(frm:%d)\n", frm->id, (int)kv_size(frm->v), lex->id);
+        } else {
+            printf("(frm:%d, vars:%d)\n", frm->id, (int)kv_size(frm->v));
+        }
+        if (recursive) {
+            int len = kv_size(frm->v);
+            for (int i = 0; i < len; ++i) {
+                printf("   * ");
+                print_value(&kv_A(frm->v, i), 0);
+            }
+        }
+        break;
+    }
+    case KX_COR_T:
+        printf("coroutine\n");
+        break;
+    case KX_ADDR_T:
+        if (v->value.jp) {
+            printf("(adr) index:0x%x\n", v->value.jp->i);
+        } else {
+            printf("(adr) NULL\n");
+        }
+        break;
+    default:
+        printf("unknown(%d)\n", v->type);
+        break;
+    }
+    fflush(stdout);
+}
+
+void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv)
+{
+    int size = (int)kv_size(ctx->stack);
+    printf("capacity = %d, size = %d\n", (int)kv_max(ctx->stack), size);
+    printf("frmv = %d, lexv = %d\n", frmv ? frmv->id : -1, lexv ? lexv->id : -1);
+    for (int i = 0; i < size; ++i) {
+        printf("[%2d] ", i); fflush(stdout);
+        kx_val_t *v = &kv_A(ctx->stack, i);
+        print_value(v, 1);
+    }
+    size = (int)kv_size(ctx->exception);
+    printf("exception size = %d.\n", size); fflush(stdout);
+    for (int i = 0; i < size; ++i) {
+        kx_exc_t *e = &kv_A(ctx->exception, i);
+        printf("[%2d] sp = %d, adr = %d\n", i, e->sp, e->code ? e->code->i : -1);
+    }
+    printf("print_stack done.\n"); fflush(stdout);
+}
+
+int System_printStack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    print_stack(ctx, frmv, lexv);
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
+    { "_setTrueFalse", System_setTrueFalse },
+    { "_printStack", System_printStack },
     { "makeSuper", System_makeSuper },
     { "exec", System_exec },
     { "abort", System_abort },
