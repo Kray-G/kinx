@@ -24,11 +24,12 @@
 
 %token ERROR
 %token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT ENUM COROUTINE
-%token NEW VAR CONST NATIVE SYSFUNC FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN SYSCLASS SYSMODULE
+%token NEW VAR CONST NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN
+%token SYSCLASS SYSMODULE SYSFUNC
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE
-%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
+%token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS2 DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
 %token<strval> NAME
 %token<strval> STR
 %token<strval> BIGINT
@@ -91,6 +92,9 @@
 %type<obj> PostfixExpression
 %type<obj> PropertyName
 %type<type> PostIncDec
+%type<obj> Range
+%type<obj> RangeFactor_Opt
+%type<obj> RangeFactor
 %type<obj> Factor
 %type<obj> Binary
 %type<obj> Array
@@ -440,6 +444,7 @@ RegexMatch
 
 PrefixExpression
     : PostfixExpression
+    | Range
     | '!' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
     | '+' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_POSITIVE, $2); }
     | '-' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_NEGATIVE, $2); }
@@ -460,6 +465,27 @@ PostfixExpression
 PostIncDec
     : INC { $$ = KXOP_INCP; }
     | DEC { $$ = KXOP_DECP; }
+    ;
+
+Range
+    : RangeFactor DOTS2 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 1); }
+    | RangeFactor DOTS3 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 0); }
+    ;
+
+RangeFactor_Opt
+    : { $$ = kx_gen_special_object(KXVL_NULL); }
+    | RangeFactor
+    ;
+
+RangeFactor
+    : INT { $$ = kx_gen_int_object($1); }
+    | DBL { $$ = kx_gen_dbl_object($1); }
+    | BIGINT { $$ = kx_gen_big_object($1); }
+    | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
+    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
+    | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
+    | '(' AssignExpression ')' { $$ = $2; }
     ;
 
 Factor

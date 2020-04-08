@@ -114,6 +114,20 @@ kx_object_t *kx_gen_str_object(const char *val)
     return obj;
 }
 
+kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int include_end)
+{
+    return kx_gen_bexpr_object(KXOP_CALL,
+        kx_gen_bexpr_object(KXOP_IDX,
+            kx_gen_var_object("Range", KX_UNKNOWN_T),
+            kx_gen_str_object("create")
+        ),
+        kx_gen_bexpr_object(KXST_EXPRLIST,
+            include_end ? kx_gen_special_object(KXVL_TRUE) : kx_gen_special_object(KXVL_FALSE),
+            kx_gen_bexpr_object(KXST_EXPRLIST, end, start)
+        )
+    );
+}
+
 const char *kx_gen_typestr_object(int t)
 {
     switch (t) {
