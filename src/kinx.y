@@ -23,7 +23,7 @@
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT ENUM COROUTINE
+%token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT ENUM COROUTINE
 %token NEW VAR CONST NATIVE FUNCTION PUBLIC PRIVATE PROTECTED CLASS RETURN THROW YIELD MODULE MIXIN
 %token SYSCLASS SYSMODULE SYSFUNC
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
@@ -54,6 +54,7 @@
 %type<obj> SwitchCaseStatement
 %type<obj> CaseStatement
 %type<obj> ForStatement
+%type<obj> ForInVariable
 %type<obj> TryCatchStatement
 %type<obj> CatchStatement_Opt
 %type<obj> FinallyStatement_Opt
@@ -250,6 +251,15 @@ ForStatement
                 $4,
                 $6 == NULL ? NULL : kx_gen_stmt_object(KXST_EXPR, $6, NULL, NULL)),
             $8, NULL); }
+    | FOR '(' ForInVariable IN AssignExpressionList ')' Statement
+        { $$ = kx_gen_forin_object($3, $5, $7, 0); }
+    | FOR '(' VAR ForInVariable IN AssignExpressionList ')' Statement
+        { $$ = kx_gen_forin_object($4, $6, $8, 1); }
+    ;
+
+ForInVariable
+    : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | '[' ArrayItemList Comma_Opt ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
     ;
 
 TryCatchStatement

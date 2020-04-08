@@ -139,6 +139,7 @@ static int get_keyword_token(const char *val)
         break;
     case 'i':
         if (strcmp(val, "if") == 0)             return IF;
+        if (strcmp(val, "in") == 0)             return IN;
         if (strcmp(val, "import") == 0)         { g_import = 1; return IMPORT; }
         /* typeof */
         if (strcmp(val, "isUndefined") == 0)    { kx_yylval.intval = KX_UND_T; return TYPEOF; }
