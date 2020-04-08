@@ -1,0 +1,415 @@
+const STDIN, STDOUT, STDERR;
+const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory;
+const Enumerable, Enumerator, Range;
+const SQLite, Zip, JSON, SystemTimer, Fiber;
+const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass;
+const SystemException, RuntimeException, FileException, StopIterationException;
+const Boolean, True, False;
+var $stdin, $stdout, $stderr;
+var Xml, Net;
+(_function() {
+    System = _import('kxsystem');
+    String = _import('kxstring');
+    Binary = _import('kxbinary');
+    Array = _import('kxarray');
+    Integer = _import('kxinteger');
+    Double = _import('kxdouble');
+    Math = _import('kxmath');
+    Regex = _import('kxregex');
+    File = _import('kxfile');
+    Xml = _import('kxxml');
+    Net = _import('kxnet');
+    SQLite = _import('kxsqlite');
+    Zip.create = File._zipCreate;
+    JSON.parse = System.parseJson;
+    JSON.stringify = Array.toJsonString;
+    class BooleanClass(tf) { @_False = @isFalse = !tf; @isTrue = tf; }
+    Boolean = BooleanClass;
+    True = System._setTrueFalse(1, new Boolean(true));
+    False = System._setTrueFalse(0, new Boolean(false));
+    SystemTimer = { create: System.SystemTimer_create };
+    System.defineException = (_function() {
+        var excmap = System._globalExceptionMap();
+        return _function(type) {
+            if (excmap[type]) {
+                return excmap[type];
+            }
+            _class ExceptionClassTemplate(what) {
+                @_type = type;
+                @_what = what;
+            }
+            excmap[type] = ExceptionClassTemplate;
+            return ExceptionClassTemplate;
+        };
+    })();
+    RuntimeExceptionClass = System.defineException('RuntimeException');
+    RuntimeException = RuntimeExceptionClass.create;
+    SystemExceptionClass = System.defineException('SystemException');
+    SystemException = SystemExceptionClass.create;
+    FileExceptionClass = System.defineException('FileException');
+    FileException = FileExceptionClass.create;
+    StopIterationExceptionClass = System.defineException('StopIterationException');
+    StopIterationException = StopIterationExceptionClass.create;
+    using kxsqlite;
+    using kxxml;
+    using kxnet;
+    using kxenumerable;
+    Enumerable = _Enumerable;
+    Enumerator = _Enumerator;
+    Range = _Range;
+    Fiber.create = _function(coroutine) {
+        var this;
+        this.isFiber = true;
+        this.resume = _function(...val) {
+            _coroutine coroutine(...val);
+        };
+        this.isAlive = _function() {
+            return System.isFiberAlive(this.resume);
+        };
+        return this;
+    };
+    Signal.SIGINT = 1;
+    Signal.SIGTERM = 2;
+    Signal.hook = { sigint: [], sigterm: [] };
+    Signal.trap = _function(sig, func) {
+        var id = -1;
+        if (sig == 1) {
+            id = Signal.hook.sigint.length();
+            Signal.hook.sigint.push(func);
+        } else if (sig == 2) {
+            id = Signal.hook.sigterm.length();
+            Signal.hook.sigterm.push(func);
+        }
+        return { id: id, sig: sig };
+    };
+    Signal.remove = _function(info) {
+        if (info.sig == 1) {
+            var sz = Signal.hook.sigint.length();
+            if (0 <= info.id && info.id < sz) {
+                Signal.hook.sigint[info.id] = null;
+            }
+        } else if (info.sig == 2) {
+            var sz = Signal.hook.sigterm.length();
+            if (0 <= info.id && info.id < sz) {
+                Signal.hook.sigterm[info.id] = null;
+            }
+        }
+    };
+    System.setSignalHookFunction(_function() {
+        var sz, hooks, done = 0;
+        sz = Signal.hook.sigint.length();
+        hooks = Signal.hook.sigint;
+        while (System.getSigintCount()) {
+            for (var i = 0; i < sz; ++i) {
+                if (hooks[i].isFunction) {
+                    var r = hooks[i](Signal.SIGINT);
+                    if (r.isDefined && !r) return System.halt(); 
+                    done = 1;
+                }
+            }
+        }
+        sz = Signal.hook.sigterm.length();
+        hooks = Signal.hook.sigterm;
+        while (System.getSigtermCount()) {
+            for (var i = 0; i < sz; ++i) {
+                if (hooks[i].isFunction) {
+                    var r = hooks[i](Signal.SIGTERM);
+                    if (r.isDefined && !r) return System.halt(); 
+                    done = 1;
+                }
+            }
+        }
+        System.setSigtermEnded();
+        if (!done) return System.halt();
+        _ret_nv;
+    });
+    if (!System.isInitialized) {
+        System.isInitialized = 1;
+        (_function() {
+            System.try = _function(f) {
+                try {
+                    var r = f();
+                    return {
+                        'else': _function() { return r; },
+                        'try': _function() { return System.try(_function() { return r; }); },
+                        'retry': _function() { return System.try(_function() { return r; }); },
+                    };
+                } catch (e) {
+                    ;
+                }
+                return {
+                    'else': _function(expr) { return expr.isFunction ? expr() : expr; },
+                    'try': System.try,
+                    'retry': _function(count, wait) {
+                        System.sleep(wait);
+                        return count <= 1 ? System.try(f) : System.try(f).retry(count-1, wait);
+                    },
+                };
+            };
+            String.apply = _function(str, func) {
+                return func(str);
+            };
+            String.split = _function(str, cond) {
+                if (cond.isString) {
+                    return str.splitByString(cond);
+                } else if (cond.isRegex) {
+                    return cond.splitOf(str);
+                } else {
+                    throw RuntimeException('Invalid split condition');
+                }
+            };
+            String.each = _function(str, callback) {
+                var len = str.length();
+                for (var i = 0; i < len; ++i) {
+                    var r = callback(*str[i], i);
+                    if (r.isDefined && !r) {
+                        break;
+                    }
+                }
+            };
+            String.replace = _function(str, cond, newstr) {
+                if (!newstr.isString) {
+                    throw RuntimeException('Replacing must be done by string');
+                }
+                if (cond.isString) {
+                    return str.replaceByString(cond, newstr);
+                } else if (cond.isRegex) {
+                    return cond.replaceOf(str, newstr);
+                } else {
+                    throw RuntimeException('Invalid replace condition');
+                }
+            };
+            Array.apply = _function(ary, func) {
+                return func(ary);
+            };
+            Array.each = _function(ary, callback) {
+                var len = ary.length();
+                for (var i = 0; i < len; ++i) {
+                    var r = callback(ary[i], i);
+                    if (r.isDefined && !r) {
+                        break;
+                    }
+                }
+            };
+            Array.map = _function(ary, callback) {
+                var ret = [];
+                var len = ary.length();
+                for (var i = 0; i < len; ++i) {
+                    ret[i] = callback(ary[i], i);
+                }
+                return ret;
+            };
+            Array.filter = _function(ary, callback) {
+                var ret = [];
+                var len = ary.length();
+                for (var i = 0; i < len; ++i) {
+                    ret.push(ary[i]) if (callback(ary[i], i));
+                }
+                return ret;
+            };
+            Array.reduce = _function(ary, callback, initr) {
+                var r = initr;
+                var len = ary.length();
+                for (var i = 0; i < len; ++i) {
+                    r = callback(r, ary[i], i);
+                }
+                return r;
+            };
+            _function _quicksort(a, first, last, comp) {
+                var i = first;
+                var j = last;
+                var x = a[(first + last) / 2];
+                while (true) {
+                    while (comp(a[i], x) < 0) i++;
+                    while (comp(x, a[j]) < 0) j--;
+                    if (i >= j) break;
+                    [a[i], a[j]] = [a[j], a[i]];
+                    ++i; --j;
+                }
+                if (first  < i - 1)
+                    _quicksort(a, first , i - 1, comp);
+                if (j + 1 < last)
+                    _quicksort(a, j + 1, last, comp);
+            }
+            Array.sort = _function(ary, comp) {
+                ary = ary.clone();
+                _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+                return ary;
+            };
+            Array.clone = (_function() {
+                var depth = 0;
+                return _function(ary, tgt, deep) {
+                    if (depth > 100) {
+                        throw RuntimeException('Too deep at clone()');
+                    }
+                    var res;
+                    try {
+                        ++depth;
+                        if (ary.isArray) {
+                            res = ary.map(_function(e) { return e.isObject ? e.clone() : e; });
+                        } else if (ary.isObject) {
+                            var r = {};
+                            ary.keySet().each(_function(key) {
+                                if (ary[key].isObject) {
+                                    r[key] = ary[key].clone();
+                                } else {
+                                    r[key] = ary[key];
+                                }
+                            });
+                            res = r;
+                        } else {
+                            res = ary;
+                        }
+                    } finally {
+                        --depth;
+                    }
+                    return res;
+                };
+            })();
+            Array.extend = (_function() {
+                var depth = 0;
+                return _function(ary, tgt, deep) {
+                    if (depth > 100) {
+                        throw RuntimeException('Too deep at extend()');
+                    }
+                    try {
+                        ++depth;
+                        var keys = tgt.keySet();
+                        var size = keys.length();
+                        for (var i = 0; i < size; ++i) {
+                            var key = keys[i];
+                            if (tgt[key].isArray) {
+                                ary[key] = tgt[key].clone();
+                            } else {
+                                if (tgt[key].isObject) {
+                                    if (ary[key].extend.isFuntion) {
+                                        ary[key].extend(tgt[key], deep);
+                                    } else {
+                                        ary[key] = {}.extend(tgt[key], deep);
+                                    }
+                                } else {
+                                    ary[key] = tgt[key];
+                                }
+                            }
+                        }
+                    } finally {
+                        --depth;
+                    }
+                    return ary;
+                };
+            })();
+            Integer.times = _function(val, callback) {
+                var ary = [];
+                if (callback) {
+                    for (var i = 0; i < val; ++i) {
+                        ary[i] = callback(i, i);
+                    }
+                } else {
+                    for (var i = 0; i < val; ++i) {
+                        ary[i] = i;
+                    }
+                }
+                return ary;
+            };
+            Integer.upto = _function(val, max, callback) {
+                var index = 0;
+                for (var i = val; i <= max; ++i) {
+                    callback(i, index++);
+                }
+            };
+            Integer.downto = _function(val, min, callback) {
+                var index = 0;
+                for (var i = val; i >= min; --i) {
+                    callback(i, index++);
+                }
+            };
+            Integer.methodMissing = _function(d, method, a0) {
+                var item = Math[method];
+                if (item.isFunction) {
+                    Integer[method] = _function(v1, v2) { return item(v1, v2); };
+                    return Integer[method](Double.parseDouble(d), Double.parseDouble(a0));
+                }
+                throw RuntimeException('Method not found for Integer');
+            };
+            Double.methodMissing = _function(d, method, a0) {
+                var item = Math[method];
+                if (item.isFunction) {
+                    Double[method] = _function(v1, v2) { return item(v1, v2); };
+                    return Double[method](Double.parseDouble(d), Double.parseDouble(a0));
+                }
+                throw RuntimeException('Method not found for Double');
+            };
+        })();
+    }
+    Directory.close = File.dirclose;
+    Directory.walk = _function(dirname, func, opts) {
+        var dir = File.diropen(dirname);
+        try {
+            opts ??= { i: 0 };
+            while (true) {
+                var entry = File.direntry(dir);
+                if (entry == '.' || entry == '..') {
+                    continue;
+                }
+                break if (!entry);
+                var path = dirname / entry;
+                if (path.startsWith('./')) path = path.subString(2);
+                var r = func(path, ++(opts.i));
+                break if (r.isDefined && !r);
+            }
+        } finally {
+            Directory.close(dir);
+        }
+    };
+    Directory.recursiveWalk = _function(dirname, func, opts) {
+        opts ??= { i: 0 };
+        Directory.walk(dirname, _function(entry, i) {
+            var r = func(entry, i);
+            return false if (r.isDefined && !r);
+            if (File.isDirectory(entry)) {
+                r = Directory.recursiveWalk(entry, func, opts);
+                return false if (r.isDefined && !r);
+            }
+        }, opts);
+    };
+    File._setup(File);
+    File.create = _function(name, mode) {
+        var f = File._create(name, mode);
+        f.mkdir = _function() { return File.mkdir(f.source); };
+        f.rename = _function(target) { return File.rename(f.source, target); };
+        f.unlink = _function() { return File.unlink(f.source); };
+        f.filesize = _function() { return File.filesize(f.source); };
+        f.filedate = _function() { return File.filedate(f.source); };
+        f.setFiledate = _function(date) { return File.setFiledate(f.source, date); };
+        f.eachLine = _function(func) {
+            var lineno = 1; 
+            do {
+                var line = f.readLine();
+                if (line.isInteger) return line;
+                func(line, lineno++);
+            } while (1);
+        };
+        return f;
+    };
+    File.open = _function(name, mode, func) {
+        var f;
+        if (name.isUndefined) {
+            throw FileException('No file name');
+        }
+        if (func.isUndefined && mode.isFunction) {
+            func = mode;
+            mode = File.TEXT|File.READ;
+        }
+        try {
+            f = new File(name, mode);
+            return func(f);
+        } finally {
+            f.close();
+        }
+    };
+    STDIN = $stdin = new File('<stdin>', File.READ);
+    STDOUT = $stdout = new File('<stdout>', File.WRITE);
+    STDERR = $stderr = new File('<stderr>', File.WRITE);
+    System.print = _function(...arg) { return $stdout.print(...arg); };
+    System.println = _function(...arg) { return $stdout.println(...arg); };
+})();
