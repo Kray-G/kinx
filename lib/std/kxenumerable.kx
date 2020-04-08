@@ -131,18 +131,18 @@ _module _Enumerable {
 }
 
 _class _Enumerator(obj_) {
-    var peek_, next_, end_;
+    var peek_, next_, isEnded_;
     private initialize() {
         if (obj_.isRange) {
             var f = new Fiber(&() => obj_.each());
             next_ = _function() {
                 return f.resume();
             };
-            end_ = _function() {
+            isEnded_ = _function() {
                 return !f.isAlive();
             };
             peek_ = _function() {
-                if (obj_.ended()) {
+                if (obj_.isEnded()) {
                     throw StopIterationException("Enumerator has been ended");
                 }
                 return obj_.next();
@@ -152,7 +152,7 @@ _class _Enumerator(obj_) {
             next_ = _function() {
                 return i < sz ? obj_[i++] : i++;
             };
-            end_ = _function() {
+            isEnded_ = _function() {
                 return sz < i;
             };
             peek_ = _function() {
@@ -169,8 +169,8 @@ _class _Enumerator(obj_) {
     public next() {
         return next_();
     }
-    public end() {
-        return end_();
+    public isEnded() {
+        return isEnded_();
     }
 }
 
@@ -187,7 +187,7 @@ _class _Range(start_, end_, includingEnd_) {
         }
         cur_ = start_;
     }
-    public ended() {
+    public isEnded() {
         return end_ && cur_.comp(end_) == 0;
     }
     public next() {
@@ -205,32 +205,3 @@ _class _Range(start_, end_, includingEnd_) {
     }
 }
 
-/*
-var r1 = new Range(0, 10, false);
-r1.map(&(e) => e * 3).filter(&(e) => e % 2 == 0).writeln();
-var r2 = new Range(0, 10, true);
-System.println(r2.all(&(e) => e <= 9));
-var r3 = new Range(0, 10, false);
-System.println(r3.any(&(e) => e == 5));
-var r4 = new Range(2, null, false);
-System.println(r4.take(9).reduce(&(r, e) => r + e, 1));
-var r5 = new Range(2, null, false);
-
-# var iter = new ForIn(r5);
-# for (var e = iter.next(); !iter.end(); e = iter.next()) {
-#     System.println(e);
-# }
-var iter = new Enumerator([2,3,4,5,6,7,8,9]);
-for (var e = iter.next(); !iter.end(); e = iter.next()) {
-    System.println("var  = ", e);
-    System.println("peek = ", iter.peek());
-}
-System.println("---");
-var iter = new Enumerator(new Range(2, 10, false));
-for (var e = iter.next(); !iter.end(); e = iter.next()) {
-    System.println("var  = ", e);
-    System.println("peek = ", iter.peek());
-}
-__END__
-
-*/
