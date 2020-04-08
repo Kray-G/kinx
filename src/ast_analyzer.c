@@ -416,6 +416,13 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
             node->var_type = node->lhs->var_type;
             break;
+        } else if (!node->rhs) {
+            // MKARY with no right hand side, just a declaration.
+            int decl = ctx->decl;
+            ctx->decl = 1;
+            analyze_ast(node->lhs, ctx);
+            ctx->decl = decl;
+            break;
         }
         // if declaration is array, same as assignment. 
         // fall through
