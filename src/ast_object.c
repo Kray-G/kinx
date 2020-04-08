@@ -128,6 +128,47 @@ kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int inclu
     );
 }
 
+kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl)
+{
+    kx_object_t *base = kx_gen_bexpr_object(KXST_STMTLIST,
+        kx_gen_bexpr_object(KXOP_DECL,
+            kx_gen_var_object("$$it", KX_OBJ_T),
+            kx_gen_bexpr_object(KXOP_CALL,
+                kx_gen_bexpr_object(KXOP_IDX,
+                    kx_gen_var_object("Enumerator", KX_UNKNOWN_T),
+                    kx_gen_str_object("create")
+                ),
+                range
+            )
+        ),
+        kx_gen_stmt_object(KXST_FOR,
+            kx_gen_stmt_object(KXST_FORCOND,
+                kx_gen_bassign_object(KXOP_ASSIGN, var,
+                    kx_gen_bexpr_object(KXOP_CALL,
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
+                    )
+                ),
+                kx_gen_uexpr_object(KXOP_NOT,
+                    kx_gen_bexpr_object(KXOP_CALL,
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("isEnded")), NULL
+                    )
+                ),
+                kx_gen_bassign_object(KXOP_ASSIGN, var,
+                    kx_gen_bexpr_object(KXOP_CALL,
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
+                    )
+                )
+            ),
+            stmt,
+            NULL
+        )
+    );
+    if (is_decl) {
+        base =  kx_gen_bexpr_object(KXST_STMTLIST, kx_gen_bexpr_object(KXOP_DECL, var, NULL), base);
+    }
+    return kx_gen_block_object(base);
+}
+
 const char *kx_gen_typestr_object(int t)
 {
     switch (t) {
