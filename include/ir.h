@@ -632,6 +632,8 @@ typedef struct kx_context_ {
     kx_obj_t *dbllib;
     kx_obj_t *arylib;
     kx_obj_t *regexlib;
+    kx_obj_t *true_obj;
+    kx_obj_t *false_obj;
     kx_fnc_t *global_method_missing;
 
     int block_index;
