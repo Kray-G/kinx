@@ -676,10 +676,10 @@ DeclAssignExpressionList
     ;
 
 DeclAssignExpression
-    : NAME { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
-    | NAME ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
-    | NAME '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
-    | NAME ':' TypeName ReturnType_Opt '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
+    : VarName { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
+    | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
+    | VarName '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
+    | VarName ':' TypeName ReturnType_Opt '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
     | '[' ArrayItemList Comma_Opt ']' '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(KXOP_MKARY, $2), $6); }
     ;
 
