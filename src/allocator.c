@@ -58,7 +58,13 @@ kx_context_t *make_context(void)
     ctx->builtin = kh_init(importlib);
     ctx->nfuncs = kh_init(nativefunc);
     ctx->strlib = NULL;
+    ctx->intlib = NULL;
+    ctx->dbllib = NULL;
+    ctx->binlib = NULL;
     ctx->arylib = NULL;
+    ctx->regexlib = NULL;
+    ctx->true_obj = NULL;
+    ctx->false_obj = NULL;
     ctx->global_method_missing = NULL;
     kv_init(ctx->labels);
     kv_init(ctx->fixcode);
@@ -109,9 +115,14 @@ static void gc_unmark(kx_context_t *ctx)
     }
     kliter_t(fnc) *pfnc;
     for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = kl_next(pfnc)) {
-        kl_val(pfnc)->mark = 0;
-        kl_val(pfnc)->val.mark = 0;
-        kl_val(pfnc)->push.mark = 0;
+        kx_fnc_t *c = kl_val(pfnc);
+        c->mark = 0;
+        c->val.mark = 0;
+        c->push.mark = 0;
+        int len = kv_size(c->stack);
+        for (int i = 0; i < len; ++i) {
+            kv_A(c->stack, i).mark = 0;
+        }
     }
     kliter_t(frm) *pfrm;
     for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = kl_next(pfrm)) {
@@ -154,8 +165,8 @@ static void gc_mark_fnc(kx_fnc_t *c)
     }
 
     c->mark = 1;
-    if (kv_size(c->stack) > 0) {
-        int size = kv_size(c->stack);
+    int size = kv_size(c->stack);
+    if (size > 0) {
         for (int i = 0; i < size; ++i) {
             kx_val_t *v = &kv_A(c->stack, i);
             gc_mark_val(v);
@@ -227,6 +238,8 @@ static void gc_mark_val(kx_val_t *c)
     case KX_ANY_T:
         c->mark = 1;
         c->value.av->mark = 1;
+        break;
+    default:
         break;
     }
 }
@@ -369,6 +382,8 @@ void gc_mark_and_sweep(kx_context_t *ctx)
     #endif
     gc_mark_val(&(ctx->excval));
     gc_mark_fnc(ctx->signal.signal_hook);
+    gc_mark_obj(ctx->true_obj);
+    gc_mark_obj(ctx->false_obj);
 
     kvec_t(kx_val_t) stack = ctx->stack;
     int size = kv_size(stack);
