@@ -153,7 +153,7 @@ do { \
             } \
         } \
     } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
-        kx_fnc_t *fn = search_integer_function(ctx, name, v1, cur->count, jumptable); \
+        kx_fnc_t *fn = search_integer_function(ctx, name, v1); \
         if (fn) { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
@@ -163,7 +163,7 @@ do { \
             push_undef((ctx)->stack); \
         } \
     } else if (lv->type == KX_DBL_T) { \
-        kx_fnc_t *fn = search_double_function(ctx, name, v1, cur->count, jumptable); \
+        kx_fnc_t *fn = search_double_function(ctx, name, v1); \
         if (fn) { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
@@ -178,7 +178,7 @@ do { \
             kx_bin_t *bin = lv->value.bn; \
             KX_PUSH_BIN_I(bin, index); \
         } else { \
-            kx_fnc_t *fn = search_binary_function(ctx, name, v1, cur->count, jumptable); \
+            kx_fnc_t *fn = search_binary_function(ctx, name, v1); \
             if (fn) { \
                 if (fn->typ || fn->wht) { \
                     THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
@@ -339,7 +339,7 @@ do { \
             push_undef((ctx)->stack); \
         } \
     } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
-        kx_fnc_t *fn = search_integer_function(ctx, name, v1, cur->count, jumptable); \
+        kx_fnc_t *fn = search_integer_function(ctx, name, v1); \
         if (fn) { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
@@ -349,7 +349,7 @@ do { \
             push_undef((ctx)->stack); \
         } \
     } else if (lv->type == KX_DBL_T) { \
-        kx_fnc_t *fn = search_double_function(ctx, name, v1, cur->count, jumptable); \
+        kx_fnc_t *fn = search_double_function(ctx, name, v1); \
         if (fn) { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
@@ -359,7 +359,7 @@ do { \
             push_undef((ctx)->stack); \
         } \
     } else if (lv->type == KX_BIN_T) { \
-        kx_fnc_t *fn = search_binary_function(ctx, name, v1, cur->count, jumptable); \
+        kx_fnc_t *fn = search_binary_function(ctx, name, v1); \
         if (fn) { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \

@@ -458,7 +458,7 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
     return NULL;
 }
 
-kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
+kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
     if (!ctx->binlib || !method) {
         return NULL;
@@ -486,7 +486,7 @@ kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t
     return NULL;
 }
 
-kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
+kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
     if (!ctx->intlib || !method) {
         return NULL;
@@ -514,7 +514,7 @@ kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_
     return NULL;
 }
 
-kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
+kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
     if (!ctx->dbllib || !method) {
         return NULL;
@@ -796,6 +796,127 @@ int kx_regex_eq(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, kx_val_t *v1,
 */
 
 #include "exec/code/_inlines.inc"
+
+/* true/false */
+
+int kx_value_true(kx_context_t *ctx, kx_val_t *v)
+{
+    assert(v->type != KX_INT_T);
+    int tf = 0;
+    if (v->type == KX_UND_T) {
+        tf = 0;
+    } else if (v->type == KX_CSTR_T) {
+        tf = v->value.pv && v->value.pv[0] != 0;
+    } else if (v->type == KX_STR_T) {
+        tf = ks_string(v->value.sv) && ks_string(v->value.sv)[0] != 0;
+    } else if (v->type == KX_BIG_T) {
+        tf = 1;   /* big-int is always not zero. */
+    } else if (v->type == KX_DBL_T) {
+        tf = fabs(v->value.dv) >= DBL_EPSILON;
+    } else if (v->type == KX_OBJ_T) {
+        kx_val_t *val = NULL;
+        KEX_GET_PROP(val, v->value.ov, "_False");
+        if (val && val->type == KX_INT_T && val->value.iv != 0) {
+            tf = 0;
+        } else {
+            tf = 1;
+        }
+    } else if (v->type == KX_FNC_T) {
+        tf = 1;
+    } else {
+        tf = 0;
+    }
+    return tf;
+}
+
+int kx_value_false(kx_context_t *ctx, kx_val_t *v)
+{
+    assert(v->type != KX_INT_T);
+    int tf = 0;
+    if (v->type == KX_UND_T) {
+        tf = 1;
+    } else if (v->type == KX_CSTR_T) {
+        tf = !v->value.pv || v->value.pv[0] == 0;
+    } else if (v->type == KX_STR_T) {
+        tf = !ks_string(v->value.sv) || ks_string(v->value.sv)[0] == 0;
+    } else if (v->type == KX_BIG_T) {
+        tf = 0;   /* big-int is always not zero. */
+    } else if (v->type == KX_DBL_T) {
+        tf = fabs(v->value.dv) < DBL_EPSILON;
+    } else if (v->type == KX_OBJ_T) {
+        kx_val_t *val = NULL;
+        KEX_GET_PROP(val, v->value.ov, "_False");
+        if (val && val->type == KX_INT_T && val->value.iv != 0) {
+            tf = 1;
+        } else {
+            tf = 0;
+        }
+    } else if (v->type == KX_FNC_T) {
+        tf = 0;
+    } else {
+        tf = 1;
+    }
+    return tf;
+}
+
+void kx_check_bigint(kx_context_t *ctx, kx_val_t *v)
+{
+    BigZ bz = v->value.bz;
+    if (BzGetSign(bz) == BZ_ZERO) {
+        v->value.iv = 0;
+        v->type = KX_INT_T;
+    } else if (BzGetSign(bz) == BZ_MINUS) {
+        BzCmp comp = BzCompare(bz, get_int64min_minus1());
+        if (comp == BZ_GT) {
+            v->value.iv = BzToInteger(bz);
+            v->type = KX_INT_T;
+        }
+    } else {
+        BzCmp comp = BzCompare(bz, get_int64max_plus1());
+        if (comp == BZ_LT) {
+            v->value.iv = BzToInteger(bz);
+            v->type = KX_INT_T;
+        }
+    }
+}
+
+kx_fnc_t *kx_get_object_operator_function(kx_context_t *ctx, kx_val_t *v, const char *name)
+{
+    kx_fnc_t *fn = NULL;
+    kx_val_t *opval = NULL;
+    KEX_GET_PROP(opval, v->value.ov, name);
+    if (opval && opval->type == KX_FNC_T) {
+        fn = opval->value.fn;
+    }
+    return fn;
+}
+
+kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, const char *name)
+{
+    kx_fnc_t *fn = NULL;
+    switch (v->type) {
+    case KX_INT_T:
+        fn = search_integer_function(ctx, name, v);
+        break;
+    case KX_DBL_T:
+        fn = search_double_function(ctx, name, v);
+        break;
+    case KX_CSTR_T:
+    case KX_STR_T:
+        fn = search_string_function(ctx, name, v, 0, NULL);
+        break;
+    case KX_BIN_T:
+        fn = search_binary_function(ctx, name, v);
+        break;
+    case KX_OBJ_T:
+        fn = kx_get_object_operator_function(ctx, v, name);
+        if (!fn) {
+            fn = search_array_function(ctx, name, v);
+        }
+        break;
+    }
+    return fn;
+}
 
 /* add */
 
@@ -1928,6 +2049,24 @@ void kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v
 {
     assert(v2->type == KX_LVAL_T);
     kx_val_t *vp = v2->value.lv;
+    if (v1->type != KX_OBJ_T) {
+        if (cur->value1.i == 0) {
+            if (v1->type == KX_STR_T) {
+                vp->type = KX_STR_T;
+                vp->value.sv = allocate_str(ctx);
+                ks_append(vp->value.sv, ks_string(v1->value.sv));
+            } else if (v1->type == KX_BIG_T) {
+                vp->type = KX_BIG_T;
+                vp->value.bz = make_big_alive(ctx, BzCopy(v1->value.bz));
+            } else {
+                *vp = *v1; /* structure copy. */
+            }
+        } else {
+            vp->type = KX_UND_T;
+        }
+        return;
+    }
+
     int len = kv_size(v1->value.ov->ary);
     if (cur->value1.i < len) {
         kx_val_t *v = &kv_A(v1->value.ov->ary, cur->value1.i);
@@ -1951,15 +2090,27 @@ void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v
     assert(v2->type == KX_LVAL_T);
     kx_val_t *vp = v2->value.lv;
     kx_obj_t *obj = allocate_obj(ctx);
-    int len = kv_size(v1->value.ov->ary);
-    for (int i = cur->value1.i; i < len; ++i) {
-        kx_val_t *v = &kv_A(v1->value.ov->ary, i);
-        if (v->type == KX_STR_T) {
-            KEX_PUSH_ARRAY_STR(obj, ks_string(v->value.sv));
-        } else if (v->type == KX_BIG_T) {
-            KEX_PUSH_ARRAY_BIG(obj, v->value.bz);
-        } else {
-            KEX_PUSH_ARRAY_VAL(obj, *v);
+    if (v1->type != KX_OBJ_T) {
+        if (cur->value1.i == 0) {
+            if (v1->type == KX_STR_T) {
+                KEX_PUSH_ARRAY_STR(obj, ks_string(v1->value.sv));
+            } else if (v1->type == KX_BIG_T) {
+                KEX_PUSH_ARRAY_BIG(obj, v1->value.bz);
+            } else {
+                KEX_PUSH_ARRAY_VAL(obj, *v1);
+            }
+        }
+    } else {
+        int len = kv_size(v1->value.ov->ary);
+        for (int i = cur->value1.i; i < len; ++i) {
+            kx_val_t *v = &kv_A(v1->value.ov->ary, i);
+            if (v->type == KX_STR_T) {
+                KEX_PUSH_ARRAY_STR(obj, ks_string(v->value.sv));
+            } else if (v->type == KX_BIG_T) {
+                KEX_PUSH_ARRAY_BIG(obj, v->value.bz);
+            } else {
+                KEX_PUSH_ARRAY_VAL(obj, *v);
+            }
         }
     }
     vp->type = KX_OBJ_T;
