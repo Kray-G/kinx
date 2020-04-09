@@ -76,13 +76,14 @@ extern kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, 
 #define CALL_OP_FUNCTION(fn, cur, v1, arg2) \
     if (fn) { \
         int count = 1; \
+        kv_remove_last((ctx)->stack); \
         kx_val_t fvx; \
         fvx.type = KX_FNC_T; \
         fvx.value.fn = fn; \
         (ctx)->caller = cur; \
         arg2; \
         if (fn->val.type) { \
-            push_value((ctx)->stack, *v1); \
+            push_value((ctx)->stack, fn->val); \
             ++count; \
         } \
         push_value((ctx)->stack, fvx); \
