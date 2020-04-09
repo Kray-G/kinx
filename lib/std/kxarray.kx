@@ -140,5 +140,5 @@ Array.extend = (_function() {
 })();
 
 Array.println = _function(ary) {
-    return ary.each(&(e) => System.println(e));
+    return ary.each(_function(e) { System.println(e); });
 };
