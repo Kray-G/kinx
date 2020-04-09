@@ -284,7 +284,7 @@
     push_value((ctx)->stack, *v1p); \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_I(v1, cur->value2.i); \
-    CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value1.i); }); \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value2.i); }); \
 } \
 /**/
 
