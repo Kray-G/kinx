@@ -114,7 +114,7 @@ kx_object_t *kx_gen_str_object(const char *val)
     return obj;
 }
 
-kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int include_end)
+kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int exclude_end)
 {
     return kx_gen_bexpr_object(KXOP_CALL,
         kx_gen_bexpr_object(KXOP_IDX,
@@ -122,7 +122,7 @@ kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int inclu
             kx_gen_str_object("create")
         ),
         kx_gen_bexpr_object(KXST_EXPRLIST,
-            include_end ? kx_gen_special_object(KXVL_TRUE) : kx_gen_special_object(KXVL_FALSE),
+            exclude_end ? kx_gen_special_object(KXVL_TRUE) : kx_gen_special_object(KXVL_FALSE),
             kx_gen_bexpr_object(KXST_EXPRLIST, end, start)
         )
     );
