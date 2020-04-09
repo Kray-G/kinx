@@ -624,7 +624,6 @@ typedef struct kx_context_ {
     kvec_t(kx_module_t) module;
     khash_t(importlib) *builtin;
     khash_t(nativefunc) *nfuncs;
-    kx_code_t *caller;
     kx_options_t options;
     kx_obj_t *strlib;
     kx_obj_t *binlib;

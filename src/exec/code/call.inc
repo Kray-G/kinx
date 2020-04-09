@@ -57,7 +57,7 @@ default: \
             ++count; \
         } \
         if (fn->jp) { \
-            (ctx)->caller = cur; \
+            caller = cur; \
             push_fnc(KX_FNC_T, (ctx)->stack, fn); \
             push_i((ctx)->stack, count); \
             push_adr((ctx)->stack, cur->next); \
@@ -78,7 +78,7 @@ default: \
 { \
     kx_val_t *fv = &kv_last((ctx)->stack); \
     if (fv->type == KX_FNC_T) { \
-        (ctx)->caller = cur; \
+        caller = cur; \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
@@ -115,7 +115,7 @@ default: \
     } \
     kx_val_t *fv = &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i); \
     if (fv->type == KX_FNC_T) { \
-        (ctx)->caller = cur; \
+        caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
@@ -146,7 +146,7 @@ default: \
 { \
     kx_val_t *fv = &kv_A(frmv->v, cur->value2.i); \
     if (fv->type == KX_FNC_T) { \
-        (ctx)->caller = cur; \
+        caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
@@ -177,7 +177,7 @@ default: \
 { \
     kx_val_t *fv = &kv_A(lexv->v, cur->value2.i); \
     if (fv->type == KX_FNC_T) { \
-        (ctx)->caller = cur; \
+        caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
@@ -233,7 +233,7 @@ default: \
             kx_fnc_t *fn = search_array_function(ctx, name, lv); \
             KX_CALL_FUNCTION(fn, name, lv); \
         } else if (fv->type == KX_FNC_T) { \
-            (ctx)->caller = cur; \
+            caller = cur; \
             kx_fnc_t *fn = fv->value.fn; \
             push_fnc(KX_FNC_T, (ctx)->stack, fn); \
             push_i((ctx)->stack, cur->count + ctx->spread_additional); \

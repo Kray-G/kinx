@@ -77,7 +77,7 @@ extern kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, 
     if (fn) { \
         int count = 1; \
         kv_remove_last((ctx)->stack); \
-        (ctx)->caller = cur; \
+        caller = cur; \
         arg2; \
         if (fn->val.type) { \
             push_value((ctx)->stack, fn->val); \
