@@ -3133,13 +3133,13 @@ yyreduce:
 
   case 166:
 #line 481 "src/kinx.y" /* yacc.c:1646  */
-    { (yyval.obj) = kx_gen_range_object((yyvsp[-2].obj), (yyvsp[0].obj), 1); }
+    { (yyval.obj) = kx_gen_range_object((yyvsp[-2].obj), (yyvsp[0].obj), 0); }
 #line 3138 "kx.tab.c" /* yacc.c:1646  */
     break;
 
   case 167:
 #line 482 "src/kinx.y" /* yacc.c:1646  */
-    { (yyval.obj) = kx_gen_range_object((yyvsp[-2].obj), (yyvsp[0].obj), 0); }
+    { (yyval.obj) = kx_gen_range_object((yyvsp[-2].obj), (yyvsp[0].obj), 1); }
 #line 3144 "kx.tab.c" /* yacc.c:1646  */
     break;
 
