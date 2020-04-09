@@ -93,6 +93,7 @@
 %type<obj> PostfixExpression
 %type<obj> PropertyName
 %type<type> PostIncDec
+%type<obj> RangeExpression
 %type<obj> Range
 %type<obj> RangeFactor_Opt
 %type<obj> RangeFactor
@@ -109,6 +110,7 @@
 %type<obj> KeyValue
 %type<strval> VarName
 %type<strval> KeySpecialName
+%type<strval> ClassFunctionName
 %type<obj> VarDeclStatement
 %type<obj> DeclAssignExpressionList
 %type<obj> DeclAssignExpression
@@ -447,34 +449,14 @@ Exponentiation
     ;
 
 RegexMatch
-    : PrefixExpression
+    : RangeExpression
     | RegexMatch REGEQ PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGEQ, $1, $3); }
     | RegexMatch REGNE PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGNE, $1, $3); }
     ;
 
-PrefixExpression
-    : PostfixExpression
-    | Range
-    | '!' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
-    | '+' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_POSITIVE, $2); }
-    | '-' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_NEGATIVE, $2); }
-    | '*' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_CONV, $2); }
-    | INC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_INC, $2); }
-    | DEC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_DEC, $2); }
-    ;
-
-PostfixExpression
-    : Factor
-    | PostfixExpression PostIncDec { $$ = kx_gen_uexpr_object($2, $1); }
-    | PostfixExpression '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
-    | PostfixExpression '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
-    | PostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
-    | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
-    ;
-
-PostIncDec
-    : INC { $$ = KXOP_INCP; }
-    | DEC { $$ = KXOP_DECP; }
+RangeExpression
+    : Range
+    | PrefixExpression
     ;
 
 Range
@@ -497,6 +479,30 @@ RangeFactor
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | '(' AssignExpression ')' { $$ = $2; }
     | '(' STR ')' { $$ = kx_gen_str_object($2); }
+    ;
+
+PrefixExpression
+    : PostfixExpression
+    | '!' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
+    | '+' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_POSITIVE, $2); }
+    | '-' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_NEGATIVE, $2); }
+    | '*' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_CONV, $2); }
+    | INC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_INC, $2); }
+    | DEC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_DEC, $2); }
+    ;
+
+PostfixExpression
+    : Factor
+    | PostfixExpression PostIncDec { $$ = kx_gen_uexpr_object($2, $1); }
+    | PostfixExpression '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | PostfixExpression '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | PostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
+    | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
+    ;
+
+PostIncDec
+    : INC { $$ = KXOP_INCP; }
+    | DEC { $$ = KXOP_DECP; }
     ;
 
 Factor
@@ -559,6 +565,18 @@ PropertyName
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
     | USING { $$ = kx_gen_str_object("using"); }
+    | EQEQ { $$ = kx_gen_str_object("=="); }
+    | NEQ { $$ = kx_gen_str_object("!="); }
+    | LE { $$ = kx_gen_str_object("<="); }
+    | '<' { $$ = kx_gen_str_object("<"); }
+    | GE { $$ = kx_gen_str_object(">="); }
+    | '>' { $$ = kx_gen_str_object(">"); }
+    | '+' { $$ = kx_gen_str_object("+"); }
+    | '-' { $$ = kx_gen_str_object("-"); }
+    | '*' { $$ = kx_gen_str_object("*"); }
+    | '/' { $$ = kx_gen_str_object("/"); }
+    | '%' { $$ = kx_gen_str_object("%"); }
+    | '[' ']' { $$ = kx_gen_str_object("[]"); }
     ;
 
 Array
@@ -649,6 +667,18 @@ KeySpecialName
     | USING { $$ = "using"; }
     | TYPE { $$ = kx_gen_typestr_object($1); }
     | TYPEOF { $$ = kx_gen_typeofstr_object($1); }
+    | EQEQ { $$ = "=="; }
+    | NEQ { $$ = "!="; }
+    | LE { $$ = "<="; }
+    | '<' { $$ = "<"; }
+    | GE { $$ = ">="; }
+    | '>' { $$ = ">"; }
+    | '+' { $$ = "+"; }
+    | '-' { $$ = "-"; }
+    | '*' { $$ = "*"; }
+    | '/' { $$ = "/"; }
+    | '%' { $$ = "%"; }
+    | '[' ']' { $$ = "[]"; }
     ;
 
 Regex
@@ -713,9 +743,14 @@ AnonymousFunctionDeclExpression
     ;
 
 ClassFunctionDeclStatement
-    : PUBLIC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, $2, $4, $6, NULL); }
-    | PRIVATE NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PRIVATE, $2, $4, $6, NULL); }
-    | PROTECTED NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PROTECTED, $2, $4, $6, NULL); }
+    : PUBLIC ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, $2, $4, $6, NULL); }
+    | PRIVATE ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PRIVATE, $2, $4, $6, NULL); }
+    | PROTECTED ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PROTECTED, $2, $4, $6, NULL); }
+    ;
+
+ClassFunctionName
+    : NAME
+    | KeySpecialName
     ;
 
 ClassDeclStatement
