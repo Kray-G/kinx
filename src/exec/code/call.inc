@@ -57,11 +57,8 @@ default: \
             ++count; \
         } \
         if (fn->jp) { \
-            kx_val_t fvx; \
-            fvx.type = KX_FNC_T; \
-            fvx.value.fn = fn; \
             (ctx)->caller = cur; \
-            push_value((ctx)->stack, fvx); \
+            push_fnc(KX_FNC_T, (ctx)->stack, fn); \
             push_i((ctx)->stack, count); \
             push_adr((ctx)->stack, cur->next); \
             cur = fn->jp; \
@@ -119,7 +116,7 @@ default: \
     kx_val_t *fv = &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i); \
     if (fv->type == KX_FNC_T) { \
         (ctx)->caller = cur; \
-        push_value((ctx)->stack, *fv); \
+        push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
@@ -150,7 +147,7 @@ default: \
     kx_val_t *fv = &kv_A(frmv->v, cur->value2.i); \
     if (fv->type == KX_FNC_T) { \
         (ctx)->caller = cur; \
-        push_value((ctx)->stack, *fv); \
+        push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
@@ -181,7 +178,7 @@ default: \
     kx_val_t *fv = &kv_A(lexv->v, cur->value2.i); \
     if (fv->type == KX_FNC_T) { \
         (ctx)->caller = cur; \
-        push_value((ctx)->stack, *fv); \
+        push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
@@ -238,7 +235,7 @@ default: \
         } else if (fv->type == KX_FNC_T) { \
             (ctx)->caller = cur; \
             kx_fnc_t *fn = fv->value.fn; \
-            push_value((ctx)->stack, *fv); \
+            push_fnc(KX_FNC_T, (ctx)->stack, fn); \
             push_i((ctx)->stack, cur->count + ctx->spread_additional); \
             ctx->spread_additional = 0; \
             push_adr((ctx)->stack, cur->next); \
