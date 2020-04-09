@@ -250,7 +250,7 @@ _class _StringRange(value_) {
         var prv;
         if (noalnum_) {
             for (var i = idx; i >= 0; --i) {
-                bin[i] = str[i] + 1;
+                bin[i] = (str[i] + 1) % 0xFF;
             }
         } else if (mix_) {
             prv = 0;
