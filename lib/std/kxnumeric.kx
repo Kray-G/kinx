@@ -1,0 +1,53 @@
+Integer.times = _function(val, callback) {
+    var ary = [];
+    if (callback) {
+        for (var i = 0; i < val; ++i) {
+            ary[i] = callback(i, i);
+        }
+    } else {
+        for (var i = 0; i < val; ++i) {
+            ary[i] = i;
+        }
+    }
+    return ary;
+};
+
+Integer.upto = _function(val, max, callback) {
+    var index = 0;
+    for (var i = val; i <= max; ++i) {
+        callback(i, index++);
+    }
+};
+
+Integer.downto = _function(val, min, callback) {
+    var index = 0;
+    for (var i = val; i >= min; --i) {
+        callback(i, index++);
+    }
+};
+
+Integer.methodMissing = _function(d, method, a0) {
+    var item = Math[method];
+    if (item.isFunction) {
+        Integer[method] = _function(v1, v2) { return item(v1, v2); };
+        return Integer[method](Double.parseDouble(d), Double.parseDouble(a0));
+    }
+    throw RuntimeException('Method not found for Integer');
+};
+
+Integer.next = _function(val) {
+    return ++val;
+};
+
+Integer.== = _function(val, obj) {
+    return obj == val;
+};
+
+Double.methodMissing = _function(d, method, a0) {
+    var item = Math[method];
+    if (item.isFunction) {
+        Double[method] = _function(v1, v2) { return item(v1, v2); };
+        return Double[method](Double.parseDouble(d), Double.parseDouble(a0));
+    }
+    throw RuntimeException('Method not found for Double');
+};
