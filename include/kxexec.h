@@ -228,6 +228,7 @@
 #define KX_EXEC_DECL(fixcode) \
     int gc_ticks = KEX_GC_TICK; \
     struct kx_code_ *cur = kv_head(*fixcode); \
+    kx_code_t *caller = NULL; \
     kx_frm_t *frmv = (ctx)->frmv; \
     kx_frm_t *lexv = (ctx)->lexv; \
     kx_fnc_t *fnco = NULL; \
@@ -256,10 +257,10 @@
     KX_EXEC_FIX_JMPADDR(fixcode, 0); \
 /**/
 
-extern kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur);
+extern kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur, kx_code_t **caller);
 #define KEX_CHECK_SIGNAL(ctx) \
 if ((ctx)->signal.signal_received) { \
-    cur = kx_signal_hook(ctx, cur); \
+    cur = kx_signal_hook(ctx, cur, &caller); \
 } \
 /**/
 

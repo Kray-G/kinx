@@ -28,7 +28,7 @@
             kx_frm_t *frm = kv_last((ctx)->stack).value.fr; \
             frm->id = kv_size((ctx)->stack) - 1; \
             frm->prv = frmv; \
-            frm->caller = (ctx)->caller; \
+            frm->caller = caller; \
             frmv = frm; \
             THROW_SYSTEM_EXCEPTION("FiberException", "Fiber has been already dead"); \
         } \
@@ -52,7 +52,7 @@
             THROW_SYSTEM_EXCEPTION("FiberException", "Invalid Fiber state"); \
         } \
         frm->is_internal = cur->is_internal; \
-        frm->caller = (ctx)->caller; \
+        frm->caller = caller; \
         lexv = frm->lex; \
         push_obj((ctx)->stack, obj); \
         cur = fnco->fbpos; \
@@ -60,7 +60,7 @@
         kx_frm_t *frm = allocate_frm(ctx); \
         frm->id = ssize; \
         frm->is_internal = cur->is_internal; \
-        frm->caller = (ctx)->caller; \
+        frm->caller = caller; \
         frm->prv = frmv; \
         int max_vars = cur->value2.i; \
         kv_resize_if(kx_val_t, frm->v, max_vars); \
