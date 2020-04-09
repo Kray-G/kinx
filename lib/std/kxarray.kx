@@ -1,0 +1,144 @@
+Array.apply = _function(ary, func) {
+    return func(ary);
+};
+
+Array.each = _function(ary, callback) {
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        var r = callback(ary[i], i);
+        if (r.isDefined && !r) {
+            break;
+        }
+    }
+};
+
+Array.map = _function(ary, callback) {
+    var ret = [];
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        ret[i] = callback(ary[i], i);
+    }
+    return ret;
+};
+
+Array.flatMap = _function(ary, func) {
+    return ary.map(func).flatten();
+};
+
+Array.filter = _function(ary, callback) {
+    var ret = [];
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        ret.push(ary[i]) if (callback(ary[i], i));
+    }
+    return ret;
+};
+
+Array.reject = _function(ary, callback) {
+    var ret = [];
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        ret.push(ary[i]) if (!callback(ary[i], i));
+    }
+    return ret;
+};
+
+Array.reduce = _function(ary, callback, initr) {
+    var r = initr;
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        r = callback(r, ary[i], i);
+    }
+    return r;
+};
+
+_function _quicksort(a, first, last, comp) {
+    var i = first;
+    var j = last;
+    var x = a[(first + last) / 2];
+    while (true) {
+        while (comp(a[i], x) < 0) i++;
+        while (comp(x, a[j]) < 0) j--;
+        if (i >= j) break;
+        [a[i], a[j]] = [a[j], a[i]];
+        ++i; --j;
+    }
+    if (first  < i - 1)
+        _quicksort(a, first , i - 1, comp);
+    if (j + 1 < last)
+        _quicksort(a, j + 1, last, comp);
+}
+
+Array.sort = _function(ary, comp) {
+    ary = ary.clone();
+    _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+    return ary;
+};
+
+Array.clone = (_function() {
+    var depth = 0;
+    return _function(ary, tgt, deep) {
+        if (depth > 100) {
+            throw RuntimeException('Too deep at clone()');
+        }
+        var res;
+        try {
+            ++depth;
+            if (ary.isArray) {
+                res = ary.map(_function(e) { return e.isObject ? e.clone() : e; });
+            } else if (ary.isObject) {
+                var r = {};
+                ary.keySet().each(_function(key) {
+                    if (ary[key].isObject) {
+                        r[key] = ary[key].clone();
+                    } else {
+                        r[key] = ary[key];
+                    }
+                });
+                res = r;
+            } else {
+                res = ary;
+            }
+        } finally {
+            --depth;
+        }
+        return res;
+    };
+})();
+
+Array.extend = (_function() {
+    var depth = 0;
+    return _function(ary, tgt, deep) {
+        if (depth > 100) {
+            throw RuntimeException('Too deep at extend()');
+        }
+        try {
+            ++depth;
+            var keys = tgt.keySet();
+            var size = keys.length();
+            for (var i = 0; i < size; ++i) {
+                var key = keys[i];
+                if (tgt[key].isArray) {
+                    ary[key] = tgt[key].clone();
+                } else {
+                    if (tgt[key].isObject) {
+                        if (ary[key].extend.isFuntion) {
+                            ary[key].extend(tgt[key], deep);
+                        } else {
+                            ary[key] = {}.extend(tgt[key], deep);
+                        }
+                    } else {
+                        ary[key] = tgt[key];
+                    }
+                }
+            }
+        } finally {
+            --depth;
+        }
+        return ary;
+    };
+})();
+
+Array.println = _function(ary) {
+    return ary.each(&(e) => System.println(e));
+};
