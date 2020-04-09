@@ -478,8 +478,8 @@ PostIncDec
     ;
 
 Range
-    : RangeFactor DOTS2 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 1); }
-    | RangeFactor DOTS3 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 0); }
+    : RangeFactor DOTS2 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 0); }
+    | RangeFactor DOTS3 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 1); }
     ;
 
 RangeFactor_Opt
