@@ -1,84 +1,20 @@
 
 #include <float.h>
 
+extern int kx_value_true(kx_context_t *ctx, kx_val_t *v);
+extern int kx_value_false(kx_context_t *ctx, kx_val_t *v);
+extern void kx_check_bigint(kx_context_t *ctx, kx_val_t *v);
+extern kx_fnc_t *kx_get_object_operator_function(kx_context_t *ctx, kx_val_t *v, const char *name);
+extern kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, const char *name);
+
 #define KX_IS_TRUE(v, tf) \
-    int tf = 0; \
-    if ((v)->type == KX_INT_T) { \
-        tf = (v)->value.iv; \
-    } else if ((v)->type == KX_UND_T) { \
-        tf = 0; \
-    } else if ((v)->type == KX_CSTR_T) { \
-        tf = (v)->value.pv && (v)->value.pv[0] != 0; \
-    } else if ((v)->type == KX_STR_T) { \
-        tf = ks_string((v)->value.sv) && ks_string((v)->value.sv)[0] != 0; \
-    } else if ((v)->type == KX_BIG_T) { \
-        tf = 1;   /* big-int is always not zero. */ \
-    } else if ((v)->type == KX_DBL_T) { \
-        tf = fabs((v)->value.dv) >= DBL_EPSILON; \
-    } else if ((v)->type == KX_OBJ_T) { \
-        kx_val_t *val = NULL; \
-        KEX_GET_PROP(val, (v)->value.ov, "_False"); \
-        if (val && val->type == KX_INT_T && val->value.iv != 0) { \
-            tf = 0; \
-        } else { \
-            tf = 1; \
-        } \
-    } else if ((v)->type == KX_FNC_T) { \
-        tf = 1; \
-    } else { \
-        tf = 0; \
-    } \
+    int tf = ((v)->type == KX_INT_T) ? (v)->value.iv : kx_value_true(ctx, v); \
 /**/
-
 #define KX_IS_FALSE(v, tf) \
-    int tf = 0; \
-    if ((v)->type == KX_INT_T) { \
-        tf = (v)->value.iv == 0; \
-    } else if ((v)->type == KX_UND_T) { \
-        tf = 1; \
-    } else if ((v)->type == KX_CSTR_T) { \
-        tf = !(v)->value.pv || (v)->value.pv[0] == 0; \
-    } else if ((v)->type == KX_STR_T) { \
-        tf = !ks_string((v)->value.sv) || ks_string((v)->value.sv)[0] == 0; \
-    } else if ((v)->type == KX_BIG_T) { \
-        tf = 0;   /* big-int is always not zero. */ \
-    } else if ((v)->type == KX_DBL_T) { \
-        tf = fabs((v)->value.dv) < DBL_EPSILON; \
-    } else if ((v)->type == KX_OBJ_T) { \
-        kx_val_t *val = NULL; \
-        KEX_GET_PROP(val, (v)->value.ov, "_False"); \
-        if (val && val->type == KX_INT_T && val->value.iv != 0) { \
-            tf = 1; \
-        } else { \
-            tf = 0; \
-        } \
-    } else if ((v)->type == KX_FNC_T) { \
-        tf = 0; \
-    } else { \
-        tf = 1; \
-    } \
+    int tf = ((v)->type == KX_INT_T) ? (v)->value.iv == 0 : kx_value_false(ctx, v); \
 /**/
 
-#define KX_BIGINT_CHKINT(v) { \
-    BigZ bz = (v)->value.bz; \
-    if (BzGetSign(bz) == BZ_ZERO) { \
-        (v)->value.iv = 0; \
-        (v)->type = KX_INT_T; \
-    } else if (BzGetSign(bz) == BZ_MINUS) { \
-        BzCmp comp = BzCompare(bz, get_int64min_minus1()); \
-        if (comp == BZ_GT) { \
-            (v)->value.iv = BzToInteger(bz); \
-            (v)->type = KX_INT_T; \
-        } \
-    } else { \
-        BzCmp comp = BzCompare(bz, get_int64max_plus1()); \
-        if (comp == BZ_LT) { \
-            (v)->value.iv = BzToInteger(bz); \
-            (v)->type = KX_INT_T; \
-        } \
-    } \
-} \
-/**/
+#define KX_BIGINT_CHKINT(v) kx_check_bigint(ctx, v)
 
 #define KX_CHKVAL_CODE() \
 { \
@@ -135,4 +71,25 @@
     }\
     cur = cur->next; \
 } \
+/**/
+
+#define CALL_OP_FUNCTION(fn, cur, v1, arg2) \
+    if (fn) { \
+        int count = 1; \
+        kx_val_t fvx; \
+        fvx.type = KX_FNC_T; \
+        fvx.value.fn = fn; \
+        (ctx)->caller = cur; \
+        arg2; \
+        if (fn->val.type) { \
+            push_value((ctx)->stack, *v1); \
+            ++count; \
+        } \
+        push_value((ctx)->stack, fvx); \
+        push_i((ctx)->stack, count); \
+        push_adr((ctx)->stack, cur->next); \
+        cur = fn->jp; \
+    } else { \
+        cur = cur->next; \
+    } \
 /**/

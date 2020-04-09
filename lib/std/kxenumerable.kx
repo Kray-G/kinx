@@ -1,16 +1,4 @@
 
-_class _IntegerRange(value_) {
-    private initialize() {
-        @value = value_;
-    }
-    public next() {
-        return new _IntegerRange(@value + 1);
-    }
-    public comp(a) {
-        return @value <=> a.value;
-    }
-}
-
 _module _Enumerable {
     var host_ = this;
     var self_;
@@ -26,6 +14,19 @@ _module _Enumerable {
                 }, {});
         }
         return self_;
+    }
+    public _each(func) {
+        var count = 0;
+        while (src_.isAlive()) {
+            var v = src_.resume();
+            if (!src_.isAlive()) {
+                return false;
+            }
+            var r = func(v, count++);
+            if (r.isDefined && !r) {
+                return false;
+            }
+        }
     }
     public filter(func) {
         var pf = src_;
@@ -64,34 +65,27 @@ _module _Enumerable {
         });
         return getSelf();
     }
-    public _each(func) {
-        var count = 0;
+    public reduce(func, initer) {
+        var r = initer;
         while (src_.isAlive()) {
             var v = src_.resume();
             if (!src_.isAlive()) {
-                return false;
+                break;
             }
-            var r = func(v, count++);
-            if (r.isDefined && !r) {
-                return false;
-            }
+            r = func(r, v);
         }
+        return r;
     }
-    public force() {
-        var v;
-        while (src_.isAlive()) {
-            v = src_.resume();
-        }
-        return v;
-    }
-    public writeln() {
+    public sort(func) {
+        var r = [];
         while (src_.isAlive()) {
             var v = src_.resume();
             if (!src_.isAlive()) {
-                return false;
+                break;
             }
-            System.println(v);
+            r.push(v);
         }
+        return r.sort(func);
     }
     public all(func) {
         while (src_.isAlive()) {
@@ -117,84 +111,271 @@ _module _Enumerable {
         }
         return true;
     }
-    public reduce(func, initer) {
-        var r = initer;
+    public toArray() {
+        var r = [];
+        while (src_.isAlive()) {
+            v = src_.resume();
+            r.push(v);
+        }
+        return r;
+    }
+    public println() {
         while (src_.isAlive()) {
             var v = src_.resume();
             if (!src_.isAlive()) {
-                break;
+                return false;
             }
-            r = func(r, v);
+            System.println(v);
         }
-        return r;
+    }
+}
+
+_class _RangeEnumerator(obj_) {
+    var f_;
+    private initialize() {
+        f_ = new Fiber(&() => obj_.each());
+    }
+    public peek() {
+        if (obj_.isEnded()) {
+            throw StopIterationException("Enumerator has been ended");
+        }
+        return obj_.next();
+    }
+    public next() {
+        return f_.resume();
+    }
+    public isEnded() {
+        return !f_.isAlive();
+    }
+}
+
+_class _ArrayEnumerator(obj_) {
+    var i_, sz_;
+    private initialize() {
+        i_ = 0;
+        sz_ = obj_.length();
+    }
+    public peek() {
+        if (sz_ <= i_) {
+            throw StopIterationException("Enumerator has been ended");
+        }
+        return obj_[i_];
+    }
+    public next() {
+        return i_ < sz_ ? obj_[i_++] : i_++;
+    }
+    public isEnded() {
+        return sz_ < i_;
+    }
+}
+
+_class _ObjectEnumerator(obj_) {
+    var ary_, i_, sz_;
+    private initialize() {
+        ary_ = obj_.keySet();
+        sz_ = ary_.length();
+        i_ = 0;
+    }
+    public peek() {
+        if (sz_ <= i_) {
+            throw StopIterationException("Enumerator has been ended");
+        }
+        var key = ary_[i_];
+        var value = obj_[key];
+        return [key, value];
+    }
+    public next() {
+        if (i_ < sz_) {
+            var key = ary_[i_++];
+            var value = obj_[key];
+            return [key, value];
+        }
+        ++i_;
+    }
+    public isEnded() {
+        return sz_ < i_;
     }
 }
 
 _class _Enumerator(obj_) {
-    var peek_, next_, isEnded_;
+    var enumerator_;
     private initialize() {
         if (obj_.isRange) {
-            var f = new Fiber(&() => obj_.each());
-            next_ = _function() {
-                return f.resume();
-            };
-            isEnded_ = _function() {
-                return !f.isAlive();
-            };
-            peek_ = _function() {
-                if (obj_.isEnded()) {
-                    throw StopIterationException("Enumerator has been ended");
-                }
-                return obj_.next();
-            };
+            enumerator_ = new _RangeEnumerator(obj_);
         } else if (obj_.isArray) {
-            var i = 0, sz = obj_.length();
-            next_ = _function() {
-                return i < sz ? obj_[i++] : i++;
-            };
-            isEnded_ = _function() {
-                return sz < i;
-            };
-            peek_ = _function() {
-                if (sz <= i) {
-                    throw StopIterationException("Enumerator has been ended");
-                }
-                return obj_[i];
-            };
+            enumerator_ = new _ArrayEnumerator(obj_);
+        } else if (obj_.isObject) {
+            enumerator_ = new _ObjectEnumerator(obj_);
         }
     }
     public peek() {
-        return peek_();
+        return enumerator_.peek();
     }
     public next() {
-        return next_();
+        return enumerator_.next();
     }
     public isEnded() {
-        return isEnded_();
+        return enumerator_.isEnded();
     }
 }
 
-_class _Range(start_, end_, includingEnd_) {
+_class _IntegerRange(value_) {
+    private initialize() {
+        @value = value_;
+    }
+    public next() {
+        return new _IntegerRange(@value + 1);
+    }
+    public comp(a) {
+        return @value <=> a.value;
+    }
+}
+
+_class _StringRange(value_) {
+    var mix_, noalnum_;
+    private initialize() {
+        if (value_.isArray) {
+            @value = *value_;
+        } else {
+            @value = value_;
+        }
+        mix_ = (@value !~ /^-?[0-9a-zA-Z]+$/);
+        noalnum_ = (@value =~ /^[^0-9a-zA-Z]+$/).isArray;
+    }
+    public next() {
+        var bin = [];
+        var str = @value;
+        var idx = str.length() - 1;
+        var minus = str[0] == '-'[0];
+        var prv;
+        if (noalnum_) {
+            for (var i = idx; i >= 0; --i) {
+                bin[i] = str[i] + 1;
+            }
+        } else if (mix_) {
+            prv = 0;
+            for (var i = idx; i >= 0; --i) {
+                var ch = str[i];
+                if (ch == '9'[0]) {
+                    bin[i] = '0'[0];
+                } else if (ch == 'z'[0]) {
+                    bin[i] = 'a'[0];
+                } else if (ch == 'Z'[0]) {
+                    bin[i] = 'A'[0];
+                } else if (('0'[0] <= ch && ch < '9'[0]) || ('a'[0] <= ch && ch < 'z'[0]) || ('A'[0] <= ch && ch < 'Z'[0])) {
+                    bin[i] = ch + 1;
+                } else {
+                    bin[i] = ch;
+                }
+            }
+        } else {
+            prv = 1;
+            var head = minus ? 1 : 0;
+            for (var i = idx; i >= head; --i) {
+                var ch = str[i];
+                if (ch == '9'[0]) {
+                    if (prv) {
+                        bin[i] = '0'[0];
+                        prv = '1'[0];
+                    } else {
+                        bin[i] = '9'[0];
+                    }
+                } else if (ch == 'z'[0]) {
+                    if (prv) {
+                        bin[i] = 'a'[0];
+                        prv = 'a'[0];
+                    } else {
+                        bin[i] = 'z'[0];
+                    }
+                } else if (ch == 'Z'[0]) {
+                    if (prv) {
+                        bin[i] = 'A'[0];
+                        prv = 'A'[0];
+                    } else {
+                        bin[i] = 'Z'[0];
+                    }
+                } else if (ch == 0xFF) {
+                    bin[i] = 0;
+                    prv = 1;
+                } else if (('0'[0] <= ch && ch < '9'[0]) || ('a'[0] <= ch && ch < 'z'[0]) || ('A'[0] <= ch && ch < 'Z'[0])) {
+                    if (prv) {
+                        bin[i] = ch + 1;
+                    } else {
+                        bin[i] = ch;
+                    }
+                    prv = 0;
+                } else {
+                    bin[i] = ch;
+                    prv = 0;
+                }
+            }
+        }
+        if (minus) {
+            if (prv) {
+                bin[0] = prv;
+                bin = ['-'[0], ...bin];
+            } else {
+                bin[0] = '-'[0];
+            }
+        } else {
+            if (prv) {
+                bin = [prv, ...bin];
+            }
+        }
+        return new _StringRange(bin);
+    }
+    public comp(a) {
+        return @value <=> a.value;
+    }
+}
+
+_class _Range(start_, end_, excludeEnd_) {
     mixin _Enumerable;
     @isRange = true;
     var cur_;
     private initialize() {
         if (start_.isInteger) {
             start_ = new _IntegerRange(start_);
+            if (end_.isInteger) {
+                end_ = new _IntegerRange(excludeEnd_ ? (end_-1) : end_);
+            }
         }
-        if (end_.isInteger) {
-            end_ = new _IntegerRange(includingEnd_ ? end_ : (end_-1));
+        if (start_.isString) {
+            start_ = new _StringRange(start_);
+            if (end_.isString) {
+                end_ = new _StringRange(excludeEnd_ ? (end_-1) : end_);
+            }
         }
         cur_ = start_;
     }
-    public isEnded() {
-        return end_ && cur_.comp(end_) == 0;
+    public begin() {
+        return start_.value;
+    }
+    public end() {
+        return end_.value;
     }
     public next() {
         var v = cur_.next();
         return v.value;
     }
-    public each() {
+    private eachByFunction(func) {
+        var i = 0;
+        while (true) {
+            var r = func(cur_.value, i++);
+            if (r.isDefined && !r) {
+                break;
+            }
+            if (end_ && cur_.comp(end_) == 0) {
+                break;
+            }
+            cur_ = cur_.next();
+        }
+        return i;
+    }
+    public each(func) {
+        if (func.isFunction) {
+            return eachByFunction(func);
+        }
         while (true) {
             yield cur_.value;
             if (end_ && cur_.comp(end_) == 0) {

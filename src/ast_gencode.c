@@ -859,42 +859,47 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
 
     case KXOP_LAND: {
         int block = ana->block;
-        int cond, alt, out;
-
-        cond = new_block(ana);
-        get_block(module, block)->tf[0] = cond;
-        ana->block = cond;
+        int ls, le, rs, re, out;
+        ls = new_block(ana);
+        get_block(module, block)->tf[0] = ls;
+        ana->block = ls;
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
-        alt = new_block(ana);
-        out = new_block(ana);
-        get_block(module, ana->block)->tf[0] = alt;
-        get_block(module, ana->block)->tf[1] = out;
-        ana->block = alt;
+        le = ana->block;
+
+        rs = new_block(ana);
+        get_block(module, le)->tf[0] = rs;
+        ana->block = rs;
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
         gencode_ast_hook(ctx, node->rhs, ana, 0);
-        get_block(module, ana->block)->tf[0] = out;
+        re = ana->block;
 
+        out = new_block(ana);
+        get_block(module, re)->tf[0] = out;
+        get_block(module, le)->tf[1] = out;
         ana->block = out;
         break;
     }
     case KXOP_LOR: {
         int block = ana->block;
-        int cond, alt, out;
-
-        cond = new_block(ana);
-        get_block(module, block)->tf[0] = cond;
-        ana->block = cond;
+        int ls, le, rs, re, out;
+        ls = new_block(ana);
+        get_block(module, block)->tf[0] = ls;
+        ana->block = ls;
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
-        alt = new_block(ana);
-        out = new_block(ana);
-        get_block(module, ana->block)->tf[0] = out;
-        get_block(module, ana->block)->tf[1] = alt;
-        ana->block = alt;
+        le = ana->block;
+
+        rs = new_block(ana);
+        get_block(module, le)->tf[1] = rs;
+        ana->block = rs;
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
         gencode_ast_hook(ctx, node->rhs, ana, 0);
+        re = ana->block;
 
+        out = new_block(ana);
+        get_block(module, re)->tf[0] = out;
+        get_block(module, le)->tf[0] = out;
         ana->block = out;
         break;
     }
