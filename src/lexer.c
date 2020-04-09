@@ -142,6 +142,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "in") == 0)             return IN;
         if (strcmp(val, "import") == 0)         { g_import = 1; return IMPORT; }
         /* typeof */
+        if (strcmp(val, "isNull") == 0)         { kx_yylval.intval = KX_UND_T; return TYPEOF; }
         if (strcmp(val, "isUndefined") == 0)    { kx_yylval.intval = KX_UND_T; return TYPEOF; }
         if (strcmp(val, "isDefined") == 0)      { kx_yylval.intval = KX_DEF_T; return TYPEOF; }
         if (strcmp(val, "isInteger") == 0)      { kx_yylval.intval = KX_INT_T; return TYPEOF; }
@@ -189,8 +190,7 @@ static int get_keyword_token(const char *val)
         break;
     case 'u':
         if (strcmp(val, "using") == 0)          return process_using();
-        /* type */
-        if (strcmp(val, "null") == 0)           { kx_yylval.intval = KX_UND_T; return TYPE; }
+        if (strcmp(val, "undefined") == 0)      return NUL;
         break;
     case 'v':
         if (strcmp(val, "var") == 0)            return VAR;
