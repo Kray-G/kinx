@@ -23,7 +23,7 @@ var Xml, Net;
     Zip.create = File._zipCreate;
     JSON.parse = System.parseJson;
     JSON.stringify = Array.toJsonString;
-    class BooleanClass(tf) { @_False = @isFalse = !tf; @isTrue = tf; }
+    _class BooleanClass(tf) { @_False = @isFalse = !tf; @isTrue = tf; }
     Boolean = BooleanClass;
     True = System._setTrueFalse(1, new Boolean(true));
     False = System._setTrueFalse(0, new Boolean(false));
