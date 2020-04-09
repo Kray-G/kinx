@@ -294,13 +294,13 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
     fflush(stdout);
 }
 
-kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur)
+kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur, kx_code_t **caller)
 {
     kx_fnc_t *fn = ctx->signal.signal_hook;
     (ctx)->signal.signal_received = 0;
     if (fn && fn->jp) {
         (ctx)->signal.signal_progress = 1;
-        ctx->caller = cur;
+        *caller = cur;
         push_fnc(KX_FNC_T, ctx->stack, fn);
         push_i(ctx->stack, 0);
         push_adr(ctx->stack, cur);
