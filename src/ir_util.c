@@ -763,7 +763,7 @@ int kx_regex_eq(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, kx_val_t *v1,
 
     val1 = NULL;
     KEX_GET_PROP(val1, re, "source");
-    if (!val1 || val1->type != KX_STR_T || strcmp(ks_string(val1->value.sv), str) != 0) {
+    if (!eq || !val1 || val1->type != KX_STR_T || strcmp(ks_string(val1->value.sv), str) != 0) {
         val1 = NULL;
         KEX_GET_PROP(val1, re, "reset");
         if (!val1 || val1->type != KX_BFNC_T) {
