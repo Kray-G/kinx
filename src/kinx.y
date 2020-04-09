@@ -571,6 +571,7 @@ PropertyName
     | '<' { $$ = kx_gen_str_object("<"); }
     | GE { $$ = kx_gen_str_object(">="); }
     | '>' { $$ = kx_gen_str_object(">"); }
+    | LGE { $$ = kx_gen_str_object("<=>"); }
     | '+' { $$ = kx_gen_str_object("+"); }
     | '-' { $$ = kx_gen_str_object("-"); }
     | '*' { $$ = kx_gen_str_object("*"); }
@@ -673,6 +674,7 @@ KeySpecialName
     | '<' { $$ = "<"; }
     | GE { $$ = ">="; }
     | '>' { $$ = ">"; }
+    | LGE { $$ = "<=>"; }
     | '+' { $$ = "+"; }
     | '-' { $$ = "-"; }
     | '*' { $$ = "*"; }
