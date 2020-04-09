@@ -1,3 +1,5 @@
+#define KX_EQEQ_OP_NAME "=="
+
 #define KX_EQEQ_EQEQ_I(v1, val) { \
     switch ((v1)->type) { \
     case KX_UND_T: { \
@@ -40,6 +42,13 @@
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_OBJ_T: { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -70,6 +79,13 @@
         (v1)->value.iv = fabs(dv - bd) < DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
         break; \
+    } \
+    case KX_OBJ_T: { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
     } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
@@ -104,6 +120,13 @@
         (v1)->value.iv = fabs(dv - dval) < DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
         break; \
+    } \
+    case KX_OBJ_T: { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
     } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
@@ -142,6 +165,13 @@
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_OBJ_T: { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -174,6 +204,13 @@
         KX_EQEQ_EQEQ_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
+    case KX_OBJ_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
         break; \
@@ -183,73 +220,81 @@
 
 #define KX_EQEQ_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_POP_STACK_TOP(v2); \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_V(v1, v2); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
 } \
 /**/
 
 #define KX_EQEQI_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_I(v1, cur->value1.i); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value1.i); }); \
 } \
 /**/
 
 #define KX_EQEQD_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_D(v1, cur->value1.d); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_d((ctx)->stack, cur->value1.d); }); \
 } \
 /**/
 
 #define KX_EQEQS_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_S(v1, cur->value1.s); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_s((ctx)->stack, cur->value1.s); }); \
 } \
 /**/
 
 #define KX_EQEQV_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_GET_STACK_TOP(v1); \
     KEX_GET_VAR_ADDR(v2); \
     KX_EQEQ_EQEQ_V(v1, v2); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
 } \
 /**/
 
 #define KX_EQEQ_V0V0_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
     KEX_GET_VAR_ADDR_LOCAL(v2, cur->value2.i); \
     push_value((ctx)->stack, *v1p); \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_V(v1, v2); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
 } \
 /**/
 
 #define KX_EQEQ_V0I_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
     push_value((ctx)->stack, *v1p); \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_I(v1, cur->value2.i); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value1.i); }); \
 } \
 /**/
 
 #define KX_EQEQ_IV0_CODE() \
 { \
+    kx_fnc_t *fn = NULL; \
     KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value2.i); \
     push_value((ctx)->stack, *v1p); \
     KEX_GET_STACK_TOP(v1); \
     KX_EQEQ_EQEQ_I(v1, cur->value1.i); \
-    cur = cur->next; \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value1.i); }); \
 } \
 /**/
