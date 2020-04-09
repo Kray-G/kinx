@@ -300,11 +300,8 @@ kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur)
     (ctx)->signal.signal_received = 0;
     if (fn && fn->jp) {
         (ctx)->signal.signal_progress = 1;
-        kx_val_t fvx;
-        fvx.type = KX_FNC_T;
-        fvx.value.fn = fn;
         ctx->caller = cur;
-        push_value(ctx->stack, fvx);
+        push_fnc(KX_FNC_T, ctx->stack, fn);
         push_i(ctx->stack, 0);
         push_adr(ctx->stack, cur);
         return fn->jp;
