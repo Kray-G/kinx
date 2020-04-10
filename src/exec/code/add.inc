@@ -1,34 +1,29 @@
 
-#define KX_ADD_II(v1, val) \
+#define KX_ADD_II(v1, val) { \
     int64_t v1val = (v1)->value.iv; \
     int64_t v2val = (val); \
-    if (v1val > 0 && v2val > 0) { \
-        volatile int64_t v = v1val + v2val; \
-        if (v < 0) { \
+    if (v1val >= 0) { \
+        if ((v2val <= 0) || (v1val <= (INT64_MAX - v2val))) { \
+            (v1)->value.iv += v2val; \
+        } else { \
             BigZ b2 = BzFromInteger(v2val); \
             BigZ bi = BzFromInteger(v1val); \
             (v1)->value.bz = make_big_alive(ctx, BzAdd(bi, b2)); \
             (v1)->type = KX_BIG_T; \
             BzFree(bi); \
             BzFree(b2); \
-        } else { \
-            (v1)->value.iv = v; \
         } \
-    } else if (v1val < 0 && v2val < 0) { \
-        volatile int64_t v = v1val + v2val; \
-        if (v > 0) { \
-            BigZ b2 = BzFromInteger(v2val); \
-            BigZ bi = BzFromInteger(v1val); \
-            (v1)->value.bz = make_big_alive(ctx, BzAdd(bi, b2)); \
-            (v1)->type = KX_BIG_T; \
-            BzFree(bi); \
-            BzFree(b2); \
-        } else { \
-            (v1)->value.iv = v; \
-        } \
-    } else { \
+    } else if ((v2val >= 0) || (v1val >= (INT64_MIN - v2val)))  { \
         (v1)->value.iv += v2val; \
+    } else { \
+        BigZ b2 = BzFromInteger(v2val); \
+        BigZ bi = BzFromInteger(v1val); \
+        (v1)->value.bz = make_big_alive(ctx, BzAdd(bi, b2)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        BzFree(b2); \
     } \
+} \
 /**/
 
 #define KX_ADD_CODE() \

@@ -5,11 +5,13 @@
     KEX_GET_STACK_TOP(v1); \
     if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
         (v1)->value.iv ^= (v2)->value.iv; \
+        cur = cur->next; \
     } else { \
-        int r = kx_try_xor(ctx, cur, v1, v2); \
-        KX_EXCEPTION_CHECK("SystemException", r); \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_xor(ctx, cur, v1, v2, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
     } \
-    cur = cur->next; \
 } \
 /**/
 
@@ -18,11 +20,13 @@
     KEX_GET_STACK_TOP(v1); \
     if (v1->type == KX_INT_T) { \
         (v1)->value.iv ^= cur->value1.i; \
+        cur = cur->next; \
     } else { \
-        int r = kx_try_xor_i(ctx, cur, v1); \
-        KX_EXCEPTION_CHECK("SystemException", r); \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_xor_i(ctx, cur, v1, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value1.i); }); \
     } \
-    cur = cur->next; \
 } \
 /**/
 
@@ -31,20 +35,23 @@
     KEX_GET_STACK_TOP(v1); \
     if (v1->type == KX_INT_T) { \
         (v1)->value.iv ^= (int64_t)(cur->value1.d); \
+        cur = cur->next; \
     } else { \
-        int r = kx_try_xor_d(ctx, cur, v1); \
-        KX_EXCEPTION_CHECK("SystemException", r); \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_xor_d(ctx, cur, v1, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_d((ctx)->stack, cur->value1.d); }); \
     } \
-    cur = cur->next; \
 } \
 /**/
 
 #define KX_XORS_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    int r = kx_try_xor_s(ctx, cur, v1); \
-    KX_EXCEPTION_CHECK("SystemException", r); \
-    cur = cur->next; \
+    int exc = 0; \
+    kx_fnc_t *fn = kx_try_xor_s(ctx, cur, v1, &exc); \
+    KX_EXCEPTION_CHECK("SystemException", exc); \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_s((ctx)->stack, cur->value1.s); }); \
 } \
 /**/
 
@@ -54,10 +61,12 @@
     KEX_GET_VAR_ADDR(v2); \
     if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
         (v1)->value.iv ^= (v2)->value.iv; \
+        cur = cur->next; \
     } else { \
-        int r = kx_try_xor(ctx, cur, v1, v2); \
-        KX_EXCEPTION_CHECK("SystemException", r); \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_xor(ctx, cur, v1, v2, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
     } \
-    cur = cur->next; \
 } \
 /**/
