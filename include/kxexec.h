@@ -12,6 +12,14 @@
 #define KX_GOTO() continue
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = {0};
 #define KX_SET_GOTO(c)
+#define KX_EXEC_DECL(fixcode) \
+    int gc_ticks = KEX_GC_TICK; \
+    struct kx_code_ *cur = kv_head(*fixcode); \
+    kx_code_t *caller = NULL; \
+    kx_frm_t *frmv = (ctx)->frmv; \
+    kx_frm_t *lexv = (ctx)->lexv; \
+    kx_fnc_t *fnco = NULL; \
+/**/
 #elif defined(KX_DIRECT_THREAD)
 #define KX_LABELS \
     &&LBL_KX_HALT, \
@@ -215,6 +223,14 @@
 #define KX_GOTO() goto *(cur->gotolabel);
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = { KX_LABELS };
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
+#define KX_EXEC_DECL(fixcode) \
+    int gc_ticks = KEX_GC_TICK; \
+    register struct kx_code_ *cur = kv_head(*fixcode); \
+    kx_code_t *caller = NULL; \
+    kx_frm_t *frmv = (ctx)->frmv; \
+    kx_frm_t *lexv = (ctx)->lexv; \
+    kx_fnc_t *fnco = NULL; \
+/**/
 #else
 #define KX_CASE_(OPCODE) case OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
@@ -223,8 +239,6 @@
 #define KX_GOTO() continue
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = {0};
 #define KX_SET_GOTO(c)
-#endif
-
 #define KX_EXEC_DECL(fixcode) \
     int gc_ticks = KEX_GC_TICK; \
     struct kx_code_ *cur = kv_head(*fixcode); \
@@ -233,6 +247,7 @@
     kx_frm_t *lexv = (ctx)->lexv; \
     kx_fnc_t *fnco = NULL; \
 /**/
+#endif
 #define KX_EXEC_FIX_JMPADDR(fixcode, start) \
     int len = kv_size(*fixcode) - 1; \
     for (int i = start; i < len; ++i) { \
