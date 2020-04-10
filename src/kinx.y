@@ -577,6 +577,9 @@ PropertyName
     | '*' { $$ = kx_gen_str_object("*"); }
     | '/' { $$ = kx_gen_str_object("/"); }
     | '%' { $$ = kx_gen_str_object("%"); }
+    | '&' { $$ = kx_gen_str_object("&"); }
+    | '|' { $$ = kx_gen_str_object("|"); }
+    | '^' { $$ = kx_gen_str_object("^"); }
     | '[' ']' { $$ = kx_gen_str_object("[]"); }
     ;
 
@@ -680,6 +683,9 @@ KeySpecialName
     | '*' { $$ = "*"; }
     | '/' { $$ = "/"; }
     | '%' { $$ = "%"; }
+    | '&' { $$ = "&"; }
+    | '|' { $$ = "|"; }
+    | '^' { $$ = "^"; }
     | '[' ']' { $$ = "[]"; }
     ;
 
