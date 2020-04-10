@@ -5,7 +5,7 @@ set YACC=myacc
 REM set CFLAGS=/O2 /D_DEBUG /MTd /Iinclude
 REM set CFLAGS=/O2 /MT /Iinclude /DKX_LEX_DEBUG
 set CFLAGS=/O2 /MT /Iinclude /Isrc/jit
-set OBJS=src/allocator.obj src/alloccore.obj src/allocutil.obj src/ast_analyzer.obj src/ast_display.obj src/ast_gencode.obj src/ast_object.obj src/ast_nativeaot.obj src/bign.obj src/bigz.obj src/getopt.obj src/global.obj src/ir_dump.obj src/ir_exec.obj src/ir_fix.obj src/ir_util.obj src/ir_aotcore.obj src/ir_aotutil.obj src/kstr.obj src/lexer.obj src/loadlib.obj src/parser.obj src/string.obj
+set OBJS=src/allocator.obj src/alloccore.obj src/allocutil.obj src/ast_analyzer.obj src/ast_display.obj src/ast_gencode.obj src/ast_object.obj src/ast_native.obj src/bign.obj src/bigz.obj src/getopt.obj src/global.obj src/ir_dump.obj src/ir_exec.obj src/ir_fix.obj src/ir_util.obj src/ir_aotcore.obj src/ir_aotdump.obj src/ir_natutil.obj src/nir_compile.obj src/nir_dump.obj src/kstr.obj src/lexer.obj src/fileutil.obj src/loadlib.obj src/parser.obj src/format.obj src/string.obj src/extlib/kc-json/kc-json.obj src/disasm/dis.obj src/disasm/disas.obj src/disasm/dss.obj src/disasm/lex.obj src/disasm/sym.obj src/disasm/arch/arm/aload.obj src/disasm/arch/arm/arm.obj src/disasm/arch/arm/astrings.obj src/disasm/arch/mips/mips.obj src/disasm/arch/mips/mload.obj src/disasm/arch/mips/mstrings.obj src/disasm/arch/x86/x86.obj src/disasm/arch/x86/x86asm.obj src/disasm/arch/x86/x86load.obj src/disasm/arch/x86/x86strings.obj src/disasm/common/file.obj src/disasm/common/table.obj src/disasm/common/trie.obj
 
 call :BUILDLIB
 call :TEST_EXEC apply
