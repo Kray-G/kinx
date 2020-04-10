@@ -346,6 +346,14 @@ extern kx_fnc_t *kx_try_add(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_
 extern kx_fnc_t *kx_try_add_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_add_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_add_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_sub(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_sub_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_sub_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_sub_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_mul(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_mul_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_mul_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_mul_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
 extern kx_fnc_t *kx_try_div(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern kx_fnc_t *kx_try_div_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
@@ -356,22 +364,29 @@ extern kx_fnc_t *kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, i
 extern kx_fnc_t *kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
-extern int kx_try_mul(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
-extern int kx_try_mul_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_mul_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_mul_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_and(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
-extern int kx_try_and_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_and_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_or(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
-extern int kx_try_or_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_or_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_xor(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
-extern int kx_try_xor_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_xor_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern kx_fnc_t *kx_try_and(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_and_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_and_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_or(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_or_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_or_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_xor(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_xor_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_xor_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+
+extern kx_fnc_t *kx_try_eqeq(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_eqeq_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_eqeq_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_eqeq_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_eqeq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_neq(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_neq_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_neq_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_neq_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
 extern int kx_try_pow(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern int kx_try_pow_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
