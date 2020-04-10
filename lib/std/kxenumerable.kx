@@ -407,6 +407,8 @@ _class _Enumerator(obj_) {
             enumerator_ = new _ArrayEnumerator(obj_);
         } else if (obj_.isObject) {
             enumerator_ = new _ObjectEnumerator(obj_);
+        } else {
+            throw SystemException("Cannot create Enumerator.");
         }
     }
     public peek() {
@@ -441,74 +443,36 @@ _class _Enumerator(obj_) {
     }
 }
 
-_class _IntegerRange(value_) {
-    private initialize() {
-        @value = value_;
-    }
-    public next() {
-        return new _IntegerRange(@value + 1);
-    }
-    public comp(a) {
-        return @value <=> a.value;
-    }
-}
-
-_class _StringRange(value_) {
-    var mixstr, noalnum;
-    private initialize() {
-        @value = value_;
-    }
-    public next() {
-        return new _StringRange(@value.next());
-    }
-    public comp(a) {
-        return @value <=> a.value;
-    }
-}
-
 _class _Range(start_, end_, excludeEnd_) {
     mixin _Enumerable;
     @isRange = true;
     var cur_;
     private initialize() {
-        if (start_.isInteger) {
-            start_ = new _IntegerRange(start_);
-            if (end_.isInteger) {
-                end_ = new _IntegerRange(end_);
-            }
-        }
-        if (start_.isString) {
-            start_ = new _StringRange(start_);
-            if (end_.isString) {
-                end_ = new _StringRange(end_);
-            }
-        }
         cur_ = start_;
     }
     public enumerator() {
         return new _RangeEnumerator(@lazy());
     }
     public begin() {
-        return start_.value;
+        return start_;
     }
     public end() {
-        return end_.value;
+        return end_;
     }
     public next() {
-        var v = cur_.next();
-        return v.value;
+        return cur_.next();
     }
     private eachByFunction(func) {
         var i = 0;
         while (true) {
-            if (end_ && excludeEnd_ && cur_.comp(end_) == 0) {
+            if (end_ && excludeEnd_ && (cur_ <=> end_) == 0) {
                 break;
             }
             var r = func(cur_.value, i++);
             if (r.isDefined && !r) {
                 break;
             }
-            if (end_ && !excludeEnd_ && cur_.comp(end_) == 0) {
+            if (end_ && !excludeEnd_ && (cur_ <=> end_) == 0) {
                 break;
             }
             cur_ = cur_.next();
@@ -521,13 +485,13 @@ _class _Range(start_, end_, excludeEnd_) {
         }
         while (true) {
             if (end_ && excludeEnd_) {
-                if (cur_.comp(end_) == 0) {
+                if ((cur_ <=> end_) == 0) {
                     return false;
                 }
             }
-            yield cur_.value;
+            yield cur_;
             if (end_ && !excludeEnd_) {
-                if (cur_.comp(end_) == 0) {
+                if ((cur_ <=> end_) == 0) {
                     return false;
                 }
             }
@@ -535,15 +499,15 @@ _class _Range(start_, end_, excludeEnd_) {
         }
     }
     public ==(rhs) {
-        if (start_.comp({ value: rhs }) > 0) {
+        if ((start_ <=> rhs) > 0) {
             return false;
         }
         if (excludeEnd_) {
-            if (end_.comp({ value: rhs }) <= 0) {
+            if ((end_ <=> rhs) <= 0) {
                 return false;
             }
         } else {
-            if (end_.comp({ value: rhs }) < 0) {
+            if ((end_ <=> rhs) < 0) {
                 return false;
             }
         }

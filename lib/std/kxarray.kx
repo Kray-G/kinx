@@ -77,7 +77,7 @@ Array.sort = _function(ary, comp) {
 
 Array.clone = (_function() {
     var depth = 0;
-    return _function(ary, tgt, deep) {
+    return _function(ary) {
         if (depth > 100) {
             throw RuntimeException('Too deep at clone()');
         }
@@ -108,7 +108,7 @@ Array.clone = (_function() {
 
 Array.extend = (_function() {
     var depth = 0;
-    return _function(ary, tgt, deep) {
+    return _function(ary, tgt) {
         if (depth > 100) {
             throw RuntimeException('Too deep at extend()');
         }
@@ -123,9 +123,9 @@ Array.extend = (_function() {
                 } else {
                     if (tgt[key].isObject) {
                         if (ary[key].extend.isFuntion) {
-                            ary[key].extend(tgt[key], deep);
+                            ary[key].extend(tgt[key]);
                         } else {
-                            ary[key] = {}.extend(tgt[key], deep);
+                            ary[key] = {}.extend(tgt[key]);
                         }
                     } else {
                         ary[key] = tgt[key];
