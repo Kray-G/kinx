@@ -9,6 +9,12 @@
 #include <kinx.h>
 #include <kxexec.h>
 
+#define KX_ADD_OP_NAME "+"
+#define KX_SUB_OP_NAME "-"
+#define KX_DIV_OP_NAME "/"
+#define KX_MOD_OP_NAME "%"
+#define KX_MUL_OP_NAME "*"
+
 void print_value(kx_val_t *v, int recursive)
 {
     switch (v->type) {
@@ -915,6 +921,22 @@ kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, const c
     return fn;
 }
 
+/* call operator function */
+
+kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cur, kx_fnc_t *fn)
+{
+    int count = 1;
+    *caller = cur;
+    if (fn->val.type) {
+        push_value(ctx->stack, fn->val);
+        ++count;
+    }
+    push_fnc(KX_FNC_T, ctx->stack, fn);
+    push_i(ctx->stack, count);
+    push_adr(ctx->stack, cur->next);
+    return fn->jp;
+}
+
 /* add */
 
 int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
@@ -988,11 +1010,328 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
     return exc;
 }
 
+#define KX_ADD_ADD_I(v1, val) { \
+    switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = (val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzAdd((v1)->value.bz, b2)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(b2); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.dv += (val); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        kstr_t *s = allocate_str(ctx); \
+        ks_appendf(s, "%s%d", (v1)->value.pv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_STR_T: { \
+        ks_appendf((v1)->value.sv, "%d", val); \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_appendf(sv, "%s%d", ks_string(out), val); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        fn = kx_get_object_operator_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
+    default: \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_ADD_ADD_B(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.bz = make_big_alive(ctx, BzAdd(bi, val)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        KX_BIGINT_CHKINT(v1); \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.bz = make_big_alive(ctx, BzCopy(val)); \
+        (v1)->type = KX_BIG_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        (v1)->value.bz = make_big_alive(ctx, BzAdd((v1)->value.bz, val)); \
+        (v1)->type = KX_BIG_T; \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.dv += BzToDouble(val); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        char *buf = BzToString(val, 10, 0); \
+        kstr_t *s = allocate_str(ctx); \
+        ks_appendf(s, "%s%s", (v1)->value.pv, buf); \
+        BzFreeString(buf); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_STR_T: { \
+        char *buf = BzToString(val, 10, 0); \
+        ks_append((v1)->value.sv, buf); \
+        BzFreeString(buf); \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_append(sv, ks_string(out)); \
+            char *buf = BzToString(val, 10, 0); \
+            ks_append((v1)->value.sv, buf); \
+            BzFreeString(buf); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        fn = kx_get_object_operator_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
+    default: \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_ADD_ADD_D(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        (v1)->value.dv = (double)(v1)->value.iv + (val); \
+        (v1)->type = KX_DBL_T; \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.dv = (val); \
+        (v1)->type = KX_DBL_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        (v1)->value.dv = BzToDouble((v1)->value.bz) + (val); \
+        (v1)->type = KX_DBL_T; \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.dv += (val); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        kstr_t *s = allocate_str(ctx); \
+        ks_appendf(s, "%s%g", (v1)->value.pv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_STR_T: { \
+        ks_appendf((v1)->value.sv, "%g", val); \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_append(sv, ks_string(out)); \
+            ks_appendf((v1)->value.sv, "%g", val); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        fn = kx_get_object_operator_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
+    default: \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_ADD_ADD_S(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        kstr_t *s = allocate_str(ctx); \
+        ks_appendf(s, "%d%s", (v1)->value.iv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        kstr_t *s = allocate_str(ctx); \
+        ks_append(s, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        kstr_t *s = allocate_str(ctx); \
+        char *buf = BzToString((v1)->value.bz, 10, 0); \
+        ks_appendf(s, "%s%s", buf, val); \
+        BzFreeString(buf); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        kstr_t *s = allocate_str(ctx); \
+        ks_appendf(s, "%g%s", (v1)->value.dv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        kstr_t *s = allocate_str(ctx); \
+        ks_appendf(s, "%s%s", (v1)->value.pv, val); \
+        (v1)->value.sv = s; \
+        (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_STR_T: { \
+        ks_append((v1)->value.sv, val); \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        kstr_t *out = kx_format(v1); \
+        if (out) { \
+            kstr_t *sv = allocate_str(ctx); \
+            ks_append(sv, ks_string(out)); \
+            ks_append(sv, val); \
+            ks_free(out); \
+            (v1)->type = KX_STR_T; \
+            (v1)->value.sv = sv; \
+            break; \
+        } \
+        fn = kx_get_object_operator_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
+    default: \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_ADD_ADD_BIN(v1, val) { \
+    if ((v1)->type == KX_BIN_T) { \
+        kv_append(uint8_t, v1->value.bn->bin, val); \
+    } else { \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
+    } \
+} \
+/**/
+#define KX_ADD_ADD_V(v1, v2) {\
+    if ((v2)->type == KX_INT_T) { \
+        KX_ADD_ADD_I(v1, (v2)->value.iv); \
+    } else switch ((v2)->type) { \
+    case KX_UND_T: { \
+        break; /* do nothing */ \
+    } \
+    case KX_BIG_T: { \
+        KX_ADD_ADD_B(v1, (v2)->value.bz); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        KX_ADD_ADD_D(v1, (v2)->value.dv); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        KX_ADD_ADD_S(v1, (v2)->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_ADD_ADD_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        KX_ADD_ADD_BIN(v1, (v2)->value.bn->bin); \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
+    default: \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+
+kx_fnc_t *kx_try_add(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_ADD_ADD_V(v1, v2);
+    } while (0);
+    return fn;
+}
+
+kx_fnc_t *kx_try_add_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_ADD_ADD_I(v1, cur->value1.i);
+    } while (0);
+    return fn;
+}
+
+kx_fnc_t *kx_try_add_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_ADD_ADD_D(v1, cur->value1.d);
+    } while (0);
+    return fn;
+}
+
+kx_fnc_t *kx_try_add_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_ADD_ADD_S(v1, cur->value1.s);
+    } while (0);
+    return fn;
+}
+
 /* div */
 
 #define KX_DIV_DIV_I(v1, val) { \
     if (val == 0 && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T) { \
-        exc = KXN_DIVIDE_BY_ZERO; \
+        *exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \
     if ((v1)->type == KX_INT_T) { \
@@ -1055,8 +1394,15 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_OBJ_T : { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -1122,15 +1468,22 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_OBJ_T : { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
 /**/
 #define KX_DIV_DIV_D(v1, val) { \
     if (val < DBL_EPSILON && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T) { \
-        exc = KXN_DIVIDE_BY_ZERO; \
+        *exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \
     switch ((v1)->type) { \
@@ -1172,8 +1525,15 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_OBJ_T : { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -1238,8 +1598,15 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_OBJ_T : { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -1274,54 +1641,61 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         KX_DIV_DIV_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
+    case KX_OBJ_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
 /**/
 
-int kx_try_div(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+kx_fnc_t *kx_try_div(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_DIV_DIV_V(v1, v2);
     } while (0);
-    return exc;
+    return fn;
 }
 
-int kx_try_div_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+kx_fnc_t *kx_try_div_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_DIV_DIV_I(v1, cur->value1.i);
     } while (0);
-    return exc;
+    return fn;
 }
 
-int kx_try_div_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+kx_fnc_t *kx_try_div_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_DIV_DIV_D(v1, cur->value1.d);
     } while (0);
-    return exc;
+    return fn;
 }
 
-int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+kx_fnc_t *kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_DIV_DIV_S(v1, cur->value1.s);
     } while (0);
-    return exc;
+    return fn;
 }
 
 /* mod */
 
 #define KX_MOD_MOD_I(v1, val) { \
     if (val == 0 && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T && (v1)->type != KX_OBJ_T) { \
-        exc = KXN_DIVIDE_BY_ZERO; \
+        *exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \
     if ((v1)->type == KX_INT_T) { \
@@ -1365,12 +1739,12 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         if (v && v->type == KX_STR_T) { \
             KEX_PUSH_ARRAY_INT(obj, val); \
         } else { \
-            exc = KXN_UNSUPPORTED_OPERATOR; \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
         } \
         break; \
     } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -1432,19 +1806,19 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         if (v && v->type == KX_STR_T) { \
             KEX_PUSH_ARRAY_BIG(obj, val); \
         } else { \
-            exc = KXN_UNSUPPORTED_OPERATOR; \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
         } \
         break; \
     } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
 /**/
 #define KX_MOD_MOD_D(v1, val) { \
     if (val < DBL_EPSILON && (v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T && (v1)->type != KX_OBJ_T) { \
-        exc = KXN_DIVIDE_BY_ZERO; \
+        *exc = KXN_DIVIDE_BY_ZERO; \
         break; \
     } \
     switch ((v1)->type) { \
@@ -1484,12 +1858,12 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         if (v && v->type == KX_STR_T) { \
             KEX_PUSH_ARRAY_DBL(obj, val); \
         } else { \
-            exc = KXN_UNSUPPORTED_OPERATOR; \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
         } \
         break; \
     } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -1513,12 +1887,12 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         if (v && v->type == KX_STR_T) { \
             KEX_PUSH_ARRAY_CSTR(obj, val); \
         } else { \
-            exc = KXN_UNSUPPORTED_OPERATOR; \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
         } \
         break; \
     } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -1554,50 +1928,49 @@ int kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
             ks_free(out); \
             break; \
         } \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
-        break; \
+        /* fall through */ \
     } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
 /**/
 
-int kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+kx_fnc_t *kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_MOD_MOD_V(v1, v2);
     } while (0);
-    return exc;
+    return fn;
 }
 
-int kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+kx_fnc_t *kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_MOD_MOD_I(v1, cur->value1.i);
     } while (0);
-    return exc;
+    return fn;
 }
 
-int kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+kx_fnc_t *kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_MOD_MOD_D(v1, cur->value1.d);
     } while (0);
-    return exc;
+    return fn;
 }
 
-int kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+kx_fnc_t *kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_MOD_MOD_S(v1, cur->value1.s);
     } while (0);
-    return exc;
+    return fn;
 }
 
 /* mul */
@@ -1859,6 +2232,470 @@ int kx_try_mul_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
     int exc = 0;
     do {
         KX_MUL_MUL_S(v1, cur->value1.s);
+    } while (0);
+    return exc;
+}
+
+/* and */
+
+#define KX_AND_AND_I(v1, val) { \
+    switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = 0; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzAnd((v1)->value.bz, b2)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(b2); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.iv = ((int64_t)(v1)->value.dv) & (val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_AND_AND_B(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.bz = make_big_alive(ctx, BzAnd(bi, val)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        KX_BIGINT_CHKINT(v1); \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = 0; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        (v1)->value.bz = make_big_alive(ctx, BzAnd((v1)->value.bz, val)); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        BigZ bi = BzFromInteger((BzInt)(v1)->value.dv); \
+        (v1)->value.bz = make_big_alive(ctx, BzAnd(bi, val)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_AND_AND_D(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        (v1)->value.iv = (v1)->value.iv & (int64_t)(val); \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = 0; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ b2 = BzFromInteger((int64_t)val); \
+        (v1)->value.bz = make_big_alive(ctx, BzAnd((v1)->value.bz, b2)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(b2); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.iv = (int64_t)((v1)->value.dv) & (int64_t)(val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_AND_AND_S(v1, val) { \
+    exc = KXN_UNSUPPORTED_OPERATOR; \
+} \
+/**/
+#define KX_AND_AND_V(v1, v2) {\
+    if (v2->type == KX_INT_T) { \
+        KX_AND_AND_I(v1, v2->value.iv); \
+    } else switch (v2->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = 0; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        KX_AND_AND_B(v1, v2->value.bz); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        KX_AND_AND_D(v1, v2->value.dv); \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+
+int kx_try_and(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    int exc = 0;
+    do {
+        KX_AND_AND_V(v1, v2);
+    } while (0);
+    return exc;
+}
+
+int kx_try_and_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_AND_AND_I(v1, cur->value1.i);
+    } while (0);
+    return exc;
+}
+
+int kx_try_and_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_AND_AND_D(v1, cur->value1.d);
+    } while (0);
+    return exc;
+}
+
+int kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_AND_AND_S(v1, cur->value1.s);
+    } while (0);
+    return exc;
+}
+
+/* or */
+
+#define KX_OR_OR_I(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        int64_t v1val = (v1)->value.iv; \
+        int64_t v2val = (val); \
+        (v1)->value.iv |= v2val; \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = val; \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzOr((v1)->value.bz, b2)); \
+        BzFree(b2); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.iv = ((int64_t)(v1)->value.dv) | (val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_OR_OR_B(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.bz = make_big_alive(ctx, BzOr(bi, val)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        KX_BIGINT_CHKINT(v1); \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.bz = val; \
+        (v1)->type = KX_BIG_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        (v1)->value.bz = make_big_alive(ctx, BzOr((v1)->value.bz, val)); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        BigZ bi = BzFromInteger((int64_t)(v1)->value.dv); \
+        (v1)->value.bz = make_big_alive(ctx, BzOr(bi, val)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_OR_OR_D(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        (v1)->value.iv = (v1)->value.iv | (int64_t)(val); \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = (int64_t)(val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ b2 = BzFromInteger((int64_t)(val)); \
+        (v1)->value.bz = make_big_alive(ctx, BzOr((v1)->value.bz, b2)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(b2); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.iv = (int64_t)((v1)->value.dv) | (int64_t)(val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_OR_OR_S(v1, val) { \
+    exc = KXN_UNSUPPORTED_OPERATOR; \
+} \
+/**/
+#define KX_OR_OR_V(v1, v2) {\
+    if (v2->type == KX_INT_T) { \
+        KX_OR_OR_I(v1, v2->value.iv); \
+    } else switch (v2->type) { \
+    case KX_UND_T: { \
+        v2->value.iv = 0; \
+        (v2)->type = KX_INT_T; \
+        KX_OR_OR_I(v1, v2->value.iv); \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        KX_OR_OR_B(v1, v2->value.bz); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        KX_OR_OR_D(v1, v2->value.dv); \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+
+int kx_try_or(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    int exc = 0;
+    do {
+        KX_OR_OR_V(v1, v2);
+    } while (0);
+    return exc;
+}
+
+int kx_try_or_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_OR_OR_I(v1, cur->value1.i);
+    } while (0);
+    return exc;
+}
+
+int kx_try_or_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_OR_OR_D(v1, cur->value1.d);
+    } while (0);
+    return exc;
+}
+
+int kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_OR_OR_S(v1, cur->value1.s);
+    } while (0);
+    return exc;
+}
+
+/* xor */
+
+#define KX_XOR_XOR_I(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        int64_t v1val = (v1)->value.iv; \
+        int64_t v2val = (val); \
+        (v1)->value.iv ^= v2val; \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = (val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ b2 = BzFromInteger(val); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor((v1)->value.bz, b2)); \
+        BzFree(b2); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.iv = ((int64_t)(v1)->value.dv) ^ (val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_XOR_XOR_B(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        BigZ bi = BzFromInteger((v1)->value.iv); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor(bi, val)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        KX_BIGINT_CHKINT(v1); \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.bz = val; \
+        (v1)->type = KX_BIG_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        (v1)->value.bz = make_big_alive(ctx, BzXor((v1)->value.bz, val)); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        BigZ bi = BzFromInteger((int64_t)(v1)->value.dv); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor(bi, val)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(bi); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_XOR_XOR_D(v1, val) { \
+    if ((v1)->type == KX_INT_T) { \
+        (v1)->value.iv = (v1)->value.iv ^ (int64_t)(val); \
+    } else switch ((v1)->type) { \
+    case KX_UND_T: { \
+        (v1)->value.iv = (int64_t)(val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        BigZ b2 = BzFromInteger((int64_t)(val)); \
+        (v1)->value.bz = make_big_alive(ctx, BzXor((v1)->value.bz, b2)); \
+        (v1)->type = KX_BIG_T; \
+        BzFree(b2); \
+        KX_BIGINT_CHKINT(v1); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        (v1)->value.iv = (int64_t)((v1)->value.dv) ^ (int64_t)(val); \
+        (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+#define KX_XOR_XOR_S(v1, val) { \
+    exc = KXN_UNSUPPORTED_OPERATOR; \
+} \
+/**/
+#define KX_XOR_XOR_V(v1, v2) {\
+    if (v2->type == KX_INT_T) { \
+        KX_XOR_XOR_I(v1, v2->value.iv); \
+    } else switch (v2->type) { \
+    case KX_UND_T: { \
+        v2->value.iv = 0; \
+        (v2)->type = KX_INT_T; \
+        KX_XOR_XOR_I(v1, v2->value.iv); \
+        break; \
+    } \
+    case KX_BIG_T: { \
+        KX_XOR_XOR_B(v1, v2->value.bz); \
+        break; \
+    } \
+    case KX_DBL_T: { \
+        KX_XOR_XOR_D(v1, v2->value.dv); \
+        break; \
+    } \
+    default: \
+        exc = KXN_UNSUPPORTED_OPERATOR; \
+        break; \
+    } \
+} \
+/**/
+
+int kx_try_xor(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    int exc = 0;
+    do {
+        KX_XOR_XOR_V(v1, v2);
+    } while (0);
+    return exc;
+}
+
+int kx_try_xor_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_XOR_XOR_I(v1, cur->value1.i);
+    } while (0);
+    return exc;
+}
+
+int kx_try_xor_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_XOR_XOR_D(v1, cur->value1.d);
+    } while (0);
+    return exc;
+}
+
+int kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
+{
+    int exc = 0;
+    do {
+        KX_XOR_XOR_S(v1, cur->value1.s);
     } while (0);
     return exc;
 }

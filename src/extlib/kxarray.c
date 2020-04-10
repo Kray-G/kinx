@@ -517,6 +517,19 @@ static void make_value_str(kstr_t *str, kx_val_t *v, int level)
     case KX_STR_T:
         make_quote_string(str, ks_string(v->value.sv));
         break;
+    case KX_BIN_T: {
+        ks_append(str, "[");
+        kx_bin_t *bin = v->value.bn;
+        int len = kv_size(bin->bin);
+        for (int i = 0; i < len; ++i) {
+            if (i > 0) {
+                ks_append(str, ", ");
+            }
+            ks_appendf(str, "0x%02x", kv_A(bin->bin, i));
+        }
+        ks_append(str, "]");
+        break;
+    }
     case KX_OBJ_T: {
         kstr_t *out = kx_format(v);
         if (out) {

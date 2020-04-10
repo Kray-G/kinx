@@ -6,6 +6,7 @@ extern int kx_value_false(kx_context_t *ctx, kx_val_t *v);
 extern void kx_check_bigint(kx_context_t *ctx, kx_val_t *v);
 extern kx_fnc_t *kx_get_object_operator_function(kx_context_t *ctx, kx_val_t *v, const char *name);
 extern kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, const char *name);
+extern kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cur, kx_fnc_t *fn);
 
 #define KX_IS_TRUE(v, tf) \
     int tf = ((v)->type == KX_INT_T) ? (v)->value.iv : kx_value_true(ctx, v); \
@@ -75,18 +76,9 @@ extern kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, 
 
 #define CALL_OP_FUNCTION(fn, cur, v1, arg2) \
     if (fn) { \
-        int count = 1; \
         kv_remove_last((ctx)->stack); \
-        caller = cur; \
         arg2; \
-        if (fn->val.type) { \
-            push_value((ctx)->stack, fn->val); \
-            ++count; \
-        } \
-        push_fnc(KX_FNC_T, (ctx)->stack, fn); \
-        push_i((ctx)->stack, count); \
-        push_adr((ctx)->stack, cur->next); \
-        cur = fn->jp; \
+        cur = kx_goto_function(ctx, &caller, cur, fn); \
     } else { \
         cur = cur->next; \
     } \

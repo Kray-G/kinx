@@ -1,127 +1,14 @@
-#define KX_OR_OR_I(v1, val) { \
-    if ((v1)->type == KX_INT_T) { \
-        int64_t v1val = (v1)->value.iv; \
-        int64_t v2val = (val); \
-        (v1)->value.iv |= v2val; \
-    } else switch ((v1)->type) { \
-    case KX_UND_T: { \
-        (v1)->value.iv = val; \
-        (v1)->type = KX_INT_T; \
-        break; \
-    } \
-    case KX_BIG_T: { \
-        BigZ b2 = BzFromInteger(val); \
-        (v1)->value.bz = make_big_alive(ctx, BzOr((v1)->value.bz, b2)); \
-        BzFree(b2); \
-        KX_BIGINT_CHKINT(v1); \
-        break; \
-    } \
-    case KX_DBL_T: { \
-        (v1)->value.iv = ((int64_t)(v1)->value.dv) | (val); \
-        (v1)->type = KX_INT_T; \
-        break; \
-    } \
-    default: \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-} \
-/**/
-#define KX_OR_OR_B(v1, val) { \
-    if ((v1)->type == KX_INT_T) { \
-        BigZ bi = BzFromInteger((v1)->value.iv); \
-        (v1)->value.bz = make_big_alive(ctx, BzOr(bi, val)); \
-        (v1)->type = KX_BIG_T; \
-        BzFree(bi); \
-        KX_BIGINT_CHKINT(v1); \
-    } else switch ((v1)->type) { \
-    case KX_UND_T: { \
-        (v1)->value.bz = val; \
-        (v1)->type = KX_BIG_T; \
-        break; \
-    } \
-    case KX_BIG_T: { \
-        (v1)->value.bz = make_big_alive(ctx, BzOr((v1)->value.bz, val)); \
-        KX_BIGINT_CHKINT(v1); \
-        break; \
-    } \
-    case KX_DBL_T: { \
-        BigZ bi = BzFromInteger((int64_t)(v1)->value.dv); \
-        (v1)->value.bz = make_big_alive(ctx, BzOr(bi, val)); \
-        (v1)->type = KX_BIG_T; \
-        BzFree(bi); \
-        KX_BIGINT_CHKINT(v1); \
-        break; \
-    } \
-    default: \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-} \
-/**/
-#define KX_OR_OR_D(v1, val) { \
-    if ((v1)->type == KX_INT_T) { \
-        (v1)->value.iv = (v1)->value.iv | (int64_t)(val); \
-        (v1)->type = KX_INT_T; \
-    } else switch ((v1)->type) { \
-    case KX_UND_T: { \
-        (v1)->value.iv = (int64_t)(val); \
-        (v1)->type = KX_INT_T; \
-        break; \
-    } \
-    case KX_BIG_T: { \
-        BigZ b2 = BzFromInteger((int64_t)(val)); \
-        (v1)->value.bz = make_big_alive(ctx, BzOr((v1)->value.bz, b2)); \
-        (v1)->type = KX_BIG_T; \
-        BzFree(b2); \
-        KX_BIGINT_CHKINT(v1); \
-        break; \
-    } \
-    case KX_DBL_T: { \
-        (v1)->value.iv = (int64_t)((v1)->value.dv) | (int64_t)(val); \
-        (v1)->type = KX_INT_T; \
-        break; \
-    } \
-    default: \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-} \
-/**/
-#define KX_OR_OR_S(v1, val) { \
-    THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-} \
-/**/
-#define KX_OR_OR_V(v1, v2) {\
-    if (v2->type == KX_INT_T) { \
-        KX_OR_OR_I(v1, v2->value.iv); \
-    } else switch (v2->type) { \
-    case KX_UND_T: { \
-        v2->value.iv = 0; \
-        (v2)->type = KX_INT_T; \
-        KX_OR_OR_I(v1, v2->value.iv); \
-        break; \
-    } \
-    case KX_BIG_T: { \
-        KX_OR_OR_B(v1, v2->value.bz); \
-        break; \
-    } \
-    case KX_DBL_T: { \
-        KX_OR_OR_D(v1, v2->value.dv); \
-        break; \
-    } \
-    default: \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-} \
-/**/
 
 #define KX_OR_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
     KEX_GET_STACK_TOP(v1); \
-    KX_OR_OR_V(v1, v2); \
+    if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
+        (v1)->value.iv |= (v2)->value.iv; \
+    } else { \
+        int r = kx_try_or(ctx, cur, v1, v2); \
+        KX_EXCEPTION_CHECK("SystemException", r); \
+    } \
     cur = cur->next; \
 } \
 /**/
@@ -129,7 +16,12 @@
 #define KX_ORI_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    KX_OR_OR_I(v1, cur->value1.i); \
+    if (v1->type == KX_INT_T) { \
+        (v1)->value.iv |= cur->value1.i; \
+    } else { \
+        int r = kx_try_or_i(ctx, cur, v1); \
+        KX_EXCEPTION_CHECK("SystemException", r); \
+    } \
     cur = cur->next; \
 } \
 /**/
@@ -137,7 +29,12 @@
 #define KX_ORD_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    KX_OR_OR_D(v1, cur->value1.d); \
+    if (v1->type == KX_INT_T) { \
+        (v1)->value.iv |= (int64_t)(cur->value1.d); \
+    } else { \
+        int r = kx_try_or_d(ctx, cur, v1); \
+        KX_EXCEPTION_CHECK("SystemException", r); \
+    } \
     cur = cur->next; \
 } \
 /**/
@@ -145,7 +42,8 @@
 #define KX_ORS_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    KX_OR_OR_S(v1, cur->value1.s); \
+    int r = kx_try_or_s(ctx, cur, v1); \
+    KX_EXCEPTION_CHECK("SystemException", r); \
     cur = cur->next; \
 } \
 /**/
@@ -154,7 +52,12 @@
 { \
     KEX_GET_STACK_TOP(v1); \
     KEX_GET_VAR_ADDR(v2); \
-    KX_OR_OR_V(v1, v2); \
+    if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
+        (v1)->value.iv |= (v2)->value.iv; \
+    } else { \
+        int r = kx_try_or(ctx, cur, v1, v2); \
+        KX_EXCEPTION_CHECK("SystemException", r); \
+    } \
     cur = cur->next; \
 } \
 /**/
