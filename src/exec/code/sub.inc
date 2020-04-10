@@ -2,7 +2,9 @@
     if ((v1)->type == KX_INT_T) { \
         int64_t v1val = (v1)->value.iv; \
         int64_t v2val = (val); \
-        if (v1val > 0 && v2val < 0) { \
+        if (v1val > 0 && v2val > 0) { \
+            (v1)->value.iv -= v2val; \
+        } else if (v1val > 0 && v2val < 0) { \
             int64_t v = (v1)->value.iv - v2val; \
             if (v < 0) { \
                 BigZ b2 = BzFromInteger(v2val); \
