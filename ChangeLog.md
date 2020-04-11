@@ -5,11 +5,22 @@
 *   Documentation complete.
 *   REPL (Read-Eval-Print Loop).
 *   Library mode like `libkinx.so`.
-*   Signal Trap.
 *   Some Optimaizations.
 *   User selectable installation.
 
-## V0.4.0 (Current Development)
+## V0.5.0 (Current Development)
+
+## V0.4.0 (4th Preview Release)
+
+Updates from v0.3.1.
+
+*   Updated
+    *   Supported Enumerable module.
+    *   Supported Range object and the syntax of `n..m` and `n...m`.
+    *   Supported `for-in` statement.
+    *   Updated a spread operator to use with any expressions.
+    *   Supported some operators like `==` as a property name.
+    *   Supported a spread operator with declaration statement.
 
 ## V0.3.1 (3rd Preview Release)
 
