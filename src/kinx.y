@@ -129,7 +129,6 @@
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
 %type<obj> CallArgument
-%type<obj> SpreadItem
 %type<intval> NativeType_Opt
 %type<intval> TypeName
 %type<intval> ReturnType_Opt
@@ -608,9 +607,9 @@ Comma_Opt
 
 ArrayItemList
     : AssignExpression
-    | DOTS3 SpreadItem { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
+    | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
-    | ArrayItemList ',' DOTS3 SpreadItem { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
+    | ArrayItemList ',' DOTS3 AssignRightHandSide { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
     ;
 
 AssignExpressionList
@@ -634,7 +633,7 @@ KeyValue
     : '(' STR ')' ':' AssignExpression { $$ = kx_gen_keyvalue_object($2, $5); }
     | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | KeySpecialName ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
-    | DOTS3 SpreadItem { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
+    | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
     ;
 
 KeySpecialName
@@ -827,22 +826,15 @@ CallArgumentList_Opts
 
 CallArgumentList
     : CallArgument
-    | DOTS3 SpreadItem { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
+    | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | CallArgumentList ',' CallArgument { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $3, $1); }
-    | CallArgumentList ',' DOTS3 SpreadItem { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, kx_gen_uexpr_object(KXOP_SPREAD, $4), $1); }
+    | CallArgumentList ',' DOTS3 AssignRightHandSide { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, kx_gen_uexpr_object(KXOP_SPREAD, $4), $1); }
     ;
 
 CallArgument
     : AssignExpression
     | ObjectSpecialSyntax
     | STR { $$ = kx_gen_str_object($1); }
-    ;
-
-SpreadItem
-    : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | Array { $$ = $1; }
-    | Binary { $$ = $1; }
-    | Object { $$ = $1; }
     ;
 
 %%
