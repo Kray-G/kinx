@@ -498,7 +498,10 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
             assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name, KX_OBJ_T), kx_gen_str_object("create"));
             assign = kx_gen_bassign_object(KXOP_DECL, assign, obj);
         } else {
-            assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name, KX_UNKNOWN_T), obj);
+            kx_object_t *v = kx_gen_var_object(name, KX_UNKNOWN_T);
+            v->optional = KXDC_CONST;
+            v->init = obj;
+            assign = kx_gen_bassign_object(KXOP_ASSIGN, v, obj);
         }
     }
     kx_object_t *stmt;
