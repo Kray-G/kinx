@@ -195,8 +195,12 @@ _module _Enumerable {
         }
         var pf = src_;
         src_ = new Fiber(&{
-            for (var i = 0; i < n; ++i) {
-                yield pf.resume();
+            for (var i = 0; i < n && pf.isAlive(); ++i) {
+                var v = pf.resume();
+                if (!pf.isAlive()) {
+                    break;
+                }
+                yield v;
             }
         });
         return genEnumerator();
@@ -226,8 +230,11 @@ _module _Enumerable {
         }
         var pf = src_;
         src_ = new Fiber(&{
-            for (var i = 0; i < n; ++i) {
+            for (var i = 0; i < n && pf.isAlive(); ++i) {
                 pf.resume();
+                if (!pf.isAlive()) {
+                    break;
+                }
             }
             while (pf.isAlive()) {
                 var v = pf.resume();
