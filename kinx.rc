@@ -3,8 +3,8 @@
 KINXICO ICON DISCARDABLE "kinxi.ico"
 
 VS_VERSION_INFO    VERSIONINFO 
-FILEVERSION        0,4,0,0
-PRODUCTVERSION     0,4,0,0
+FILEVERSION        0,4,1,0
+PRODUCTVERSION     0,4,1,0
 FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK 
 FILEFLAGS          0x00000000L
 FILEOS             VOS__WINDOWS32
@@ -22,12 +22,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "-"
             VALUE "FileDescription",  "Kinx Scripting Platform"
-            VALUE "FileVersion",      "0.4.0.0\0"
+            VALUE "FileVersion",      "0.4.1.0\0"
             VALUE "InternalName",     "Kinx\0"
             VALUE "LegalCopyright",   "Copyright (C) 2019-2020 Kray-G\0"
             VALUE "OriginalFilename", "kinx.exe\0"
             VALUE "ProductName",      "Kinx\0"
-            VALUE "ProductVersion",   "0.4.0.0\0"
+            VALUE "ProductVersion",   "0.4.1.0\0"
         END 
     END
 END
