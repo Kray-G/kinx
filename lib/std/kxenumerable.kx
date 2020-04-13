@@ -315,6 +315,9 @@ _module _Enumerable {
         var r = [];
         while (src_.isAlive()) {
             v = src_.resume();
+            if (!src_.isAlive()) {
+                break;
+            }
             r.push(v);
         }
         return r;
