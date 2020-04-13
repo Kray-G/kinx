@@ -4,7 +4,7 @@ b = c = 1;
 
 LABEL:
 while (1) {
-    for (var x = 0; true; ++x) {
+    for (var x = 0; x < 100; ) {
         System.println("b == %{b}, c == %{c}, x = %{x}");
         if (c == 11) {
             break LABEL;
@@ -13,5 +13,6 @@ while (1) {
         if (c == 10) {
             continue;
         }
+        ++x;
     }
 }
