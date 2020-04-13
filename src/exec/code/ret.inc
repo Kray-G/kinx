@@ -262,7 +262,6 @@
     kx_code_t *radr = kv_A((ctx)->stack, last - 1).value.jp; \
     int count = kv_A((ctx)->stack, last - 2).value.iv; \
     fnco = kv_A((ctx)->stack, last - 3).value.fn; \
-    fnco->fiber = 1; \
     fnco->fbpos = cur->next; \
     kv_shrinkto(fnco->stack, 0); \
     for (int i = sz - 1; i >= last; --i) { \

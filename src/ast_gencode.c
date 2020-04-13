@@ -1347,64 +1347,76 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             break;
         }
 
+
+        int prev = ana->block;
+        get_block(module, prev)->tf[0] = stmt;
+        int itop = 0, iend = 0, ctop = 0, cend = 0, xtop = 0, xend = 0, ttop = 0, tend = 0;
         if (forcond->lhs) {
-            int init = new_block(ana);
-            ana->block = init;
-            get_block(module, stmt)->tf[0] = init;
+            itop = new_block(ana);
+            ana->block = itop;
             gencode_ast_hook(ctx, forcond->lhs, ana, 0);
-            stmt = ana->block;
+            iend = ana->block;
+        } else {
+            iend = stmt;
         }
         ana->break_label = stmt;
         ana->cont_label = stmt;
 
-        int thtop, thend;
         if (node->rhs) {
-            thtop = new_block(ana);
-            ana->block = thtop;
+            ttop = new_block(ana);
+            ana->block = ttop;
             gencode_ast_hook(ctx, node->rhs, ana, 0);
-            thend = ana->block;
-        } else {
-            thend = stmt;
+            tend = ana->block;
         }
 
-        int condtop, condend;
         if (forcond->ex) {
-            condtop = new_block(ana);
-            get_block(module, thend)->tf[0] = condtop;
-            ana->block = condtop;
+            xtop = new_block(ana);
+            ana->block = xtop;
             gencode_ast_hook(ctx, forcond->ex, ana, 0);
-            condend = new_block(ana);
-            get_block(module, ana->block)->tf[0] = condend;
-        } else {
-            condtop = condend = new_block(ana);
+            xend = ana->block;
         }
 
         if (forcond->rhs) {
-            ana->block = condend;
+            ctop = new_block(ana);
+            ana->block = ctop;
             gencode_ast_hook(ctx, forcond->rhs, ana, 0);
-            condend = ana->block;
+            cend = ana->block;
         }
-        if (node->rhs) {
-            get_block(module, thend)->tf[0] = condtop;
-            get_block(module, condend)->tf[0] = thtop;
-            if (forcond->rhs && (forcond->rhs->type == KXVL_TRUE || (forcond->rhs->type == KXVL_INT && forcond->rhs->value.i != 0))) {
-                get_block(module, stmt)->tf[0] = thtop;
-            } else {
-                get_block(module, stmt)->tf[0] = condend;
-            }
-        } else {
-            get_block(module, stmt)->tf[0] = condend;
-            get_block(module, condend)->tf[0] = condtop;
+
+        if (!ctop) {
+            ctop = ttop > 0 ? ttop : xtop > 0 ? xtop : itop > 0 ? itop : stmt;
+        }
+        if (!xtop) {
+            xtop = ctop;
+        }
+        if (!ttop) {
+            ttop = xtop;
+        }
+        if (!itop) {
+            itop = ctop;
+        }
+        if (!tend) {
+            tend = cend > 0 ? cend : iend;
+        }
+        if (!xend) {
+            xend = tend;
         }
 
         int out = new_block(ana);
-        get_block(module, condend)->tf[1] = out;
+        get_block(module, stmt)->tf[0] = itop;
+        get_block(module, iend)->tf[0] = ctop;
+        get_block(module, tend)->tf[0] = xtop;
+        get_block(module, xend)->tf[0] = ctop;
+        if (cend) {
+            get_block(module, cend)->tf[0] = ttop;
+            get_block(module, cend)->tf[1] = out;
+        }
         get_block(module, stmt)->tf[2] = out;
-        get_block(module, stmt)->tf[3] = condtop;
+        get_block(module, stmt)->tf[3] = xtop;
 
         ana->cont_label = cont_label;
         ana->break_label = break_label;
-        ana->contblock = condtop;
+        ana->contblock = xtop;
         ana->block = out;
         break;
     }
