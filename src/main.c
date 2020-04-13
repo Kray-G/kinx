@@ -15,7 +15,7 @@
 #define VER_MIN 4
 #endif
 #ifndef VER_PAT
-#define VER_PAT 0
+#define VER_PAT 1
 #endif
 
 extern void init_allocator(void);
