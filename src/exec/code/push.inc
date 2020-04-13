@@ -145,6 +145,7 @@
 
 #define KX_PUSH_CO_CODE() \
 { \
+    fnco->fiber = 1; \
     push_coroutine((ctx)->stack); \
     cur = cur->next; \
 } \
