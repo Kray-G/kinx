@@ -11,6 +11,7 @@ var c = b >> 1;   // 1010 >> 1 => 0101
 ```
 
 This can be also used with assignment operator as `<<=` or `>>=`.
+Those operators will automatically make it promote to Big Integer when it is over 64 bit integer range.
 
 ```javascript
 var a = 0x05;
