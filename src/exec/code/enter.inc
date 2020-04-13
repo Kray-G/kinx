@@ -62,18 +62,23 @@
         frm->is_internal = cur->is_internal; \
         frm->caller = caller; \
         frm->prv = frmv; \
+        lexv = frm->lex = fnco->lex; \
+        int max_args = args > cur->count ? cur->count : args; \
         int max_vars = cur->value2.i; \
         kv_resize_if(kx_val_t, frm->v, max_vars); \
         kv_shrinkto(frm->v, max_vars); \
-        int max_args = args > cur->count ? cur->count : args; \
-        lexv = frm->lex = fnco->lex; \
-        kx_val_t *v = (frm->v).a; \
-        kx_val_t *e = v + max_vars; \
-        for (int i = 0; i < max_args; ++i) { \
-            *v++ = *(--stack); \
-        } \
-        while (v != e) { \
-            (v++)->type = KX_UND_T; \
+        if (max_vars == 1 && max_args == 1) { \
+            *((frm->v).a) = *(--stack); \
+        } else { \
+            kx_val_t *v = (frm->v).a; \
+            kx_val_t *d = v + max_args; \
+            kx_val_t *e = v + max_vars; \
+            while (v != d) { \
+                *v++ = *(--stack); \
+            } \
+            while (v != e) { \
+                (v++)->type = KX_UND_T; \
+            } \
         } \
         push_frm((ctx)->stack, frm); \
         frmv = frm; \

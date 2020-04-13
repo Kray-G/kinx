@@ -29,9 +29,6 @@ void init_allocation(kx_context_t *ctx)
     for (int i = 0; i < KX_INIT_FRM_COUNT; ++i) {
         kv_push(kx_frm_t*, ctx->frm_dead, (kx_frm_t *)kx_calloc(1, sizeof(kx_frm_t)));
     }
-    for (int i = 0; i < KX_INIT_KXN_COUNT; ++i) {
-        kv_push(kx_val_t*, ctx->val_dead, (kx_val_t *)kx_calloc(1, sizeof(kx_val_t)));
-    }
 }
 
 kx_context_t *make_context(void)
