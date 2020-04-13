@@ -10,6 +10,12 @@
 
 ## V0.5.0 (Current Development)
 
+Updates from v0.4.1.
+
+*   Updated
+    *   Changed the function name to be treated as a constant.
+    *   Some bug fixes.
+
 ## V0.4.1 (4th Preview Release)
 
 Updates from v0.3.1.
@@ -21,6 +27,7 @@ Updates from v0.3.1.
     *   Updated a spread operator to use with any expressions.
     *   Supported some operators like `==` as a property name.
     *   Supported a spread operator with declaration statement.
+    *   Some bug fixes.
 
 ## V0.3.1 (3rd Preview Release)
 
@@ -30,6 +37,7 @@ Updates from v0.2.0.
     *   Combining ternary expressions.
     *   Updated Fiber.
     *   Supported Signal.
+    *   Some bug fixes.
 
 ## V0.2.0 (2nd Preview Release)
 
