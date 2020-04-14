@@ -2059,6 +2059,7 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
 #define KX_ADD_ADD_BIN(v1, val) { \
     if ((v1)->type == KX_BIN_T) { \
         kv_append(uint8_t, v1->value.bn->bin, val); \
+        break; \
     } else if ((v1)->type == KX_OBJ_T) { \
         fn = kx_get_object_operator_function(ctx, v1, KX_ADD_OP_NAME); \
         if (fn) { \
@@ -4010,8 +4011,9 @@ void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
     }
 }
 
-void kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+int kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
 {
+    int exc = 0;
     assert(v2->type == KX_LVAL_T);
     kx_val_t *vp = v2->value.lv;
     if (v1->type != KX_OBJ_T) {
@@ -4029,25 +4031,61 @@ void kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v
         } else {
             vp->type = KX_UND_T;
         }
-        return;
+        return exc;
     }
 
     int len = kv_size(v1->value.ov->ary);
     if (cur->value1.i < len) {
         kx_val_t *v = &kv_A(v1->value.ov->ary, cur->value1.i);
-        if (v->type == KX_STR_T) {
-            vp->type = KX_STR_T;
-            vp->value.sv = allocate_str(ctx);
-            ks_append(vp->value.sv, ks_string(v->value.sv));
-        } else if (v->type == KX_BIG_T) {
-            vp->type = KX_BIG_T;
-            vp->value.bz = make_big_alive(ctx, BzCopy(v->value.bz));
+        if (vp->has_pos) {
+            if (vp->type == KX_STR_T || vp->type == KX_CSTR_T) {
+                if (vp->type == KX_CSTR_T) {
+                    kstr_t *s = allocate_str(ctx);
+                    ks_append(s, vp->value.pv);
+                    vp->type = KX_STR_T;
+                    vp->value.sv = s;
+                }
+                char *pv = ks_string(vp->value.sv);
+                if (v->type == KX_INT_T) {
+                    pv[vp->has_pos] = v->value.iv;
+                } else if (v->type == KX_CSTR_T) {
+                    pv[vp->has_pos] = v->value.pv[0];
+                } else if (v->type == KX_STR_T) {
+                    pv[vp->has_pos] = ks_string(v->value.sv)[0];
+                } else {
+                    exc = KXN_UNSUPPORTED_OPERATOR;
+                }
+            } else if (vp->type == KX_BIN_T) {
+                uint8_t *bin = &kv_A(vp->value.bn->bin, 0);
+                if (v->type == KX_INT_T) {
+                    bin[vp->pos] = (v->value.iv) & 0xFF;
+                } else if (v->type == KX_CSTR_T) {
+                    bin[vp->pos] = v->value.pv[0];
+                } else if (v->type == KX_STR_T) {
+                    bin[vp->pos] = ks_string(v->value.sv)[0];
+                } else {
+                    exc = KXN_UNSUPPORTED_OPERATOR;
+                }
+            } else {
+                exc = KXN_UNSUPPORTED_OPERATOR;
+            }
         } else {
-            *vp = *v; /* structure copy. */
+            if (v->type == KX_STR_T) {
+                vp->type = KX_STR_T;
+                vp->value.sv = allocate_str(ctx);
+                ks_append(vp->value.sv, ks_string(v->value.sv));
+            } else if (v->type == KX_BIG_T) {
+                vp->type = KX_BIG_T;
+                vp->value.bz = make_big_alive(ctx, BzCopy(v->value.bz));
+            } else {
+                *vp = *v; /* structure copy. */
+            }
         }
     } else {
         vp->type = KX_UND_T;
     }
+
+    return exc;
 }
 
 void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
