@@ -143,20 +143,26 @@ kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object
         ),
         kx_gen_stmt_object(KXST_FOR,
             kx_gen_stmt_object(KXST_FORCOND,
-                kx_gen_bassign_object(KXOP_ASSIGN, var,
-                    kx_gen_bexpr_object(KXOP_CALL,
-                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
-                    )
+                kx_gen_stmt_object(KXST_EXPR,
+                    kx_gen_bassign_object(KXOP_ASSIGN, var,
+                        kx_gen_bexpr_object(KXOP_CALL,
+                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
+                        )
+                    ),
+                    NULL, NULL
                 ),
                 kx_gen_uexpr_object(KXOP_NOT,
                     kx_gen_bexpr_object(KXOP_CALL,
                         kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("isEnded")), NULL
                     )
                 ),
-                kx_gen_bassign_object(KXOP_ASSIGN, var,
-                    kx_gen_bexpr_object(KXOP_CALL,
-                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
-                    )
+                kx_gen_stmt_object(KXST_EXPR,
+                    kx_gen_bassign_object(KXOP_ASSIGN, var,
+                        kx_gen_bexpr_object(KXOP_CALL,
+                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
+                        )
+                    ),
+                    NULL, NULL
                 )
             ),
             stmt,
@@ -498,7 +504,10 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
             assign = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name, KX_OBJ_T), kx_gen_str_object("create"));
             assign = kx_gen_bassign_object(KXOP_DECL, assign, obj);
         } else {
-            assign = kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(name, KX_UNKNOWN_T), obj);
+            kx_object_t *v = kx_gen_var_object(name, KX_UNKNOWN_T);
+            v->optional = KXDC_CONST;
+            v->init = obj;
+            assign = kx_gen_bassign_object(KXOP_ASSIGN, v, obj);
         }
     }
     kx_object_t *stmt;
