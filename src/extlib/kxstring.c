@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <ctype.h>
 #include <kinx.h>
 
 KX_DECL_MEM_ALLOCATORS();
@@ -434,6 +435,125 @@ int String_parentPath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
 }
 
+int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (!str) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value");
+    }
+
+    kstr_t *sv = allocate_str(ctx);
+    if (str[0] == 0) {
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, sv);
+        return 0;
+    }
+
+    int minus = str[0] == '-';
+    int alnum = minus ? 1 : 0;
+    int other = 0;
+    int len = strlen(str);
+    for (int i = alnum; i < len; ++i) {
+        if (isalnum(str[i])) {
+            ++alnum;
+        } else {
+            ++other;
+        }
+    }
+
+    int mixstr = other != 0;
+    int noalnum = alnum == 0;
+    char *bin = (char *)kx_calloc(len + 1, sizeof(char));
+    int prv = 0;
+
+    if (noalnum) {
+        for (int i = 0; i < len; ++i) {
+            bin[i] = (str[i] + 1) % 0xFF;
+        }
+    } else if (mixstr) {
+        for (int i = 0; i < len; ++i) {
+            int ch = str[i];
+            if (ch == '9') {
+                bin[i] = '0';
+            } else if (ch == 'z') {
+                bin[i] = 'a';
+            } else if (ch == 'Z') {
+                bin[i] = 'A';
+            } else if (isalnum(ch)) {
+                bin[i] = ch + 1;
+            } else {
+                bin[i] = ch;
+            }
+        }
+    } else {
+        int idx = len - 1;
+        int head = minus ? 1 : 0;
+        prv = 1;
+        for (int i = idx; i >= head; --i) {
+            int ch = str[i];
+            if (ch == '9') {
+                if (prv) {
+                    bin[i] = '0';
+                    prv = '1';
+                } else {
+                    bin[i] = '9';
+                }
+            } else if (ch == 'z') {
+                if (prv) {
+                    bin[i] = 'a';
+                    prv = 'a';
+                } else {
+                    bin[i] = 'z';
+                }
+            } else if (ch == 'Z') {
+                if (prv) {
+                    bin[i] = 'A';
+                    prv = 'A';
+                } else {
+                    bin[i] = 'Z';
+                }
+            } else if (ch == 0xFF) {
+                bin[i] = 0;
+                prv = 1;
+            } else if (isalnum(ch)) {
+                if (prv) {
+                    bin[i] = ch + 1;
+                } else {
+                    bin[i] = ch;
+                }
+                prv = 0;
+            } else {
+                bin[i] = ch;
+                prv = 0;
+            }
+        }
+    }
+
+    if (minus) {
+        if (prv) {
+            bin[0] = prv;
+            ks_append(sv, "-");
+            ks_append(sv, bin);
+        } else {
+            bin[0] = '-';
+            ks_append(sv, bin);
+        }
+    } else {
+        if (prv) {
+            char buf[] = { prv, 0 };
+            ks_append(sv, buf);
+            ks_append(sv, bin);
+        } else {
+            ks_append(sv, bin);
+        }
+    }
+
+    kx_free(bin);
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", String_length },
     { "parseInt", String_parseInt },
@@ -455,6 +575,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "extension", String_extension },
     { "filename", String_filename },
     { "parentPath", String_parentPath },
+    { "next", String_next },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
