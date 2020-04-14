@@ -589,11 +589,11 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "push", Array_push },
     { "pop", Array_pop },
     { "shift", Array_shift },
-    { "join", Array_join },
+    { "joinImpl", Array_join },
+    { "toStringImpl", Array_toString },
     { "unshift", Array_unshift },
     { "reverse", Array_reverse },
     { "flatten", Array_flatten },
-    { "toString", Array_toString },
     { "toJsonString", Array_toJsonString },
     { "printStackTrace", Array_printStackTrace },
 };
