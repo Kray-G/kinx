@@ -84,28 +84,30 @@ Array.toString = (_function() {
     };
 })();
 
-_function _quicksort(a, first, last, comp) {
-    var i = first;
-    var j = last;
-    var x = a[(first + last) / 2];
-    while (true) {
-        while (comp(a[i], x) < 0) i++;
-        while (comp(x, a[j]) < 0) j--;
-        if (i >= j) break;
-        [a[i], a[j]] = [a[j], a[i]];
-        ++i; --j;
+Array.sort = (_function() {
+    _function _quicksort(a, first, last, comp) {
+        var i = first;
+        var j = last;
+        var x = a[(first + last) / 2];
+        while (true) {
+            while (comp(a[i], x) < 0) i++;
+            while (comp(x, a[j]) < 0) j--;
+            if (i >= j) break;
+            [a[i], a[j]] = [a[j], a[i]];
+            ++i; --j;
+        }
+        if (first  < i - 1)
+            _quicksort(a, first , i - 1, comp);
+        if (j + 1 < last)
+            _quicksort(a, j + 1, last, comp);
     }
-    if (first  < i - 1)
-        _quicksort(a, first , i - 1, comp);
-    if (j + 1 < last)
-        _quicksort(a, j + 1, last, comp);
-}
 
-Array.sort = _function(ary, comp) {
-    ary = ary.clone();
-    _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
-    return ary;
-};
+    return _function(ary, comp) {
+        ary = ary.clone();
+        _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+        return ary;
+    };
+})();
 
 Array.clone = (_function() {
     var depth = 0;
