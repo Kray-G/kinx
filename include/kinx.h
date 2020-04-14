@@ -387,6 +387,11 @@ extern kx_fnc_t *kx_try_neq_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, i
 extern kx_fnc_t *kx_try_neq_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_neq_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_lge(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_lge_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_lge_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_lge_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_lge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
 extern int kx_try_pow(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern int kx_try_pow_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
