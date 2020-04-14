@@ -1,0 +1,82 @@
+Binary.apply = _function(bin, func) {
+    return func(bin);
+};
+
+Binary.each = _function(bin, callback) {
+    var len = bin.length();
+    for (var i = 0; i < len; ++i) {
+        var r = callback(bin[i], i);
+        if (r.isDefined && !r) {
+            break;
+        }
+    }
+};
+
+Binary.map = _function(bin, callback) {
+    var ret = <>;
+    var len = bin.length();
+    for (var i = 0; i < len; ++i) {
+        ret[i] = callback(bin[i], i) & 0xFF;
+    }
+    return ret;
+};
+
+Binary.flatMap = _function(bin, func) {
+    return bin.map(func).flatten();
+};
+
+Binary.filter = _function(bin, callback) {
+    var ret = <>;
+    var len = bin.length();
+    for (var i = 0; i < len; ++i) {
+        ret.push(bin[i]) if (callback(bin[i], i));
+    }
+    return ret;
+};
+
+Binary.reject = _function(bin, callback) {
+    var ret = <>;
+    var len = bin.length();
+    for (var i = 0; i < len; ++i) {
+        ret.push(bin[i]) if (!callback(bin[i], i));
+    }
+    return ret;
+};
+
+Binary.reduce = _function(bin, callback, initr) {
+    var r = initr;
+    var len = bin.length();
+    for (var i = 0; i < len; ++i) {
+        r = callback(r, bin[i], i);
+    }
+    return r;
+};
+
+Binary.sort = (_function() {
+    _function _quicksort(a, first, last, comp) {
+        var i = first;
+        var j = last;
+        var x = a[(first + last) / 2];
+        while (true) {
+            while (comp(a[i], x) < 0) i++;
+            while (comp(x, a[j]) < 0) j--;
+            if (i >= j) break;
+            [a[i], a[j]] = [a[j], a[i]];
+            ++i; --j;
+        }
+        if (first  < i - 1)
+            _quicksort(a, first , i - 1, comp);
+        if (j + 1 < last)
+            _quicksort(a, j + 1, last, comp);
+    }
+
+    return _function(bin, comp) {
+        bin = bin.clone();
+        _quicksort(bin, 0, bin.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+        return bin;
+    };
+})();
+
+Binary.println = _function(bin) {
+    return bin.each(_function(e) { System.println(e); });
+};

@@ -16,7 +16,8 @@
 { \
     KEX_POP_STACK_TOP(v2); \
     KEX_GET_STACK_TOP(v1); \
-    kx_try_getaryv(ctx, cur, v1, v2); \
+    int exc = kx_try_getaryv(ctx, cur, v1, v2); \
+    KX_EXCEPTION_CHECK("SystemException", exc); \
     cur = cur->next; \
 } \
 /**/
