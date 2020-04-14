@@ -93,10 +93,6 @@
 %type<obj> PostfixExpression
 %type<obj> PropertyName
 %type<type> PostIncDec
-%type<obj> RangeExpression
-%type<obj> Range
-%type<obj> RangeFactor_Opt
-%type<obj> RangeFactor
 %type<obj> Factor
 %type<obj> Binary
 %type<obj> Array
@@ -448,36 +444,11 @@ Exponentiation
     ;
 
 RegexMatch
-    : RangeExpression
+    : PrefixExpression
     | RegexMatch REGEQ PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGEQ, $1, $3); }
     | RegexMatch REGNE PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGNE, $1, $3); }
-    ;
-
-RangeExpression
-    : Range
-    | PrefixExpression
-    ;
-
-Range
-    : RangeFactor DOTS2 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 0); }
-    | RangeFactor DOTS3 RangeFactor_Opt { $$ = kx_gen_range_object($1, $3, 1); }
-    ;
-
-RangeFactor_Opt
-    : { $$ = kx_gen_special_object(KXVL_NULL); }
-    | RangeFactor
-    ;
-
-RangeFactor
-    : INT { $$ = kx_gen_int_object($1); }
-    | DBL { $$ = kx_gen_dbl_object($1); }
-    | BIGINT { $$ = kx_gen_big_object($1); }
-    | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
-    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
-    | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
-    | '(' AssignExpression ')' { $$ = $2; }
-    | '(' STR ')' { $$ = kx_gen_str_object($2); }
+    | RegexMatch DOTS2 PrefixExpression { $$ = kx_gen_range_object($1, $3, 0); }
+    | RegexMatch DOTS3 PrefixExpression { $$ = kx_gen_range_object($1, $3, 1); }
     ;
 
 PrefixExpression
