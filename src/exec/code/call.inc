@@ -177,12 +177,13 @@ default: \
 { \
     kx_val_t *fv = &kv_A(lexv->v, cur->value2.i); \
     if (fv->type == KX_FNC_T) { \
+        kx_fnc_t *fn = fv->value.fn; \
         caller = cur; \
-        push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
+        push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
-        cur = fv->value.fn->jp; \
+        cur = fn->jp; \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
         int r; \
