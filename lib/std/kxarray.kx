@@ -6,7 +6,7 @@ Array.stringify = _function(ary) {
     var ret = [];
     var len = ary.length();
     for (var i = 0; i < len; ++i) {
-        if (ary[i].toString.isFunction) {
+        if (ary[i].toString.isFunction && !ary[i]._format) {
             ret[i] = ary[i].toString();
         } else {
             ret[i] = ary[i];
@@ -65,8 +65,8 @@ Array.reduce = _function(ary, callback, initr) {
     return r;
 };
 
-Array.join = _function(ary) {
-    return Array.joinImpl(ary.stringify());
+Array.join = _function(ary, delm) {
+    return Array.joinImpl(ary.stringify(), delm);
 };
 
 Array.toString = (_function() {
