@@ -148,6 +148,7 @@ var Xml, Net;
             };
             using kxstring;
             using kxarray;
+            using kxbinary;
             using kxnumeric;
         })();
     }

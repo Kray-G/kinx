@@ -13,6 +13,20 @@
 } \
 /**/
 
+#define KX_SET_BINARY_CHAR(lvalue, v2) \
+{ \
+    if ((v2)->type == KX_INT_T) { \
+        lvalue = ((v2)->value.iv) & 0xFF; \
+    } else if ((v2)->type == KX_CSTR_T) { \
+        lvalue = (v2)->value.pv[0]; \
+    } else if ((v2)->type == KX_STR_T) { \
+        lvalue = ks_string((v2)->value.sv)[0]; \
+    } else { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Invalid binary character"); \
+    } \
+} \
+/**/
+
 #define KX_SET_OBJECT_ITEM(v1, v2, pos) \
 { \
     kv_a(kx_val_t, (v1)->ary, pos) = *v2;\
@@ -24,12 +38,17 @@
     kx_val_t *v1v = v1; \
     kx_val_t *v2v = v2; \
     if (v1v->type == KX_CSTR_T || v1v->type == KX_STR_T) { \
-        const char *pv = v1v->type == KX_STR_T ? ks_string(v1v->value.sv) : (v1v)->value.pv; \
-        kstr_t *s = allocate_str(ctx); \
-        ks_append_n(s, pv, v1v->pos+1); \
-        v1v->type = KX_STR_T; \
-        v1v->value.sv = s; \
-        KX_SET_STRING_CHAR(ks_string(s)[v1v->pos], v2v) \
+        if (v1v->type == KX_CSTR_T) { \
+            kstr_t *s = allocate_str(ctx); \
+            ks_append(s, v1v->value.pv); \
+            v1v->type = KX_STR_T; \
+            v1v->value.sv = s; \
+        } \
+        char *pv = ks_string(v1v->value.sv); \
+        KX_SET_STRING_CHAR(pv[v1v->pos], v2v) \
+    } else if (v1v->type == KX_BIN_T) { \
+        uint8_t *bin = &kv_A((v1v)->value.bn->bin, 0); \
+        KX_SET_BINARY_CHAR(bin[v1v->pos], v2v); \
     } else if (v1v->type == KX_OBJ_T) { \
         KX_SET_OBJECT_ITEM(v1v->value.ov, v2v, v1v->pos) \
     } else { \
