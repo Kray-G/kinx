@@ -984,8 +984,8 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_METHOD("peek", obj, File_peek);
     KEX_SET_METHOD("getch", obj, File_getch);
     KEX_SET_METHOD("putch", obj, File_putch);
-    KEX_SET_METHOD("print", obj, File_print);
-    KEX_SET_METHOD("println", obj, File_println);
+    KEX_SET_METHOD("printImpl", obj, File_print);
+    KEX_SET_METHOD("printlnImpl", obj, File_println);
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
     return 0;

@@ -2,6 +2,19 @@ Array.apply = _function(ary, func) {
     return func(ary);
 };
 
+Array.stringify = _function(ary) {
+    var ret = [];
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        if (ary[i].toString.isFunction) {
+            ret[i] = ary[i].toString();
+        } else {
+            ret[i] = ary[i];
+        }
+    }
+    return ret;
+};
+
 Array.each = _function(ary, callback) {
     var len = ary.length();
     for (var i = 0; i < len; ++i) {
@@ -51,6 +64,25 @@ Array.reduce = _function(ary, callback, initr) {
     }
     return r;
 };
+
+Array.join = _function(ary) {
+    return Array.joinImpl(ary.stringify());
+};
+
+Array.toString = (_function() {
+    var depth = 0;
+    return _function(ary) {
+        try {
+            ++depth;
+            if (depth > 100) {
+                throw RuntimeException("Too deep to stringify the object.");
+            }
+            return Array.toStringImpl(ary.stringify());
+        } finally {
+            --depth;
+        }
+    };
+})();
 
 _function _quicksort(a, first, last, comp) {
     var i = first;
