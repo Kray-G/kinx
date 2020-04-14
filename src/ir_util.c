@@ -2348,8 +2348,7 @@ kx_fnc_t *kx_try_sub_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
             (v1)->value.sv = allocate_str(ctx); \
             (v1)->type = KX_STR_T; \
         } else { \
-            (v1)->value.iv = 0; \
-            (v1)->type = KX_INT_T; \
+            *exc = KXN_DIVIDE_BY_ZERO; \
         } \
         break; \
     } \
@@ -2642,7 +2641,11 @@ kx_fnc_t *kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         KX_MOD_MOD_I(v1, (v2)->value.iv); \
     } else switch ((v2)->type) { \
     case KX_UND_T: { \
-        KX_MOD_MOD_S(v1, "((null))"); \
+        if ((v1)->type != KX_CSTR_T && (v1)->type != KX_STR_T && (v1)->type != KX_OBJ_T) { \
+            *exc = KXN_DIVIDE_BY_ZERO; \
+        } else { \
+            KX_MOD_MOD_S(v1, "((null))"); \
+        } \
         break; \
     } \
     case KX_BIG_T: { \
