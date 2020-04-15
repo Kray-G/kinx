@@ -4910,8 +4910,19 @@ int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2
             int len = kv_size(v2->value.bn->bin);
             for (int i = 0; i < len; ++i) {
                 int64_t val = (int64_t)kv_A(v2->value.bn->bin, i);
-                kv_push(kx_val_t, v1->value.ov->ary,
-                    ((kx_val_t){ .type = KX_INT_T, .value.iv = val }));
+                kv_push(kx_val_t, v1->value.ov->ary, ((kx_val_t){ .type = KX_INT_T, .value.iv = val }));
+            }
+        } else if (v2->type == KX_CSTR_T) {
+            const char *p = v2->value.pv;
+            while (*p) {
+                kv_push(kx_val_t, v1->value.ov->ary, ((kx_val_t){ .type = KX_INT_T, .value.iv = *p }));
+                ++p;
+            }
+        } else if (v2->type == KX_STR_T) {
+            const char *p = ks_string(v2->value.sv);
+            while (*p) {
+                kv_push(kx_val_t, v1->value.ov->ary, ((kx_val_t){ .type = KX_INT_T, .value.iv = *p }));
+                ++p;
             }
         } else {
             exc = KXN_UNSUPPORTED_OPERATOR;
@@ -4935,6 +4946,18 @@ int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2
                 } else {
                     kv_push(uint8_t, v1->value.bn->bin, (uint8_t)0x00);
                 }
+            }
+        } else if (v2->type == KX_CSTR_T) {
+            const char *p = v2->value.pv;
+            while (*p) {
+                kv_push(uint8_t, v1->value.bn->bin, (uint8_t)*p);
+                ++p;
+            }
+        } else if (v2->type == KX_STR_T) {
+            const char *p = ks_string(v2->value.sv);
+            while (*p) {
+                kv_push(uint8_t, v1->value.bn->bin, (uint8_t)*p);
+                ++p;
             }
         } else if (v2->type == KX_BIN_T) {
             kv_append(uint8_t, v1->value.bn->bin, v2->value.bn->bin);
