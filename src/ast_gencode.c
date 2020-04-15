@@ -67,6 +67,24 @@
         break;\
     }\
 /**/
+#define KX_DEF_BINCMD_OPT(CMD) \
+    case KXOP_##CMD: {\
+        gencode_ast_hook(ctx, node->lhs, ana, 0); \
+        gencode_ast_hook(ctx, node->rhs, ana, 0); \
+        KX_DEF_BINCHKCMD(CMD);\
+        if (code_size(module, ana) >= 2) {\
+            kx_code_t *l2 = last2p(ana);\
+            kx_code_t *l = lastp(ana);\
+            if (l2->op == KX_PUSHVL0 && l->op == KX_##CMD##I) {\
+                l2->op = KX_##CMD##_V0I;\
+                l2->value1.i = l2->value2.i;\
+                l2->value2.i = l->value1.i;\
+                kv_remove_last(get_block(module, ana->block)->code);\
+            } \
+        } \
+        break;\
+    }\
+/**/
 #define KX_DEF_BINCMD_COMP(CMD) \
     case KXOP_##CMD: {\
         gencode_ast_hook(ctx, node->lhs, ana, 0); \
@@ -840,8 +858,8 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
 
     KX_DEF_BINCMD(SHL);
     KX_DEF_BINCMD(SHR);
-    KX_DEF_BINCMD(ADD);
-    KX_DEF_BINCMD(SUB);
+    KX_DEF_BINCMD_OPT(ADD);
+    KX_DEF_BINCMD_OPT(SUB);
 
     case KXOP_POW: {
         gencode_ast_hook(ctx, node->lhs, ana, 0);
@@ -850,9 +868,9 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
 
-    KX_DEF_BINCMD(MUL);
-    KX_DEF_BINCMD(DIV);
-    KX_DEF_BINCMD(MOD);
+    KX_DEF_BINCMD_OPT(MUL);
+    KX_DEF_BINCMD_OPT(DIV);
+    KX_DEF_BINCMD_OPT(MOD);
     KX_DEF_BINCMD(AND);
     KX_DEF_BINCMD(OR);
     KX_DEF_BINCMD(XOR);

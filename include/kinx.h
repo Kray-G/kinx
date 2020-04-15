@@ -346,23 +346,28 @@ extern kx_fnc_t *kx_try_add(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_
 extern kx_fnc_t *kx_try_add_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_add_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_add_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_add_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_sub(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern kx_fnc_t *kx_try_sub_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_sub_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_sub_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_sub_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mul(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern kx_fnc_t *kx_try_mul_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mul_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mul_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
 extern kx_fnc_t *kx_try_div(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern kx_fnc_t *kx_try_div_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_div_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_div_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mod(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern kx_fnc_t *kx_try_mod_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
 extern kx_fnc_t *kx_try_and(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern kx_fnc_t *kx_try_and_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);

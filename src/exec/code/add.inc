@@ -98,3 +98,20 @@
     } \
 } \
 /**/
+
+#define KX_ADD_V0I_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    if (v1->type == KX_INT_T) { \
+        KX_ADD_II(v1, cur->value2.i); \
+        cur = cur->next; \
+    } else { \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_add_i2(ctx, cur, v1, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value2.i); }); \
+    } \
+} \
+/**/
