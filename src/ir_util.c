@@ -4923,9 +4923,13 @@ int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2
             for (int i = 0; i < len; ++i) {
                 kx_val_t *v = &kv_A(obj2->ary, i);
                 if (v->type == KX_INT_T) {
-                    kv_push(uint8_t, v1->value.bn->bin, v->value.iv);
+                    kv_push(uint8_t, v1->value.bn->bin, (uint8_t)(v->value.iv & 0xFF));
                 } else if (v->type == KX_DBL_T) {
                     kv_push(uint8_t, v1->value.bn->bin, (uint8_t)v->value.dv);
+                } else if (v->type == KX_CSTR_T) {
+                    kv_push(uint8_t, v1->value.bn->bin, (uint8_t)(v->value.pv[0]));
+                } else if (v->type == KX_STR_T) {
+                    kv_push(uint8_t, v1->value.bn->bin, (uint8_t)(ks_string(v->value.sv)[0]));
                 } else if (v->type == KX_BIG_T) {
                     kv_push(uint8_t, v1->value.bn->bin, (uint8_t)0xFF);
                 } else {
