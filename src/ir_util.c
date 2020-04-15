@@ -26,29 +26,28 @@
 #define KX_OR_OP_NAME  "|"
 #define KX_XOR_OP_NAME "^"
 
-int throw_system_exception(kx_context_t *ctx, kx_code_t **curp, kx_frm_t **frmvp, kx_frm_t **lexvp, const char *typ, const char *wht)
+kx_code_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t **frmvp, kx_frm_t **lexvp, const char *typ, const char *wht)
 {
-    make_exception_object(&((ctx)->excval), ctx, *frmvp, *curp, typ, wht);
+    make_exception_object(&((ctx)->excval), ctx, *frmvp, cur, typ, wht);
     if (kv_size(ctx->exception) == 0) {
         print_uncaught_exception(ctx, (ctx)->excval.value.ov);
-        return KX_EXCEPTION_END;
+        return NULL;
     }
     kx_exc_t *e = &kv_pop(ctx->exception);
     kv_shrinkto(ctx->stack, e->sp);
-    *curp = e->code;
     *frmvp = e->frmv;
     *lexvp = e->lexv;
-    return KX_EXCEPTION_NEXT;
+    return e->code;
 }
 
-int throw_system_exception_fmt(kx_context_t *ctx, kx_code_t **curp, kx_frm_t **frmvp, kx_frm_t **lexvp, const char *typ, const char *fmt, ...)
+kx_code_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t **frmvp, kx_frm_t **lexvp, const char *typ, const char *fmt, ...)
 {
     char wht[512] = {0};
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(wht, 511, fmt, ap);
     va_end(ap);
-    return throw_system_exception(ctx, curp, frmvp, lexvp, typ, wht);
+    return throw_system_exception(ctx, cur, frmvp, lexvp, typ, wht);
 }
 
 void print_value(kx_val_t *v, int recursive)
