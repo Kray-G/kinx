@@ -14,6 +14,9 @@ Updates from v0.4.1.
 
 *   Updated
     *   Changed the function name to be treated as a constant.
+    *   Supported some binary special methods.
+    *   Applying a `toString` method automatically when applying an object to
+        `System.print/println`, `Array#join`, and `Array#toString`.
     *   Some bug fixes.
 
 ## V0.4.1 (4th Preview Release)
@@ -46,7 +49,8 @@ Updates from v0.1.0.
 *   Updated
     *   Supported Standard I/O.
         *   `$stdin`, `$stdout`, `$stderr` has same methods as `File`.
-        *   There are constant variables as `STDIN`, `STDOUT`, `STDERR` corresponding to `$stdin`, `$stdout`, `$stderr`.
+        *   There are constant variables as `STDIN`, `STDOUT`, `STDERR` 
+            corresponding to `$stdin`, `$stdout`, `$stderr`.
     *   Added or modified `File` instance methods.
         *   Supported `getch`, `putch`, `peek`.
 
