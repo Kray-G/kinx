@@ -251,7 +251,7 @@ static fileinfo_t *create_std(const char *name, FILE* fp, int mode)
     fi->fp = fp;
     fi->filename = name;
     fi->mode = mode;
-    fi->is_text = 0;
+    fi->is_text = 1;
     fi->is_std = 1;
     return fi;
 }
@@ -331,16 +331,14 @@ static int File_load_impl(int args, kx_context_t *ctx, fileinfo_t * fi, int clos
     if (fi->is_std) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Can't load from standard in/out");
     }
-    int text = 0;
     if (!(fi->mode & KXFILE_MODE_READ)) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
     }
+    int opened = fi->fp != NULL;
+    int text = fi->is_text;
     if (fi->fp) {
         fclose(fi->fp);
         fi->fp = NULL;
-    }
-    if (fi->is_text) {
-        text = 1;
     }
     /* re-open & rewind the file */
     fi->fp = fopen(fi->filename, get_mode(fi->mode | KXFILE_MODE_BINARY));
@@ -366,21 +364,38 @@ static int File_load_impl(int args, kx_context_t *ctx, fileinfo_t * fi, int clos
         }
     }
     buffer[file_size] = 0;
-    kstr_t *s = allocate_str(ctx);
-    ks_append_n(s, buffer, file_size);
+    kstr_t *s = NULL;
+    kx_bin_t *b = NULL;
+    if (text) {
+        s = allocate_str(ctx);
+        ks_append_n(s, buffer, file_size);
+    } else {
+        b = allocate_bin(ctx);
+        kv_resize(uint8_t, b->bin, file_size);
+        kv_shrinkto(b->bin, file_size);
+        memcpy(&kv_A(b->bin, 0), buffer, file_size);
+    }
     kx_free(buffer);
 
     if (close) {
         fclose(fi->fp);
         fi->fp = NULL;
     } else if (text) {
-        /* re-open the file */
         fclose(fi->fp);
-        fi->fp = fopen(fi->filename, get_mode(fi->mode));
+        /* re-open the file */
+        if (opened) {
+            fi->fp = fopen(fi->filename, get_mode(fi->mode));
+        } else {
+            fi->fp = NULL;
+        }
     }
 
     KX_ADJST_STACK();
-    push_sv(ctx->stack, s);
+    if (text) {
+        push_sv(ctx->stack, s);
+    } else {
+        push_bin(ctx->stack, b);
+    }
     return 0;
 }
 
