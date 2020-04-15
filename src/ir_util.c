@@ -3107,6 +3107,15 @@ kx_fnc_t *kx_try_add_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     return fn;
 }
 
+kx_fnc_t *kx_try_add_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_ADD_ADD_I(v1, cur->value2.i);
+    } while (0);
+    return fn;
+}
+
 /* sub */
 
 #define KX_SUB_SUB_I(v1, val) { \
@@ -3280,6 +3289,15 @@ kx_fnc_t *kx_try_sub_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     kx_fnc_t *fn = NULL;
     do {
         KX_SUB_SUB_S(v1, cur->value1.s);
+    } while (0);
+    return fn;
+}
+
+kx_fnc_t *kx_try_sub_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_SUB_SUB_I(v1, cur->value2.i);
     } while (0);
     return fn;
 }
@@ -3652,6 +3670,15 @@ kx_fnc_t *kx_try_div_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     return fn;
 }
 
+kx_fnc_t *kx_try_div_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_DIV_DIV_I(v1, cur->value2.i);
+    } while (0);
+    return fn;
+}
+
 /* mod */
 
 #define KX_MOD_MOD_I(v1, val) { \
@@ -3954,6 +3981,15 @@ kx_fnc_t *kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     return fn;
 }
 
+kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_MOD_MOD_I(v1, cur->value2.i);
+    } while (0);
+    return fn;
+}
+
 /* mul */
 
 #define KX_MUL_MUL_I(v1, val) { \
@@ -4220,6 +4256,15 @@ kx_fnc_t *kx_try_mul_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     kx_fnc_t *fn = NULL;
     do {
         KX_MUL_MUL_S(v1, cur->value1.s);
+    } while (0);
+    return fn;
+}
+
+kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
+{
+    kx_fnc_t *fn = NULL;
+    do {
+        KX_MUL_MUL_I(v1, cur->value2.i);
     } while (0);
     return fn;
 }

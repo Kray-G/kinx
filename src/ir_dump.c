@@ -26,6 +26,27 @@ case KX_##CMD##V:\
     break;\
 /**/
 
+#define KX_IROP_OPT(CMD, cmd)\
+case KX_##CMD:\
+    printf("%-23s", #cmd);\
+    break;\
+case KX_##CMD##I:\
+    printf("%-23s %"PRId64, #cmd "i", code->value1.i);\
+    break;\
+case KX_##CMD##D:\
+    printf("%-23s %f", #cmd "d", code->value1.d);\
+    break;\
+case KX_##CMD##S:\
+    printf("%-23s \"%s\"", #cmd "s", code->value1.s);\
+    break;\
+case KX_##CMD##V:\
+    printf("%-23s %s", #cmd "v", gen_varloc(code));\
+    break;\
+case KX_##CMD##_V0I:\
+    printf("%-23s $0(%"PRId64"), %"PRId64, #cmd "_v0i", code->value1.i, code->value2.i);\
+    break;\
+/**/
+
 #define KX_IROP_COMP(CMD, cmd)\
 case KX_##CMD:\
     printf("%-23s", #cmd);\
@@ -334,16 +355,16 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("appenda");
         break;
 
-    KX_IROP(ADD,  add);
-    KX_IROP(SUB,  sub);
+    KX_IROP_OPT(ADD,  add);
+    KX_IROP_OPT(SUB,  sub);
 
     case KX_POW:
         printf("pow");
         break;
 
-    KX_IROP(MUL,  mul);
-    KX_IROP(DIV,  div);
-    KX_IROP(MOD,  mod);
+    KX_IROP_OPT(MUL,  mul);
+    KX_IROP_OPT(DIV,  div);
+    KX_IROP_OPT(MOD,  mod);
     KX_IROP(AND,  and);
     KX_IROP(OR,   or);
     KX_IROP(XOR,  xor);

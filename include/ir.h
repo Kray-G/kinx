@@ -221,6 +221,12 @@ enum irop {
     KX_GT_V0V0,
     KX_LGE_V0V0,
 
+    KX_ADD_V0I, /* Optimization for calculation */
+    KX_SUB_V0I, /* Optimization for calculation */
+    KX_MUL_V0I, /* Optimization for calculation */
+    KX_DIV_V0I, /* Optimization for calculation */
+    KX_MOD_V0I, /* Optimization for calculation */
+
     KX_EQEQ_V0I,
     KX_NEQ_V0I,
     KX_LE_V0I,
