@@ -7,24 +7,18 @@
 #define KX_JNZ_CODE() \
 { \
     KEX_POP_STACK_TOP(v); \
-    KX_IS_TRUE(v, tf); \
-    if (tf) { \
-        cur = cur->jmp; \
-    } else { \
-        cur = cur->next; \
-    } \
+    cur = (((v)->type == KX_INT_T) ? (v)->value.iv : kx_value_true(ctx, v)) \
+        ? cur->jmp \
+        : cur->next; \
 } \
 /**/
 
 #define KX_JZ_CODE() \
 { \
     KEX_POP_STACK_TOP(v); \
-    KX_IS_TRUE(v, tf); \
-    if (tf) { \
-        cur = cur->next; \
-    } else { \
-        cur = cur->jmp; \
-    } \
+    cur = (((v)->type == KX_INT_T) ? (v)->value.iv : kx_value_true(ctx, v)) \
+        ? cur->next \
+        : cur->jmp; \
 } \
 /**/
 
