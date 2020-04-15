@@ -1245,7 +1245,7 @@ static int32_t extract_file_overwrite_cb(void *handle, void *userdata, mz_zip_fi
     return MZ_OK;
 }
 
-static int extract_file(int args, kx_context_t *ctx, const char *zipfile, const char *password, int overwrite, int skip, const char *filename, const char *outfile)
+static int extract_file(int args, kx_context_t *ctx, const char *zipfile, const char *password, int overwrite, int skip, int binary, const char *filename, const char *outfile)
 {
     mz_zip_file *file_info = NULL;
     int16_t level = 0;
@@ -1300,14 +1300,25 @@ static int extract_file(int args, kx_context_t *ctx, const char *zipfile, const 
         buf[file_info->uncompressed_size] = 0;
     }
 
-    kstr_t *sv = allocate_str(ctx);
-    ks_append(sv, buf);
+    if (binary) {
+        kx_bin_t *b = allocate_bin(ctx);
+        int file_size = file_info->uncompressed_size;
+        kv_resize(uint8_t, b->bin, file_size);
+        kv_shrinkto(b->bin, file_size);
+        memcpy(&kv_A(b->bin, 0), buf, file_size);
+        kx_free(buf);
+        mz_zip_reader_delete(&reader);
+        KX_ADJST_STACK();
+        push_bin(ctx->stack, b);
+    } else {
+        kstr_t *sv = allocate_str(ctx);
+        ks_append(sv, buf);
+        kx_free(buf);
+        mz_zip_reader_delete(&reader);
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, sv);
+    }
 
-    kx_free(buf);
-    mz_zip_reader_delete(&reader);
-
-    KX_ADJST_STACK();
-    push_sv(ctx->stack, sv);
     return MZ_OK;
 }
 
@@ -1411,7 +1422,7 @@ int Zip_add_file(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int extract_impl(int args, const char *filename, const char *password, int overwrite, int skip, kx_obj_t *obj, kx_context_t *ctx, const char *outfile)
+int extract_impl(int args, const char *filename, const char *password, int overwrite, int skip, int binary, kx_obj_t *obj, kx_context_t *ctx, const char *outfile)
 {
     KX_ZIP_GET_FILENAME(zipfile, obj);
     KX_ZIP_GET_INT_OPTION(mode, obj, "mode", KXFILE_MODE_READ);
@@ -1419,7 +1430,7 @@ int extract_impl(int args, const char *filename, const char *password, int overw
         KX_THROW_BLTIN_EXCEPTION("ZipException", "Needs to open file with File.READ");
     }
 
-    int32_t err = extract_file(args, ctx, zipfile, password, overwrite, skip, filename, outfile);
+    int32_t err = extract_file(args, ctx, zipfile, password, overwrite, skip, binary, filename, outfile);
     if (err != MZ_OK) {
         if (err == MZ_EXIST_ERROR) {
             KX_THROW_BLTIN_EXCEPTION("ZipException", static_format("Failed to extract the file(%s) because the file(%s) already exists", filename, outfile));
@@ -1437,6 +1448,7 @@ int Zip_extract(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const char *filename = get_arg_str(2, args, ctx);
     kx_obj_t *opts = get_arg_obj(3, args, ctx);
     KX_ZIP_GET_STR_OPTION(password, opts, "password");
+    KX_ZIP_GET_INT_OPTION(binary, opts, "binary", 0);
     if (!filename) {
         KX_THROW_BLTIN_EXCEPTION("ZipException", "No filename in zip to extract");
     }
@@ -1444,7 +1456,7 @@ int Zip_extract(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_ZIP_GET_STR_OPTION(pw, obj, "password");
         password = pw;
     }
-    int r = extract_impl(args, filename, password, 1, 1, obj, ctx, NULL);
+    int r = extract_impl(args, filename, password, 1, 1, binary, obj, ctx, NULL);
     if (r) {
         return r;
     }
@@ -1460,6 +1472,7 @@ int Zip_extract_to(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_ZIP_GET_STR_OPTION(password, opts, "password");
     KX_ZIP_GET_INT_OPTION(overwrite, opts, "overwrite", 0);
     KX_ZIP_GET_INT_OPTION(skip, opts, "skip", 0);
+    KX_ZIP_GET_INT_OPTION(binary, opts, "binary", 0);
     if (!filename) {
         KX_THROW_BLTIN_EXCEPTION("ZipException", "No filename in zip to extract");
     }
@@ -1474,7 +1487,7 @@ int Zip_extract_to(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_ZIP_GET_INT_OPTION(ow, obj, "overwrite", 0);
         overwrite = ow;
     }
-    int r = extract_impl(args, filename, password, overwrite, skip, obj, ctx, outfile);
+    int r = extract_impl(args, filename, password, overwrite, skip, binary, obj, ctx, outfile);
     if (r) {
         return r;
     }
@@ -1488,11 +1501,12 @@ int Zip_extract_entry(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     KX_ZIP_GET_STR_OPTION(filename, entry, "filename");
     kx_obj_t *opts = get_arg_obj(2, args, ctx);
     KX_ZIP_GET_STR_OPTION(password, opts, "password");
+    KX_ZIP_GET_INT_OPTION(binary, opts, "binary", 0);
     if (!password) {
         KX_ZIP_GET_STR_OPTION(pw, obj, "password");
         password = pw;
     }
-    int r = extract_impl(args, filename, password, 1, 1, obj, ctx, NULL);
+    int r = extract_impl(args, filename, password, 1, 1, binary, obj, ctx, NULL);
     if (r) {
         return r;
     }
@@ -1509,6 +1523,7 @@ int Zip_extract_entry_to(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     KX_ZIP_GET_STR_OPTION(password, opts, "password");
     KX_ZIP_GET_INT_OPTION(overwrite, opts, "overwrite", 0);
     KX_ZIP_GET_INT_OPTION(skip, opts, "skip", 0);
+    KX_ZIP_GET_INT_OPTION(binary, opts, "binary", 0);
     if (!outfile) {
         KX_THROW_BLTIN_EXCEPTION("ZipException", "No output filename to unzip");
     }
@@ -1520,7 +1535,7 @@ int Zip_extract_entry_to(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
         KX_ZIP_GET_INT_OPTION(ow, obj, "overwrite", 0);
         overwrite = ow;
     }
-    int r = extract_impl(args, filename, password, overwrite, skip, obj, ctx, outfile);
+    int r = extract_impl(args, filename, password, overwrite, skip, binary, obj, ctx, outfile);
     if (r) {
         return r;
     }
