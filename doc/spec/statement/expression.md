@@ -20,7 +20,7 @@ Here is the order to calculate values.
 |   1   | Factor        | Variable, Number, String, ...                                                                                 |       -       |
 |   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
 |   3   | Prefix        | `!`, `+`, `-`, `*`, `++`, `--`                                                                                | left to right |
-|   4   | Matching      | `=~`, `!~`                                                                                                    | left to right |
+|   4   | Match/Range   | `=~`, `!~`, `n..m`                                                                                            | left to right |
 |   5   | Exponent      | `**`                                                                                                          | right to left |
 |   6   | Mul,...       | `*`, `/`, `%`                                                                                                 | left to right |
 |   7   | Add,...       | `+`, `-`                                                                                                      | left to right |
@@ -58,6 +58,7 @@ The individual operations are described below.
 *   [Multiplication/Division](expression/mul_div.md)
 *   [Exponentiation](expression/exponent.md)
 *   [Matching Operation](expression/matching.md)
+*   [Range Operation](expression/range.md)
 *   [Unary Expression](expression/prefix.md)
 *   [Postfix Operation](expression/postfix.md)
 
