@@ -50,3 +50,15 @@
     CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
 } \
 /**/
+
+#define KX_DIV_V0I_CODE() \
+{ \
+    KEX_GET_VAR_ADDR_LOCAL(v1p, cur->value1.i); \
+    push_value((ctx)->stack, *v1p); \
+    KEX_GET_STACK_TOP(v1); \
+    int exc = 0; \
+    kx_fnc_t *fn = kx_try_div_i2(ctx, cur, v1, &exc); \
+    KX_EXCEPTION_CHECK("SystemException", exc); \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value2.i); }); \
+} \
+/**/
