@@ -16,7 +16,7 @@ Binary.map = _function(bin, callback) {
     var ret = <>;
     var len = bin.length();
     for (var i = 0; i < len; ++i) {
-        ret[i] = callback(bin[i], i) & 0xFF;
+        ret[i] = callback(bin[i], i);
     }
     return ret;
 };
