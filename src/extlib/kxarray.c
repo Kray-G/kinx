@@ -86,7 +86,7 @@ int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return throw_invalid_object(args, ctx);
 }
 
-int Array_join_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_obj_t *obj, kstr_t *str, const char *delm, int level, int max)
+int Array_join_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_obj_t *obj, kstr_t *str, int quote, const char *delm, int level, int max)
 {
     if (level > 100) {
         return throw_too_deep(args, ctx);
@@ -110,10 +110,18 @@ int Array_join_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         }
         case KX_CSTR_T:
-            make_quote_string(str, v->value.pv);
+            if (quote) {
+                make_quote_string(str, v->value.pv);
+            } else {
+                ks_append(str, v->value.pv);
+            }
             break;
         case KX_STR_T:
-            make_quote_string(str, ks_string(v->value.sv));
+            if (quote) {
+                make_quote_string(str, ks_string(v->value.sv));
+            } else {
+                ks_append(str, ks_string(v->value.sv));
+            }
             break;
         case KX_OBJ_T: {
             kstr_t *out = kx_format(v);
@@ -124,7 +132,7 @@ int Array_join_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 ks_append(str, "[...]");
             } else {
                 ks_append(str, "[");
-                int r = Array_join_impl(args, frmv, lexv, ctx, v->value.ov, str, delm, level + 1, max);
+                int r = Array_join_impl(args, frmv, lexv, ctx, v->value.ov, str, quote, delm, level + 1, max);
                 if (r < 0) {
                     return r;
                 }
@@ -149,7 +157,7 @@ int Array_join(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (obj) {
         const char *delm = get_arg_str(2, args, ctx);
         kstr_t *str = allocate_str(ctx);
-        int r = Array_join_impl(args, frmv, lexv, ctx, obj, str, delm, 0, -1);
+        int r = Array_join_impl(args, frmv, lexv, ctx, obj, str, 0, delm, 0, -1);
         if (r < 0) {
             KX_ADJST_STACK();
             push_i(ctx->stack, 0);
@@ -389,7 +397,7 @@ int Array_toString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (obj) {
         kstr_t *str = allocate_str(ctx);
         ks_append(str, "[");
-        int r = Array_join_impl(args, frmv, lexv, ctx, obj, str, ", ", 0, -1);
+        int r = Array_join_impl(args, frmv, lexv, ctx, obj, str, 1, ", ", 0, -1);
         if (r < 0) {
             KX_ADJST_STACK();
             push_i(ctx->stack, 0);
