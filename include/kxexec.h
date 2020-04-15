@@ -198,6 +198,11 @@
     &&LBL_KX_GE_V0V0, \
     &&LBL_KX_GT_V0V0, \
     &&LBL_KX_LGE_V0V0, \
+    &&LBL_KX_ADD_V0I, \
+    &&LBL_KX_SUB_V0I, \
+    &&LBL_KX_MUL_V0I, \
+    &&LBL_KX_DIV_V0I, \
+    &&LBL_KX_MOD_V0I, \
     &&LBL_KX_EQEQ_V0I, \
     &&LBL_KX_NEQ_V0I, \
     &&LBL_KX_LE_V0I, \

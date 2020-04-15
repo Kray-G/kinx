@@ -261,6 +261,12 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     KX_CASE_(KX_GT_V0V0) { KX_GOTO(); }
     KX_CASE_(KX_LGE_V0V0) { KX_GOTO(); }
 
+    KX_CASE_(KX_ADD_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_SUB_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_MUL_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_DIV_V0I) { KX_GOTO(); }
+    KX_CASE_(KX_MOD_V0I) { KX_GOTO(); }
+
     KX_CASE_(KX_EQEQ_V0I) { KX_GOTO(); }
     KX_CASE_(KX_NEQ_V0I) { KX_GOTO(); }
     KX_CASE_(KX_LE_V0I) { KX_GOTO(); }
