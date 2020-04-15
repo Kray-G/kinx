@@ -4,6 +4,9 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
+static void make_value_str(kstr_t *str, kx_val_t *v, int level);
+static void make_quote_string(kstr_t *str, const char *p);
+
 static int throw_invalid_object(int args, kx_context_t *ctx)
 {
     KX_ADJST_STACK();
@@ -107,10 +110,10 @@ int Array_join_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         }
         case KX_CSTR_T:
-            ks_append(str, v->value.pv);
+            make_quote_string(str, v->value.pv);
             break;
         case KX_STR_T:
-            ks_append(str, ks_string(v->value.sv));
+            make_quote_string(str, ks_string(v->value.sv));
             break;
         case KX_OBJ_T: {
             kstr_t *out = kx_format(v);
@@ -400,8 +403,6 @@ int Array_toString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     return throw_invalid_object(args, ctx);
 }
-
-static void make_value_str(kstr_t *str, kx_val_t *v, int level);
 
 static void make_indent(kstr_t *str, int level)
 {
