@@ -13,10 +13,11 @@
 Updates from v0.4.1.
 
 *   Updated
-    *   Changed the function name to be treated as a constant.
+    *   Changed a function name to be treated as a constant.
     *   Supported some binary special methods.
     *   Applying a `toString` method automatically when applying an object to
         `System.print/println`, `Array#join`, and `Array#toString`.
+    *   Supported a spread operator for String like `<..."abc">` or `[..."abc"]`.
     *   Some bug fixes.
 
 ## V0.4.1 (4th Preview Release)
