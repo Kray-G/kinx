@@ -21,10 +21,6 @@ Binary.map = _function(bin, callback) {
     return ret;
 };
 
-Binary.flatMap = _function(bin, func) {
-    return bin.map(func).flatten();
-};
-
 Binary.filter = _function(bin, callback) {
     var ret = <>;
     var len = bin.length();
@@ -71,8 +67,11 @@ Binary.sort = (_function() {
     }
 
     return _function(bin, comp) {
+        if (comp.isUndefined) {
+            return bin.sortNormal();
+        }
         bin = bin.clone();
-        _quicksort(bin, 0, bin.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+        _quicksort(bin, 0, bin.length() - 1, comp);
         return bin;
     };
 })();
