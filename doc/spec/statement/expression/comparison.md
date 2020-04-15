@@ -115,7 +115,7 @@ System.println(test(">=", &(a, b) => a >= b, 0x07, null));
 ::        7 >= ((null)) => 1
 ```
 
-### Example 5. Big INteger of `<`
+### Example 5. Big Integer of `<`
 
 #### Code
 
@@ -142,7 +142,7 @@ System.println(test("<", &(a, b) => a < b, BI, null));
 :: 9223372036854775809 < ((null)) => 0
 ```
 
-### Example 6. Big INteger of `<=`
+### Example 6. Big Integer of `<=`
 
 #### Code
 
@@ -169,7 +169,7 @@ System.println(test("<=", &(a, b) => a <= b, BI, null));
 :: 9223372036854775809 <= ((null)) => 0
 ```
 
-### Example 7. Big INteger of `>`
+### Example 7. Big Integer of `>`
 
 #### Code
 
@@ -196,7 +196,7 @@ System.println(test(">", &(a, b) => a > b, BI, null));
 :: 9223372036854775809 > ((null)) => 1
 ```
 
-### Example 8. Big INteger of `<=`
+### Example 8. Big Integer of `>=`
 
 #### Code
 
