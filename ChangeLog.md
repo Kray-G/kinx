@@ -18,6 +18,7 @@ Updates from v0.4.1.
     *   Applying a `toString` method automatically when applying an object to
         `System.print/println`, `Array#join`, and `Array#toString`.
     *   Supported a spread operator for String like `<..."abc">` or `[..."abc"]`.
+    *   Supported the option of `binary` with true/false for `Zip#extract`.
     *   Some bug fixes.
 
 ## V0.4.1 (4th Preview Release)
