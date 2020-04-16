@@ -251,8 +251,10 @@
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = { KX_LABELS };
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
 #define KX_EXEC_DECL(fixcode) \
-    int gc_ticks = KEX_GC_TICK; \
-    register struct kx_code_ *cur = kv_head(*fixcode); \
+    register struct kx_code_ *cur asm ("rbx"); \
+    cur = kv_head(*fixcode); \
+    register int gc_ticks asm ("r12");\
+    gc_ticks = KEX_GC_TICK; \
     kx_code_t *caller = NULL; \
     kx_frm_t *frmv = (ctx)->frmv; \
     kx_frm_t *lexv = (ctx)->lexv; \

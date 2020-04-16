@@ -324,6 +324,9 @@ typedef struct kxn_func_ {
 } kxn_func_t;
 
 typedef struct kx_code_ {
+    #if defined(KX_DIRECT_THREAD)
+    void *gotolabel;
+    #endif
     struct kx_code_ *next;
     struct kx_code_ *jmp;
     uint32_t i;
@@ -338,9 +341,6 @@ typedef struct kx_code_ {
         const char *s;
         kxn_func_t n;
     } value1, value2;
-    #if defined(KX_DIRECT_THREAD)
-    void *gotolabel;
-    #endif
     const char *file;
     const char *func;
     uint32_t line;
