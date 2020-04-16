@@ -3094,7 +3094,7 @@ yyreduce:
 
   case 150:
 #line 450 "src/kinx.y" /* yacc.c:1646  */
-    { (yyval.obj) = kx_gen_range_object((yyvsp[-1].obj), NULL, 0); }
+    { (yyval.obj) = kx_gen_range_object((yyvsp[-1].obj), kx_gen_special_object(KXVL_NULL), 0); }
 #line 3099 "kx.tab.c" /* yacc.c:1646  */
     break;
 
@@ -3106,7 +3106,7 @@ yyreduce:
 
   case 152:
 #line 452 "src/kinx.y" /* yacc.c:1646  */
-    { (yyval.obj) = kx_gen_range_object((yyvsp[-1].obj), NULL, 1); }
+    { (yyval.obj) = kx_gen_range_object((yyvsp[-1].obj), kx_gen_special_object(KXVL_NULL), 1); }
 #line 3111 "kx.tab.c" /* yacc.c:1646  */
     break;
 
