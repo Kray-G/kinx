@@ -41,6 +41,22 @@ do { \
 } while (0);\
 /**/
 
+#define KX_PUSH_FUNCTION(fn) { \
+    if (fn) { \
+        if (fn->typ || fn->wht) { \
+            THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
+        } \
+        if (fn->val.type) { \
+            push_value((ctx)->stack, fn->val); \
+            ++((ctx)->spread_additional); \
+        } \
+        push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
+    } else { \
+        push_undef((ctx)->stack); \
+    } \
+} \
+/**/
+
 #define KX_APPLYL_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
@@ -131,6 +147,27 @@ do { \
 } \
 /**/
 
+#define KX_DIRECT_CALL(fn, count) { \
+    if (fn) { \
+        if (fn->jp) { \
+            caller = cur; \
+            push_i((ctx)->stack, count + ctx->spread_additional); \
+            ctx->spread_additional = 0; \
+            push_adr((ctx)->stack, cur->next); \
+            cur = fn->jp; \
+            KX_GOTO(); \
+        } else { \
+            kv_remove_last((ctx)->stack); \
+            int r; \
+            KX_CALLBUILTIN_FUNCTION(r); \
+            KX_BUILTIN_FUNCTION_ERROR(r); \
+            cur = cur->next; \
+            KX_GOTO(); \
+        } \
+    } \
+} \
+/**/
+
 #define KX_APPLYV_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
@@ -141,52 +178,36 @@ do { \
         if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
             int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
             KX_PUSH_CSTR_I(lv->type == KX_CSTR_T ? lv->value.pv : ks_string(lv->value.sv), index); \
+        } else if (v2->type == KX_OBJ_T) { \
+            kx_fnc_t *fn = search_string_function(ctx, "[]", v1, cur->count, jumptable); \
+            push_obj((ctx)->stack, v2->value.ov); \
+            ++(ctx->spread_additional);\
+            KX_PUSH_FUNCTION(fn); \
+            KX_DIRECT_CALL(fn, 0); \
         } else { \
             kx_fnc_t *fn = search_string_function(ctx, name, v1, cur->count, jumptable); \
-            if (fn) { \
-                if (fn->typ || fn->wht) { \
-                    THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-                } \
-                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-            } else { \
-                push_undef((ctx)->stack); \
-            } \
+            KX_PUSH_FUNCTION(fn); \
         } \
     } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
         kx_fnc_t *fn = search_integer_function(ctx, name, v1); \
-        if (fn) { \
-            if (fn->typ || fn->wht) { \
-                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-            } \
-            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-        } else { \
-            push_undef((ctx)->stack); \
-        } \
+        KX_PUSH_FUNCTION(fn); \
     } else if (lv->type == KX_DBL_T) { \
         kx_fnc_t *fn = search_double_function(ctx, name, v1); \
-        if (fn) { \
-            if (fn->typ || fn->wht) { \
-                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-            } \
-            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-        } else { \
-            push_undef((ctx)->stack); \
-        } \
+        KX_PUSH_FUNCTION(fn); \
     } else if (lv->type == KX_BIN_T) { \
         if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
             int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
             kx_bin_t *bin = lv->value.bn; \
             KX_PUSH_BIN_I(bin, index); \
+        } else if (v2->type == KX_OBJ_T) { \
+            kx_fnc_t *fn = search_binary_function(ctx, "[]", v1); \
+            push_obj((ctx)->stack, v2->value.ov); \
+            ++(ctx->spread_additional);\
+            KX_PUSH_FUNCTION(fn); \
+            KX_DIRECT_CALL(fn, 0); \
         } else { \
             kx_fnc_t *fn = search_binary_function(ctx, name, v1); \
-            if (fn) { \
-                if (fn->typ || fn->wht) { \
-                    THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-                } \
-                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-            } else { \
-                push_undef((ctx)->stack); \
-            } \
+            KX_PUSH_FUNCTION(fn); \
         } \
     } else { \
         kx_val_t *val = NULL; \
@@ -204,17 +225,19 @@ do { \
                 } else if (sz != 0) { \
                     val = &(kv_A(obj->ary, (index % sz))); \
                 } \
+            } else if (v2->type == KX_OBJ_T) { \
+                kx_fnc_t *fn = search_array_function(ctx, "[]", v1); \
+                push_obj((ctx)->stack, v2->value.ov); \
+                ++(ctx->spread_additional);\
+                KX_PUSH_FUNCTION(fn); \
+                KX_DIRECT_CALL(fn, 0); \
             } else { \
                 THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
             } \
         } \
         if (!val) { \
             kx_fnc_t *fn = search_array_function(ctx, name, lv); \
-            if (fn) { \
-                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-            } else { \
-                push_undef((ctx)->stack); \
-            } \
+            KX_PUSH_FUNCTION(fn); \
         } else { \
             push_value((ctx)->stack, *val); \
         } \
@@ -330,44 +353,16 @@ do { \
     const char *name = cur->value1.s; \
     if (lv->type == KX_CSTR_T || lv->type == KX_STR_T) { \
         kx_fnc_t *fn = search_string_function(ctx, name, v1, cur->count, jumptable); \
-        if (fn) { \
-            if (fn->typ || fn->wht) { \
-                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-            } \
-            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-        } else { \
-            push_undef((ctx)->stack); \
-        } \
+        KX_PUSH_FUNCTION(fn); \
     } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
         kx_fnc_t *fn = search_integer_function(ctx, name, v1); \
-        if (fn) { \
-            if (fn->typ || fn->wht) { \
-                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-            } \
-            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-        } else { \
-            push_undef((ctx)->stack); \
-        } \
+        KX_PUSH_FUNCTION(fn); \
     } else if (lv->type == KX_DBL_T) { \
         kx_fnc_t *fn = search_double_function(ctx, name, v1); \
-        if (fn) { \
-            if (fn->typ || fn->wht) { \
-                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-            } \
-            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-        } else { \
-            push_undef((ctx)->stack); \
-        } \
+        KX_PUSH_FUNCTION(fn); \
     } else if (lv->type == KX_BIN_T) { \
         kx_fnc_t *fn = search_binary_function(ctx, name, v1); \
-        if (fn) { \
-            if (fn->typ || fn->wht) { \
-                THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-            } \
-            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-        } else { \
-            push_undef((ctx)->stack); \
-        } \
+        KX_PUSH_FUNCTION(fn); \
     } else { \
         kx_val_t *val = NULL; \
         kx_obj_t *obj = NULL; \
@@ -377,11 +372,7 @@ do { \
         } \
         if (!val) { \
             kx_fnc_t *fn = search_array_function(ctx, name, lv); \
-            if (fn) { \
-                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
-            } else { \
-                push_undef((ctx)->stack); \
-            } \
+            KX_PUSH_FUNCTION(fn); \
         } else { \
             push_value((ctx)->stack, *val); \
         } \

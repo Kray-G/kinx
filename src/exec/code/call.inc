@@ -215,16 +215,12 @@ default: \
         kx_fnc_t *fn = NULL; \
         if (lv->type == KX_CSTR_T || lv->type == KX_STR_T) { \
             fn = search_string_function(ctx, name, lv, cur->count + ctx->spread_additional, jumptable); \
-            ctx->spread_additional = 0; \
         } else if (lv->type == KX_INT_T || lv->type == KX_BIG_T) { \
             fn = search_integer_function(ctx, name, lv); \
-            ctx->spread_additional = 0; \
         } else if (lv->type == KX_DBL_T) { \
             fn = search_double_function(ctx, name, lv); \
-            ctx->spread_additional = 0; \
         } else if (lv->type == KX_BIN_T) { \
             fn = search_binary_function(ctx, name, lv); \
-            ctx->spread_additional = 0; \
         } \
         KX_CALL_FUNCTION(fn, name, lv); \
     } else { \
