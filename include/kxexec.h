@@ -221,11 +221,33 @@
     &&LBL_KX_SET_GMM, \
     &&LBL_KX_CHKVAL, \
 /**/
-#define KX_CASE_(OPCODE) LBL_##OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
+#if defined(KX_PROFILE)
+#include <sys/time.h>
+#define kxp_def() struct timeval kxps[KX_CHKVAL+3] = {0}; double kxpa[KX_CHKVAL+3] = {0}; int kxpc = 0; double kxp_sum = 0.0;
+#define kxp_disp() for(int kxpi = 0;kxpi<=(KX_CHKVAL+1);++kxpi) { printf("[%3d:%-14s] = %g\n", kxpi, kx_opname[kxpi], kxpa[kxpi]); kxp_sum += kxpa[kxpi]; }
+#define kxp_disp_total() { int kxpi = KX_CHKVAL+2; printf("[%3d:%-14s] = %g\n", kxpi, kx_opname[kxpi], kxpa[kxpi] - kxp_sum); }
+#define kxp_s(op) gettimeofday(kxps+op, NULL); kxpc = op;
+#define kxp_a() {struct timeval e; gettimeofday(&e, NULL); kxpa[kxpc] += (((double)e.tv_sec - (kxps[kxpc]).tv_sec) + ((double)e.tv_usec - (kxps[kxpc]).tv_usec) * 1.0e-6);}
+#define kxp_gcs() gettimeofday(kxps+KX_CHKVAL+1, NULL);
+#define kxp_gca() {struct timeval e; gettimeofday(&e, NULL); kxpa[KX_CHKVAL+1] += (((double)e.tv_sec - (kxps[KX_CHKVAL+1]).tv_sec) + ((double)e.tv_usec - (kxps[KX_CHKVAL+1]).tv_usec) * 1.0e-6);}
+#define kxp_tos() gettimeofday(kxps+KX_CHKVAL+2, NULL);
+#define kxp_toa() {struct timeval e; gettimeofday(&e, NULL); kxpa[KX_CHKVAL+2] = (((double)e.tv_sec - (kxps[KX_CHKVAL+2]).tv_sec) + ((double)e.tv_usec - (kxps[KX_CHKVAL+2]).tv_usec) * 1.0e-6);}
+#else
+#define kxp_def()
+#define kxp_disp()
+#define kxp_disp_total()
+#define kxp_s(op)
+#define kxp_a()
+#define kxp_gcs()
+#define kxp_gca()
+#define kxp_tos()
+#define kxp_toa()
+#endif
+#define KX_CASE_(OPCODE) LBL_##OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); kxp_s(OPCODE); OPCODE##_CODE();
 #define KX_CASE_BEGIN() goto *(cur->gotolabel);
 #define KX_CASE_ERROR_END() LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
-#define KX_GOTO() goto *(cur->gotolabel);
+#define KX_GOTO() kxp_a(); goto *(cur->gotolabel);
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = { KX_LABELS };
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
 #define KX_EXEC_DECL(fixcode) \
@@ -237,6 +259,15 @@
     kx_fnc_t *fnco = NULL; \
 /**/
 #else
+#define kxp_def()
+#define kxp_disp()
+#define kxp_disp_total()
+#define kxp_s(op)
+#define kxp_a()
+#define kxp_gcs()
+#define kxp_gca()
+#define kxp_tos()
+#define kxp_toa()
 #define KX_CASE_(OPCODE) case OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
 #define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
@@ -281,6 +312,17 @@ extern kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur, kx_code_t **
 #define KEX_CHECK_SIGNAL(ctx) \
 if ((ctx)->signal.signal_received) { \
     cur = kx_signal_hook(ctx, cur, &caller); \
+} \
+/**/
+
+#define KEX_TRY_GC() \
+{ \
+    if (--gc_ticks == 0) { \
+        gc_ticks = KEX_GC_TICK;\
+        kxp_gcs(); \
+        gc_mark_and_sweep(ctx); \
+        kxp_gca(); \
+    }\
 } \
 /**/
 
