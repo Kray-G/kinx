@@ -147,7 +147,7 @@ do { \
                 if (fn->typ || fn->wht) { \
                     THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
                 } \
-                push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
             } else { \
                 push_undef((ctx)->stack); \
             } \
@@ -158,7 +158,7 @@ do { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
             } \
-            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \
         } \
@@ -168,7 +168,7 @@ do { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
             } \
-            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \
         } \
@@ -183,7 +183,7 @@ do { \
                 if (fn->typ || fn->wht) { \
                     THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
                 } \
-                push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
             } else { \
                 push_undef((ctx)->stack); \
             } \
@@ -211,7 +211,7 @@ do { \
         if (!val) { \
             kx_fnc_t *fn = search_array_function(ctx, name, lv); \
             if (fn) { \
-                push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
             } else { \
                 push_undef((ctx)->stack); \
             } \
@@ -334,7 +334,7 @@ do { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
             } \
-            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \
         } \
@@ -344,7 +344,7 @@ do { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
             } \
-            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \
         } \
@@ -354,7 +354,7 @@ do { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
             } \
-            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \
         } \
@@ -364,7 +364,7 @@ do { \
             if (fn->typ || fn->wht) { \
                 THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
             } \
-            push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+            push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
         } else { \
             push_undef((ctx)->stack); \
         } \
@@ -378,7 +378,7 @@ do { \
         if (!val) { \
             kx_fnc_t *fn = search_array_function(ctx, name, lv); \
             if (fn) { \
-                push_fnc(KX_BFNC_T, (ctx)->stack, fn) \
+                push_fnc(fn->jp ? KX_FNC_T : KX_BFNC_T, (ctx)->stack, fn) \
             } else { \
                 push_undef((ctx)->stack); \
             } \
