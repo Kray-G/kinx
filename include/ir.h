@@ -1028,15 +1028,6 @@ typedef struct kx_context_ {
 } \
 /**/
 
-#define KEX_TRY_GC() \
-{ \
-    if (--gc_ticks == 0) { \
-        gc_ticks = KEX_GC_TICK;\
-        gc_mark_and_sweep(ctx); \
-    }\
-} \
-/**/
-
 #define KEX_POP_STACK_TOP(vp) \
     kx_val_t *vp = &kv_pop((ctx)->stack); \
 /**/

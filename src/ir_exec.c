@@ -46,10 +46,254 @@
 #include "exec/code/lge.inc"
 #include "exec/code/regeq.inc"
 
+static const char *kx_opname[] = {
+    "KX_HALT",
+    "KX_NOP",
+    "KX_DUP",
+    "KX_IMPORT",
+
+    "KX_ENTER",
+    "KX_CALL",
+    "KX_CALLV",
+    "KX_CALLVL0",
+    "KX_CALLVL1",
+    "KX_CALLS",
+
+    "KX_RET",
+    "KX_RETI",
+    "KX_RETD",
+    "KX_RETS",
+    "KX_RETB",
+    "KX_RETV",
+    "KX_RETVL0",
+    "KX_RETVL1",
+    "KX_RET_NULL",
+    "KX_RET_NV",
+    "KX_YIELD",
+
+    "KX_THROW",
+    "KX_THROWA",
+    "KX_THROWE",
+
+    "KX_CATCH",
+
+    "KX_JMP",
+    "KX_JZ",
+    "KX_JNZ",
+    "KX_JMPTBL",
+
+    "KX_PUSHI",
+    "KX_PUSHD",
+    "KX_PUSHS",
+    "KX_PUSHB",
+    "KX_PUSHF",
+    "KX_PUSHNF",
+    "KX_PUSHV",
+    "KX_PUSHLV",
+    "KX_PUSHVL0",
+    "KX_PUSHVL1",
+    "KX_PUSH_NULL",
+    "KX_PUSH_TRUE",
+    "KX_PUSH_FALSE",
+    "KX_PUSH_REGEX",
+    "KX_PUSH_C",
+    "KX_PUSH_CO",
+    "KX_SPREAD",
+
+    "KX_POP_C",
+    "KX_POP",
+
+    "KX_STORE",
+    "KX_STOREV",
+    "KX_STOREX",
+    "KX_STOREVX",
+
+    "KX_NOT",
+    "KX_NEG",
+
+    "KX_INC",
+    "KX_DEC",
+    "KX_INCV",
+    "KX_DECV",
+    "KX_INCP",
+    "KX_DECP",
+    "KX_INCVP",
+    "KX_DECVP",
+    "KX_INCVX",
+    "KX_DECVX",
+
+    "KX_MKBIN",
+    "KX_MKARY",
+    "KX_GETARYV",
+    "KX_GETARYA",
+    "KX_APPLYV",
+    "KX_APPLYL",
+    "KX_APPLYVI",
+    "KX_APPLYLI",
+    "KX_APPLYVS",
+    "KX_APPLYLS",
+
+    "KX_APPENDK",
+    "KX_APPEND",
+    "KX_APPENDI",
+    "KX_APPENDD",
+    "KX_APPENDS",
+    "KX_APPENDV",
+    "KX_APPENDA",
+
+    "KX_ADD",
+    "KX_ADDI",
+    "KX_ADDD",
+    "KX_ADDS",
+    "KX_ADDV",
+
+    "KX_SUB",
+    "KX_SUBI",
+    "KX_SUBD",
+    "KX_SUBS",
+    "KX_SUBV",
+
+    "KX_POW",
+
+    "KX_MUL",
+    "KX_MULI",
+    "KX_MULD",
+    "KX_MULS",
+    "KX_MULV",
+
+    "KX_DIV",
+    "KX_DIVI",
+    "KX_DIVD",
+    "KX_DIVS",
+    "KX_DIVV",
+
+    "KX_MOD",
+    "KX_MODI",
+    "KX_MODD",
+    "KX_MODS",
+    "KX_MODV",
+
+    "KX_AND",
+    "KX_ANDI",
+    "KX_ANDD",
+    "KX_ANDS",
+    "KX_ANDV",
+
+    "KX_OR",
+    "KX_ORI",
+    "KX_ORD",
+    "KX_ORS",
+    "KX_ORV",
+
+    "KX_XOR",
+    "KX_XORI",
+    "KX_XORD",
+    "KX_XORS",
+    "KX_XORV",
+
+    "KX_SHL",
+    "KX_SHLI",
+    "KX_SHLD",
+    "KX_SHLS",
+    "KX_SHLV",
+
+    "KX_SHR",
+    "KX_SHRI",
+    "KX_SHRD",
+    "KX_SHRS",
+    "KX_SHRV",
+
+    "KX_EQEQ",
+    "KX_EQEQI",
+    "KX_EQEQD",
+    "KX_EQEQS",
+    "KX_EQEQV",
+
+    "KX_NEQ",
+    "KX_NEQI",
+    "KX_NEQD",
+    "KX_NEQS",
+    "KX_NEQV",
+
+    "KX_LE",
+    "KX_LEI",
+    "KX_LED",
+    "KX_LES",
+    "KX_LEV",
+
+    "KX_LT",
+    "KX_LTI",
+    "KX_LTD",
+    "KX_LTS",
+    "KX_LTV",
+
+    "KX_GE",
+    "KX_GEI",
+    "KX_GED",
+    "KX_GES",
+    "KX_GEV",
+
+    "KX_GT",
+    "KX_GTI",
+    "KX_GTD",
+    "KX_GTS",
+    "KX_GTV",
+
+    "KX_LGE",
+    "KX_LGEI",
+    "KX_LGED",
+    "KX_LGES",
+    "KX_LGEV",
+
+    "KX_REGEQ",
+    "KX_REGNE",
+
+    "KX_EQEQ_V0V0",
+    "KX_NEQ_V0V0",
+    "KX_LE_V0V0",
+    "KX_LT_V0V0",
+    "KX_GE_V0V0",
+    "KX_GT_V0V0",
+    "KX_LGE_V0V0",
+
+    "KX_ADD_V0I",
+    "KX_SUB_V0I",
+    "KX_MUL_V0I",
+    "KX_DIV_V0I",
+    "KX_MOD_V0I",
+
+    "KX_EQEQ_V0I",
+    "KX_NEQ_V0I",
+    "KX_LE_V0I",
+    "KX_LT_V0I",
+    "KX_GE_V0I",
+    "KX_GT_V0I",
+    "KX_LGE_V0I",
+
+    "KX_EQEQ_IV0",
+    "KX_NEQ_IV0",
+    "KX_LE_IV0",
+    "KX_LT_IV0",
+    "KX_GE_IV0",
+    "KX_GT_IV0",
+    "KX_LGE_IV0",
+
+    "KX_TYPEOF",
+    "KX_SET_GMM",
+    "KX_CHKVAL",
+
+    "GC-TIME",
+    "OTHERS",
+
+    "KX_OPEND"
+};
+
 static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
 {
+    kxp_def();
     KX_EXEC_SETUP(fixcode);
 
+    kxp_tos();
     KX_CASE_BEGIN() {
 
     KX_CASE_(KX_HALT) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
@@ -298,6 +542,10 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
     case KX_DBL_T: ri = (int)rv->value.dv; break;
     case KX_BIG_T: ri = -1; break;
     }
+
+    kxp_toa();
+    kxp_disp();
+    kxp_disp_total();
 
     return ri;
 }
