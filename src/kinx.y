@@ -447,9 +447,9 @@ RegexMatch
     : PrefixExpression
     | RegexMatch REGEQ PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGEQ, $1, $3); }
     | RegexMatch REGNE PrefixExpression { $$ = kx_gen_bexpr_object(KXOP_REGNE, $1, $3); }
-    | PrefixExpression DOTS2 { $$ = kx_gen_range_object($1, NULL, 0); }
+    | PrefixExpression DOTS2 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 0); }
     | PrefixExpression DOTS2 PrefixExpression { $$ = kx_gen_range_object($1, $3, 0); }
-    | PrefixExpression DOTS3 { $$ = kx_gen_range_object($1, NULL, 1); }
+    | PrefixExpression DOTS3 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 1); }
     | PrefixExpression DOTS3 PrefixExpression { $$ = kx_gen_range_object($1, $3, 1); }
     ;
 
