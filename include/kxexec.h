@@ -13,11 +13,12 @@
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = {0};
 #define KX_SET_GOTO(c)
 #define KX_EXEC_DECL(fixcode) \
-    int gc_ticks = KEX_GC_TICK; \
-    struct kx_code_ *cur = kv_head(*fixcode); \
+    register int gc_ticks = KEX_GC_TICK; \
+    register struct kx_code_ *cur = kv_head(*fixcode); \
+    register kx_context_t *ctx = ctxp; \
+    register kx_frm_t *frmv = (ctx)->frmv; \
+    register kx_frm_t *lexv = (ctx)->lexv; \
     kx_code_t *caller = NULL; \
-    kx_frm_t *frmv = (ctx)->frmv; \
-    kx_frm_t *lexv = (ctx)->lexv; \
     kx_fnc_t *fnco = NULL; \
 /**/
 #elif defined(KX_DIRECT_THREAD)
@@ -243,6 +244,8 @@
 #define kxp_tos()
 #define kxp_toa()
 #endif
+#define KX_LIKELY(x)   __builtin_expect(!!(x), 1)
+#define KX_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #define KX_CASE_(OPCODE) LBL_##OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); kxp_s(OPCODE); OPCODE##_CODE();
 #define KX_CASE_BEGIN() goto *(cur->gotolabel);
 #define KX_CASE_ERROR_END() LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
@@ -252,12 +255,16 @@
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
 #define KX_EXEC_DECL(fixcode) \
     register struct kx_code_ *cur asm ("rbx"); \
-    cur = kv_head(*fixcode); \
     register int gc_ticks asm ("r12");\
-    gc_ticks = KEX_GC_TICK; \
+    register kx_frm_t *frmv asm ("r13"); \
+    register kx_frm_t *lexv asm ("r14"); \
+    register kx_context_t *ctx asm ("r15"); \
+    ctx = ctxp; \
     kx_code_t *caller = NULL; \
-    kx_frm_t *frmv = (ctx)->frmv; \
-    kx_frm_t *lexv = (ctx)->lexv; \
+    cur = kv_head(*fixcode); \
+    gc_ticks = KEX_GC_TICK; \
+    frmv = (ctx)->frmv; \
+    lexv = (ctx)->lexv; \
     kx_fnc_t *fnco = NULL; \
 /**/
 #else
@@ -270,6 +277,8 @@
 #define kxp_gca()
 #define kxp_tos()
 #define kxp_toa()
+#define KX_LIKELY(x)   (x)
+#define KX_UNLIKELY(x) (x)
 #define KX_CASE_(OPCODE) case OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
 #define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
@@ -278,11 +287,12 @@
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = {0};
 #define KX_SET_GOTO(c)
 #define KX_EXEC_DECL(fixcode) \
-    int gc_ticks = KEX_GC_TICK; \
-    struct kx_code_ *cur = kv_head(*fixcode); \
+    register int gc_ticks = KEX_GC_TICK; \
+    register struct kx_code_ *cur = kv_head(*fixcode); \
+    register kx_context_t *ctx = ctxp; \
+    register kx_frm_t *frmv = (ctx)->frmv; \
+    register kx_frm_t *lexv = (ctx)->lexv; \
     kx_code_t *caller = NULL; \
-    kx_frm_t *frmv = (ctx)->frmv; \
-    kx_frm_t *lexv = (ctx)->lexv; \
     kx_fnc_t *fnco = NULL; \
 /**/
 #endif

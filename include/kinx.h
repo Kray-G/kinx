@@ -454,8 +454,8 @@ extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cu
 extern int check_typeof(kx_val_t *v1, int type);
 extern int get_bin_item(kx_val_t *v);
 
-extern kx_code_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t **frmvp, kx_frm_t **lexvp, const char *typ, const char *wht);
-extern kx_code_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t **frmvp, kx_frm_t **lexvp, const char *typ, const char *fmt, ...);
+extern kx_exc_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *wht);
+extern kx_exc_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *fmt, ...);
 
 /* for import library */
 

@@ -31,6 +31,7 @@ void init_allocator(void)
     #endif
 }
 
+
 void *kx_malloc_impl(size_t size)
 {
     return malloc(size);

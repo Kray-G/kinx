@@ -288,7 +288,7 @@ static const char *kx_opname[] = {
     "KX_OPEND"
 };
 
-static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctx)
+static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
 {
     kxp_def();
     KX_EXEC_SETUP(fixcode);
