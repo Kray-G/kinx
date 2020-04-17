@@ -35,6 +35,19 @@ String.replace = _function(str, cond, newstr) {
     }
 };
 
-String.== = _function(val, obj) {
-    return obj == val;
+String.== = _function(str, obj) {
+    return obj == str;
+};
+
+String.[] = function(str, obj) {
+    if (obj.isRange) {
+        var b = obj.begin() ?? 0;
+        var e = obj.end();
+        if (!e) {
+            return str.subString(b);
+        }
+        var l = obj.isEndExcluded() ? (e - b) : (e - b + 1);
+        return str.subString(b, l);
+    }
+    throw RuntimeException('Invalid index for String');
 };

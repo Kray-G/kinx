@@ -176,3 +176,16 @@ Array.extend = (_function() {
 Array.println = _function(ary) {
     return ary.each(_function(e) { System.println(e); });
 };
+
+Array.[] = function(ary, obj) {
+    if (obj.isRange) {
+        var b = obj.begin() ?? 0;
+        var e = obj.end();
+        if (!e) {
+            return ary.subArray(b);
+        }
+        var l = obj.isEndExcluded() ? (e - b) : (e - b + 1);
+        return ary.subArray(b, l);
+    }
+    throw RuntimeException('Invalid index for Array');
+};
