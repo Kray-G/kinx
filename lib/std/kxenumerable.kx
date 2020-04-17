@@ -469,6 +469,9 @@ _class _Range(start_, end_, excludeEnd_) {
     public end() {
         return end_;
     }
+    public isEndExcluded() {
+        return excludeEnd_;
+    }
     public next() {
         return cur_.next();
     }

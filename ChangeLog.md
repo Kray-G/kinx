@@ -19,7 +19,8 @@ Updates from v0.4.1.
         `System.print/println`, `Array#join`, and `Array#toString`.
     *   Supported a spread operator for String like `<..."abc">` or `[..."abc"]`.
     *   Supported the option of `binary` with true/false for `Zip#extract`.
-    *   Some bug fixes.
+    *   Supported applying a Range object to the index for String, Binary, and Array.
+    *   Some bug fixes and improvement.
 
 ## V0.4.1 (4th Preview Release)
 
