@@ -39,7 +39,7 @@ String.== = _function(str, obj) {
     return obj == str;
 };
 
-String.[] = function(str, obj) {
+String.[] = _function(str, obj) {
     if (obj.isRange) {
         var b = obj.begin() ?? 0;
         var e = obj.end();
