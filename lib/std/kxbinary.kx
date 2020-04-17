@@ -79,3 +79,16 @@ Binary.sort = (_function() {
 Binary.println = _function(bin) {
     return bin.each(_function(e) { System.println(e); });
 };
+
+Binary.[] = function(bin, obj) {
+    if (obj.isRange) {
+        var b = obj.begin() ?? 0;
+        var e = obj.end();
+        if (!e) {
+            return bin.subBinary(b);
+        }
+        var l = obj.isEndExcluded() ? (e - b) : (e - b + 1);
+        return bin.subBinary(b, l);
+    }
+    throw RuntimeException('Invalid index for Binary');
+};

@@ -97,6 +97,11 @@ int Array_join_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
     for (int i = 0; i < len; ++i) {
         kx_val_t *v = &kv_A(obj->ary, i);
         switch (v->type) {
+        case KX_UND_T:
+            if (quote) {
+                ks_append(str, "null");
+            }
+            break;
         case KX_INT_T:
             ks_appendf(str, "%"PRId64, v->value.iv);
             break;
@@ -592,6 +597,30 @@ int Array_toJsonString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return throw_invalid_object(args, ctx);
 }
 
+int Array_subArray(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        int b = args > 1 ? get_arg_int(2, args, ctx) : 0;
+        int l = args > 2 ? get_arg_int(3, args, ctx) : 0;
+        if (b < 0 || l < 0) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid range, it should be zero or positive number");
+        }
+        if (!l) {
+            l = kv_size(obj->ary) - b;
+        }
+        kx_obj_t *dst = allocate_obj(ctx);
+        while (l--) {
+            *kv_pushp(kx_val_t, dst->ary) = kv_A(obj->ary, b++);
+        }
+        KX_ADJST_STACK();
+        push_obj(ctx->stack, dst);
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Array_length },
     { "keySet", Array_keySet },
@@ -603,6 +632,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "unshift", Array_unshift },
     { "reverse", Array_reverse },
     { "flatten", Array_flatten },
+    { "subArray", Array_subArray },
     { "toJsonString", Array_toJsonString },
     { "printStackTrace", Array_printStackTrace },
 };
