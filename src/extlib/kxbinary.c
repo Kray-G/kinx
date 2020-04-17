@@ -260,6 +260,30 @@ int Binary_reverse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return throw_invalid_object(args, ctx);
 }
 
+int Binary_subBinary(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_bin_t *bin = get_arg_bin(1, args, ctx);
+    if (bin) {
+        int b = args > 1 ? get_arg_int(2, args, ctx) : 0;
+        int l = args > 2 ? get_arg_int(3, args, ctx) : 0;
+        if (b < 0 || l < 0) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid range, it should be zero or positive number");
+        }
+        if (!l) {
+            l = kv_size(bin->bin) - b;
+        }
+        kx_bin_t *dst = allocate_bin(ctx);
+        while (l--) {
+            *kv_pushp(uint8_t, dst->bin) = kv_A(bin->bin, b++);
+        }
+        KX_ADJST_STACK();
+        push_bin(ctx->stack, dst);
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Binary_length },
     { "push", Binary_push },
@@ -270,6 +294,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "sortNormal", Binary_sort },
     { "reverse", Binary_reverse },
     { "toString", Binary_toString },
+    { "subBinary", Binary_subBinary },
     { "clone", Binary_clone },
 };
 
