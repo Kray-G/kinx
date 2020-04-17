@@ -658,7 +658,8 @@ typedef struct kx_context_ {
 #define KEX_DEFAULT_STACK (1024)
 #endif
 
-#define KX_INIT_FRM_COUNT (512)
+#define KX_INIT_FRM_COUNT (2048)
+#define KX_INIT_FNC_COUNT (512)
 #define KX_INIT_KXN_COUNT (8)
 
 #define allocate_defstr(ctx) (kv_size((ctx)->str_dead) > 0 ? (kstr_t *)kv_pop((ctx)->str_dead) : (kstr_t *)ks_new())

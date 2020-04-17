@@ -26,8 +26,13 @@ BigZ get_int64min_minus1(void)
 
 void init_allocation(kx_context_t *ctx)
 {
+    kv_resize(kx_frm_t*, ctx->frm_dead, KX_INIT_FRM_COUNT);
     for (int i = 0; i < KX_INIT_FRM_COUNT; ++i) {
-        kv_push(kx_frm_t*, ctx->frm_dead, (kx_frm_t *)kx_calloc(1, sizeof(kx_frm_t)));
+        kv_A(ctx->frm_dead, i) = (kx_frm_t *)kx_calloc(1, sizeof(kx_frm_t));
+    }
+    kv_resize(kx_fnc_t*, ctx->fnc_dead, KX_INIT_FNC_COUNT);
+    for (int i = 0; i < KX_INIT_FNC_COUNT; ++i) {
+        kv_A(ctx->fnc_dead, i) = (kx_fnc_t *)kx_calloc(1, sizeof(kx_fnc_t));
     }
 }
 
