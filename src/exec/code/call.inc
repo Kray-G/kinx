@@ -32,15 +32,15 @@ default: \
 
 #define KX_CALL_FUNCTION(fn, name, host) \
 { \
-    if (!fn) { \
+    if (KX_UNLIKELY(!fn)) { \
         fn = method_missing(ctx, name, host); \
         if (!fn) { \
             THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
         } \
     } \
-    if (fn->typ || fn->wht) { \
+    if (KX_UNLIKELY(fn->typ || fn->wht)) { \
         THROW_SYSTEM_EXCEPTION(fn->typ, fn->wht); \
-    } else if (fn->push.type) { \
+    } else if (KX_UNLIKELY(fn->push.type)) { \
         kv_shrink((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
         push_value((ctx)->stack, fn->push); \
@@ -77,7 +77,7 @@ default: \
 #define KX_CALL_CODE() \
 { \
     kx_val_t *fv = &kv_last((ctx)->stack); \
-    if (fv->type == KX_FNC_T) { \
+    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
         caller = cur; \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
         ctx->spread_additional = 0; \
@@ -114,7 +114,7 @@ default: \
         lexp = lexp->lex; \
     } \
     kx_val_t *fv = &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i); \
-    if (fv->type == KX_FNC_T) { \
+    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
@@ -145,7 +145,7 @@ default: \
 #define KX_CALLVL0_CODE() \
 { \
     kx_val_t *fv = &kv_A(frmv->v, cur->value2.i); \
-    if (fv->type == KX_FNC_T) { \
+    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fv->value.fn); \
         push_i((ctx)->stack, cur->count + ctx->spread_additional); \
@@ -176,7 +176,7 @@ default: \
 #define KX_CALLVL1_CODE() \
 { \
     kx_val_t *fv = &kv_A(lexv->v, cur->value2.i); \
-    if (fv->type == KX_FNC_T) { \
+    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
         kx_fnc_t *fn = fv->value.fn; \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
@@ -255,3 +255,4 @@ default: \
     } \
 } \
 /**/
+
