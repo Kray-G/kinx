@@ -80,7 +80,7 @@ Binary.println = _function(bin) {
     return bin.each(_function(e) { System.println(e); });
 };
 
-Binary.[] = function(bin, obj) {
+Binary.[] = _function(bin, obj) {
     if (obj.isRange) {
         var b = obj.begin() ?? 0;
         var e = obj.end();
