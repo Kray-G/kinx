@@ -19,7 +19,6 @@
     register kx_frm_t *frmv = (ctx)->frmv; \
     register kx_frm_t *lexv = (ctx)->lexv; \
     kx_code_t *caller = NULL; \
-    kx_fnc_t *fnco = NULL; \
 /**/
 #elif defined(KX_DIRECT_THREAD)
 #define KX_LABELS \
@@ -265,7 +264,6 @@
     gc_ticks = KEX_GC_TICK; \
     frmv = (ctx)->frmv; \
     lexv = (ctx)->lexv; \
-    kx_fnc_t *fnco = NULL; \
 /**/
 #else
 #define kxp_def()
@@ -293,7 +291,6 @@
     register kx_frm_t *frmv = (ctx)->frmv; \
     register kx_frm_t *lexv = (ctx)->lexv; \
     kx_code_t *caller = NULL; \
-    kx_fnc_t *fnco = NULL; \
 /**/
 #endif
 #define KX_EXEC_FIX_JMPADDR(fixcode, start) \

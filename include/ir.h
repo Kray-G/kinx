@@ -606,7 +606,6 @@ typedef struct kx_signal_ {
 typedef struct kx_context_ {
     kx_frm_t *frmv;
     kx_frm_t *lexv;
-    kx_fnc_t *fnco;
     kvec_t(kx_val_t) stack;
     kvec_t(kx_exc_t) exception;
 
