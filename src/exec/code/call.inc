@@ -92,8 +92,8 @@ default: \
         kx_fnc_t *fn = fv->value.fn; \
         caller = cur; \
         int args = cur->count + ctx->spread_additional; \
-        ctx->spread_additional = 0; \
         push_i((ctx)->stack, args); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fn->jp; \
         if (!fn->fiber) { \
@@ -135,8 +135,8 @@ default: \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
-        ctx->spread_additional = 0; \
         push_i((ctx)->stack, args); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fn->jp; \
         if (!fn->fiber) { \
@@ -171,8 +171,8 @@ default: \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
-        ctx->spread_additional = 0; \
         push_i((ctx)->stack, args); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fn->jp; \
         if (!fn->fiber) { \
@@ -207,8 +207,8 @@ default: \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
-        ctx->spread_additional = 0; \
         push_i((ctx)->stack, args); \
+        ctx->spread_additional = 0; \
         push_adr((ctx)->stack, cur->next); \
         cur = fn->jp; \
         if (!fn->fiber) { \
@@ -264,8 +264,8 @@ default: \
             kx_fnc_t *fn = fv->value.fn; \
             push_fnc(KX_FNC_T, (ctx)->stack, fn); \
             int args = cur->count + ctx->spread_additional; \
-            ctx->spread_additional = 0; \
             push_i((ctx)->stack, args); \
+            ctx->spread_additional = 0; \
             push_adr((ctx)->stack, cur->next); \
             cur = fn->jp; \
             if (!fn->fiber) { \
