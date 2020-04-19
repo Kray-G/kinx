@@ -7,6 +7,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_value((ctx)->stack, *v); \
     if (!radr) { \
@@ -15,10 +19,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -30,6 +30,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_i((ctx)->stack, cur->value1.i); \
     if (!radr) { \
@@ -38,10 +42,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -53,6 +53,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_d((ctx)->stack, cur->value1.d); \
     if (!radr) { \
@@ -76,6 +80,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_s((ctx)->stack, cur->value1.s); \
     if (!radr) { \
@@ -84,10 +92,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -99,6 +103,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_b((ctx)->stack, cur->value1.s); \
     if (!radr) { \
@@ -107,10 +115,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -122,6 +126,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     int lex = cur->value1.i; \
     if (lex == 0) { \
@@ -141,10 +149,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -156,6 +160,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_undef((ctx)->stack); \
     if (!radr) { \
@@ -164,10 +172,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -179,6 +183,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     if (!radr) { \
         goto LBL_KX_END_OF_CODE; \
@@ -186,10 +194,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -201,6 +205,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_value((ctx)->stack, kv_A(frmv->v, cur->value2.i)); \
     if (!radr) { \
@@ -209,10 +217,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -224,6 +228,10 @@
     kv_shrinkto((ctx)->stack, frmv->id); \
     kx_code_t *radr = kv_pop((ctx)->stack).value.jp; \
     int count = kv_pop((ctx)->stack).value.iv; \
+    kx_fnc_t *fnco = kv_pop((ctx)->stack).value.fn; \
+    if (fnco) { \
+        fnco->fbpos = NULL; \
+    } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
     push_value((ctx)->stack, kv_A(lexv->v, cur->value2.i)); \
     if (!radr) { \
@@ -232,10 +240,6 @@
     cur = radr; \
     frmv = frmv->prv; \
     lexv = frmv->lex; \
-    if (fnco) { \
-        fnco->fbpos = NULL; \
-    } \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
 
@@ -261,7 +265,7 @@
     } \
     kx_code_t *radr = kv_A((ctx)->stack, last - 1).value.jp; \
     int count = kv_A((ctx)->stack, last - 2).value.iv; \
-    fnco = kv_A((ctx)->stack, last - 3).value.fn; \
+    kx_fnc_t *fnco = kv_A((ctx)->stack, last - 3).value.fn; \
     fnco->fbpos = cur->next; \
     kv_shrinkto(fnco->stack, 0); \
     for (int i = sz - 1; i >= last; --i) { \
@@ -275,6 +279,5 @@
     cur = radr; \
     frmv = frm->prv; \
     lexv = frmv->lex; \
-    fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
 } \
 /**/
