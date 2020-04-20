@@ -578,26 +578,29 @@ kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t
     return NULL;
 }
 
-kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host)
+kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host, int search_instance_method)
 {
+    kx_val_t *val = NULL;
+    if (host->type == KX_LVAL_T) {
+        host = host->value.lv;
+    }
+    if (search_instance_method && host->type == KX_OBJ_T) {
+        KEX_GET_PROP(val, host->value.ov, method);
+        if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
+            return val->value.fn;
+        }
+    }
     if (!ctx->arylib || !method) {
         return NULL;
     }
-    kx_val_t *val = NULL;
     KEX_GET_PROP(val, ctx->arylib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
-        if (host->type == KX_LVAL_T) {
-            host = host->value.lv;
-        }
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
     KEX_GET_PROP(val, ctx->arylib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
-        if (host->type == KX_LVAL_T) {
-            host = host->value.lv;
-        }
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
         val->value.fn->method = method;
@@ -922,7 +925,7 @@ kx_fnc_t *kx_get_object_operator_function(kx_context_t *ctx, kx_val_t *v, const 
     kx_val_t *opval = NULL;
     KEX_GET_PROP(opval, v->value.ov, name);
     if (opval && opval->type == KX_FNC_T) {
-        fn = opval->value.fn;
+        return opval->value.fn;
     }
     return fn;
 }
@@ -947,7 +950,7 @@ kx_fnc_t *kx_get_special_object_function(kx_context_t *ctx, kx_val_t *v, const c
     case KX_OBJ_T:
         fn = kx_get_object_operator_function(ctx, v, name);
         if (!fn) {
-            fn = search_array_function(ctx, name, v);
+            fn = search_array_function(ctx, name, v, 0);
         }
         break;
     }

@@ -8,7 +8,20 @@
 *   Some Optimaizations.
 *   User selectable installation.
 
-## V0.5.0 (Current Development)
+## V0.6.0 (Current Development)
+
+Updates from v0.5.1.
+
+*   Updated
+    *   None.
+
+*   Planned, or remaining tasks.
+    *   Replace Bison by Kmyacc.
+    *   Support REPL.
+    *   Use a register as a stack pointer.
+    *   Support kinx as a library.
+
+## V0.5.1 (5th Preview Release)
 
 Updates from v0.4.1.
 
