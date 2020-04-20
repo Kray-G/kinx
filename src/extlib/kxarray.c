@@ -402,7 +402,7 @@ int Array_toString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (obj) {
         kstr_t *str = allocate_str(ctx);
         ks_append(str, "[");
-        int r = Array_join_impl(args, frmv, lexv, ctx, obj, str, 1, ", ", 0, -1);
+        int r = Array_join_impl(args, frmv, lexv, ctx, obj, str, 0, ", ", 0, -1);
         if (r < 0) {
             KX_ADJST_STACK();
             push_i(ctx->stack, 0);
@@ -429,8 +429,8 @@ static void make_quote_string(kstr_t *str, const char *p)
     if (p) {
         ks_append(str, "\"");
         while (*p) {
-            if (*p == '\"') {
-                ks_append(str, "\"");
+            if (*p == '\"' || *p == '\\') {
+                ks_append(str, "\\");
             }
             char buf[] = { *p, 0 };
             ks_append(str, buf);
