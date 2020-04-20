@@ -71,10 +71,16 @@ int String_subString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
         if (b < 0 || l < 0) {
             KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid range, it should be zero or positive number");
         }
+        int max = strlen(str);
         if (!l) {
-            l = strlen(str) - b;
+            l = max - b;
         }
         kstr_t *s = allocate_str(ctx);
+        if (l <= 0) {
+            KX_ADJST_STACK();
+            push_sv(ctx->stack, s);
+            return 0;
+        }
         ks_append_n(s, str + b, l);
         KX_ADJST_STACK();
         push_sv(ctx->stack, s);
