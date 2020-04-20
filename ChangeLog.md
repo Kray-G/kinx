@@ -16,18 +16,18 @@ Updates from v0.5.1.
     *   None.
 
 *   Planned, or remaining tasks.
-    *   Updated OpenSSL library path.
     *   Append alias methods like `Array#collect` for `Array#map`.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
     *   Use a register as a stack pointer.
     *   Support kinx as a library.
 
-## V0.5.1 (5th Preview Release)
+## V0.5.2 (5th Preview Release)
 
 Updates from v0.4.1.
 
 *   Updated
+    *   Updated OpenSSL library path.
     *   Changed a function name to be treated as a constant.
     *   Supported some binary special methods.
     *   Applying a `toString` method automatically when applying an object to
