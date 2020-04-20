@@ -2,14 +2,14 @@ Array.apply = _function(ary, func) {
     return func(ary);
 };
 
-Array.stringify = _function(ary) {
+Array.stringify = _function(ary, quote) {
     var ret = [];
     var len = ary.length();
     for (var i = 0; i < len; ++i) {
         if ((ary[i].isObject || ary[i].isBinary) && ary[i].toString.isFunction && !ary[i]._format) {
             ret[i] = ary[i].toString();
         } else {
-            ret[i] = ary[i];
+            ret[i] = (quote && ary[i].isString) ? ary[i].quote() : ary[i];
         }
     }
     return ret;
@@ -77,7 +77,7 @@ Array.toString = (_function() {
             if (depth > 100) {
                 throw RuntimeException("Too deep to stringify the object.");
             }
-            return Array.toStringImpl(ary.stringify());
+            return Array.toStringImpl(ary.stringify(true));
         } finally {
             --depth;
         }
