@@ -4,12 +4,44 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
+static void make_quote_string(kstr_t *str, const char *p)
+{
+    if (p) {
+        ks_append(str, "\"");
+        while (*p) {
+            if (*p == '\"' || *p == '\\') {
+                ks_append(str, "\\");
+            }
+            char buf[] = { *p, 0 };
+            ks_append(str, buf);
+            ++p;
+        }
+        ks_append(str, "\"");
+    } else {
+        ks_append(str, "\"\"");
+    }
+}
+
 int String_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         KX_ADJST_STACK();
         push_i(ctx->stack, strlen(str));
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
+}
+
+int String_quote(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        kstr_t *s = allocate_str(ctx);
+        make_quote_string(s, str);
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, s);
         return 0;
     }
 
@@ -568,6 +600,7 @@ int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", String_length },
+    { "quote", String_quote },
     { "parseInt", String_parseInt },
     { "parseDouble", String_parseDouble },
     { "toInt", String_parseInt },
