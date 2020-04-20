@@ -1,3 +1,23 @@
+#define KX_DIRECT_CALL(fn, count) { \
+    if (fn) { \
+        if (fn->jp) { \
+            caller = cur; \
+            push_i((ctx)->stack, count + ctx->spread_additional); \
+            ctx->spread_additional = 0; \
+            push_adr((ctx)->stack, cur->next); \
+            cur = fn->jp; \
+            KX_GOTO(); \
+        } else { \
+            kv_remove_last((ctx)->stack); \
+            int r; \
+            KX_CALLBUILTIN_FUNCTION(r); \
+            KX_BUILTIN_FUNCTION_ERROR(r); \
+            cur = cur->next; \
+            KX_GOTO(); \
+        } \
+    } \
+} \
+/**/
 
 #define KX_PUSH_CSTR_I(pvp, pos) \
 do { \
@@ -147,27 +167,6 @@ do { \
 } \
 /**/
 
-#define KX_DIRECT_CALL(fn, count) { \
-    if (fn) { \
-        if (fn->jp) { \
-            caller = cur; \
-            push_i((ctx)->stack, count + ctx->spread_additional); \
-            ctx->spread_additional = 0; \
-            push_adr((ctx)->stack, cur->next); \
-            cur = fn->jp; \
-            KX_GOTO(); \
-        } else { \
-            kv_remove_last((ctx)->stack); \
-            int r; \
-            KX_CALLBUILTIN_FUNCTION(r); \
-            KX_BUILTIN_FUNCTION_ERROR(r); \
-            cur = cur->next; \
-            KX_GOTO(); \
-        } \
-    } \
-} \
-/**/
-
 #define KX_APPLYV_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
@@ -226,7 +225,7 @@ do { \
                     val = &(kv_A(obj->ary, (index % sz))); \
                 } \
             } else if (v2->type == KX_OBJ_T) { \
-                kx_fnc_t *fn = search_array_function(ctx, "[]", v1); \
+                kx_fnc_t *fn = search_array_function(ctx, "[]", v1, 1); \
                 push_obj((ctx)->stack, v2->value.ov); \
                 ++(ctx->spread_additional);\
                 KX_PUSH_FUNCTION(fn); \
@@ -236,7 +235,7 @@ do { \
             } \
         } \
         if (!val) { \
-            kx_fnc_t *fn = search_array_function(ctx, name, lv); \
+            kx_fnc_t *fn = search_array_function(ctx, name, lv, 0); \
             KX_PUSH_FUNCTION(fn); \
         } else { \
             push_value((ctx)->stack, *val); \
@@ -295,23 +294,30 @@ do { \
         kx_bin_t *bin = lv->value.bn; \
         KX_PUSH_BIN_I(bin, cur->value1.i); \
     } else { \
-        kx_val_t *val = NULL; \
-        kx_obj_t *obj = NULL; \
         if (lv->type == KX_OBJ_T) { \
-            obj = lv->value.ov; \
-            int sz = kv_size(obj->ary); \
-            if (cur->value1.i < 0) { \
-                int64_t i = cur->value1.i; \
-                do { i += sz; } while (i < 0); \
-                val = &(kv_A(obj->ary, i)); \
-            } else if (sz != 0) { \
-                val = &(kv_A(obj->ary, (cur->value1.i % sz))); \
+            kx_fnc_t *fn = kx_get_object_operator_function(ctx, lv, "[]"); \
+            if (fn) { \
+                push_i((ctx)->stack, cur->value1.i); \
+                ++(ctx->spread_additional);\
+                KX_PUSH_FUNCTION(fn); \
+                KX_DIRECT_CALL(fn, 0); \
+            } else { \
+                kx_obj_t *obj = lv->value.ov; \
+                int sz = kv_size(obj->ary); \
+                if (cur->value1.i < 0) { \
+                    int64_t i = cur->value1.i; \
+                    do { i += sz; } while (i < 0); \
+                    kx_val_t *val = &(kv_A(obj->ary, i)); \
+                    push_value((ctx)->stack, *val); \
+                } else if (sz != 0) { \
+                    kx_val_t *val = &(kv_A(obj->ary, (cur->value1.i % sz))); \
+                    push_value((ctx)->stack, *val); \
+                } else { \
+                    push_undef((ctx)->stack); \
+                } \
             } \
-        } \
-        if (!val) { \
-            push_undef((ctx)->stack); \
         } else { \
-            push_value((ctx)->stack, *val); \
+            push_undef((ctx)->stack); \
         } \
     } \
     cur = cur->next; \
@@ -371,7 +377,7 @@ do { \
             KEX_GET_PROP(val, obj, name); \
         } \
         if (!val) { \
-            kx_fnc_t *fn = search_array_function(ctx, name, lv); \
+            kx_fnc_t *fn = search_array_function(ctx, name, lv, 0); \
             KX_PUSH_FUNCTION(fn); \
         } else { \
             push_value((ctx)->stack, *val); \

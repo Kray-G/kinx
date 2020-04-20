@@ -258,7 +258,7 @@ default: \
         kx_obj_t *obj = lv->value.ov; \
         KEX_GET_PROP(fv, obj, name); \
         if (!fv) { \
-            kx_fnc_t *fn = search_array_function(ctx, name, lv); \
+            kx_fnc_t *fn = search_array_function(ctx, name, lv, 0); \
             KX_CALL_FUNCTION(fn, name, lv); \
         } else if (fv->type == KX_FNC_T) { \
             caller = cur; \
@@ -284,7 +284,7 @@ default: \
             KX_EXCEPTION_CHECK("NativeFunctionException", r); \
             cur = cur->next; \
         } else { \
-            kx_fnc_t *fn = search_array_function(ctx, name, lv); \
+            kx_fnc_t *fn = search_array_function(ctx, name, lv, 0); \
             KX_CALL_FUNCTION(fn, name, lv); \
         } \
     } \
