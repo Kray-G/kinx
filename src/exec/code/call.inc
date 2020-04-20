@@ -31,6 +31,7 @@ default: \
 /**/
 
 #define KX_CALL_FAST_ENTER(ctx, cur, fn, args) { \
+    kv_expand_if(kx_val_t, (ctx)->stack, cur->value1.i); \
     int ssize = kv_size((ctx)->stack); \
     kx_val_t *stack = ((ctx)->stack).a + ssize - 3;\
     KX_ENTER_CORE_CODE(ctx, fn, cur, \
