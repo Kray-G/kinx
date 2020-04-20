@@ -3059,6 +3059,12 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         break; \
     } \
     case KX_OBJ_T: { \
+        if ((v1)->type == KX_CSTR_T || (v1)->type == KX_STR_T) { \
+            fn = search_string_function(ctx, "_addObject", v1, 0, NULL); \
+            if (fn) { \
+                break; \
+            } \
+        } \
         fn = kx_get_special_object_function(ctx, v1, KX_ADD_OP_NAME); \
         if (fn) { \
             break; \
