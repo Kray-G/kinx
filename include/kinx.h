@@ -447,7 +447,7 @@ extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, k
 extern kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t *host);
-extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host);
+extern kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t *host, int search_instance_method);
 extern kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host);
 extern int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc);
 extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
