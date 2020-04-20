@@ -16,6 +16,8 @@ Updates from v0.5.1.
     *   None.
 
 *   Planned, or remaining tasks.
+    *   Updated OpenSSL library path.
+    *   Append alias methods like `Array#collect` for `Array#map`.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
     *   Use a register as a stack pointer.
