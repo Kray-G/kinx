@@ -606,11 +606,15 @@ int Array_subArray(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         if (b < 0 || l < 0) {
             KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid range, it should be zero or positive number");
         }
+        int max = kv_size(obj->ary);
         if (!l) {
-            l = kv_size(obj->ary) - b;
+            l = max - b;
+            if (l < 0) {
+                KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid range, it should be zero or positive number");
+            }
         }
         kx_obj_t *dst = allocate_obj(ctx);
-        while (l--) {
+        while (l-- && b < max) {
             *kv_pushp(kx_val_t, dst->ary) = kv_A(obj->ary, b++);
         }
         KX_ADJST_STACK();
