@@ -35,6 +35,10 @@ String.replace = _function(str, cond, newstr) {
     }
 };
 
+String._addObject = _function(str, obj) {
+    return str + obj.toString();
+};
+
 String.== = _function(str, obj) {
     return obj == str;
 };
