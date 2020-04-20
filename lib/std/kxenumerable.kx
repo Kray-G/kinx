@@ -284,6 +284,9 @@ _module _Enumerable {
         return r;
     }
     public sort(func) {
+        if (host_.end().isUndefined) {
+            throw FiberException("Cannot complete the iteration");
+        }
         var r = [];
         while (src_.isAlive()) {
             var v = src_.resume();
@@ -295,6 +298,9 @@ _module _Enumerable {
         return r.sort(func);
     }
     public all(func) {
+        if (host_.end().isUndefined) {
+            throw FiberException("Cannot complete the iteration");
+        }
         while (src_.isAlive()) {
             var v = src_.resume();
             if (!src_.isAlive()) {
@@ -307,6 +313,9 @@ _module _Enumerable {
         return false;
     }
     public any(func) {
+        if (host_.end().isUndefined) {
+            throw FiberException("Cannot complete the iteration");
+        }
         while (src_.isAlive()) {
             var v = src_.resume();
             if (!src_.isAlive()) {
@@ -319,6 +328,9 @@ _module _Enumerable {
         return true;
     }
     public toArray() {
+        if (host_.end().isUndefined) {
+            throw FiberException("Cannot complete the iteration");
+        }
         var r = [];
         while (src_.isAlive()) {
             v = src_.resume();
@@ -476,12 +488,24 @@ _class _Range(start_, end_, excludeEnd_) {
         return cur_.next();
     }
     private eachByFunction(func) {
+        if (@array) {
+            var i = 0;
+            var sz = @array.length();
+            while (i < sz) {
+                var r = func(@array[i], i);
+                if (r.isDefined && !r) {
+                    break;
+                }
+                ++i;
+            }
+            return i;
+        }
         var i = 0;
         while (true) {
             if (end_ && excludeEnd_ && (cur_ <=> end_) == 0) {
                 break;
             }
-            var r = func(cur_.value, i++);
+            var r = func(cur_.value, i);
             if (r.isDefined && !r) {
                 break;
             }
@@ -489,12 +513,19 @@ _class _Range(start_, end_, excludeEnd_) {
                 break;
             }
             cur_ = cur_.next();
+            ++i;
         }
         return i;
     }
     public each(func) {
         if (func.isFunction) {
             return eachByFunction(func);
+        }
+        if (@array) {
+            @array.each(&(e) => {
+                yield e;
+            });
+            return false;
         }
         while (true) {
             if (end_ && excludeEnd_) {
@@ -525,5 +556,11 @@ _class _Range(start_, end_, excludeEnd_) {
             }
         }
         return true;
+    }
+    public [](rhs) {
+        if (!@array) {
+            @array = @toArray();
+        }
+        return @array[rhs];
     }
 }
