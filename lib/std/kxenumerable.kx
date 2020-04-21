@@ -505,7 +505,7 @@ _class _Range(start_, end_, excludeEnd_) {
             if (end_ && excludeEnd_ && (cur_ <=> end_) == 0) {
                 break;
             }
-            var r = func(cur_.value, i);
+            var r = func(cur_, i);
             if (r.isDefined && !r) {
                 break;
             }
