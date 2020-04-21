@@ -596,6 +596,9 @@ HEAD_OF_YYLEX:
             return SHL;
         }
         return '<';
+    case '~':
+        kx_lex_next(kx_lexinfo);
+        return '~';
     case '?':
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == '?') {

@@ -279,6 +279,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("%-23s %s", "storevx", gen_varloc(code));
         break;
 
+    case KX_BNOT:
+        printf("bitwise-not");
+        break;
     case KX_NOT:
         printf("not");
         break;
