@@ -92,7 +92,7 @@ default: \
     if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
-            : search_array_function(ctx, "()", lv, 1); \
+            : search_array_function(ctx, "()", fv, 1); \
         caller = cur; \
         int args = cur->count + ctx->spread_additional; \
         push_i((ctx)->stack, args); \
@@ -136,7 +136,7 @@ default: \
     if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
-            : search_array_function(ctx, "()", lv, 1); \
+            : search_array_function(ctx, "()", fv, 1); \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
@@ -174,7 +174,7 @@ default: \
     if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
-            : search_array_function(ctx, "()", lv, 1); \
+            : search_array_function(ctx, "()", fv, 1); \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
@@ -212,7 +212,7 @@ default: \
     if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
-            : search_array_function(ctx, "()", lv, 1); \
+            : search_array_function(ctx, "()", fv, 1); \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
