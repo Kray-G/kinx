@@ -5,6 +5,13 @@ _namespace Net {
         var curl_ = Net.createCurlHandler();
         var dbgCallback_;
         var postData_;
+        var buf_ = new String.Buffer();
+        var hdr_ = new String.Buffer();
+
+        public clear() {
+            buf_.clear();
+            hdr_.clear();
+        }
 
         public reset() {
             curl_.resetHandler();
@@ -18,8 +25,18 @@ _namespace Net {
             return this;
         }
 
-        public sslVerifyHost(tf) {
-            curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYHOST, tf);
+        public sslVerifyHost(verify) {
+            curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYHOST, verify ? 2 : 0);
+            return this;
+        }
+
+        public sslSetCaInfo(path) {
+            curl_.setOptionString(Net.CURLOPT_CAINFO, path);
+            return this;
+        }
+
+        public sslSetCaPath(path) {
+            curl_.setOptionString(Net.CURLOPT_CAPATH, path);
             return this;
         }
 
@@ -100,12 +117,16 @@ _namespace Net {
                     if (curl_.header.length() > 0) {
                         if (hder.isFunction) {
                             hder(curl_.header);
+                        } else {
+                            hdr_.append(curl_.header);
                         }
                         curl_.header = "";
                     }
                     if (curl_.received.length() > 0) {
                         if (body.isFunction) {
                             body(curl_.received);
+                        } else {
+                            buf_.append(curl_.received);
                         }
                         curl_.received = "";
                     }
@@ -117,16 +138,18 @@ _namespace Net {
         }
 
         public head(url, callback) {
+            clear();
             curl_.setupHandler();
             curl_.setOptionInt(Net.CURLOPT_NOBODY, 1);
             curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
-            callback ||= System.println;
-            return doHttpMethod(callback, null);
+            doHttpMethod(callback, null);
+            return hdr_.clear();
         }
 
         public get(url, callback) {
+            clear();
             curl_.setupHandler();
             curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
             curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
@@ -137,11 +160,12 @@ _namespace Net {
             if (!body && !hder) {
                 body = callback;
             }
-            body ||= System.println;
-            return doHttpMethod(hder, body);
+            doHttpMethod(hder, body);
+            return buf_.clear();
         }
 
         public post(url, callback) {
+            clear();
             curl_.setupHandler();
             curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
             curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
@@ -154,16 +178,18 @@ _namespace Net {
             if (!body && !hder) {
                 body = callback;
             }
-            body ||= System.println;
-            return doHttpMethod(hder, body);
+            doHttpMethod(hder, body);
+            return buf_.clear();
         }
 
         public put(url, callback) {
+            clear();
             curl_.setOptionString(Net.CURLOPT_CUSTOMREQUEST, "PUT");
             return post(url, callback);
         }
 
         public delete(url, callback) {
+            clear();
             curl_.setupHandler();
             curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
             curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
@@ -175,8 +201,8 @@ _namespace Net {
             if (!body && !hder) {
                 body = callback;
             }
-            body ||= System.println;
-            return doHttpMethod(hder, body);
+            doHttpMethod(hder, body);
+            return buf_.clear();
         }
     }
 
