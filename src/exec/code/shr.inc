@@ -1,93 +1,57 @@
-#define KX_SHR_SHR_I(v1, val) { \
-    if ((v1)->type == KX_INT_T) { \
-        int64_t v1val = (v1)->value.iv; \
-        int64_t v2val = (val); \
-        if (v1val > 0 && v2val > 0) { \
-            (v1)->value.iv >>= v2val; \
-        } \
-    } else switch ((v1)->type) { \
-    case KX_UND_T: { \
-        (v1)->value.iv = 0; \
-        (v1)->type = KX_INT_T; \
-        break; \
-    } \
-    case KX_BIG_T: { \
-        if (BzGetSign((v1)->value.bz) == BZ_PLUS && val > 0) { \
-            (v1)->value.bz = make_big_alive(ctx, BzAsh((v1)->value.bz, -val)); \
-            KX_BIGINT_CHKINT(v1); \
-        } \
-        break; \
-    } \
-    default: \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-} \
-/**/
-#define KX_SHR_SHR_B(v1, val) { \
-    THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-} \
-/**/
-#define KX_SHR_SHR_D(v1, val) { \
-    THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-} \
-/**/
-#define KX_SHR_SHR_S(v1, val) { \
-    THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-} \
-/**/
-#define KX_SHR_SHR_V(v1, v2) {\
-    if (v2->type == KX_INT_T) { \
-        KX_SHR_SHR_I(v1, v2->value.iv); \
-    } else switch (v2->type) { \
-    case KX_UND_T: { \
-        break; /* do nothing */ \
-    } \
-    case KX_BIG_T: { \
-        KX_SHR_SHR_B(v1, v2->value.bv); \
-        break; \
-    } \
-    case KX_DBL_T: { \
-        KX_SHR_SHR_D(v1, v2->value.dv); \
-        break; \
-    } \
-    default: \
-        THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
-        break; \
-    } \
-} \
-/**/
 
 #define KX_SHR_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
     KEX_GET_STACK_TOP(v1); \
-    KX_SHR_SHR_V(v1, v2); \
-    cur = cur->next; \
+    if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
+        (v1)->value.iv >>= (v2)->value.iv; \
+        cur = cur->next; \
+    } else { \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_shr(ctx, cur, v1, v2, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
+    } \
 } \
 /**/
 
 #define KX_SHRI_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    KX_SHR_SHR_I(v1, cur->value1.i); \
-    cur = cur->next; \
+    if (v1->type == KX_INT_T) { \
+        (v1)->value.iv >>= cur->value1.i; \
+        cur = cur->next; \
+    } else { \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_shr_i(ctx, cur, v1, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value1.i); }); \
+    } \
 } \
 /**/
 
 #define KX_SHRD_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    KX_SHR_SHR_D(v1, cur->value1.d); \
-    cur = cur->next; \
+    if (v1->type == KX_INT_T) { \
+        (v1)->value.iv >>= (int)cur->value1.d; \
+        cur = cur->next; \
+    } else { \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_shr_d(ctx, cur, v1, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_d((ctx)->stack, cur->value1.d); }); \
+    } \
 } \
 /**/
 
 #define KX_SHRS_CODE() \
 { \
     KEX_GET_STACK_TOP(v1); \
-    KX_SHR_SHR_S(v1, cur->value1.s); \
-    cur = cur->next; \
+    int exc = 0; \
+    kx_fnc_t *fn = kx_try_shr_s(ctx, cur, v1, &exc); \
+    KX_EXCEPTION_CHECK("SystemException", exc); \
+    CALL_OP_FUNCTION(fn, cur, v1, { push_s((ctx)->stack, cur->value1.s); }); \
 } \
 /**/
 
@@ -95,7 +59,14 @@
 { \
     KEX_GET_STACK_TOP(v1); \
     KEX_GET_VAR_ADDR(v2); \
-    KX_SHR_SHR_V(v1, v2); \
-    cur = cur->next; \
+    if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
+        (v1)->value.iv >>= (v2)->value.iv; \
+        cur = cur->next; \
+    } else { \
+        int exc = 0; \
+        kx_fnc_t *fn = kx_try_shr(ctx, cur, v1, v2, &exc); \
+        KX_EXCEPTION_CHECK("SystemException", exc); \
+        CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
+    } \
 } \
 /**/

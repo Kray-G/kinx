@@ -10,7 +10,7 @@
 
 ## V0.6.0 (Current Development)
 
-Updates from v0.5.1.
+Updates from v0.5.2.
 
 *   Updated
     *   Fixed a bug of `String#next`.
@@ -18,6 +18,8 @@ Updates from v0.5.1.
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
     *   Operator override for class instance.
+    *   Support DateTime class.
+    *   Support Net.Http class.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
     *   Use a register as a stack pointer.
