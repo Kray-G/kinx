@@ -1,10 +1,25 @@
+#define KX_SHL_II(v1, val) { \
+    int64_t v1val = (v1)->value.iv; \
+    int64_t v2val = (val); \
+    if (v1val > 0 && v2val > 0) { \
+        if ((v2val >= 64) || (v1val > (INT64_MAX >> v2val))) { \
+            BigZ bi = BzFromInteger((int64_t)(v1val)); \
+            (v1)->value.bz = make_big_alive(ctx, BzAsh(bi, v2val)); \
+            (v1)->type = KX_BIG_T; \
+            BzFree(bi); \
+        } else { \
+            (v1)->value.iv <<= v2val; \
+        } \
+    } \
+} \
+/**/
 
 #define KX_SHL_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
     KEX_GET_STACK_TOP(v1); \
     if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
-        (v1)->value.iv <<= (v2)->value.iv; \
+        KX_SHL_II(v1, (v2)->value.iv); \
         cur = cur->next; \
     } else { \
         int exc = 0; \
@@ -19,7 +34,7 @@
 { \
     KEX_GET_STACK_TOP(v1); \
     if (v1->type == KX_INT_T) { \
-        (v1)->value.iv <<= cur->value1.i; \
+        KX_SHL_II(v1, cur->value1.i); \
         cur = cur->next; \
     } else { \
         int exc = 0; \
@@ -34,7 +49,7 @@
 { \
     KEX_GET_STACK_TOP(v1); \
     if (v1->type == KX_INT_T) { \
-        (v1)->value.iv <<= (int)cur->value1.d; \
+        KX_SHL_II(v1, (int64_t)cur->value1.d); \
         cur = cur->next; \
     } else { \
         int exc = 0; \
@@ -60,7 +75,7 @@
     KEX_GET_STACK_TOP(v1); \
     KEX_GET_VAR_ADDR(v2); \
     if (v1->type == KX_INT_T && v2->type == KX_INT_T) { \
-        (v1)->value.iv <<= (v2)->value.iv; \
+        KX_SHL_II(v1, (v2)->value.iv); \
         cur = cur->next; \
     } else { \
         int exc = 0; \
