@@ -19,6 +19,7 @@
 #include "exec/code/push.inc"
 #include "exec/code/pop.inc"
 #include "exec/code/store.inc"
+#include "exec/code/bnot.inc"
 #include "exec/code/not.inc"
 #include "exec/code/neg.inc"
 #include "exec/code/inc.inc"
@@ -108,6 +109,7 @@ static const char *kx_opname[] = {
     "KX_STOREX",
     "KX_STOREVX",
 
+    "KX_BNOT",
     "KX_NOT",
     "KX_NEG",
 
@@ -357,6 +359,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     KX_CASE_(KX_STOREX) { KX_GOTO(); }
     KX_CASE_(KX_STOREVX) { KX_GOTO(); }
 
+    KX_CASE_(KX_BNOT) { KX_GOTO(); }
     KX_CASE_(KX_NOT) { KX_GOTO(); }
     KX_CASE_(KX_NEG) { KX_GOTO(); }
 

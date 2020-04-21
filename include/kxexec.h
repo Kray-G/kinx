@@ -74,6 +74,7 @@
     &&LBL_KX_STOREV, \
     &&LBL_KX_STOREX, \
     &&LBL_KX_STOREVX, \
+    &&LBL_KX_BNOT, \
     &&LBL_KX_NOT, \
     &&LBL_KX_NEG, \
     &&LBL_KX_INC, \
