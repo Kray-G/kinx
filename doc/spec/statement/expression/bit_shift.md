@@ -15,7 +15,7 @@ Those operators will automatically make it promote to Big Integer when it is ove
 
 ```javascript
 var a = 0x05;
-a ^= 0x06;          // 0101 | 0110 => 0011
+a <<= 0x06;          // 0101 << 6 => 0101000000
 ```
 
 Note that Bit OR operator will treat `null` as 0.
