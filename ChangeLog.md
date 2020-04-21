@@ -18,6 +18,7 @@ Updates from v0.5.2.
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
     *   Operator override for class instance.
+    *   Support the operator '~' for bit not.
     *   Support DateTime class.
     *   Support Net.Http class.
     *   Replace Bison by Kmyacc.
