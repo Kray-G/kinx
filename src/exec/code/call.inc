@@ -89,8 +89,10 @@ default: \
 #define KX_CALL_CODE() \
 { \
     kx_val_t *fv = &kv_last((ctx)->stack); \
-    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
-        kx_fnc_t *fn = fv->value.fn; \
+    if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
+        kx_fnc_t *fn = fv->type == KX_FNC_T \
+            ? fv->value.fn \
+            : search_array_function(ctx, "()", lv, 1); \
         caller = cur; \
         int args = cur->count + ctx->spread_additional; \
         push_i((ctx)->stack, args); \
@@ -131,8 +133,10 @@ default: \
         lexp = lexp->lex; \
     } \
     kx_val_t *fv = &kv_A(lexp ? lexp->v : frmv->v, cur->value2.i); \
-    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
-        kx_fnc_t *fn = fv->value.fn; \
+    if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
+        kx_fnc_t *fn = fv->type == KX_FNC_T \
+            ? fv->value.fn \
+            : search_array_function(ctx, "()", lv, 1); \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
@@ -167,8 +171,10 @@ default: \
 #define KX_CALLVL0_CODE() \
 { \
     kx_val_t *fv = &kv_A(frmv->v, cur->value2.i); \
-    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
-        kx_fnc_t *fn = fv->value.fn; \
+    if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
+        kx_fnc_t *fn = fv->type == KX_FNC_T \
+            ? fv->value.fn \
+            : search_array_function(ctx, "()", lv, 1); \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
@@ -203,8 +209,10 @@ default: \
 #define KX_CALLVL1_CODE() \
 { \
     kx_val_t *fv = &kv_A(lexv->v, cur->value2.i); \
-    if (KX_LIKELY(fv->type == KX_FNC_T)) { \
-        kx_fnc_t *fn = fv->value.fn; \
+    if (KX_LIKELY(fv->type == KX_FNC_T || fv->type == KX_OBJ_T)) { \
+        kx_fnc_t *fn = fv->type == KX_FNC_T \
+            ? fv->value.fn \
+            : search_array_function(ctx, "()", lv, 1); \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
@@ -215,6 +223,7 @@ default: \
         if (!fn->fiber) { \
             KX_CALL_FAST_ENTER(ctx, cur, fn, args); \
         } \
+    } else if (fv->type == KX_OBJ_T) { \
     } else if (fv->type == KX_BFNC_T) { \
         kx_fnc_t *fn = fv->value.fn; \
         int r; \
