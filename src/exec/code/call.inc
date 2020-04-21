@@ -93,6 +93,12 @@ default: \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
             : search_array_function(ctx, "()", fv, 1); \
+        if (!fn) { \
+            fn = method_missing(ctx, "()", fv); \
+            if (!fn) { \
+                THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
+            } \
+        } \
         caller = cur; \
         int args = cur->count + ctx->spread_additional; \
         push_i((ctx)->stack, args); \
@@ -137,6 +143,12 @@ default: \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
             : search_array_function(ctx, "()", fv, 1); \
+        if (!fn) { \
+            fn = method_missing(ctx, "()", fv); \
+            if (!fn) { \
+                THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
+            } \
+        } \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
@@ -175,6 +187,12 @@ default: \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
             : search_array_function(ctx, "()", fv, 1); \
+        if (!fn) { \
+            fn = method_missing(ctx, "()", fv); \
+            if (!fn) { \
+                THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
+            } \
+        } \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
@@ -213,6 +231,12 @@ default: \
         kx_fnc_t *fn = fv->type == KX_FNC_T \
             ? fv->value.fn \
             : search_array_function(ctx, "()", fv, 1); \
+        if (!fn) { \
+            fn = method_missing(ctx, "()", fv); \
+            if (!fn) { \
+                THROW_SYSTEM_EXCEPTION("SystemException", "Method missing"); \
+            } \
+        } \
         caller = cur; \
         push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
