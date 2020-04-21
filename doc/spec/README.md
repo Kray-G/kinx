@@ -85,6 +85,7 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 *   [while](statement/while.md)
 *   [do-while](statement/do_while.md)
 *   [for](statement/for.md)
+*   [for-in](statement/for_in.md)
 
 ##### Jump
 
@@ -124,6 +125,12 @@ The following properties are used to check the type of a variable.
 *   [isFunction](typecheck/is_function.md)
 *   [isTrue](typecheck/is_true.md)
 *   [isFalse](typecheck/is_false.md)
+
+### Others
+
+Some special specifications.
+
+*   [String#next](others/string_next.md)
 
 ### Library
 
