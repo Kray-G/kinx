@@ -453,6 +453,9 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
 
+    case KXOP_BNOT:
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
     case KXOP_NOT:
         nativejit_ast(nctx, node->lhs, 0);
         kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
