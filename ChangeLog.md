@@ -13,10 +13,11 @@
 Updates from v0.5.1.
 
 *   Updated
-    *   None.
+    *   Fixed a bug of `String#next`.
 
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
+    *   Operator override for class instance.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
     *   Use a register as a stack pointer.
