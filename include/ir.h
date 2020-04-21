@@ -73,6 +73,7 @@ enum irop {
     KX_STOREX,
     KX_STOREVX,
 
+    KX_BNOT,
     KX_NOT,
     KX_NEG,
 

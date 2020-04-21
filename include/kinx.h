@@ -117,6 +117,7 @@ enum opecode {
     KXOP_KEYVALUE,
 
     /* unary expression */
+    KXOP_BNOT,
     KXOP_NOT,
     KXOP_POSITIVE,
     KXOP_NEGATIVE,
