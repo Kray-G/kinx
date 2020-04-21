@@ -369,6 +369,15 @@ extern kx_fnc_t *kx_try_mod_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, i
 extern kx_fnc_t *kx_try_mod_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
+extern kx_fnc_t *kx_try_shl(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_shl_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_shl_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_shl_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_shr(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
+extern kx_fnc_t *kx_try_shr_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_shr_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+extern kx_fnc_t *kx_try_shr_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
+
 extern kx_fnc_t *kx_try_and(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern kx_fnc_t *kx_try_and_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_and_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
