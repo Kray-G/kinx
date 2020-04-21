@@ -430,7 +430,7 @@ _class _Enumerator(obj_) {
         } else if (obj_.isObject) {
             enumerator_ = new _ObjectEnumerator(obj_);
         } else {
-            throw SystemException("Cannot create Enumerator.");
+            throw SystemException("Cannot create Enumerator");
         }
     }
     public peek() {
@@ -518,6 +518,17 @@ _class _Range(start_, end_, excludeEnd_) {
         return i;
     }
     public each(func) {
+        if (!start_) {
+            throw FiberException("Cannot iterate the range because of no start value");
+        }
+        if (start_ && end_) {
+            if (excludeEnd_ && ((start_ <=> end_) >= 0)) {
+                return false;
+            }
+            if (!excludeEnd_ && ((start_ <=> end_) > 0)) {
+                return false;
+            }
+        }
         if (func.isFunction) {
             return eachByFunction(func);
         }
@@ -529,13 +540,13 @@ _class _Range(start_, end_, excludeEnd_) {
         }
         while (true) {
             if (end_ && excludeEnd_) {
-                if ((cur_ <=> end_) == 0) {
+                if ((cur_ <=> end_) >= 0) {
                     return false;
                 }
             }
             yield cur_;
             if (end_ && !excludeEnd_) {
-                if ((cur_ <=> end_) == 0) {
+                if ((cur_ <=> end_) >= 0) {
                     return false;
                 }
             }
