@@ -10,30 +10,37 @@ _namespace Net {
             curl_.resetHandler();
             dbgCallback_ = null;
             curl_.debugDetail = false;
+            return this;
         }
 
         public sslVerifyPeer(tf) {
             curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYPEER, tf);
+            return this;
         }
 
         public sslVerifyHost(tf) {
             curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYHOST, tf);
+            return this;
         }
 
         public setDebugDetail(tf, opts) {
             curl_.debugDetail = tf && ((opts.hex ?? 1) << 1) | tf;
+            return this;
         }
 
         public setUserPassword(user, pass) {
             curl_.setOptionInt(Net.CURLOPT_USERPWD, user + ":" + pass);
+            return this;
         }
 
         public setProxy(url) {
             curl_.setOptionInt(Net.CURLOPT_PROXY, url);
+            return this;
         }
 
         public setProxyUserPassword(user, pass) {
             curl_.setOptionInt(Net.CURLOPT_PROXYUSERPWD, user + ":" + pass);
+            return this;
         }
 
         public setTimeout(millisec) {
@@ -42,11 +49,13 @@ _namespace Net {
             curl_.setOptionInt(Net.CURLOPT_ACCEPTTIMEOUT_MS, millisec);
             curl_.setOptionInt(Net.CURLOPT_EXPECT_100_TIMEOUT_MS, millisec);
             curl_.setOptionInt(Net.CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, millisec);
+            return this;
         }
 
         public setDebug(callback) {
             dbgCallback_ = callback;
             curl_.setOptionInt(Net.CURLOPT_VERBOSE, 1);
+            return this;
         }
 
         public addHeader(key, value) {
@@ -55,10 +64,12 @@ _namespace Net {
             } else {
                 curl_.appendSlist("%{key}: %{value}");
             }
+            return this;
         }
 
         public removeHeader(key) {
             curl_.appendSlist("%{key}:");
+            return this;
         }
 
         public setRedirect(tf, opts) {
@@ -66,11 +77,13 @@ _namespace Net {
             if (opts.max.isInteger) {
                 curl_.setOptionInt(Net.CURLOPT_MAXREDIRS, opts.max);
             }
+            return this;
         }
 
         public setPostData(data) {
             # Use this only when POST, otherwise ignore it.
             postData_ = data;
+            return this;
         }
 
         private doHttpMethod(hder, body) {
@@ -109,11 +122,14 @@ _namespace Net {
             curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
-            doHttpMethod(callback, null);
+            callback ||= System.println;
+            return doHttpMethod(callback, null);
         }
 
         public get(url, callback) {
             curl_.setupHandler();
+            curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
+            curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
             var body = callback.body;
@@ -121,12 +137,14 @@ _namespace Net {
             if (!body && !hder) {
                 body = callback;
             }
-            body ||=  System.println;
-            doHttpMethod(hder, body);
+            body ||= System.println;
+            return doHttpMethod(hder, body);
         }
 
         public post(url, callback) {
             curl_.setupHandler();
+            curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
+            curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
             curl_.setOptionInt(Net.CURLOPT_POST, 1);
@@ -136,8 +154,8 @@ _namespace Net {
             if (!body && !hder) {
                 body = callback;
             }
-            body ||=  System.println;
-            doHttpMethod(hder, body);
+            body ||= System.println;
+            return doHttpMethod(hder, body);
         }
 
         public put(url, callback) {
@@ -147,6 +165,8 @@ _namespace Net {
 
         public delete(url, callback) {
             curl_.setupHandler();
+            curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
+            curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionString(Net.CURLOPT_CUSTOMREQUEST, "DELETE");
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
@@ -155,8 +175,8 @@ _namespace Net {
             if (!body && !hder) {
                 body = callback;
             }
-            body ||=  System.println;
-            doHttpMethod(hder, body);
+            body ||= System.println;
+            return doHttpMethod(hder, body);
         }
     }
 
