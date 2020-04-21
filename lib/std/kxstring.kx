@@ -55,3 +55,21 @@ String.[] = _function(str, obj) {
     }
     throw RuntimeException('Invalid index for String');
 };
+
+String.Buffer = (_function() {
+    _class StringBuffer(value_) {
+        public value() {
+            return value_;
+        }
+        public clear() {
+            var v = value_;
+            value_ = null;
+            return v;
+        }
+        public append(rhs) {
+            value_ += rhs;
+            return this;
+        }
+    }
+    return StringBuffer;
+})();
