@@ -455,6 +455,7 @@ RegexMatch
 
 PrefixExpression
     : PostfixExpression
+    | '~' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_BNOT, $2); }
     | '!' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
     | '+' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_POSITIVE, $2); }
     | '-' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_NEGATIVE, $2); }
