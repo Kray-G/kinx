@@ -14,13 +14,17 @@ Updates from v0.5.2.
 
 *   Updated
     *   Fixed a bug of `String#next`.
+    *   Supported Net.Http class.
+    *   Supported the operator '~' for bitwise not.
+    *   Supported operator override for class instance as below.
+        *   `==`, `!=`, `>`, `>=`, `<`, `<=`, `<=>`, `<<`, `>>`, `+`, `-`, `*`, `/`, `%`, `[]`, `()`.
 
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
-    *   Operator override for class instance.
-    *   Support the operator '~' for bit not.
+    *   Support `Enumerable#sum`.
+    *   Fix to parse a big integer from hex.
     *   Support DateTime class.
-    *   Support Net.Http class.
+    *   Support multi-threading.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
     *   Use a register as a stack pointer.
