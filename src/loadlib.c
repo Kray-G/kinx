@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <fileutil.h>
 
-extern const char *alloc_string(const char *str);
 extern const char *kxlib_file_exists(const char *file);
 extern const char *kxlib_file_exists_no_current(const char *file);
 
@@ -108,28 +107,28 @@ const char *kxlib_file_exists_no_current(const char *file)
 {
     const char *checkfile = make_path(get_exe_path(), file);
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     checkfile = make_path_with(get_exe_path(), "lib", file);
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     checkfile = make_path_with(get_exe_path(), "lib"PATH_DELIM"std", file);
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     checkfile = make_path_with(get_exe_path(), ".."PATH_DELIM"lib", file);
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     #if !defined(KCC_WINDOWS)
     checkfile = make_path_with("/usr/bin", "kinxlib", file);
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     checkfile = make_path_with("/usr/bin", "kinxlib/std", file);
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     #endif
     return NULL;
@@ -139,12 +138,12 @@ const char *kxlib_exec_file_exists(const char *file)
 {
     const char *checkfile = make_path_with_ext(get_exe_path(), "lib"PATH_DELIM"exec", file, ".kx");
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     #if !defined(KCC_WINDOWS)
     checkfile = make_path_with_ext("/usr/bin", "kinxlib/exec", file, ".kx");
     if (file_exists(checkfile)) {
-        return alloc_string(checkfile);
+        return checkfile;
     }
     #endif
     return NULL;
