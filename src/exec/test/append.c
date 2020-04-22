@@ -17,13 +17,13 @@ int test(void)
 
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 0 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 2 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 2 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 3 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 3 }));
 
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_MKARY }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 1 }));
@@ -42,43 +42,43 @@ int test(void)
 
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value1.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLS, .value1.s = "invalid" }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_UND_T }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_UND_T }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value1.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLS, .value1.s = "key" }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value1.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLS, .value1.s = "obj" }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLS, .value1.s = "value" }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 100 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 100 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL0, .value1.i = 0, .value1.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLS, .value1.s = "obj" }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLS, .value1.s = "array" }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_DUP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 0 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 1 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 1 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_DUP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 2 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_DUP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 2 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 3 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_DUP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 3 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 2 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 2 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_DUP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYLI, .value1.i = 4 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 3 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 3 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_DUP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_APPLYVI, .value1.i = 5 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_UND_T }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_UND_T }));
 
     kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
     kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
@@ -92,7 +92,7 @@ int test(void)
     int r = ir_exec(ctx);
     context_cleanup(ctx);
     kv_destroy(code);
-    free_string();
+    free_string(ctx);
     return r;
 }
 

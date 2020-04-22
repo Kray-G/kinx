@@ -123,6 +123,9 @@ static void get_long_option(const char *optarg, char *lname, char *param)
     }
 }
 
+kx_context_t *compile_code(const char *code);
+int run_ctx(kx_context_t *ctx, int ac, char **av);
+
 int main(int ac, char **av)
 {
     int r = 1;
@@ -192,10 +195,9 @@ int main(int ac, char **av)
     }
 
 END_OF_OPT:
-    init_lexer();
     kx_lexinfo.quiet = 0;
     if (execname) {
-        const char *execfile = kxlib_exec_file_exists(execname);
+        const char *execfile = alloc_string(ctx, kxlib_exec_file_exists(execname));
         if (!execfile) {
             fprintf(stderr, "No internal execution code(%s).\n", execname);
             r = 1;
@@ -289,7 +291,5 @@ END_OF_OPT:
 CLEANUP:
     context_cleanup(ctx);
     free_nodes();
-    free_string();
-    free_lexer();
     return r;
 }

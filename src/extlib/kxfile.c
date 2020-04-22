@@ -256,7 +256,7 @@ static fileinfo_t *create_std(const char *name, FILE* fp, int mode)
     return fi;
 }
 
-static fileinfo_t *create_fileinfo(const char *file, int mode)
+static fileinfo_t *create_fileinfo(kx_context_t *ctx, const char *file, int mode)
 {
     if (!strcmp(file, "<stdin>")) {
         return create_std(file, stdin, KXFILE_MODE_READ);
@@ -278,7 +278,7 @@ static fileinfo_t *create_fileinfo(const char *file, int mode)
         conv_free(buf);
         return NULL;
     }
-    fi->filename = kx_const_str(buf);
+    fi->filename = kx_const_str(ctx, buf);
     conv_free(buf);
     fi->mode = mode;
     fi->is_text = (fi->mode & KXFILE_MODE_BINARY) != KXFILE_MODE_BINARY;
@@ -413,7 +413,7 @@ int File_static_load(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
 {
     const char *str = get_arg_str(1, args, ctx);
     int mode = get_arg_int(2, args, ctx);
-    fileinfo_t *fi = create_fileinfo(str, mode|KXFILE_MODE_READ);
+    fileinfo_t *fi = create_fileinfo(ctx, str, mode|KXFILE_MODE_READ);
     if (!fi) {
         KX_THROW_BLTIN_EXCEPTION("FileException", static_format("File open failed: %s", strerror(errno)));
     }
@@ -981,7 +981,7 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_obj_t *obj = allocate_obj(ctx);
     KEX_SET_PROP_CSTR(obj, "source", str);
     kx_any_t *r = allocate_any(ctx);
-    fileinfo_t *fi = create_fileinfo(str, mode);
+    fileinfo_t *fi = create_fileinfo(ctx, str, mode);
     if (!fi) {
         KX_THROW_BLTIN_EXCEPTION("FileException", static_format("File open failed: %s", strerror(errno)));
     }

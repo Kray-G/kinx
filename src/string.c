@@ -3,61 +3,53 @@
 #include <stdlib.h>
 #include <khash.h>
 #include <string.h>
+#include <ir.h>
 
-typedef struct string_list_ {
-    char *p;
-    struct string_list_ *n;
-} string_list_t;
-
-KHASH_SET_INIT_STR(conststr)
-static khash_t(conststr) *g_conststr = NULL;
-static string_list_t *g_head = NULL;
-
-const char *alloc_string(const char *str)
+const char *alloc_string(kx_context_t *ctx, const char *str)
 {
     string_list_t *sl = (string_list_t *)kx_malloc(sizeof(string_list_t));
     sl->p = kx_strdup(str);
-    sl->n = g_head;
-    g_head = sl;
+    sl->n = ctx->str_mgr.head;
+    ctx->str_mgr.head = sl;
     return sl->p;
 }
 
-const char *const_str(const char* name)
+const char *const_str(kx_context_t *ctx, const char* name)
 {
     int absent;
     if (!name) {
         return "<unknown>";
     }
-    if (!g_conststr) {
-        g_conststr = kh_init(conststr);
+    if (!ctx->str_mgr.conststr) {
+        ctx->str_mgr.conststr = kh_init(conststr);
     }
-    khint_t k = kh_put(conststr, g_conststr, name, &absent);
+    khint_t k = kh_put(conststr, ctx->str_mgr.conststr, name, &absent);
     if (absent) {
-        kh_key(g_conststr, k) = alloc_string(name);
+        kh_key(ctx->str_mgr.conststr, k) = alloc_string(ctx, name);
     }
-    return kh_key(g_conststr, k);
+    return kh_key(ctx->str_mgr.conststr, k);
 }
 
-const char *const_str2(const char* classname, const char* name)
+const char *const_str2(kx_context_t *ctx, const char* classname, const char* name)
 {
     int len = strlen(classname) + strlen(name) + 2;
     char *buf = kx_malloc(len);
     sprintf(buf, "%s#%s", classname, name);
-    const char *r = const_str(buf);
+    const char *r = const_str(ctx, buf);
     kx_free(buf);
     return r;
 }
 
-void free_string(void)
+void free_string(kx_context_t *ctx)
 {
-    string_list_t *head = g_head;
+    string_list_t *head = ctx->str_mgr.head;
     while (head) {
         string_list_t *next = head->n;
         kx_free(head->p);
         kx_free(head);
         head = next;
     }
-    g_head = NULL;
-    kh_destroy(conststr, g_conststr);
-    g_conststr = NULL;
+    ctx->str_mgr.head = NULL;
+    kh_destroy(conststr, ctx->str_mgr.conststr);
+    ctx->str_mgr.conststr = NULL;
 }
