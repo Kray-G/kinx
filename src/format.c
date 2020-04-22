@@ -72,7 +72,6 @@ static void kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec,
             ks_appendf(out, "%s", buf);
         }
         BzFreeString(buf);
-        BzFree(b);
     } else if (val->type == KX_DBL_T) {
         if (num > 0) {
             if (prec > 0) {
