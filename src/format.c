@@ -5,12 +5,44 @@
 #define KX_APPEND_CH(out, ch) { outbuf[0] = ch; outbuf[1] = 0; ks_append(out, outbuf); }
 #define KX_FMT_SIGN(sign) ((sign) == 0 ? "" : ((sign) > 0 ? "-" : "+")) 
 
+static void print_binary(kstr_t *out, int len, uint64_t v)
+{
+    char buf[KX_MAX_BUF] = {0};
+    char *p = buf;
+    const int bit = sizeof(v) * CHAR_BIT;
+    uint64_t mask = (uint64_t)1 << (bit - 1);
+    do {
+        if (mask & v) {
+            *p++ = '1';
+        } else {
+            *p++ = '0';
+        }
+    } while (mask >>= 1);
+    *p = 0;
+    int skip = bit - len;
+    if (skip < 0) {
+        ks_appendf(out, "%0*d", -skip, 0);
+        ks_append(out, buf);
+    } else {
+        p = buf;
+        for (int i = 0; i < skip; ++i) {
+            if (*p == '1') {
+                break;
+            }
+            ++p;
+        }
+        ks_append(out, p);
+    }
+}
+
 static void kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec, int sign, int zero, const char *fmt64, int fmtdbl)
 {
     char *buf;
     char fmtbuf[KX_MAX_BUF] = {0};
     if (val->type == KX_INT_T) {
-        if (num > 0) {
+        if (fmt64[0] == 'b') {
+            print_binary(out, num, val->value.iv);
+        } else if (num > 0) {
             if (prec > 0) {
                 sprintf(fmtbuf, "%%%s%s%d.%d%s", KX_FMT_SIGN(sign), zero ? "0" : "", num, prec, fmt64);
             } else {
@@ -22,11 +54,21 @@ static void kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec,
             ks_appendf(out, fmtbuf, val->value.iv);
         }
     } else if (val->type == KX_BIG_T) {
-        int rdx = (ch == 'x') ? 16 : 10;
-        buf = BzToString(val->value.bz, rdx, 0);
+        int rdx = (ch == 'x') ? 16 : (ch == 'b') ? 2 : (ch == 'o') ? 8 : 10;
+        if (ch == 'b') zero = 1;
+	buf = BzToString(val->value.bz, rdx, 0);
         if (num > 0) {
-            sprintf(fmtbuf, "%%%s%s%ds", KX_FMT_SIGN(sign), zero ? "0" : "", num);
-            ks_appendf(out, fmtbuf, buf);
+            if (zero || ch == 'b') {
+                int l = strlen(buf);
+                if (num - l > 0) {
+                    ks_appendf(out, "%s%0*d", buf[0] == '-' ? "-" : KX_FMT_SIGN(sign), num - l, 0);
+                    ks_appendf(out, "%s", buf[0] == '-' ? buf + 1 : buf);
+                } else {
+                    ks_appendf(out, "%*s", num, buf);
+                }
+            } else {
+                ks_appendf(out, "%*s", num, buf);
+            }
         } else {
             ks_appendf(out, "%s", buf);
         }
@@ -144,6 +186,10 @@ static void kx_format_impl(kstr_t *out, kx_obj_t *obj, const char *fmt)
             if (!*fmt) return;
             int fmtch = *fmt;
             switch (fmtch) {
+            case 'b': {
+                kx_format_one(out, val, *fmt, num, prec, sign, zero, "b", 'g');
+                break;
+            }
             case 'd':
             case 'i':
             case 'u':
