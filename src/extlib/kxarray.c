@@ -417,6 +417,20 @@ int Array_toString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return throw_invalid_object(args, ctx);
 }
 
+int Array_format(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kstr_t *str = allocate_str(ctx);
+    kx_val_t *val = &kv_last_by(ctx->stack, 1);
+    kstr_t *out = kx_format(val);
+    if (out) {
+        ks_append(str, ks_string(out));
+        ks_free(out);
+    }
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, str);
+    return 0;
+}
+
 static void make_indent(kstr_t *str, int level)
 {
     if (level > 0) {
@@ -635,6 +649,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "shift", Array_shift },
     { "joinImpl", Array_join },
     { "toStringImpl", Array_toString },
+    { "format", Array_format },
     { "unshift", Array_unshift },
     { "reverse", Array_reverse },
     { "flatten", Array_flatten },
