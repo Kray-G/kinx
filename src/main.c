@@ -1,8 +1,8 @@
 #include <dbg.h>
 #include <stdio.h>
 #include <kinx.h>
-#include <getopt.h>
 #include <kxthread.h>
+#include <getopt.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define PROGNAME "kinx.exe"

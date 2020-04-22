@@ -208,7 +208,7 @@ clean:
 	rm -f $(OBJS) $(DISASM) $(SOFILES) $(PICOBJS) timex kinx myacc test
 
 kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
-	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm
+	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm -pthread
 	cp -f src/disasm/arch/x86/x86.ins .
 	cp -f src/disasm/arch/x86/x64.ins .
 	cp -f src/disasm/arch/mips/mips.ins .
