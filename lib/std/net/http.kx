@@ -99,6 +99,9 @@ _namespace Net {
 
         public setPostData(data) {
             # Use this only when POST, otherwise ignore it.
+            if (data.isObject) {
+                data = data.toJsonString();
+            }
             postData_ = data;
             return this;
         }
@@ -172,7 +175,7 @@ _namespace Net {
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
             curl_.setOptionInt(Net.CURLOPT_POST, 1);
-            curl_.setOptionInt(Net.CURLOPT_POSTFIELDS, postData_);
+            curl_.setOptionString(Net.CURLOPT_POSTFIELDS, postData_);
             var body = callback.body;
             var hder = callback.header;
             if (!body && !hder) {
