@@ -485,7 +485,7 @@ kx_context_t *compile_code(const char *code)
 
     kx_lexinfo.quiet = 1;
     int start = eval_string(code, ctx);
-    KX_EXEC_FIX_JMPADDR(&(ctx->fixcode), start);
+    assert(start == 0);
 
     ctx->frmv = allocate_frm(ctx); /* initial frame */
     ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */
