@@ -6,13 +6,15 @@ Array.stringify = _function(ary, quote) {
     var ret = [];
     var len = ary.length();
     for (var i = 0; i < len; ++i) {
-        if (ary[i]._format) {
-            ret[i] = ary[i].format();
-            if (quote) {
-                ret[i] = ret[i].quote();
+        if ((ary[i].isObject || ary[i].isBinary) && ary[i].toString.isFunction) {
+            if (ary[i]._format) {
+                ret[i] = ary[i].format();
+                if (quote) {
+                    ret[i] = ret[i].quote();
+                }
+            } else {
+                ret[i] = ary[i].toString();
             }
-        } else if ((ary[i].isObject || ary[i].isBinary) && ary[i].toString.isFunction) {
-            ret[i] = ary[i].toString();
         } else {
             ret[i] = (quote && ary[i].isString) ? ary[i].quote() : ary[i];
         }
