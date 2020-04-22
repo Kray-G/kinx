@@ -49,6 +49,7 @@
 
 static const char *kx_opname[] = {
     "KX_HALT",
+    "KX_CTX",
     "KX_NOP",
     "KX_DUP",
     "KX_IMPORT",
@@ -299,6 +300,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     KX_CASE_BEGIN() {
 
     KX_CASE_(KX_HALT) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
+    KX_CASE_(KX_CTX) { KX_GOTO(); }
     KX_CASE_(KX_NOP) { KX_GOTO(); }
     KX_CASE_(KX_DUP) { KX_GOTO(); }
     KX_CASE_(KX_IMPORT) { KX_GOTO(); }

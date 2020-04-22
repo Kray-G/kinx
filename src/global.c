@@ -1,5 +1,6 @@
 #include <dbg.h>
 #include <kinx.h>
+#include <kxthread.h>
 
 kx_lexinfo_t kx_lexinfo = {0};
 
@@ -13,5 +14,7 @@ int g_yywarning = 0;
 
 kx_context_t *g_parse_ctx = NULL;
 kx_context_t *g_main_thread = NULL;
+
+pthread_mutex_t g_mutex;
 
 KX_DECL_MEM_ALLOCATORS();

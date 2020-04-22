@@ -46,6 +46,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXVL_UNKNOWN:
         printf("<UNKNOWN>\n");
         break;
+    case KXVL_CTX:
+        printf("<CONTEXT>\n");
+        break;
 
     case KXVL_INT:
         printf("(i:%"PRId64"):%s\n", node->value.i, get_short_typename(node->var_type));
