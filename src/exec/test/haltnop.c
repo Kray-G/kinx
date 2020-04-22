@@ -11,9 +11,9 @@ int test(void)
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 0 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_STR_T, .value2.s = "not executed here" }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_STR_T, .value2.s = "not executed here" }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_NOP }));
@@ -30,7 +30,7 @@ int test(void)
     int r = ir_exec(ctx);
     context_cleanup(ctx);
     kv_destroy(code);
-    free_string();
+    free_string(ctx);
     return r;
 }
 

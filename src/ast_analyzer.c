@@ -25,7 +25,7 @@ typedef struct kxana_context_ {
 } kxana_context_t;
 static const kxana_symbol_t kx_empty_symbols = {0};
 
-static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, kxana_context_t *ctx)
+static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node, const char *name, kxana_context_t *actx)
 {
     static char temp[256] = {0};
     if (!name) {
@@ -33,15 +33,15 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
         sprintf(temp, "_temp%d", tempid);
         name = temp;
     }
-    int stack = kv_size(ctx->symbols);
+    int stack = kv_size(actx->symbols);
     for (int i = 1; i <= stack; ++i) {
-        kxana_symbol_t* table = &(kv_last_by(ctx->symbols, i));
+        kxana_symbol_t* table = &(kv_last_by(actx->symbols, i));
         int size = kv_size(table->list);
         for (int j = 1; j <= size; ++j) {
             kxana_symbol_t *sym = &kv_last_by(table->list, j);
             if (!strcmp(name, sym->name)) {
-                if (ctx->decl) {
-                    if (sym->depth < ctx->depth) {
+                if (actx->decl) {
+                    if (sym->depth < actx->depth) {
                         goto DECL_VAR;
                     }
                     /* No warning for the same level variable, use it. */
@@ -56,17 +56,17 @@ static kxana_symbol_t *search_symbol_table(kx_object_t *node, const char *name, 
     }
 
 DECL_VAR:
-    if (ctx->decl || ctx->lvalue) {
-        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+    if (actx->decl || actx->lvalue) {
+        kxana_symbol_t* table = &(kv_last(actx->symbols));
         kxana_symbol_t sym = {0};
-        sym.name = const_str(name);
-        sym.depth = ctx->depth;
-        sym.local_index = ctx->func->local_vars;
-        ++(ctx->func->local_vars);
+        sym.name = const_str(ctx, name);
+        sym.depth = actx->depth;
+        sym.local_index = actx->func->local_vars;
+        ++(actx->func->local_vars);
         sym.lexical_index = 0;
         sym.base = node;
         sym.optional = node->optional;
-        if (node->var_type == KX_UNKNOWN_T && ctx->in_native) {
+        if (node->var_type == KX_UNKNOWN_T && actx->in_native) {
             node->var_type = KX_INT_T;  // automatically set it.
         }
         kv_push(kxana_symbol_t, table->list, sym);
@@ -183,47 +183,47 @@ static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
     }
 }
 
-static int lookup_enum_value(kxana_context_t *ctx, const char *name, int *ret)
+static int lookup_enum_value(kxana_context_t *actx, const char *name, int *ret)
 {
-    khint_t k = kh_get(enum_value, kv_last(ctx->enval), name);
-    if (k != kh_end(kv_last(ctx->enval))) {
-        *ret = kh_value(kv_last(ctx->enval), k);
+    khint_t k = kh_get(enum_value, kv_last(actx->enval), name);
+    if (k != kh_end(kv_last(actx->enval))) {
+        *ret = kh_value(kv_last(actx->enval), k);
         return 1;
     }
     return 0;
 }
 
-static void add_const(kxana_context_t *ctx, kx_object_t *decl, kx_object_t *node)
+static void add_const(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *decl, kx_object_t *node)
 {
     if (!node) {
         return;
     }
     if (node->type == KXST_EXPRLIST) {
-        add_const(ctx, decl, node->lhs);
-        add_const(ctx, decl, node->rhs);
+        add_const(ctx, actx, decl, node->lhs);
+        add_const(ctx, actx, decl, node->rhs);
         return;
     }
     if (node->type == KXOP_MKARY || node->type == KXOP_SPREAD) {
-        add_const(ctx, decl, node->lhs);
+        add_const(ctx, actx, decl, node->lhs);
         return;
     }
     if (node->type == KXOP_VAR) {
         node->optional = decl->optional;
         node->init = node;  // dummy.
-        int decl = ctx->decl;
-        ctx->decl = 1;
-        search_symbol_table(node, node->value.s, ctx);
-        ctx->decl = decl;
+        int decl = actx->decl;
+        actx->decl = 1;
+        search_symbol_table(ctx, node, node->value.s, actx);
+        actx->decl = decl;
     }
 }
 
-static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
+static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *actx)
 {
     if (!node) {
         return;
     }
 
-    node->lvalue = ctx->decl || ctx->lvalue;
+    node->lvalue = actx->decl || actx->lvalue;
     switch (node->type) {
     case KXVL_UNKNOWN:
 
@@ -254,21 +254,21 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
 
     case KXOP_VAR: {
         int enumv = 0;
-        int is_enum_value = lookup_enum_value(ctx, node->value.s, &enumv);
+        int is_enum_value = lookup_enum_value(actx, node->value.s, &enumv);
         if (is_enum_value) {
             node->lhs = kx_gen_int_object(enumv);
-            analyze_ast(node->lhs, ctx);    // expanding const value.
+            analyze_ast(ctx, node->lhs, actx);    // expanding const value.
             break;
         }
-        kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
+        kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
         if (!sym) {
-            if (!ctx->decl && !ctx->lvalue) {
+            if (!actx->decl && !actx->lvalue) {
                 kx_yyerror_line_fmt("Symbol(%s) is not found", node->file, node->line, node->value.s);
             }
             break;
         }
         kx_object_t *n = NULL;
-        if (!ctx->lvalue && sym->optional == KXDC_CONST && sym->base->init) {
+        if (!actx->lvalue && sym->optional == KXDC_CONST && sym->base->init) {
             switch (sym->base->init->type) {
             case KXVL_INT:
                 n = kx_gen_int_object(sym->base->init->value.i);
@@ -294,11 +294,11 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
             if (n) {
                 node->lhs = n;
-                analyze_ast(node->lhs, ctx);    // expanding const value.
+                analyze_ast(ctx, node->lhs, actx);    // expanding const value.
             }
         }
-        if (!n && ctx->decl) {
-            if (ctx->arg_index < 0) {
+        if (!n && actx->decl) {
+            if (actx->arg_index < 0) {
                 kx_yyerror_line("Rest argument must be used only at the last argument", node->file, node->line);
             }
             if (node->var_type == KX_SPR_T) {
@@ -306,53 +306,53 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
                     kx_gen_var_object(node->value.s, KX_OBJ_T),
                     kx_gen_bexpr_object(KXOP_CALL,
                         kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("arguments")),
-                        kx_gen_int_object(ctx->arg_index)
+                        kx_gen_int_object(actx->arg_index)
                     )
                 );
-                int arg_index = ctx->arg_index;
-                int lvalue = ctx->lvalue;
-                int decl = ctx->decl;
-                ctx->lvalue = 0;
-                ctx->decl = 0;
-                analyze_ast(node->lhs, ctx);
-                ctx->lvalue = lvalue;
-                ctx->decl = decl;
-                ctx->arg_index = arg_index;
-                ctx->arg_index = -1;
+                int arg_index = actx->arg_index;
+                int lvalue = actx->lvalue;
+                int decl = actx->decl;
+                actx->lvalue = 0;
+                actx->decl = 0;
+                analyze_ast(ctx, node->lhs, actx);
+                actx->lvalue = lvalue;
+                actx->decl = decl;
+                actx->arg_index = arg_index;
+                actx->arg_index = -1;
             } else {
-                ++(ctx->arg_index);
+                ++(actx->arg_index);
             }
         }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
-        node->var_type = (sym->base->var_type == KX_SPR_T && !ctx->decl) ? KX_UNKNOWN_T : sym->base->var_type;
+        node->var_type = (sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type;
         if (sym->base->var_type == KX_NFNC_T) {
             node->ret_type = sym->base->ret_type;
         }
         break;
     }
     case KXOP_KEYVALUE:
-        if (ctx->in_native) {
+        if (actx->in_native) {
             kx_yyerror_line("Can not use key-value object in native function", node->file, node->line);
             break;
         }
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
 
     case KXOP_BNOT:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_NOT:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_POSITIVE:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_NEGATIVE:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_CONV:
@@ -361,60 +361,60 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("convType")),
             node->lhs
         );
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
     case KXOP_INC:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_DEC:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_INCP:       /* postfix */
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_DECP:       /* postfix */
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_MKBIN:
         node->var_type = KX_BIN_T;
-        if (ctx->in_native) {
+        if (actx->in_native) {
             kx_yyerror_line("Can not use binary object in native function", node->file, node->line);
             break;
         }
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
     case KXOP_MKARY:
         node->var_type = KX_OBJ_T;
-        if (ctx->in_native) {
+        if (actx->in_native) {
             kx_yyerror_line("Can not use array object in native function", node->file, node->line);
             break;
         }
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
     case KXOP_MKOBJ:
         node->var_type = KX_OBJ_T;
-        if (ctx->in_native) {
+        if (actx->in_native) {
             kx_yyerror_line("Can not use key-value object in native function", node->file, node->line);
             break;
         }
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
 
     case KXOP_DECL: {
         if (node->lhs->type != KXOP_MKARY) {
-            int decl = ctx->decl;
-            ctx->decl = 1;
+            int decl = actx->decl;
+            actx->decl = 1;
             if (node->lhs->type == KXOP_VAR) {
                 node->lhs->optional = node->optional;
                 node->lhs->init = node->rhs;
             }
-            analyze_ast(node->lhs, ctx);
-            ctx->decl = decl;
-            analyze_ast(node->rhs, ctx);
+            analyze_ast(ctx, node->lhs, actx);
+            actx->decl = decl;
+            analyze_ast(ctx, node->rhs, actx);
             if (node->rhs && node->lhs->type == KXOP_VAR) {
                 node->lhs->var_type = node->rhs->var_type;
             }
@@ -422,10 +422,10 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             break;
         } else if (!node->rhs) {
             // MKARY with no right hand side, just a declaration.
-            int decl = ctx->decl;
-            ctx->decl = 1;
-            analyze_ast(node->lhs, ctx);
-            ctx->decl = decl;
+            int decl = actx->decl;
+            actx->decl = 1;
+            analyze_ast(ctx, node->lhs, actx);
+            actx->decl = decl;
             break;
         }
         // if declaration is array, same as assignment. 
@@ -433,42 +433,42 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     }
     case KXOP_ASSIGN: {
         if (node->optional == KXDC_CONST && node->lhs->type == KXOP_MKARY) {
-            add_const(ctx, node, node->lhs);
+            add_const(ctx, actx, node, node->lhs);
         }
         int decl = -1;
         if (node->lhs->type == KXOP_VAR) {
-            kxana_symbol_t *sym = search_symbol_table(node, node->lhs->value.s, ctx);
+            kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
             if (sym && sym->base->optional == KXDC_CONST && !sym->base->init) {
                 node->lhs->init = sym->base->init = node->rhs;
-                decl = ctx->decl;
-                ctx->decl = 0;
-                analyze_ast(node->lhs, ctx);
-                analyze_ast(node->rhs, ctx);
-                ctx->decl = decl;
+                decl = actx->decl;
+                actx->decl = 0;
+                analyze_ast(ctx, node->lhs, actx);
+                analyze_ast(ctx, node->rhs, actx);
+                actx->decl = decl;
             }
         }
         if (decl < 0) {
             if (node->lhs && node->lhs->type == KXOP_VAR) {
-                kxana_symbol_t *sym = search_symbol_table(node, node->lhs->value.s, ctx);
+                kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
                 if (sym && sym->optional == KXDC_CONST) {
                     kx_yyerror_line("Can not assign a value to the 'const' variable", node->file, node->line);
                     break;
                 }
             }
             if (node->type == KXOP_DECL) {
-                int decl = ctx->decl;
-                ctx->decl = 1;
-                analyze_ast(node->lhs, ctx);
-                ctx->decl = 0;
-                analyze_ast(node->rhs, ctx);
-                ctx->decl = decl;
+                int decl = actx->decl;
+                actx->decl = 1;
+                analyze_ast(ctx, node->lhs, actx);
+                actx->decl = 0;
+                analyze_ast(ctx, node->rhs, actx);
+                actx->decl = decl;
             } else {
-                int lvalue = ctx->lvalue;
-                ctx->lvalue = 1;
-                analyze_ast(node->lhs, ctx);
-                ctx->lvalue = 0;
-                analyze_ast(node->rhs, ctx);
-                ctx->lvalue = lvalue;
+                int lvalue = actx->lvalue;
+                actx->lvalue = 1;
+                analyze_ast(ctx, node->lhs, actx);
+                actx->lvalue = 0;
+                analyze_ast(ctx, node->rhs, actx);
+                actx->lvalue = lvalue;
             }
         }
         if (node->rhs->var_type == KX_CSTR_T) {
@@ -495,16 +495,16 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_LAND:
     case KXOP_LOR:
     case KXOP_LUNDEF:
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         make_cast(node, node->lhs, node->rhs);
         break;
     case KXOP_IDX:
-        if (ctx->in_native) {
+        if (actx->in_native) {
             kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
             break;
         }
-        if (!ctx->lvalue && node->lhs && node->rhs) {
+        if (!actx->lvalue && node->lhs && node->rhs) {
             if (node->lhs->type == KXVL_STR && node->rhs->type == KXVL_INT) {
                 const char *str = node->lhs->value.s;
                 int len = strlen(str);
@@ -521,15 +521,15 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
             }
         }
         /* 1 when lvalue */
-        analyze_ast(node->lhs, ctx);
-        int lvalue = ctx->lvalue;
-        ctx->lvalue = 0;
-        analyze_ast(node->rhs, ctx);
-        ctx->lvalue = lvalue;
+        analyze_ast(ctx, node->lhs, actx);
+        int lvalue = actx->lvalue;
+        actx->lvalue = 0;
+        analyze_ast(ctx, node->rhs, actx);
+        actx->lvalue = lvalue;
         node->var_type = KX_UNKNOWN_T;
         break;
     case KXOP_YIELD:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = KX_OBJ_T;
         break;
 
@@ -540,38 +540,38 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXOP_GE:
     case KXOP_GT:
     case KXOP_LGE:
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         node->var_type = KX_INT_T;
         break;
     case KXOP_REGEQ:
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         node->var_type = KX_OBJ_T;
         break;
     case KXOP_REGNE:
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         node->var_type = KX_INT_T;
         break;
     case KXOP_CALL: {
-        int lvalue = ctx->lvalue;
-        int decl = ctx->decl;
-        ctx->lvalue = 0;
-        ctx->decl = 0;
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
-        ctx->lvalue = 0;
-        ctx->decl = 0;
+        int lvalue = actx->lvalue;
+        int decl = actx->decl;
+        actx->lvalue = 0;
+        actx->decl = 0;
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        actx->lvalue = 0;
+        actx->decl = 0;
         if ((node->lhs->var_type == KX_CSTR_T || node->lhs->var_type == KX_STR_T) && (node->rhs->var_type == KX_CSTR_T || node->rhs->var_type == KX_STR_T)) {
             node->type = KXOP_ADD;
             make_cast(node, node->lhs, node->rhs);
         } else {
             node->count_args = count_args(node->rhs);
-            if (ctx->func && node->count_args > ctx->func->callargs_max) {
-                ctx->func->callargs_max = node->count_args;
+            if (actx->func && node->count_args > actx->func->callargs_max) {
+                actx->func->callargs_max = node->count_args;
             }
-            if (ctx->in_native && node->lhs->var_type != KX_NFNC_T) {
+            if (actx->in_native && node->lhs->var_type != KX_NFNC_T) {
                 kx_yyerror_line("Can not call a non-native function from native function", node->file, node->line);
             }
             node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->ret_type : node->lhs->var_type;
@@ -583,11 +583,11 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     }
 
     case KXOP_TYPEOF:
-        if (ctx->in_native) {
+        if (actx->in_native) {
             kx_yyerror_line("Can not use type property in native function", node->file, node->line);
             break;
         }
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         node->var_type = KX_INT_T;
         break;
     case KXOP_CAST: {
@@ -596,130 +596,130 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     }
     case KXOP_ENUM: {
         int absent;
-        khint_t k = kh_put(enum_value, kv_last(ctx->enval), node->value.s, &absent);
+        khint_t k = kh_put(enum_value, kv_last(actx->enval), node->value.s, &absent);
         if (absent) {
-            kh_value(kv_last(ctx->enval), k) = node->optional;
+            kh_value(kv_last(actx->enval), k) = node->optional;
         } else {
             kx_yyerror_line("The enum name was duplicated in the same scope", node->file, node->line);
         }
         break;
     }
     case KXOP_SPREAD: {
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
     }
 
     case KXOP_TER:
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
-        analyze_ast(node->ex, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        analyze_ast(ctx, node->ex, actx);
         break;
 
     case KXST_BREAK:
     case KXST_CONTINUE:
     case KXST_LABEL:
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
     case KXST_EXPR:       /* lhs: expr */
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
     case KXST_EXPRSEQ:   /* lhs: expr1: rhs: expr2 */
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         break;
     case KXST_BLOCK:      /* lhs: block */
         if (node->lhs) {
-            ++ctx->depth;
-            kxana_symbol_t* table = &(kv_last(ctx->symbols));
+            ++actx->depth;
+            kxana_symbol_t* table = &(kv_last(actx->symbols));
             int size = kv_size(table->list);
-            analyze_ast(node->lhs, ctx);
+            analyze_ast(ctx, node->lhs, actx);
             kv_shrinkto(table->list, size);
-            --ctx->depth;
+            --actx->depth;
         }
         break;
     case KXST_IF: {       /* lhs: cond, rhs: then-block: ex: else-block */
-        ++ctx->depth;
-        analyze_ast(node->lhs, ctx);
-        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        ++actx->depth;
+        analyze_ast(ctx, node->lhs, actx);
+        kxana_symbol_t* table = &(kv_last(actx->symbols));
         int size = kv_size(table->list);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->rhs, actx);
         kv_shrinkto(table->list, size);
-        analyze_ast(node->ex, ctx);
+        analyze_ast(ctx, node->ex, actx);
         kv_shrinkto(table->list, size);
-        --ctx->depth;
+        --actx->depth;
         break;
     }
     case KXST_SWITCH: {   /* lhs: cond: rhs: block */
-        ++ctx->depth;
-        kx_object_t *sw = ctx->switch_stmt;
-        ctx->switch_stmt = node;
-        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        ++actx->depth;
+        kx_object_t *sw = actx->switch_stmt;
+        actx->switch_stmt = node;
+        kxana_symbol_t* table = &(kv_last(actx->symbols));
         int size = kv_size(table->list);
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         kv_shrinkto(table->list, size);
-        ctx->switch_stmt = sw;
-        --ctx->depth;
+        actx->switch_stmt = sw;
+        --actx->depth;
         break;
     }
     case KXST_CASE: {     /* lhs: cond */
-        ctx->switch_stmt->case_next = node;
-        ctx->switch_stmt = node;
-        analyze_ast(node->lhs, ctx);
+        actx->switch_stmt->case_next = node;
+        actx->switch_stmt = node;
+        analyze_ast(ctx, node->lhs, actx);
         break;
     }
     case KXST_WHILE:      /* lhs: cond: rhs: block */
     case KXST_DO:         /* lhs: cond: rhs: block */
     case KXST_FOR: {      /* lhs: forcond: rhs: block */
-        ++ctx->depth;
-        kxana_symbol_t* table = &(kv_last(ctx->symbols));
+        ++actx->depth;
+        kxana_symbol_t* table = &(kv_last(actx->symbols));
         int size = kv_size(table->list);
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         kv_shrinkto(table->list, size);
-        --ctx->depth;
+        --actx->depth;
         break;
     }
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
-        analyze_ast(node->ex, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        analyze_ast(ctx, node->ex, actx);
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
-        kxana_symbol_t* table = &(kv_last(ctx->symbols));
-        int in_catch = ctx->in_catch;
-        ctx->in_catch = 0;
+        kxana_symbol_t* table = &(kv_last(actx->symbols));
+        int in_catch = actx->in_catch;
+        actx->in_catch = 0;
         int size = kv_size(table->list);
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         kv_shrinkto(table->list, size);
-        ctx->in_catch = 1;
-        analyze_ast(node->rhs, ctx);
-        ctx->in_catch = 0;
+        actx->in_catch = 1;
+        analyze_ast(ctx, node->rhs, actx);
+        actx->in_catch = 0;
         kv_shrinkto(table->list, size);
-        analyze_ast(node->ex, ctx);
+        analyze_ast(ctx, node->ex, actx);
         kv_shrinkto(table->list, size);
-        ctx->in_catch = in_catch;
+        actx->in_catch = in_catch;
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
-        analyze_ast(node->lhs, ctx);
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         break;
     }
     case KXST_RET:        /* lhs: expr */
         if (node->lhs) {
-            analyze_ast(node->lhs, ctx);
-            if (ctx->in_native || ctx->func->ret_type != KX_UNKNOWN_T) {
-                if (ctx->func->ret_type != node->lhs->var_type) {
-                    kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(ctx->func->ret_type), get_typename(node->lhs->var_type));
+            analyze_ast(ctx, node->lhs, actx);
+            if (actx->in_native || actx->func->ret_type != KX_UNKNOWN_T) {
+                if (actx->func->ret_type != node->lhs->var_type) {
+                    kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(actx->func->ret_type), get_typename(node->lhs->var_type));
                 }
             }
         } else {
-            if (ctx->in_native || ctx->func->ret_type != KX_UNKNOWN_T) {
-                if (ctx->func->ret_type != KX_UND_T) {
-                    kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(ctx->func->ret_type), get_typename(KX_UND_T));
+            if (actx->in_native || actx->func->ret_type != KX_UNKNOWN_T) {
+                if (actx->func->ret_type != KX_UND_T) {
+                    kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(actx->func->ret_type), get_typename(KX_UND_T));
                 }
             }
         }
@@ -727,144 +727,144 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     case KXST_SYSRET_NV:
         break;
     case KXST_COROUTINE: {
-        analyze_ast(node->lhs, ctx);
+        analyze_ast(ctx, node->lhs, actx);
         break;
     }
     case KXST_THROW:      /* lhs: expr */
         if (node->lhs) {
-            analyze_ast(node->lhs, ctx);
+            analyze_ast(ctx, node->lhs, actx);
         } else {
-            if (!ctx->in_catch) {
+            if (!actx->in_catch) {
                 kx_yyerror_line("Can not use throw without expression outside catch clause", node->file, node->line);
             }
         }
         break;
     case KXST_MIXIN:
         if (node->lhs)  {
-            analyze_ast(node->lhs, ctx);
+            analyze_ast(ctx, node->lhs, actx);
         }
-        kxana_symbol_t *sym = search_symbol_table(node, "this", ctx);
+        kxana_symbol_t *sym = search_symbol_table(ctx, node, "this", actx);
         if (!sym) {
             kx_yyerror_line("Invalid mixin statement", node->file, node->line);
             break;
         }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
-        analyze_ast(node->rhs, ctx);
+        analyze_ast(ctx, node->rhs, actx);
         break;
     case KXST_SYSCLASS:
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
-        if (ctx->in_native) {
+        if (actx->in_native) {
             kx_yyerror_line("Do not define class in native function", node->file, node->line);
             break;
         }
         enum_map_t enval = kh_init(enum_value);
-        kv_push(enum_map_t, ctx->enval, enval);
+        kv_push(enum_map_t, actx->enval, enval);
 
-        kx_object_t *class_node = ctx->class_node;
-        ctx->class_node = node;
-        int depth = ctx->depth;
-        ++ctx->depth;
-        int lvalue = ctx->lvalue;
-        ctx->lvalue = 1;
-        kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
+        kx_object_t *class_node = actx->class_node;
+        actx->class_node = node;
+        int depth = actx->depth;
+        ++actx->depth;
+        int lvalue = actx->lvalue;
+        actx->lvalue = 1;
+        kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
         assert(sym);
-        ctx->lvalue = lvalue;
+        actx->lvalue = lvalue;
 
-        if (ctx->func) {
-            ctx->func->lexical_refs = 1;
+        if (actx->func) {
+            actx->func->lexical_refs = 1;
         }
-        kx_object_t *func = ctx->func;
-        ctx->func = node;
-        kv_push(kxana_symbol_t, ctx->symbols, kx_empty_symbols);
-        int decl = ctx->decl;
-        ctx->decl = 1;
+        kx_object_t *func = actx->func;
+        actx->func = node;
+        kv_push(kxana_symbol_t, actx->symbols, kx_empty_symbols);
+        int decl = actx->decl;
+        actx->decl = 1;
         if (node->lhs) {
             node->count_args = count_args(node->lhs);
-            ctx->arg_index = 0;
-            analyze_ast(node->lhs, ctx);
-            ctx->arg_index = 0;
+            actx->arg_index = 0;
+            analyze_ast(ctx, node->lhs, actx);
+            actx->arg_index = 0;
         } else {
             node->count_args = 0;
         }
-        ctx->decl = decl;
+        actx->decl = decl;
         if (node->ex) {
-            analyze_ast(node->ex, ctx);
+            analyze_ast(ctx, node->ex, actx);
         }
-        analyze_ast(node->rhs, ctx);
-        ctx->func = func;
-        node->symbols = kv_last(ctx->symbols);
-        kv_remove_last(ctx->symbols);
-        ctx->depth = depth;
-        ctx->class_node = class_node;
+        analyze_ast(ctx, node->rhs, actx);
+        actx->func = func;
+        node->symbols = kv_last(actx->symbols);
+        kv_remove_last(actx->symbols);
+        actx->depth = depth;
+        actx->class_node = class_node;
 
         kh_destroy(enum_value, enval);
-        kv_pop(ctx->enval);
+        kv_pop(actx->enval);
         break;
     }
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
-        int depth = ctx->depth;
-        ++ctx->depth;
+        int depth = actx->depth;
+        ++actx->depth;
         if (node->type == KXST_NATIVE) {
-            kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
+            kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
             sym->base->var_type = KX_NFNC_T;
             sym->base->ret_type = node->ret_type;
         } else {
-            if (ctx->in_native) {
+            if (actx->in_native) {
                 kx_yyerror_line("Do not define function in native function", node->file, node->line);
                 break;
             }
             if (node->value.s) {
-                int lvalue = ctx->lvalue;
-                ctx->lvalue = 1;
-                kxana_symbol_t *sym = search_symbol_table(node, node->value.s, ctx);
+                int lvalue = actx->lvalue;
+                actx->lvalue = 1;
+                kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
                 assert(sym);
-                ctx->lvalue = lvalue;
-                if (ctx->class_node && !strcmp(node->value.s, "initialize")) {
-                    ctx->class_node->init = node;
+                actx->lvalue = lvalue;
+                if (actx->class_node && !strcmp(node->value.s, "initialize")) {
+                    actx->class_node->init = node;
                 }
             }
-            if (ctx->class_node && ctx->class_node->type  == KXST_SYSCLASS) {
+            if (actx->class_node && actx->class_node->type  == KXST_SYSCLASS) {
                 node->optional = KXFT_SYSFUNC;
             }
         }
 
         enum_map_t enval = kh_init(enum_value);
-        kv_push(enum_map_t, ctx->enval, enval);
+        kv_push(enum_map_t, actx->enval, enval);
 
         if (node->type == KXST_NATIVE) {
-            ctx->in_native = 1;
+            actx->in_native = 1;
             node->var_type = KX_NFNC_T;
         } else {
-            ctx->in_native = 0;
+            actx->in_native = 0;
         }
-        if (ctx->func) {
-            ctx->func->lexical_refs = 1;
+        if (actx->func) {
+            actx->func->lexical_refs = 1;
         }
-        kx_object_t *func = ctx->func;
-        ctx->func = node;
-        kv_push(kxana_symbol_t, ctx->symbols, kx_empty_symbols);
-        int decl = ctx->decl;
-        ctx->decl = 1;
+        kx_object_t *func = actx->func;
+        actx->func = node;
+        kv_push(kxana_symbol_t, actx->symbols, kx_empty_symbols);
+        int decl = actx->decl;
+        actx->decl = 1;
         if (node->lhs) {
             node->count_args = count_args(node->lhs);
-            ctx->arg_index = 0;
-            analyze_ast(node->lhs, ctx);
-            ctx->arg_index = 0;
+            actx->arg_index = 0;
+            analyze_ast(ctx, node->lhs, actx);
+            actx->arg_index = 0;
         } else {
             node->count_args = 0;
         }
-        ctx->decl = decl;
-        analyze_ast(node->rhs, ctx);
-        ctx->func = func;
-        node->symbols = kv_last(ctx->symbols);
-        kv_remove_last(ctx->symbols);
-        ctx->depth = depth;
-        ctx->in_native = 0;
+        actx->decl = decl;
+        analyze_ast(ctx, node->rhs, actx);
+        actx->func = func;
+        node->symbols = kv_last(actx->symbols);
+        kv_remove_last(actx->symbols);
+        actx->depth = depth;
+        actx->in_native = 0;
 
         kh_destroy(enum_value, enval);
-        kv_pop(ctx->enval);
+        kv_pop(actx->enval);
         break;
     }
     default:
@@ -872,27 +872,27 @@ static void analyze_ast(kx_object_t *node, kxana_context_t *ctx)
     }
 }
 
-void start_analyze_ast(kx_object_t *node)
+void start_analyze_ast(kx_context_t *ctx, kx_object_t *node)
 {
-    kxana_context_t ctx = {0};
+    kxana_context_t actx = {0};
     enum_map_t enval = kh_init(enum_value);
-    kv_push(enum_map_t, ctx.enval, enval);
+    kv_push(enum_map_t, actx.enval, enval);
 
-    kv_push(kxana_symbol_t, ctx.symbols, kx_empty_symbols);
-    ctx.func = node;
-    ctx.decl = 1;
-    kxana_symbol_t *sym = search_symbol_table(node, "$$", &ctx);
+    kv_push(kxana_symbol_t, actx.symbols, kx_empty_symbols);
+    actx.func = node;
+    actx.decl = 1;
+    kxana_symbol_t *sym = search_symbol_table(ctx, node, "$$", &actx);
     assert(sym);
-    ctx.decl = 0;
-    analyze_ast(node, &ctx);
+    actx.decl = 0;
+    analyze_ast(ctx, node, &actx);
 
-    int l = kv_size(ctx.symbols);
+    int l = kv_size(actx.symbols);
     for (int i = 0; i < l; ++i) {
-        kxana_symbol_t *table = &(kv_A(ctx.symbols, i));
+        kxana_symbol_t *table = &(kv_A(actx.symbols, i));
         kv_destroy(table->list);
     }
-    kv_destroy(ctx.symbols);
+    kv_destroy(actx.symbols);
 
     kh_destroy(enum_value, enval);
-    kv_destroy(ctx.enval);
+    kv_destroy(actx.enval);
 }

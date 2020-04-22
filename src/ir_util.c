@@ -374,7 +374,7 @@ static int eval(kx_context_t *ctx)
         return -1;
     }
 
-    start_analyze_ast(kx_ast_root);
+    start_analyze_ast(ctx, kx_ast_root);
     if (g_yyerror > 0) {
         return -1;
     }
@@ -393,46 +393,59 @@ static int eval(kx_context_t *ctx)
     if (g_yyerror > 0) {
         return -1;
     }
+    free_nodes();
     return start;
 }
 
 int eval_string(const char *code, kx_context_t *ctx)
 {
+    set_context(ctx);
+    init_lexer();
     const char *name = "<eval>";
-    setup_lexinfo(name, &(kx_yyin_t){
+    setup_lexinfo(ctx, name, &(kx_yyin_t){
         .fp = NULL,
         .str = code,
         .file = name
     });
     kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
     name = "<startup>";
-    setup_lexinfo(name, &(kx_yyin_t){
+    setup_lexinfo(ctx, name, &(kx_yyin_t){
         .fp = NULL,
         .str = startup_code(),
-        .file = name
+        .file = name,
     });
-    return eval(ctx);
+    int r = eval(ctx);
+    free_lexer();
+    release_context();
+    return r;
 }
 
 int eval_file(const char *file, kx_context_t *ctx)
 {
-    setup_lexinfo(file, &(kx_yyin_t){
+    set_context(ctx);
+    init_lexer();
+    setup_lexinfo(ctx, file, &(kx_yyin_t){
         .fp = (file && !ctx->options.src_stdin) ? fopen(file, "r") : stdin,
         .str = NULL,
         .file = file
     });
     kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
     const char *name = "<startup>";
-    setup_lexinfo(name, &(kx_yyin_t){
+    setup_lexinfo(ctx, name, &(kx_yyin_t){
         .fp = NULL,
         .str = startup_code(),
         .file = name
     });
-    return eval(ctx);
+    int r = eval(ctx);
+    free_lexer();
+    release_context();
+    return r;
 }
 
 kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[])
 {
+    // should be locked in multi-threading.
+
     int start;
     if (host->type == KX_CSTR_T) {
         start = eval_string(host->value.pv, ctx);
@@ -445,8 +458,8 @@ kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[
     if (start < 0) {
         char buf[2048] = {0};
         snprintf(buf, 2047, "eval() failed at the line %d (pos:%d)", kx_lexinfo.line, kx_lexinfo.pos);
-        fnc->typ = const_str("CompileException");
-        fnc->wht = const_str(buf);
+        fnc->typ = const_str(ctx, "CompileException");
+        fnc->wht = const_str(ctx, buf);
         return fnc;
     }
 
@@ -464,6 +477,39 @@ kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[
     fnc->val.type = KX_OBJ_T;
     fnc->val.value.ov = obj;
     return fnc;
+}
+
+kx_context_t *compile_code(const char *code)
+{
+    kx_context_t *ctx = make_context();
+
+    kx_lexinfo.quiet = 1;
+    int start = eval_string(code, ctx);
+    KX_EXEC_FIX_JMPADDR(&(ctx->fixcode), start);
+
+    ctx->frmv = allocate_frm(ctx); /* initial frame */
+    ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */
+    return ctx;
+}
+
+int run_ctx(kx_context_t *ctx, int ac, char **av)
+{
+    kv_expand_if(kx_val_t, ctx->stack, KEX_DEFAULT_STACK);
+    kx_obj_t *obj = allocate_obj(ctx);
+    for (int i = 0; i < ac; ++i) {
+        KEX_PUSH_ARRAY_CSTR(obj, av[i]);
+    }
+    push_obj(ctx->stack, obj);
+    push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
+    push_i(ctx->stack, 1);
+    push_adr(ctx->stack, NULL);
+
+    kx_context_t *mt = g_main_thread;
+    g_main_thread = ctx;
+    int r = ir_exec(ctx);
+    g_main_thread = mt;
+    context_cleanup(ctx);
+    return r;
 }
 
 kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
@@ -661,7 +707,7 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
     }
 
     /* Setting it up only when it is the first loading time. */
-    kh_key(bltin, k) = const_str(name);
+    kh_key(bltin, k) = const_str(ctx, name);
     kx_bltin_t *p = kx_calloc(1, sizeof(kx_bltin_t));
     kh_value(bltin, k) = p;
     p->lib = load_library(name, NULL);

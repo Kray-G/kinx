@@ -16,7 +16,7 @@ int test(void)
         int call2 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 200 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 200 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
 
@@ -26,10 +26,10 @@ int test(void)
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 10 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHVL1, .value1.i = 1, .value2.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 2 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 200 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 200 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 10 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALLVL1, .value1.i = 1, .value2.i = 0, .count = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 200 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 200 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RET }));
 
     int fnc2 = kv_size(code);
@@ -49,7 +49,7 @@ int test(void)
     int r = ir_exec(ctx);
     context_cleanup(ctx);
     kv_destroy(code);
-    free_string();
+    free_string(ctx);
     return r;
 }
 

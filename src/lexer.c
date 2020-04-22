@@ -11,10 +11,10 @@ static int g_regexmode = 0;
 static const char *varname = NULL;
 static const char *modulename = NULL;
 
-void setup_lexinfo(const char *file, kx_yyin_t *yyin)
+void setup_lexinfo(kx_context_t *ctx, const char *file, kx_yyin_t *yyin)
 {
     kx_lexinfo.restart = NULL;
-    kx_lexinfo.file = const_str(file);
+    kx_lexinfo.file = const_str(ctx, file);
     kx_lexinfo.line = 1;
     kx_lexinfo.pos = 1;
     kx_lexinfo.newline = 0;
@@ -64,10 +64,11 @@ static int load_using_module(const char *name, int no_error)
     }
 
     kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    setup_lexinfo(libname, &(kx_yyin_t){
-        .fp = fopen(file, "r"),
+    FILE *fp = fopen(file, "r");
+    setup_lexinfo(g_parse_ctx, libname, &(kx_yyin_t){
+        .fp = fp,
         .str = NULL,
-        .file = const_str(libname)
+        .file = const_str(g_parse_ctx, libname)
     });
     kx_lex_next(kx_lexinfo);
     return kx_yylex();  /* recursive call for the new file. */
@@ -102,7 +103,7 @@ static int get_keyword_token(const char *val)
     case '_':
         if (strcmp(val, "__END__") == 0)        { kx_lexinfo.ch = 0; return 0; }
         if (strcmp(val, "__LINE__") == 0)       { kx_yylval.intval = kx_lexinfo.line; return INT; }
-        if (strcmp(val, "__FILE__") == 0)       { kx_yylval.strval = kx_const_str(kx_lexinfo.file); return STR; }
+        if (strcmp(val, "__FILE__") == 0)       { kx_yylval.strval = const_str(g_parse_ctx, kx_lexinfo.file); return STR; }
         if (strcmp(val, "_import") == 0)        return IMPORT;
         if (strcmp(val, "_function") == 0)      return SYSFUNC;
         if (strcmp(val, "_class") == 0)         return SYSCLASS;
@@ -222,7 +223,7 @@ static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_
     if (is_trim) {
         ks_trim_char(s, '\n');
     }
-    kx_yylval.strval = alloc_string(ks_string(s));
+    kx_yylval.strval = alloc_string(g_parse_ctx, ks_string(s));
     ks_free(s);
 
     kx_lexinfo.inner.brcount = 1;
@@ -244,7 +245,7 @@ static int kx_lex_make_string(char quote)
     }
     if (kx_lexinfo.ch == quote) {
         kx_lexinfo.ch = ')';
-        kx_yylval.strval = const_str("");
+        kx_yylval.strval = const_str(g_parse_ctx, "");
         return STR;
     }
 
@@ -281,7 +282,7 @@ static int kx_lex_make_string(char quote)
         kx_strbuf[pos] = 0;
         ks_append(s, kx_strbuf);
     }
-    kx_yylval.strval = alloc_string(ks_string(s));
+    kx_yylval.strval = alloc_string(g_parse_ctx, ks_string(s));
     ks_free(s);
 
     kx_lexinfo.ch = ')';
@@ -345,7 +346,7 @@ static int get_multi_line(int start, int is_trim)
     if (is_trim) {
         ks_trim_char(s, '\n');
     }
-    kx_yylval.strval = alloc_string(ks_string(s));
+    kx_yylval.strval = alloc_string(g_parse_ctx, ks_string(s));
     ks_free(s);
 
     kx_lexinfo.is_multi = 0;
@@ -367,7 +368,7 @@ static const char *make_varname(const char *str)
         strbuf[pos++] = upper ? toupper(*str++) : *str++;
         upper = 0;
     }
-    return const_str(strbuf);
+    return const_str(g_parse_ctx, strbuf);
 }
 
 static const char *make_modulename(const char *str)
@@ -377,7 +378,7 @@ static const char *make_modulename(const char *str)
     while (pos < POSMAX && *str) {
         strbuf[pos++] = tolower(*str++);
     }
-    return const_str(strbuf);
+    return const_str(g_parse_ctx, strbuf);
 }
 
 static int process_import(void)
@@ -755,7 +756,7 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
         }
         kx_strbuf[pos] = 0;
-        kx_yylval.strval = const_str(kx_strbuf);
+        kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
         return get_keyword_token(kx_strbuf);
 
     case '0':
@@ -845,7 +846,7 @@ HEAD_OF_YYLEX:
             errno = 0;
             kx_yylval.intval = strtoll(kx_strbuf, NULL, 10);
             if (errno == ERANGE) {
-                kx_yylval.strval = const_str(kx_strbuf);
+                kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
                 return BIGINT;
             }
             return INT;
