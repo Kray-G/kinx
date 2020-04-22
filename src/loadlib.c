@@ -1,6 +1,7 @@
 #include <dbg.h>
 #include <stdio.h>
 #include <fileutil.h>
+#include <kxthread.h>
 
 extern const char *kxlib_file_exists(const char *file);
 extern const char *kxlib_file_exists_no_current(const char *file);
@@ -37,6 +38,7 @@ static const char* make_path_with_ext(const char* base, const char* rel, const c
 
 void *load_library(const char *name, const char *envname)
 {
+    pthread_mutex_lock(&g_mutex);
     char libname[PATH_MAX] = {0};
     strcpy(libname, name);
     strcat(libname, ".dll");
@@ -45,7 +47,9 @@ void *load_library(const char *name, const char *envname)
     if (!libfile) {
         return NULL;
     }
-    return (void*)LoadLibrary(libfile);
+    void *p = (void*)LoadLibrary(libfile);
+    pthread_mutex_unlock(&g_mutex);
+    return p;
 }
 
 void *get_libfunc(void *h, const char *name)

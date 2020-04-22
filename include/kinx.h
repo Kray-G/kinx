@@ -101,6 +101,7 @@ enum casetype {
 
 enum opecode {
     KXVL_UNKNOWN = 0,
+    KXVL_CTX,
 
     /* constant */
     KXVL_INT,
