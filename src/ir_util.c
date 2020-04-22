@@ -8,6 +8,7 @@
 #include <kstr.h>
 #include <kinx.h>
 #include <kxexec.h>
+#include <kxthread.h>
 
 #define KX_EQEQ_OP_NAME "=="
 #define KX_NEQ_OP_NAME "!="
@@ -505,9 +506,9 @@ int run_ctx(kx_context_t *ctx, int ac, char **av)
     push_adr(ctx->stack, NULL);
 
     kx_context_t *mt = g_main_thread;
-    g_main_thread = ctx;
+    // g_main_thread = ctx;
     int r = ir_exec(ctx);
-    g_main_thread = mt;
+    // g_main_thread = mt;
     context_cleanup(ctx);
     return r;
 }
@@ -714,8 +715,11 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
     if (!(p->lib)) {
         return NULL;
     }
+
+    pthread_mutex_lock(&g_mutex);
     set_allocator_t set_allocator = (set_allocator_t)get_libfunc(p->lib, "set_allocator");
     if (!set_allocator) {
+        pthread_mutex_unlock(&g_mutex);
         return NULL;
     }
     set_allocator(kx_malloc_impl, kx_realloc_impl, kx_calloc_impl, kx_free_impl, kx_strdup_impl, kx_strndup_impl, const_str);
@@ -724,6 +728,7 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
     p->get_bltin_address = (get_bltin_address_t)get_libfunc(p->lib, "get_bltin_address");
     p->finalizer = (bltin_initfin_t)get_libfunc(p->lib, "finalize");
     if (!(p->get_bltin_count) || !(p->get_bltin_name) || !(p->get_bltin_address)) {
+        pthread_mutex_unlock(&g_mutex);
         return NULL;
     }
     bltin_initfin_t initializer = (bltin_initfin_t)get_libfunc(p->lib, "initialize");
@@ -757,6 +762,7 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
         KEX_SET_PROP(obj, name, &v);
     }
 
+    pthread_mutex_unlock(&g_mutex);
     return obj;
 }
 

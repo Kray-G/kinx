@@ -212,9 +212,8 @@ static int stdin_peek(unsigned int msec)
     #endif
 }
 
-static const char *get_mode(int mode)
+static const char *get_mode(int mode, char mode_str[4])
 {
-    static char mode_str[4] = {0};
     int bin  = (mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
     int appendf = (mode & KXFILE_MODE_APPEND) == KXFILE_MODE_APPEND;
     int readf = (mode & KXFILE_MODE_READ) == KXFILE_MODE_READ;
@@ -270,9 +269,10 @@ static fileinfo_t *create_fileinfo(kx_context_t *ctx, const char *file, int mode
     if (!mode) {
         mode = KXFILE_MODE_READ | KXFILE_MODE_TEXT;
     }
+    char mode_str[4] = {0};
     char *buf = conv_utf82acp_alloc(file);
     fileinfo_t *fi = kx_calloc(1, sizeof(fileinfo_t));
-    fi->fp = fopen(buf, get_mode(mode));
+    fi->fp = fopen(buf, get_mode(mode, mode_str));
     if (!fi->fp) {
         kx_free(fi);
         conv_free(buf);
@@ -341,7 +341,8 @@ static int File_load_impl(int args, kx_context_t *ctx, fileinfo_t * fi, int clos
         fi->fp = NULL;
     }
     /* re-open & rewind the file */
-    fi->fp = fopen(fi->filename, get_mode(fi->mode | KXFILE_MODE_BINARY));
+    char mode_str[4] = {0};
+    fi->fp = fopen(fi->filename, get_mode(fi->mode | KXFILE_MODE_BINARY, mode_str));
     struct stat st;
     if (!fi->fp || stat(fi->filename, &st) < 0) {
         KX_THROW_BLTIN_EXCEPTION("FileException", static_format("Can not access the file(%s)", fi->filename));
@@ -384,7 +385,8 @@ static int File_load_impl(int args, kx_context_t *ctx, fileinfo_t * fi, int clos
         fclose(fi->fp);
         /* re-open the file */
         if (opened) {
-            fi->fp = fopen(fi->filename, get_mode(fi->mode));
+            char mode_str[4] = {0};
+            fi->fp = fopen(fi->filename, get_mode(fi->mode, mode_str));
         } else {
             fi->fp = NULL;
         }

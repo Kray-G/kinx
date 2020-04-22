@@ -226,7 +226,9 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
     node->lvalue = actx->decl || actx->lvalue;
     switch (node->type) {
     case KXVL_UNKNOWN:
-
+        break;
+    case KXVL_CTX:
+        break;
     case KXVL_INT:
         node->var_type = KX_INT_T;
         break;
