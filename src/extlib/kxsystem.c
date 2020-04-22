@@ -26,9 +26,9 @@ static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
                 json_object_t *next = n->prop;
                 if (n->type == JSON_PAIR) {
                     kx_val_t item = mk_json_object(ctx, n->value.o);
-                    KEX_SET_PROP(obj, kx_const_str(n->key.cstr), &item);
+                    KEX_SET_PROP(obj, kx_const_str(ctx, n->key.cstr), &item);
                 } else if (n->type == JSON_PAIR_STR) {
-                    KEX_SET_PROP_CSTR(obj, kx_const_str(n->key.cstr), n->value.t.cstr);
+                    KEX_SET_PROP_CSTR(obj, kx_const_str(ctx, n->key.cstr), n->value.t.cstr);
                 } else {
                     /* TODO: error */
                 }

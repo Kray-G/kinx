@@ -265,6 +265,7 @@ extern kx_object_t *kx_obj_mgr;
 extern kx_object_t *kx_ast_root;
 extern int g_yyerror;
 extern int g_yywarning;
+extern kx_context_t *g_parse_ctx;
 extern kx_context_t *g_main_thread;
 
 extern int file_exists(const char *p);
@@ -276,7 +277,7 @@ extern const char *kxlib_exec_file_exists(const char *file);
 
 extern void init_lexer(void);
 extern void free_lexer(void);
-extern void setup_lexinfo(const char *file, kx_yyin_t *yyin);
+extern void setup_lexinfo(kx_context_t *ctx, const char *file, kx_yyin_t *yyin);
 extern int kx_yyparse(void);
 extern int kx_yyerror_line(const char *msg, const char* file, const int line);
 extern int kx_yyerror_line_fmt(const char *msg, const char* file, const int line, ...);
@@ -291,11 +292,13 @@ extern kx_obj_t *init_object(kx_obj_t *o);
 extern void gc_mark_and_sweep(kx_context_t *ctx);
 extern void context_cleanup(kx_context_t *ctx);
 
-extern const char *alloc_string(const char *str);
-extern void free_string(void);
-extern const char *const_str(const char* name);
-extern const char *const_str2(const char* classname, const char* name);
+extern const char *alloc_string(kx_context_t *ctx, const char *str);
+extern void free_string(kx_context_t *ctx);
+extern const char *const_str(kx_context_t *ctx, const char* name);
+extern const char *const_str2(kx_context_t *ctx, const char* classname, const char* name);
 
+extern void set_context(kx_context_t *ctx);
+extern void release_context(void);
 extern void free_nodes(void);
 extern void kx_make_native_mode(void);
 extern void kx_make_bin_mode(void);
@@ -437,7 +440,7 @@ extern void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 
-extern void start_analyze_ast(kx_object_t *node);
+extern void start_analyze_ast(kx_context_t *ctx, kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
 extern kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *args, int argn);
 extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module, const char *name);

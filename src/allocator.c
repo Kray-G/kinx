@@ -578,6 +578,7 @@ void context_cleanup(kx_context_t *ctx)
     gc_object_cleanup(ctx);
     module_cleanup(ctx);
     builtin_cleanup(ctx);
+    free_string(ctx);
     kv_destroy(ctx->labels);
     kv_destroy(ctx->fixcode);
     kv_destroy(ctx->regex);

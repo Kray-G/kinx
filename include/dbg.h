@@ -15,13 +15,14 @@
 #define strdupa dont_use_strdupa
 #define strndupa dont_use_strndupa
 
+struct kx_context_;
 typedef void *(*kx_malloc_t)(size_t size);
 typedef void *(*kx_realloc_t)(void *p, size_t size);
 typedef void *(*kx_calloc_t)(size_t count, size_t size);
 typedef void (*kx_free_t)(void *p);
 typedef char *(*kx_strdup_t)(const char *s);
 typedef char *(*kx_strndup_t)(const char *s, size_t n);
-typedef const char *(*kx_const_str_t)(const char* name);
+typedef const char *(*kx_const_str_t)(struct kx_context_ *ctx, const char* name);
 
 typedef void (*set_allocator_t)(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f, kx_strdup_t sd, kx_strndup_t snd, kx_const_str_t cs);
 extern kx_malloc_t kx_malloc;
