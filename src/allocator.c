@@ -9,18 +9,40 @@ static void gc_mark_val(kx_val_t *c);
 static BigZ i64maxp1 = BZNULL;
 static BigZ i64minm1 = BZNULL;
 
+void alloc_initialize(void)
+{
+    if (!kx_malloc) {
+        kx_malloc = kx_malloc_impl;
+        kx_realloc = kx_realloc_impl;
+        kx_calloc = kx_calloc_impl;
+        kx_free = kx_free_impl;
+        kx_strdup = kx_strdup_impl;
+        kx_strndup = kx_strndup_impl;
+        kx_const_str = const_str;
+    }
+
+    if (i64maxp1 == BZNULL) {
+        i64maxp1 = BzFromString("8000000000000000", 16, BZ_UNTIL_END);
+    }
+    if (i64minm1 == BZNULL) {
+        i64minm1 = BzFromString("8000000000000001", 16, BZ_UNTIL_END);
+        BzSetSign(i64minm1, BZ_MINUS);
+    }
+}
+
+void alloc_finalize(void)
+{
+    BzFree(i64maxp1);
+    BzFree(i64minm1);
+}
+
 BigZ get_int64max_plus1(void)
 {
-    if (i64maxp1 == BZNULL) i64maxp1 = BzFromString("8000000000000000", 16, BZ_UNTIL_END);
     return i64maxp1;
 }
 
 BigZ get_int64min_minus1(void)
 {
-    if (i64minm1 == BZNULL) {
-        i64minm1 = BzFromString("8000000000000001", 16, BZ_UNTIL_END);
-        BzSetSign(i64minm1, BZ_MINUS);
-    }
     return i64minm1;
 }
 
@@ -38,16 +60,6 @@ void init_allocation(kx_context_t *ctx)
 
 kx_context_t *make_context(void)
 {
-    if (!kx_malloc) {
-        kx_malloc = kx_malloc_impl;
-        kx_realloc = kx_realloc_impl;
-        kx_calloc = kx_calloc_impl;
-        kx_free = kx_free_impl;
-        kx_strdup = kx_strdup_impl;
-        kx_strndup = kx_strndup_impl;
-        kx_const_str = const_str;
-    }
-
     kx_context_t *ctx = kx_calloc(1, sizeof(kx_context_t));
     ctx->val_alive = kl_init(val);
     ctx->frm_alive = kl_init(frm);
@@ -67,6 +79,7 @@ kx_context_t *make_context(void)
     ctx->regexlib = NULL;
     ctx->true_obj = NULL;
     ctx->false_obj = NULL;
+    ctx->exception_map = NULL;
     ctx->global_method_missing = NULL;
     kv_init(ctx->labels);
     kv_init(ctx->fixcode);
@@ -386,6 +399,7 @@ void gc_mark_and_sweep(kx_context_t *ctx)
     gc_mark_fnc(ctx->signal.signal_hook);
     gc_mark_obj(ctx->true_obj);
     gc_mark_obj(ctx->false_obj);
+    gc_mark_obj(ctx->exception_map);
 
     kvec_t(kx_val_t) stack = ctx->stack;
     int size = kv_size(stack);
@@ -516,9 +530,6 @@ static void gc_object_cleanup(kx_context_t *ctx)
     kl_destroy(bin, ctx->bin_alive);
     kv_destroy(ctx->exception);
     kv_destroy(ctx->stack);
-
-    BzFree(i64maxp1);
-    BzFree(i64minm1);
 }
 
 static void free_ir_info(kx_module_t *module)

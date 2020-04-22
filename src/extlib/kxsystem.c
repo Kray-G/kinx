@@ -5,8 +5,21 @@
 #include <kinx.h>
 #include <kutil.h>
 #include "kc-json/kc-json.h"
+#include <kxthread.h>
 
 KX_DECL_MEM_ALLOCATORS();
+
+pthread_mutex_t g_system_mutex;
+
+static void system_initialize(void)
+{
+    pthread_mutex_init(&g_system_mutex, NULL);
+}
+
+static void system_finalize(void)
+{
+    pthread_mutex_destroy(&g_system_mutex);
+}
 
 static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
 {
@@ -354,12 +367,11 @@ static int System_sleep(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 
 static int System_globalExceptionMap(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    static kx_obj_t *s_map = NULL;
-    if (!s_map) {
-        s_map = allocate_obj(ctx);
+    if (!ctx->exception_map) {
+        ctx->exception_map = allocate_obj(ctx);
     }
     KX_ADJST_STACK();
-    push_obj(ctx->stack, s_map);
+    push_obj(ctx->stack, ctx->exception_map);
     return 0;
 }
 
@@ -677,4 +689,4 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "setSigtermEnded", System_setSigtermEnded },
 };
 
-KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
+KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);

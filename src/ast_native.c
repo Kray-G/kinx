@@ -343,6 +343,8 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
     switch (node->type) {
     case KXVL_UNKNOWN:
         break;
+    case KXVL_CTX:
+        break;
 
     case KXVL_INT:
         if (lvalue) {

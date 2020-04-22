@@ -11,8 +11,11 @@
 #include <bigz.h>
 #include <jit.h>
 
+struct kx_context_;
+
 enum irop {
     KX_HALT,
+    KX_CTX,
     KX_NOP,
     KX_DUP,
     KX_IMPORT,
@@ -341,6 +344,7 @@ typedef struct kx_code_ {
         double d;
         const char *s;
         kxn_func_t n;
+        struct kx_context_ *ctx;
     } value1, value2;
     const char *file;
     const char *func;
@@ -417,7 +421,6 @@ struct kx_bin_;
 struct kx_any_;
 struct kx_fnc_;
 struct kx_frm_;
-struct kx_context_;
 typedef void (*bltin_initfin_t)(void);
 typedef int (*call_bltin_func_t)(int index, int args, struct kx_frm_ *frmv, struct kx_frm_ *lexv, struct kx_context_ *ctx);
 typedef int (*call_direct_func_t)(int args, struct kx_frm_ *frmv, struct kx_frm_ *lexv, struct kx_context_ *ctx);
@@ -651,6 +654,7 @@ typedef struct kx_context_ {
     kx_obj_t *regexlib;
     kx_obj_t *true_obj;
     kx_obj_t *false_obj;
+    kx_obj_t *exception_map;
     kx_fnc_t *global_method_missing;
 
     int block_index;
