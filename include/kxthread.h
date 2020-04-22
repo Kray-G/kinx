@@ -117,11 +117,11 @@ static inline int pthread_cond_destroy(pthread_cond_t* cv)
 typedef void* thread_return_t;
 typedef thread_return_t (*thread_func_t)(void*);
 
-int pthread_create_extra(pthread_t* thid, thread_func_t f, void* p, int stacksize)
+static inline int pthread_create_extra(pthread_t* thid, thread_func_t f, void* p, int stacksize)
 {
     pthread_attr_t attr;
 
-    if (pthread_attr_init(&attr)) return false;
+    if (pthread_attr_init(&attr)) return -1;
     if (stacksize > 0) {
         if (pthread_attr_setstacksize(&attr, stacksize)) {
             return -1;
