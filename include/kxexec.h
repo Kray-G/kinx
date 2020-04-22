@@ -23,6 +23,7 @@
 #elif defined(KX_DIRECT_THREAD)
 #define KX_LABELS \
     &&LBL_KX_HALT, \
+    &&LBL_KX_CTX, \
     &&LBL_KX_NOP, \
     &&LBL_KX_DUP, \
     &&LBL_KX_IMPORT, \

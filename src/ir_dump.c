@@ -113,6 +113,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_HALT:
         printf("halt");
         break;
+    case KX_CTX:
+        printf("ctx");
+        break;
     case KX_NOP:
         printf("nop");
         break;

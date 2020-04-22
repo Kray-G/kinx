@@ -55,13 +55,12 @@ static void kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec,
         }
     } else if (val->type == KX_BIG_T) {
         int rdx = (ch == 'x') ? 16 : (ch == 'b') ? 2 : (ch == 'o') ? 8 : 10;
-        if (ch == 'b') zero = 1;
-	buf = BzToString(val->value.bz, rdx, 0);
+        buf = BzToString(val->value.bz, rdx, 0);
         if (num > 0) {
             if (zero || ch == 'b') {
                 int l = strlen(buf);
                 if (num - l > 0) {
-                    ks_appendf(out, "%s%0*d", buf[0] == '-' ? "-" : KX_FMT_SIGN(sign), num - l, 0);
+                    ks_appendf(out, "%0*d", num - l, buf[0] == '-' ? -1 : 0);
                     ks_appendf(out, "%s", buf[0] == '-' ? buf + 1 : buf);
                 } else {
                     ks_appendf(out, "%*s", num, buf);
@@ -73,6 +72,7 @@ static void kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec,
             ks_appendf(out, "%s", buf);
         }
         BzFreeString(buf);
+        BzFree(b);
     } else if (val->type == KX_DBL_T) {
         if (num > 0) {
             if (prec > 0) {
