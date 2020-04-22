@@ -12,7 +12,7 @@ int test(void)
         int c0 = kv_size(code);
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHF, .addr = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CALL, .count = 0 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_OBJ_T }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_HALT }));
 
@@ -25,7 +25,7 @@ int test(void)
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_PUSHI, .value1.i = 100 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_ADDV, .value1.i = 0, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_STOREV, .value1.i = 0, .value2.i = 1 }));
-            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(__FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 101 }));
+            kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_CHKVAL, .file = const_str(ctx, __FILE__), .line = __LINE__, .value1.i = KX_INT_T, .value2.i = 101 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_THROWE }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_POP_C, .value1.i = 0 }));
             kv_push(kx_code_t, code, ((kx_code_t){ .op = KX_RETI, .value1.i = 0 }));
@@ -48,7 +48,7 @@ int test(void)
     int r = ir_exec(ctx);
     context_cleanup(ctx);
     kv_destroy(code);
-    free_string();
+    free_string(ctx);
     return r;
 }
 

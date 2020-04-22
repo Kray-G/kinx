@@ -6,6 +6,16 @@ static int sg_native = 0; /* use this for ... something? */
 static int sg_enum_counter = 0;
 static kvec_pt(kx_object_t) ns_stack = {0};
 
+void set_context(kx_context_t *ctx)
+{
+    g_parse_ctx = ctx;
+}
+
+void release_context(void)
+{
+    g_parse_ctx = NULL;
+}
+
 kx_object_t *kx_obj_alloc(void)
 {
     kx_object_t *obj = (kx_object_t *)kx_calloc(1, sizeof(kx_object_t));
@@ -47,7 +57,7 @@ kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *r
     obj->var_type = KX_UNKNOWN_T;
     obj->ret_type = KX_UNKNOWN_T;
     obj->optional = optional;
-    obj->file = const_str(kx_lexinfo.file);
+    obj->file = const_str(g_parse_ctx, kx_lexinfo.file);
     obj->line = kx_lexinfo.line;
     return obj;
 }
@@ -315,13 +325,13 @@ kx_object_t *kx_gen_regex_object(const char *pattern, int eq)
         ks_append(s, "=");
         ks_append(s, pattern);
         kx_object_t *obj = kx_gen_obj(KXVL_REGEX, id++, NULL, NULL, NULL);
-        obj->value.s = const_str(ks_string(s));
+        obj->value.s = const_str(g_parse_ctx, ks_string(s));
         ks_free(s);
         return obj;
     }
 
     kx_object_t *obj = kx_gen_obj(KXVL_REGEX, id++, NULL, NULL, NULL);
-    obj->value.s = const_str(pattern);
+    obj->value.s = const_str(g_parse_ctx, pattern);
     return obj;
 }
 
@@ -409,7 +419,7 @@ const char *kx_gen_name(const char *base, int counter)
 {
     char buf[128] = {0};
     sprintf(buf, "%s%d", base, counter);
-    return const_str(buf);
+    return const_str(g_parse_ctx, buf);
 }
 
 kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
