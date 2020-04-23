@@ -458,7 +458,6 @@ static void make_quote_string(kstr_t *str, const char *p)
 
 static int make_array_str(kstr_t *str, kx_obj_t *obj, int level)
 {
-    int count = 0;
     ks_append(str, "[");
     int sz = kv_size(obj->ary);
     for (int i = 0; i < sz; ++i) {
@@ -469,7 +468,7 @@ static int make_array_str(kstr_t *str, kx_obj_t *obj, int level)
         make_value_str(str, val, level);
     }
     ks_append(str, "]");
-    return count;
+    return sz;
 }
 
 static int make_object_str(kstr_t *str, kx_obj_t *obj, int level)
