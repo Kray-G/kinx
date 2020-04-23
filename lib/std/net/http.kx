@@ -168,6 +168,7 @@ _namespace Net {
             curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            curl_.setOptionInt(Net.CURLOPT_POST, 0);
             doHttpMethod(callback, null);
             return makeResponse(hdr_.clear());
         }
@@ -179,6 +180,7 @@ _namespace Net {
             curl_.setOptionInt(Net.CURLOPT_HEADER, 1);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            curl_.setOptionInt(Net.CURLOPT_POST, 0);
             var body = callback.body;
             var hder = callback.header;
             if (!body && !hder) {
@@ -220,6 +222,7 @@ _namespace Net {
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionString(Net.CURLOPT_CUSTOMREQUEST, "DELETE");
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
+            curl_.setOptionInt(Net.CURLOPT_POST, 0);
             var body = callback.body;
             var hder = callback.header;
             if (!body && !hder) {
