@@ -163,7 +163,7 @@ Array.extend = (_function() {
                     ary[key] = tgt[key].clone();
                 } else {
                     if (tgt[key].isObject) {
-                        if (ary[key].extend.isFuntion) {
+                        if (ary[key].extend.isFunction) {
                             ary[key].extend(tgt[key]);
                         } else {
                             ary[key] = {}.extend(tgt[key]);
@@ -177,6 +177,109 @@ Array.extend = (_function() {
             --depth;
         }
         return ary;
+    };
+})();
+
+Array.toJsonString = (_function() {
+    var makeNewline, makeIndent, outputArray, outputObject, outputElement;
+    makeNewline = _function(useIndent, output) {
+        if (useIndent) {
+            output("\n");
+        }
+    };
+    makeIndent = _function(useIndent, output, i) {
+        if (useIndent && i > 0) {
+            output(" " * i);
+        }
+    };
+    outputArray = _function(elem, useIndent, output, level) {
+        output('[');
+        ++level;
+        elem.each(_function(e, i) {
+            if (i > 0) {
+                output(",");
+                makeIndent(useIndent, output, 1);
+            }
+            if (e.isArray) {
+                outputArray(e, useIndent, output, level);
+            } else if (e.isObject) {
+                outputObject(e, useIndent, output, level);
+            } else {
+                outputElement(e, useIndent, output, level);
+            }
+        });
+        --level;
+        output(']');
+    };
+    outputObject = _function(elem, useIndent, output, level) {
+        if (elem.isTrue) {
+            output("true");
+            return;
+        }
+        if (elem.isFalse) {
+            output("false");
+            return;
+        }
+        if (elem.instanceOf.isFunction && elem.toString.isFunction) {
+            output(elem.toString());
+            return;
+        }
+        output('{'); makeNewline(useIndent, output);
+        ++level;
+        elem.keySet().each(_function(key, i) {
+            if (i > 0) {
+                output(",");
+                makeNewline(useIndent, output);
+            }
+            makeIndent(useIndent, output, level * 4);
+            output(key.quote() + ":");
+            makeIndent(useIndent, output, 1);
+            var e = elem[key];
+            if (e.isArray) {
+                outputArray(e, useIndent, output, level);
+            } else if (e.isObject) {
+                outputObject(e, useIndent, output, level);
+            } else {
+                outputElement(e, useIndent, output, level);
+            }
+        });
+        makeNewline(useIndent, output);
+        --level;
+        makeIndent(useIndent, output, level * 4);
+        output('}');
+    };
+    outputElement = _function(elem, useIndent, output, level) {
+        if (elem.isInteger || elem.isDouble) {
+            output(elem);
+        } else if (elem.isString) {
+            output(elem.quote());
+        } else if (elem.isBinary) {
+            var sz = elem.length();
+            output('[');
+            for (var i = 0; i < sz; ++i) {
+                if (i > 0) {
+                    output(",");
+                    makeIndent(useIndent, output, 1);
+                }
+                output("0x%02x" % elem[i]);
+            }
+            output(']');
+        } else {
+            output("null");
+        }
+    };
+    return _function(ary, output, useIndent) {
+        if (!output.isFunction && useIndent.isUndefined) {
+            var s = "";
+            ary.toJsonString(_function(e) { s += e; }, output);
+            return s;
+        }
+        if (ary.isArray) {
+            outputArray(ary, useIndent, output, 0);
+        } else {
+            outputObject(ary, useIndent, output, 0);
+        }
+        makeNewline(useIndent, output);
     };
 })();
 
