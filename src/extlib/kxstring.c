@@ -595,7 +595,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "endsWith", String_endsWith },
     { "splitByString", String_splitByString },
     { "replaceByString", String_replaceByString },
-    { "find", String_find },
+    { "findByString", String_find },
     { "findFirstOf", String_findFirstOf },
     { "findFirstNotOf", String_findFirstNotOf },
     { "findLastOf", String_findLastOf },
