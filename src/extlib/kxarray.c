@@ -577,8 +577,12 @@ static void make_value_str(kstr_t *str, kx_val_t *v, int level)
                 if (kv_size(obj->ary) > 0) {
                     count = make_array_str(str, obj, level);
                 }
-                if (count == 0 && kh_size(obj->prop) > 0) {
-                    make_object_str(str, obj, level);
+                if (count == 0) {
+                    if (kh_size(obj->prop) > 0) {
+                        make_object_str(str, obj, level);
+                    } else {
+                        ks_append(str, "{}");
+                    }
                 }
             }
         }
