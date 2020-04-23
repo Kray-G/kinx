@@ -2,6 +2,17 @@ String.apply = _function(str, func) {
     return func(str);
 };
 
+String.find = _function(str, cond) {
+    if (cond.isString) {
+        return str.findByString(cond);
+    } else if (cond.isRegex) {
+        cond.reset(str);
+        return cond =~ str;
+    } else {
+        throw RuntimeException('Invalid split condition');
+    }
+};
+
 String.split = _function(str, cond) {
     if (cond.isString) {
         return str.splitByString(cond);
