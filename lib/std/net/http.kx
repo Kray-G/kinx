@@ -106,6 +106,29 @@ _namespace Net {
             return this;
         }
 
+        public makeResponse(data) {
+            var b, h = data.find(/((?:.|\r?\n)+?)\r?\n\r?\n/);
+            if (h) {
+                b = data.subString(h[0].end);
+                h = h[1].string;
+            } else {
+                b = data;
+                h = "";
+            }
+            var r = h.isDefined && h.split(/\r?\n/).map(&(l) => l.split(/:\s*/)).reduce(&(r, e) => {
+                var m = e[0].find(/HTTP[^\s]+\s+([0-9]+)\s/);
+                if (m) {
+                    r.code = m[1].string.toInt();
+                } else {
+                    r[e[0]] = e[1];
+                }
+                return r;
+            }, {});
+            r.body = b;
+            r.code ??= r.Status.split(/\s+/)[0].toInt();
+            return r;
+        }
+
         private doHttpMethod(hder, body) {
             try {
                 curl_.setOptionInt(Net.CURLOPT_HTTPAUTH, Net.CURLAUTH_BASIC|Net.CURLAUTH_DIGEST);
@@ -120,17 +143,15 @@ _namespace Net {
                     if (curl_.header.length() > 0) {
                         if (hder.isFunction) {
                             hder(curl_.header);
-                        } else {
-                            hdr_.append(curl_.header);
                         }
+                        hdr_.append(curl_.header);
                         curl_.header = "";
                     }
                     if (curl_.received.length() > 0) {
                         if (body.isFunction) {
                             body(curl_.received);
-                        } else {
-                            buf_.append(curl_.received);
                         }
+                        buf_.append(curl_.received);
                         curl_.received = "";
                     }
                     curl_.wait(1000);
@@ -148,14 +169,14 @@ _namespace Net {
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
             doHttpMethod(callback, null);
-            return hdr_.clear();
+            return makeResponse(hdr_.clear());
         }
 
         public get(url, callback) {
             clear();
             curl_.setupHandler();
             curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
-            curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
+            curl_.setOptionInt(Net.CURLOPT_HEADER, 1);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
             var body = callback.body;
@@ -164,14 +185,14 @@ _namespace Net {
                 body = callback;
             }
             doHttpMethod(hder, body);
-            return buf_.clear();
+            return makeResponse(buf_.clear());
         }
 
         public post(url, callback) {
             clear();
             curl_.setupHandler();
             curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
-            curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
+            curl_.setOptionInt(Net.CURLOPT_HEADER, 1);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
             curl_.setOptionInt(Net.CURLOPT_POST, 1);
@@ -182,7 +203,7 @@ _namespace Net {
                 body = callback;
             }
             doHttpMethod(hder, body);
-            return buf_.clear();
+            return makeResponse(buf_.clear());
         }
 
         public put(url, callback) {
@@ -195,7 +216,7 @@ _namespace Net {
             clear();
             curl_.setupHandler();
             curl_.setOptionInt(Net.CURLOPT_NOBODY, 0);
-            curl_.setOptionInt(Net.CURLOPT_HEADER, 0);
+            curl_.setOptionInt(Net.CURLOPT_HEADER, 1);
             curl_.setOptionString(Net.CURLOPT_URL, url);
             curl_.setOptionString(Net.CURLOPT_CUSTOMREQUEST, "DELETE");
             curl_.setOptionSlist(Net.CURLOPT_HTTPHEADER);
@@ -205,7 +226,7 @@ _namespace Net {
                 body = callback;
             }
             doHttpMethod(hder, body);
-            return buf_.clear();
+            return makeResponse(buf_.clear());
         }
     }
 
