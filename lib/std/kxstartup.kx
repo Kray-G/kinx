@@ -188,6 +188,7 @@ var Xml, Net;
     File._setup(File);
     File.create = _function(name, mode) {
         var f = File._create(name, mode);
+        f.isFile = true;
         f.mkdir = _function() { return File.mkdir(f.source); };
         f.rename = _function(target) { return File.rename(f.source, target); };
         f.unlink = _function() { return File.unlink(f.source); };
