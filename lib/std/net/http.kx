@@ -120,7 +120,11 @@ _namespace Net {
                 if (m) {
                     r.code = m[1].string.toInt();
                 } else {
-                    r[e[0]] = e[1];
+                    var x = e[1];
+                    if (x =~ /^[1-9][0-9]+$/) {
+                        x = x.toInt();
+                    }
+                    r[e[0]] = x;
                 }
                 return r;
             }, {});
