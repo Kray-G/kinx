@@ -706,8 +706,11 @@ static int g_loaded = 0; \
         if (g_loaded == 0) { \
             bltin_initfin_t f = finfunc;\
             if (finfunc) f(); \
+            pthread_mutex_unlock(&kx_mutex); \
+            pthread_mutex_destroy(&kx_mutex); \
+        } else { \
+            pthread_mutex_unlock(&kx_mutex); \
         } \
-        pthread_mutex_unlock(&kx_mutex); \
     } \
     DllExport int get_bltin_count(void) \
     { \
