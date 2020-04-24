@@ -65,6 +65,19 @@ var Xml, Net;
         };
         return m;
     };
+    Isolate.sendAll = _function(name, val) {
+        if (val.isUndefined) {
+            System.isolateSendAll('main', name);
+        } else {
+            System.isolateSendAll(name, val);
+        }
+    };
+    Isolate.receive = _function(name) {
+        return System.isolateReceive(name || 'main');
+    };
+    Isolate.clear = _function(name) {
+        return System.isolateClear(name || 'main');
+    };
     RuntimeExceptionClass = System.defineException('RuntimeException');
     RuntimeException = RuntimeExceptionClass.create;
     SystemExceptionClass = System.defineException('SystemException');

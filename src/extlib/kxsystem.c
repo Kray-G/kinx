@@ -13,13 +13,19 @@ KX_DECL_MEM_ALLOCATORS();
 typedef struct kx_mutex_pack_ {
     pthread_mutex_t mtx;
 } kx_mutex_pack_t;
+pthread_cond_t g_system_cond;
 pthread_mutex_t g_system_mtx;
 KHASH_MAP_INIT_STR(mutex_map, kx_mutex_pack_t*)
 static khash_t(mutex_map) *g_mutex_map;
+KHASH_MAP_INIT_STR(value_map, kx_val_t)
+static khash_t(value_map) *g_value_map;
 
 static void system_initialize(void)
 {
     pthread_mutex_init(&g_system_mtx, NULL);
+    pthread_cond_init(&g_system_cond, NULL);
+
+    g_value_map = kh_init(value_map);
     g_mutex_map = kh_init(mutex_map);
 }
 
@@ -32,6 +38,8 @@ static void system_finalize(void)
             kx_free(p);
         }
     }
+
+    pthread_cond_destroy(&g_system_cond);
     pthread_mutex_destroy(&g_system_mtx);
 }
 
@@ -686,6 +694,7 @@ int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     pthread_mutex_lock(&g_system_mtx);
     const char *name = get_arg_str(1, args, ctx);
     if (!name) {
+        pthread_mutex_unlock(&g_system_mtx);
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
 
@@ -747,6 +756,70 @@ int System_unlockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
+int System_isolateSendAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    pthread_mutex_lock(&g_system_mtx);
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        pthread_mutex_unlock(&g_system_mtx);
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    }
+
+    kx_val_t send_value = kv_last_by(ctx->stack, 2);
+    int absent;
+    khint_t k = kh_put(value_map, g_value_map, name, &absent);
+    kh_value(g_value_map, k) = send_value;
+    pthread_cond_broadcast(&g_system_cond);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    pthread_mutex_unlock(&g_system_mtx);
+    return 0;
+}
+
+int System_isolateReceive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    pthread_mutex_lock(&g_system_mtx);
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        pthread_mutex_unlock(&g_system_mtx);
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    }
+    struct timespec to;
+    to.tv_sec = time(NULL) + 1;
+    to.tv_nsec = 0;
+    pthread_cond_timedwait(&g_system_cond, &g_system_mtx, &to);
+
+    KX_ADJST_STACK();
+    khint_t k = kh_get(value_map, g_value_map, name);
+    if (k != kh_end(g_value_map)) {
+        push_value(ctx->stack, kh_value(g_value_map, k));
+    } else {
+        push_undef(ctx->stack);
+    }
+    pthread_mutex_unlock(&g_system_mtx);
+    return 0;
+}
+
+int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    pthread_mutex_lock(&g_system_mtx);
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        pthread_mutex_unlock(&g_system_mtx);
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    }
+
+    int absent;
+    khint_t k = kh_put(value_map, g_value_map, name, &absent);
+    kh_value(g_value_map, k) = (kx_val_t){0};
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    pthread_mutex_unlock(&g_system_mtx);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -770,6 +843,9 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "getNamedMutex", System_getNamedMutex },
     { "lockMutex", System_lockMutex },
     { "unlockMutex", System_unlockMutex },
+    { "isolateSendAll", System_isolateSendAll },
+    { "isolateReceive", System_isolateReceive },
+    { "isolateClear", System_isolateClear },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
