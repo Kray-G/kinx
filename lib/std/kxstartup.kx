@@ -49,7 +49,9 @@ var Xml, Net;
             if (code.isObject && code._format) {
                 code = code.format();
             }
-            return code._run_isolate();
+            var t = code._run_isolate();
+            this.join = t.join;
+            return t;
         };
         return this;
     };
