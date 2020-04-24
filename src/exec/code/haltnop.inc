@@ -42,7 +42,7 @@
 { \
     KEX_GET_STACK_TOP(v1); \
     if (v1->type == KX_FNC_T || v1->type == KX_BFNC_T ) { \
-        (ctx)->global_method_missing = v1->value.fn; \
+        (ctx)->objs.global_method_missing = v1->value.fn; \
     } \
     cur = cur->next; \
 } \
