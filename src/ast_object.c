@@ -6,16 +6,6 @@ static int sg_native = 0; /* use this for ... something? */
 static int sg_enum_counter = 0;
 static kvec_pt(kx_object_t) ns_stack = {0};
 
-void set_context(kx_context_t *ctx)
-{
-    g_parse_ctx = ctx;
-}
-
-void release_context(void)
-{
-    g_parse_ctx = NULL;
-}
-
 kx_object_t *kx_obj_alloc(void)
 {
     kx_object_t *obj = (kx_object_t *)kx_calloc(1, sizeof(kx_object_t));
