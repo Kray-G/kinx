@@ -1,6 +1,8 @@
 #include <inttypes.h>
 #include <dbg.h>
+#define KX_DLL
 #include <kinx.h>
+#include <kxthread.h>
 
 KX_DECL_MEM_ALLOCATORS();
 

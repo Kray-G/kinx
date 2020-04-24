@@ -400,8 +400,8 @@ static int eval(kx_context_t *ctx)
 
 int eval_string(const char *code, kx_context_t *ctx)
 {
-    set_context(ctx);
-    init_lexer();
+    pthread_mutex_lock(&g_mutex);
+    init_lexer(ctx);
     const char *name = "<eval>";
     setup_lexinfo(ctx, name, &(kx_yyin_t){
         .fp = NULL,
@@ -417,14 +417,14 @@ int eval_string(const char *code, kx_context_t *ctx)
     });
     int r = eval(ctx);
     free_lexer();
-    release_context();
+    pthread_mutex_unlock(&g_mutex);
     return r;
 }
 
 int eval_file(const char *file, kx_context_t *ctx)
 {
-    set_context(ctx);
-    init_lexer();
+    pthread_mutex_lock(&g_mutex);
+    init_lexer(ctx);
     setup_lexinfo(ctx, file, &(kx_yyin_t){
         .fp = (file && !ctx->options.src_stdin) ? fopen(file, "r") : stdin,
         .str = NULL,
@@ -439,14 +439,12 @@ int eval_file(const char *file, kx_context_t *ctx)
     });
     int r = eval(ctx);
     free_lexer();
-    release_context();
+    pthread_mutex_unlock(&g_mutex);
     return r;
 }
 
 kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[])
 {
-    // should be locked in multi-threading.
-
     int start;
     if (host->type == KX_CSTR_T) {
         start = eval_string(host->value.pv, ctx);
@@ -505,11 +503,7 @@ int run_ctx(kx_context_t *ctx, int ac, char **av)
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
 
-    kx_context_t *mt = g_main_thread;
-    // g_main_thread = ctx;
     int r = ir_exec(ctx);
-    // g_main_thread = mt;
-    context_cleanup(ctx);
     return r;
 }
 
@@ -708,21 +702,21 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
     }
 
     /* Setting it up only when it is the first loading time. */
+    pthread_mutex_lock(&g_mutex);
     kh_key(bltin, k) = const_str(ctx, name);
     kx_bltin_t *p = kx_calloc(1, sizeof(kx_bltin_t));
     kh_value(bltin, k) = p;
     p->lib = load_library(name, NULL);
     if (!(p->lib)) {
+        pthread_mutex_unlock(&g_mutex);
         return NULL;
     }
 
-    pthread_mutex_lock(&g_mutex);
     set_allocator_t set_allocator = (set_allocator_t)get_libfunc(p->lib, "set_allocator");
     if (!set_allocator) {
         pthread_mutex_unlock(&g_mutex);
         return NULL;
     }
-    set_allocator(kx_malloc_impl, kx_realloc_impl, kx_calloc_impl, kx_free_impl, kx_strdup_impl, kx_strndup_impl, const_str);
     p->get_bltin_count = (get_bltin_count_t)get_libfunc(p->lib, "get_bltin_count");
     p->get_bltin_name = (get_bltin_name_t) get_libfunc(p->lib, "get_bltin_name");
     p->get_bltin_address = (get_bltin_address_t)get_libfunc(p->lib, "get_bltin_address");
@@ -731,6 +725,7 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
         pthread_mutex_unlock(&g_mutex);
         return NULL;
     }
+    set_allocator(kx_malloc_impl, kx_realloc_impl, kx_calloc_impl, kx_free_impl, kx_strdup_impl, kx_strndup_impl, const_str);
     bltin_initfin_t initializer = (bltin_initfin_t)get_libfunc(p->lib, "initialize");
     if (initializer) {
         initializer();
