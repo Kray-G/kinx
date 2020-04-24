@@ -55,7 +55,7 @@ var Xml, Net;
         };
         return this;
     };
-    Isolate.Mutex.create = function(name) {
+    Isolate.Mutex.create = _function(name) {
         var m = System.getNamedMutex(name || 'main');
         m.lock = _function(f) {
             System.lockMutex(m);
@@ -66,6 +66,19 @@ var Xml, Net;
             }
         };
         return m;
+    };
+    Isolate.Condition.create = _function(name) {
+        var c = System.getNamedCondition(name || 'main');
+        c.wait = _function(m) {
+            return System.conditionWait(c, m);
+        };
+        c.timedWait = _function(m, msec) {
+            return System.conditionTimedWait(c, m, msec ?? 1000);
+        };
+        c.notifyAll = _function() {
+            return System.conditionBroadcast(c);
+        };
+        return c;
     };
     Isolate.sendAll = _function(name, val) {
         if (val.isUndefined) {
