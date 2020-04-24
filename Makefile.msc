@@ -173,6 +173,8 @@ RCFILE = \
 
 all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES)
 
+lib: $(SOFILES)
+
 yacc: myacc.exe
 	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
 	copy /y kx.tab.h include\parser.tab.h
@@ -199,44 +201,44 @@ kinx.res: kinx.rc
 	$(RC) kinx.rc
 
 kxsystem.dll: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h src/extlib/kc-json/kc-json.obj $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsystem.c $(PICOBJS) src/extlib/kc-json/kc-json.obj
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxsystem.c $(PICOBJS) src/extlib/kc-json/kc-json.obj
 
 kxstring.dll: src/extlib/kxstring.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxstring.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxstring.c $(PICOBJS)
 
 kxbinary.dll: src/extlib/kxbinary.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxbinary.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxbinary.c $(PICOBJS)
 
 kxinteger.dll: src/extlib/kxinteger.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxinteger.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxinteger.c $(PICOBJS)
 
 kxdouble.dll: src/extlib/kxdouble.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxdouble.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxdouble.c $(PICOBJS)
 
 kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
 
 kxfile.dll: src/extlib/kxfile.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxfile.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxfile.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
 
 kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxmath.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxmath.c $(PICOBJS)
 
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
 
 kxsqlite.dll: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 
 kxnet.dll: src/extlib/kxnet.c $(PICOBJS) libssl-3.dll libcrypto-3.dll
-	$(CC) /LD /DKX_DLL $(CFLAGS) /Fe$@ src/extlib/kxnet.c $(PICOBJS) \
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxnet.c $(PICOBJS) \
 		src\extlib\libcurl\x64\vs2017\libcurl_a.lib \
 		src\extlib\openssl\x64\vs2017\libssl.lib \
 		src\extlib\openssl\x64\vs2017\libcrypto.lib \
 		src\extlib\zip\x64\vs2017\zlib.lib
 
 kxxml.dll: src/extlib/kxxml.c $(PICOBJS)
-	$(CC) /LD /DKX_DLL $(CFLAGS) /I src/extlib/libxml2/include/libxml2 /Fe$@ src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/vs2017/libxml2.lib
+	$(CC) /LD $(CFLAGS) /I src/extlib/libxml2/include/libxml2 /Fe$@ src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/vs2017/libxml2.lib
 
 zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
 	copy /y src\extlib\zip\x64\vs2017\zlib.dll zlib.dll

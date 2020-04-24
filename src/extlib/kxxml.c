@@ -1,5 +1,7 @@
 #include <dbg.h>
+#define KX_DLL
 #include <kinx.h>
+#include <kxthread.h>
 #include "libxml2/include/libxml2/libxml/xmlreader.h"
 #include "libxml2/include/libxml2/libxml/xpath.h"
 

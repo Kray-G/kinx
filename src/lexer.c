@@ -23,13 +23,15 @@ void setup_lexinfo(kx_context_t *ctx, const char *file, kx_yyin_t *yyin)
     kx_lexinfo.in = *yyin;
 }
 
-void init_lexer(void)
+void init_lexer(kx_context_t *ctx)
 {
     kv_init(kx_lex_stack);
+    g_parse_ctx = ctx;
 }
 
 void free_lexer(void)
 {
+    g_parse_ctx = NULL;
     kv_destroy(kx_lex_stack);
 }
 

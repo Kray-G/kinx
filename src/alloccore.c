@@ -34,17 +34,32 @@ void init_allocator(void)
 
 void *kx_malloc_impl(size_t size)
 {
-    return malloc(size);
+    void *p = malloc(size);
+    if (!p) {
+        printf("malloc error!\n");
+        _exit(1);
+    }
+    return p;
 }
 
-void *kx_realloc_impl(void *p, size_t size)
+void *kx_realloc_impl(void *p1, size_t size)
 {
-    return realloc(p, size);
+    void *p = realloc(p1, size);
+    if (!p) {
+        printf("realloc error!\n");
+        _exit(1);
+    }
+    return p;
 }
 
 void *kx_calloc_impl(size_t count, size_t size)
 {
-    return calloc(count, size);
+    void *p = calloc(count, size);
+    if (!p) {
+        printf("calloc error!\n");
+        _exit(1);
+    }
+    return p;
 }
 
 void kx_free_impl(void *p)
@@ -54,7 +69,12 @@ void kx_free_impl(void *p)
 
 char *kx_strdup_impl(const char *s)
 {
-    return strdup(s);
+    void *p = strdup(s);
+    if (!p) {
+        printf("strdup error!\n");
+        _exit(1);
+    }
+    return p;
 }
 
 #if defined(NO_STRNDUP)
@@ -66,11 +86,20 @@ char *strndup(const char *s, size_t n)
         memcpy(p, s, n);
         p[n] = '\0';
     }
+    if (!p) {
+        printf("strndup error!\n");
+        _exit(1);
+    }
     return p;
 }
 #endif /* ! HAVE_STRNDUP */
 
 char *kx_strndup_impl(const char *s, size_t n)
 {
-    return strndup(s, n);
+    void *p = strndup(s, n);
+    if (!p) {
+        printf("strndup error!\n");
+        _exit(1);
+    }
+    return p;
 }

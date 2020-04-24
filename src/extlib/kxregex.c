@@ -1,10 +1,12 @@
 #include <dbg.h>
+#define KX_DLL
 #include <kinx.h>
-#include "onig/src/oniguruma.h"
-
-#define KX_REGEX_RET_OBJ (2)
+#include <kxthread.h>
 
 KX_DECL_MEM_ALLOCATORS();
+
+#include "onig/src/oniguruma.h"
+#define KX_REGEX_RET_OBJ (2)
 
 typedef struct regex_pack_ {
     regex_t *reg;

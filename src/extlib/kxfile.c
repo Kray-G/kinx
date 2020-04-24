@@ -1,9 +1,6 @@
 #include <dbg.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-#include <kinx.h>
-#include <kutil.h>
-
 #include "zip/include/mz.h"
 #include "zip/include/mz_os.h"
 #include "zip/include/mz_strm.h"
@@ -24,7 +21,10 @@
 #include <termios.h>
 #define STRICMP(s1, s2) strcasecmp(s1, s2)
 #endif
+#define KX_DLL
 #include <kinx.h>
+#include <kutil.h>
+#include <kxthread.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
