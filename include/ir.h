@@ -619,13 +619,7 @@ typedef struct kx_signal_ {
     kx_fnc_t* signal_hook;
 } kx_signal_t;
 
-typedef struct kx_context_ {
-    kx_frm_t *frmv;
-    kx_frm_t *lexv;
-    kvec_t(kx_val_t) stack;
-    kvec_t(kx_exc_t) exception;
-
-    kx_val_t excval;
+typedef struct kx_allocators_ {
     klist_t(big) *big_alive;
     klist_t(str) *str_alive;
     kvec_pt(kstr_t) str_dead;
@@ -641,11 +635,9 @@ typedef struct kx_context_ {
     kvec_pt(kx_frm_t) frm_dead;
     klist_t(val) *val_alive;
     kvec_pt(kx_val_t) val_dead;
+} kx_allocators_t;
 
-    kvec_t(kx_module_t) module;
-    khash_t(importlib) *builtin;
-    khash_t(nativefunc) *nfuncs;
-    kx_options_t options;
+typedef struct kx_libobjs_ {
     kx_obj_t *strlib;
     kx_obj_t *binlib;
     kx_obj_t *intlib;
@@ -656,12 +648,28 @@ typedef struct kx_context_ {
     kx_obj_t *false_obj;
     kx_obj_t *exception_map;
     kx_fnc_t *global_method_missing;
+} kx_libobjs_t;
+
+typedef struct kx_context_ {
+    kx_frm_t *frmv;
+    kx_frm_t *lexv;
+    kvec_t(kx_val_t) stack;
+    kvec_t(kx_exc_t) exception;
+
+    kx_val_t excval;
+    kx_allocators_t alloc;
+
+    khash_t(importlib) *builtin;
+    khash_t(nativefunc) *nfuncs;
+    kx_options_t options;
+    kx_libobjs_t objs;
 
     int block_index;
     int spread_additional;
     kvec_t(uint32_t) labels;
-    kvec_pt(kx_code_t) fixcode;
     kvec_t(kx_regex_t) regex;
+    kvec_t(kx_module_t) module;
+    kvec_pt(kx_code_t) fixcode;
 
     kx_string_manager_t str_mgr;
     kx_signal_t signal;
@@ -679,9 +687,9 @@ typedef struct kx_context_ {
 #define KX_INIT_FNC_COUNT (512)
 #define KX_INIT_KXN_COUNT (8)
 
-#define allocate_defstr(ctx) (kv_size((ctx)->str_dead) > 0 ? (kstr_t *)kv_pop((ctx)->str_dead) : (kstr_t *)ks_new())
-#define allocate_def(ctx, typ) (kv_size((ctx)->typ##_dead) > 0 ? (kx_##typ##_t *)kv_pop((ctx)->typ##_dead) : (kx_##typ##_t *)kx_calloc(1, sizeof(kx_##typ##_t)))
-#define set_alive(ctx, typ, ov) (*kl_pushp(typ, (ctx)->typ##_alive) = (ov))
+#define allocate_defstr(ctx) (kv_size((ctx)->alloc.str_dead) > 0 ? (kstr_t *)kv_pop((ctx)->alloc.str_dead) : (kstr_t *)ks_new())
+#define allocate_def(ctx, typ) (kv_size((ctx)->alloc.typ##_dead) > 0 ? (kx_##typ##_t *)kv_pop((ctx)->alloc.typ##_dead) : (kx_##typ##_t *)kx_calloc(1, sizeof(kx_##typ##_t)))
+#define set_alive(ctx, typ, ov) (*kl_pushp(typ, (ctx)->alloc.typ##_alive) = (ov))
 
 #define make_big_alive(ctx, val) (set_alive(ctx, big, val))
 #define allocate_str(ctx) (set_alive(ctx, str, allocate_defstr(ctx)))
