@@ -537,7 +537,6 @@ int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     if (obj) {
-        pthread_t r = NULL;
         kx_val_t *val = NULL;
         KEX_GET_PROP(val, obj, "_thread");
         if (!val || val->type != KX_ANY_T) {
@@ -546,7 +545,7 @@ int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
             push_s(ctx->stack, "Invalid thread object");
             return KX_THROW_EXCEPTION;
         }
-        r = (pthread_t)(val->value.av->p);
+        pthread_t r = (pthread_t)(val->value.av->p);
         pthread_join(r, NULL);
         val->value.av->p = NULL;
     }
@@ -569,7 +568,7 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     pthread_t t;
     pthread_create_extra(&t, run_isolate_code, (void *)code, 0);
     kx_any_t *r = allocate_any(ctx);
-    r->p = t;
+    r->p = (void *)t;
     r->any_free = thread_free;
 
     kx_obj_t *obj = allocate_obj(ctx);
