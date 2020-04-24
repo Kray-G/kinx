@@ -364,6 +364,7 @@ static int eval(kx_context_t *ctx)
     char name[256] = {0};
     sprintf(name, "_main%d", ++mainx);
 
+    g_yyerror = 0;
     kx_ast_root = NULL;
     kx_lex_next(kx_lexinfo);
     int r = kx_yyparse();
@@ -486,7 +487,11 @@ kx_context_t *compile_code(const char *code)
     int start = eval_string(code, ctx);
     if (start < 0) {
         context_cleanup(ctx);
-        return NULL;
+        ctx = make_context();
+        start = eval_string("throw SystemException('Isolate compile error');", ctx);
+        if (start < 0) {
+            return NULL;
+        }
     }
 
     ctx->frmv = allocate_frm(ctx); /* initial frame */
@@ -512,8 +517,11 @@ int run_ctx(kx_context_t *ctx, int ac, char **av)
 
 thread_return_t STDCALL run_isolate_code(void *p)
 {
-    kx_context_t *ctx = (kx_context_t*)p;
-    (void)run_ctx(ctx, 1, (char *[]){"isolate"});
+    char *code = (char*)p;
+    kx_context_t *ctx = compile_code(code);
+    if (ctx) {
+        (void)run_ctx(ctx, 1, (char *[]){code});
+    }
     return 0;
 }
 
@@ -558,15 +566,8 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     if (!code) {
         return NULL;
     }
-    kx_context_t *new_ctx = compile_code(code);
-    if (!new_ctx) {
-        kx_fnc_t *fnc = allocate_fnc(ctx);
-        fnc->typ = const_str(ctx, "CompileException");
-        fnc->wht = const_str(ctx, "Isolate.run() failed");
-        return fnc;  /* compile error */
-    }
     pthread_t t;
-    pthread_create_extra(&t, run_isolate_code, (void *)new_ctx, 0);
+    pthread_create_extra(&t, run_isolate_code, (void *)code, 0);
     kx_any_t *r = allocate_any(ctx);
     r->p = t;
     r->any_free = thread_free;
