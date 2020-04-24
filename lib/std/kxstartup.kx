@@ -1,6 +1,6 @@
 const STDIN, STDOUT, STDERR;
 const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory;
-const Enumerable, Enumerator, Range;
+const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass;
 const SystemException, RuntimeException, FileException, StopIterationException, FiberException;
@@ -42,6 +42,29 @@ var Xml, Net;
             return ExceptionClassTemplate;
         };
     })();
+    Isolate.create = _function(code) {
+        var this;
+        this.isIsolate = true;
+        this.run = _function() {
+            if (code.isObject && code._format) {
+                code = code.format();
+            }
+            return code._run_isolate();
+        };
+        return this;
+    };
+    Isolate.Mutex.create = function(name) {
+        var m = System.getNamedMutex(name || 'main');
+        m.lock = _function(f) {
+            System.lockMutex(m);
+            try {
+                return f();
+            } finally {
+                System.unlockMutex(m);
+            }
+        };
+        return m;
+    };
     RuntimeExceptionClass = System.defineException('RuntimeException');
     RuntimeException = RuntimeExceptionClass.create;
     SystemExceptionClass = System.defineException('SystemException');
