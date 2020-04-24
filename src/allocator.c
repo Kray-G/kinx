@@ -48,39 +48,39 @@ BigZ get_int64min_minus1(void)
 
 void init_allocation(kx_context_t *ctx)
 {
-    kv_resize(kx_frm_t*, ctx->frm_dead, KX_INIT_FRM_COUNT);
+    kv_resize(kx_frm_t*, ctx->alloc.frm_dead, KX_INIT_FRM_COUNT);
     for (int i = 0; i < KX_INIT_FRM_COUNT; ++i) {
-        kv_A(ctx->frm_dead, i) = (kx_frm_t *)kx_calloc(1, sizeof(kx_frm_t));
+        kv_A(ctx->alloc.frm_dead, i) = (kx_frm_t *)kx_calloc(1, sizeof(kx_frm_t));
     }
-    kv_resize(kx_fnc_t*, ctx->fnc_dead, KX_INIT_FNC_COUNT);
+    kv_resize(kx_fnc_t*, ctx->alloc.fnc_dead, KX_INIT_FNC_COUNT);
     for (int i = 0; i < KX_INIT_FNC_COUNT; ++i) {
-        kv_A(ctx->fnc_dead, i) = (kx_fnc_t *)kx_calloc(1, sizeof(kx_fnc_t));
+        kv_A(ctx->alloc.fnc_dead, i) = (kx_fnc_t *)kx_calloc(1, sizeof(kx_fnc_t));
     }
 }
 
 kx_context_t *make_context(void)
 {
     kx_context_t *ctx = kx_calloc(1, sizeof(kx_context_t));
-    ctx->val_alive = kl_init(val);
-    ctx->frm_alive = kl_init(frm);
-    ctx->fnc_alive = kl_init(fnc);
-    ctx->obj_alive = kl_init(obj);
-    ctx->bin_alive = kl_init(bin);
-    ctx->any_alive = kl_init(any);
-    ctx->big_alive = kl_init(big);
-    ctx->str_alive = kl_init(str);
+    ctx->alloc.val_alive = kl_init(val);
+    ctx->alloc.frm_alive = kl_init(frm);
+    ctx->alloc.fnc_alive = kl_init(fnc);
+    ctx->alloc.obj_alive = kl_init(obj);
+    ctx->alloc.bin_alive = kl_init(bin);
+    ctx->alloc.any_alive = kl_init(any);
+    ctx->alloc.big_alive = kl_init(big);
+    ctx->alloc.str_alive = kl_init(str);
     ctx->builtin = kh_init(importlib);
     ctx->nfuncs = kh_init(nativefunc);
-    ctx->strlib = NULL;
-    ctx->intlib = NULL;
-    ctx->dbllib = NULL;
-    ctx->binlib = NULL;
-    ctx->arylib = NULL;
-    ctx->regexlib = NULL;
-    ctx->true_obj = NULL;
-    ctx->false_obj = NULL;
-    ctx->exception_map = NULL;
-    ctx->global_method_missing = NULL;
+    ctx->objs.strlib = NULL;
+    ctx->objs.intlib = NULL;
+    ctx->objs.dbllib = NULL;
+    ctx->objs.binlib = NULL;
+    ctx->objs.arylib = NULL;
+    ctx->objs.regexlib = NULL;
+    ctx->objs.true_obj = NULL;
+    ctx->objs.false_obj = NULL;
+    ctx->objs.exception_map = NULL;
+    ctx->objs.global_method_missing = NULL;
     kv_init(ctx->labels);
     kv_init(ctx->fixcode);
     kv_init(ctx->regex);
@@ -99,15 +99,15 @@ static void gc_unmark(kx_context_t *ctx)
     }
 
     kliter_t(str) *pstr;
-    for (pstr = kl_begin(ctx->str_alive); pstr != kl_end(ctx->str_alive); pstr = kl_next(pstr)) {
+    for (pstr = kl_begin(ctx->alloc.str_alive); pstr != kl_end(ctx->alloc.str_alive); pstr = kl_next(pstr)) {
         kl_val(pstr)->mark = 0;
     }
     kliter_t(big) *pbig;
-    for (pbig = kl_begin(ctx->big_alive); pbig != kl_end(ctx->big_alive); pbig = kl_next(pbig)) {
+    for (pbig = kl_begin(ctx->alloc.big_alive); pbig != kl_end(ctx->alloc.big_alive); pbig = kl_next(pbig)) {
         kl_val(pbig)->mark = 0;
     }
     kliter_t(obj) *pobj;
-    for (pobj = kl_begin(ctx->obj_alive); pobj != kl_end(ctx->obj_alive); pobj = kl_next(pobj)) {
+    for (pobj = kl_begin(ctx->alloc.obj_alive); pobj != kl_end(ctx->alloc.obj_alive); pobj = kl_next(pobj)) {
         kx_obj_t *c = kl_val(pobj);
         c->mark = 0;
         for (khint_t k = 0; k < kh_end(c->prop); ++k) {
@@ -121,15 +121,15 @@ static void gc_unmark(kx_context_t *ctx)
         }
     }
     kliter_t(bin) *pbin;
-    for (pbin = kl_begin(ctx->bin_alive); pbin != kl_end(ctx->bin_alive); pbin = kl_next(pbin)) {
+    for (pbin = kl_begin(ctx->alloc.bin_alive); pbin != kl_end(ctx->alloc.bin_alive); pbin = kl_next(pbin)) {
         kl_val(pbin)->mark = 0;
     }
     kliter_t(any) *pany;
-    for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
+    for (pany = kl_begin(ctx->alloc.any_alive); pany != kl_end(ctx->alloc.any_alive); pany = kl_next(pany)) {
         kl_val(pany)->mark = 0;
     }
     kliter_t(fnc) *pfnc;
-    for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = kl_next(pfnc)) {
+    for (pfnc = kl_begin(ctx->alloc.fnc_alive); pfnc != kl_end(ctx->alloc.fnc_alive); pfnc = kl_next(pfnc)) {
         kx_fnc_t *c = kl_val(pfnc);
         c->mark = 0;
         c->val.mark = 0;
@@ -140,7 +140,7 @@ static void gc_unmark(kx_context_t *ctx)
         }
     }
     kliter_t(frm) *pfrm;
-    for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = kl_next(pfrm)) {
+    for (pfrm = kl_begin(ctx->alloc.frm_alive); pfrm != kl_end(ctx->alloc.frm_alive); pfrm = kl_next(pfrm)) {
         kx_frm_t *c = kl_val(pfrm);
         c->mark = 0;
         int len = kv_size(c->v);
@@ -149,7 +149,7 @@ static void gc_unmark(kx_context_t *ctx)
         }
     }
     kliter_t(val) *pval;
-    for (pval = kl_begin(ctx->val_alive); pval != kl_end(ctx->val_alive); pval = kl_next(pval)) {
+    for (pval = kl_begin(ctx->alloc.val_alive); pval != kl_end(ctx->alloc.val_alive); pval = kl_next(pval)) {
         kx_val_t *c = kl_val(pval);
         c->mark = 0;
     }
@@ -262,63 +262,63 @@ static void gc_mark_val(kx_val_t *c)
 static void gc_sweep(kx_context_t *ctx)
 {
     kliter_t(str) *pstr, *prevstr = NULL, *nextstr;
-    for (pstr = kl_begin(ctx->str_alive); pstr != kl_end(ctx->str_alive); pstr = nextstr) {
+    for (pstr = kl_begin(ctx->alloc.str_alive); pstr != kl_end(ctx->alloc.str_alive); pstr = nextstr) {
         nextstr = kl_next(pstr);
         if (kl_val(pstr)->mark) {
             prevstr = pstr;
         } else {
             kstr_t *v;
-            kl_remove_next(str, ctx->str_alive, prevstr, &v);
-            kv_push(kstr_t*, ctx->str_dead, v);
+            kl_remove_next(str, ctx->alloc.str_alive, prevstr, &v);
+            kv_push(kstr_t*, ctx->alloc.str_dead, v);
             v->len = 0; /* clear */
             v->data = v->alloc;
             v->data[0] = 0;
         }
     }
     kliter_t(big) *pbig, *prevbig = NULL, *nextbig;
-    for (pbig = kl_begin(ctx->big_alive); pbig != kl_end(ctx->big_alive); pbig = nextbig) {
+    for (pbig = kl_begin(ctx->alloc.big_alive); pbig != kl_end(ctx->alloc.big_alive); pbig = nextbig) {
         nextbig = kl_next(pbig);
         if (kl_val(pbig)->mark) {
             prevbig = pbig;
         } else {
             BigZ v;
-            kl_remove_next(big, ctx->big_alive, prevbig, &v);
+            kl_remove_next(big, ctx->alloc.big_alive, prevbig, &v);
             BzFree(v);
         }
     }
     kliter_t(obj) *pobj, *prevobj = NULL, *nextobj;
-    for (pobj = kl_begin(ctx->obj_alive); pobj != kl_end(ctx->obj_alive); pobj = nextobj) {
+    for (pobj = kl_begin(ctx->alloc.obj_alive); pobj != kl_end(ctx->alloc.obj_alive); pobj = nextobj) {
         nextobj = kl_next(pobj);
         if (kl_val(pobj)->mark) {
             prevobj = pobj;
         } else {
             kx_obj_t *v;
-            kl_remove_next(obj, ctx->obj_alive, prevobj, &v);
-            kv_push(kx_obj_t*, ctx->obj_dead, v);
+            kl_remove_next(obj, ctx->alloc.obj_alive, prevobj, &v);
+            kv_push(kx_obj_t*, ctx->alloc.obj_dead, v);
             kv_zero(kx_val_t, v->ary);
         }
     }
     kliter_t(bin) *pbin, *prevbin = NULL, *nextbin;
-    for (pbin = kl_begin(ctx->bin_alive); pbin != kl_end(ctx->bin_alive); pbin = nextbin) {
+    for (pbin = kl_begin(ctx->alloc.bin_alive); pbin != kl_end(ctx->alloc.bin_alive); pbin = nextbin) {
         nextbin = kl_next(pbin);
         if (kl_val(pbin)->mark) {
             prevbin = pbin;
         } else {
             kx_bin_t *v;
-            kl_remove_next(bin, ctx->bin_alive, prevbin, &v);
+            kl_remove_next(bin, ctx->alloc.bin_alive, prevbin, &v);
             kv_shrinkto(v->bin, 0);
             kv_zero(uint8_t, v->bin);
-            kv_push(kx_bin_t*, ctx->bin_dead, v);
+            kv_push(kx_bin_t*, ctx->alloc.bin_dead, v);
         }
     }
     kliter_t(any) *pany, *prevany = NULL, *nextany;
-    for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = nextany) {
+    for (pany = kl_begin(ctx->alloc.any_alive); pany != kl_end(ctx->alloc.any_alive); pany = nextany) {
         nextany = kl_next(pany);
         if (kl_val(pany)->mark) {
             prevany = pany;
         } else {
             kx_any_t *v;
-            kl_remove_next(any, ctx->any_alive, prevany, &v);
+            kl_remove_next(any, ctx->alloc.any_alive, prevany, &v);
             if (v->p) {
                 if (v->any_free) {
                     v->any_free(v->p);
@@ -326,17 +326,17 @@ static void gc_sweep(kx_context_t *ctx)
                 v->any_free = NULL;
                 v->p = NULL;
             }
-            kv_push(kx_any_t*, ctx->any_dead, v);
+            kv_push(kx_any_t*, ctx->alloc.any_dead, v);
         }
     }
     kliter_t(fnc) *pfnc, *prevfnc = NULL, *nextfnc;
-    for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = nextfnc) {
+    for (pfnc = kl_begin(ctx->alloc.fnc_alive); pfnc != kl_end(ctx->alloc.fnc_alive); pfnc = nextfnc) {
         nextfnc = kl_next(pfnc);
         if (kl_val(pfnc)->mark) {
             prevfnc = pfnc;
         } else {
             kx_fnc_t *v;
-            kl_remove_next(fnc, ctx->fnc_alive, prevfnc, &v);
+            kl_remove_next(fnc, ctx->alloc.fnc_alive, prevfnc, &v);
             v->lex = NULL;
             v->val.type = KX_UND_T;
             v->method = NULL;
@@ -347,31 +347,31 @@ static void gc_sweep(kx_context_t *ctx)
             v->fiber = 0;
             kv_shrinkto(v->stack, 0);
             v->fbpos = NULL;
-            kv_push(kx_fnc_t*, ctx->fnc_dead, v);
+            kv_push(kx_fnc_t*, ctx->alloc.fnc_dead, v);
         }
     }
     kliter_t(frm) *pfrm, *prevfrm = NULL, *nextfrm;
-    for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = nextfrm) {
+    for (pfrm = kl_begin(ctx->alloc.frm_alive); pfrm != kl_end(ctx->alloc.frm_alive); pfrm = nextfrm) {
         nextfrm = kl_next(pfrm);
         if (kl_val(pfrm)->mark) {
             prevfrm = pfrm;
         } else {
             kx_frm_t *v;
-            kl_remove_next(frm, ctx->frm_alive, prevfrm, &v);
-            kv_push(kx_frm_t*, ctx->frm_dead, v);
+            kl_remove_next(frm, ctx->alloc.frm_alive, prevfrm, &v);
+            kv_push(kx_frm_t*, ctx->alloc.frm_dead, v);
             kv_zero(kx_val_t, v->v);
             v->is_internal = 0;
         }
     }
     kliter_t(val) *pval, *prevval = NULL, *nextval;
-    for (pval = kl_begin(ctx->val_alive); pval != kl_end(ctx->val_alive); pval = nextval) {
+    for (pval = kl_begin(ctx->alloc.val_alive); pval != kl_end(ctx->alloc.val_alive); pval = nextval) {
         nextval = kl_next(pval);
         if (kl_val(pval)->mark) {
             prevval = pval;
         } else {
             kx_val_t *v;
-            kl_remove_next(val, ctx->val_alive, prevval, &v);
-            kv_push(kx_val_t*, ctx->val_dead, v);
+            kl_remove_next(val, ctx->alloc.val_alive, prevval, &v);
+            kv_push(kx_val_t*, ctx->alloc.val_dead, v);
         }
     }
 }
@@ -379,13 +379,13 @@ static void gc_sweep(kx_context_t *ctx)
 static void print_gc_info(kx_context_t *ctx)
 {
     printf("  * stack: %d\n", (int)kv_size(ctx->stack));
-    printf("    alive(str) = %d, buf(%d)\n", (int)ctx->str_alive->size, (int)kv_size(ctx->str_dead));
-    printf("    alive(obj) = %d, buf(%d)\n", (int)ctx->obj_alive->size, (int)kv_size(ctx->obj_dead));
-    printf("    alive(bin) = %d, buf(%d)\n", (int)ctx->bin_alive->size, (int)kv_size(ctx->bin_dead));
-    printf("    alive(any) = %d, buf(%d)\n", (int)ctx->any_alive->size, (int)kv_size(ctx->any_dead));
-    printf("    alive(fnc) = %d, buf(%d)\n", (int)ctx->fnc_alive->size, (int)kv_size(ctx->fnc_dead));
-    printf("    alive(frm) = %d, buf(%d)\n", (int)ctx->frm_alive->size, (int)kv_size(ctx->frm_dead));
-    printf("    alive(val) = %d, buf(%d)\n", (int)ctx->val_alive->size, (int)kv_size(ctx->val_dead));
+    printf("    alive(str) = %d, buf(%d)\n", (int)ctx->alloc.str_alive->size, (int)kv_size(ctx->alloc.str_dead));
+    printf("    alive(obj) = %d, buf(%d)\n", (int)ctx->alloc.obj_alive->size, (int)kv_size(ctx->alloc.obj_dead));
+    printf("    alive(bin) = %d, buf(%d)\n", (int)ctx->alloc.bin_alive->size, (int)kv_size(ctx->alloc.bin_dead));
+    printf("    alive(any) = %d, buf(%d)\n", (int)ctx->alloc.any_alive->size, (int)kv_size(ctx->alloc.any_dead));
+    printf("    alive(fnc) = %d, buf(%d)\n", (int)ctx->alloc.fnc_alive->size, (int)kv_size(ctx->alloc.fnc_dead));
+    printf("    alive(frm) = %d, buf(%d)\n", (int)ctx->alloc.frm_alive->size, (int)kv_size(ctx->alloc.frm_dead));
+    printf("    alive(val) = %d, buf(%d)\n", (int)ctx->alloc.val_alive->size, (int)kv_size(ctx->alloc.val_dead));
 }
 
 void gc_mark_and_sweep(kx_context_t *ctx)
@@ -397,9 +397,9 @@ void gc_mark_and_sweep(kx_context_t *ctx)
     #endif
     gc_mark_val(&(ctx->excval));
     gc_mark_fnc(ctx->signal.signal_hook);
-    gc_mark_obj(ctx->true_obj);
-    gc_mark_obj(ctx->false_obj);
-    gc_mark_obj(ctx->exception_map);
+    gc_mark_obj(ctx->objs.true_obj);
+    gc_mark_obj(ctx->objs.false_obj);
+    gc_mark_obj(ctx->objs.exception_map);
 
     kvec_t(kx_val_t) stack = ctx->stack;
     int size = kv_size(stack);
@@ -426,28 +426,28 @@ static void gc_object_cleanup(kx_context_t *ctx)
 {
     /* Free objects in alive list */
     kliter_t(str) *pstr;
-    for (pstr = kl_begin(ctx->str_alive); pstr != kl_end(ctx->str_alive); pstr = kl_next(pstr)) {
+    for (pstr = kl_begin(ctx->alloc.str_alive); pstr != kl_end(ctx->alloc.str_alive); pstr = kl_next(pstr)) {
         ks_free(kl_val(pstr));
     }
     kliter_t(big) *pbig;
-    for (pbig = kl_begin(ctx->big_alive); pbig != kl_end(ctx->big_alive); pbig = kl_next(pbig)) {
+    for (pbig = kl_begin(ctx->alloc.big_alive); pbig != kl_end(ctx->alloc.big_alive); pbig = kl_next(pbig)) {
         BzFree(kl_val(pbig));
     }
     kliter_t(obj) *pobj;
-    for (pobj = kl_begin(ctx->obj_alive); pobj != kl_end(ctx->obj_alive); pobj = kl_next(pobj)) {
+    for (pobj = kl_begin(ctx->alloc.obj_alive); pobj != kl_end(ctx->alloc.obj_alive); pobj = kl_next(pobj)) {
         kx_obj_t *o = kl_val(pobj);
         kh_destroy(prop, o->prop);
         kv_destroy(o->ary);
         kx_free(o);
     }
     kliter_t(bin) *pbin;
-    for (pbin = kl_begin(ctx->bin_alive); pbin != kl_end(ctx->bin_alive); pbin = kl_next(pbin)) {
+    for (pbin = kl_begin(ctx->alloc.bin_alive); pbin != kl_end(ctx->alloc.bin_alive); pbin = kl_next(pbin)) {
         kx_bin_t *o = kl_val(pbin);
         kv_destroy(o->bin);
         kx_free(o);
     }
     kliter_t(any) *pany;
-    for (pany = kl_begin(ctx->any_alive); pany != kl_end(ctx->any_alive); pany = kl_next(pany)) {
+    for (pany = kl_begin(ctx->alloc.any_alive); pany != kl_end(ctx->alloc.any_alive); pany = kl_next(pany)) {
         kx_any_t *o = kl_val(pany);
         if (o->p && o->any_free) {
             o->any_free(o->p);
@@ -455,79 +455,79 @@ static void gc_object_cleanup(kx_context_t *ctx)
         kx_free(o);
     }
     kliter_t(fnc) *pfnc;
-    for (pfnc = kl_begin(ctx->fnc_alive); pfnc != kl_end(ctx->fnc_alive); pfnc = kl_next(pfnc)) {
+    for (pfnc = kl_begin(ctx->alloc.fnc_alive); pfnc != kl_end(ctx->alloc.fnc_alive); pfnc = kl_next(pfnc)) {
         kx_free(kl_val(pfnc));
     }
     kliter_t(frm) *pfrm;
-    for (pfrm = kl_begin(ctx->frm_alive); pfrm != kl_end(ctx->frm_alive); pfrm = kl_next(pfrm)) {
+    for (pfrm = kl_begin(ctx->alloc.frm_alive); pfrm != kl_end(ctx->alloc.frm_alive); pfrm = kl_next(pfrm)) {
         kx_frm_t *frm = kl_val(pfrm);
         kv_destroy(frm->v);
         kx_free(frm);
     }
     kliter_t(val) *pval;
-    for (pval = kl_begin(ctx->val_alive); pval != kl_end(ctx->val_alive); pval = kl_next(pval)) {
+    for (pval = kl_begin(ctx->alloc.val_alive); pval != kl_end(ctx->alloc.val_alive); pval = kl_next(pval)) {
         kx_val_t *val = kl_val(pval);
         kx_free(val);
     }
 
     /* Free objects in dead list */
-    int i, l = kv_size(ctx->str_dead);
+    int i, l = kv_size(ctx->alloc.str_dead);
     for (i = 0; i < l; ++i) {
-        ks_free(kv_A(ctx->str_dead, i));
+        ks_free(kv_A(ctx->alloc.str_dead, i));
     }
-    l = kv_size(ctx->obj_dead);
+    l = kv_size(ctx->alloc.obj_dead);
     for (i = 0; i < l; ++i) {
-        kx_obj_t *o = kv_A(ctx->obj_dead, i);
+        kx_obj_t *o = kv_A(ctx->alloc.obj_dead, i);
         kh_destroy(prop, o->prop);
         kv_destroy(o->ary);
         kx_free(o);
     }
-    l = kv_size(ctx->bin_dead);
+    l = kv_size(ctx->alloc.bin_dead);
     for (i = 0; i < l; ++i) {
-        kx_bin_t *o = kv_A(ctx->bin_dead, i);
+        kx_bin_t *o = kv_A(ctx->alloc.bin_dead, i);
         kv_destroy(o->bin);
         kx_free(o);
     }
-    l = kv_size(ctx->any_dead);
+    l = kv_size(ctx->alloc.any_dead);
     for (i = 0; i < l; ++i) {
-        kx_any_t *o = kv_A(ctx->any_dead, i);
+        kx_any_t *o = kv_A(ctx->alloc.any_dead, i);
         if (o->p && o->any_free) {
             o->any_free(o->p);
         }
         kx_free(o);
     }
-    l = kv_size(ctx->fnc_dead);
+    l = kv_size(ctx->alloc.fnc_dead);
     for (i = 0; i < l; ++i) {
-        kx_free(kv_A(ctx->fnc_dead, i));
+        kx_free(kv_A(ctx->alloc.fnc_dead, i));
     }
-    l = kv_size(ctx->frm_dead);
+    l = kv_size(ctx->alloc.frm_dead);
     for (i = 0; i < l; ++i) {
-        kx_frm_t *frm = kv_A(ctx->frm_dead, i);
+        kx_frm_t *frm = kv_A(ctx->alloc.frm_dead, i);
         kv_destroy(frm->v);
         kx_free(frm);
     }
-    l = kv_size(ctx->val_dead);
+    l = kv_size(ctx->alloc.val_dead);
     for (i = 0; i < l; ++i) {
-        kx_val_t *val = kv_A(ctx->val_dead, i);
+        kx_val_t *val = kv_A(ctx->alloc.val_dead, i);
         kx_free(val);
     }
 
     /* Free object storage */
-    kv_destroy(ctx->val_dead);
-    kv_destroy(ctx->frm_dead);
-    kv_destroy(ctx->fnc_dead);
-    kv_destroy(ctx->obj_dead);
-    kv_destroy(ctx->any_dead);
-    kv_destroy(ctx->bin_dead);
-    kv_destroy(ctx->str_dead);
-    kl_destroy(str, ctx->str_alive);
-    kl_destroy(big, ctx->big_alive);
-    kl_destroy(val, ctx->val_alive);
-    kl_destroy(frm, ctx->frm_alive);
-    kl_destroy(fnc, ctx->fnc_alive);
-    kl_destroy(obj, ctx->obj_alive);
-    kl_destroy(any, ctx->any_alive);
-    kl_destroy(bin, ctx->bin_alive);
+    kv_destroy(ctx->alloc.val_dead);
+    kv_destroy(ctx->alloc.frm_dead);
+    kv_destroy(ctx->alloc.fnc_dead);
+    kv_destroy(ctx->alloc.obj_dead);
+    kv_destroy(ctx->alloc.any_dead);
+    kv_destroy(ctx->alloc.bin_dead);
+    kv_destroy(ctx->alloc.str_dead);
+    kl_destroy(str, ctx->alloc.str_alive);
+    kl_destroy(big, ctx->alloc.big_alive);
+    kl_destroy(val, ctx->alloc.val_alive);
+    kl_destroy(frm, ctx->alloc.frm_alive);
+    kl_destroy(fnc, ctx->alloc.fnc_alive);
+    kl_destroy(obj, ctx->alloc.obj_alive);
+    kl_destroy(any, ctx->alloc.any_alive);
+    kl_destroy(bin, ctx->alloc.bin_alive);
     kv_destroy(ctx->exception);
     kv_destroy(ctx->stack);
 }

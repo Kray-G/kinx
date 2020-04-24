@@ -512,11 +512,11 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
     if (method[0] == 'e' && method && !strcmp(method, "eval")) {
         return do_eval(ctx, host, count, jumptable);
     }
-    if (!ctx->strlib || !method) {
+    if (!ctx->objs.strlib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
-    KEX_GET_PROP(val, ctx->strlib, method);
+    KEX_GET_PROP(val, ctx->objs.strlib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -525,7 +525,7 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->strlib, "methodMissing");
+    KEX_GET_PROP(val, ctx->objs.strlib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -540,11 +540,11 @@ kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t
 
 kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
-    if (!ctx->binlib || !method) {
+    if (!ctx->objs.binlib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
-    KEX_GET_PROP(val, ctx->binlib, method);
+    KEX_GET_PROP(val, ctx->objs.binlib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -553,7 +553,7 @@ kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->binlib, "methodMissing");
+    KEX_GET_PROP(val, ctx->objs.binlib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -568,11 +568,11 @@ kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t
 
 kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
-    if (!ctx->intlib || !method) {
+    if (!ctx->objs.intlib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
-    KEX_GET_PROP(val, ctx->intlib, method);
+    KEX_GET_PROP(val, ctx->objs.intlib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -581,7 +581,7 @@ kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->intlib, "methodMissing");
+    KEX_GET_PROP(val, ctx->objs.intlib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -596,11 +596,11 @@ kx_fnc_t *search_integer_function(kx_context_t *ctx, const char *method, kx_val_
 
 kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
-    if (!ctx->dbllib || !method) {
+    if (!ctx->objs.dbllib || !method) {
         return NULL;
     }
     kx_val_t *val = NULL;
-    KEX_GET_PROP(val, ctx->dbllib, method);
+    KEX_GET_PROP(val, ctx->objs.dbllib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -609,7 +609,7 @@ kx_fnc_t *search_double_function(kx_context_t *ctx, const char *method, kx_val_t
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->dbllib, "methodMissing");
+    KEX_GET_PROP(val, ctx->objs.dbllib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         if (host->type == KX_LVAL_T) {
             host = host->value.lv;
@@ -634,16 +634,16 @@ kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t 
             return val->value.fn;
         }
     }
-    if (!ctx->arylib || !method) {
+    if (!ctx->objs.arylib || !method) {
         return NULL;
     }
-    KEX_GET_PROP(val, ctx->arylib, method);
+    KEX_GET_PROP(val, ctx->objs.arylib, method);
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
         return val->value.fn;
     }
-    KEX_GET_PROP(val, ctx->arylib, "methodMissing");
+    KEX_GET_PROP(val, ctx->objs.arylib, "methodMissing");
     if (val && (val->type == KX_FNC_T || val->type == KX_BFNC_T)) {
         val->value.fn->val.type = host->type;
         val->value.fn->val.value = host->value;
@@ -656,17 +656,17 @@ kx_fnc_t *search_array_function(kx_context_t *ctx, const char *method, kx_val_t 
 kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host)
 {
     if (!host) {
-        if (ctx->global_method_missing) {
-            ctx->global_method_missing->val.type = KX_UND_T;
-            ctx->global_method_missing->method = "<global>";
-            return ctx->global_method_missing;
+        if (ctx->objs.global_method_missing) {
+            ctx->objs.global_method_missing->val.type = KX_UND_T;
+            ctx->objs.global_method_missing->method = "<global>";
+            return ctx->objs.global_method_missing;
         }
     } else if (host->type != KX_OBJ_T) {
-        if (ctx->global_method_missing) {
-            ctx->global_method_missing->val.type = host->type;
-            ctx->global_method_missing->val.value = host->value;
-            ctx->global_method_missing->method = "<global>";
-            return ctx->global_method_missing;
+        if (ctx->objs.global_method_missing) {
+            ctx->objs.global_method_missing->val.type = host->type;
+            ctx->objs.global_method_missing->val.value = host->value;
+            ctx->objs.global_method_missing->method = "<global>";
+            return ctx->objs.global_method_missing;
         }
     } else {
         char altprop[128] = {0}; /* why 128? ... maybe it is enough */
@@ -732,17 +732,17 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
     }
     kx_obj_t *obj = p->obj = allocate_obj(ctx);
     if (!strcmp(name, "kxstring")) {
-        ctx->strlib = obj;
+        ctx->objs.strlib = obj;
     } else if (!strcmp(name, "kxbinary")) {
-        ctx->binlib = obj;
+        ctx->objs.binlib = obj;
     } else if (!strcmp(name, "kxinteger")) {
-        ctx->intlib = obj;
+        ctx->objs.intlib = obj;
     } else if (!strcmp(name, "kxdouble")) {
-        ctx->dbllib = obj;
+        ctx->objs.dbllib = obj;
     } else if (!strcmp(name, "kxarray")) {
-        ctx->arylib = obj;
+        ctx->objs.arylib = obj;
     } else if (!strcmp(name, "kxregex")) {
-        ctx->regexlib = obj;
+        ctx->objs.regexlib = obj;
     }
     int l = p->get_bltin_count();
     for (int i = 0; i < l; ++i) {
@@ -812,7 +812,7 @@ void kx_set_regex(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
         p->pattern = name;
         p->obj = NULL;
         kx_val_t *val = NULL;
-        KEX_GET_PROP(val, ctx->regexlib, "create");
+        KEX_GET_PROP(val, ctx->objs.regexlib, "create");
         if (val && val->type == KX_BFNC_T) {
             kx_fnc_t *fn = val->value.fn;
             push_s(ctx->stack, name);
