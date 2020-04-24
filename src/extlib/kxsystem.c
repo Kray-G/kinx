@@ -10,13 +10,21 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
+pthread_cond_t g_system_cond;
+pthread_mutex_t g_system_mtx;
+
+typedef struct kx_cond_pack_ {
+    pthread_cond_t cond;
+} kx_cond_pack_t;
 typedef struct kx_mutex_pack_ {
     pthread_mutex_t mtx;
 } kx_mutex_pack_t;
-pthread_cond_t g_system_cond;
-pthread_mutex_t g_system_mtx;
+
+KHASH_MAP_INIT_STR(cond_map, kx_cond_pack_t*)
+static khash_t(cond_map) *g_cond_map;
 KHASH_MAP_INIT_STR(mutex_map, kx_mutex_pack_t*)
 static khash_t(mutex_map) *g_mutex_map;
+
 KHASH_MAP_INIT_STR(value_map, kx_val_t)
 static khash_t(value_map) *g_value_map;
 
@@ -27,10 +35,18 @@ static void system_initialize(void)
 
     g_value_map = kh_init(value_map);
     g_mutex_map = kh_init(mutex_map);
+    g_cond_map = kh_init(cond_map);
 }
 
 static void system_finalize(void)
 {
+    for (khint_t k = 0; k < kh_end(g_cond_map); ++k) {
+        if (kh_exist(g_cond_map, k)) {
+            kx_cond_pack_t *p = kh_value(g_cond_map, k);
+            pthread_cond_destroy(&(p->cond));
+            kx_free(p);
+        }
+    }
     for (khint_t k = 0; k < kh_end(g_mutex_map); ++k) {
         if (kh_exist(g_mutex_map, k)) {
             kx_mutex_pack_t *p = kh_value(g_mutex_map, k);
@@ -697,6 +713,91 @@ int System_printStack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     return 0;
 }
 
+int System_isolateSendAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    }
+    kx_val_t send_value = kv_last_by(ctx->stack, 2);
+
+    int absent;
+    if (send_value.type == KX_INT_T || send_value.type == KX_DBL_T) {
+        pthread_mutex_lock(&g_system_mtx);
+        khint_t k = kh_put(value_map, g_value_map, name, &absent);
+        kh_value(g_value_map, k) = send_value;
+        pthread_mutex_unlock(&g_system_mtx);
+        pthread_cond_broadcast(&g_system_cond);
+    } else if (send_value.type == KX_CSTR_T) {
+        pthread_mutex_lock(&g_system_mtx);
+        khint_t k = kh_put(value_map, g_value_map, name, &absent);
+        kstr_t *s = ks_new();
+        ks_append(s, send_value.value.pv);
+        kh_value(g_value_map, k) = (kx_val_t){ .type = KX_STR_T, .value.sv = s };
+        pthread_mutex_unlock(&g_system_mtx);
+        pthread_cond_broadcast(&g_system_cond);
+    } else {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Can not send the object except integer, double, or string");
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int System_isolateReceive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    }
+    struct timespec to;
+    to.tv_sec = time(NULL) + 1;
+    to.tv_nsec = 0;
+    pthread_cond_timedwait(&g_system_cond, &g_system_mtx, &to);
+
+    pthread_mutex_lock(&g_system_mtx);
+    KX_ADJST_STACK();
+    khint_t k = kh_get(value_map, g_value_map, name);
+    if (k != kh_end(g_value_map)) {
+        kx_val_t v = kh_value(g_value_map, k);
+        if (v.type == KX_STR_T) {
+            kstr_t *s = allocate_str(ctx);
+            ks_append(s, ks_string(v.value.sv));
+            v.value.sv = s;
+        }
+        push_value(ctx->stack, v);
+    } else {
+        push_undef(ctx->stack);
+    }
+    pthread_mutex_unlock(&g_system_mtx);
+    return 0;
+}
+
+int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    }
+
+    pthread_mutex_lock(&g_system_mtx);
+    int absent;
+    khint_t k = kh_put(value_map, g_value_map, name, &absent);
+    if (!absent) {
+        kx_val_t *v = &kh_value(g_value_map, k);
+        if (v->type == KX_STR_T) {
+            ks_free(v->value.sv);
+        }
+    }
+    kh_value(g_value_map, k) = (kx_val_t){0};
+    pthread_mutex_unlock(&g_system_mtx);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     pthread_mutex_lock(&g_system_mtx);
@@ -764,89 +865,122 @@ int System_unlockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
-int System_isolateSendAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_getNamedCondiion(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    pthread_mutex_lock(&g_system_mtx);
     const char *name = get_arg_str(1, args, ctx);
     if (!name) {
-        pthread_mutex_unlock(&g_system_mtx);
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
-    kx_val_t send_value = kv_last_by(ctx->stack, 2);
-    int absent;
-    if (send_value.type == KX_INT_T || send_value.type == KX_DBL_T) {
-        khint_t k = kh_put(value_map, g_value_map, name, &absent);
-        kh_value(g_value_map, k) = send_value;
-        pthread_cond_broadcast(&g_system_cond);
-    } else if (send_value.type == KX_CSTR_T) {
-        khint_t k = kh_put(value_map, g_value_map, name, &absent);
-        kstr_t *s = ks_new();
-        ks_append(s, send_value.value.pv);
-        kh_value(g_value_map, k) = (kx_val_t){ .type = KX_STR_T, .value.sv = s };
-        pthread_cond_broadcast(&g_system_cond);
-    } else {
-        pthread_mutex_unlock(&g_system_mtx);
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Can not send the object except integer, double, or string");
-    }
 
-    KX_ADJST_STACK();
-    push_i(ctx->stack, 0);
+    pthread_mutex_lock(&g_system_mtx);
+    kx_cond_pack_t *pack = NULL;
+    int absent;
+    khint_t k = kh_put(cond_map, g_cond_map, name, &absent);
+    if (absent) {
+        pack = (kx_cond_pack_t *)kx_calloc(1, sizeof(kx_cond_pack_t));
+        kh_value(g_cond_map, k) = pack;
+        pthread_cond_init(&(pack->cond), NULL);
+    } else {
+        pack = kh_value(g_cond_map, k);
+    }
     pthread_mutex_unlock(&g_system_mtx);
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "isCondition", 1);
+    kx_any_t *r = allocate_any(ctx);
+    r->p = pack;
+    r->any_free = NULL;
+    KEX_SET_PROP_ANY(obj, "_condition", r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+
     return 0;
 }
 
-int System_isolateReceive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_conditionWait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    pthread_mutex_lock(&g_system_mtx);
-    const char *name = get_arg_str(1, args, ctx);
-    if (!name) {
-        pthread_mutex_unlock(&g_system_mtx);
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    kx_val_t *val = NULL;
+    kx_obj_t *obj1 = get_arg_obj(1, args, ctx);
+    if (obj1) {
+        KEX_GET_PROP(val, obj1, "_condition");
     }
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid condition object");
+    }
+    kx_cond_pack_t *cpack = (kx_cond_pack_t *)(val->value.av->p);
+
+    val = NULL;
+    kx_obj_t *obj2 = get_arg_obj(2, args, ctx);
+    if (obj2) {
+        KEX_GET_PROP(val, obj2, "_mutex");
+    }
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
+    }
+    kx_mutex_pack_t *mpack = (kx_mutex_pack_t *)(val->value.av->p);
+
+    int r = pthread_cond_wait(&(cpack->cond), &(mpack->mtx));
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int System_conditionTimedWait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_val_t *val = NULL;
+    kx_obj_t *obj1 = get_arg_obj(1, args, ctx);
+    if (obj1) {
+        KEX_GET_PROP(val, obj1, "_condition");
+    }
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid condition object");
+    }
+    kx_cond_pack_t *cpack = (kx_cond_pack_t *)(val->value.av->p);
+
+    val = NULL;
+    kx_obj_t *obj2 = get_arg_obj(2, args, ctx);
+    if (obj2) {
+        KEX_GET_PROP(val, obj2, "_mutex");
+    }
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
+    }
+    kx_mutex_pack_t *mpack = (kx_mutex_pack_t *)(val->value.av->p);
+
+    int timeout_msec = get_arg_int(3, args, ctx);
+
     struct timespec to;
-    to.tv_sec = time(NULL) + 1;
-    to.tv_nsec = 0;
-    pthread_cond_timedwait(&g_system_cond, &g_system_mtx, &to);
+    to.tv_sec = time(NULL) + (int)(timeout_msec / 1000);
+    to.tv_nsec = timeout_msec * 1000;
+    int r = pthread_cond_timedwait(&(cpack->cond), &(mpack->mtx), &to);
 
     KX_ADJST_STACK();
-    khint_t k = kh_get(value_map, g_value_map, name);
-    if (k != kh_end(g_value_map)) {
-        kx_val_t v = kh_value(g_value_map, k);
-        if (v.type == KX_STR_T) {
-            kstr_t *s = allocate_str(ctx);
-            ks_append(s, ks_string(v.value.sv));
-            v.value.sv = s;
-        }
-        push_value(ctx->stack, v);
-    } else {
-        push_undef(ctx->stack);
-    }
-    pthread_mutex_unlock(&g_system_mtx);
+    push_i(ctx->stack, r);
     return 0;
 }
 
-int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_conditionBroadcast(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    pthread_mutex_lock(&g_system_mtx);
-    const char *name = get_arg_str(1, args, ctx);
-    if (!name) {
-        pthread_mutex_unlock(&g_system_mtx);
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    kx_val_t *val = NULL;
+    kx_obj_t *obj1 = get_arg_obj(1, args, ctx);
+    if (obj1) {
+        KEX_GET_PROP(val, obj1, "_condition");
     }
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid condition object");
+    }
+    kx_cond_pack_t *cpack = (kx_cond_pack_t *)(val->value.av->p);
 
-    int absent;
-    khint_t k = kh_put(value_map, g_value_map, name, &absent);
-    if (!absent) {
-        kx_val_t *v = &kh_value(g_value_map, k);
-        if (v->type == KX_STR_T) {
-            ks_free(v->value.sv);
-        }
-    }
-    kh_value(g_value_map, k) = (kx_val_t){0};
+    int r = pthread_cond_broadcast(&(cpack->cond));
 
     KX_ADJST_STACK();
-    push_i(ctx->stack, 0);
-    pthread_mutex_unlock(&g_system_mtx);
+    push_i(ctx->stack, r);
     return 0;
 }
 
@@ -873,6 +1007,10 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "getNamedMutex", System_getNamedMutex },
     { "lockMutex", System_lockMutex },
     { "unlockMutex", System_unlockMutex },
+    { "getNamedCondition", System_getNamedCondiion },
+    { "conditionWait", System_conditionWait },
+    { "conditionTimedWait", System_conditionTimedWait },
+    { "conditionBroadcast", System_conditionBroadcast },
     { "isolateSendAll", System_isolateSendAll },
     { "isolateReceive", System_isolateReceive },
     { "isolateClear", System_isolateClear },
