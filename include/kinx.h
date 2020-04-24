@@ -276,7 +276,7 @@ extern void unload_library(void *h);
 extern const char *kxlib_file_exists(const char *file);
 extern const char *kxlib_exec_file_exists(const char *file);
 
-extern void init_lexer(void);
+extern void init_lexer(kx_context_t *ctx);
 extern void free_lexer(void);
 extern void setup_lexinfo(kx_context_t *ctx, const char *file, kx_yyin_t *yyin);
 extern int kx_yyparse(void);
@@ -298,8 +298,6 @@ extern void free_string(kx_context_t *ctx);
 extern const char *const_str(kx_context_t *ctx, const char* name);
 extern const char *const_str2(kx_context_t *ctx, const char* classname, const char* name);
 
-extern void set_context(kx_context_t *ctx);
-extern void release_context(void);
 extern void free_nodes(void);
 extern void kx_make_native_mode(void);
 extern void kx_make_bin_mode(void);
@@ -647,6 +645,13 @@ extern char *conv_utf82acp_alloc(const char *src);
 #define conv_free(p)
 #endif
 
+#ifndef KX_DLL
+extern void *kx_malloc_impl(size_t size);
+extern void *kx_realloc_impl(void *p, size_t size);
+extern void *kx_calloc_impl(size_t count, size_t size);
+extern void kx_free_impl(void *p);
+extern char *kx_strdup_impl(const char *s);
+extern char *kx_strndup_impl(const char *s, size_t n);
 #define KX_DECL_MEM_ALLOCATORS() \
 kx_malloc_t kx_malloc = NULL; \
 kx_realloc_t kx_realloc = NULL; \
@@ -656,36 +661,53 @@ kx_strdup_t kx_strdup = NULL; \
 kx_strndup_t kx_strndup = NULL; \
 kx_const_str_t kx_const_str = NULL; \
 /**/
-
-#ifndef KX_DLL
-extern void *kx_malloc_impl(size_t size);
-extern void *kx_realloc_impl(void *p, size_t size);
-extern void *kx_calloc_impl(size_t count, size_t size);
-extern void kx_free_impl(void *p);
-extern char *kx_strdup_impl(const char *s);
-extern char *kx_strndup_impl(const char *s, size_t n);
+#else
+#define KX_DECL_MEM_ALLOCATORS() \
+kx_malloc_t kx_malloc = NULL; \
+kx_realloc_t kx_realloc = NULL; \
+kx_calloc_t kx_calloc = NULL; \
+kx_free_t kx_free = NULL; \
+kx_strdup_t kx_strdup = NULL; \
+kx_strndup_t kx_strndup = NULL; \
+kx_const_str_t kx_const_str = NULL; \
+pthread_mutex_t kx_mutex; \
+static int g_loaded = 0; \
+/**/
 #endif
 
 #define KX_DLL_DECL_FNCTIONS(kx_bltin_info, initfunc, finfunc) \
     DllExport void set_allocator(kx_malloc_t m, kx_realloc_t r, kx_calloc_t c, kx_free_t f, kx_strdup_t sd, kx_strndup_t snd, kx_const_str_t cs) \
     { \
-        kx_malloc = m;\
-        kx_realloc = r;\
-        kx_calloc = c;\
-        kx_free = f;\
-        kx_strdup = sd;\
-        kx_strndup = snd;\
-        kx_const_str = cs;\
+        if (g_loaded == 0) { \
+            kx_malloc = m; \
+            kx_realloc = r; \
+            kx_calloc = c; \
+            kx_free = f; \
+            kx_strdup = sd; \
+            kx_strndup = snd; \
+            kx_const_str = cs; \
+            pthread_mutex_init(&kx_mutex, 0); \
+        } \
     } \
     DllExport void initialize(void) \
     { \
-        bltin_initfin_t f = initfunc;\
-        if (initfunc) f(); \
+        pthread_mutex_lock(&kx_mutex); \
+        if (g_loaded == 0) { \
+            bltin_initfin_t f = initfunc;\
+            if (initfunc) f(); \
+        } \
+        ++g_loaded; \
+        pthread_mutex_unlock(&kx_mutex); \
     } \
     DllExport void finalize(void) \
     { \
-        bltin_initfin_t f = finfunc;\
-        if (finfunc) f(); \
+        pthread_mutex_lock(&kx_mutex); \
+        --g_loaded; \
+        if (g_loaded == 0) { \
+            bltin_initfin_t f = finfunc;\
+            if (finfunc) f(); \
+        } \
+        pthread_mutex_unlock(&kx_mutex); \
     } \
     DllExport int get_bltin_count(void) \
     { \

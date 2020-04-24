@@ -1,6 +1,10 @@
 #include <dbg.h>
 #include <ctype.h>
+#define KX_DLL
 #include <kinx.h>
+#include <kxthread.h>
+
+KX_DECL_MEM_ALLOCATORS();
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma comment(lib, "wldap32.lib" )
@@ -86,8 +90,6 @@ typedef struct kx_curl_info_ {
     struct curl_slist *sl;
     char *cr;
 } kx_curl_info_t;
-
-KX_DECL_MEM_ALLOCATORS();
 
 static void net_initialize(void)
 {
