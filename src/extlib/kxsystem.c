@@ -10,16 +10,29 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
-pthread_mutex_t g_system_mutex;
+typedef struct kx_mutex_pack_ {
+    pthread_mutex_t mtx;
+} kx_mutex_pack_t;
+pthread_mutex_t g_system_mtx;
+KHASH_MAP_INIT_STR(mutex_map, kx_mutex_pack_t*)
+static khash_t(mutex_map) *g_mutex_map;
 
 static void system_initialize(void)
 {
-    pthread_mutex_init(&g_system_mutex, NULL);
+    pthread_mutex_init(&g_system_mtx, NULL);
+    g_mutex_map = kh_init(mutex_map);
 }
 
 static void system_finalize(void)
 {
-    pthread_mutex_destroy(&g_system_mutex);
+    for (khint_t k = 0; k < kh_end(g_mutex_map); ++k) {
+        if (kh_exist(g_mutex_map, k)) {
+            kx_mutex_pack_t *p = kh_value(g_mutex_map, k);
+            pthread_mutex_destroy(&(p->mtx));
+            kx_free(p);
+        }
+    }
+    pthread_mutex_destroy(&g_system_mtx);
 }
 
 static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
@@ -668,6 +681,72 @@ int System_printStack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     return 0;
 }
 
+int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    pthread_mutex_lock(&g_system_mtx);
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
+    }
+
+    kx_mutex_pack_t *pack = NULL;
+    int absent;
+    khint_t k = kh_put(mutex_map, g_mutex_map, name, &absent);
+    if (absent) {
+        pack = (kx_mutex_pack_t *)kx_calloc(1, sizeof(kx_mutex_pack_t));
+        kh_value(g_mutex_map, k) = pack;
+        pthread_mutex_init(&(pack->mtx), NULL);
+    } else {
+        pack = kh_value(g_mutex_map, k);
+    }
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "isMutex", 1);
+    kx_any_t *r = allocate_any(ctx);
+    r->p = pack;
+    r->any_free = NULL;
+    KEX_SET_PROP_ANY(obj, "_mutex", r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+
+    pthread_mutex_unlock(&g_system_mtx);
+    return 0;
+}
+
+int System_lockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, obj, "_mutex");
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
+    }
+    kx_mutex_pack_t *pack = (kx_mutex_pack_t *)(val->value.av->p);
+    int r = pthread_mutex_lock(&(pack->mtx));
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int System_unlockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, obj, "_mutex");
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
+    }
+    kx_mutex_pack_t *pack = (kx_mutex_pack_t *)(val->value.av->p);
+    int r = pthread_mutex_unlock(&(pack->mtx));
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -688,6 +767,9 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "getSigintCount", System_getSigintCount },
     { "getSigtermCount", System_getSigtermCount },
     { "setSigtermEnded", System_setSigtermEnded },
+    { "getNamedMutex", System_getNamedMutex },
+    { "lockMutex", System_lockMutex },
+    { "unlockMutex", System_unlockMutex },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);

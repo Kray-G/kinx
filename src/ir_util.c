@@ -484,7 +484,10 @@ kx_context_t *compile_code(const char *code)
 
     kx_lexinfo.quiet = 1;
     int start = eval_string(code, ctx);
-    assert(start == 0);
+    if (start < 0) {
+        context_cleanup(ctx);
+        return NULL;
+    }
 
     ctx->frmv = allocate_frm(ctx); /* initial frame */
     ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */
@@ -502,15 +505,97 @@ int run_ctx(kx_context_t *ctx, int ac, char **av)
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-
     int r = ir_exec(ctx);
+    context_cleanup(ctx);
     return r;
+}
+
+thread_return_t STDCALL run_isolate_code(void *p)
+{
+    kx_context_t *ctx = (kx_context_t*)p;
+    (void)run_ctx(ctx, 1, (char *[]){"isolate"});
+    return 0;
+}
+
+void thread_free(void *p)
+{
+    pthread_t r = (pthread_t)p;
+    if (r) {
+        pthread_join(r, NULL);
+    }
+}
+
+int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        pthread_t r = NULL;
+        kx_val_t *val = NULL;
+        KEX_GET_PROP(val, obj, "_thread");
+        if (!val || val->type != KX_ANY_T) {
+            KX_ADJST_STACK();
+            push_s(ctx->stack, "SystemException");
+            push_s(ctx->stack, "Invalid thread object");
+            return KX_THROW_EXCEPTION;
+        }
+        r = (pthread_t)(val->value.av->p);
+        pthread_join(r, NULL);
+        val->value.av->p = NULL;
+    }
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[])
+{
+    const char *code = NULL;
+    if (host->type == KX_CSTR_T) {
+        code = alloc_string(ctx, host->value.pv);
+    } else if (host->type == KX_STR_T) {
+        code = alloc_string(ctx, ks_string(host->value.sv));
+    }
+    if (!code) {
+        return NULL;
+    }
+    kx_context_t *new_ctx = compile_code(code);
+    if (!new_ctx) {
+        kx_fnc_t *fnc = allocate_fnc(ctx);
+        fnc->typ = const_str(ctx, "CompileException");
+        fnc->wht = const_str(ctx, "Isolate.run() failed");
+        return fnc;  /* compile error */
+    }
+    pthread_t t;
+    pthread_create_extra(&t, run_isolate_code, (void *)new_ctx, 0);
+    kx_any_t *r = allocate_any(ctx);
+    r->p = t;
+    r->any_free = thread_free;
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_ANY(obj, "_thread", r);
+    kx_fnc_t *fnc = allocate_fnc(ctx);
+    fnc->jp = NULL;
+    fnc->func = &System_joinThread;
+    fnc->lex = NULL;
+    fnc->val.type = KX_OBJ_T;
+    fnc->val.value.ov = obj;
+    kx_val_t v;
+    v.type = KX_BFNC_T;
+    v.value.fn = fnc;
+    KEX_SET_PROP(obj, "join", &v);
+
+    kx_fnc_t *fn = allocate_fnc(ctx);
+    fn->push = (kx_val_t){ .type = KX_OBJ_T, .value.ov = obj };
+    return fn;
 }
 
 kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
     if (method[0] == 'e' && method && !strcmp(method, "eval")) {
         return do_eval(ctx, host, count, jumptable);
+    }
+    if (method[0] == '_' && method && !strcmp(method, "_run_isolate")) {
+        return run_isolate(ctx, host, count, jumptable);
     }
     if (!ctx->objs.strlib || !method) {
         return NULL;
