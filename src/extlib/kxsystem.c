@@ -38,6 +38,14 @@ static void system_finalize(void)
             kx_free(p);
         }
     }
+    for (khint_t k = 0; k < kh_end(g_value_map); ++k) {
+        if (kh_exist(g_value_map, k)) {
+            kx_val_t *v = &kh_value(g_value_map, k);
+            if (v->type == KX_STR_T) {
+                ks_free(v->value.sv);
+            }
+        }
+    }
 
     pthread_cond_destroy(&g_system_cond);
     pthread_mutex_destroy(&g_system_mtx);
@@ -764,12 +772,22 @@ int System_isolateSendAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
         pthread_mutex_unlock(&g_system_mtx);
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
-
     kx_val_t send_value = kv_last_by(ctx->stack, 2);
     int absent;
-    khint_t k = kh_put(value_map, g_value_map, name, &absent);
-    kh_value(g_value_map, k) = send_value;
-    pthread_cond_broadcast(&g_system_cond);
+    if (send_value.type == KX_INT_T || send_value.type == KX_DBL_T) {
+        khint_t k = kh_put(value_map, g_value_map, name, &absent);
+        kh_value(g_value_map, k) = send_value;
+        pthread_cond_broadcast(&g_system_cond);
+    } else if (send_value.type == KX_CSTR_T) {
+        khint_t k = kh_put(value_map, g_value_map, name, &absent);
+        kstr_t *s = ks_new();
+        ks_append(s, send_value.value.pv);
+        kh_value(g_value_map, k) = (kx_val_t){ .type = KX_STR_T, .value.sv = s };
+        pthread_cond_broadcast(&g_system_cond);
+    } else {
+        pthread_mutex_unlock(&g_system_mtx);
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Can not send the object except integer, double, or string");
+    }
 
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);
@@ -793,7 +811,13 @@ int System_isolateReceive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KX_ADJST_STACK();
     khint_t k = kh_get(value_map, g_value_map, name);
     if (k != kh_end(g_value_map)) {
-        push_value(ctx->stack, kh_value(g_value_map, k));
+        kx_val_t v = kh_value(g_value_map, k);
+        if (v.type == KX_STR_T) {
+            kstr_t *s = allocate_str(ctx);
+            ks_append(s, ks_string(v.value.sv));
+            v.value.sv = s;
+        }
+        push_value(ctx->stack, v);
     } else {
         push_undef(ctx->stack);
     }
@@ -812,6 +836,12 @@ int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 
     int absent;
     khint_t k = kh_put(value_map, g_value_map, name, &absent);
+    if (!absent) {
+        kx_val_t *v = &kh_value(g_value_map, k);
+        if (v->type == KX_STR_T) {
+            ks_free(v->value.sv);
+        }
+    }
     kh_value(g_value_map, k) = (kx_val_t){0};
 
     KX_ADJST_STACK();
