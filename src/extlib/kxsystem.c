@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <time.h>
+#define KX_DLL
 #include <kinx.h>
 #include <kutil.h>
-#include "kc-json/kc-json.h"
 #include <kxthread.h>
+#include "kc-json/kc-json.h"
 
 KX_DECL_MEM_ALLOCATORS();
 
