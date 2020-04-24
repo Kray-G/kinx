@@ -82,7 +82,7 @@ static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
         break;
     case JSON_BOOLEAN:
         val.type = KX_OBJ_T;
-        val.value.ov = j->value.b ? ctx->true_obj : ctx->false_obj;
+        val.value.ov = j->value.b ? ctx->objs.true_obj : ctx->objs.false_obj;
         break;
     case JSON_INTEGER:
         val.type = KX_INT_T;
@@ -125,9 +125,9 @@ int System_setTrueFalse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     kx_obj_t *obj = get_arg_obj(2, args, ctx);
 
     if (tf) {
-        ctx->true_obj = obj;
+        ctx->objs.true_obj = obj;
     } else {
-        ctx->false_obj = obj;
+        ctx->objs.false_obj = obj;
     }
 
     KX_ADJST_STACK();
@@ -368,11 +368,11 @@ static int System_sleep(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 
 static int System_globalExceptionMap(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    if (!ctx->exception_map) {
-        ctx->exception_map = allocate_obj(ctx);
+    if (!ctx->objs.exception_map) {
+        ctx->objs.exception_map = allocate_obj(ctx);
     }
     KX_ADJST_STACK();
-    push_obj(ctx->stack, ctx->exception_map);
+    push_obj(ctx->stack, ctx->objs.exception_map);
     return 0;
 }
 
