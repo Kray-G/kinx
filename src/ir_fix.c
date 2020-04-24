@@ -92,8 +92,12 @@ static void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode, int start)
     int len = kv_size(*fixcode);
     for (int i = start; i < len; ++i) {
         kx_code_t *code = kv_A(*fixcode, i);
-        if (code->op == KX_JMP && code->addr == (i+1)) {
-            code->op = KX_NOP;
+        if (code->op == KX_JMP) {
+            if (code->addr == (i+1)) {
+                code->op = KX_NOP;
+            } else if (kv_A(*fixcode, code->addr)->op == KX_RET) {
+                code->op = KX_RET;
+            }
         }
     }
 }

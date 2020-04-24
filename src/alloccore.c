@@ -15,10 +15,13 @@
 #include <stdlib.h>
 #endif
 
+#include <stdio.h>
 #include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define NO_STRNDUP
+#else
+#include <unistd.h>
 #endif
 
 void init_allocator(void)
