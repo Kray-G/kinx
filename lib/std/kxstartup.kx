@@ -80,7 +80,7 @@ var Xml, Net;
         };
         return c;
     };
-    Isolate.sendAll = _function(name, val) {
+    Isolate.send = _function(name, val) {
         if (val.isUndefined) {
             System.isolateSendAll('main', name);
         } else {
