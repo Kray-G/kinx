@@ -8,7 +8,34 @@
 #include <kxthread.h>
 #include "kc-json/kc-json.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+#define KX_WIN_NAMED_MUTEX
+#include <windows.h>
+#pragma comment(lib, "advapi32.lib")
+#endif
+
 KX_DECL_MEM_ALLOCATORS();
+
+#if !defined(KX_WIN_NAMED_MUTEX)
+#if defined(linux) || defined(__CYGWIN__)
+union semun
+{
+    int                 val;
+    struct semid_ds*    buf;
+    unsigned short int* array;
+    struct seminfo*     __buf;
+};
+#elif defined(hpux)
+union semun
+{
+    int              val;
+    struct semid_ds* buf;
+    ushort*          array;
+};
+#endif
+#endif
+
+#define KX_LOCKFILE_MAXSIZ (4096)
 
 pthread_cond_t g_system_cond;
 pthread_mutex_t g_system_mtx;
@@ -17,16 +44,189 @@ typedef struct kx_cond_pack_ {
     pthread_cond_t cond;
 } kx_cond_pack_t;
 typedef struct kx_mutex_pack_ {
+    int locked;
     pthread_mutex_t mtx;
 } kx_mutex_pack_t;
+typedef struct kx_named_mutex_pack_ {
+    int locked;
+    #if defined(KX_WIN_NAMED_MUTEX)
+    HANDLE nmtx;
+    #elif defined(KX_POSIX_SEM)
+    kstr_t *fname;
+    sem_t *sem;
+    #else
+    kstr_t *fname;
+    int semid;    // semaphore id
+    #endif
+} kx_named_mutex_pack_t;
 
 KHASH_MAP_INIT_STR(cond_map, kx_cond_pack_t*)
 static khash_t(cond_map) *g_cond_map;
 KHASH_MAP_INIT_STR(mutex_map, kx_mutex_pack_t*)
 static khash_t(mutex_map) *g_mutex_map;
+KHASH_MAP_INIT_STR(named_mutex_map, kx_named_mutex_pack_t*)
+static khash_t(named_mutex_map) *g_named_mutex_map;
 
 KHASH_MAP_INIT_STR(value_map, kx_val_t)
 static khash_t(value_map) *g_value_map;
+
+#if !defined(KX_WIN_NAMED_MUTEX)
+static void kx_set_temp_filename(kx_named_mutex_pack_t *p, const char *name)
+{
+    #if defined(KLIB_USE_POSIX_SEM)
+    ks_appendf(p->fname, "/%s.mtxkx", name);
+    #else
+    ks_appendf(p->fname, "/tmp/%s.mtxkx", name);
+    #endif
+    ks_replace_char(p->fname, '/', '_');
+}
+#endif
+
+static int kx_named_mutex_init(kx_named_mutex_pack_t *p, const char *name)
+{
+    #if defined(KX_WIN_NAMED_MUTEX)
+    SECURITY_DESCRIPTOR sd;
+    InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
+    SetSecurityDescriptorDacl(&sd, TRUE, 0, FALSE);
+
+    SECURITY_ATTRIBUTES sec_attr;
+    sec_attr.nLength = sizeof(sec_attr);
+    sec_attr.lpSecurityDescriptor = &sd;
+    sec_attr.bInheritHandle       = TRUE;
+
+    p->nmtx = CreateMutexA(&sec_attr, FALSE, name);
+    return p->nmtx ? 1 : 0;
+    #elif defined(KX_POSIX_SEM)
+    p->fname = ks_new();
+    kx_set_temp_filename(p, name);
+    mode_t md = umask(~(S_IRWXU | S_IRWXG | S_IRWXO));
+    p->sem = sem_open(p->fname, O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO, 1);
+    umask(md);
+    return (long)(p->sem) != (long)SEM_FAILED ? 1 : 0;
+    #else
+    p->fname = ks_new();
+    kx_set_temp_filename(p, name);
+    int fd = open(p->fname, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd != -1) {
+        close(fd);
+    } else {
+        return 0;
+    }
+    key_t key = ftok(p->fname, 0);
+    if (key == -1) {
+        return 0;
+    }
+    p->semid = semget(key, 1, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH | IPC_CREAT | IPC_EXCL);
+    if (p->semid >= 0) {
+        union semun arg;
+        arg.val = 1;
+        semctl(p->semid, 0, SETVAL, arg);
+    } else if (errno == EEXIST) {
+        p->semid = semget(key, 1, 0);
+    } else {
+        return 0;
+    }
+    return 1;
+    #endif
+}
+
+static int kx_named_mutex_lock(kx_named_mutex_pack_t *p)
+{
+    #if defined(KX_WIN_NAMED_MUTEX)
+    switch (WaitForSingleObject(p->nmtx, INFINITE)) {
+    case WAIT_OBJECT_0:
+    case WAIT_ABANDONED:
+        p->locked = 1;
+        return 1;
+    default:
+        ;
+    }
+    return 0;
+    #elif defined(KX_POSIX_SEM)
+    int err;
+    do {
+        err = sem_wait(p->sem);
+    } while (err && errno == EINTR);
+    p->locked = err ? 0 : 1;
+    return p->locked;
+    #else
+    struct sembuf op;
+    op.sem_num = 0;
+    op.sem_op  = -1;
+    op.sem_flg = SEM_UNDO;
+    int err;
+    do {
+        err = semop(p->semid, &op, 1);
+    } while (err && errno == EINTR);
+    p->locked = err ? 0 : 1;
+    return p->locked;
+    #endif
+}
+
+static int kx_named_mutex_trylock(kx_named_mutex_pack_t *p)
+{
+    #if defined(KX_WIN_NAMED_MUTEX)
+    switch (WaitForSingleObject(p->nmtx, 0)) {
+    case WAIT_OBJECT_0:
+    case WAIT_ABANDONED:
+        p->locked = 1;
+        return 1;
+    case WAIT_TIMEOUT:
+        return 0;
+    default:
+        ;
+    }
+    return 0;
+    #elif defined(KX_POSIX_SEM)
+    p->locked = sem_trywait(p->sem) == 0;
+    return p->locked;
+    #else
+    struct sembuf op;
+    op.sem_num = 0;
+    op.sem_op  = -1;
+    op.sem_flg = SEM_UNDO | IPC_NOWAIT;
+    p->locked = (semop(p->semid, &op, 1) == 0);
+    return p->locked;
+    #endif
+}
+
+static int kx_named_mutex_unlock(kx_named_mutex_pack_t *p)
+{
+    #if defined(KX_WIN_NAMED_MUTEX)
+    if (!p->locked) {
+        return 0;
+    }
+    p->locked = 0;
+    ReleaseMutex(p->nmtx);
+    return 1;
+    #elif defined(KX_POSIX_SEM)
+    if (sem_post(p->sem) != 0) {
+        return 0;
+    }
+    return 1;
+    #else
+    struct sembuf op;
+    op.sem_num = 0;
+    op.sem_op  = 1;
+    op.sem_flg = SEM_UNDO;
+    if (semop(p->semid, &op, 1) != 0) {
+        return 0;
+    }
+    return 1;
+    #endif
+}
+
+static void kx_named_mutex_destroy(kx_named_mutex_pack_t *p)
+{
+    #if defined(KX_WIN_NAMED_MUTEX)
+    CloseHandle(p->nmtx);
+    #elif defined(KX_POSIX_SEM)
+    sem_close(p->sem);
+    ks_free(p->fname);
+    #else
+    ks_free(p->fname);
+    #endif
+}
 
 static void system_initialize(void)
 {
@@ -35,6 +235,7 @@ static void system_initialize(void)
 
     g_value_map = kh_init(value_map);
     g_mutex_map = kh_init(mutex_map);
+    g_named_mutex_map = kh_init(named_mutex_map);
     g_cond_map = kh_init(cond_map);
 }
 
@@ -44,6 +245,13 @@ static void system_finalize(void)
         if (kh_exist(g_cond_map, k)) {
             kx_cond_pack_t *p = kh_value(g_cond_map, k);
             pthread_cond_destroy(&(p->cond));
+            kx_free(p);
+        }
+    }
+    for (khint_t k = 0; k < kh_end(g_named_mutex_map); ++k) {
+        if (kh_exist(g_named_mutex_map, k)) {
+            kx_named_mutex_pack_t *p = kh_value(g_named_mutex_map, k);
+            kx_named_mutex_destroy(p);
             kx_free(p);
         }
     }
@@ -800,13 +1008,78 @@ int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 
 int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    pthread_mutex_lock(&g_system_mtx);
     const char *name = get_arg_str(1, args, ctx);
     if (!name) {
-        pthread_mutex_unlock(&g_system_mtx);
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
 
+    pthread_mutex_lock(&g_system_mtx);
+    kx_named_mutex_pack_t *pack = NULL;
+    int absent;
+    khint_t k = kh_put(named_mutex_map, g_named_mutex_map, name, &absent);
+    if (absent) {
+        pack = (kx_named_mutex_pack_t *)kx_calloc(1, sizeof(kx_named_mutex_pack_t));
+        kh_value(g_named_mutex_map, k) = pack;
+        kx_named_mutex_init(pack, name);
+        pack->locked = 0;
+    } else {
+        pack = kh_value(g_named_mutex_map, k);
+    }
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "isNamedMutex", 1);
+    kx_any_t *r = allocate_any(ctx);
+    r->p = pack;
+    r->any_free = NULL;
+    KEX_SET_PROP_ANY(obj, "_namedmutex", r);
+    KX_ADJST_STACK();
+
+    pthread_mutex_unlock(&g_system_mtx);
+    return 0;
+}
+
+int System_lockNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, obj, "_namedmutex");
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid named mutex object");
+    }
+    kx_named_mutex_pack_t *pack = (kx_named_mutex_pack_t *)(val->value.av->p);
+    int r = kx_named_mutex_lock(pack);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int System_unlockNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, obj, "_namedmutex");
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid named mutex object");
+    }
+    kx_named_mutex_pack_t *pack = (kx_named_mutex_pack_t *)(val->value.av->p);
+    int r = kx_named_mutex_unlock(pack);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int System_getMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, mutex needs a string to be distinguished");
+    }
+
+    pthread_mutex_lock(&g_system_mtx);
     kx_mutex_pack_t *pack = NULL;
     int absent;
     khint_t k = kh_put(mutex_map, g_mutex_map, name, &absent);
@@ -814,6 +1087,7 @@ int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
         pack = (kx_mutex_pack_t *)kx_calloc(1, sizeof(kx_mutex_pack_t));
         kh_value(g_mutex_map, k) = pack;
         pthread_mutex_init(&(pack->mtx), NULL);
+        pack->locked = 0;
     } else {
         pack = kh_value(g_mutex_map, k);
     }
@@ -842,6 +1116,7 @@ int System_lockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     }
     kx_mutex_pack_t *pack = (kx_mutex_pack_t *)(val->value.av->p);
     int r = pthread_mutex_lock(&(pack->mtx));
+    pack->locked = r == 0 ? 1 : 0;
 
     KX_ADJST_STACK();
     push_i(ctx->stack, r);
@@ -858,6 +1133,11 @@ int System_unlockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
     }
     kx_mutex_pack_t *pack = (kx_mutex_pack_t *)(val->value.av->p);
+    if (!pack->locked) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex did not be locked");
+    }
+    pack->locked = 0;
     int r = pthread_mutex_unlock(&(pack->mtx));
 
     KX_ADJST_STACK();
@@ -920,8 +1200,14 @@ int System_conditionWait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
     }
     kx_mutex_pack_t *mpack = (kx_mutex_pack_t *)(val->value.av->p);
+    if (!mpack->locked) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex did not be locked");
+    }
 
+    mpack->locked = 0;
     int r = pthread_cond_wait(&(cpack->cond), &(mpack->mtx));
+    mpack->locked = 1;
 
     KX_ADJST_STACK();
     push_i(ctx->stack, r);
@@ -951,13 +1237,20 @@ int System_conditionTimedWait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
     }
     kx_mutex_pack_t *mpack = (kx_mutex_pack_t *)(val->value.av->p);
+    if (!mpack->locked) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex did not be locked");
+    }
 
     int timeout_msec = get_arg_int(3, args, ctx);
 
     struct timespec to;
     to.tv_sec = time(NULL) + (int)(timeout_msec / 1000);
     to.tv_nsec = timeout_msec * 1000;
+
+    mpack->locked = 0;
     int r = pthread_cond_timedwait(&(cpack->cond), &(mpack->mtx), &to);
+    mpack->locked = 1;
 
     KX_ADJST_STACK();
     push_i(ctx->stack, r);
@@ -1005,6 +1298,9 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "getSigtermCount", System_getSigtermCount },
     { "setSigtermEnded", System_setSigtermEnded },
     { "getNamedMutex", System_getNamedMutex },
+    { "lockNamedMutex", System_lockNamedMutex },
+    { "unlockNamedMutex", System_unlockNamedMutex },
+    { "getMutex", System_getMutex },
     { "lockMutex", System_lockMutex },
     { "unlockMutex", System_unlockMutex },
     { "getNamedCondition", System_getNamedCondiion },
