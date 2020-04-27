@@ -56,7 +56,7 @@ var Xml, Net;
         return this;
     };
     Isolate.Mutex.create = _function(name) {
-        var m = System.getNamedMutex(name || 'main');
+        var m = System.getMutex(name || 'main');
         m.lock = _function(f) {
             System.lockMutex(m);
             try {
@@ -176,35 +176,30 @@ var Xml, Net;
         if (!done) return System.halt();
         _ret_nv;
     });
-    if (!System.isInitialized) {
-        System.isInitialized = 1;
-        (_function() {
-            System.try = _function(f) {
-                try {
-                    var r = f();
-                    return {
-                        'else': _function() { return r; },
-                        'try': _function() { return System.try(_function() { return r; }); },
-                        'retry': _function() { return System.try(_function() { return r; }); },
-                    };
-                } catch (e) {
-                    ;
-                }
-                return {
-                    'else': _function(expr) { return expr.isFunction ? expr() : expr; },
-                    'try': System.try,
-                    'retry': _function(count, wait) {
-                        System.sleep(wait);
-                        return count <= 1 ? System.try(f) : System.try(f).retry(count-1, wait);
-                    },
-                };
+    System.try = _function(f) {
+        try {
+            var r = f();
+            return {
+                'else': _function() { return r; },
+                'try': _function() { return System.try(_function() { return r; }); },
+                'retry': _function() { return System.try(_function() { return r; }); },
             };
-            using kxstring;
-            using kxarray;
-            using kxbinary;
-            using kxnumeric;
-        })();
-    }
+        } catch (e) {
+            ;
+        }
+        return {
+            'else': _function(expr) { return expr.isFunction ? expr() : expr; },
+            'try': System.try,
+            'retry': _function(count, wait) {
+                System.sleep(wait);
+                return count <= 1 ? System.try(f) : System.try(f).retry(count-1, wait);
+            },
+        };
+    };
+    using kxstring;
+    using kxarray;
+    using kxbinary;
+    using kxnumeric;
     Directory.close = File.dirclose;
     Directory.walk = _function(dirname, func, opts) {
         var dir = File.diropen(dirname);
