@@ -70,6 +70,18 @@ var Xml, Net;
         };
         return m;
     };
+    Isolate.NamedMutex.create = _function(name) {
+        var m = System.getNamedMutex(name || '_main');
+        m.lock = _function(f) {
+            System.lockNamedMutex(m);
+            try {
+                return f();
+            } finally {
+                System.unlockNamedMutex(m);
+            }
+        };
+        return m;
+    };
     Isolate.Condition.create = _function(name) {
         var c = System.getNamedCondition(name || '_main');
         c.wait = _function(m) {
