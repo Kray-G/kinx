@@ -1,0 +1,36 @@
+/*
+    Isolate.Mutex is the mutex class.
+    Isolate.Condition is the condition class.
+    If you want 2 or more mutexes or conditions, you can distinguish it
+        by using the name like `new Isolate.Mutex('name')`.
+*/
+var cond = %{
+    var m = new Isolate.Mutex();
+    var c = new Isolate.Condition();
+    m.lock(&() => {
+        var i = 0;
+        while (i < 10) {
+            System.println("Wait %1%");
+            c.wait(m);
+            System.println("Received %1%");
+            ++i;
+        }
+        System.println("Ended %1%");
+    });
+};
+
+var iso = [];
+for (var i = 34; i > 0; --i) {
+    iso[i] = new Isolate(cond % i);
+    iso[i].run();
+}
+System.sleep(1000);
+var c = new Isolate.Condition();
+for (var i = 34; i > 0; --i) {
+    System.println("\nNotify ", i);
+    c.notifyAll();
+    System.sleep(500);
+}
+for (var i = 34; i > 0; --i) {
+    iso[i].join();
+}
