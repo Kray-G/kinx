@@ -13,6 +13,17 @@
 #include <windows.h>
 #pragma comment(lib, "advapi32.lib")
 #endif
+#if defined(linux)
+#define KX_POSIX_SEM
+#include <semaphore.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#endif
 
 KX_DECL_MEM_ALLOCATORS();
 
@@ -100,13 +111,13 @@ static int kx_named_mutex_init(kx_named_mutex_pack_t *p, const char *name)
     p->fname = ks_new();
     kx_set_temp_filename(p, name);
     mode_t md = umask(~(S_IRWXU | S_IRWXG | S_IRWXO));
-    p->sem = sem_open(p->fname, O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO, 1);
+    p->sem = sem_open(ks_string(p->fname), O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO, 1);
     umask(md);
     return (long)(p->sem) != (long)SEM_FAILED ? 1 : 0;
     #else
     p->fname = ks_new();
     kx_set_temp_filename(p, name);
-    int fd = open(p->fname, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    int fd = open(ks_string(p->fname), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd != -1) {
         close(fd);
     } else {
@@ -959,12 +970,13 @@ int System_isolateReceive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     if (!name) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
+
+    pthread_mutex_lock(&g_system_mtx);
     struct timespec to;
     to.tv_sec = time(NULL) + 1;
     to.tv_nsec = 0;
     pthread_cond_timedwait(&g_system_cond, &g_system_mtx, &to);
 
-    pthread_mutex_lock(&g_system_mtx);
     KX_ADJST_STACK();
     khint_t k = kh_get(value_map, g_value_map, name);
     if (k != kh_end(g_value_map)) {
