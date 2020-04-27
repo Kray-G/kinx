@@ -12,7 +12,7 @@
 #define KX_WIN_NAMED_MUTEX
 #include <windows.h>
 #pragma comment(lib, "advapi32.lib")
-#endif
+#else
 #if defined(linux)
 #define KX_POSIX_SEM
 #include <semaphore.h>
@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
+#endif
 #endif
 
 KX_DECL_MEM_ALLOCATORS();
