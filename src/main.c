@@ -22,6 +22,7 @@
 extern void alloc_initialize(void);
 extern void alloc_finalize(void);
 extern void init_allocator(void);
+extern volatile int g_terminated;
 
 #ifdef YYDEBUG
 extern int kx_yydebug;
@@ -125,37 +126,6 @@ static void get_long_option(const char *optarg, char *lname, char *param)
         param[i] = 0;
     }
 }
-
-/*
-   Multi thread Test Code.
-   - Not work! Now this is just a comment.
-
-kx_context_t *compile_code(const char *code);
-int run_ctx(kx_context_t *ctx, int ac, char **av);
-
-kx_context_t *compile(int i, const char *code)
-{
-    pthread_mutex_lock(&g_mutex);
-    printf("compile start = %d\n", i);
-    kx_context_t *ctx = compile_code(code);
-    printf("compile end   = %d\n", i);
-    pthread_mutex_unlock(&g_mutex);
-    return ctx;
-}
-
-thread_return_t STDCALL run_fib(void *p)
-{
-    int i = *((int *)p);
-    printf("thread = %d\n", i);
-    kx_context_t *ctx1 = compile(i, "function fib(n) { if (n < 3) return n; return fib(n-2) + fib(n-1); }");
-    int r = run_ctx(ctx1, 1, (char *[]){"aaa"});
-
-    // for (int i = 0; i < 100; ++i) {
-    //     printf("thread = %d - %d\n", *((int *)p), i);
-    // }
-    return 0;
-}
-*/
 
 int main(int ac, char **av)
 {
@@ -318,37 +288,11 @@ END_OF_OPT:
     push_adr(ctx->stack, NULL);
     r = ir_exec(ctx);
 
-/*
-   Multi thread Test Code.
-   - Not work! Now this is just a comment.
-
-static int val[10] = {0};
-pthread_t t[10] = {0};
-for (int i = 0; i < 10; ++i) {
-    val[i] = i;
-    pthread_create_extra(&t[i], run_fib, (void *)&val[i], 0);
-}
-for (int i = 0; i < 10; ++i) {
-    pthread_join(t[i], NULL);
-}
-
-// kx_context_t *ctx1;
-// ctx1 = compile_code("System.println($$[0]);System.sleep(2000);");
-// r = run_ctx(ctx1, ac, av);
-// ctx1 = compile_code("System.println($$[0]);System.sleep(2000);");
-// r = run_ctx(ctx1, ac, av);
-// ctx1 = compile_code("System.println($$[0]);System.sleep(2000);");
-// r = run_ctx(ctx1, ac, av);
-// ctx1 = compile_code("System.println($$[0]);System.sleep(2000);");
-// r = run_ctx(ctx1, ac, av);
-// ctx1 = compile_code("System.println($$[0]);System.sleep(2000);");
-// r = run_ctx(ctx1, ac, av);
-*/
-
     #if !defined(_WIN32) && !defined(_WIN64)
     tcsetattr(0, TCSANOW, &oldf);
     #endif
 CLEANUP:
+    g_terminated = 1;
     context_cleanup(ctx);
     free_nodes();
     pthread_mutex_destroy(&g_mutex);

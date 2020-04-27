@@ -53,6 +53,7 @@ kstr_t *ks_slice(kstr_t *self, size_t from, ssize_t to);
 ssize_t ks_compact(kstr_t *self);
 void ks_fill(kstr_t *self, int c);
 void ks_clear(kstr_t *self);
+void ks_replace_char(kstr_t *self, char s, char d);
 void ks_trim_left(kstr_t *self);
 void ks_trim_right(kstr_t *self);
 void ks_trim(kstr_t *self);

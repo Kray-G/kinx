@@ -13,12 +13,13 @@
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = {0};
 #define KX_SET_GOTO(c)
 #define KX_EXEC_DECL(fixcode) \
-    register int gc_ticks = KEX_GC_TICK; \
     register struct kx_code_ *cur = kv_head(*fixcode); \
     register kx_context_t *ctx = ctxp; \
     register kx_frm_t *frmv = (ctx)->frmv; \
     register kx_frm_t *lexv = (ctx)->lexv; \
+    register int gc_ticks = KEX_GC_TICK; \
     kx_code_t *caller = NULL; \
+    int is_main_thread = g_main_thread == ctx ? 1 : 0; \
 /**/
 #elif defined(KX_DIRECT_THREAD)
 #define KX_LABELS \
@@ -256,12 +257,13 @@
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
 #define KX_EXEC_DECL(fixcode) \
     register struct kx_code_ *cur asm ("rbx"); \
-    register int gc_ticks asm ("r12");\
     register kx_frm_t *frmv asm ("r13"); \
     register kx_frm_t *lexv asm ("r14"); \
     register kx_context_t *ctx asm ("r15"); \
-    ctx = ctxp; \
+    register int gc_ticks asm ("r12");\
     kx_code_t *caller = NULL; \
+    int is_main_thread = g_main_thread == ctx ? 1 : 0; \
+    ctx = ctxp; \
     cur = kv_head(*fixcode); \
     gc_ticks = KEX_GC_TICK; \
     frmv = (ctx)->frmv; \
@@ -287,12 +289,13 @@
 #define KX_SETUP_JUMPTABLE() static void *jumptable[] = {0};
 #define KX_SET_GOTO(c)
 #define KX_EXEC_DECL(fixcode) \
-    register int gc_ticks = KEX_GC_TICK; \
     register struct kx_code_ *cur = kv_head(*fixcode); \
     register kx_context_t *ctx = ctxp; \
     register kx_frm_t *frmv = (ctx)->frmv; \
     register kx_frm_t *lexv = (ctx)->lexv; \
+    register int gc_ticks = KEX_GC_TICK; \
     kx_code_t *caller = NULL; \
+    int is_main_thread = g_main_thread == ctx ? 1 : 0; \
 /**/
 #endif
 #define KX_EXEC_FIX_JMPADDR(fixcode, start) \
@@ -321,7 +324,13 @@
 
 extern kx_code_t *kx_signal_hook(kx_context_t *ctx, kx_code_t *cur, kx_code_t **caller);
 #define KEX_CHECK_SIGNAL(ctx) \
-if ((ctx)->signal.signal_received) { \
+if (is_main_thread) { \
+    if ((ctx)->signal.signal_received) { \
+        cur = kx_signal_hook(ctx, cur, &caller); \
+    } \
+} else if (g_terminated) { \
+    (ctx)->signal.signal_received = 1; \
+    (ctx)->signal.sigterm_count++; \
     cur = kx_signal_hook(ctx, cur, &caller); \
 } \
 /**/
@@ -329,12 +338,14 @@ if ((ctx)->signal.signal_received) { \
 #define KEX_TRY_GC() \
 { \
     if (--gc_ticks == 0) { \
-        gc_ticks = KEX_GC_TICK;\
+        gc_ticks = KEX_GC_TICK; \
         kxp_gcs(); \
         gc_mark_and_sweep(ctx); \
         kxp_gca(); \
-    }\
+    } \
 } \
 /**/
+
+extern volatile int g_terminated;
 
 #endif /* KX_KXEXEC_H */
