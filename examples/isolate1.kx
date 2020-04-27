@@ -1,0 +1,21 @@
+/*
+    `fibcode` is just a string.
+    - Isolate#run will create a thread, compile, and run with eval.
+    - Isolate#join will wait for the end of thread.
+*/
+var fibcode = %{
+    function fib(n) {
+        return n < 3 ? n : fib(n-2) + fib(n-1);
+    }
+    var mutex = new Isolate.Mutex();
+    mutex.lock(&() => System.println("fib(%1%) = ", fib(%1%)));
+};
+
+var iso = [];
+for (var i = 34; i > 0; --i) {
+    iso[i] = new Isolate(fibcode % i);
+    iso[i].run();
+}
+for (var i = 34; i > 0; --i) {
+    iso[i].join();
+}
