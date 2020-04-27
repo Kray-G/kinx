@@ -280,6 +280,22 @@ ks_indexof(kstr_t *self, char *str) {
 }
 
 /*
+ * Replace a character.
+ */
+
+void
+ks_replace_char(kstr_t *self, char s, char d) {
+  int c;
+  char *p = self->data;
+  while ((c = *p) != NULL) {
+    if (c == s) {
+      *p = d;
+    }
+    ++p;
+  }
+}
+
+/*
  * Trim leading whitespace.
  */
 

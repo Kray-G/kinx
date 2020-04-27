@@ -558,9 +558,9 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
 {
     const char *code = NULL;
     if (host->type == KX_CSTR_T) {
-        code = alloc_string(ctx, host->value.pv);
+        code = const_str(ctx, host->value.pv);
     } else if (host->type == KX_STR_T) {
-        code = alloc_string(ctx, ks_string(host->value.sv));
+        code = const_str(ctx, ks_string(host->value.sv));
     }
     if (!code) {
         return NULL;
