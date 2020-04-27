@@ -45,18 +45,21 @@ var Xml, Net;
     Isolate.create = _function(code) {
         var this;
         this.isIsolate = true;
+        this.join = _function() {
+            throw SystemException('Isolate is not started yet');
+        };
         this.run = _function() {
             if (code.isObject && code._format) {
                 code = code.format();
             }
             var t = code._run_isolate();
             this.join = t.join;
-            return t;
+            return this;
         };
         return this;
     };
     Isolate.Mutex.create = _function(name) {
-        var m = System.getMutex(name || 'main');
+        var m = System.getMutex(name || '_main');
         m.lock = _function(f) {
             System.lockMutex(m);
             try {
@@ -68,7 +71,7 @@ var Xml, Net;
         return m;
     };
     Isolate.Condition.create = _function(name) {
-        var c = System.getNamedCondition(name || 'main');
+        var c = System.getNamedCondition(name || '_main');
         c.wait = _function(m) {
             return System.conditionWait(c, m);
         };
@@ -82,16 +85,16 @@ var Xml, Net;
     };
     Isolate.send = _function(name, val) {
         if (val.isUndefined) {
-            System.isolateSendAll('main', name);
+            System.isolateSendAll('_main', name);
         } else {
             System.isolateSendAll(name, val);
         }
     };
     Isolate.receive = _function(name) {
-        return System.isolateReceive(name || 'main');
+        return System.isolateReceive(name || '_main');
     };
     Isolate.clear = _function(name) {
-        return System.isolateClear(name || 'main');
+        return System.isolateClear(name || '_main');
     };
     RuntimeExceptionClass = System.defineException('RuntimeException');
     RuntimeException = RuntimeExceptionClass.create;
