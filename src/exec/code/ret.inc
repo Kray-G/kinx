@@ -188,7 +188,7 @@
         fnco->fbpos = NULL; \
     } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
-    if (!radr) { \
+    if (!radr || g_terminated) { \
         goto LBL_KX_END_OF_CODE; \
     } \
     cur = radr; \

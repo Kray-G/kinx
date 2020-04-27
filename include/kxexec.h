@@ -262,7 +262,7 @@
     register kx_context_t *ctx asm ("r15"); \
     register int gc_ticks asm ("r12");\
     kx_code_t *caller = NULL; \
-    int is_main_thread = g_main_thread == ctx ? 1 : 0; \
+    int is_main_thread = g_main_thread == ctxp ? 1 : 0; \
     ctx = ctxp; \
     cur = kv_head(*fixcode); \
     gc_ticks = KEX_GC_TICK; \
@@ -329,9 +329,7 @@ if (is_main_thread) { \
         cur = kx_signal_hook(ctx, cur, &caller); \
     } \
 } else if (g_terminated) { \
-    (ctx)->signal.signal_received = 1; \
-    (ctx)->signal.sigterm_count++; \
-    cur = kx_signal_hook(ctx, cur, &caller); \
+    goto LBL_KX_END_OF_CODE; \
 } \
 /**/
 
