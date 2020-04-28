@@ -327,6 +327,20 @@ _module _Enumerable {
         }
         return true;
     }
+    public sum() {
+        if (host_.end().isUndefined) {
+            throw FiberException("Cannot complete the iteration");
+        }
+        var s;
+        while (src_.isAlive()) {
+            v = src_.resume();
+            if (!src_.isAlive()) {
+                break;
+            }
+            s += v;
+        }
+        return s;
+    }
     public toArray() {
         if (host_.end().isUndefined) {
             throw FiberException("Cannot complete the iteration");
@@ -467,6 +481,7 @@ _class _Enumerator(obj_) {
 
 _class _Range(start_, end_, excludeEnd_) {
     mixin _Enumerable;
+    @Enumerable.sum = @sum;
     @isRange = true;
     var cur_;
     private initialize() {
@@ -552,6 +567,16 @@ _class _Range(start_, end_, excludeEnd_) {
             }
             cur_ = cur_.next();
         }
+    }
+    public sum(func) {
+        if (func.isDefined || !(start_.isInteger && end_.isInteger)) {
+            return @Enumerable.sum(func);
+        }
+        var end = excludeEnd_ ? (end_ - 1) : end_;
+        if (end < start_) {
+            return 0;
+        }
+        return Integer.parseInt((end + start_) * (end - start_ + 1) / 2);
     }
     public ==(rhs) {
         if ((start_ <=> rhs) > 0) {
