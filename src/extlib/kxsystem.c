@@ -190,7 +190,7 @@ static int kx_named_mutex_trylock(kx_named_mutex_pack_t *p)
     default:
         ;
     }
-    return 0;
+    return p->locked;
     #elif defined(KX_POSIX_SEM)
     p->locked = sem_trywait(p->sem) == 0;
     return p->locked;
@@ -1113,6 +1113,23 @@ int System_lockNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     return 0;
 }
 
+int System_trylockNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, obj, "_namedmutex");
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid named mutex object");
+    }
+    kx_named_mutex_pack_t *pack = (kx_named_mutex_pack_t *)(val->value.av->p);
+    int r = kx_named_mutex_trylock(pack);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
 int System_unlockNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -1378,6 +1395,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "setSigtermEnded", System_setSigtermEnded },
     { "getNamedMutex", System_getNamedMutex },
     { "lockNamedMutex", System_lockNamedMutex },
+    { "trylockNamedMutex", System_trylockNamedMutex },
     { "unlockNamedMutex", System_unlockNamedMutex },
     { "getMutex", System_getMutex },
     { "lockMutex", System_lockMutex },
