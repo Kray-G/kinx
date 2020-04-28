@@ -81,7 +81,9 @@ var Xml, Net;
     Isolate.NamedMutex.create = _function(name) {
         var m = System.getNamedMutex(name || '_main');
         m.lock = _function(f) {
-            System.lockNamedMutex(m);
+            while (!System.trylockNamedMutex(m)) {
+                System.sleep(250);
+            }
             try {
                 return f();
             } finally {
