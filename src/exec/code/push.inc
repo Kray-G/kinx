@@ -60,7 +60,7 @@
 
 #define KX_PUSHB_CODE() \
 { \
-    push_b((ctx)->stack, cur->value1.s); \
+    push_b((ctx)->stack, cur->value1.i, cur->value2.s); \
     cur = cur->next; \
 } \
 /**/

@@ -108,7 +108,7 @@
         fnco->fbpos = NULL; \
     } \
     kv_shrinkto((ctx)->stack, frmv->id - count - 3); \
-    push_b((ctx)->stack, cur->value1.s); \
+    push_b((ctx)->stack, cur->value1.i, cur->value2.s); \
     if (!radr) { \
         goto LBL_KX_END_OF_CODE; \
     } \
