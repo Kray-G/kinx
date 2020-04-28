@@ -1181,6 +1181,27 @@ int System_lockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     return 0;
 }
 
+int System_trylockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, obj, "_mutex");
+    if (!val || val->type != KX_ANY_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
+    }
+    kx_mutex_pack_t *pack = (kx_mutex_pack_t *)(val->value.av->p);
+    int r = pthread_mutex_trylock(&(pack->mtx));
+    int locked = r == 0 ? 1 : 0;
+    if (r == 0) {
+        pack->locked = locked;
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, locked);
+    return 0;
+}
+
 int System_unlockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -1360,6 +1381,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "unlockNamedMutex", System_unlockNamedMutex },
     { "getMutex", System_getMutex },
     { "lockMutex", System_lockMutex },
+    { "trylockMutex", System_trylockMutex },
     { "unlockMutex", System_unlockMutex },
     { "getNamedCondition", System_getNamedCondiion },
     { "conditionWait", System_conditionWait },
