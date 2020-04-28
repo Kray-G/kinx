@@ -19,10 +19,10 @@ Updates from v0.5.2.
     *   Supported operator override for class instance as below.
         *   `==`, `!=`, `>`, `>=`, `<`, `<=`, `<=>`, `<<`, `>>`, `+`, `-`, `*`, `/`, `%`, `[]`, `()`.
     *   Support multi-threading as `Isolate` with `Mutex` and `Condition`.
+    *   Support `Enumerable#sum` & `Range#sum`.
 
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
-    *   Support `Enumerable#sum`.
     *   Fix to parse a big integer from hex.
     *   Support DateTime class.
     *   Replace Bison by Kmyacc.
