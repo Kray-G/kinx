@@ -287,7 +287,7 @@ void
 ks_replace_char(kstr_t *self, char s, char d) {
   int c;
   char *p = self->data;
-  while ((c = *p) != NULL) {
+  while ((c = *p) != 0) {
     if (c == s) {
       *p = d;
     }
