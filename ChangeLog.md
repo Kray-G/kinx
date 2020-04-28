@@ -18,8 +18,8 @@ Updates from v0.5.2.
     *   Supported the operator '~' for bitwise not.
     *   Supported operator override for class instance as below.
         *   `==`, `!=`, `>`, `>=`, `<`, `<=`, `<=>`, `<<`, `>>`, `+`, `-`, `*`, `/`, `%`, `[]`, `()`.
-    *   Support multi-threading as `Isolate` with `Mutex` and `Condition`.
-    *   Support `Enumerable#sum` & `Range#sum`.
+    *   Supported multi-threading as `Isolate` with `Mutex` and `Condition`.
+    *   Supported `Enumerable#sum` & `Range#sum`.
 
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
