@@ -941,21 +941,21 @@ int System_isolateSendAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     }
     kx_val_t send_value = kv_last_by(ctx->stack, 2);
 
-    int absent;
+    int absent = 0;
     if (send_value.type == KX_INT_T || send_value.type == KX_DBL_T) {
         pthread_mutex_lock(&g_system_mtx);
         khint_t k = kh_put(value_map, g_value_map, name, &absent);
         kh_value(g_value_map, k) = send_value;
-        pthread_mutex_unlock(&g_system_mtx);
         pthread_cond_broadcast(&g_system_cond);
+        pthread_mutex_unlock(&g_system_mtx);
     } else if (send_value.type == KX_CSTR_T) {
         pthread_mutex_lock(&g_system_mtx);
         khint_t k = kh_put(value_map, g_value_map, name, &absent);
         kstr_t *s = ks_new();
         ks_append(s, send_value.value.pv);
         kh_value(g_value_map, k) = (kx_val_t){ .type = KX_STR_T, .value.sv = s };
-        pthread_mutex_unlock(&g_system_mtx);
         pthread_cond_broadcast(&g_system_cond);
+        pthread_mutex_unlock(&g_system_mtx);
     } else {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Can not send the object except integer, double, or string");
     }
@@ -1003,7 +1003,7 @@ int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     }
 
     pthread_mutex_lock(&g_system_mtx);
-    int absent;
+    int absent = 0;
     khint_t k = kh_put(value_map, g_value_map, name, &absent);
     if (!absent) {
         kx_val_t *v = &kh_value(g_value_map, k);
@@ -1028,7 +1028,7 @@ int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
 
     pthread_mutex_lock(&g_system_mtx);
     kx_named_mutex_pack_t *pack = NULL;
-    int absent;
+    int absent = 0;
     khint_t k = kh_put(named_mutex_map, g_named_mutex_map, name, &absent);
     if (absent) {
         pack = (kx_named_mutex_pack_t *)kx_calloc(1, sizeof(kx_named_mutex_pack_t));
@@ -1094,7 +1094,7 @@ int System_getMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     pthread_mutex_lock(&g_system_mtx);
     kx_mutex_pack_t *pack = NULL;
-    int absent;
+    int absent = 0;
     khint_t k = kh_put(mutex_map, g_mutex_map, name, &absent);
     if (absent) {
         pack = (kx_mutex_pack_t *)kx_calloc(1, sizeof(kx_mutex_pack_t));
@@ -1148,7 +1148,7 @@ int System_unlockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     kx_mutex_pack_t *pack = (kx_mutex_pack_t *)(val->value.av->p);
     if (!pack->locked) {
         KX_ADJST_STACK();
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex did not be locked");
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex is not locked");
     }
     pack->locked = 0;
     int r = pthread_mutex_unlock(&(pack->mtx));
@@ -1167,7 +1167,7 @@ int System_getNamedCondiion(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
 
     pthread_mutex_lock(&g_system_mtx);
     kx_cond_pack_t *pack = NULL;
-    int absent;
+    int absent = 0;
     khint_t k = kh_put(cond_map, g_cond_map, name, &absent);
     if (absent) {
         pack = (kx_cond_pack_t *)kx_calloc(1, sizeof(kx_cond_pack_t));
@@ -1215,7 +1215,7 @@ int System_conditionWait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     kx_mutex_pack_t *mpack = (kx_mutex_pack_t *)(val->value.av->p);
     if (!mpack->locked) {
         KX_ADJST_STACK();
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex did not be locked");
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex is not locked");
     }
 
     mpack->locked = 0;
@@ -1252,7 +1252,7 @@ int System_conditionTimedWait(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     kx_mutex_pack_t *mpack = (kx_mutex_pack_t *)(val->value.av->p);
     if (!mpack->locked) {
         KX_ADJST_STACK();
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex did not be locked");
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Mutex is not locked");
     }
 
     int timeout_msec = get_arg_int(3, args, ctx);
