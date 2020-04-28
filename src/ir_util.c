@@ -30,6 +30,13 @@
 #define KX_SHL_OP_NAME "<<"
 #define KX_SHR_OP_NAME ">>"
 
+typedef struct kx_thread_pack_ {
+    pthread_t r;
+    volatile int is_running;
+    const char *code;
+    int value;
+} kx_thread_pack_t;
+
 kx_exc_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *wht)
 {
     make_exception_object(&((ctx)->excval), ctx, frmv, cur, typ, wht);
@@ -515,25 +522,30 @@ int run_ctx(kx_context_t *ctx, int ac, char **av)
     return r;
 }
 
-thread_return_t STDCALL run_isolate_code(void *p)
+thread_return_t STDCALL run_isolate_code(void *pp)
 {
-    char *code = (char*)p;
-    kx_context_t *ctx = compile_code(code);
+    kx_thread_pack_t *p = (kx_thread_pack_t*)pp;
+    p->is_running = 1;
+    msec_sleep(1);
+    kx_context_t *ctx = compile_code(p->code);
     if (ctx) {
-        (void)run_ctx(ctx, 1, (char *[]){code});
+        p->value = run_ctx(ctx, 1, (char *[]){(char*)p->code});
+    } else {
+        msec_sleep(500);
     }
+    p->is_running = 0;
     return 0;
 }
 
-void thread_free(void *p)
+void thread_free(void *pp)
 {
-    pthread_t r = (pthread_t)p;
-    if (r) {
-        pthread_join(r, NULL);
+    kx_thread_pack_t *p = (kx_thread_pack_t *)pp;
+    if (p->r) {
+        pthread_join(p->r, NULL);
     }
 }
 
-int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int System_threadIsRunning(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     if (obj) {
@@ -545,12 +557,40 @@ int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
             push_s(ctx->stack, "Invalid thread object");
             return KX_THROW_EXCEPTION;
         }
-        pthread_t r = (pthread_t)(val->value.av->p);
-        pthread_join(r, NULL);
-        val->value.av->p = NULL;
+        kx_thread_pack_t *p = (kx_thread_pack_t *)(val->value.av->p);
+        if (p->r) {
+            KX_ADJST_STACK();
+            push_i(ctx->stack, p->is_running);
+            return 0;
+        }
     }
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);
+    return 0;
+}
+
+int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    int ret = 0;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        kx_val_t *val = NULL;
+        KEX_GET_PROP(val, obj, "_thread");
+        if (!val || val->type != KX_ANY_T) {
+            KX_ADJST_STACK();
+            push_s(ctx->stack, "SystemException");
+            push_s(ctx->stack, "Invalid thread object");
+            return KX_THROW_EXCEPTION;
+        }
+        kx_thread_pack_t *p = (kx_thread_pack_t *)(val->value.av->p);
+        if (p->r) {
+            pthread_join(p->r, NULL);
+            ret = p->value;
+        }
+        val->value.av->p = NULL;
+    }
+    KX_ADJST_STACK();
+    push_i(ctx->stack, ret);
     return 0;
 }
 
@@ -566,23 +606,41 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
         return NULL;
     }
     pthread_t t;
-    pthread_create_extra(&t, run_isolate_code, (void *)code, 0);
+    kx_thread_pack_t *p = (kx_thread_pack_t *)kx_calloc(1, sizeof(kx_thread_pack_t));
+    p->is_running = 0;
+    p->code = code;
+    pthread_create_extra(&t, run_isolate_code, (void *)p, 0);
+    while (!p->is_running) {
+        msec_sleep(200);
+    }
+
+    p->r = t;
     kx_any_t *r = allocate_any(ctx);
-    r->p = (void *)t;
+    r->p = (void *)p;
     r->any_free = thread_free;
 
     kx_obj_t *obj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(obj, "_thread", r);
-    kx_fnc_t *fnc = allocate_fnc(ctx);
-    fnc->jp = NULL;
-    fnc->func = &System_joinThread;
-    fnc->lex = NULL;
-    fnc->val.type = KX_OBJ_T;
-    fnc->val.value.ov = obj;
-    kx_val_t v;
-    v.type = KX_BFNC_T;
-    v.value.fn = fnc;
-    KEX_SET_PROP(obj, "join", &v);
+    kx_fnc_t *fnc1 = allocate_fnc(ctx);
+    fnc1->jp = NULL;
+    fnc1->func = &System_threadIsRunning;
+    fnc1->lex = NULL;
+    fnc1->val.type = KX_OBJ_T;
+    fnc1->val.value.ov = obj;
+    kx_val_t v1;
+    v1.type = KX_BFNC_T;
+    v1.value.fn = fnc1;
+    KEX_SET_PROP(obj, "isRunning", &v1);
+    kx_fnc_t *fnc2 = allocate_fnc(ctx);
+    fnc2->jp = NULL;
+    fnc2->func = &System_joinThread;
+    fnc2->lex = NULL;
+    fnc2->val.type = KX_OBJ_T;
+    fnc2->val.value.ov = obj;
+    kx_val_t v2;
+    v2.type = KX_BFNC_T;
+    v2.value.fn = fnc2;
+    KEX_SET_PROP(obj, "join", &v2);
 
     kx_fnc_t *fn = allocate_fnc(ctx);
     fn->push = (kx_val_t){ .type = KX_OBJ_T, .value.ov = obj };

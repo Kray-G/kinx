@@ -206,11 +206,11 @@ static int kx_named_mutex_trylock(kx_named_mutex_pack_t *p)
 
 static int kx_named_mutex_unlock(kx_named_mutex_pack_t *p)
 {
-    #if defined(KX_WIN_NAMED_MUTEX)
     if (!p->locked) {
         return 0;
     }
     p->locked = 0;
+    #if defined(KX_WIN_NAMED_MUTEX)
     ReleaseMutex(p->nmtx);
     return 1;
     #elif defined(KX_POSIX_SEM)
@@ -305,6 +305,7 @@ static void system_finalize(void)
     for (khint_t k = 0; k < kh_end(g_named_mutex_map); ++k) {
         if (kh_exist(g_named_mutex_map, k)) {
             kx_named_mutex_pack_t *p = kh_value(g_named_mutex_map, k);
+            kx_named_mutex_unlock(p);
             kx_named_mutex_destroy(p);
             kx_free(p);
         }
