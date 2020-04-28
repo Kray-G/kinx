@@ -49,8 +49,10 @@ union semun
 
 #define KX_LOCKFILE_MAXSIZ (4096)
 
-pthread_cond_t g_system_cond;
-pthread_mutex_t g_system_mtx;
+static pthread_cond_t g_system_cond;
+static pthread_mutex_t g_system_mtx;
+static string_list_t* g_sshead = NULL;
+static khash_t(conststr) *g_ssmgr = NULL;
 
 typedef struct kx_cond_pack_ {
     pthread_cond_t cond;
@@ -240,6 +242,45 @@ static void kx_named_mutex_destroy(kx_named_mutex_pack_t *p)
     #endif
 }
 
+static const char *alloc_shared_string(const char *str)
+{
+    string_list_t *sl = (string_list_t *)kx_malloc(sizeof(string_list_t));
+    sl->p = kx_strdup(str);
+    sl->n = g_sshead;
+    g_sshead = sl;
+    return sl->p;
+}
+
+static const char *make_local_string(const char* name)
+{
+    pthread_mutex_lock(&g_system_mtx);
+    int absent;
+    if (!name) {
+        return "<unknown>";
+    }
+    khint_t k = kh_put(conststr, g_ssmgr, name, &absent);
+    if (absent) {
+        kh_key(g_ssmgr, k) = alloc_shared_string(name);
+    }
+    const char *p = kh_key(g_ssmgr, k);
+    pthread_mutex_unlock(&g_system_mtx);
+    return p;
+}
+
+static void free_shared_string(void)
+{
+    string_list_t *head = g_sshead;
+    while (head) {
+        string_list_t *next = head->n;
+        kx_free(head->p);
+        kx_free(head);
+        head = next;
+    }
+    g_sshead = NULL;
+    kh_destroy(conststr, g_ssmgr);
+    g_ssmgr = NULL;
+}
+
 static void system_initialize(void)
 {
     pthread_mutex_init(&g_system_mtx, NULL);
@@ -249,6 +290,7 @@ static void system_initialize(void)
     g_mutex_map = kh_init(mutex_map);
     g_named_mutex_map = kh_init(named_mutex_map);
     g_cond_map = kh_init(cond_map);
+    g_ssmgr = kh_init(conststr);
 }
 
 static void system_finalize(void)
@@ -285,6 +327,7 @@ static void system_finalize(void)
 
     pthread_cond_destroy(&g_system_cond);
     pthread_mutex_destroy(&g_system_mtx);
+    free_shared_string();
 }
 
 static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
@@ -935,7 +978,7 @@ int System_printStack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 
 int System_isolateSendAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    const char *name = get_arg_str(1, args, ctx);
+    const char *name = make_local_string(get_arg_str(1, args, ctx));
     if (!name) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
@@ -997,7 +1040,7 @@ int System_isolateReceive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 
 int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    const char *name = get_arg_str(1, args, ctx);
+    const char *name = make_local_string(get_arg_str(1, args, ctx));
     if (!name) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
@@ -1021,7 +1064,7 @@ int System_isolateClear(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
 
 int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    const char *name = get_arg_str(1, args, ctx);
+    const char *name = make_local_string(get_arg_str(1, args, ctx));
     if (!name) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
@@ -1087,7 +1130,7 @@ int System_unlockNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
 
 int System_getMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    const char *name = get_arg_str(1, args, ctx);
+    const char *name = make_local_string(get_arg_str(1, args, ctx));
     if (!name) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, mutex needs a string to be distinguished");
     }
@@ -1160,7 +1203,7 @@ int System_unlockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
 
 int System_getNamedCondiion(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    const char *name = get_arg_str(1, args, ctx);
+    const char *name = make_local_string(get_arg_str(1, args, ctx));
     if (!name) {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, named mutex needs a string");
     }
