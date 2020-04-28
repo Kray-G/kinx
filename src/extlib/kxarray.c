@@ -230,7 +230,13 @@ int Array_push(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     if (obj) {
         kx_val_t *val = &kv_last_by(ctx->stack, 2);
-        if (val->type == KX_BIG_T) {
+        if (val->type == KX_INT_T) {
+            KEX_PUSH_ARRAY_INT(obj, val->value.iv);
+        } else if (val->type == KX_DBL_T) {
+            KEX_PUSH_ARRAY_DBL(obj, val->value.dv);
+        } else if (val->type == KX_UND_T) {
+            KEX_PUSH_ARRAY_DBL(obj, val->value.dv);
+        } else if (val->type == KX_BIG_T) {
             KEX_PUSH_ARRAY_BIG(obj, val->value.bz);
         } else if (val->type == KX_CSTR_T) {
             KEX_PUSH_ARRAY_STR(obj, val->value.pv);
