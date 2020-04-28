@@ -30,6 +30,10 @@
 #define KX_SHL_OP_NAME "<<"
 #define KX_SHR_OP_NAME ">>"
 
+#define KX_THREAD_INITIAL (0)
+#define KX_THREAD_RUNNING (1)
+#define KX_THREAD_ENDED   (2)
+
 typedef struct kx_thread_pack_ {
     pthread_t r;
     volatile int is_running;
@@ -525,7 +529,7 @@ int run_ctx(kx_context_t *ctx, int ac, char **av)
 thread_return_t STDCALL run_isolate_code(void *pp)
 {
     kx_thread_pack_t *p = (kx_thread_pack_t*)pp;
-    p->is_running = 1;
+    p->is_running = KX_THREAD_RUNNING;
     msec_sleep(1);
     kx_context_t *ctx = compile_code(p->code);
     if (ctx) {
@@ -533,7 +537,7 @@ thread_return_t STDCALL run_isolate_code(void *pp)
     } else {
         msec_sleep(500);
     }
-    p->is_running = 0;
+    p->is_running = KX_THREAD_ENDED;
     return 0;
 }
 
@@ -560,7 +564,7 @@ int System_threadIsRunning(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
         kx_thread_pack_t *p = (kx_thread_pack_t *)(val->value.av->p);
         if (p->r) {
             KX_ADJST_STACK();
-            push_i(ctx->stack, p->is_running);
+            push_i(ctx->stack, p->is_running == KX_THREAD_RUNNING);
             return 0;
         }
     }
@@ -607,11 +611,11 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     }
     pthread_t t;
     kx_thread_pack_t *p = (kx_thread_pack_t *)kx_calloc(1, sizeof(kx_thread_pack_t));
-    p->is_running = 0;
+    p->is_running = KX_THREAD_INITIAL;
     p->code = code;
     pthread_create_extra(&t, run_isolate_code, (void *)p, 0);
-    while (!p->is_running) {
-        msec_sleep(200);
+    while (p->is_running != KX_THREAD_INITIAL) {
+        msec_sleep(1);
     }
 
     p->r = t;
