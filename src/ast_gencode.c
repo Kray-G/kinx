@@ -705,7 +705,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHS, .value1 = { .s = const_str(ctx, node->value.s) } }));
         break;
     case KXVL_BIG:
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHB, .value1 = { .s = const_str(ctx, node->value.s) } }));
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHB, .value1 = { .i = node->optional }, .value2 = { .s = const_str(ctx, node->value.s) } }));
         break;
     case KXVL_NULL:
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_NULL }));
@@ -1517,7 +1517,9 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETS, .value1 = { .s = alloc_string(ctx, lhs->value.s) } }));
                 break;
             case KXVL_BIG:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETB, .value1 = { .s = alloc_string(ctx, lhs->value.s) } }));
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETB,
+                    .value1 = { .i = lhs->optional },
+                    .value2 = { .s = alloc_string(ctx, lhs->value.s) } }));
                 break;
             case KXOP_VAR:
                 kv_push(kx_code_t, get_block(module, ana->block)->code,

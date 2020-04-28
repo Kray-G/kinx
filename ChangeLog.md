@@ -20,10 +20,10 @@ Updates from v0.5.2.
         *   `==`, `!=`, `>`, `>=`, `<`, `<=`, `<=>`, `<<`, `>>`, `+`, `-`, `*`, `/`, `%`, `[]`, `()`.
     *   Supported multi-threading as `Isolate` with `Mutex` and `Condition`.
     *   Supported `Enumerable#sum` & `Range#sum`.
+    *   Fixed to parse a big integer from hex.
 
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
-    *   Fix to parse a big integer from hex.
     *   Support DateTime class.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
