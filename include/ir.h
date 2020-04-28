@@ -755,11 +755,11 @@ typedef struct kx_context_ {
         top->value.sv = (v);\
     } while (0);\
 /**/
-#define push_b(st, v) \
+#define push_b(st, base, v) \
     do {\
         kx_val_t *top = &kv_push_undef(st);\
         top->type = KX_BIG_T;\
-        top->value.bz = make_big_alive(ctx, BzFromString(v, 10, BZ_UNTIL_END)); \
+        top->value.bz = make_big_alive(ctx, BzFromString(v, base, BZ_UNTIL_END)); \
     } while (0);\
 /**/
 #define push_big(st, v) \

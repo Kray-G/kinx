@@ -33,7 +33,10 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
             errno = 0;
             int64_t v = (int64_t)strtoll(val.value.pv, NULL, 0);
             if (errno == ERANGE) {
-                push_b(ctx->stack, val.value.pv);
+                const char *p = val.value.pv;
+                int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
+                p += (base == 10 ? 0 : base == 16 ? 2 : 1);
+                push_b(ctx->stack, base, p);
             } else {
                 push_i(ctx->stack, v);
             }
@@ -43,7 +46,10 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
             errno = 0;
             int64_t v = (int64_t)strtoll(ks_string(val.value.sv), NULL, 0);
             if (errno == ERANGE) {
-                push_b(ctx->stack, ks_string(val.value.sv));
+                const char *p = ks_string(val.value.sv);
+                int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
+                p += (base == 10 ? 0 : base == 16 ? 2 : 1);
+                push_b(ctx->stack, base, p);
             } else {
                 push_i(ctx->stack, v);
             }
