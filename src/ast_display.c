@@ -60,7 +60,7 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("(s:\"%s\"):%s\n", node->value.s, get_short_typename(node->var_type));
         break;
     case KXVL_BIG:
-        printf("(b:\"%s\"):%s\n", node->value.s, get_short_typename(node->var_type));
+        printf("(b:\"%s\":%d):%s\n", node->value.s, node->optional, get_short_typename(node->var_type));
         break;
     case KXVL_NULL:
         printf("null:%s\n", get_short_typename(node->var_type));

@@ -143,7 +143,7 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     KX_IROP(RET,  ret);
     case KX_RETB:
-        printf("%-23s %s", "retb", code->value1.s);
+        printf("%-23s %s (%"PRId64")", "retb", code->value2.s, code->value1.i);
         break;
     case KX_RETVL0:
         printf("%-23s %s", "retvl0", gen_varloc_local(code));
@@ -207,7 +207,7 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("%-23s \"%s\"", "pushs", code->value1.s);
         break;
     case KX_PUSHB:
-        printf("%-23s %s", "pushb", code->value1.s);
+        printf("%-23s %s (%"PRId64")", "pushb", code->value2.s, code->value1.i);
         break;
     case KX_PUSHF:
         if (code->addr > 0) {

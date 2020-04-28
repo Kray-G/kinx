@@ -58,7 +58,10 @@ int String_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         errno = 0;
         int64_t v = (int64_t)strtoll(str, NULL, 0);
         if (errno == ERANGE) {
-            push_b(ctx->stack, str);
+            const char *p = str;
+            int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
+            p += (base == 10 ? 0 : base == 16 ? 2 : 1);
+            push_b(ctx->stack, base, p);
         } else {
             push_i(ctx->stack, v);
         }

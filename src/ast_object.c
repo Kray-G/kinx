@@ -209,8 +209,10 @@ const char *kx_gen_typeofstr_object(int t)
 
 kx_object_t *kx_gen_big_object(const char *val)
 {
+    int base = (val[0] == '0' ? ((val[1] == 'x' || val[1] == 'X') ? 16 : 8) : 10);
     kx_object_t *obj = kx_gen_obj(KXVL_BIG, 0, NULL, NULL, NULL);
-    obj->value.s = val;
+    obj->optional = base;
+    obj->value.s = val + (base == 10 ? 0 : base == 16 ? 2 : 1);
     return obj;
 }
 
