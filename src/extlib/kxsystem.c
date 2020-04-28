@@ -1105,16 +1105,13 @@ int System_lockNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
         KX_ADJST_STACK();
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid named mutex object");
     }
-    pthread_mutex_lock(&g_system_mtx);
     kx_named_mutex_pack_t *pack = (kx_named_mutex_pack_t *)(val->value.av->p);
     if (pack->locked) {
         KX_ADJST_STACK();
         push_i(ctx->stack, 0);
-        pthread_mutex_unlock(&g_system_mtx);
         return 0;
     }
     int r = kx_named_mutex_lock(pack);
-    pthread_mutex_unlock(&g_system_mtx);
 
     KX_ADJST_STACK();
     push_i(ctx->stack, r);
@@ -1180,17 +1177,14 @@ int System_lockMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
         KX_ADJST_STACK();
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid mutex object");
     }
-    pthread_mutex_lock(&g_system_mtx);
     kx_mutex_pack_t *pack = (kx_mutex_pack_t *)(val->value.av->p);
     if (pack->locked) {
         KX_ADJST_STACK();
         push_i(ctx->stack, 0);
-        pthread_mutex_unlock(&g_system_mtx);
         return 0;
     }
     int r = pthread_mutex_lock(&(pack->mtx));
     pack->locked = r == 0 ? 1 : 0;
-    pthread_mutex_unlock(&g_system_mtx);
 
     KX_ADJST_STACK();
     push_i(ctx->stack, pack->locked);
