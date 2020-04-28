@@ -13,17 +13,35 @@ Integer.times = _function(val, callback) {
 };
 
 Integer.upto = _function(val, max, callback) {
+    var ary = [];
     var index = 0;
-    for (var i = val; i <= max; ++i) {
-        callback(i, index++);
+    if (callback) {
+        for (var i = val; i <= max; ++i) {
+            ary[index] = callback(i, index);
+            ++index;
+        }
+    } else {
+        for (var i = val; i <= max; ++i) {
+            ary[index++] = val;
+        }
     }
+    return ary;
 };
 
 Integer.downto = _function(val, min, callback) {
+    var ary = [];
     var index = 0;
-    for (var i = val; i >= min; --i) {
-        callback(i, index++);
+    if (callback) {
+        for (var i = val; i >= min; --i) {
+            ary[index] = callback(i, index);
+            ++index;
+        }
+    } else {
+        for (var i = val; i >= min; --i) {
+            ary[index++] = val;
+        }
     }
+    return ary;
 };
 
 Integer.methodMissing = _function(d, method, a0) {
