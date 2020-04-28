@@ -1075,8 +1075,8 @@ int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     khint_t k = kh_put(named_mutex_map, g_named_mutex_map, name, &absent);
     if (absent) {
         pack = (kx_named_mutex_pack_t *)kx_calloc(1, sizeof(kx_named_mutex_pack_t));
-        kh_value(g_named_mutex_map, k) = pack;
         kx_named_mutex_init(pack, name);
+        kh_value(g_named_mutex_map, k) = pack;
         pack->locked = 0;
     } else {
         pack = kh_value(g_named_mutex_map, k);
@@ -1089,6 +1089,7 @@ int System_getNamedMutex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     r->any_free = NULL;
     KEX_SET_PROP_ANY(obj, "_namedmutex", r);
     KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
 
     pthread_mutex_unlock(&g_system_mtx);
     return 0;
