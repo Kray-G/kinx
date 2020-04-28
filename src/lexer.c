@@ -798,7 +798,12 @@ HEAD_OF_YYLEX:
                     kx_lex_next(kx_lexinfo);
                 }
                 kx_strbuf[pos] = 0;
+                errno = 0;
                 kx_yylval.intval = strtoll(kx_strbuf, NULL, 16);
+                if (errno == ERANGE) {
+                    kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
+                    return BIGINT;
+                }
                 return INT;
             } else if (kx_is_oct_number(kx_lexinfo)) {
                 kx_strbuf[pos++] = kx_lexinfo.ch;
@@ -808,7 +813,12 @@ HEAD_OF_YYLEX:
                     kx_lex_next(kx_lexinfo);
                 }
                 kx_strbuf[pos] = 0;
+                errno = 0;
                 kx_yylval.intval = strtoll(kx_strbuf, NULL, 8);
+                if (errno == ERANGE) {
+                    kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
+                    return BIGINT;
+                }
                 return INT;
             } else {
                 kx_strbuf[pos] = 0;
