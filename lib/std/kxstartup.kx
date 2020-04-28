@@ -53,7 +53,13 @@ var Xml, Net;
                 code = code.format();
             }
             var t = code._run_isolate();
-            this.join = t.join;
+            this.isRunning = t.isRunning;
+            this.join = _function() {
+                while (t.isRunning()) {
+                    System.sleep(300);
+                }
+                return t.join();
+            };
             return this;
         };
         return this;
