@@ -18,13 +18,13 @@ Updates from v0.5.2.
     *   Supported the operator '~' for bitwise not.
     *   Supported operator override for class instance as below.
         *   `==`, `!=`, `>`, `>=`, `<`, `<=`, `<=>`, `<<`, `>>`, `+`, `-`, `*`, `/`, `%`, `[]`, `()`.
+    *   Support multi-threading as `Isolate` with `Mutex` and `Condition`.
 
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
     *   Support `Enumerable#sum`.
     *   Fix to parse a big integer from hex.
     *   Support DateTime class.
-    *   Support multi-threading.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
     *   Use a register as a stack pointer.
