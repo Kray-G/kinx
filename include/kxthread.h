@@ -41,6 +41,14 @@ static inline int pthread_mutex_lock(pthread_mutex_t* mutex)
     return 0;
 }
 
+static inline int pthread_mutex_trylock(pthread_mutex_t* mutex)
+{
+    if (TryEnterCriticalSection(mutex)) {
+        return 0;   // success.
+    }
+    return EBUSY;
+}
+
 static inline int pthread_mutex_unlock(pthread_mutex_t* mutex)
 {
     LeaveCriticalSection(mutex);

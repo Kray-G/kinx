@@ -614,7 +614,7 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     p->is_running = KX_THREAD_INITIAL;
     p->code = code;
     pthread_create_extra(&t, run_isolate_code, (void *)p, 0);
-    while (p->is_running != KX_THREAD_INITIAL) {
+    while (p->is_running == KX_THREAD_INITIAL) {
         msec_sleep(1);
     }
 
