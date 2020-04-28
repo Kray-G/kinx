@@ -1000,6 +1000,14 @@ int System_isolateSendAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
         kh_value(g_value_map, k) = (kx_val_t){ .type = KX_STR_T, .value.sv = s };
         pthread_cond_broadcast(&g_system_cond);
         pthread_mutex_unlock(&g_system_mtx);
+    } else if (send_value.type == KX_STR_T) {
+        pthread_mutex_lock(&g_system_mtx);
+        khint_t k = kh_put(value_map, g_value_map, name, &absent);
+        kstr_t *s = ks_new();
+        ks_append(s, ks_string(send_value.value.sv));
+        kh_value(g_value_map, k) = (kx_val_t){ .type = KX_STR_T, .value.sv = s };
+        pthread_cond_broadcast(&g_system_cond);
+        pthread_mutex_unlock(&g_system_mtx);
     } else {
         KX_THROW_BLTIN_EXCEPTION("SystemException", "Can not send the object except integer, double, or string");
     }
