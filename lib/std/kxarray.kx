@@ -288,7 +288,7 @@ Array.println = _function(ary) {
 };
 
 Array.[] = _function(ary, obj) {
-    if (obj.isRange) {
+    if (obj.begin.isFunction && obj.end.isFunction) {
         var b = obj.begin() ?? 0;
         var e = obj.end();
         if (!e) {
