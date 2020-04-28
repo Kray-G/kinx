@@ -56,7 +56,7 @@ var Xml, Net;
             this.isRunning = t.isRunning;
             this.join = _function() {
                 while (t.isRunning()) {
-                    System.sleep(300);
+                    System.sleep(250);
                 }
                 return t.join();
             };
@@ -67,7 +67,9 @@ var Xml, Net;
     Isolate.Mutex.create = _function(name) {
         var m = System.getMutex(name || '_main');
         m.lock = _function(f) {
-            System.lockMutex(m);
+            while (!System.lockMutex(m)) {
+                System.sleep(250);
+            }
             try {
                 return f();
             } finally {
@@ -79,7 +81,9 @@ var Xml, Net;
     Isolate.NamedMutex.create = _function(name) {
         var m = System.getNamedMutex(name || '_main');
         m.lock = _function(f) {
-            System.lockNamedMutex(m);
+            while (!System.lockNamedMutex(m)) {
+                System.sleep(250);
+            }
             try {
                 return f();
             } finally {
