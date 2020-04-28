@@ -467,12 +467,12 @@ typedef struct kx_val_ {
         struct kx_frm_ *fr;
         struct kx_bin_ *bn;
     } value;
-    uint8_t mark;
-    uint16_t type;
+    unsigned int mark:1;
+    unsigned int type:31;
+    unsigned int has_pos:1;
+    unsigned int pos:31;
     const char *method;
     struct kx_val_ *host;
-    int has_pos;
-    int64_t pos;
     #if defined(KX_EXEC_DEBUG)
     int frm;
     int idx;
