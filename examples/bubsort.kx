@@ -1,0 +1,29 @@
+function display(name, a) {
+    System.println(name, a.map(&(e) => "%2d" % e).join(' '));
+}
+
+function demo(N, func) {
+    var a = N.times(&() => Integer.parseInt(Math.random() * 100));
+    display("Before: ", a);
+    a = func(a);
+    display("After:  ", a);
+}
+
+function bubblesort(n, a) {
+    var k = n - 1;
+    while (k >= 0) {
+        var j = -1;
+        for (var i = 1; i <= k; i++) {
+            if (a[i - 1] > a[i]) {
+                j = i - 1;
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+        }
+        k = j;
+    }
+}
+
+demo(20, &(a) => {
+    bubblesort(a.length(), a);
+    return a;
+});
