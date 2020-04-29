@@ -1,0 +1,43 @@
+function display(name, a) {
+    System.println(name, a.map(&(e) => "%2d" % e).join(' '));
+}
+
+function demo(N, func) {
+    var a = N.times(&() => Integer.parseInt(Math.random() * 100));
+    display("Before: ", a);
+    a = func(a);
+    display("After:  ", a);
+}
+
+function mergesort(a, first, last) {
+    var middle, work = [];
+    var i, j, k, p;
+
+    if (first < last) {
+        middle = Integer.parseInt((first + last) / 2);
+        mergesort(a, first, middle);
+        mergesort(a, middle + 1, last);
+        p = 0;
+        for (i = first; i <= middle; i++) {
+            work[p++] = a[i];
+        }
+        i = middle + 1;
+        j = 0;
+        k = first;
+        while (i <= last && j < p) {
+            if (work[j] <= a[i]) {
+                a[k++] = work[j++];
+            } else {
+                a[k++] = a[i++];
+            }
+        }
+        while (j < p) {
+            a[k++] = work[j++];
+        }
+    }
+}
+
+demo(20, &(a) => {
+    mergesort(a, 0, a.length() - 1);
+    return a;
+});
