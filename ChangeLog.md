@@ -24,6 +24,7 @@ Updates from v0.5.2.
 
 *   Planned, or remaining tasks.
     *   Append alias methods like `Array#collect` for `Array#map`.
+    *   Function Object is always evaluated as `false`. Only `.isFunction` property returns `true`.
     *   Support DateTime class.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
