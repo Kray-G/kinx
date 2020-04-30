@@ -1,0 +1,25 @@
+function display(name, a) {
+    System.println(name, a.map(&(e) => "%2d" % e).join(' '));
+}
+
+function demo(N, func) {
+    var a = N.times(&() => Integer.parseInt(Math.random() * 100));
+    display("Before: ", a);
+    a = func(a);
+    display("After:  ", a);
+}
+
+function inssort(n, a) {
+    var j;
+    for (var i = 1; i < n; i++) {
+        var x = a[i];
+        for (j = i - 1; j >= 0 && a[j] > x; j--)
+            a[j + 1] = a[j];
+        a[j + 1] = x;
+    }
+}
+
+demo(20, &(a) => {
+    inssort(a.length(), a);
+    return a;
+});
