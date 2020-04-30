@@ -1,6 +1,6 @@
 Integer.times = _function(val, callback) {
     var ary = [];
-    if (callback) {
+    if (callback.isFunction) {
         for (var i = 0; i < val; ++i) {
             ary[i] = callback(i, i);
         }
@@ -15,7 +15,7 @@ Integer.times = _function(val, callback) {
 Integer.upto = _function(val, max, callback) {
     var ary = [];
     var index = 0;
-    if (callback) {
+    if (callback.isFunction) {
         for (var i = val; i <= max; ++i) {
             ary[index] = callback(i, index);
             ++index;
@@ -31,7 +31,7 @@ Integer.upto = _function(val, max, callback) {
 Integer.downto = _function(val, min, callback) {
     var ary = [];
     var index = 0;
-    if (callback) {
+    if (callback.isFunction) {
         for (var i = val; i >= min; --i) {
             ary[index] = callback(i, index);
             ++index;
