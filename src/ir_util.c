@@ -1057,8 +1057,6 @@ int kx_value_true(kx_context_t *ctx, kx_val_t *v)
         } else {
             tf = 1;
         }
-    } else if (v->type == KX_FNC_T) {
-        tf = 1;
     } else {
         tf = 0;
     }
