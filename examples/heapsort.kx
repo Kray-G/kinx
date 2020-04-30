@@ -1,0 +1,42 @@
+function display(name, a) {
+    System.println(name, a.map(&(e) => "%2d" % e).join(' '));
+}
+
+function demo(N, func) {
+    var a = N.times(&() => Integer.parseInt(Math.random() * 100));
+    display("Before: ", a);
+    a = func(a);
+    display("After:  ", a);
+}
+
+function heapsort(n, a) {
+    var i, j, k;
+    var x;
+
+    for (k = Integer.parseInt(n / 2); k >= 1; k--) {
+        i = k;  x = a[i];
+        while ((j = 2 * i) <= n) {
+            if (j < n && a[j] < a[j + 1]) j++;
+            if (x >= a[j]) break;
+            a[i] = a[j];  i = j;
+        }
+        a[i] = x;
+    }
+    while (n > 1) {
+        x = a[n];  a[n] = a[1];  n--;
+        i = 1;
+        while ((j = 2 * i) <= n) {
+            if (j < n && a[j] < a[j + 1]) j++;
+            if (x >= a[j]) break;
+            a[i] = a[j];  i = j;
+        }
+        a[i] = x;
+    }
+}
+
+demo(20, &(a) => {
+    a = [0, ...a];
+    heapsort(a.length() - 1, a);
+    a.shift();
+    return a;
+});
