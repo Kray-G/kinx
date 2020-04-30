@@ -1,0 +1,26 @@
+function display(name, a) {
+    System.println(name, a.map(&(e) => "%2d" % e).join(' '));
+}
+
+function demo(N, func) {
+    var a = N.times(&() => Integer.parseInt(Math.random() * 100));
+    display("Before: ", a);
+    a = func(a);
+    display("After:  ", a);
+}
+
+function selectsort(n, a) {
+    var i, j, k, min;
+
+    for (i = 0; i < n - 1; i++) {
+        min = a[i];  k = i;
+        for (j = i + 1; j < n; j++)
+            if (a[j] < min) {  min = a[j];  k = j;  }
+        a[k] = a[i];  a[i] = min;
+    }
+}
+
+demo(20, &(a) => {
+    selectsort(a.length(), a);
+    return a;
+});
