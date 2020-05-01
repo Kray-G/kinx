@@ -8,7 +8,18 @@
 *   Some Optimaizations.
 *   User selectable installation.
 
-## V0.6.0 (Current Development)
+## V0.7.0 (Current Development)
+
+*   Updated
+
+*   Planned, or remaining tasks.
+    *   Support DateTime class.
+    *   Replace Bison by Kmyacc.
+    *   Support REPL.
+    *   Use a register as a stack pointer.
+    *   Support kinx as a library.
+
+## V0.6.0 (6th Preview Release)
 
 Updates from v0.5.2.
 
@@ -27,13 +38,6 @@ Updates from v0.5.2.
         *   `Array#collectConcat` for `Array#flatMap`.
         *   `Array#inject` for `Array#reduce`.
         *   `Array#select`, `Array#findAll` for `Array#filter`.
-
-*   Planned, or remaining tasks.
-    *   Support DateTime class.
-    *   Replace Bison by Kmyacc.
-    *   Support REPL.
-    *   Use a register as a stack pointer.
-    *   Support kinx as a library.
 
 ## V0.5.2 (5th Preview Release)
 
