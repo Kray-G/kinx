@@ -22,9 +22,13 @@ Updates from v0.5.2.
     *   Supported `Enumerable#sum` & `Range#sum`.
     *   Fixed to parse a big integer from hex.
     *   Function Object is always evaluated as `false`. Only `.isFunction` property returns `true`.
+    *   Append alias methods for Array/Enumerable below.
+        *   `Array#collect` for `Array#map`.
+        *   `Array#collectConcat` for `Array#flatMap`.
+        *   `Array#inject` for `Array#reduce`.
+        *   `Array#select`, `Array#findAll` for `Array#filter`.
 
 *   Planned, or remaining tasks.
-    *   Append alias methods like `Array#collect` for `Array#map`.
     *   Support DateTime class.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
