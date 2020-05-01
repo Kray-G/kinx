@@ -32,7 +32,7 @@ Array.each = _function(ary, callback) {
     }
 };
 
-Array.map = _function(ary, callback) {
+Array.collect = Array.map = _function(ary, callback) {
     var ret = [];
     var len = ary.length();
     for (var i = 0; i < len; ++i) {
@@ -41,11 +41,11 @@ Array.map = _function(ary, callback) {
     return ret;
 };
 
-Array.flatMap = _function(ary, func) {
+Array.collectConcat = Array.flatMap = _function(ary, func) {
     return ary.map(func).flatten();
 };
 
-Array.filter = _function(ary, callback) {
+Array.findAll = Array.select = Array.filter = _function(ary, callback) {
     var ret = [];
     var len = ary.length();
     for (var i = 0; i < len; ++i) {
@@ -63,7 +63,7 @@ Array.reject = _function(ary, callback) {
     return ret;
 };
 
-Array.reduce = _function(ary, callback, initr) {
+Array.inject = Array.reduce = _function(ary, callback, initr) {
     var r = initr;
     var len = ary.length();
     for (var i = 0; i < len; ++i) {
