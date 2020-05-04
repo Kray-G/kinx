@@ -1,33 +1,18 @@
-
-function mergesort(a) {
-    function m(first, last) {
-        var middle, work = [];
-        var i, j, k, p;
-
-        if (first < last) {
-            middle = Integer.parseInt((first + last) / 2);
-            m(first, middle);
-            m(middle + 1, last);
-            p = 0;
-            for (i = first; i <= middle; i++) {
-                work[p++] = a[i];
-            }
-            i = middle + 1;
-            j = 0;
-            k = first;
-            while (i <= last && j < p) {
-                if (work[j] <= a[i]) {
-                    a[k++] = work[j++];
-                } else {
-                    a[k++] = a[i++];
-                }
-            }
-            while (j < p) {
-                a[k++] = work[j++];
-            }
-        }
+function quicksort(a, first, last) {
+    var i = first;
+    var j = last;
+    var x = a[(first + last) / 2];
+    while (true) {
+        while (a[i] < x) i++;
+        while (x < a[j]) j--;
+        if (i >= j) break;
+        [a[i], a[j]] = [a[j], a[i]];
+        ++i; --j;
     }
-    return m(0, a.length() - 1);
+    if (first  < i - 1)
+        quicksort(a, first , i - 1);
+    if (j + 1 < last)
+        quicksort(a, j + 1, last);
 }
 
 for (var i = 0; i < 3000; ++i) {
@@ -48,5 +33,5 @@ for (var i = 0; i < 3000; ++i) {
         317292284, 378291676, 1253835093, 523476912, 1606023999, 59263848,
         1234358080, 140981643, 1828471854, 1197394207, 1317927546, 878287915,
         334576359, 982149842, 642878238, 1024064999, 1834342299];
-    mergesort(numbers);
+    quicksort(numbers, 0, numbers.length() - 1);
 }
