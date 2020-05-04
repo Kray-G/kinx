@@ -1,31 +1,21 @@
-#!/usr/bin/env python
-import math
-def mergesort(arr):
-    def m(head, tail):
-        if head < tail:
-            mid = int(math.floor((head + tail) / 2))
-            m(head, mid)
-            m(mid + 1, tail)
+def quicksort(a, first, last)
+  p = a[(first + last)/2]
+  i = first
+  j = last
+  loop do
+    i += 1 while a[i] < p
+    j -= 1 while a[j] > p
+    break if i >= j
+    a[i], a[j] = a[j], a[i]
+    i += 1
+    j -= 1
+  end
+  quicksort(a, first, i - 1) if i - first > 1
+  quicksort(a, j + 1, last) if last - j > 1
+end
 
-            l = arr[head: mid + 1]
-            r = arr[mid+1: tail+1]
-            k = head
-            while len(l) > 0 and len(r) > 0:
-                if l[0] <= r[0]:
-                    arr[k] = l.pop(0)
-                else:
-                    arr[k] = r.pop(0)
-                k += 1
-
-            while len(l) > 0:
-                arr[k] = l.pop(0)
-                k += 1
-        return arr
-    return m(0, len(arr)-1)
-
-i = 0
-while i < 3000:
-    numbers = [47448054, 1106251565, 1208921855, 170086026, 840395770,
+3000.times do
+  numbers = [47448054, 1106251565, 1208921855, 170086026, 840395770,
     444281018, 1297307905, 1613614128, 357068250, 1829657695, 654555439,
     1261773796, 1821640729, 449683981, 1062536538, 96076061, 1387478498,
     1835855315, 364455615, 4830124, 864633601, 289493189, 471351435,
@@ -41,7 +31,6 @@ while i < 3000:
     1464773315, 1994172406, 997300623, 46405283, 1614271949, 447907123,
     317292284, 378291676, 1253835093, 523476912, 1606023999, 59263848,
     1234358080, 140981643, 1828471854, 1197394207, 1317927546, 878287915,
-    334576359, 982149842, 642878238, 1024064999, 1834342299]
-    mergesort(numbers)
-    i += 1
-
+    334576359, 982149842, 642878238, 1024064999, 1834342299];
+	quicksort(numbers, 0, numbers.size - 1)
+end
