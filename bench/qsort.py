@@ -1,27 +1,22 @@
 #!/usr/bin/env python
-import math
-def mergesort(arr):
-    def m(head, tail):
-        if head < tail:
-            mid = int(math.floor((head + tail) / 2))
-            m(head, mid)
-            m(mid + 1, tail)
-
-            l = arr[head: mid + 1]
-            r = arr[mid+1: tail+1]
-            k = head
-            while len(l) > 0 and len(r) > 0:
-                if l[0] <= r[0]:
-                    arr[k] = l.pop(0)
-                else:
-                    arr[k] = r.pop(0)
-                k += 1
-
-            while len(l) > 0:
-                arr[k] = l.pop(0)
-                k += 1
-        return arr
-    return m(0, len(arr)-1)
+def quicksort(a, first, last):
+    x = a[int((first + last) / 2)]
+    i = first
+    j = last
+    while 1:
+        while (a[i] < x):
+            i += 1
+        while (x < a[j]):
+            j -= 1
+        if (i >= j):
+            break
+        a[i], a[j] = a[j], a[i]
+        i += 1
+        j -= 1
+    if (first  < i - 1):
+        quicksort(a, first , i - 1)
+    if (j + 1 < last):
+        quicksort(a, j + 1, last)
 
 i = 0
 while i < 3000:
@@ -42,6 +37,5 @@ while i < 3000:
     317292284, 378291676, 1253835093, 523476912, 1606023999, 59263848,
     1234358080, 140981643, 1828471854, 1197394207, 1317927546, 878287915,
     334576359, 982149842, 642878238, 1024064999, 1834342299]
-    mergesort(numbers)
+    quicksort(numbers, 0, len(numbers) - 1)
     i += 1
-
