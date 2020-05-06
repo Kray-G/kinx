@@ -538,6 +538,8 @@ PropertyName
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
     | USING { $$ = kx_gen_str_object("using"); }
+    | SHL { $$ = kx_gen_str_object("<<"); }
+    | SHR { $$ = kx_gen_str_object(">>"); }
     | EQEQ { $$ = kx_gen_str_object("=="); }
     | NEQ { $$ = kx_gen_str_object("!="); }
     | LE { $$ = kx_gen_str_object("<="); }
@@ -645,6 +647,8 @@ KeySpecialName
     | USING { $$ = "using"; }
     | TYPE { $$ = kx_gen_typestr_object($1); }
     | TYPEOF { $$ = kx_gen_typeofstr_object($1); }
+    | SHL { $$ = "<<"; }
+    | SHR { $$ = ">>"; }
     | EQEQ { $$ = "=="; }
     | NEQ { $$ = "!="; }
     | LE { $$ = "<="; }
