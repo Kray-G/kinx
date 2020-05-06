@@ -3288,6 +3288,30 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         if (fn) { \
             break; \
         } \
+        if (kv_size(v1->value.ov->ary) > 0 && kv_size(v2->value.ov->ary) > 0) { \
+            kx_obj_t *o1 = v1->value.ov; \
+            kx_obj_t *ov = v2->value.ov; \
+            int sz = kv_size(ov->ary); \
+            for (int i = 0; i < sz; ++i) { \
+                kx_val_t *val = &kv_A(ov->ary, i); \
+                if (val->type == KX_INT_T) { \
+                    KEX_PUSH_ARRAY_INT(o1, val->value.iv); \
+                } else if (val->type == KX_DBL_T) { \
+                    KEX_PUSH_ARRAY_DBL(o1, val->value.dv); \
+                } else if (val->type == KX_UND_T) { \
+                    KEX_PUSH_ARRAY_DBL(o1, val->value.dv); \
+                } else if (val->type == KX_BIG_T) { \
+                    KEX_PUSH_ARRAY_BIG(o1, val->value.bz); \
+                } else if (val->type == KX_CSTR_T) { \
+                    KEX_PUSH_ARRAY_STR(o1, val->value.pv); \
+                } else if (val->type == KX_STR_T) { \
+                    KEX_PUSH_ARRAY_STR(o1, ks_string(val->value.sv)); \
+                } else { \
+                    KEX_PUSH_ARRAY_VAL(o1, *val); \
+                } \
+            } \
+            break; \
+        } \
         /* fall through */ \
     } \
     default: \
@@ -4555,7 +4579,10 @@ kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         KX_SHL_SHL_I(v1, v2->value.iv); \
     } else switch (v2->type) { \
     case KX_UND_T: { \
-        break; /* do nothing */ \
+        if (v1->type == KX_OBJ_T) { \
+            fn = kx_get_special_object_function(ctx, v1, KX_SHR_OP_NAME); \
+        } \
+        break; /* do nothing if v1 is not an object */ \
     } \
     case KX_DBL_T: { \
         KX_SHL_SHL_I(v1, (int64_t)v2->value.dv); \
@@ -4665,7 +4692,10 @@ kx_fnc_t *kx_try_shl_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         KX_SHR_SHR_I(v1, v2->value.iv); \
     } else switch (v2->type) { \
     case KX_UND_T: { \
-        break; /* do nothing */ \
+        if (v1->type == KX_OBJ_T) { \
+            fn = kx_get_special_object_function(ctx, v1, KX_SHR_OP_NAME); \
+        } \
+        break; /* do nothing if v1 is not an object */ \
     } \
     case KX_DBL_T: { \
         KX_SHR_SHR_I(v1, (int64_t)v2->value.dv); \
