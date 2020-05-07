@@ -59,7 +59,7 @@ The individual operations are described below.
 *   [Exponentiation](expression/exponent.md)
 *   [Matching Operation](expression/matching.md)
 *   [Range Operation](expression/range.md)
-*   [Unary Expression](expression/prefix.md)
+*   [Unary Expression](expression/unary.md)
 *   [Postfix Operation](expression/postfix.md)
 
 ### Special Description
