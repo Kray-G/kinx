@@ -100,9 +100,7 @@ int Array_join_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
         kx_val_t *v = &kv_A(obj->ary, i);
         switch (v->type) {
         case KX_UND_T:
-            if (quote) {
-                ks_append(str, "null");
-            }
+            ks_append(str, "null");
             break;
         case KX_INT_T:
             ks_appendf(str, "%"PRId64, v->value.iv);
