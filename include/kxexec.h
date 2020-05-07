@@ -257,10 +257,10 @@
 #define KX_SET_GOTO(c) (c)->gotolabel = jumptable[(c)->op];
 #define KX_EXEC_DECL(fixcode) \
     register struct kx_code_ *cur asm ("rbx"); \
-    register kx_frm_t *frmv asm ("r13"); \
-    register kx_frm_t *lexv asm ("r14"); \
-    register kx_context_t *ctx asm ("r15"); \
-    register int gc_ticks asm ("r12");\
+    register kx_context_t *ctx asm ("r12"); \
+    register int gc_ticks asm ("r13"); \
+    register kx_frm_t *frmv asm ("r14"); \
+    register kx_frm_t *lexv asm ("r15"); \
     kx_code_t *caller = NULL; \
     int is_main_thread = g_main_thread == ctxp ? 1 : 0; \
     ctx = ctxp; \

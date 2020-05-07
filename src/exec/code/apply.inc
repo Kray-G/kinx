@@ -5,7 +5,10 @@
             push_i((ctx)->stack, count + ctx->spread_additional); \
             ctx->spread_additional = 0; \
             push_adr((ctx)->stack, cur->next); \
-            cur = fn->jp; \
+            cur = kx_call_optimization(ctx, cur, fn->jp); \
+            if (!cur) { \
+                cur = fn->jp; \
+            } \
             KX_GOTO(); \
         } else { \
             kv_remove_last((ctx)->stack); \
