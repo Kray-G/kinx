@@ -4580,7 +4580,7 @@ kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } else switch (v2->type) { \
     case KX_UND_T: { \
         if (v1->type == KX_OBJ_T) { \
-            fn = kx_get_special_object_function(ctx, v1, KX_SHR_OP_NAME); \
+            fn = kx_get_object_operator_function(ctx, v1, KX_SHL_OP_NAME); \
         } \
         break; /* do nothing if v1 is not an object */ \
     } \
@@ -4693,7 +4693,7 @@ kx_fnc_t *kx_try_shl_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } else switch (v2->type) { \
     case KX_UND_T: { \
         if (v1->type == KX_OBJ_T) { \
-            fn = kx_get_special_object_function(ctx, v1, KX_SHR_OP_NAME); \
+            fn = kx_get_object_operator_function(ctx, v1, KX_SHR_OP_NAME); \
         } \
         break; /* do nothing if v1 is not an object */ \
     } \
