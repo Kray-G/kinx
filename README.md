@@ -7,7 +7,8 @@ Looks like JavaScript, feels like Ruby, and it is the script language fitting in
 
 ## Introduction
 
-Ruby or Python is a major scripting language, but its syntax is **NOT** familier with C programmers.
+Ruby is a major scripting language. Also Python is.
+But both syntax of them are **NOT** familier with C programmers.
 This is a script language for people who want C-like syntax.
 Now **Native Thread without GIL** has been supported as an **Isolate**.
 
