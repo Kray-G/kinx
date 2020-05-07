@@ -651,6 +651,62 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     return fn;
 }
 
+#define KX_CALLOPT_ARG(n) &kv_last_by((ctx)->stack, (n)+4)
+kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp)
+{
+    if (jp->op != KX_ENTER) {
+        return NULL;
+    }
+    kx_code_t *c1 = jp->next;
+    kx_code_t *c2 = c1->next;
+    kx_code_t *c3 = c2->next;
+    kx_code_t *next = kv_last_by(ctx->stack, 1).value.jp;
+    int count = jp->count;
+    int args = kv_last_by((ctx)->stack, 2).value.iv;
+    if (c1->op == KX_RET_NULL) {
+        kv_shrink(ctx->stack, args + 3);
+        push_undef(ctx->stack);
+        return next;
+    } else if (c1->op == KX_RETI) {
+        kv_shrink(ctx->stack, args + 3);
+        push_i(ctx->stack, c1->value1.i);
+        return next;
+    } else if (c1->op == KX_RETVL0) {
+        if (c1->value2.i < count) {
+            kx_val_t *r = KX_CALLOPT_ARG(c1->value2.i);
+            kv_shrink(ctx->stack, args + 3);
+            push_value(ctx->stack, *r);
+            return next;
+        }
+    } else if (c1->op == KX_RETVL1) {
+        kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn;
+        kx_frm_t *lexv = fnc->lex;
+        kx_val_t *r = &kv_A(lexv->v, c1->value2.i);
+        kv_shrink(ctx->stack, args + 3);
+        push_value(ctx->stack, *r);
+        return next;
+    } else if (c1->op == KX_LT_V0I && c1->value1.i < count) {
+        kx_val_t *v1 = KX_CALLOPT_ARG(c1->value1.i);
+        int tf = (v1->type == KX_INT_T) && (((v1)->value.iv) < (c1->value2.i));
+        if ((c2->op == KX_JZ && tf) || (c2->op == KX_JNZ && !tf)) {
+            if (c3->op == KX_RETVL0 && c3->value2.i < count) {
+                kx_val_t *r = KX_CALLOPT_ARG(c3->value2.i);
+                kv_shrink(ctx->stack, args + 3);
+                push_value(ctx->stack, *r);
+                return next;
+            } else if (c3->op == KX_RETVL1) {
+                kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn;
+                kx_frm_t *lexv = fnc->lex;
+                kx_val_t *r = &kv_A(lexv->v, c3->value2.i);
+                kv_shrink(ctx->stack, args + 3);
+                push_value(ctx->stack, *r);
+                return next;
+            }
+        }
+    }
+    return NULL;
+}
+
 kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
     if (method[0] == 'e' && method && !strcmp(method, "eval")) {

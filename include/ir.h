@@ -1055,19 +1055,19 @@ typedef struct kx_context_ {
 /**/
 
 #define KEX_POP_STACK_TOP(vp) \
-    kx_val_t *vp = &kv_pop((ctx)->stack); \
+    register kx_val_t *vp = &kv_pop((ctx)->stack); \
 /**/
 #define KEX_GET_STACK_TOP(vp) \
-    kx_val_t *vp = &kv_last((ctx)->stack); \
+    register kx_val_t *vp = &kv_last((ctx)->stack); \
 /**/
 #define KEX_GET_L0VAR_ADDR(vp) \
-    kx_val_t *vp = &kv_A(frmv->v, cur->value2.i); \
+    register kx_val_t *vp = &kv_A(frmv->v, cur->value2.i); \
 /**/
 #define KEX_GET_L1VAR_ADDR(vp) \
-    kx_val_t *vp = &kv_A(lexv->v, cur->value2.i); \
+    register kx_val_t *vp = &kv_A(lexv->v, cur->value2.i); \
 /**/
 #define KEX_GET_VAR_ADDR(vp) \
-    kx_val_t *vp; \
+    register kx_val_t *vp; \
     int lex = cur->value1.i; \
     if (lex) { \
         kx_frm_t *lexp = lexv; \
@@ -1080,7 +1080,7 @@ typedef struct kx_context_ {
     } \
 /**/
 #define KEX_GET_VAR_ADDR_LOCAL(vp, idx) \
-    kx_val_t *vp = &kv_A(frmv->v, idx); \
+    register kx_val_t *vp = &kv_A(frmv->v, idx); \
 /**/
 
 #endif /* KX_IR_H */
