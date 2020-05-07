@@ -341,6 +341,7 @@ extern int eval_string(const char *code, kx_context_t *ctx);
 extern int eval_file(const char *file, kx_context_t *ctx);
 extern kstr_t *kx_format(kx_val_t *objval);
 
+extern kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp);
 extern void kx_set_regex(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
 extern int kx_regex_eq(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int eq);
 extern int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
