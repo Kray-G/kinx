@@ -28,7 +28,7 @@ Now **Native Thread without GIL** has been supported as an **Isolate**.
 The script language is a platform as a glue between libraries.
 This means a language itself is not a main purpose, it should be just a backend or supporter due to use a library you want to use.
 
-Therefor another design goal for this language is to be extendable, lightweight, and easy to use for user's own purpose.
+Therefore another design goal for this language is to be extendable, lightweight, and easy to use for user's own purpose.
 Kinx will be able to be the best platform for any libraries which you want to use or your own library.
 
 ### Language Details
