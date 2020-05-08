@@ -708,6 +708,7 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
             KX_CALLOPT_RETI(c3); \
             KX_CALLOPT_RETVL0(c3); \
             KX_CALLOPT_RETVL1(c3); \
+            return NULL; \
         } \
         kx_code_t *cj = c2->jmp; \
         if ((c2->op == KX_JZ && !tf) || (c2->op == KX_JNZ && tf)) { \
@@ -715,6 +716,7 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
             KX_CALLOPT_RETI(cj); \
             KX_CALLOPT_RETVL0(cj); \
             KX_CALLOPT_RETVL1(cj); \
+            return NULL; \
         } \
         return NULL; \
     } \
