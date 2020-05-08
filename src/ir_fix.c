@@ -111,6 +111,15 @@ static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
     int len = kv_size(*fixcode);
     for (int i = start; i < len; ++i) {
         kx_code_t *code = kv_A(*fixcode, i);
+        if (code->op == KX_JZ || code->op == KX_JNZ) {
+            kx_code_t *next = kv_A(*fixcode, i+1);
+            if (next->op == KX_JMP && code->addr == (i+2)) {
+                code->op = code->op == KX_JZ ? KX_JNZ : KX_JZ;
+                code->addr = next->addr;
+                code->value1.i = next->value1.i;
+                next->op = KX_NOP;
+            }
+        }
         if (code->op == KX_JMP || code->op == KX_JZ || code->op == KX_JNZ) {
             int idx = code->value1.i;
             int addr = code->addr;
