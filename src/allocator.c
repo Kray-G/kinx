@@ -289,7 +289,7 @@ static void gc_sweep(kx_context_t *ctx)
     kliter_t(obj) *pobj, *prevobj = NULL, *nextobj;
     for (pobj = kl_begin(ctx->alloc.obj_alive); pobj != kl_end(ctx->alloc.obj_alive); pobj = nextobj) {
         nextobj = kl_next(pobj);
-        if (kl_val(pobj)->mark) {
+        if (kl_val(pobj)->mark || kl_val(pobj)->frozen) {
             prevobj = pobj;
         } else {
             kx_obj_t *v;
