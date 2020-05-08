@@ -25,6 +25,13 @@
     *   Support kinx as a library.
     *   Support OpenCV library.
     *   Support PDF library with libHaru.
+    *   The followings are planned but priority is low.
+        *   Improvement with `KX_ENTERL` and `KX_COENTERL`.
+            *   `KX_ENTERL` is entering function without frame.
+            *   `KX_COENTER` is `KX_ENTER` just for Fiber.
+            *   Fiber check will be removed from `KX_ENTER`.
+        *   Improvement with some specialized instructions.
+            *   `KXOPT_LENGTH`
 
 ## V0.6.0 (6th Preview Release)
 
