@@ -7,7 +7,6 @@
 #include <stdarg.h>
 #include <kvec.h>
 #include <kinx.h>
-#include <parser.tab.h>
 
 // #define YYDEBUG 1
 
