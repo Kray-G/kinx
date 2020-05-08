@@ -24,7 +24,6 @@
 #elif defined(KX_DIRECT_THREAD)
 #define KX_LABELS \
     &&LBL_KX_HALT, \
-    &&LBL_KX_CTX, \
     &&LBL_KX_NOP, \
     &&LBL_KX_DUP, \
     &&LBL_KX_IMPORT, \
@@ -91,6 +90,7 @@
     &&LBL_KX_DECVX, \
     &&LBL_KX_MKBIN, \
     &&LBL_KX_MKARY, \
+    &&LBL_KX_DUPARY, \
     &&LBL_KX_GETARYV, \
     &&LBL_KX_GETARYA, \
     &&LBL_KX_APPLYV, \
