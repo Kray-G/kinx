@@ -1,0 +1,447 @@
+/* -*-c-*-  Prototype file of KM-yacc parser for C.
+ *
+ * Written by MORI Koichiro
+ *
+ * This file is PUBLIC DOMAIN.
+ */
+
+$semval($) yyval
+$semval($,%t) yyval.%t
+$semval(%n) YYASP(%n-%l)
+$semval(%n,%t) YYASP(%n-%l).%t
+
+$include;
+
+$if -t
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif /* YYDEBUG */
+$endif
+
+$if %pure_parser
+#define YYPURE 1
+$endif
+
+/* declarations */
+$header
+$if %union
+typedef union
+$union
+YYSTYPE;
+$endif
+$ifnot %union
+
+#ifndef YYSTYPE
+#define YYSTYPE int
+#endif
+$endif
+extern YYSTYPE $(-p)lval;
+
+$tokenval
+#define %s %n
+$endtokenval
+$endheader
+
+/* -p option */
+$if -p
+#define yyparse $(-p)parse
+#define yylex $(-p)lex
+#define yyerror $(-p)error
+#define yylval $(-p)lval
+#define yydebug $(-p)debug
+$endif
+
+
+#ifndef YYMAXDEPTH
+# define YYMAXDEPTH 512
+#endif /* !YYMAXDEPTH */
+
+#ifndef YYASP
+# define YYASP(n) yyasp[n]
+#endif /* !YYASP */
+
+#define yyclearin (yychar = -1)
+#define yyerrok (yyerrflag = 0)
+#define YYRECOVERING (yyerrflag != 0)
+
+#define YYACCEPT  return (0)
+#define YYABORT  return (1)
+#define YYERROR  goto yyerrlab
+
+
+
+
+#if YYDEBUG
+int yydebug;
+#endif /* YYDEBUG */
+
+#if 0
+int yylex();
+int yyerror();
+#endif
+
+#if !YYPURE
+int yychar;
+YYSTYPE yylval;
+#endif
+
+
+/* code after %% in *.y */
+$tailcode;
+
+
+#if !YYDEBUG
+
+#define YYTRACE_DCL
+#define YYTRACE_NEWSTATE(st, tok)
+#define YYTRACE_READ(tok)
+#define YYTRACE_SHIFT(tok)
+#define YYTRACE_ACCEPT()
+#define YYTRACE_REDUCE(n)
+#define YYTRACE_POP(st)
+#define YYTRACE_DISCARD(tok)
+
+#endif /* !YYDEBUG */
+
+
+#if YYDEBUG
+
+#ifndef EOF
+#include <stdio.h>
+#endif
+
+#ifndef YYTRACEF
+#define YYTRACEF stderr
+#endif /* !YYTRACEF */
+
+static char *yyterminals[] = {
+  $listvar terminals
+  , "???"
+};
+
+static char *yyproduction[] = {
+  $production-strings;
+};
+
+/* Traditional Debug Mode */
+
+#define YYTRACE_DCL /* empty */
+
+#define YYTRACE_NEWSTATE(st, tok) \
+    if (yydebug) \
+	fprintf(YYTRACEF, "%%%% State %d, Lookahead %s\n", \
+		st, tok < 0 ? "--none--" : yyterminals[tok])
+
+#define YYTRACE_READ(tok) \
+    if (yydebug) \
+	fprintf(YYTRACEF, "%%%% Reading %s\n", yyterminals[tok])
+
+#define YYTRACE_SHIFT(tok) \
+    if (yydebug) \
+	fprintf(YYTRACEF, "%%%% Shift %s\n", yyterminals[tok])
+
+#define YYTRACE_ACCEPT() \
+    if (yydebug) fprintf(YYTRACEF, "%%%% Accepted.\n")
+
+#define YYTRACE_REDUCE(n) \
+    if (yydebug) \
+	fprintf(YYTRACEF, "%%%% Reduce by (%d) %s\n", \
+		n, yyproduction[n])
+
+#define YYTRACE_POP(st) \
+    if (yydebug) \
+	fprintf(YYTRACEF, "%%%% Recovering, uncovers state %d\n", \
+		st)
+
+#define YYTRACE_DISCARD(tok) \
+    if (yydebug) fprintf(YYTRACEF, "%%%% Discard %s\n", yyterminals[tok])
+
+#endif /* YYDEBUG */
+
+
+
+static $TYPEOF(yytranslate) yytranslate[] = {
+$listvar yytranslate
+};
+
+#define YYBADCH $(YYBADCH)
+#define YYMAXLEX $(YYMAXLEX)
+#define YYTERMS $(YYTERMS)
+#define YYNONTERMS $(YYNONTERMS)
+
+static short yyaction[] = {
+$listvar yyaction
+};
+#define YYLAST $(YYLAST)
+
+static $TYPEOF(yycheck) yycheck[] = {
+$listvar yycheck
+};
+
+static short yybase[] = {
+$listvar yybase
+};
+#define YY2TBLSTATE $(YY2TBLSTATE)
+
+static short yydefault[] = {
+$listvar yydefault
+};
+
+static short yygoto[] = {
+$listvar yygoto
+};
+#define YYGLAST $(YYGLAST)
+
+static $TYPEOF(yygcheck) yygcheck[] = {
+$listvar yygcheck
+};
+
+static short yygbase[] = {
+$listvar yygbase
+};
+
+static short yygdefault[] = {
+$listvar yygdefault
+};
+
+static $TYPEOF(yylhs) yylhs[] = {
+$listvar yylhs
+};
+
+static $TYPEOF(yylen) yylen[] = {
+$listvar yylen
+};
+
+$if -a
+#define YYACTFUN 1
+static YYSTYPE yyval;
+
+$reduce
+static void yyact%n(YYSTYPE *yyasp)
+{
+%b
+}
+$endreduce
+static void yyactnull(YYSTYPE *yyasp) {}
+
+static void (*yyacttbl[])(YYSTYPE *) = {
+$reduce
+yyact%n,
+$noact
+yyactnull,
+$endreduce
+};
+$endif
+
+#define YYSTATES $(YYSTATES)
+#define YYNLSTATES $(YYNLSTATES)
+#define YYINTERRTOK $(YYINTERRTOK)
+#define YYUNEXPECTED $(YYUNEXPECTED)
+#define YYDEFAULT $(YYDEFAULT)
+
+
+/*
+ * Seek (st,ch) in action table, return true if found.
+ * param n position in yyaction
+ * param st current state
+ * param ch input token
+ */
+#if YYPROBEONCE
+#define found_in_action(n, st, ch) \
+  ((unsigned)(n = yybase[st] + (ch)) < YYLAST && yycheck[n] == (ch))
+#endif /* YYPROBEONCE */
+
+#if !YYPROBEONCE
+#define found_in_action(n, st, ch) \
+  (((unsigned)(n = yybase[st] + (ch)) < YYLAST && yycheck[n] == (ch)) \
+   || ((st) < YY2TBLSTATE \
+       && (unsigned)(n = yybase[(st) + YYNLSTATES] + (ch)) < YYLAST \
+       && yycheck[n] == (ch)))
+#endif /* !YYPROBEONCE */
+
+#define found_in_goto(n, st, ch) \
+  ((unsigned)(n = yygbase[ch] + (st)) < YYGLAST && yygcheck[n] == (ch))
+
+
+/*
+ * Lexical analyzer interface
+ */
+#if YYPURE
+#  ifdef YYLEX_PARAM
+#    define YYLEX() yylex(&yylval, YYLEX_PARAM)
+#  else
+#    define YYLEX() yylex(&yylval)
+#  endif /* YYLEX_PARAM */
+#else
+#  define YYLEX() yylex()
+#endif /* YYPURE */
+
+
+/*
+ * Parser entry point
+ */
+#ifdef YYPARSE_PARAM
+#  if __STDC__
+#    define YYPARSE_ARG void *YYPARSE_PARAM
+#    define YYPARSE_DECL
+#  else
+#    define YYPARSE_ARG YYPARSE_PARAM
+#    define YYPARSE_DECL void *YYPARSE_PARAM;
+#  endif /* __STDC__ */
+#else
+# define YYPARSE_ARG
+# define YYPARSE_DECL
+#endif /* YYPARSE_PARAM */
+
+int yyparse(YYPARSE_ARG)
+  YYPARSE_DECL
+{
+  YYSTYPE yyastk[YYMAXDEPTH];
+  short yysstk[YYMAXDEPTH];
+  short *yyssp;
+  int yystate;
+  int yyn;
+  int yyp;
+  int yyl;
+  int yychar1;
+#if YYPURE
+  int yychar;
+  YYSTYPE yylval;
+#endif /* YYPURE */
+  int yyerrflag;
+  YYSTYPE *yyasp;
+#ifndef YYACTFUN
+  YYSTYPE yyval;
+#endif /* !YYACTFUN */
+  YYTRACE_DCL
+
+  yyssp = yysstk;
+  yyasp = yyastk - 1;
+  *yyssp = yystate = 0;
+  yychar1 = yychar = -1;
+  yyerrflag = 0;
+  for (;;) {
+    YYTRACE_NEWSTATE(yystate, yychar1);
+
+    if (yybase[yystate] == 0)
+      yyn = yydefault[yystate];
+    else {
+      if (yychar < 0) {
+        if ((yychar = YYLEX()) <= 0) yychar = 0;
+        yychar1 = yychar < YYMAXLEX ? yytranslate[yychar] : YYBADCH;
+        YYTRACE_READ(yychar1);
+      }
+      
+      if (found_in_action(yyn, yystate, yychar1)
+          && (yyn = yyaction[yyn]) != YYDEFAULT) {
+        /*
+         * >= YYNLSTATE: shift and reduce
+         * > 0: shift
+         * = 0: accept
+         * < 0: reduce
+         * = -YYUNEXPECTED: error
+         */
+        if (yyn > 0) {
+          /* shift */
+          YYTRACE_SHIFT(yychar1);
+          if (yyssp >= yysstk + YYMAXDEPTH) {
+            yyerror("parser stack overflow");
+            YYABORT;
+          }
+          *++yyssp = yystate = yyn;
+          *++yyasp = yylval;
+          yychar1 = yychar = -1;
+
+          if (yyerrflag > 0)
+            yyerrflag--;
+          if (yyn < YYNLSTATES)
+            continue;
+
+          /* yyn >= YYNLSTATES means shift-and-reduce */
+          yyn -= YYNLSTATES;
+        } else
+          yyn = -yyn;
+      } else
+        yyn = yydefault[yystate];
+    }
+
+    for (;;) {
+      /* reduce/error */
+      if (yyn == 0) {
+        /* accept */
+        YYTRACE_ACCEPT();
+        YYACCEPT;
+      }
+      else if (yyn != YYUNEXPECTED) {
+        /* reduce */
+        yyl = yylen[yyn];
+        yyval = yyasp[1-yyl];
+        YYTRACE_REDUCE(yyn);
+$if -a
+        yyacttbl[yyn](yyasp);
+$endif
+$ifnot -a
+        switch(yyn) {
+$reduce
+        case %n:
+{%b} break;
+$endreduce
+        }
+$endif
+
+        /* Goto - shift nonterminal */
+        yyasp -= yyl;
+        yyssp -= yyl;
+        yyn = yylhs[yyn];
+        if (found_in_goto(yyp, *yyssp, yyn))
+          yystate = yygoto[yyp];
+        else
+          yystate = yygdefault[yyn];
+
+        if (yyssp >= yysstk + YYMAXDEPTH) {
+          yyerror("parser stack overflow");
+          YYABORT;
+        }
+        *++yyssp = yystate;
+        *++yyasp = yyval;
+
+      }
+      else {
+        /* error */
+        switch (yyerrflag) {
+        case 0:
+        yyerrlab:
+          yyerror("syntax error");
+        case 1:
+        case 2:
+          yyerrflag = 3;
+          /* Pop until error-expecting state uncovered */
+          while (!found_in_action(yyn, yystate, YYINTERRTOK)) {
+            if (yyssp <= yysstk)
+              YYABORT;
+            yystate = *--yyssp;
+            yyasp--;
+            YYTRACE_POP(yystate);
+          }
+          yyn = yyaction[yyn];
+          YYTRACE_SHIFT(YYINTERRTOK);
+          *++yyssp = yystate = yyn;
+          ++yyasp;
+          break;
+
+        case 3:
+          YYTRACE_DISCARD(yychar1);
+          if (yychar == 0)
+            YYABORT;
+          yychar1 = yychar = -1;
+          break;
+        }
+      }
+
+      if (yystate < YYNLSTATES)
+        break;
+      /* >= YYNLSTATES means shift-and-reduce */
+      yyn = yystate - YYNLSTATES;
+    }
+  }
+}

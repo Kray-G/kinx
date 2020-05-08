@@ -175,10 +175,10 @@ all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES)
 
 lib: $(SOFILES)
 
-yacc: myacc.exe
-	myacc -vd -b kx -y kx_yy -Y KINX_YY src\kinx.y
-	copy /y kx.tab.h include\parser.tab.h
-	copy /y kx.tab.c src\parser.c
+yacc:
+	utility\kmyacc.exe -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y
+	move /y kx.tab.c src/parser.c
+	move /y kx.tab.h include/parser.tab.h
 
 timex:
 	$(CC) $(CFLAGS) /Fetimex timex.c
@@ -186,7 +186,7 @@ timex:
 clean:
 	del /S /Q *.obj *.exp
 	del /Q *.dll
-	del kx.output timex.exe kinx.exe myacc.exe test.exe
+	del kx.output timex.exe kinx.exe test.exe
 
 kinx: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM) $(RCFILE)
 	$(CC) /Fe$@ /Fmkinx.map $(OBJS) $(DISASM) $(RCFILE)
@@ -267,19 +267,17 @@ sqlite3.obj:
 	copy /y sqlite3.obj ..\..\..
 	cd ..\..\..
 
-src/parser.c: src/bison.parser.c
-	copy /y src\bison.parser.c src\parser.c
+src/parser.c: kx.tab.c
+	move /y kx.tab.c src/parser.c
 
-include/parser.tab.h: include/bison.parser.tab.h
-	copy /y include\bison.parser.tab.h include\parser.tab.h
+include/parser.tab.h: kx.tab.h
+	move /y kx.tab.h include/parser.tab.h
 
-myacc: myacc.exe
+kx.tab.c: utility\kmyacc.exe
+	utility\kmyacc.exe -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y
 
-myacc.exe: utility/myacc.c
-	cd utility
-	$(CC) $(CFLAGS) /Femyacc myacc.c
-	move /y myacc.exe ..
-    cd ..
+kx.tab.h: utility\kmyacc.exe
+	utility\kmyacc.exe -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y
 
 onig.dll:
 	cd src\extlib\onig
