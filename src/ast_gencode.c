@@ -211,6 +211,73 @@ static void do_finally_all(kx_context_t *ctx, kx_analyze_t *ana, int popc)
     }
 }
 
+static int is_array_of_literal(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana)
+{
+    kx_module_t *module = ana->module;
+    if (!node) {
+        return 1;
+    }
+    if (node->type == KXST_EXPRLIST) {
+        if (!is_array_of_literal(ctx, node->lhs, ana)) return 0;
+        if (!is_array_of_literal(ctx, node->rhs, ana)) return 0;
+        return 1;
+    }
+
+    switch (node->type) {
+    case KXVL_INT:
+    case KXVL_DBL:
+    case KXVL_STR:
+    case KXVL_NULL:
+    case KXVL_TRUE:
+    case KXVL_FALSE:
+        return 1;
+    }
+    return 0;
+}
+
+static void gen_dupary(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana, kx_obj_t *obj)
+{
+    kx_module_t *module = ana->module;
+    if (!node) {
+        return;
+    }
+    if (node->type == KXST_EXPRLIST) {
+        gen_dupary(ctx, node->lhs, ana, obj);
+        gen_dupary(ctx, node->rhs, ana, obj);
+        return;
+    }
+
+    switch (node->type) {
+    case KXVL_INT: {
+        KEX_PUSH_ARRAY_INT(obj, node->value.i);
+        break;
+    }
+    case KXVL_DBL: {
+        KEX_PUSH_ARRAY_DBL(obj, node->value.d);
+        break;
+    }
+    case KXVL_STR: {
+        KEX_PUSH_ARRAY_CSTR(obj, node->value.s);
+        break;
+    }
+    case KXVL_NULL: {
+        kx_val_t v = { .type = KX_UND_T };
+        KEX_PUSH_ARRAY_VAL(obj, v);
+        break;
+    }
+    case KXVL_TRUE: {
+        KEX_PUSH_ARRAY_INT(obj, 1);
+        break;
+    }
+    case KXVL_FALSE: {
+        KEX_PUSH_ARRAY_INT(obj, 0);
+        break;
+    }
+    default:
+        ;
+    }
+}
+
 static void apply_array(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana)
 {
     kx_module_t *module = ana->module;
@@ -808,9 +875,16 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     case KXOP_MKARY:
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
-        if (node->lhs) {
-            apply_array(ctx, node->lhs, ana);
+        if (node->lhs && is_array_of_literal(ctx, node->lhs, ana)) {
+            kx_obj_t *obj = allocate_obj(ctx);
+            obj->frozen = 1;
+            gen_dupary(ctx, node->lhs, ana, obj);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUPARY, .value1 = { .obj = obj } }));
+        } else {
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
+            if (node->lhs) {
+                apply_array(ctx, node->lhs, ana);
+            }
         }
         break;
     case KXOP_MKOBJ:

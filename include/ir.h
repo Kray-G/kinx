@@ -15,7 +15,6 @@ struct kx_context_;
 
 enum irop {
     KX_HALT,
-    KX_CTX,
     KX_NOP,
     KX_DUP,
     KX_IMPORT,
@@ -93,6 +92,7 @@ enum irop {
 
     KX_MKBIN,
     KX_MKARY,
+    KX_DUPARY,
     KX_GETARYV,
     KX_GETARYA,
     KX_APPLYV,
@@ -327,6 +327,7 @@ typedef struct kxn_func_ {
     kx_native_funcp_t func;
 } kxn_func_t;
 
+struct kx_obj_;
 typedef struct kx_code_ {
     #if defined(KX_DIRECT_THREAD)
     void *gotolabel;
@@ -344,7 +345,7 @@ typedef struct kx_code_ {
         double d;
         const char *s;
         kxn_func_t n;
-        struct kx_context_ *ctx;
+        struct kx_obj_ *obj;
     } value1, value2;
     const char *file;
     const char *func;
@@ -524,7 +525,8 @@ kvec_init_t(kx_fnc_t);
 kvec_init_pt(kx_fnc_t);
 
 typedef struct kx_obj_ {
-    uint8_t mark;
+    uint8_t mark:1;
+    uint8_t frozen:1;
     khash_t(prop) *prop;
     kvec_t(kx_val_t) ary;
 } kx_obj_t;
