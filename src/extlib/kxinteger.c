@@ -29,9 +29,11 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
             push_value(ctx->stack, val);
             return 0;
         } else if (val.type == KX_CSTR_T) {
+            kx_val_t *rdxs = args > 1 ? &kv_last_by(*stack, 2) : NULL;
+            int rdx = (rdxs && rdxs->type == KX_INT_T) ? rdxs->value.iv : 0;
             KX_ADJST_STACK();
             errno = 0;
-            int64_t v = (int64_t)strtoll(val.value.pv, NULL, 0);
+            int64_t v = (int64_t)strtoll(val.value.pv, NULL, rdx);
             if (errno == ERANGE) {
                 const char *p = val.value.pv;
                 int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
@@ -42,9 +44,11 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
             }
             return 0;
         } else if (val.type == KX_STR_T) {
+            kx_val_t *rdxs = args > 1 ? &kv_last_by(*stack, 2) : NULL;
+            int rdx = (rdxs && rdxs->type == KX_INT_T) ? rdxs->value.iv : 0;
             KX_ADJST_STACK();
             errno = 0;
-            int64_t v = (int64_t)strtoll(ks_string(val.value.sv), NULL, 0);
+            int64_t v = (int64_t)strtoll(ks_string(val.value.sv), NULL, rdx);
             if (errno == ERANGE) {
                 const char *p = ks_string(val.value.sv);
                 int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
