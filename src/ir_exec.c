@@ -127,6 +127,7 @@ static const char *kx_opname[] = {
     "KX_MKBIN",
     "KX_MKARY",
     "KX_DUPARY",
+    "KX_SWAP",
     "KX_GETARYV",
     "KX_GETARYA",
     "KX_APPLYV",
@@ -378,6 +379,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     KX_CASE_(KX_MKBIN) { KX_GOTO(); }
     KX_CASE_(KX_MKARY) { KX_GOTO(); }
     KX_CASE_(KX_DUPARY) { KX_GOTO(); }
+    KX_CASE_(KX_SWAP) { KX_GOTO(); }
     KX_CASE_(KX_GETARYV) { KX_GOTO(); }
     KX_CASE_(KX_GETARYA) { KX_GOTO(); }
     KX_CASE_(KX_APPLYV) { KX_GOTO(); }

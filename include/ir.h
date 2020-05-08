@@ -93,6 +93,7 @@ enum irop {
     KX_MKBIN,
     KX_MKARY,
     KX_DUPARY,
+    KX_SWAP,
     KX_GETARYV,
     KX_GETARYA,
     KX_APPLYV,
