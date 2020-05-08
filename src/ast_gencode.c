@@ -211,15 +211,57 @@ static void do_finally_all(kx_context_t *ctx, kx_analyze_t *ana, int popc)
     }
 }
 
-static int is_array_of_literal(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana)
+static int is_same(kx_object_t *o1, kx_object_t *o2, int literal_okay)
 {
-    kx_module_t *module = ana->module;
+    if (!o1 || !o2) {
+        return 0;
+    }
+    if (literal_okay) {
+        if (o1->type == KXVL_INT && o2->type == KXVL_INT && o1->value.i == o2->value.i) {
+            return 1;
+        } else if (o1->type == KXVL_STR && o2->type == KXVL_STR && strcmp(o1->value.s, o2->value.s) == 0) {
+            return 1;
+        }
+    }
+    if (o1->type == KXOP_VAR && o2->type == KXOP_VAR) {
+        if (o1->lexical == o2->lexical && o1->index == o2->index) {
+            return 1;
+        }
+        return 0;
+    }
+    if (o1->type == KXOP_IDX && o2->type == KXOP_IDX) {
+        if (is_same(o1->lhs, o2->lhs, 0) && is_same(o1->rhs, o2->rhs, 1)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int is_array_swap(kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (!lhs || !rhs) {
+        return 0;
+    }
+    if (lhs->type == KXOP_MKARY && rhs->type == KXOP_MKARY) {
+        kx_object_t *l = lhs->lhs;
+        kx_object_t *r = rhs->lhs;
+        if (l && r) {
+            if (is_same(l->lhs, r->rhs, 0) && is_same(l->rhs, r->lhs, 0)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+static int is_array_of_literal(kx_object_t *node)
+{
     if (!node) {
         return 1;
     }
     if (node->type == KXST_EXPRLIST) {
-        if (!is_array_of_literal(ctx, node->lhs, ana)) return 0;
-        if (!is_array_of_literal(ctx, node->rhs, ana)) return 0;
+        if (!is_array_of_literal(node->lhs)) return 0;
+        if (!is_array_of_literal(node->rhs)) return 0;
         return 1;
     }
 
@@ -235,15 +277,14 @@ static int is_array_of_literal(kx_context_t *ctx, kx_object_t *node, kx_analyze_
     return 0;
 }
 
-static void gen_dupary(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana, kx_obj_t *obj)
+static void gen_dupary(kx_context_t *ctx, kx_object_t *node, kx_obj_t *obj)
 {
-    kx_module_t *module = ana->module;
     if (!node) {
         return;
     }
     if (node->type == KXST_EXPRLIST) {
-        gen_dupary(ctx, node->lhs, ana, obj);
-        gen_dupary(ctx, node->rhs, ana, obj);
+        gen_dupary(ctx, node->lhs, obj);
+        gen_dupary(ctx, node->rhs, obj);
         return;
     }
 
@@ -875,10 +916,10 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     case KXOP_MKARY:
-        if (node->lhs && is_array_of_literal(ctx, node->lhs, ana)) {
+        if (node->lhs && is_array_of_literal(node->lhs)) {
             kx_obj_t *obj = allocate_obj(ctx);
             obj->frozen = 1;
-            gen_dupary(ctx, node->lhs, ana, obj);
+            gen_dupary(ctx, node->lhs, obj);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUPARY, .value1 = { .obj = obj } }));
         } else {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
@@ -915,7 +956,11 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_ASSIGN: {
-        if (node->rhs) {
+        if (is_array_swap(node->lhs, node->rhs)) {
+            gencode_ast_hook(ctx, node->lhs->lhs->lhs, ana, 1);
+            gencode_ast_hook(ctx, node->lhs->lhs->rhs, ana, 1);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SWAP }));
+        } else if (node->rhs) {
             gencode_ast_hook(ctx, node->rhs, ana, 0);
             if ((code_size(module, ana) > 0) && node->lhs->type == KXOP_VAR) {
                 if (ana->classname == 0 && !strcmp(node->lhs->value.s, "methodMissing") && last_op(ana) != KX_SET_GMM) {

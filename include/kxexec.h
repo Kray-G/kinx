@@ -91,6 +91,7 @@
     &&LBL_KX_MKBIN, \
     &&LBL_KX_MKARY, \
     &&LBL_KX_DUPARY, \
+    &&LBL_KX_SWAP, \
     &&LBL_KX_GETARYV, \
     &&LBL_KX_GETARYA, \
     &&LBL_KX_APPLYV, \

@@ -357,6 +357,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         print_dupary(code->value1.obj);
         printf("]");
         break;
+    case KX_SWAP:
+        printf("swap");
+        break;
     case KX_GETARYV:
         printf("%-23s %"PRId64, "getaryv", code->value1.i);
         break;

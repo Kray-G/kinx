@@ -27,6 +27,26 @@
 } \
 /**/
 
+#define KX_SWAP_CODE() \
+{ \
+    KEX_POP_STACK_TOP(v2); \
+    KEX_POP_STACK_TOP(v1); \
+    if (v1->type != KX_LVAL_T || v2->type != KX_LVAL_T) { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Swap with not lvalues"); \
+    } \
+    kx_val_t v1v = *(v1->value.lv); \
+    *(v1->value.lv) = *(v2->value.lv); \
+    *(v2->value.lv) = v1v; \
+    kx_obj_t *obj = allocate_obj(ctx); \
+    kv_resize(kx_val_t, obj->ary, 4); \
+    kv_shrinkto(obj->ary, 2); \
+    kv_A(obj->ary, 0) = *(v1->value.lv); \
+    kv_A(obj->ary, 1) = v1v; \
+    push_obj((ctx)->stack, obj); \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_GETARYV_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
