@@ -269,23 +269,16 @@ libcrypto.so.3:
 	cp -f src/extlib/openssl/x64/gcc/libcrypto.so.3 ./libcrypto.so.3
 
 src/parser.c: kx.tab.c
-	cp -f kx.tab.c src/parser.c
-	mv -f kx.tab.c src/bison.parser.c
+	mv -f kx.tab.c src/parser.c
 
 include/parser.tab.h: kx.tab.h
-	cp -f kx.tab.h include/parser.tab.h
-	mv -f kx.tab.h include/bison.parser.tab.h
+	mv -f kx.tab.h include/parser.tab.h
 
-kx.tab.c: myacc
-	bison -v -d -b kx -p kx_yy src/kinx.y;
+kx.tab.c: utility/kmyacc
+	utility/kmyacc -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y;
 
-kx.tab.h: myacc
-	bison -v -d -b kx -p kx_yy src/kinx.y;
-
-myacc:
-	cd utility; \
-	$(CC) $(CFLAGS) -Wno-format-security -o myacc myacc.c; \
-	mv -f myacc ../;
+kx.tab.h: utility/kmyacc
+	utility/kmyacc -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y;
 
 libonig.so:
 	cd src/extlib/onig; \
