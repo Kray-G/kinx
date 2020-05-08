@@ -651,7 +651,75 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     return fn;
 }
 
+/*
+    Runtime optimization.
+*/
+
 #define KX_CALLOPT_ARG(n) &kv_last_by((ctx)->stack, (n)+4)
+#define KX_CALLOPT_RETNULL(c) { \
+    if ((c)->op == KX_RET_NULL) { \
+        kv_shrink(ctx->stack, args + 3); \
+        push_undef(ctx->stack); \
+        return next; \
+    } \
+} \
+/**/
+#define KX_CALLOPT_RETI(c) { \
+    if ((c)->op == KX_RETI) { \
+        kv_shrink(ctx->stack, args + 3); \
+        push_i(ctx->stack, (c)->value1.i); \
+        return next; \
+    } \
+} \
+/**/
+#define KX_CALLOPT_RETVL0(c) { \
+    if ((c)->op == KX_RETVL0) { \
+        if ((c)->value2.i < count) { \
+            kx_val_t *r = KX_CALLOPT_ARG((c)->value2.i); \
+            kv_shrink(ctx->stack, args + 3); \
+            push_value(ctx->stack, *r); \
+            return next; \
+        } \
+        return NULL; \
+    } \
+} \
+/**/
+#define KX_CALLOPT_RETVL1(c) { \
+    if ((c)->op == KX_RETVL1) { \
+        kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn; \
+        kx_frm_t *lexv = fnc->lex; \
+        kx_val_t *r = &kv_A(lexv->v, (c)->value2.i); \
+        kv_shrink(ctx->stack, args + 3); \
+        push_value(ctx->stack, *r); \
+        return next; \
+    } \
+} \
+/**/
+#define KX_CALLOPT_COND_LT <
+#define KX_CALLOPT_COND_LE <=
+#define KX_CALLOPT_COND_GT >
+#define KX_CALLOPT_COND_GE >=
+#define KX_CALLOPT_COND_V0I(cond) { \
+    if (c1->op == KX_##cond##_V0I && c1->value1.i < count) { \
+        kx_val_t *v1 = KX_CALLOPT_ARG(c1->value1.i); \
+        int tf = (v1->type == KX_INT_T) && (((v1)->value.iv) KX_CALLOPT_COND_##cond (c1->value2.i)); \
+        if ((c2->op == KX_JZ && tf) || (c2->op == KX_JNZ && !tf)) { \
+            KX_CALLOPT_RETNULL(c3); \
+            KX_CALLOPT_RETI(c3); \
+            KX_CALLOPT_RETVL0(c3); \
+            KX_CALLOPT_RETVL1(c3); \
+        } \
+        kx_code_t *cj = c2->jmp; \
+        if ((c2->op == KX_JZ && !tf) || (c2->op == KX_JNZ && tf)) { \
+            KX_CALLOPT_RETNULL(cj); \
+            KX_CALLOPT_RETI(cj); \
+            KX_CALLOPT_RETVL0(cj); \
+            KX_CALLOPT_RETVL1(cj); \
+        } \
+        return NULL; \
+    } \
+} \
+/**/
 kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp)
 {
     if (jp->op != KX_ENTER) {
@@ -663,47 +731,14 @@ kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp
     kx_code_t *next = kv_last_by(ctx->stack, 1).value.jp;
     int count = jp->count;
     int args = kv_last_by((ctx)->stack, 2).value.iv;
-    if (c1->op == KX_RET_NULL) {
-        kv_shrink(ctx->stack, args + 3);
-        push_undef(ctx->stack);
-        return next;
-    } else if (c1->op == KX_RETI) {
-        kv_shrink(ctx->stack, args + 3);
-        push_i(ctx->stack, c1->value1.i);
-        return next;
-    } else if (c1->op == KX_RETVL0) {
-        if (c1->value2.i < count) {
-            kx_val_t *r = KX_CALLOPT_ARG(c1->value2.i);
-            kv_shrink(ctx->stack, args + 3);
-            push_value(ctx->stack, *r);
-            return next;
-        }
-    } else if (c1->op == KX_RETVL1) {
-        kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn;
-        kx_frm_t *lexv = fnc->lex;
-        kx_val_t *r = &kv_A(lexv->v, c1->value2.i);
-        kv_shrink(ctx->stack, args + 3);
-        push_value(ctx->stack, *r);
-        return next;
-    } else if (c1->op == KX_LT_V0I && c1->value1.i < count) {
-        kx_val_t *v1 = KX_CALLOPT_ARG(c1->value1.i);
-        int tf = (v1->type == KX_INT_T) && (((v1)->value.iv) < (c1->value2.i));
-        if ((c2->op == KX_JZ && tf) || (c2->op == KX_JNZ && !tf)) {
-            if (c3->op == KX_RETVL0 && c3->value2.i < count) {
-                kx_val_t *r = KX_CALLOPT_ARG(c3->value2.i);
-                kv_shrink(ctx->stack, args + 3);
-                push_value(ctx->stack, *r);
-                return next;
-            } else if (c3->op == KX_RETVL1) {
-                kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn;
-                kx_frm_t *lexv = fnc->lex;
-                kx_val_t *r = &kv_A(lexv->v, c3->value2.i);
-                kv_shrink(ctx->stack, args + 3);
-                push_value(ctx->stack, *r);
-                return next;
-            }
-        }
-    }
+    KX_CALLOPT_RETNULL(c1);
+    KX_CALLOPT_RETI(c1);
+    KX_CALLOPT_RETVL0(c1);
+    KX_CALLOPT_RETVL1(c1);
+    KX_CALLOPT_COND_V0I(LT);
+    KX_CALLOPT_COND_V0I(LE);
+    KX_CALLOPT_COND_V0I(GT);
+    KX_CALLOPT_COND_V0I(GE);
     return NULL;
 }
 
