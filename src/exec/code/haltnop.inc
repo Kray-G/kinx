@@ -47,9 +47,3 @@
     cur = cur->next; \
 } \
 /**/
-
-#define KX_CTX_CODE() \
-{ \
-    cur = cur->next; \
-} \
-/**/

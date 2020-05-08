@@ -95,6 +95,34 @@ static const char *gen_varloc_lexical1(kx_code_t *code)
     return buf;
 }
 
+static void print_dupary(kx_obj_t *obj)
+{
+    int len = kv_size(obj->ary);
+    for (int i = 0; i < len; ++i) {
+        if (i > 0) {
+            printf(", ");
+        }
+        kx_val_t *v = &kv_A(obj->ary, i);
+        switch (v->type) {
+        case KX_UND_T:
+            printf("null");
+            break;
+        case KX_INT_T:
+            printf("%"PRId64, v->value.iv);
+            break;
+        case KX_DBL_T:
+            printf("%g", v->value.dv);
+            break;
+        case KX_CSTR_T:
+            printf("%s", v->value.pv);
+            break;
+        case KX_STR_T:
+            printf("%s", ks_string(v->value.sv));
+            break;
+        }
+    }
+}
+
 void ir_code_dump_one(int addr, kx_code_t *code)
 {
     if (!code) {
@@ -112,9 +140,6 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     switch (code->op) {
     case KX_HALT:
         printf("halt");
-        break;
-    case KX_CTX:
-        printf("ctx");
         break;
     case KX_NOP:
         printf("nop");
@@ -326,6 +351,11 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     case KX_MKARY:
         printf("mkary");
+        break;
+    case KX_DUPARY:
+        printf("%-23s [", "dupary");
+        print_dupary(code->value1.obj);
+        printf("]");
         break;
     case KX_GETARYV:
         printf("%-23s %"PRId64, "getaryv", code->value1.i);
