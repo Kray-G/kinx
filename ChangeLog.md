@@ -11,13 +11,20 @@
 ## V0.7.0 (Current Development)
 
 *   Updated
+    *   Bug fixes for operator override.
+        *   `<<`, `>>` ... Making it parse correctly.
+    *   Added `toString()` method to the class Boolean.
+    *   Some runtime optimaizations for function call.
+    *   Some bug fixes and improvement.
 
 *   Planned, or remaining tasks.
     *   Support DateTime class.
+    *   Support CSV class.
     *   Replace Bison by Kmyacc.
     *   Support REPL.
-    *   Use a register as a stack pointer.
     *   Support kinx as a library.
+    *   Support OpenCV library.
+    *   Support PDF library with libHaru.
 
 ## V0.6.0 (6th Preview Release)
 
@@ -38,6 +45,7 @@ Updates from v0.5.2.
         *   `Array#collectConcat` for `Array#flatMap`.
         *   `Array#inject` for `Array#reduce`.
         *   `Array#select`, `Array#findAll` for `Array#filter`.
+    *   Some bug fixes and improvement.
 
 ## V0.5.2 (5th Preview Release)
 
