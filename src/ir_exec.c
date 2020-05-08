@@ -49,7 +49,6 @@
 
 static const char *kx_opname[] = {
     "KX_HALT",
-    "KX_CTX",
     "KX_NOP",
     "KX_DUP",
     "KX_IMPORT",
@@ -127,6 +126,7 @@ static const char *kx_opname[] = {
 
     "KX_MKBIN",
     "KX_MKARY",
+    "KX_DUPARY",
     "KX_GETARYV",
     "KX_GETARYA",
     "KX_APPLYV",
@@ -300,7 +300,6 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     KX_CASE_BEGIN() {
 
     KX_CASE_(KX_HALT) { KEX_CHECK_SIGNAL(ctx); KX_GOTO(); }
-    KX_CASE_(KX_CTX) { KX_GOTO(); }
     KX_CASE_(KX_NOP) { KX_GOTO(); }
     KX_CASE_(KX_DUP) { KX_GOTO(); }
     KX_CASE_(KX_IMPORT) { KX_GOTO(); }
@@ -378,6 +377,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
 
     KX_CASE_(KX_MKBIN) { KX_GOTO(); }
     KX_CASE_(KX_MKARY) { KX_GOTO(); }
+    KX_CASE_(KX_DUPARY) { KX_GOTO(); }
     KX_CASE_(KX_GETARYV) { KX_GOTO(); }
     KX_CASE_(KX_GETARYA) { KX_GOTO(); }
     KX_CASE_(KX_APPLYV) { KX_GOTO(); }
