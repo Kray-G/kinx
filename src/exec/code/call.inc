@@ -73,7 +73,7 @@ default: \
             cur = kx_call_optimization(ctx, cur, fn->jp); \
             if (!cur) { \
                 cur = fn->jp; \
-                if (!fn->fiber) { \
+                if (cur->op == KX_ENTER) { \
                     KX_CALL_FAST_ENTER(ctx, cur, fn, count); \
                 } \
             } \
@@ -110,7 +110,7 @@ default: \
         cur = kx_call_optimization(ctx, cur, fn->jp); \
         if (!cur) { \
             cur = fn->jp; \
-            if (!fn->fiber) { \
+            if (cur->op == KX_ENTER) { \
                 KX_CALL_FAST_ENTER(ctx, cur, fn, args); \
             } \
         } \
@@ -164,7 +164,7 @@ default: \
         cur = kx_call_optimization(ctx, cur, fn->jp); \
         if (!cur) { \
             cur = fn->jp; \
-            if (!fn->fiber) { \
+            if (cur->op == KX_ENTER) { \
                 KX_CALL_FAST_ENTER(ctx, cur, fn, args); \
             } \
         } \
@@ -211,7 +211,7 @@ default: \
         cur = kx_call_optimization(ctx, cur, fn->jp); \
         if (!cur) { \
             cur = fn->jp; \
-            if (!fn->fiber) { \
+            if (cur->op == KX_ENTER) { \
                 KX_CALL_FAST_ENTER(ctx, cur, fn, args); \
             } \
         } \
@@ -258,7 +258,7 @@ default: \
         cur = kx_call_optimization(ctx, cur, fn->jp); \
         if (!cur) { \
             cur = fn->jp; \
-            if (!fn->fiber) { \
+            if (cur->op == KX_ENTER) { \
                 KX_CALL_FAST_ENTER(ctx, cur, fn, args); \
             } \
         } \
@@ -318,7 +318,7 @@ default: \
             cur = kx_call_optimization(ctx, cur, fn->jp); \
             if (!cur) { \
                 cur = fn->jp; \
-                if (!fn->fiber) { \
+                if (cur->op == KX_ENTER) { \
                     KX_CALL_FAST_ENTER(ctx, cur, fn, args); \
                 } \
             } \

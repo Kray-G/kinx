@@ -98,7 +98,6 @@ static const char *kx_opname[] = {
     "KX_PUSH_FALSE",
     "KX_PUSH_REGEX",
     "KX_PUSH_C",
-    "KX_PUSH_CO",
     "KX_SPREAD",
 
     "KX_POP_C",
@@ -128,6 +127,7 @@ static const char *kx_opname[] = {
     "KX_MKARY",
     "KX_DUPARY",
     "KX_SWAP",
+    "KX_SWAPX",
     "KX_GETARYV",
     "KX_GETARYA",
     "KX_APPLYV",
@@ -305,6 +305,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     KX_CASE_(KX_DUP) { KX_GOTO(); }
     KX_CASE_(KX_IMPORT) { KX_GOTO(); }
 
+    KX_CASE_(KX_COENTER) { KX_GOTO(); }
     KX_CASE_(KX_ENTER) { KX_GOTO(); }
     KX_CASE_(KX_CALL) { KX_GOTO(); }
     KX_CASE_(KX_CALLV) { KX_GOTO(); }
@@ -350,7 +351,6 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     KX_CASE_(KX_PUSH_FALSE) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_REGEX) { KX_GOTO(); }
     KX_CASE_(KX_PUSH_C) { KX_GOTO(); }
-    KX_CASE_(KX_PUSH_CO) { KX_GOTO(); }
     KX_CASE_(KX_SPREAD) { KX_GOTO(); }
 
     KX_CASE_(KX_POP_C) { KX_GOTO(); }
