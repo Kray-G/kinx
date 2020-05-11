@@ -58,7 +58,6 @@
 %type<obj> CatchStatement_Opt
 %type<obj> FinallyStatement_Opt
 %type<obj> ReturnStatement
-%type<obj> CoroutineStatement
 %type<obj> YieldStatement
 %type<obj> YieldExpression
 %type<obj> ThrowStatement
@@ -151,7 +150,6 @@ Statement
     | ForStatement
     | TryCatchStatement
     | ReturnStatement
-    | CoroutineStatement
     | YieldStatement
     | ThrowStatement
     | MixinStatement
@@ -282,10 +280,6 @@ BreakStatement
 ReturnStatement
     : RETURN AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_RET, $2, NULL, NULL)); }
     | SYSRET_NV ';' { $$ = kx_gen_stmt_object(KXST_SYSRET_NV, NULL, NULL, NULL); }
-    ;
-
-CoroutineStatement
-    : COROUTINE AssignExpressionObjList ';' { $$ = kx_gen_stmt_object(KXST_COROUTINE, $2, NULL, NULL); }
     ;
 
 YieldStatement
@@ -722,6 +716,7 @@ NativeType_Opt
 AnonymousFunctionDeclExpression
     : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
     | SYSFUNC '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, NULL, $3, $5, NULL); }
+    | COROUTINE '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_COROUTINE, KXFT_SYSFUNC, NULL, $3, $5, NULL); }
     | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2, NULL, $4, $6, NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW TernaryExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, kx_gen_stmt_object(KXST_RET, $6, NULL, NULL), NULL); }
     | '&' '(' ArgumentList_Opts ')' DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $6, NULL); }
