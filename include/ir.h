@@ -94,6 +94,7 @@ enum irop {
     KX_MKARY,
     KX_DUPARY,
     KX_SWAP,
+    KX_SWAPX,
     KX_GETARYV,
     KX_GETARYA,
     KX_APPLYV,
