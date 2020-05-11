@@ -148,6 +148,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("dup");
         break;
 
+    case KX_COENTER:
+        printf("%-23s %"PRId64", vars(%"PRId64"), args(%d)", "co-enter", code->value1.i, code->value2.i, code->count);
+        break;
     case KX_ENTER:
         printf("%-23s %"PRId64", vars(%"PRId64"), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
         break;
@@ -266,10 +269,6 @@ void ir_code_dump_one(int addr, kx_code_t *code)
 
     case KX_PUSH_C:
         printf("%-23s .L%"PRId64"(%x)", "pushc", code->value1.i, code->addr);
-        break;
-
-    case KX_PUSH_CO:
-        printf("%-23s %s", "push", "coroutine");
         break;
 
     case KX_SPREAD:
