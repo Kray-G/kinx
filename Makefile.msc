@@ -274,10 +274,10 @@ include/parser.tab.h: kx.tab.h
 	move /y kx.tab.h include/parser.tab.h
 
 kx.tab.c: utility\kmyacc.exe
-	utility\kmyacc.exe -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y
+	utility\kmyacc.exe -v -d -b kx -p kx_yy src/kinx.y
 
 kx.tab.h: utility\kmyacc.exe
-	utility\kmyacc.exe -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y
+	utility\kmyacc.exe -v -d -b kx -p kx_yy src/kinx.y
 
 onig.dll:
 	cd src\extlib\onig
