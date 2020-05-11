@@ -434,10 +434,6 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
     case KXST_SYSRET_NV:
         printf("(_return)\n");
         break;
-    case KXST_COROUTINE:        /* lhs: expr */
-        printf("(coroutine)\n");
-        display_ast(node->lhs, indent + 1, 0);
-        break;
     case KXST_THROW:      /* lhs: expr */
         printf("(throw)\n");
         display_ast(node->lhs, indent + 1, 0);
@@ -470,6 +466,7 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         }
         display_ast(node->rhs, indent + 1, 0);
         break;
+    case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         if (node->optional == KXFT_SYSFUNC) {
             printf("(system-function)\n");
