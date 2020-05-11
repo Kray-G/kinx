@@ -188,11 +188,11 @@ enum opecode {
     KXST_CATCH,     /* lhs: name, rhs: block */
     KXST_RET,       /* lhs: expr */
     KXST_SYSRET_NV, /* - */
-    KXST_COROUTINE, /* lhs: expr */
     KXST_THROW,     /* lhs: expr */
     KXST_MIXIN,     /* lhs: next, rhs: first */
     KXST_SYSCLASS,  /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
     KXST_CLASS,     /* s: name, lhs: arglist, rhs: block, ex: expr (inherit) */
+    KXST_COROUTINE, /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
     KXST_FUNCTION,  /* s: name, lhs: arglist, rhs: block, optional: public/private/protected */
     KXST_NATIVE,    /* s: name, lhs: arglist, rhs: block, ret_type: return type */
 

@@ -1685,12 +1685,6 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     case KXST_SYSRET_NV:
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET_NV }));
         break;
-    case KXST_COROUTINE: {    /* lhs: expr */
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_CO }));
-        gencode_ast_hook(ctx, node->lhs, ana, 0);
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
-        break;
-    }
     case KXST_THROW: {    /* lhs: expr */
         if (node->lhs) {
             gencode_ast_hook(ctx, node->lhs, ana, 0);
@@ -1762,6 +1756,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }));
         break;
     }
+    case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected/sysfunc */
     case KXST_FUNCTION: { /* s: name, lhs: arglist, rhs: block: optional: public/private/protected/sysfunc */
         kx_finally_vec_t *finallies = ana->finallies;
         ana->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
@@ -1776,6 +1771,9 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         ana->block = block;
         int enter = kv_size(get_block(module, block)->code);
         kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_ENTER, .is_internal = node->optional == KXFT_SYSFUNC }));
+        if (node->type == KXST_COROUTINE) {
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_CO }));
+        }
         gencode_spread_vars(ctx, node->lhs, ana, 0);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         int pushes = count_pushes(get_function(module, cur), ana);
