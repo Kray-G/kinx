@@ -47,6 +47,20 @@
 } \
 /**/
 
+#define KX_SWAPX_CODE() \
+{ \
+    KEX_POP_STACK_TOP(v2); \
+    KEX_POP_STACK_TOP(v1); \
+    if (v1->type != KX_LVAL_T || v2->type != KX_LVAL_T) { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Swap with not lvalues"); \
+    } \
+    kx_val_t v1v = *(v1->value.lv); \
+    *(v1->value.lv) = *(v2->value.lv); \
+    *(v2->value.lv) = v1v; \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_GETARYV_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
