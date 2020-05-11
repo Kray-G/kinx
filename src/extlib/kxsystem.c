@@ -1381,6 +1381,93 @@ int System_conditionBroadcast(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     return 0;
 }
 
+#define KEX_GET_PROP_INT(v, obj, name, t, w) \
+int v; \
+if (obj) { \
+    kx_val_t *val = NULL; \
+    KEX_GET_PROP(val, obj, name); \
+    if (!val || val->type != KX_INT_T) { \
+        KX_THROW_BLTIN_EXCEPTION(t, w); \
+    } \
+    v = val->value.iv; \
+} \
+/**/
+
+int System_mktime(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    time_t t = 0;
+    if (args == 0) {
+        t = time(NULL);
+    } else if (args == 1) {
+        kx_obj_t *obj = get_arg_obj(1, args, ctx);
+        KEX_GET_PROP_INT(year,   obj, "year",   "SystemException", "Invalid datetime value");
+        KEX_GET_PROP_INT(month,  obj, "month",  "SystemException", "Invalid datetime value");
+        KEX_GET_PROP_INT(day,    obj, "day",    "SystemException", "Invalid datetime value");
+        KEX_GET_PROP_INT(hour,   obj, "hour",   "SystemException", "Invalid datetime value");
+        KEX_GET_PROP_INT(minute, obj, "minute", "SystemException", "Invalid datetime value");
+        KEX_GET_PROP_INT(second, obj, "second", "SystemException", "Invalid datetime value");
+        struct tm tval;
+        tval.tm_year = year - 1900;
+        tval.tm_mon = month - 1;
+        tval.tm_mday = day;
+        tval.tm_hour = hour;
+        tval.tm_min = minute;
+        tval.tm_sec = second;
+        t = mktime(&tval);
+    } else if (args < 6) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Too few arguments");
+    } else {
+        int year = get_arg_int(1, args, ctx);
+        int month = get_arg_int(2, args, ctx);
+        int day = get_arg_int(3, args, ctx);
+        int hour = get_arg_int(4, args, ctx);
+        int minute = get_arg_int(5, args, ctx);
+        int second = get_arg_int(6, args, ctx);
+        struct tm tval;
+        tval.tm_year = year - 1900;
+        tval.tm_mon = month - 1;
+        tval.tm_mday = day;
+        tval.tm_hour = hour;
+        tval.tm_min = minute;
+        tval.tm_sec = second;
+        t = mktime(&tval);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, t);
+    return 0;
+}
+
+int System_localtime(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args < 1) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Too few arguments");
+    }
+
+    time_t t = get_arg_int(1, args, ctx);
+    struct tm tval;
+    #if defined(_WIN32) && !defined(__CYGWIN__)
+    localtime_s(&tval, &t);
+    #else
+    localtime_r(&t, &tval);
+    #endif
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "year", tval.tm_year + 1900);
+    KEX_SET_PROP_INT(obj, "month", tval.tm_mon + 1);
+    KEX_SET_PROP_INT(obj, "day", tval.tm_mday);
+    KEX_SET_PROP_INT(obj, "hour", tval.tm_hour);
+    KEX_SET_PROP_INT(obj, "minute", tval.tm_min);
+    KEX_SET_PROP_INT(obj, "second", tval.tm_sec);
+    KEX_SET_PROP_INT(obj, "weekday", tval.tm_wday); // tm_wday: 0 means Sunday.
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -1416,6 +1503,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "isolateSendAll", System_isolateSendAll },
     { "isolateReceive", System_isolateReceive },
     { "isolateClear", System_isolateClear },
+    { "mktime", System_mktime },
+    { "localtime", System_localtime },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
