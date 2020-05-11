@@ -27,6 +27,7 @@
     &&LBL_KX_NOP, \
     &&LBL_KX_DUP, \
     &&LBL_KX_IMPORT, \
+    &&LBL_KX_COENTER, \
     &&LBL_KX_ENTER, \
     &&LBL_KX_CALL, \
     &&LBL_KX_CALLV, \
@@ -67,7 +68,6 @@
     &&LBL_KX_PUSH_FALSE, \
     &&LBL_KX_PUSH_REGEX, \
     &&LBL_KX_PUSH_C, \
-    &&LBL_KX_PUSH_CO, \
     &&LBL_KX_SPREAD, \
     &&LBL_KX_POP_C, \
     &&LBL_KX_POP, \

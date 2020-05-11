@@ -143,11 +143,3 @@
 } \
 /**/
 
-#define KX_PUSH_CO_CODE() \
-{ \
-    kx_fnc_t *fnco = kv_A((ctx)->stack, frmv->id - 3).value.fn; \
-    fnco->fiber = 1; \
-    push_coroutine((ctx)->stack); \
-    cur = cur->next; \
-} \
-/**/

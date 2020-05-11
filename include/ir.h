@@ -19,6 +19,7 @@ enum irop {
     KX_DUP,
     KX_IMPORT,
 
+    KX_COENTER,
     KX_ENTER,
     KX_CALL,
     KX_CALLV,
@@ -64,7 +65,6 @@ enum irop {
     KX_PUSH_FALSE,
     KX_PUSH_REGEX,
     KX_PUSH_C,
-    KX_PUSH_CO,
     KX_SPREAD,
 
     KX_POP_C,

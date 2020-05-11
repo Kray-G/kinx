@@ -1765,15 +1765,17 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         int func = kv_last(ana->fidxlist);
         int cur = new_function(ana);
         ana->function = node->func = cur;
-        get_function(module, cur)->name = ana->classname > 0 ? const_str2(ctx, get_function(module, ana->classname)->name, node->value.s) : const_str(ctx, node->value.s);
+        get_function(module, cur)->name = ana->classname > 0
+            ? const_str2(ctx, get_function(module, ana->classname)->name, node->value.s)
+            : const_str(ctx, node->value.s);
         int old = ana->block;
         int block = new_block(ana);
         ana->block = block;
         int enter = kv_size(get_block(module, block)->code);
-        kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_ENTER, .is_internal = node->optional == KXFT_SYSFUNC }));
-        if (node->type == KXST_COROUTINE) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_CO }));
-        }
+        kv_push(kx_code_t, get_block(module, block)->code,
+            ((kx_code_t){ FILELINE(ana),
+                .op = node->type == KXST_COROUTINE ? KX_COENTER : KX_ENTER,
+                .is_internal = (node->optional == KXFT_SYSFUNC) }));
         gencode_spread_vars(ctx, node->lhs, ana, 0);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         int pushes = count_pushes(get_function(module, cur), ana);
