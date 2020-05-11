@@ -2,11 +2,24 @@
 
 ## V1.0.0 (Future Planned)
 
-*   Documentation complete.
-*   REPL (Read-Eval-Print Loop).
-*   Library mode like `libkinx.so`.
-*   Some Optimaizations.
-*   User selectable installation.
+*   Planned, or remaining tasks.
+    *   Support DateTime class.
+    *   Support CSV class.
+    *   Support OpenCV library.
+    *   Support PDF library with libHaru.
+    *   Support HTTP Server library with libhttp.
+    *   Support REPL (Read-Eval-Print Loop).
+    *   User selectable installation.
+    *   Documentation & SpecTest complete.
+    *   Library mode like `libkinx.so`.
+    *   The followings are planned but priority is low.
+        *   Improvement with `KX_FASTENTER` and `KX_COENTERL`.
+            *   `KX_FASTENTER` is entering function without frame.
+            *   `KX_COENTER` is `KX_ENTER` just for Fiber.
+            *   Fiber check will be removed from `KX_ENTER`.
+        *   Improvement with some specialized instructions.
+            *   `KXOPT_LENGTH` ... for `Array`, `Binary`, `String`
+            *   `KXOPT_PARSEINT` ... `Integer.parseInt`
 
 ## V0.7.0 (Current Development)
 
@@ -15,23 +28,8 @@
         *   `<<`, `>>` ... Making it parse correctly.
     *   Added `toString()` method to the class Boolean.
     *   Some runtime optimaizations for function call.
+    *   Replaced Bison of a parser generator by Kmyacc.
     *   Some bug fixes and improvement.
-
-*   Planned, or remaining tasks.
-    *   Support DateTime class.
-    *   Support CSV class.
-    *   Replace Bison by Kmyacc.
-    *   Support REPL.
-    *   Support kinx as a library.
-    *   Support OpenCV library.
-    *   Support PDF library with libHaru.
-    *   The followings are planned but priority is low.
-        *   Improvement with `KX_ENTERL` and `KX_COENTERL`.
-            *   `KX_ENTERL` is entering function without frame.
-            *   `KX_COENTER` is `KX_ENTER` just for Fiber.
-            *   Fiber check will be removed from `KX_ENTER`.
-        *   Improvement with some specialized instructions.
-            *   `KXOPT_LENGTH`
 
 ## V0.6.0 (6th Preview Release)
 
