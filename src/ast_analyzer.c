@@ -728,10 +728,6 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
     case KXST_SYSRET_NV:
         break;
-    case KXST_COROUTINE: {
-        analyze_ast(ctx, node->lhs, actx);
-        break;
-    }
     case KXST_THROW:      /* lhs: expr */
         if (node->lhs) {
             analyze_ast(ctx, node->lhs, actx);
@@ -804,6 +800,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         kv_pop(actx->enval);
         break;
     }
+    case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         int depth = actx->depth;

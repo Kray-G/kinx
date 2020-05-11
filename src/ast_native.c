@@ -1120,10 +1120,6 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
     }
     case KXST_SYSRET_NV:
         break;
-    case KXST_COROUTINE: {    /* lhs: expr */
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
-        break;
-    }
     case KXST_THROW: {    /* lhs: expr */
         int len = kv_size(nctx->catch_list);
         if (node->lhs) {
@@ -1154,6 +1150,9 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
     }
+    case KXST_COROUTINE: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
