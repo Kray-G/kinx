@@ -81,7 +81,7 @@
 } \
 /**/
 
-#define KX_ENTER_CODE() \
+#define KX_COENTER_CODE() \
 { \
     kv_expand_if(kx_val_t, (ctx)->stack, cur->value1.i); \
     int ssize = kv_size((ctx)->stack); \
@@ -93,6 +93,20 @@
     } else { \
         KX_ENTER_CORE_CODE(ctx, fnco, cur, \
             ssize, stack, cur->is_internal, args, cur->count, cur->value2.i); \
+        fnco->fiber = 1; \
+        push_coroutine((ctx)->stack); \
     } \
+} \
+/**/
+
+#define KX_ENTER_CODE() \
+{ \
+    kv_expand_if(kx_val_t, (ctx)->stack, cur->value1.i); \
+    int ssize = kv_size((ctx)->stack); \
+    kx_val_t *stack = ((ctx)->stack).a + ssize - 2;\
+    int args = stack->value.iv; \
+    kx_fnc_t *fnco = (*(--stack)).value.fn; \
+    KX_ENTER_CORE_CODE(ctx, fnco, cur, \
+        ssize, stack, cur->is_internal, args, cur->count, cur->value2.i); \
 } \
 /**/
