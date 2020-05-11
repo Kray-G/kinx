@@ -1,0 +1,164 @@
+class DateTime(arg1_) {
+    @isDateTime = true;
+    var unixtime_, datetime_;
+    private initialize() {
+        if (arg1_.isUndefined) {
+            unixtime_ = System.mktime();
+            datetime_ = System.localtime(unixtime_);
+        } else if (arg1_.isDateTime) {
+            unixtime_ = arg1_.unixtime();
+            datetime_ = arg1_.datetime();
+        } else {
+            DateTime.regex.reset(arg1_);
+            if (DateTime.regex.find()) {
+                var g = DateTime.regex.group;
+                var year   = Integer.parseInt(g[1].string, 10);
+                var month  = Integer.parseInt(g[2].string, 10);
+                var day    = Integer.parseInt(g[3].string, 10);
+                var hour   = Integer.parseInt(g[4].string, 10);
+                var minute = Integer.parseInt(g[5].string, 10);
+                var second = Integer.parseInt(g[6].string, 10);
+                unixtime_ = System.mktime(year, month, day, hour, minute, second);
+                datetime_ = System.localtime(unixtime_);
+            }
+        }
+    }
+    public toString() {
+        return "%04d/%02d/%02d %02d:%02d:%02d"
+            % datetime_.year % datetime_.month % datetime_.day % datetime_.hour % datetime_.minute % datetime_.second;
+    }
+    public isLeapYear(year) {
+        return (year % 400 == 0) || ((year % 4 == 0) && (year % 100 != 0));
+    }
+    public unixtime() {
+        return unixtime_;
+    }
+    public datetime() {
+        return datetime_;
+    }
+    public year() {
+        return datetime_.year;
+    }
+    public month() {
+        return datetime_.month;
+    }
+    public day() {
+        return datetime_.day;
+    }
+    public hour() {
+        return datetime_.hour;
+    }
+    public minute() {
+        return datetime_.minute;
+    }
+    public second() {
+        return datetime_.second;
+    }
+    public weekday() {
+        return datetime_.weekday;
+    }
+    public isSunday() {
+        return datetime_.weekday == 0;
+    }
+    public isMonday() {
+        return datetime_.weekday == 1;
+    }
+    public isTuesday() {
+        return datetime_.weekday == 2;
+    }
+    public isWednesday() {
+        return datetime_.weekday == 3;
+    }
+    public isThursday() {
+        return datetime_.weekday == 4;
+    }
+    public isFriday() {
+        return datetime_.weekday == 5;
+    }
+    public isSaturday() {
+        return datetime_.weekday == 6;
+    }
+    public clone() {
+        return new DateTime(this);
+    }
+    public addDay(day) {
+        unixtime_ += day * (24 * 60 * 60);
+        datetime_ = System.localtime(unixtime_);
+        return this;
+    }
+    public subDay(day) {
+        unixtime_ -= day * (24 * 60 * 60);
+        datetime_ = System.localtime(unixtime_);
+        return this;
+    }
+    private adjustDateTime(d) {
+        if (d.month < 1) {
+            while (d.month < 1) {
+                d.month += 12;
+                d.year--;
+            }
+        } else if (d.month > 12) {
+            while (d.month > 12) {
+                d.month -= 12;
+                d.year++;
+            }
+        }
+        var max = DateTime.days[d.month];
+        if (d.month == 2 && isLeapYear(d.year)) {
+            max++;
+        }
+        if (d.day > max) {
+            d.day = max;
+        }
+        unixtime_ = System.mktime(d);
+        datetime_ = System.localtime(unixtime_);
+        return this;
+    }
+    public addMonth(month) {
+        var d = System.localtime(unixtime_);
+        d.month += month;
+        return adjustDateTime(d);
+    }
+    public subMonth(month) {
+        var d = System.localtime(unixtime_);
+        d.month -= month;
+        return adjustDateTime(d);
+    }
+    public next() {
+        return clone().addDay(1);
+    }
+    public +(day) {
+        return clone().addDay(day);
+    }
+    public -(day) {
+        return clone().subDay(day);
+    }
+    public >>(month) {
+        return clone().addMonth(month);
+    }
+    public <<(month) {
+        return clone().subMonth(month);
+    }
+    public <=>(dt) {
+        if (dt.isInteger) {
+            return unixtime_ <=> dt;
+        }
+        if (dt.isDateTime) {
+            return unixtime_ <=> dt.unixtime();
+        }
+        return null;
+    }
+}
+DateTime.regex = %m"([0-9]{1,4})[-/]([0-9]{1,2})[-/]([0-9]{1,2}(?:[T\s]([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2}))?)";
+DateTime.days = [
+    0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+];
+DateTime.now = _function() {
+    return new DateTime();
+};
+DateTime.parse = _function(fmt) {
+    return new DateTime(fmt);
+};
+DateTime.() = _function(fmt) {
+    return new DateTime(fmt);
+};
