@@ -26,6 +26,8 @@
             last_op(ana) = KX_STOREX;\
         } else if (last_op(ana) == KX_STOREV) {\
             last_op(ana) = KX_STOREVX;\
+        } else if (last_op(ana) == KX_SWAP) {\
+            last_op(ana) = KX_SWAPX;\
         } else {\
             if (last_op(ana) == KX_INCV || last_op(ana) == KX_INCVP) {\
                 last_op(ana) = KX_INCVX;\
