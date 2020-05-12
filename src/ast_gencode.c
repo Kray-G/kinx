@@ -1948,7 +1948,6 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, k
 
     if (ctx->block_index == 0) {
         kv_A(get_block(module, startb)->code, 0).value1.i = get_block(module, kv_head(get_function(module, func)->block))->index;
-        kv_A(get_block(module, startb)->code, 0).value2.idx = get_block(module, kv_head(get_function(module, func)->block))->index;
     }
 
     ctx->block_index = ana->start_index;
