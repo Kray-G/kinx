@@ -3,7 +3,6 @@
 ## V1.0.0 (Future Planned)
 
 *   Planned, or remaining tasks.
-    *   Support DateTime class.
     *   Support CSV class.
     *   Support OpenCV library.
     *   Support PDF library with libHaru.
@@ -29,6 +28,7 @@
     *   Added `toString()` method to the class Boolean.
     *   Some runtime optimaizations for function call.
     *   Replaced Bison of a parser generator by Kmyacc.
+    *   Supported DateTime class.
     *   Some bug fixes and improvement.
 
 ## V0.6.0 (6th Preview Release)
