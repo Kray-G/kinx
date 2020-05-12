@@ -74,7 +74,7 @@ _class CSV(opts_) {
             # } while (info.ch == '\n'[0]);
         }
     }
-    private parseInpl(func) {
+    private parseImpl(func) {
         var info = { ch: 0, row: [], line: 0 };
         next(info);
         parseRows(info, func);
@@ -83,14 +83,14 @@ _class CSV(opts_) {
     public parse(filename, func) {
         str_ = null;
         f_ = new File(filename, File.READ);
-        return parseInpl(func);
+        return parseImpl(func);
     }
     public parseString(str, func) {
         f_ = null;
         str_ = str;
         sl_ = str.length();
         si_ = 0;
-        return parseInpl(func);
+        return parseImpl(func);
     }
 
 }
