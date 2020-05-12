@@ -29,6 +29,7 @@ class DateTime(arg1_) {
             % datetime_.year % datetime_.month % datetime_.day % datetime_.hour % datetime_.minute % datetime_.second;
     }
     public isLeapYear(year) {
+        year ??= datetime_.year;
         return (year % 400 == 0) || ((year % 4 == 0) && (year % 100 != 0));
     }
     public unixtime() {
