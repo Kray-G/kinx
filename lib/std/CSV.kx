@@ -1,0 +1,113 @@
+class CSV(opts_) {
+
+    var sep_ = (opts_.sep ?? ',')[0];
+    var name_ = opts_.name ?? "CSV";
+    var f_, str_, sl_, si_;
+
+    private next(info) {
+        do {
+            if (f_.isFile) {
+                info.ch = f_.geti();
+            } else {
+                if (si_ >= sl_) {
+                    info.ch = -1;
+                } else {
+                    info.ch = str_[si_++] & 0xFF;
+                }
+            }
+        } while (info.ch == '\r'[0]);
+    }
+    private parseQuotedString(info) {
+        var elem = "";
+        while (info.ch > 0) {
+            elem += *info.ch;
+            next(info);
+            if (info.ch == '"'[0]) {
+                next(info);
+                if (info.ch != '"'[0]) {
+                    break;
+                }
+            }
+        }
+        if (info.ch != sep_ && info.ch != '\n'[0] && info.ch > 0) {
+            throw RuntimeException("Invalid %{name_} format");
+        }
+        info.row[info.line].push(elem);
+    }
+    private parseElement(info) {
+        if (info.ch == sep_) {
+            info.row[info.line].push("");
+            return;
+        }
+        if (info.ch == '"'[0]) {
+            next(info);
+            return parseQuotedString(info);
+        }
+        var elem = "";
+        while (info.ch != sep_ && info.ch != '\n'[0] && info.ch > 0) {
+            elem += *info.ch;
+            next(info);
+        }
+        info.row[info.line].push(elem);
+    }
+    private parseRow(info) {
+        parseElement(info);
+        while (info.ch == sep_) {
+            next(info);
+            parseElement(info);
+        }
+    }
+    private parseRows(info, func) {
+        while (info.ch > 0) {
+            info.row[info.line] = [];
+            parseRow(info);
+            if (info.ch != '\n'[0] && info.ch > 0) {
+                throw RuntimeException("Invalid %{name_} format");
+            }
+            if (func.isFunction) {
+                func(info.row[info.line]);
+            } else {
+                info.line++;
+            }
+            # do {
+            next(info);
+            # } while (info.ch == '\n'[0]);
+        }
+    }
+    private parseInpl(func) {
+        var info = { ch: 0, row: [], line: 0 };
+        next(info);
+        parseRows(info, func);
+        return func.isFunction ? null : info.row;
+    }
+    public parse(filename, func) {
+        str_ = null;
+        f_ = new File(filename, File.READ);
+        return parseInpl(func);
+    }
+    public parseString(str, func) {
+        f_ = null;
+        str_ = str;
+        sl_ = str.length();
+        si_ = 0;
+        return parseInpl(func);
+    }
+
+}
+
+CSV.parse = _function(filename, func) {
+    return new CSV().parse(filename, func);
+};
+CSV.parseString = _function(str, func) {
+    return new CSV().parseString(str, func);
+};
+
+class TSV : CSV({ sep: '\t', name: 'TSV' }) {
+}
+
+TSV.parse = _function(filename, func) {
+    return new TSV().parse(filename, func);
+};
+TSV.parseString = _function(str, func) {
+    return new TSV().parseString(str, func);
+};
