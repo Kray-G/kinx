@@ -1,16 +1,15 @@
-_class DateTime(arg1_) {
+_class DateTime(unixtime_) {
     @isDateTime = true;
-    var unixtime_, datetime_;
+    var datetime_;
     private initialize() {
-        if (arg1_.isUndefined) {
+        if (unixtime_.isUndefined) {
             unixtime_ = System.mktime();
             datetime_ = System.localtime(unixtime_);
-        } else if (arg1_.isDateTime) {
-            unixtime_ = arg1_.unixtime();
-            datetime_ = arg1_.datetime();
-            arg1_ = null; // remove reference for GC.
-        } else {
-            DateTime.regex.reset(arg1_);
+        } else if (unixtime_.isDateTime) {
+            datetime_ = unixtime_.datetime();
+            unixtime_ = unixtime_.unixtime();
+        } else if (unixtime_.isString) {
+            DateTime.regex.reset(unixtime_);
             if (DateTime.regex.find()) {
                 var g = DateTime.regex.group;
                 var year   = Integer.parseInt(g[1].string, 10);
@@ -22,6 +21,8 @@ _class DateTime(arg1_) {
                 unixtime_ = System.mktime(year, month, day, hour, minute, second);
                 datetime_ = System.localtime(unixtime_);
             }
+        } else {
+            throw SystemException("Invalid argument for DateTime");
         }
     }
     public toString() {
