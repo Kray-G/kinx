@@ -142,6 +142,16 @@ static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
                 code->op = KX_NOP;
             }
         }
+        if (code->op == KX_POP) {
+            kx_code_t *next = kv_A(*fixcode, i+1);
+            if (next->op == KX_JMP && next->value2.i == 0) {
+                code->op = KX_JMP;
+                code->addr = next->addr;
+                code->value1.i = next->value1.i;
+                code->value2.i = 1;
+                next->op = KX_NOP;
+            }
+        }
     }
 }
 
