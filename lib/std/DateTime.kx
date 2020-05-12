@@ -8,6 +8,7 @@ class DateTime(arg1_) {
         } else if (arg1_.isDateTime) {
             unixtime_ = arg1_.unixtime();
             datetime_ = arg1_.datetime();
+            arg1_ = null; // remove reference for GC.
         } else {
             DateTime.regex.reset(arg1_);
             if (DateTime.regex.find()) {
