@@ -202,23 +202,23 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         break;
     case KX_JMP:
         if (code->addr > 0) {
-            printf("%-23s .L%"PRId64"(%x)", "jmp", code->value1.i, code->addr);
+            printf("%-23s .L%"PRId64"(%x)", code->value2.i ? "jmpx" : "jmp", code->value1.i, code->addr);
         } else {
-            printf("%-23s .L%"PRId64, "jmp", code->value1.i);
+            printf("%-23s .L%"PRId64, code->value2.i ? "jmpx" : "jmp", code->value1.i);
         }
         break;
     case KX_JZ:
         if (code->addr > 0) {
-            printf("%-23s .L%"PRId64"(%x)", "jz", code->value1.i, code->addr);
+            printf("%-23s .L%"PRId64"(%x)", code->value2.i ? "jzx" : "jz", code->value1.i, code->addr);
         } else {
-            printf("%-23s .L%"PRId64, "jz", code->value1.i);
+            printf("%-23s .L%"PRId64, code->value2.i ? "jzx" : "jz", code->value1.i);
         }
         break;
     case KX_JNZ:
         if (code->addr > 0) {
-            printf("%-23s .L%"PRId64"(%x)", "jnz", code->value1.i, code->addr);
+            printf("%-23s .L%"PRId64"(%x)", code->value2.i ? "jnzx" : "jnz", code->value1.i, code->addr);
         } else {
-            printf("%-23s .L%"PRId64, "jnz", code->value1.i);
+            printf("%-23s .L%"PRId64, code->value2.i ? "jnzx" : "jnz", code->value1.i);
         }
         break;
     case KX_JMPTBL:
