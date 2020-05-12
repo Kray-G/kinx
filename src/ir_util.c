@@ -695,10 +695,56 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     } \
 } \
 /**/
+#define KX_CALLOPT_CANDIDATE(c) \
+    (((c)->op == KX_EQEQI) || ((c)->op == KX_NEQI) || \
+    ((c)->op == KX_LTI) || ((c)->op == KX_LEI) || ((c)->op == KX_GTI) || ((c)->op == KX_GEI)) \
+/**/
+#define KX_CALLOPT_COND_EQEQ ==
+#define KX_CALLOPT_COND_NEQ !=
 #define KX_CALLOPT_COND_LT <
 #define KX_CALLOPT_COND_LE <=
 #define KX_CALLOPT_COND_GT >
 #define KX_CALLOPT_COND_GE >=
+#define KX_CALLOPT_RETVL1_CMB_CMP(name) { \
+    if (c3->op == KX_##name##I) { \
+        kx_code_t *c4 = c3->next; \
+        if (val->type != KX_INT_T || c4->op != KX_RET) { \
+            return NULL; \
+        } \
+        kv_shrink(ctx->stack, args + 3); \
+        push_i(ctx->stack, val->value.iv KX_CALLOPT_COND_##name c3->value1.i); \
+        return next; \
+    } \
+} \
+/**/
+#define KX_CALLOPT_RETVL1_CMB() { \
+    if (c1->op == KX_PUSHVL1) { \
+        if (c2->op == KX_APPLYVS) { \
+            if (c3->op == KX_RET || KX_CALLOPT_CANDIDATE(c3)) { \
+                kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn; \
+                kx_frm_t *lexv = fnc->lex; \
+                kx_val_t *r = &kv_A(lexv->v, c1->value2.i); \
+                if (r->type == KX_OBJ_T) { \
+                    kx_val_t *val = NULL; \
+                    KEX_GET_PROP(val, r->value.ov, c2->value1.s); \
+                    if (val) { \
+                        KX_CALLOPT_RETVL1_CMB_CMP(EQEQ); \
+                        KX_CALLOPT_RETVL1_CMB_CMP(NEQ); \
+                        KX_CALLOPT_RETVL1_CMB_CMP(LT); \
+                        KX_CALLOPT_RETVL1_CMB_CMP(LE); \
+                        KX_CALLOPT_RETVL1_CMB_CMP(GT); \
+                        KX_CALLOPT_RETVL1_CMB_CMP(GE); \
+                        kv_shrink(ctx->stack, args + 3); \
+                        push_value(ctx->stack, *val); \
+                        return next; \
+                    } \
+                } \
+            } \
+        } \
+        return NULL; \
+    } \
+} \
+/**/
 #define KX_CALLOPT_COND_V0I(cond) { \
     if (c1->op == KX_##cond##_V0I && c1->value1.i < count) { \
         kx_val_t *v1 = KX_CALLOPT_ARG(c1->value1.i); \
@@ -737,6 +783,7 @@ kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp
     KX_CALLOPT_RETI(c1);
     KX_CALLOPT_RETVL0(c1);
     KX_CALLOPT_RETVL1(c1);
+    KX_CALLOPT_RETVL1_CMB();
     KX_CALLOPT_COND_V0I(LT);
     KX_CALLOPT_COND_V0I(LE);
     KX_CALLOPT_COND_V0I(GT);
