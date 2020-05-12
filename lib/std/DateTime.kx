@@ -1,4 +1,4 @@
-class DateTime(arg1_) {
+_class DateTime(arg1_) {
     @isDateTime = true;
     var unixtime_, datetime_;
     private initialize() {
