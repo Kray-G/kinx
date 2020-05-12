@@ -1,4 +1,4 @@
-class CSV(opts_) {
+_class CSV(opts_) {
 
     var sep_ = (opts_.sep ?? ',')[0];
     var name_ = opts_.name ?? "CSV";
@@ -102,7 +102,7 @@ CSV.parseString = _function(str, func) {
     return new CSV().parseString(str, func);
 };
 
-class TSV : CSV({ sep: '\t', name: 'TSV' }) {
+_class TSV : CSV({ sep: '\t', name: 'TSV' }) {
 }
 
 TSV.parse = _function(filename, func) {
