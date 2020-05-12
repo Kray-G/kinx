@@ -124,7 +124,7 @@ static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
             int idx = code->value1.i;
             int addr = code->addr;
             kx_code_t *dst = kv_A(*fixcode, addr);
-            if (dst->op == KX_JMP) {
+            if (dst->op == KX_JMP && dst->value2.i == 0) {
                 do {
                     if (addr == dst->addr) {
                         break;
@@ -132,9 +132,14 @@ static void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
                     idx = dst->value1.i;
                     addr = dst->addr;
                     dst = kv_A(*fixcode, addr);
-                } while (dst->op == KX_JMP);
+                } while (dst->op == KX_JMP && dst->value2.i == 0);
                 code->addr = addr;
                 code->value1.i = idx;
+            }
+        }
+        if (code->op == KX_JMP || code->op == KX_JZ || code->op == KX_JNZ) {
+            if (code->addr == (i+1) && code->value2.i == 0) {
+                code->op = KX_NOP;
             }
         }
     }
