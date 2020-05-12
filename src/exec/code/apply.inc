@@ -28,11 +28,11 @@ do { \
     const char *pv = pvp; \
     int len = strlen(pv); \
     if (0 <= i) { \
-        push_i((ctx)->stack, len == 0 ? 0 : pv[i % len]); \
+        push_i((ctx)->stack, len == 0 ? 0 : (uint32_t)(pv[i % len] & 0xFF)); \
     } else { \
         i = len == 0 ? 0 : len + i; \
         while (i < 0) i += len; \
-        push_i((ctx)->stack, pv[i]); \
+        push_i((ctx)->stack, (uint32_t)(pv[i] & 0xFF)); \
     } \
 } while (0);\
 /**/

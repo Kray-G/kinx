@@ -866,6 +866,49 @@ int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int File_getchi(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_FILE_GET_RPACK(fi, obj);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_READ)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
+    }
+    if (feof(fi->fp)) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, EOF);
+        return 0;
+    }
+
+    int ch;
+    if (fi->is_std) {
+        while (!stdin_peek(100)) {
+            volatile uint8_t signal = ctx->signal.signal_received;
+            if (signal) {
+                KX_ADJST_STACK();
+                push_i(ctx->stack, 0);
+                return 0;
+            }
+        }
+        ch = kx_getch();
+        if (ch == 0x03) {
+            ctx->signal.signal_received = 1;
+            ctx->signal.sigint_count++;
+            KX_ADJST_STACK();
+            push_i(ctx->stack, 0);
+            return 0;
+        }
+    } else {
+        ch = fgetc(fi->fp);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, ch);
+    return 0;
+}
+
 int File_putch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -1000,6 +1043,7 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_METHOD("readLine", obj, File_readline);
     KEX_SET_METHOD("peek", obj, File_peek);
     KEX_SET_METHOD("getch", obj, File_getch);
+    KEX_SET_METHOD("geti", obj, File_getchi);
     KEX_SET_METHOD("putch", obj, File_putch);
     KEX_SET_METHOD("printImpl", obj, File_print);
     KEX_SET_METHOD("printlnImpl", obj, File_println);
