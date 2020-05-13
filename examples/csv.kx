@@ -1,0 +1,14 @@
+using CSV;
+
+var file = $$[0].parentPath() / "csv1.csv";
+System.println("File: ", file);
+
+System.println("\n--- Parsing the file line by line");
+CSV.parse(file, &(line) => {
+    System.println(line);
+});
+
+System.println("\n--- Parsing the whole text");
+var str = File.load(file);
+var r = CSV.parseString(str);
+System.println(r.toJsonString(true));
