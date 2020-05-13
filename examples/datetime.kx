@@ -1,0 +1,11 @@
+using DateTime;
+
+System.println("Loop with DateTime Range");
+var dt = DateTime.parse("2019-01-01 09:00:00");
+for (d in (dt ... (dt >> 1))) {
+    System.println(d);
+}
+
+System.println("\nThe end of the month");
+System.println((dt >> 1) - 1);  // The end day of January.
+System.println((dt >> 2) - 1);  // The end day of February.
