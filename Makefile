@@ -39,7 +39,10 @@ OBJS = \
     main.o \
     parser.o \
     format.o \
-    string.o
+    string.o \
+    optimizer.o \
+    opt_cfold.o \
+    opt_jump.o
 SRCS = $(patsubst %.o,src/%.c,$(OBJS))
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
@@ -314,6 +317,15 @@ sqlite3.o: src/extlib/sqlite/sqlite3.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/optimizer/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/optimizer/ast/%.c
+	./timex $(CC) -c $(CFLAGS) -o $@ $<
+
+%.o: src/optimizer/code/%.c
 	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
 %.o: src/disasm/%.c
