@@ -1,6 +1,6 @@
 #include <kxoptimizer.h>
 
-void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode, int start)
+void opt_code_remove_jmp(kvec_pt(kx_code_t) *fixcode, int start)
 {
     if (!fixcode) {
         return;
@@ -22,7 +22,7 @@ void ir_remove_jmp(kvec_pt(kx_code_t) *fixcode, int start)
     }
 }
 
-void ir_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
+void opt_code_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
 {
     if (!fixcode) {
         return;
