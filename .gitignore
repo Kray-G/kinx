@@ -31,3 +31,5 @@ kx.tab.c
 kx.tab.h
 package_win64.zip
 temp*
+src/opt*.c
+
