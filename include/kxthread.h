@@ -1,3 +1,5 @@
+#ifndef KX_KXTHREAD_H
+#define KX_KXTHREAD_H
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #define USE_WINDOWS
@@ -158,3 +160,5 @@ static inline void msec_sleep(int msec)
 #ifndef KX_DLL
 extern pthread_mutex_t g_mutex;
 #endif
+
+#endif /* KX_KXTHREAD_H */
