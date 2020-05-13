@@ -27,6 +27,7 @@
     *   Replaced Bison of a parser generator by Kmyacc.
     *   Supported DateTime class.
     *   Supported CSV/TSV class.
+    *   Supported some optimizations.
     *   Some bug fixes and improvement.
 
 ## V0.6.0 (6th Preview Release)
