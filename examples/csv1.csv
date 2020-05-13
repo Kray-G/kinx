@@ -1,0 +1,10 @@
+# comment in CSV.
+abcde,efgh,non-quoted string
+"abcde","efgh","quoted string"
+"abcde",efgh,"quoted & non-quoted string in the same row"
+"abcde",efgh,"can use , or "" in csv"
+"abcde",efgh,"can use newlines
+
+in the row"
+# another comment in CSV.
+abcde,efgh,not necessary \n the end of csv
