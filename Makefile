@@ -210,7 +210,7 @@ timex:
 clean:
 	rm -f $(OBJS) $(DISASM) $(SOFILES) $(PICOBJS) timex kinx myacc test
 
-kinx: src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
+kinx: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm -pthread
 	cp -f src/disasm/arch/x86/x86.ins .
 	cp -f src/disasm/arch/x86/x64.ins .
@@ -270,6 +270,11 @@ libssl.so.3:
 
 libcrypto.so.3:
 	cp -f src/extlib/openssl/x64/gcc/libcrypto.so.3 ./libcrypto.so.3
+
+src/optimizer.c: src/optimizer/optimizer.c
+	cp -f src/optimizer/optimizer.c src/
+	cp -f src/optimizer/ast/*.c src/
+	cp -f src/optimizer/code/*.c src/
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c
