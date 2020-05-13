@@ -440,6 +440,9 @@ extern void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 
+extern void start_optimize_ast(kx_context_t *ctx, kx_object_t *node);
+extern void start_optimize_code(kx_context_t *ctx, int start);
+
 extern void start_analyze_ast(kx_context_t *ctx, kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
 extern kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *args, int argn);

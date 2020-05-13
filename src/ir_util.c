@@ -387,6 +387,7 @@ static int eval(kx_context_t *ctx)
         return -1;
     }
 
+    start_optimize_ast(ctx, kx_ast_root);
     start_analyze_ast(ctx, kx_ast_root);
     if (g_yyerror > 0) {
         return -1;
@@ -406,6 +407,7 @@ static int eval(kx_context_t *ctx)
     if (g_yyerror > 0) {
         return -1;
     }
+    start_optimize_code(ctx, start);
     free_nodes();
     return start;
 }
