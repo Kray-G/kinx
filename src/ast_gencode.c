@@ -958,12 +958,62 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
+    #define KX_ASSIGN_OPT_LOGICAL(opcode, condopt, jumpcond) { \
+        if (node->rhs && node->rhs->type == opcode) { \
+            if (node->lhs->type == KXOP_VAR && node->rhs->lhs->type == KXOP_VAR && node->rhs->rhs) { \
+                kx_object_t *l = node->lhs; \
+                kx_object_t *r = node->rhs->lhs; \
+                if (l->lexical == r->lexical && l->index == r->index) { \
+                    int block = ana->block; \
+                    int cond, alt, out; \
+                    cond = new_block(ana); \
+                    get_block(module, block)->tf[0] = cond; \
+                    ana->block = cond; \
+                    gencode_ast_hook(ctx, node->lhs, ana, 0); \
+                    condopt; \
+                    cond = ana->block; \
+                    alt = new_block(ana); \
+                    out = new_block(ana); \
+                    jumpcond; \
+                    ana->block = alt; \
+                    gencode_ast_hook(ctx, node->rhs->rhs, ana, 0); \
+                    gencode_ast_hook(ctx, node->lhs, ana, 1); \
+                    if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHLV) { \
+                        last_op(ana) = KX_STOREV; \
+                    } else { \
+                        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE })); \
+                    } \
+                    alt = ana->block; \
+                    get_block(module, alt)->tf[0] = out; \
+                    ana->block = out; \
+                    break; \
+                } \
+            } \
+        } \
+    } \
+    /**/
     case KXOP_ASSIGN: {
+        KX_ASSIGN_OPT_LOGICAL(KXOP_LAND, {}, {
+            get_block(module, cond)->tf[0] = alt;
+            get_block(module, cond)->tf[1] = out;
+        });
+        KX_ASSIGN_OPT_LOGICAL(KXOP_LOR, {}, {
+            get_block(module, cond)->tf[0] = out;
+            get_block(module, cond)->tf[1] = alt;
+        });
+        KX_ASSIGN_OPT_LOGICAL(KXOP_LUNDEF, {
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_DEF_T } }));
+        }, {
+            get_block(module, cond)->tf[0] = out;
+            get_block(module, cond)->tf[1] = alt;
+        });
         if (is_array_swap(node->lhs, node->rhs)) {
             gencode_ast_hook(ctx, node->lhs->lhs->lhs, ana, 1);
             gencode_ast_hook(ctx, node->lhs->lhs->rhs, ana, 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_SWAP }));
-        } else if (node->rhs) {
+            break;
+        }
+        if (node->rhs) {
             gencode_ast_hook(ctx, node->rhs, ana, 0);
             if ((code_size(module, ana) > 0) && node->lhs->type == KXOP_VAR) {
                 if (ana->classname == 0 && !strcmp(node->lhs->value.s, "methodMissing") && last_op(ana) != KX_SET_GMM) {
@@ -1059,13 +1109,16 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_DEF_T } }));
+        cond = ana->block;
         alt = new_block(ana);
         out = new_block(ana);
-        get_block(module, ana->block)->tf[0] = out;
-        get_block(module, ana->block)->tf[1] = alt;
+        get_block(module, cond)->tf[0] = out;
+        get_block(module, cond)->tf[1] = alt;
         ana->block = alt;
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
         gencode_ast_hook(ctx, node->rhs, ana, 0);
+        alt = ana->block;
+        get_block(module, alt)->tf[0] = out;
 
         ana->block = out;
         break;
