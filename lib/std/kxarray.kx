@@ -79,6 +79,9 @@ Array.join = _function(ary, delm) {
 Array.toString = (_function() {
     var depth = 0;
     return _function(ary) {
+        if (!ary.isArray) {
+            return ary.toJsonString();
+        }
         try {
             ++depth;
             if (depth > 100) {
@@ -203,7 +206,7 @@ Array.toJsonString = (_function() {
             if (e.isArray) {
                 outputArray(e, useIndent, output, level);
             } else if (e.isObject) {
-                outputObject(e, useIndent, output, level);
+                outputObject(e, useIndent, output, level-1);
             } else {
                 outputElement(e, useIndent, output, level);
             }
@@ -224,6 +227,10 @@ Array.toJsonString = (_function() {
             output(elem.toString());
             return;
         }
+        if (elem.keySet().length() == 0) {
+            output('{}');
+            return;
+        }
         output('{'); makeNewline(useIndent, output);
         ++level;
         elem.keySet().each(_function(key, i) {
@@ -238,7 +245,7 @@ Array.toJsonString = (_function() {
             if (e.isArray) {
                 outputArray(e, useIndent, output, level);
             } else if (e.isObject) {
-                outputObject(e, useIndent, output, level);
+                outputObject(e, useIndent, output, level-1);
             } else {
                 outputElement(e, useIndent, output, level);
             }
