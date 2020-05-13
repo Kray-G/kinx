@@ -32,11 +32,11 @@ _class CSV(opts_) {
         if (info.ch != sep_ && info.ch != '\n'[0] && info.ch > 0) {
             throw RuntimeException("Invalid %{name_} format");
         }
-        info.row[info.line].push(elem);
+        info.row[info.line].data.push(elem);
     }
     private parseElement(info) {
         if (info.ch == sep_) {
-            info.row[info.line].push("");
+            info.row[info.line].data.push("");
             return;
         }
         if (info.ch == '"'[0]) {
@@ -48,18 +48,29 @@ _class CSV(opts_) {
             elem += *info.ch;
             next(info);
         }
-        info.row[info.line].push(elem);
+        info.row[info.line].data.push(elem);
     }
     private parseRow(info) {
+        if (info.ch == '#'[0]) {
+            // Comment in CSV.
+            var elem = "";
+            do {
+                elem += *info.ch;
+                next(info);
+            } while (info.ch != '\n'[0]);
+            info.row[info.line].comment = elem;
+            return false;
+        }
         parseElement(info);
         while (info.ch == sep_) {
             next(info);
             parseElement(info);
         }
+        return true;
     }
     private parseRows(info, func) {
         while (info.ch > 0) {
-            info.row[info.line] = [];
+            info.row[info.line] = { data: [] };
             parseRow(info);
             if (info.ch != '\n'[0] && info.ch > 0) {
                 throw RuntimeException("Invalid %{name_} format");
