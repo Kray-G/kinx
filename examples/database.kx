@@ -56,6 +56,7 @@ db.queryAll({
     bind: [2, 8, 10]
 }, &(c, i) => {
     System.println("%2d => " % i, c.toJsonString());
+    if (i == 2) return false;
 });
 
 System.println("");
