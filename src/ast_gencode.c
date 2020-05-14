@@ -1460,19 +1460,19 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         } else {
             get_block(module, stmt)->tf[0] = cond;
         }
-        ana->block = cond;
+        int ctop = ana->block = cond;
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         cond = ana->block;
         if (node->rhs) {
             get_block(module, cond)->tf[0] = thtop;
         } else {
-            get_block(module, cond)->tf[0] = cond;
+            get_block(module, cond)->tf[0] = ctop;
         }
 
         int out = new_block(ana);
         get_block(module, cond)->tf[1] = out;
         get_block(module, stmt)->tf[2] = out;
-        get_block(module, stmt)->tf[3] = cond;
+        get_block(module, stmt)->tf[3] = ctop;
 
         ana->cont_label = cont_label;
         ana->break_label = break_label;
@@ -1496,22 +1496,22 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
 
         int cond = new_block(ana);
-        ana->block = cond;
+        int ctop = ana->block = cond;
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         cond = ana->block;
         if (node->rhs) {
             get_block(module, stmt)->tf[0] = thtop;
-            get_block(module, thend)->tf[0] = cond;
+            get_block(module, thend)->tf[0] = ctop;
             get_block(module, cond)->tf[0] = thtop;
         } else {
-            get_block(module, stmt)->tf[0] = cond;
-            get_block(module, cond)->tf[0] = cond;
+            get_block(module, stmt)->tf[0] = ctop;
+            get_block(module, cond)->tf[0] = ctop;
         }
 
         int out = new_block(ana);
         get_block(module, cond)->tf[1] = out;
         get_block(module, stmt)->tf[2] = out;
-        get_block(module, stmt)->tf[3] = cond;
+        get_block(module, stmt)->tf[3] = ctop;
 
         ana->cont_label = cont_label;
         ana->break_label = break_label;
