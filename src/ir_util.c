@@ -63,6 +63,20 @@ kx_exc_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t
     return throw_system_exception(ctx, cur, frmv, typ, wht);
 }
 
+void append_function(kx_context_t *ctx, kx_obj_t *obj, const char *name, call_direct_func_t f)
+{
+    kx_fnc_t *fnc = allocate_fnc(ctx);
+    fnc->jp = NULL;
+    fnc->func = f;
+    fnc->lex = NULL;
+    fnc->val.type = KX_OBJ_T;
+    fnc->val.value.ov = obj;
+    kx_val_t v1;
+    v1.type = KX_BFNC_T;
+    v1.value.fn = fnc;
+    KEX_SET_PROP(obj, name, &v1);
+}
+
 void print_value(kx_val_t *v, int recursive)
 {
     switch (v->type) {
@@ -627,26 +641,8 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
 
     kx_obj_t *obj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(obj, "_thread", r);
-    kx_fnc_t *fnc1 = allocate_fnc(ctx);
-    fnc1->jp = NULL;
-    fnc1->func = &System_threadIsRunning;
-    fnc1->lex = NULL;
-    fnc1->val.type = KX_OBJ_T;
-    fnc1->val.value.ov = obj;
-    kx_val_t v1;
-    v1.type = KX_BFNC_T;
-    v1.value.fn = fnc1;
-    KEX_SET_PROP(obj, "isRunning", &v1);
-    kx_fnc_t *fnc2 = allocate_fnc(ctx);
-    fnc2->jp = NULL;
-    fnc2->func = &System_joinThread;
-    fnc2->lex = NULL;
-    fnc2->val.type = KX_OBJ_T;
-    fnc2->val.value.ov = obj;
-    kx_val_t v2;
-    v2.type = KX_BFNC_T;
-    v2.value.fn = fnc2;
-    KEX_SET_PROP(obj, "join", &v2);
+    append_function(ctx, obj, "isRunning", &System_threadIsRunning);
+    append_function(ctx, obj, "join", &System_joinThread);
 
     kx_fnc_t *fn = allocate_fnc(ctx);
     fn->push = (kx_val_t){ .type = KX_OBJ_T, .value.ov = obj };
@@ -979,6 +975,12 @@ kx_fnc_t *method_missing(kx_context_t *ctx, const char *method, kx_val_t *host)
     return NULL;
 }
 
+int System_force_gc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    gc_mark_and_sweep(ctx);
+    return 0;
+}
+
 kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
 {
     int absent;
@@ -1032,6 +1034,8 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
         ctx->objs.arylib = obj;
     } else if (!strcmp(name, "kxregex")) {
         ctx->objs.regexlib = obj;
+    } else if (!strcmp(name, "kxsystem")) {
+        append_function(ctx, obj, "gc", &System_force_gc);
     }
     int l = p->get_bltin_count();
     for (int i = 0; i < l; ++i) {
