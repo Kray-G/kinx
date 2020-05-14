@@ -1,4 +1,4 @@
-class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
+_class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
     @isDateTime = true;
     var datetime_;
     private initialize() {
@@ -38,6 +38,21 @@ class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
     public toString() {
         return "%04d/%02d/%02d %02d:%02d:%02d"
             % datetime_.year % datetime_.month % datetime_.day % datetime_.hour % datetime_.minute % datetime_.second;
+    }
+    public format(fmtString) {
+        return fmtString
+            .replace("%YYYY%", ("%04d" % datetime_.year).format())
+            .replace("%YY%", ("%02d" % (datetime_.year % 1000)).format())
+            .replace("%MM%", ("%02d" % datetime_.month).format())
+            .replace("%DD%", ("%02d" % datetime_.day).format())
+            .replace("%M%", ("%d" % datetime_.month).format())
+            .replace("%D%", ("%d" % datetime_.day).format())
+            .replace("%hh%", ("%02d" % datetime_.hour).format())
+            .replace("%mm%", ("%02d" % datetime_.minute).format())
+            .replace("%ss%", ("%02d" % datetime_.second).format())
+            .replace("%h%", ("%d" % datetime_.hour).format())
+            .replace("%m%", ("%d" % datetime_.minute).format())
+            .replace("%s%", ("%d" % datetime_.second).format());
     }
     public isLeapYear(year) {
         year ??= datetime_.year;
