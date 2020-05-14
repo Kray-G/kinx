@@ -260,6 +260,9 @@ static int kx_lex_make_string(char quote)
                 return kx_lex_start_inner_expression(s, quote, pos, 0, 0);
             }
             kx_strbuf[pos++] = '%';
+            if (kx_lexinfo.ch == quote) {
+                break;
+            }
         } else {
             if (kx_lexinfo.ch == '\\') {
                 kx_lex_next(kx_lexinfo);
