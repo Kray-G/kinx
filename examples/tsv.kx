@@ -1,0 +1,14 @@
+using CSV;
+
+var file = $$[0].parentPath() / "tsv1.tsv";
+System.println("File: ", file);
+
+System.println("\n--- Parsing the file line by line");
+TSV.parse(file, &(line) => {
+    System.println(line);
+});
+
+System.println("\n--- Parsing the whole text");
+var str = File.load(file);
+var r = TSV.parseString(str);
+System.println(r.toJsonString(true));
