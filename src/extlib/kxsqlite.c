@@ -363,6 +363,18 @@ int SQLite_prepare(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int SQLite_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_SQLITE_GET_INFO(r, obj);
+
+    sqlite_close_hook(r);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 int SQLite_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *dbfile = get_arg_str(1, args, ctx);
@@ -387,6 +399,7 @@ int SQLite_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_PROP_CSTR(obj, "filename", dbfile);
     KEX_SET_METHOD("exec", obj, SQLite_exec);
     KEX_SET_METHOD("prepare", obj, SQLite_prepare);
+    KEX_SET_METHOD("close", obj, SQLite_close);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
