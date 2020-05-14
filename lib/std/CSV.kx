@@ -57,7 +57,7 @@ _class CSV(opts_) {
             do {
                 elem += *info.ch;
                 next(info);
-            } while (info.ch != '\n'[0]);
+            } while (info.ch != '\n'[0] && info.ch > 0);
             info.row[info.line].comment = elem;
             return false;
         }
@@ -80,9 +80,7 @@ _class CSV(opts_) {
             } else {
                 info.line++;
             }
-            # do {
             next(info);
-            # } while (info.ch == '\n'[0]);
         }
     }
     private parseImpl(func) {
