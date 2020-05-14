@@ -154,7 +154,10 @@ _class _SQLiteDatabase(dblist_, opts_) {
             var i = 0;
             while (c.next()) {
                 columns ??= c.columns();
-                func({ columns: columns, values: c.values() }, i++);
+                var r = func({ columns: columns, values: c.values() }, i++);
+                if (r.isDefined && !r) {
+                    return;
+                }
             }
             return;
         }
