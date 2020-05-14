@@ -5,6 +5,8 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
         if (unixtime_.isUndefined) {
             unixtime_ = System.mktime();
             datetime_ = System.localtime(unixtime_);
+        } else if (unixtime_.isInteger && month_.isUndefined) {
+            datetime_ = System.localtime(unixtime_);
         } else if (unixtime_.isDateTime) {
             datetime_ = unixtime_.datetime();
             unixtime_ = unixtime_.unixtime();
