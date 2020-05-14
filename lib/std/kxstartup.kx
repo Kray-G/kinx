@@ -1,7 +1,7 @@
 const STDIN, STDOUT, STDERR;
 const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory;
 const Isolate, Enumerable, Enumerator, Range;
-const SQLite, Zip, JSON, SystemTimer, Fiber;
+const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass;
 const SystemException, RuntimeException, FileException, StopIterationException, FiberException;
 const Boolean, True, False;
@@ -129,6 +129,7 @@ var Xml, Net;
     FiberExceptionClass = System.defineException('FiberException');
     FiberException = FiberExceptionClass.create;
     using kxsqlite;
+    Database = _SQLiteDatabase;
     using kxxml;
     using kxnet;
     using kxenumerable;

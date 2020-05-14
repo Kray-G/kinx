@@ -1,0 +1,75 @@
+
+var db = new Database("sample.db", true);
+
+db.createTable("mytable", [
+    "id INTEGER PRIMARY KEY AUTOINCREMENT",
+    "name TEXT NOT NULL"
+]);
+db.transaction(&{
+    for (var i = 0; i < 20; ++i) {
+        db.insert({
+            into: "mytable",
+            column: ["name"],
+            bind: ["name(%{i})"],
+        });
+    }
+});
+db.delete({
+    from: "mytable",
+    where: "id = ?",
+    bind: [4]
+});
+
+System.println("");
+System.println("---- query");
+var c = db.query({
+    select: "*",
+    from: "mytable",
+    where: "(id > ? AND id < ?) OR id = ?",
+    bind: [2, 8, 10]
+});
+while (c.next()) {
+    var cols = c.columns();
+    var vals = c.values();
+    System.println("Record[%d]" % vals[0]);
+    for (var i = 0, len = cols.length(); i < len; ++i) {
+        System.println("    %-8s = %s" % cols[i] % vals[i]);
+    }
+}
+
+System.println("");
+System.println("---- queryAll (1)");
+var res = db.queryAll({
+    select: "*",
+    from: "mytable",
+    where: "(id > ? AND id < ?) OR id = ?",
+    bind: [2, 8, 10]
+});
+System.println(res.toJsonString(true));
+
+System.println("");
+System.println("---- queryAll (2)");
+db.queryAll({
+    select: ["id","name"],
+    from: "mytable",
+    where: "(id > ? AND id < ?) OR id = ?",
+    bind: [2, 8, 10]
+}, &(c, i) => {
+    System.println("%2d => " % i, c.toJsonString());
+});
+
+System.println("");
+System.println("Before dropping table.");
+db.getTableList().each(&(name) => {
+    # Always exists.
+    System.println("  - ", name, " => ", db.tableExists(name) ? "exists" : "NOT exists");
+});
+
+# it might fail when some of statements are remaining
+db.dropTable("mytable");
+
+System.println("After dropping table.");
+db.getTableList().each(&(name) => {
+    # Always exists.
+    System.println("  - ", name, " => ", db.tableExists(name) ? "exists" : "NOT exists");
+});
