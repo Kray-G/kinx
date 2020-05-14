@@ -1,4 +1,4 @@
-_class DateTime(unixtime_) {
+class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
     @isDateTime = true;
     var datetime_;
     private initialize() {
@@ -22,7 +22,17 @@ _class DateTime(unixtime_) {
                 datetime_ = System.localtime(unixtime_);
             }
         } else {
-            throw SystemException("Invalid argument for DateTime");
+            var year   = unixtime_.isInteger ? unixtime_ : 0;
+            var month  = month_.isInteger ? month_ : 0;
+            var day    = day_.isInteger ? day_ : 0;
+            var hour   = hour_.isInteger ? hour_ : 0;
+            var minute = minute_.isInteger ? minute_ : 0;
+            var second = second_.isInteger ? second_ : 0;
+            if (!year || !month || !day) {
+                throw SystemException("Invalid argument for DateTime");
+            }
+            unixtime_ = System.mktime(year, month, day, hour, minute, second);
+            datetime_ = System.localtime(unixtime_);
         }
     }
     public toString() {
@@ -159,9 +169,9 @@ DateTime.days = [
 DateTime.now = _function() {
     return new DateTime();
 };
-DateTime.parse = _function(fmt) {
-    return new DateTime(fmt);
+DateTime.parse = _function(...fmt) {
+    return new DateTime(...fmt);
 };
-DateTime.() = _function(fmt) {
-    return new DateTime(fmt);
+DateTime.() = _function(...fmt) {
+    return new DateTime(...fmt);
 };
