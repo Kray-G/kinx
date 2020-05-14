@@ -5,8 +5,8 @@ db.exec("CREATE TABLE IF NOT EXISTS mytable "
         "name TEXT NOT NULL"
     ")"
 );
+var ins = db.prepare("INSERT INTO mytable (name) VALUES (?)");
 db.transaction(&{
-    var ins = db.prepare("INSERT INTO mytable (name) VALUES (?)");
     for (var i = 0; i < 20; ++i) {
         ins.bind("name(%{i})").exec();
     }
