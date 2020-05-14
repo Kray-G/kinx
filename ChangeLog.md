@@ -25,9 +25,11 @@
     *   Added `toString()` method to the class Boolean.
     *   Some runtime optimaizations for function call.
     *   Replaced Bison of a parser generator by Kmyacc.
-    *   Supported DateTime class.
-    *   Supported CSV/TSV class.
+    *   Supported a DateTime class.
+    *   Supported a CSV/TSV class.
     *   Supported some optimizations.
+    *   Supported `System.gc()` to perform GC forcely.
+    *   Supported a Database class for easier to use than a SQLite class.
     *   Some bug fixes and improvement.
 
 ## V0.6.0 (6th Preview Release)
