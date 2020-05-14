@@ -49,7 +49,7 @@ _class _DatabaseCursor(r_, cursor_) {
     }
 }
 
-_class _SQLiteDatabase(dblist_, force_) {
+_class _SQLiteDatabase(dblist_, opts_) {
     var db_, dbname_;
     var attached_ = {};
     var inTransaction_ = false;
@@ -66,12 +66,12 @@ _class _SQLiteDatabase(dblist_, force_) {
         }
         attached_.main = dblist_[0];
         dbname_ = dblist_.shift();
-        if (!force_ && !File.exists(dbname_)) {
+        if (!opts_.force && !File.exists(dbname_)) {
             throw RuntimeException("Database file not found: "+dbname_);
         }
 
         // Database file found.
-        db_ = new SQLite(dbname_, 10000);
+        db_ = new SQLite(dbname_, opts_.timeout || 10000);
         dblist_.each(&(dbsub) => {
             attachDatabase(dbsub, dbsub.stem());
         });
