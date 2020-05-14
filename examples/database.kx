@@ -1,5 +1,5 @@
 
-var db = new Database("sample.db", true);
+var db = new Database("sample.db", { force: true });
 
 db.createTable("mytable", [
     "id INTEGER PRIMARY KEY AUTOINCREMENT",
