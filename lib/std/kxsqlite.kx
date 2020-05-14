@@ -1,21 +1,259 @@
 
 SQLite.create = _function(...args) {
     var db = SQLite._create(...args);
+    db.rollback = _function() { db.exec("ROLLBACK"); };
+    db.commit = _function() { db.exec("COMMIT"); };
+    db.beginTransactionDeferred = _function() { db.exec("BEGIN"); };
+    db.beginTransaction = _function() { db.exec("BEGIN IMMEDIATE"); };
+    db.beginTransactionExclusive = _function() { db.exec("BEGIN EXCLUSIVE"); };
+    db.tableExists = _function(name) {
+        var c, r = db.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?")
+            .bind(name)
+            .query();
+        if (c = r.next()) {
+            return c.value[0] > 0;
+        }
+        return false;
+    };
     db.transaction = _function(func) {
         if (db.inTransaction) {
             return func();
         }
         db.inTransaction = true;
         try {
-            db.exec("BEGIN");
+            db.beginTransactionDeferred();
             return func();
         } catch (e) {
-            System.try(_function() { db.exec("ROLLBACK"); }).else();
+            System.try(db.rollback).else();
             db.inTransaction = false;
         } finally {
-            System.try(_function() { db.exec("COMMIT"); }).else();
+            System.try(db.commit).else();
             db.inTransaction = false;
         }
     };
     return db;
 };
+
+_class _DatabaseCursor(r_, cursor_) {
+    public next() {
+        cursor_ = r_.next();
+        if (cursor_) {
+            return this;
+        }
+    }
+    public values() {
+        return cursor_.value;
+    }
+    public columns() {
+        return cursor_.columnName;
+    }
+}
+
+_class _SQLiteDatabase(dblist_, force_) {
+    var db_, dbname_;
+    var attached_ = {};
+    var inTransaction_ = false;
+    public attachDatabase(dbname, aliasName) {
+        if (attached_[dbname]) {
+            throw RuntimeException("Cannot use a database alias name(%{aliasName}) for "+dbname);
+        }
+        db_.exec("ATTACH DATABASE '%{dbname}' as '%{aliasName}'");
+        attached_[dbname] = dbname;
+    }
+    private initialize() {
+        if (!dblist_.isArray) {
+            dblist_ = [ dblist_ ];
+        }
+        attached_.main = dblist_[0];
+        dbname_ = dblist_.shift();
+        if (!force_ && !File.exists(dbname_)) {
+            throw RuntimeException("Database file not found: "+dbname_);
+        }
+
+        // Database file found.
+        db_ = new SQLite(dbname_, 10000);
+        dblist_.each(&(dbsub) => {
+            attachDatabase(dbsub, dbsub.stem());
+        });
+    }
+    private tryRollback(db) {
+        try {
+            db.rollback();
+        } catch (e) {
+            ; // ignore.
+        }
+    }
+    public tableExists(name) {
+        return db_.tableExists(name);
+    }
+    public transaction(mode, statement) {
+        if (mode.isFunction) {
+            statement = mode;
+            mode = false;
+        }
+        if (inTransaction_) {
+            return statement();
+        }
+        var ret = false;
+        try {
+            inTransaction_ = true;
+            switch (mode) {
+            case 'EXCLUSIVE':
+                db_.beginTransactionExclusive();
+                break;
+            case 'IMMEDIATE':
+                db_.beginTransaction();
+                break;
+            default:
+                db_.beginTransactionDeferred();
+                break;
+            }
+            ret = statement();
+            db_.commit();
+            inTransaction_ = false;
+        } catch (e) {
+            tryRollback(db_);
+            inTransaction_ = false;
+            throw e;
+        }
+        return ret;
+    }
+    public getTableList() {
+        var list = [];
+        var c = @query({ select: "name", from: "sqlite_master", where: "type='table'", orderby: "name" });
+        while (c.next()) {
+            list.push(c.values()[0]);
+        }
+        return list;
+    }
+    public createTable(name, schema) {
+        if (schema.isArray) {
+            schema = '(' + schema.join(',') + ')';
+        }
+        db_.exec("CREATE TABLE IF NOT EXISTS %{name} %{schema}");
+    }
+    public dropTable(name) {
+        System.gc();
+        db_.exec('DROP TABLE IF EXISTS %{name}');
+    }
+    private doBind(s, bind) {
+        if (bind.isDefined) {
+            if (bind.isArray) {
+                for (var v in bind) {
+                    s.bind(v.isDefined ? v : '');
+                }
+            } else {
+                s.bind(bind);
+            }
+        }
+    }
+    public queryAll(params, func) {
+        var c = @query(params);
+        var columns;
+        if (func.isFunction) {
+            var i = 0;
+            while (c.next()) {
+                columns ??= c.columns();
+                func({ columns: columns, values: c.values() }, i++);
+            }
+            return;
+        }
+        var values = [];
+        while (c.next()) {
+            columns ??= c.columns();
+            values.push(c.values());
+        }
+        return { columns: columns, values: values };
+    }
+    public query(params) {
+        if (!params.from.isString) {
+            throw RuntimeException("Needs a 'from' section in SQL.");
+        }
+        var q = "SELECT%{params.distinct ? ' DISTINCT' : ''}"
+                + " %{(params.select ? (params.select.isArray ? params.select.join(',') : params.select) : '*')}"
+                + " FROM %{params.from}";
+        if (params) {
+            if (params.innerJoin) {
+                q += " INNER JOIN " + params.innerJoin;
+                if (params.on) {
+                    q += " ON " + params.on;
+                }
+            } else if (params.outerJoin) {
+                q += " LEFT OUTER JOIN " + params.outerJoin;
+                if (params.on) {
+                    q += " ON " + params.on;
+                }
+            }
+            if (params.where) {
+                if (params.where.isArray) {
+                    q += ' WHERE ('+params.where.join(') AND (')+')';
+                } else {
+                    q += " WHERE " + params.where;
+                }
+            }
+            if (params.groupby) {
+                q += " GROUP BY " + params.groupby;
+            }
+            if (params.having) {
+                q += " HAVING " + params.having;
+            }
+            if (params.orderby) {
+                q += " ORDER BY " + params.orderby;
+            } else if (params.orderbyDesc) {
+                q += " ORDER BY %{params.orderbyDesc} DESC";
+            } else if (params.orderbyAsc) {
+                q += " ORDER BY " + params.orderbyAsc;
+            }
+            if (params.limit) {
+                q += " LIMIT %{params.limit}";
+            }
+            if (params.offset) {
+                q += " OFFSET %{params.offset}";
+            }
+        }
+        var s = db_.prepare(q);
+        doBind(s, params.bind);
+        var r = s.query();
+        r.queryString = q;
+        return new _DatabaseCursor(r);
+    }
+    public insert(params) {
+        if (!params.into.isString) {
+            throw RuntimeException("Needs a 'into' section in SQL.");
+        }
+        if (!params.column.isArray && !params.column.isString) {
+            throw RuntimeException("Needs a 'column' section in SQL.");
+        }
+        if (!params.bind.isArray && !params.bind.isString) {
+            throw RuntimeException("Needs a bind option for a 'values' section in SQL.");
+        }
+        var keys = params.column;
+        if (keys.isString) {
+            keys = [keys];
+        }
+        var stmt = "INSERT ";
+        if (params.replace) {
+            stmt += "OR REPLACE ";
+        }
+        stmt += "INTO %{params.into} "
+                "(%{keys.join(',')}) "
+                "VALUES (%{keys.map(&() => '?').join(',')})";
+        var s = db_.prepare(stmt);
+        doBind(s, params.bind);
+        return s.exec();
+    }
+    public delete(params) {
+        if (!params.from.isString) {
+            throw RuntimeException("Needs a 'from' section in SQL.");
+        }
+        if (!params.where.isString) {
+            throw RuntimeException("Needs a 'where' section in SQL.");
+        }
+        if (!params.bind.isArray && !params.bind.isString) {
+            throw RuntimeException("Needs a bind option for a 'where' section in SQL.");
+        }
+        var s = db_.prepare("DELETE FROM %{params.from} WHERE %{params.where}");
+        doBind(s, params.bind);
+        return s.exec();
+    }
+}
