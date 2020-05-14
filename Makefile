@@ -209,6 +209,7 @@ timex:
 
 clean:
 	rm -f $(OBJS) $(DISASM) $(SOFILES) $(PICOBJS) timex kinx myacc test
+	rm -f src/optimizer.c src/opt_*.c
 
 kinx: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm -pthread
@@ -273,8 +274,8 @@ libcrypto.so.3:
 
 src/optimizer.c: src/optimizer/optimizer.c
 	cp -f src/optimizer/optimizer.c src/
-	cp -f src/optimizer/ast/*.c src/
-	cp -f src/optimizer/code/*.c src/
+	cp -f src/optimizer/ast/opt_*.c src/
+	cp -f src/optimizer/code/opt_*.c src/
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c
