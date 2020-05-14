@@ -220,6 +220,13 @@ do { \
                 KEX_GET_PROP(val, obj, name); \
             } else if (v2->type == KX_INT_T || v2->type == KX_DBL_T) { \
                 int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
+                kx_fnc_t *fn = kx_get_object_operator_function(ctx, lv, "[]"); \
+                if (fn) { \
+                    push_i((ctx)->stack, index); \
+                    ++(ctx->spread_additional);\
+                    KX_PUSH_FUNCTION(fn); \
+                    KX_DIRECT_CALL(fn, 0); \
+                } \
                 int sz = kv_size(obj->ary); \
                 if (index < 0) { \
                     do { index += sz; } while (index < 0); \
