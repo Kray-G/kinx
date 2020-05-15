@@ -185,10 +185,14 @@ static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
 
 static int lookup_enum_value(kxana_context_t *actx, const char *name, int *ret)
 {
-    khint_t k = kh_get(enum_value, kv_last(actx->enval), name);
-    if (k != kh_end(kv_last(actx->enval))) {
-        *ret = kh_value(kv_last(actx->enval), k);
-        return 1;
+    int last = kv_size(actx->enval) - 1;
+    for (int i = last; 0 <= i; --i) {
+        enum_map_t *enval = &kv_A(actx->enval, i);
+        khint_t k = kh_get(enum_value, *enval, name);
+        if (k != kh_end(*enval)) {
+            *ret = kh_value(*enval, k);
+            return 1;
+        }
     }
     return 0;
 }
