@@ -120,6 +120,10 @@ enum {
 
 namespace X {
 
+    System.println(C_VAL_UNKNOWN);  // => 0
+    System.println(C_VAL_INTEGER);  // => 1
+    System.println(C_VAL_STRING);   // => 2
+
     enum {
         C_VAL_UNKNOWN = 100, C_VAL_INTEGER, C_VAL_STRING,
     }
@@ -138,6 +142,9 @@ System.println(C_VAL_STRING);   // => 2
 #### Result
 
 ```
+0
+1
+2
 100
 101
 102
