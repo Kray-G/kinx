@@ -345,6 +345,15 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_DECVX:
         printf("%-23s %s", "decvx", gen_varloc(code));
         break;
+    case KX_MKRANGE:
+        printf("%-23s (%s)", "mkrange", code->count ? "true" : "false");
+        break;
+    case KX_MKRANGEI:
+        printf("%-23s (%"PRId64", %"PRId64", %s)", "mkrangei", code->value1.i, code->value2.i, code->count ? "true" : "false");
+        break;
+    case KX_MKRANGES:
+        printf("%-23s (\"%s\", \"%s\", %s)", "mkranges", code->value1.s, code->value2.s, code->count ? "true" : "false");
+        break;
     case KX_MKBIN:
         printf("mkbin");
         break;

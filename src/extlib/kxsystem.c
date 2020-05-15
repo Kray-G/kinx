@@ -1468,6 +1468,19 @@ int System_localtime(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     return 0;
 }
 
+int System_setupRange(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_val_t *val = &kv_last_by(ctx->stack, 1);
+    if (val->type != KX_FNC_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function object");
+    }
+    ctx->objs.range_create = val->value.fn;
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -1505,6 +1518,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "isolateClear", System_isolateClear },
     { "mktime", System_mktime },
     { "localtime", System_localtime },
+    { "setupRange", System_setupRange },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);

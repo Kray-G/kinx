@@ -1,3 +1,57 @@
+#define KX_MKRANGE_CODE() \
+{ \
+    kx_fnc_t *fn = ctx->objs.range_create; \
+    if (!fn) { \
+        printf("Runtime Fatal Error! Invalid Range.create function.\n"); \
+        goto LBL_KX_END_OF_CODE; \
+    } \
+    push_fnc(KX_FNC_T, (ctx)->stack, fn) \
+    caller = cur; \
+    push_i((ctx)->stack, 3); \
+    ctx->spread_additional = 0; \
+    push_adr((ctx)->stack, cur->next); \
+    cur = fn->jp; \
+} \
+/**/
+
+#define KX_MKRANGEI_CODE() \
+{ \
+    kx_fnc_t *fn = ctx->objs.range_create; \
+    if (!fn) { \
+        printf("Runtime Fatal Error! Invalid Range.create function.\n"); \
+        goto LBL_KX_END_OF_CODE; \
+    } \
+    push_i((ctx)->stack, cur->count); \
+    push_i((ctx)->stack, cur->value2.i); \
+    push_i((ctx)->stack, cur->value1.i); \
+    push_fnc(KX_FNC_T, (ctx)->stack, fn) \
+    caller = cur; \
+    push_i((ctx)->stack, 3); \
+    ctx->spread_additional = 0; \
+    push_adr((ctx)->stack, cur->next); \
+    cur = fn->jp; \
+} \
+/**/
+
+#define KX_MKRANGES_CODE() \
+{ \
+    kx_fnc_t *fn = ctx->objs.range_create; \
+    if (!fn) { \
+        printf("Runtime Fatal Error! Invalid Range.create function.\n"); \
+        goto LBL_KX_END_OF_CODE; \
+    } \
+    push_i((ctx)->stack, cur->count); \
+    push_s((ctx)->stack, cur->value2.s); \
+    push_s((ctx)->stack, cur->value1.s); \
+    push_fnc(KX_FNC_T, (ctx)->stack, fn) \
+    caller = cur; \
+    push_i((ctx)->stack, 3); \
+    ctx->spread_additional = 0; \
+    push_adr((ctx)->stack, cur->next); \
+    cur = fn->jp; \
+} \
+/**/
+
 #define KX_MKBIN_CODE() \
 { \
     push_bin((ctx)->stack, allocate_bin(ctx)); \
