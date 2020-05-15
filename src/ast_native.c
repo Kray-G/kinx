@@ -265,7 +265,7 @@ static void do_native_finally_all(kx_native_context_t *nctx)
 
 static void set_exception(kx_native_context_t *nctx, kx_object_t *node, int on)
 {
-    if (kv_size(KXNBLK(nctx)->code) > 0) {
+    if (on && kv_size(KXNBLK(nctx)->code) > 0) {
         int lastin = kv_last(KXNBLK(nctx)->code).inst;
         int lastop = kv_last(KXNBLK(nctx)->code).op;
         int lasttp = kv_last(KXNBLK(nctx)->code).op1.type;
