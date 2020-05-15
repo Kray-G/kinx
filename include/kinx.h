@@ -127,6 +127,7 @@ enum opecode {
     KXOP_DEC,
     KXOP_INCP,       /* postfix */
     KXOP_DECP,       /* postfix */
+    KXOP_MKRANGE,
     KXOP_MKBIN,
     KXOP_MKARY,
     KXOP_MKOBJ,

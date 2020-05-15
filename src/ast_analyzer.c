@@ -381,6 +381,10 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         analyze_ast(ctx, node->lhs, actx);
         node->var_type = node->lhs->var_type;
         break;
+    case KXOP_MKRANGE:
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        break;
     case KXOP_MKBIN:
         node->var_type = KX_BIN_T;
         if (actx->in_native) {

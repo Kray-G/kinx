@@ -400,6 +400,9 @@ void gc_mark_and_sweep(kx_context_t *ctx)
     gc_mark_obj(ctx->objs.true_obj);
     gc_mark_obj(ctx->objs.false_obj);
     gc_mark_obj(ctx->objs.exception_map);
+    if (ctx->objs.range_create) {
+        gc_mark_fnc(ctx->objs.range_create);
+    }
 
     kvec_t(kx_val_t) stack = ctx->stack;
     int size = kv_size(stack);

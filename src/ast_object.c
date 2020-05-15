@@ -116,16 +116,7 @@ kx_object_t *kx_gen_str_object(const char *val)
 
 kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int exclude_end)
 {
-    return kx_gen_bexpr_object(KXOP_CALL,
-        kx_gen_bexpr_object(KXOP_IDX,
-            kx_gen_var_object("Range", KX_UNKNOWN_T),
-            kx_gen_str_object("create")
-        ),
-        kx_gen_bexpr_object(KXST_EXPRLIST,
-            exclude_end ? kx_gen_special_object(KXVL_TRUE) : kx_gen_special_object(KXVL_FALSE),
-            kx_gen_bexpr_object(KXST_EXPRLIST, end, start)
-        )
-    );
+    return kx_gen_obj(KXOP_MKRANGE, exclude_end, start, end, NULL);
 }
 
 kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl)

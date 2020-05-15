@@ -90,6 +90,9 @@ enum irop {
     KX_INCVX,
     KX_DECVX,
 
+    KX_MKRANGE,
+    KX_MKRANGEI,
+    KX_MKRANGES,
     KX_MKBIN,
     KX_MKARY,
     KX_DUPARY,
@@ -651,6 +654,7 @@ typedef struct kx_libobjs_ {
     kx_obj_t *true_obj;
     kx_obj_t *false_obj;
     kx_obj_t *exception_map;
+    kx_fnc_t *range_create;
     kx_fnc_t *global_method_missing;
 } kx_libobjs_t;
 
