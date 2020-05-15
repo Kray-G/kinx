@@ -200,13 +200,13 @@ int main(int ac, char **av)
 END_OF_OPT:
     kx_lexinfo.quiet = 0;
     if (execname) {
-        const char *execfile = alloc_string(ctx, kxlib_exec_file_exists(execname));
+        const char *execfile = kxlib_exec_file_exists(execname);
         if (!execfile) {
             fprintf(stderr, "No internal execution code(%s).\n", execname);
             r = 1;
             goto CLEANUP;
         }
-        r = eval_file(execfile, ctx);
+        r = eval_file(alloc_string(ctx, execfile), ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
