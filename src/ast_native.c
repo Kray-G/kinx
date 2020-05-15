@@ -265,6 +265,18 @@ static void do_native_finally_all(kx_native_context_t *nctx)
 
 static void set_exception(kx_native_context_t *nctx, kx_object_t *node, int on)
 {
+    if (kv_size(KXNBLK(nctx)->code) > 0) {
+        int lastin = kv_last(KXNBLK(nctx)->code).inst;
+        int lastop = kv_last(KXNBLK(nctx)->code).op;
+        int lasttp = kv_last(KXNBLK(nctx)->code).op1.type;
+        if (lastin == KXN_EXC && lastop == KXNOP_SETE && lasttp == KXNOP_IMM) {
+            int lastvl = kv_last(KXNBLK(nctx)->code).op1.iv;
+            if (lastvl == 0) {
+                kv_remove_last(KXNBLK(nctx)->code);
+                return;
+            }
+        }
+    }
     kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
         .inst = KXN_EXC, .op = KXNOP_SETE, .var_type = node->var_type,
             .op1 = { .type = KXNOP_IMM, .iv = on }
