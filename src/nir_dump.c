@@ -241,7 +241,7 @@ static void natir_display_code(kxn_code_t *code, int addr)
         printf("()");
         break;
     case KXN_CAST:
-        printf("%-23s ", "lgef");
+        printf("%-23s ", "cast");
         natir_display_op(&(code->dst));
         printf(" = ");
         natir_display_op(&(code->op1));
