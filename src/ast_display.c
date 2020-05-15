@@ -131,6 +131,11 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         printf("(X--):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 1);
         break;
+    case KXOP_MKRANGE:
+        printf("(make-range):%s\n", node->optional ? "true" : "false");
+        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->rhs, indent + 1, 0);
+        break;
     case KXOP_MKBIN:
         printf("(make-binary):%s\n", get_short_typename(node->var_type));
         display_ast(node->lhs, indent + 1, 0);
