@@ -114,6 +114,10 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "_coroutine") == 0)     return COROUTINE;
         if (strcmp(val, "_ret_nv") == 0)        return SYSRET_NV;
         break;
+    case 'a':
+        /* type */
+        if (strcmp(val, "ary") == 0)            { kx_yylval.intval = KX_ARY_T; return TYPE; }
+        break;
     case 'b':
         if (strcmp(val, "break") == 0)          return BREAK;
         break;
