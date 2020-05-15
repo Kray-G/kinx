@@ -17,7 +17,13 @@
             *   `KXOPT_LENGTH` ... for `Array`, `Binary`, `String`
             *   `KXOPT_PARSEINT` ... `Integer.parseInt`
 
-## V0.7.0 (Current Development)
+## V0.8.0 (Current Development)
+
+*   Updated
+    *   Updated some of native code output.
+    *   Some bug fixes and improvement.
+
+## V0.7.1 (7th Preview Release)
 
 *   Updated
     *   Bug fixes for operator override.
