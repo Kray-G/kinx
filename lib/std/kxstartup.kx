@@ -136,6 +136,7 @@ var Xml, Net;
     Enumerable = _Enumerable;
     Enumerator = _Enumerator;
     Range = _Range;
+    System.setupRange(Range.create);
     Fiber.create = _function(coroutine) {
         var this;
         this.isFiber = true;

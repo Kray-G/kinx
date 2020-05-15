@@ -88,6 +88,9 @@
     &&LBL_KX_DECVP, \
     &&LBL_KX_INCVX, \
     &&LBL_KX_DECVX, \
+    &&LBL_KX_MKRANGE, \
+    &&LBL_KX_MKRANGEI, \
+    &&LBL_KX_MKRANGES, \
     &&LBL_KX_MKBIN, \
     &&LBL_KX_MKARY, \
     &&LBL_KX_DUPARY, \

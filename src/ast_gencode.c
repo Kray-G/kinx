@@ -912,6 +912,40 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     }
+    case KXOP_MKRANGE:
+        if (node->lhs && node->rhs) {
+            if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
+                    FILELINE(ana),
+                    .op = KX_MKRANGEI,
+                    .count = node->optional,
+                    .value1.i = node->lhs->value.i,
+                    .value2.i = node->rhs->value.i,
+                }));
+                break;
+            } else if (node->lhs->type == KXVL_STR && node->rhs->type == KXVL_STR) {
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
+                    FILELINE(ana),
+                    .op = KX_MKRANGES,
+                    .count = node->optional,
+                    .value1.s = const_str(ctx, node->lhs->value.s),
+                    .value2.s = const_str(ctx, node->rhs->value.s),
+                }));
+                break;
+            }
+        }
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
+            FILELINE(ana),
+            .op = node->optional ? KX_PUSH_TRUE : KX_PUSH_FALSE,
+        }));
+        gencode_ast_hook(ctx, node->rhs, ana, 0);
+        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
+            FILELINE(ana),
+            .op = KX_MKRANGE,
+            .count = node->optional
+        }));
+        break;
     case KXOP_MKBIN:
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKBIN }));
         if (node->lhs) {
