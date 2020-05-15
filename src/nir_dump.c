@@ -276,26 +276,29 @@ static void natir_display_block(kxn_block_t *block, int *addr)
     }
 }
 
-static void natir_display_jmp(kxn_block_t *block, int i, int addr)
+static int natir_display_jmp(kxn_block_t *block, int i, int addr)
 {
     if (kv_size(block->code) == 0 && block->tf[0] == 0 && block->tf[1] == 0) {
-        return;
+        return 0;
     }
 
     if (kv_size(block->code) == 0) {
         if (block->tf[0] != (i+1)) {
             printf("%8x:   ", addr);
             printf("%-23s .L%d\n", "jmp", block->tf[0]);
+            return 1;
         }
-        return;
+        return 0;
     }
 
+    int add = 0;
     kxn_code_t *code = &kv_last(block->code);
     if (code->inst != KXN_JMP && code->inst != KXN_RET && code->inst != KXN_RETF) {
         if (!block->tf[1]) {
             if (block->tf[0] != (i+1)) {
                 printf("%8x:   ", addr);
                 printf("%-23s .L%d\n", "jmp", block->tf[0]);
+                add = 1;
             }
         } else {
             printf("%8x:   ", addr);
@@ -309,14 +312,16 @@ static void natir_display_jmp(kxn_block_t *block, int i, int addr)
                 printf("%-23s .L%d\n", "jnz", block->tf[1]);
                 printf("%-23s .L%d\n", "jmp", block->tf[0]);
             }
+            add = 1;
         }
     }
+    return add;
 }
 
 void natir_display_function(kx_native_context_t *nctx)
 {
     printf("\n%s(%d, %d):\n", nctx->func_name, nctx->local_vars, nctx->reg_max);
-    int addr = 1;
+    int addr = 0;
     int len = kv_size(nctx->block_list);
     int last = len - 1;
     for (int i = 0; i < len; ++i) {
@@ -324,8 +329,7 @@ void natir_display_function(kx_native_context_t *nctx)
         printf("  .L%d\n", i);
         natir_display_block(block, &addr);
         if (i != last) {
-            natir_display_jmp(block, i, addr);
-            ++addr;
+            addr += natir_display_jmp(block, i, addr);
         }
     }
 }
