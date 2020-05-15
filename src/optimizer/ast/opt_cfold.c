@@ -69,6 +69,10 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_DECP:       /* postfix */
         opt_ast_constant_folding(ctx, node->lhs);
         break;
+    case KXOP_MKRANGE:
+        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding(ctx, node->rhs);
+        break;
     case KXOP_MKBIN:
         opt_ast_constant_folding(ctx, node->lhs);
         break;
