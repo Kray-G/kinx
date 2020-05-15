@@ -283,8 +283,10 @@ static void natir_display_jmp(kxn_block_t *block, int i, int addr)
     }
 
     if (kv_size(block->code) == 0) {
-        printf("%8x:   ", addr);
-        printf("%-23s .L%d\n", "jmp", block->tf[0]);
+        if (block->tf[0] != (i+1)) {
+            printf("%8x:   ", addr);
+            printf("%-23s .L%d\n", "jmp", block->tf[0]);
+        }
         return;
     }
 
