@@ -175,6 +175,7 @@ const char *kx_gen_typestr_object(int t)
     case KX_DBL_T:  return "dbl";
     case KX_STR_T:  return "str";
     case KX_BIN_T:  return "bin";
+    case KX_ARY_T:  return "ary";
     case KX_OBJ_T:  return "obj";
     case KX_FNC_T:  return "fnc";
     }
