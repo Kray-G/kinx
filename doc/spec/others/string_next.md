@@ -8,7 +8,7 @@
 
 ## Examples
 
-### Example 1. CRC32 Algorithm
+### Example 1. Some examples of `String#next`
 
 #### Code
 
