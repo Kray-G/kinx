@@ -13,42 +13,35 @@ Please see the Wikipedia.
 #### Code
 
 ```javascript
-function merge(a, b) {
-    var c = [];
-    while (a.length() && b.length()) {
-        if (a[0] > b[0]) {
-            c.push(b.shift());
-        } else {
-            c.push(a.shift());
+function mergesort(a) {
+    function m(first, last) {
+        var middle, work = [];
+        var i, j, k, p;
+
+        if (first < last) {
+            middle = Integer.parseInt((first + last) / 2);
+            m(first, middle);
+            m(middle + 1, last);
+            p = 0;
+            for (i = first; i <= middle; i++) {
+                work[p++] = a[i];
+            }
+            i = middle + 1;
+            j = 0;
+            k = first;
+            while (i <= last && j < p) {
+                if (work[j] <= a[i]) {
+                    a[k++] = work[j++];
+                } else {
+                    a[k++] = a[i++];
+                }
+            }
+            while (j < p) {
+                a[k++] = work[j++];
+            }
         }
     }
-    while (a.length()) {
-        c.push(a.shift());
-    }
-    while (b.length()) {
-        c.push(b.shift());
-    }
-    return c;
-}
-
-function mergesort(a) {
-    var n = a.length();
-    return a if (n <= 1);
-
-    var l1 = [];
-    var l2 = [];
-    var i = 0; n2 = n / 2;
-    while (i < n2) {
-        l1.push(a[i]);
-        ++i;
-    }
-    while (i < n) {
-        l2.push(a[i]);
-        ++i;
-    }
-    l1 = mergesort(l1);
-    l2 = mergesort(l2);
-    return merge(l1, l2);
+    return m(0, a.length() - 1);
 }
 
 function show(title, a) {
@@ -61,7 +54,7 @@ function demo() {
     var a = [69, 63, 88, 85, 26, 77, 51, 42, 16, 4, 20, 18, 18, 40, 23, 26, 24, 63, 96, 59];
 
     show("Before:", a);
-    a = mergesort(a);
+    mergesort(a);
     show("After: ", a);
 }
 
