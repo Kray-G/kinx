@@ -89,6 +89,20 @@ static int count_args(kx_object_t *node)
     return 1;
 }
 
+static void make_cast_to(int ntype, kx_object_t *node)
+{
+    int ltype = node->lhs->var_type;
+    if (ntype != KX_UNKNOWN_T && ltype != KX_UNKNOWN_T) {
+        if (ntype == KX_INT_T && ltype == KX_DBL_T) {
+            node->lhs = kx_gen_cast_object(node->lhs, KX_DBL_T, KX_INT_T);
+            node->lhs->var_type = KX_INT_T;
+        } else if (ntype == KX_DBL_T && ltype == KX_INT_T) {
+            node->lhs = kx_gen_cast_object(node->lhs, KX_INT_T, KX_DBL_T);
+            node->lhs->var_type = KX_DBL_T;
+        }
+    }
+}
+
 static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
 {
     if (!lhs || !rhs) {
@@ -722,6 +736,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         if (node->lhs) {
             analyze_ast(ctx, node->lhs, actx);
             if (actx->in_native || actx->func->ret_type != KX_UNKNOWN_T) {
+                make_cast_to(actx->func->ret_type, node);
                 if (actx->func->ret_type != node->lhs->var_type) {
                     kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(actx->func->ret_type), get_typename(node->lhs->var_type));
                 }
