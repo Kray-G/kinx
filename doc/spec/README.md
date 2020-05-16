@@ -167,6 +167,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [File](lib/basic/file.md)
 *   [Directory](lib/basic/directory.md)
 *   [Regex](lib/basic/regex.md)
+*   [Range](lib/basic/range.md)
 *   [JSON](lib/basic/json.md)
 *   [Xml](lib/basic/xml.md)
 *   [Zip](lib/basic/zip.md)
