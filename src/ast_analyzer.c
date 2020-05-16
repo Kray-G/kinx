@@ -726,6 +726,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
                     kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(actx->func->ret_type), get_typename(node->lhs->var_type));
                 }
             }
+            node->var_type = node->lhs->var_type;
         } else {
             if (actx->in_native || actx->func->ret_type != KX_UNKNOWN_T) {
                 if (actx->func->ret_type != KX_UND_T) {
