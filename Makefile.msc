@@ -33,8 +33,8 @@ OBJS = \
     src/format.obj \
     src/string.obj \
     src/optimizer/optimizer.obj \
-    src/optimizer/ast/opt_cfold.obj \
-    src/optimizer/code/opt_jump.obj \
+    src/optimizer/opt_cfold.obj \
+    src/optimizer/opt_jumpx.obj \
     src/extlib/kc-json/kc-json.obj
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
@@ -128,7 +128,8 @@ SOFILES = \
     kxregex.dll \
     kxsqlite.dll \
     kxnet.dll \
-    kxxml.dll
+    kxxml.dll \
+    kxprocess.dll
 PICOBJS = \
     src/bign.obj \
     src/bigz.obj \
@@ -223,6 +224,9 @@ kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 
 kxfile.dll: src/extlib/kxfile.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxfile.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
+
+kxprocess.dll: src/extlib/kxprocess.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxprocess.c $(PICOBJS)
 
 kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxmath.c $(PICOBJS)
@@ -457,16 +461,3 @@ src/optimizer/optimizer.obj: src/optimizer/optimizer.c include/kxoptimizer.h inc
  include/jit.h include/../src/jit/sljitLir.h \
  include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h
-src/optimizer/ast/opt_cfold.obj: src/optimizer/ast/opt_cfold.c include/kxoptimizer.h include/kinx.h \
- include/kvec.h include/ir.h include/dbg.h include/khash.h \
- include/klist.h include/kstr.h include/bigz.h include/bign.h \
- include/jit.h include/../src/jit/sljitLir.h \
- include/../src/jit/sljitConfig.h \
- include/../src/jit/sljitConfigInternal.h
-src/optimizer/code/opt_jump.obj: src/optimizer/code/opt_jump.c include/kxoptimizer.h include/kinx.h \
- include/kvec.h include/ir.h include/dbg.h include/khash.h \
- include/klist.h include/kstr.h include/bigz.h include/bign.h \
- include/jit.h include/../src/jit/sljitLir.h \
- include/../src/jit/sljitConfig.h \
- include/../src/jit/sljitConfigInternal.h
- 
