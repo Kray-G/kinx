@@ -42,7 +42,7 @@ OBJS = \
     string.o \
     optimizer.o \
     opt_cfold.o \
-    opt_jump.o
+    opt_jumpx.o
 SRCS = $(patsubst %.o,src/%.c,$(OBJS))
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
@@ -544,7 +544,7 @@ opt_cfold.o: src/optimizer/opt_cfold.c include/kxoptimizer.h include/kinx.h \
  include/jit.h include/../src/jit/sljitLir.h \
  include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h
-opt_jump.o: src/optimizer/opt_jump.c include/kxoptimizer.h include/kinx.h \
+opt_jumpx.o: src/optimizer/opt_jumpx.c include/kxoptimizer.h include/kinx.h \
  include/kvec.h include/ir.h include/dbg.h include/khash.h \
  include/klist.h include/kstr.h include/bigz.h include/bign.h \
  include/jit.h include/../src/jit/sljitLir.h \
