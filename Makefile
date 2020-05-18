@@ -274,8 +274,8 @@ libcrypto.so.3:
 
 src/optimizer.c: src/optimizer/optimizer.c
 	cp -f src/optimizer/optimizer.c src/
-	cp -f src/optimizer/ast/opt_*.c src/
-	cp -f src/optimizer/code/opt_*.c src/
+	cp -f src/optimizer/opt_*.c src/
+	cp -f src/optimizer/opt_*.c src/
 
 src/parser.c: kx.tab.c
 	mv -f kx.tab.c src/parser.c
@@ -328,10 +328,10 @@ sqlite3.o: src/extlib/sqlite/sqlite3.c
 %.o: src/optimizer/%.c
 	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
-%.o: src/optimizer/ast/%.c
+%.o: src/optimizer/%.c
 	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
-%.o: src/optimizer/code/%.c
+%.o: src/optimizer/%.c
 	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
 %.o: src/disasm/%.c
@@ -538,13 +538,13 @@ optimizer.o: src/optimizer/optimizer.c include/kxoptimizer.h include/kinx.h \
  include/jit.h include/../src/jit/sljitLir.h \
  include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h
-opt_cfold.o: src/optimizer/ast/opt_cfold.c include/kxoptimizer.h include/kinx.h \
+opt_cfold.o: src/optimizer/opt_cfold.c include/kxoptimizer.h include/kinx.h \
  include/kvec.h include/ir.h include/dbg.h include/khash.h \
  include/klist.h include/kstr.h include/bigz.h include/bign.h \
  include/jit.h include/../src/jit/sljitLir.h \
  include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h
-opt_jump.o: src/optimizer/code/opt_jump.c include/kxoptimizer.h include/kinx.h \
+opt_jump.o: src/optimizer/opt_jump.c include/kxoptimizer.h include/kinx.h \
  include/kvec.h include/ir.h include/dbg.h include/khash.h \
  include/klist.h include/kstr.h include/bigz.h include/bign.h \
  include/jit.h include/../src/jit/sljitLir.h \
