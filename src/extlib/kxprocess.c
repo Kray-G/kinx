@@ -294,6 +294,9 @@ typedef struct kx_process_ {
 static int is_process_alive(kx_process_t *proc)
 {
     if (proc) {
+        if (proc->status >= 0) {
+            return 0;
+        }
         int status;
         pid_t p = waitpid(proc->pid, &status, WNOHANG);
         if (proc->pid == p) {
