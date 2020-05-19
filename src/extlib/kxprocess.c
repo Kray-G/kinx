@@ -41,7 +41,6 @@ static int get_process_status(kx_process_t *proc)
 {
     if (proc) {
         DWORD r = WaitForSingleObject(proc->pi.hProcess, 0);
-printf("r, WAIT_OBJECT_0 = %d, %d\n", r, WAIT_OBJECT_0);
         if (r != WAIT_OBJECT_0) {
             return -1;
         }
@@ -50,7 +49,6 @@ printf("r, WAIT_OBJECT_0 = %d, %d\n", r, WAIT_OBJECT_0);
             if (!GetExitCodeProcess(proc->pi.hProcess, &exitCode)) {
                 return -1;
             }
-printf("exitCode = %d, STILL_ACTIVE(%d)\n", exitCode, STILL_ACTIVE);
         }
         return (int)exitCode;
     }
