@@ -274,7 +274,10 @@ static unsigned int get_tick_count(void)
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <poll.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <alloca.h>
 
 #define ALLOCA alloca
@@ -331,9 +334,9 @@ void finalize_process(kx_process_t *proc)
 
 int peek_pipe(kx_pipe_t *p)
 {
-    struct pollfd fds{ .fd = fd, .events = POLLIN };
+    struct pollfd fds = { .fd = p->r, .events = POLLIN };
     int res = poll(&fds, 1, 0);
-    if (res < 0||fds.revents&(POLLERR|POLLNVAL)) {
+    if (res < 0 || (fds.revents & (POLLERR|POLLNVAL))) {
         return -1;
     }
 
@@ -417,13 +420,13 @@ kx_pipe_t *create_pipe(void)
 {
     int h[2];
     if (pipe(h) < 0) {
-        return -1;
+        return NULL;
     }
     if (fcntl(h[R], F_SETFL, O_NONBLOCK) < 0) {
-        return -1;
+        return NULL;
     }
     if (fcntl(h[W], F_SETFL, O_NONBLOCK) < 0) {
-        return -1;
+        return NULL;
     }
     kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
     p->r = h[R];
@@ -436,14 +439,14 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
     int h[2] = {0};
 
     if (infile) {
-        r = open(infile, O_RDONLY|O_CLOEXEC, 0600);
-        if (r < 0) {
+        h[R] = open(infile, O_RDONLY|O_CLOEXEC, 0600);
+        if (h[R] < 0) {
             return NULL;
         }
     }
     if (outfile) {
-        w = open(outfile, O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0600);
-        if (w < 0) {
+        h[W] = open(outfile, O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0600);
+        if (h[W] < 0) {
             return NULL;
         }
     }
@@ -683,12 +686,12 @@ int Process_createPipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     kx_obj_t *robj = allocate_obj(ctx);
     kx_any_t *r = allocate_any(ctx);
     r->p = p;
-    r->any_free = close_read_pipe;
+    r->any_free = (void (*)(void *))close_read_pipe;
 
     kx_obj_t *wobj = allocate_obj(ctx);
     kx_any_t *w = allocate_any(ctx);
     w->p = p;
-    w->any_free = close_write_pipe;
+    w->any_free = (void (*)(void *))close_write_pipe;
 
     KEX_SET_PROP_INT(robj, "isPipe", 1);
     KEX_SET_PROP_INT(robj, "isReadPipe", 1);
@@ -750,7 +753,7 @@ int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 ri = create_file_pipe(f, NULL);
                 kx_any_t *a = allocate_any(ctx);
                 a->p = ri;
-                a->any_free = close_read_pipe;
+                a->any_free = (void (*)(void *))close_read_pipe;
                 KEX_SET_PROP_ANY(pobj, "_infile", a);
             } else if (val->type == KX_OBJ_T) {
                 obj = val->value.ov;
@@ -772,7 +775,7 @@ int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 wo = create_file_pipe(NULL, f);
                 kx_any_t *a = allocate_any(ctx);
                 a->p = wo;
-                a->any_free = close_write_pipe;
+                a->any_free = (void (*)(void *))close_write_pipe;
                 KEX_SET_PROP_ANY(pobj, "_infile", a);
             } else if (val->type == KX_OBJ_T) {
                 obj = val->value.ov;
@@ -794,7 +797,7 @@ int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 we = create_file_pipe(NULL, f);
                 kx_any_t *a = allocate_any(ctx);
                 a->p = we;
-                a->any_free = close_write_pipe;
+                a->any_free = (void (*)(void *))close_write_pipe;
                 KEX_SET_PROP_ANY(pobj, "_infile", a);
             } else if (val->type == KX_OBJ_T) {
                 obj = val->value.ov;
@@ -824,7 +827,7 @@ int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     kx_any_t *any = allocate_any(ctx);
     any->p = proc;
-    any->any_free = free_proc;
+    any->any_free = (void (*)(void *))free_proc;
     KEX_SET_PROP_INT(pobj, "isProc", 1);
     KEX_SET_PROP_ANY(pobj, "_proc", any);
 
