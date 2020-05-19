@@ -72,7 +72,7 @@ Process.pipeline = (_function() {
             var cmdary = splitCommand(cmd);
             var [r, w] = Process.createPipe();
             var p = new Process(cmdary, { in: output, out: w });
-            if (output) output.close();
+            output.close();
             w.close();
             processes.push(p);
             output = r;
@@ -82,7 +82,7 @@ Process.pipeline = (_function() {
                 return processes.any(&(proc) => proc.isAlive());
             },
             getStatus: _function() {
-                return processes[-1].getStatus();
+                return processes.map(&(proc) => proc.getStatus());
             },
             wait: _function() {
                 return processes.map(&(proc) => proc.wait());
