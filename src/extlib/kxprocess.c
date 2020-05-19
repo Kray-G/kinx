@@ -321,7 +321,7 @@ kx_process_t *create_proc(void)
 {
     kx_process_t *p = kx_calloc(1, sizeof(kx_process_t));
     p->pid = 0;
-    proc->status = -1;
+    p->status = -1;
     return p;
 }
 
