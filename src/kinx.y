@@ -504,6 +504,7 @@ PropertyName
     | WHILE { $$ = kx_gen_str_object("while"); }
     | DO { $$ = kx_gen_str_object("do"); }
     | FOR { $$ = kx_gen_str_object("for"); }
+    | IN { $$ = kx_gen_str_object("in"); }
     | TRY { $$ = kx_gen_str_object("try"); }
     | CATCH { $$ = kx_gen_str_object("catch"); }
     | FINALLY { $$ = kx_gen_str_object("finally"); }
@@ -612,6 +613,7 @@ KeySpecialName
     | WHILE { $$ = "while"; }
     | DO { $$ = "do"; }
     | FOR { $$ = "for"; }
+    | IN { $$ = "in"; }
     | TRY { $$ = "try"; }
     | CATCH { $$ = "catch"; }
     | FINALLY { $$ = "finally"; }
