@@ -445,6 +445,20 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
     return p;
 }
 
+#define KX_PROCESS_SET_DEVNULL(target, fdnum) { \
+    int fd = open("/dev/null", O_RDONLY); \
+    if (fd == -1) { \
+        close_read_pipe(h_stdin); \
+        close_write_pipe(h_stdout); \
+        close_write_pipe(h_stderr); \
+        fprintf(stderr, "failed: exec when dup /dev/null for " #target "\n"); \
+        exit(1); \
+    } \
+    dup2(fd, fdnum); \
+    close(fd); \
+} \
+/**/
+
 int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, kx_pipe_t *h_stderr, int argc, char *const argv[])
 {
     proc->pid = 0;
@@ -461,18 +475,22 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
         if (h_stdin) {
             close_write_pipe(h_stdin);
             dup2(h_stdin->r, 0);
-            close_read_pipe(h_stdin);
         }
         if (h_stdout) {
             close_read_pipe(h_stdout);
             dup2(h_stdout->w, 1);
-            close_write_pipe(h_stdout);
+        } else {
+            KX_PROCESS_SET_DEVNULL(stdout, 1);
         }
         if (h_stderr) {
             close_read_pipe(h_stderr);
             dup2(h_stderr->w, 2);
-            close_write_pipe(h_stderr);
+        } else {
+            KX_PROCESS_SET_DEVNULL(stderr, 2);
         }
+        close_read_pipe(h_stdin);
+        close_write_pipe(h_stdout);
+        close_write_pipe(h_stderr);
         if (execvp(argv[0], argv) < 0) {
             close_read_pipe(h_stdin);
             close_write_pipe(h_stdout);
