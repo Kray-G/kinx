@@ -1,6 +1,6 @@
 Process = _import('kxprocess');
 
-class Process(cmdary, opts) {
+_class Process(cmdary, opts) {
     var p_;
     private initialize() {
         p_ = Process.run(cmdary, opts);
@@ -87,6 +87,9 @@ Process.pipeline = (_function() {
             wait: _function() {
                 return processes.map(&(proc) => proc.wait());
             },
+            peek: output.peek,
+            read: output.read,
+            write: input.write,
             input: input,
             output: output,
             processes: processes,
