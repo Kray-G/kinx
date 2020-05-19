@@ -288,12 +288,17 @@ typedef struct kx_process_ {
     kx_pipe_t *h_stdout;    // Standard Output of Child Process.
     kx_pipe_t *h_stderr;    // Standard Error Output of Child Process.
     pid_t pid;              // Process information.
+    int status;             // Process status.
 } kx_process_t;
 
 static int is_process_alive(kx_process_t *proc)
 {
     if (proc) {
-        pid_t p = waitpid(proc->pid, NULL, WNOHANG);
+        int status;
+        pid_t p = waitpid(proc->pid, &status, WNOHANG);
+        if (proc->pid == p) {
+            proc->status = status;
+        }
         return p == 0;
     }
     return 0;
@@ -302,6 +307,9 @@ static int is_process_alive(kx_process_t *proc)
 static int get_process_status(kx_process_t *proc)
 {
     if (proc) {
+        if (proc->status >= 0) {
+            return proc->status;
+        }
         int status;
         pid_t p = waitpid(proc->pid, &status, WNOHANG);
         return p == proc->pid ? status : -1;
@@ -313,6 +321,7 @@ kx_process_t *create_proc(void)
 {
     kx_process_t *p = kx_calloc(1, sizeof(kx_process_t));
     p->pid = 0;
+    proc->status = -1;
     return p;
 }
 
@@ -324,6 +333,7 @@ void free_proc(kx_process_t *p)
 void finalize_process(kx_process_t *proc)
 {
     proc->pid = 0;
+    proc->status = -1;
 }
 
 int peek_pipe(kx_pipe_t *p)
@@ -446,12 +456,12 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
 }
 
 #define KX_PROCESS_SET_DEVNULL(target, fdnum) { \
-    int fd = open("/dev/null", O_RDONLY); \
+    int fd = open("/dev/null", O_WRONLY); \
     if (fd == -1) { \
         close_read_pipe(h_stdin); \
         close_write_pipe(h_stdout); \
         close_write_pipe(h_stderr); \
-        fprintf(stderr, "failed: exec when dup /dev/null for " #target "\n"); \
+        fprintf(stderr, "failed: exec when opening /dev/null for " #target "\n"); \
         exit(1); \
     } \
     dup2(fd, fdnum); \
