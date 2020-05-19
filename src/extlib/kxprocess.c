@@ -300,7 +300,14 @@ static int is_process_alive(kx_process_t *proc)
         int status;
         pid_t p = waitpid(proc->pid, &status, WNOHANG);
         if (proc->pid == p) {
-            proc->status = status;
+            if (WIFEXITED(status)) {
+                proc->status = WEXITSTATUS(status);
+            } else if (WIFSIGNALED(status)) {
+                proc->status = WTERMSIG(status);
+            } else {
+                proc->status = status;
+            }
+            return 0;
         }
         return p == 0;
     }
@@ -315,7 +322,17 @@ static int get_process_status(kx_process_t *proc)
         }
         int status;
         pid_t p = waitpid(proc->pid, &status, WNOHANG);
-        return p == proc->pid ? status : -1;
+        if (proc->pid == p) {
+            if (WIFEXITED(status)) {
+                proc->status = WEXITSTATUS(status);
+            } else if (WIFSIGNALED(status)) {
+                proc->status = WTERMSIG(status);
+            } else {
+                proc->status = status;
+            }
+            return proc->status;
+        }
+        return -1;
     }
     return -1;
 }
