@@ -41,12 +41,16 @@ static int get_process_status(kx_process_t *proc)
 {
     if (proc) {
         DWORD r = WaitForSingleObject(proc->pi.hProcess, 0);
+printf("r, WAIT_OBJECT_0 = %d, %d\n", r, WAIT_OBJECT_0);
         if (r != WAIT_OBJECT_0) {
             return -1;
         }
-        DWORD exitCode;
-        if (!GetExitCodeProcess(proc->pi.hProcess, &exitCode)) {
-            return -1;
+        DWORD exitCode = STILL_ACTIVE;
+        while (exitCode == STILL_ACTIVE) {
+            if (!GetExitCodeProcess(proc->pi.hProcess, &exitCode)) {
+                return -1;
+            }
+printf("exitCode = %d, STILL_ACTIVE(%d)\n", exitCode, STILL_ACTIVE);
         }
         return (int)exitCode;
     }
@@ -211,6 +215,45 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
     } \
 } \
 
+static int make_command(char *dst, const char *cmd)
+{
+    if (dst) strcat(dst, " ");
+
+    int quote = 0;
+    int escape = 0;
+    int l = 0;
+    const char *p = cmd;
+    while (*p) {
+        if (*p == ' ') {
+            quote = 1;
+        } else if (*p == '"') {
+            quote = 1;
+            ++escape;
+        }
+        ++l;
+        ++p;
+    }
+    if (dst) {
+        int len = strlen(dst);
+        char *d = dst + len;
+        if (quote) {
+            *d++ = '"';
+        }
+        const char *p = cmd;
+        while (*p) {
+            if (*p == '"') {
+                *d++ = '\\';
+            }
+            *d++ = *p++;
+        }
+        if (quote) {
+            *d++ = '"';
+        }
+        *d = 0;
+    }
+    return l + escape + quote * 2;
+}
+
 int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, kx_pipe_t *h_stderr, int argc, char *const argv[])
 {
     proc->started = 0;
@@ -222,25 +265,23 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
     proc->h_stdout = h_stdout;
     proc->h_stderr = h_stderr;
 
-    STARTUPINFOA si;
-    ZeroMemory(&si, sizeof(STARTUPINFO));
+    STARTUPINFOA si = {0};
     si.cb = sizeof(STARTUPINFO);
     si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
     si.wShowWindow = SW_HIDE;
-    si.hStdInput = proc->h_stdin ? h_stdin->r : INVALID_HANDLE_VALUE;
-    si.hStdOutput = proc->h_stdout ? h_stdout->w : INVALID_HANDLE_VALUE;
-    si.hStdError = proc->h_stderr ? h_stderr->w : INVALID_HANDLE_VALUE;
+    si.hStdInput = h_stdin ? h_stdin->r : INVALID_HANDLE_VALUE;
+    si.hStdOutput = h_stdout ? h_stdout->w : INVALID_HANDLE_VALUE;
+    si.hStdError = h_stderr ? h_stderr->w : INVALID_HANDLE_VALUE;
 
     int cmdlen = 0;
     for (int i = 0; i < argc; ++i) {
-        cmdlen += strlen(argv[i]) + 1;
+        cmdlen += make_command(NULL, argv[i]) + 1;
     }
     char *cmd = (char *)ALLOCA(cmdlen + 1);
     cmd[0] = 0;
     strcat(cmd, argv[0]);
     for (int i = 1; i < argc; ++i) {
-        strcat(cmd, " ");
-        strcat(cmd, argv[i]);
+        make_command(cmd, argv[i]);
     }
     if (!CreateProcessA(0, cmd, 0, 0, TRUE, CREATE_NO_WINDOW, 0, 0, &si, &proc->pi)) {
         goto CLEANUP;
