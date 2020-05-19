@@ -81,7 +81,7 @@ Array.all = _function(ary, callback) {
         }
     }
     return true;
-}
+};
 
 Array.any = _function(ary, callback) {
     var len = ary.length();
@@ -92,7 +92,7 @@ Array.any = _function(ary, callback) {
         }
     }
     return false;
-}
+};
 
 Array.join = _function(ary, delm) {
     return Array.joinImpl(ary.stringify(), delm);
