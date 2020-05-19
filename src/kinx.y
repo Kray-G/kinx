@@ -483,6 +483,7 @@ Factor
     | Binary
     | Object
     | Regex
+    | '.' PropertyName { $$ = $2; }
     | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }
     | '(' AssignExpression ')' { $$ = $2; }
     | '(' ObjectSpecialSyntax ')' { $$ = $2; }
