@@ -1,0 +1,100 @@
+Process = _import('kxprocess');
+
+class Process(cmdary, opts) {
+    var p_;
+    private initialize() {
+        p_ = Process.run(cmdary, opts);
+    }
+    public std() {
+        return {
+            in: opts.in,
+            out: opts.out,
+            err: opts.err,
+        };
+    }
+    public isAlive() {
+        return Process.isAlive(p_);
+    }
+    public getStatus() {
+        return Process.getStatus(p_);
+    }
+    public wait() {
+        while (Process.isAlive(p_)) {
+            ;
+        }
+        return Process.getStatus(p_);
+    }
+};
+
+Process.pipeline = (_function() {
+    _function splitCommand(cmd) {
+        var str;
+        var cmdary = [];
+        var sz = cmd.length();
+        for (var i = 0; i < sz; ) {
+            var c = cmd[i];
+            if (c == ' '[0] || c == '\t'[0] || c == '\r'[0] || c == '\n'[0]) {
+                ++i;
+                continue;
+            }
+            str = "";
+            if (c == '"'[0] || c == "'"[0]) {
+                var q = c;
+                c = cmd[++i];
+                while (i < sz && c != q) {
+                    str += *c;
+                    c = cmd[++i];
+                }
+                ++i;
+                cmdary.push(str);
+            } else {
+                while (i < sz && (c != ' '[0] && c != '\t'[0] && c != '\r'[0] && c != '\n'[0])) {
+                    str += *c;
+                    c = cmd[++i];
+                }
+                ++i;
+                cmdary.push(str);
+            }
+        }
+        return cmdary;
+    }
+    return _function(...list) {
+        var processes = [];
+        var [output, input] = Process.createPipe();
+        var func;
+        if (list[-1].isFunction) {
+            func = list.pop();
+        }
+        list.each(&(cmd) => {
+            if (cmd.length() == 0) {
+                return;
+            }
+            var cmdary = splitCommand(cmd);
+            var [r, w] = Process.createPipe();
+            var p = new Process(cmdary, { in: output, out: w });
+            if (output) output.close();
+            w.close();
+            processes.push(p);
+            output = r;
+        });
+        var pipeline = {
+            isAlive: _function() {
+                return processes.any(&(proc) => proc.isAlive());
+            },
+            getStatus: _function() {
+                return processes[-1].getStatus();
+            },
+            wait: _function() {
+                return processes.map(&(proc) => proc.wait());
+            },
+            input: input,
+            output: output,
+            processes: processes,
+        };
+        if (func.isFunction) {
+            return func(input, output, pipeline);
+        } else {
+            return pipeline;
+        }
+    };
+})();
