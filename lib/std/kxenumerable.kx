@@ -328,10 +328,10 @@ _module _Enumerable {
                 return false;
             }
             if (func(v)) {
-                break;
+                return true;
             }
         }
-        return true;
+        return false;
     }
     public sum() {
         if (host_.end().isUndefined) {
