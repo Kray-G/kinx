@@ -567,9 +567,9 @@ int Process_closeReadPipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     }
     if (p) {
         int f = close_read_pipe(p);
+        val->value.av->p = NULL;
+        val->value.av->any_free = NULL;
         if (f) {
-            val->value.av->p = NULL;
-            val->value.av->any_free = NULL;
             val = NULL;
             KEX_GET_PROP(val, obj, "_write");
             if (val && val->type == KX_ANY_T) {
@@ -601,9 +601,9 @@ int Process_closeWritePipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     }
     if (p) {
         int f = close_write_pipe(p);
+        val->value.av->p = NULL;
+        val->value.av->any_free = NULL;
         if (f) {
-            val->value.av->p = NULL;
-            val->value.av->any_free = NULL;
             val = NULL;
             KEX_GET_PROP(val, obj, "_read");
             if (val && val->type == KX_ANY_T) {
