@@ -136,7 +136,8 @@ SOFILES = \
     kxregex.so \
     kxsqlite.so \
     kxnet.so \
-    kxxml.so
+    kxxml.so \
+    kxprocess.so
 PICOBJS = \
     bignpic.o \
     bigzpic.o \
@@ -255,6 +256,9 @@ kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so.3 libcrypto.so.3
 
 kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libxml2/include/libxml2 src/extlib/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+
+kxprocess.so: src/extlib/kxprocess.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 libz.so: libz.so.1
 	ln -s libz.so.1 libz.so
