@@ -875,7 +875,7 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         push_i(ctx->stack, ch);
         return 0;
     }
-    if (ch == 0xe0) {
+    if (ch == 0xe0 || ch == 0x00) {
         ch = get_keycode(ctx, 0);
         switch (ch) {
         case 0x48: ch = KX_KEY_UP;    break; // arrow up.
