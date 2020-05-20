@@ -332,6 +332,7 @@ var Xml, Net;
     $stdin = new File('<stdin>', File.READ);
     $stdin.print = $stdin.printImpl;
     $stdin.println = $stdin.printlnImpl;
+    $stdin.getKeyCode = File.scanCode;
     STDIN = $stdin;
     $stdout = new File('<stdout>', File.WRITE);
     $stdout.print = _function(...arg) { $stdout.printImpl(...arg.stringify()); };
