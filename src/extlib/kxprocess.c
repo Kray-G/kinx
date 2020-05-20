@@ -589,11 +589,11 @@ CLEANUP:
 
 static thread_return_t STDCALL run_process_wait_thread(void *p)
 {
-    pid_t pid = (pid)proc->pid;
+    pid_t pid = (pid_t)p;
     int status = 0;
     while (1) {
         pid_t p = waitpid(pid, &status, 0);
-        if (proc->pid == p && (WIFEXITED(status) || WIFSIGNALED(status))) {
+        if (pid == p && (WIFEXITED(status) || WIFSIGNALED(status))) {
             break;
         }
         msec_sleep(1000);
@@ -608,6 +608,7 @@ static int process_detach(kx_process_t *proc)
     }
 
     // detaching a process in Linux is a little complex...
+    pthread_t t;
     if (pthread_create_extra(&t, run_process_wait_thread, (void *)(proc->pid), 0) != 0) {
         return 0; // starting a thread was failed.
     }
