@@ -183,7 +183,18 @@ static int kx_getch(void)
 static int stdin_peek(unsigned int msec)
 {
     #if defined(_WIN32) || defined(_WIN64)
-    return WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), msec) == WAIT_OBJECT_0;
+    DWORD e = WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), msec);
+    switch (e) {
+    case WAIT_OBJECT_0:
+        if (_kbhit()) {
+            return 1;
+        } else {
+            INPUT_RECORD r[512];
+            DWORD read;
+            ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), r, 512, &read);
+        }
+    }
+    return 0;
     #else
     if (kx_kbhit()) {
         return 1;
@@ -850,9 +861,6 @@ int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         if (ch == 0x03) {
             ctx->signal.signal_received = 1;
             ctx->signal.sigint_count++;
-            KX_ADJST_STACK();
-            push_s(ctx->stack, "");
-            return 0;
         }
     } else {
         ch = fgetc(fi->fp);
