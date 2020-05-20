@@ -8,7 +8,7 @@ Please see the Wikipedia.
 
 ## Examples
 
-### Example 1. Missionaries and cannibals problem algorithm
+### Example 1. Missionaries and Cannibals Problem
 
 #### Code
 
