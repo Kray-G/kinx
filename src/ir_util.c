@@ -697,6 +697,31 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
     (((c)->op == KX_EQEQI) || ((c)->op == KX_NEQI) || \
     ((c)->op == KX_LTI) || ((c)->op == KX_LEI) || ((c)->op == KX_GTI) || ((c)->op == KX_GEI)) \
 /**/
+#define KX_CALLOPT_RETVL1_CHK() { \
+    if (c1->op == KX_PUSHVL1) { \
+        kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn; \
+        kx_frm_t *lexv = fnc->lex; \
+        kx_val_t *v1 = &kv_A(lexv->v, c1->value2.i); \
+        int tf = (v1->type == KX_INT_T) && (v1->value.iv); \
+        if ((c2->op == KX_JZ && tf) || (c2->op == KX_JNZ && !tf)) { \
+            KX_CALLOPT_RETNULL(c3); \
+            KX_CALLOPT_RETI(c3); \
+            KX_CALLOPT_RETVL0(c3); \
+            KX_CALLOPT_RETVL1(c3); \
+            return NULL; \
+        } \
+        kx_code_t *cj = c2->jmp; \
+        if ((c2->op == KX_JZ && !tf) || (c2->op == KX_JNZ && tf)) { \
+            KX_CALLOPT_RETNULL(cj); \
+            KX_CALLOPT_RETI(cj); \
+            KX_CALLOPT_RETVL0(cj); \
+            KX_CALLOPT_RETVL1(cj); \
+            return NULL; \
+        } \
+        return NULL; \
+    } \
+} \
+/**/
 #define KX_CALLOPT_COND_EQEQ ==
 #define KX_CALLOPT_COND_NEQ !=
 #define KX_CALLOPT_COND_LT <
@@ -781,6 +806,7 @@ kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp
     KX_CALLOPT_RETI(c1);
     KX_CALLOPT_RETVL0(c1);
     KX_CALLOPT_RETVL1(c1);
+    KX_CALLOPT_RETVL1_CHK();
     KX_CALLOPT_RETVL1_CMB();
     KX_CALLOPT_COND_V0I(LT);
     KX_CALLOPT_COND_V0I(LE);
