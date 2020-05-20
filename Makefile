@@ -196,6 +196,7 @@ install:
 	cp -f kxstring.so /usr/bin/kinxlib/
 	cp -f kxsystem.so /usr/bin/kinxlib/
 	cp -f kxxml.so /usr/bin/kinxlib/
+	cp -f kxprocess.so /usr/bin/kinxlib/
 	cp -f libcrypto.so.3 /usr/bin/kinxlib/
 	cp -f libonig.so.5.0.0 /usr/bin/kinxlib/
 	ln -sf /usr/bin/kinxlib/libonig.so.5.0.0 /usr/bin/kinxlib/libonig.so.5
