@@ -978,6 +978,23 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
 
     case KXOP_DECL: {
         if (node->rhs) {
+            if (node->lhs->init) {
+                int no_code_output = 0;
+                switch (node->lhs->init->type) {
+                case KXVL_INT:
+                case KXVL_DBL:
+                case KXVL_STR:
+                case KXVL_BIG:
+                case KXVL_NULL:
+                case KXVL_TRUE:
+                case KXVL_FALSE:
+                    no_code_output = 1;
+                    break;
+                }
+                if (no_code_output) {
+                    break;
+                }
+            }
             gencode_ast_hook(ctx, node->rhs, ana, 0);
             if (node->lhs->type == KXOP_VAR) {
                 if (ana->classname == 0 && !strcmp(node->lhs->value.s, "methodMissing") && last_op(ana) != KX_SET_GMM) {
