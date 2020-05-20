@@ -131,7 +131,7 @@ class SpecTestCase(id_, index_, testinfo_, spectest_) {
             }
             System.exec(interpreter_ + " > " + resfile_);
             var buf = File.load(resfile_);
-            res.actual = buf.trim();
+            res.actual = buf.split('\n').map(&(e) => e.trimRight()).join('\n').trim();
             var rvl = @result.join('\n');
             res.expect = rvl.trim();
             res.failed = res.actual != res.expect;
