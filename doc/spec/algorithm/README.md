@@ -18,3 +18,4 @@ This will help your understanding.
 *   [Life Game](lifegame.md)
 *   [N Queens](nqueens.md)
 *   [Knight Tour](knight.md)
+*   [Missionaries and Cannibals Problem](cannibal.md)
