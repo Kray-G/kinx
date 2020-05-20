@@ -830,6 +830,126 @@ int File_peek(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int get_keycode(kx_context_t *ctx)
+{
+    while (!stdin_peek(100)) {
+        volatile uint8_t signal = ctx->signal.signal_received;
+        if (signal) {
+            return -1;
+        }
+    }
+    return kx_getch();
+}
+
+const int KX_KEY_BS    = 0x08;
+const int KX_KEY_DEL   = 0x7f;
+const int KX_KEY_UP    = (0xe0 << 8) | 0x10;
+const int KX_KEY_DOWN  = (0xe0 << 8) | 0x11;
+const int KX_KEY_RIGHT = (0xe0 << 8) | 0x12;
+const int KX_KEY_LEFT  = (0xe0 << 8) | 0x13;
+
+#if defined(_WIN32) || defined(_WIN64)
+int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    int ch = get_keycode(ctx);
+    if (ch < 0) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, ch);
+        return 0;
+    }
+    if (('0' <= ch && ch <= '9') || ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, ch);
+        return 0;
+    }
+    switch (ch) {
+    case '!': case '"': case '#': case '$': case '%': case '&': case '\'': case '(':
+    case ')': case '=': case '-': case '~': case '^': case '|': case '\\': case '`':
+    case '@': case '{': case '[': case '+': case ';': case '*': case ':': case '}':
+    case ']': case '<': case ',': case '>': case '.': case '?': case '/': case '_':
+        KX_ADJST_STACK();
+        push_i(ctx->stack, ch);
+        return 0;
+    }
+    if (ch == 0xe0) {
+        ch = get_keycode(ctx);
+        switch (ch) {
+        case 0x48: ch = KX_KEY_UP;    break; // arrow up.
+        case 0x50: ch = KX_KEY_DOWN;  break; // arrow down.
+        case 0x4d: ch = KX_KEY_RIGHT; break; // arrow right.
+        case 0x4b: ch = KX_KEY_LEFT;  break; // arrow left.
+        case 0x53: ch = KX_KEY_DEL;   break; // del.
+        default:
+            ch = 0;
+            break;
+        }
+    }
+    KX_ADJST_STACK();
+    push_i(ctx->stack, ch);
+    return 0;
+}
+#else
+int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    int ch = get_keycode(ctx);
+    if (ch < 0) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, ch);
+        return 0;
+    }
+    if (('0' <= ch && ch <= '9') || ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, ch);
+        return 0;
+    }
+    switch (ch) {
+    case '!': case '"': case '#': case '$': case '%': case '&': case '\'': case '(':
+    case ')': case '=': case '-': case '~': case '^': case '|': case '\\': case '`':
+    case '@': case '{': case '[': case '+': case ';': case '*': case ':': case '}':
+    case ']': case '<': case ',': case '>': case '.': case '?': case '/': case '_':
+        KX_ADJST_STACK();
+        push_i(ctx->stack, ch);
+        return 0;
+    case 0x7f:
+        KX_ADJST_STACK();
+        push_i(ctx->stack, KX_KEY_BS);
+        return 0;
+    }
+    if (ch == 0x1b) {
+        ch = get_keycode(ctx);
+        switch (ch) {
+        case 0x5b:
+            ch = get_keycode(ctx);
+            switch (ch) {
+            case 0x33:
+                ch = get_keycode(ctx);
+                switch (ch) {
+                case 0x7e: ch = KX_KEY_DEL; break; // del.
+                default:
+                    ch = 0;
+                    break;
+                }
+                break;
+            case 0x41: ch = KX_KEY_UP;    break; // arrow up.
+            case 0x42: ch = KX_KEY_DOWN;  break; // arrow down.
+            case 0x43: ch = KX_KEY_RIGHT; break; // arrow right.
+            case 0x44: ch = KX_KEY_LEFT;  break; // arrow left.
+            default:
+                ch = 0;
+                break;
+            }
+            break;
+        default:
+            ch = 0;
+            break;
+        }
+    }
+    KX_ADJST_STACK();
+    push_i(ctx->stack, ch);
+    return 0;
+}
+#endif
+
 int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -849,11 +969,16 @@ int File_getch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     int ch;
     if (fi->is_std) {
+        volatile int sigicount = ctx->signal.sigint_count;
+        volatile int sigtcount = ctx->signal.sigterm_count;
         while (!stdin_peek(100)) {
             volatile uint8_t signal = ctx->signal.signal_received;
             if (signal) {
+                char buffer[2] = { sigicount != ctx->signal.sigint_count ? 3 : 0, 0 };
+                kstr_t *s = allocate_str(ctx);
+                ks_append_n(s, buffer, 1);
                 KX_ADJST_STACK();
-                push_s(ctx->stack, "");
+                push_sv(ctx->stack, s);
                 return 0;
             }
         }
@@ -1695,6 +1820,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "dirclose", File_static_dirclose },
 
     { "ostimeByMs", File_static_ms_time },
+
+    { "scanCode", Stdin_scan_keycode },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
