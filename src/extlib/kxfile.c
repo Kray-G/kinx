@@ -830,11 +830,14 @@ int File_peek(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int get_keycode(kx_context_t *ctx)
+int get_keycode(kx_context_t *ctx, int tmout)
 {
-    while (!stdin_peek(100)) {
+    while (!stdin_peek(50)) {
         volatile uint8_t signal = ctx->signal.signal_received;
         if (signal) {
+            return -1;
+        }
+        if (tmout) {
             return -1;
         }
     }
@@ -842,6 +845,7 @@ int get_keycode(kx_context_t *ctx)
 }
 
 const int KX_KEY_BS    = 0x08;
+const int KX_KEY_ENTER = 0x0d;
 const int KX_KEY_DEL   = 0x7f;
 const int KX_KEY_UP    = (0xe0 << 8) | 0x10;
 const int KX_KEY_DOWN  = (0xe0 << 8) | 0x11;
@@ -851,7 +855,7 @@ const int KX_KEY_LEFT  = (0xe0 << 8) | 0x13;
 #if defined(_WIN32) || defined(_WIN64)
 int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    int ch = get_keycode(ctx);
+    int ch = get_keycode(ctx, 0);
     if (ch < 0) {
         KX_ADJST_STACK();
         push_i(ctx->stack, ch);
@@ -872,7 +876,7 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         return 0;
     }
     if (ch == 0xe0) {
-        ch = get_keycode(ctx);
+        ch = get_keycode(ctx, 0);
         switch (ch) {
         case 0x48: ch = KX_KEY_UP;    break; // arrow up.
         case 0x50: ch = KX_KEY_DOWN;  break; // arrow down.
@@ -891,7 +895,7 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
 #else
 int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    int ch = get_keycode(ctx);
+    int ch = get_keycode(ctx, 0);
     if (ch < 0) {
         KX_ADJST_STACK();
         push_i(ctx->stack, ch);
@@ -914,34 +918,42 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         KX_ADJST_STACK();
         push_i(ctx->stack, KX_KEY_BS);
         return 0;
+    case 0x10:
+        KX_ADJST_STACK();
+        push_i(ctx->stack, KX_KEY_ENTER);
+        return 0;
     }
     if (ch == 0x1b) {
-        ch = get_keycode(ctx);
-        switch (ch) {
-        case 0x5b:
-            ch = get_keycode(ctx);
+        ch = get_keycode(ctx, 1);
+        if (ch < 0) {
+            ch = 0x1b;
+        } else {
             switch (ch) {
-            case 0x33:
-                ch = get_keycode(ctx);
+            case 0x5b:
+                ch = get_keycode(ctx, 0);
                 switch (ch) {
-                case 0x7e: ch = KX_KEY_DEL; break; // del.
+                case 0x33:
+                    ch = get_keycode(ctx, 0);
+                    switch (ch) {
+                    case 0x7e: ch = KX_KEY_DEL; break; // del.
+                    default:
+                        ch = 0;
+                        break;
+                    }
+                    break;
+                case 0x41: ch = KX_KEY_UP;    break; // arrow up.
+                case 0x42: ch = KX_KEY_DOWN;  break; // arrow down.
+                case 0x43: ch = KX_KEY_RIGHT; break; // arrow right.
+                case 0x44: ch = KX_KEY_LEFT;  break; // arrow left.
                 default:
                     ch = 0;
                     break;
                 }
                 break;
-            case 0x41: ch = KX_KEY_UP;    break; // arrow up.
-            case 0x42: ch = KX_KEY_DOWN;  break; // arrow down.
-            case 0x43: ch = KX_KEY_RIGHT; break; // arrow right.
-            case 0x44: ch = KX_KEY_LEFT;  break; // arrow left.
             default:
                 ch = 0;
                 break;
             }
-            break;
-        default:
-            ch = 0;
-            break;
         }
     }
     KX_ADJST_STACK();
