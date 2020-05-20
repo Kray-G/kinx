@@ -267,12 +267,12 @@ int Binary_subBinary(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     kx_bin_t *bin = get_arg_bin(1, args, ctx);
     if (bin) {
         int b = args > 1 ? get_arg_int(2, args, ctx) : 0;
-        int l = args > 2 ? get_arg_int(3, args, ctx) : 0;
-        if (b < 0 || l < 0) {
+        int l = args > 2 ? get_arg_int(3, args, ctx) : -1;
+        if (b < 0 || l < -1) {
             KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid range, it should be zero or positive number");
         }
         int max = kv_size(bin->bin);
-        if (!l) {
+        if (l < 0) {
             l = max - b;
         }
         kx_bin_t *dst = allocate_bin(ctx);

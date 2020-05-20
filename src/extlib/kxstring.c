@@ -119,17 +119,47 @@ int String_trim(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
 }
 
+int String_trimLeft(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        kstr_t *s = allocate_str(ctx);
+        ks_append(s, str);
+        ks_trim_left(s);
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, s);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
+}
+
+int String_trimRight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        kstr_t *s = allocate_str(ctx);
+        ks_append(s, str);
+        ks_trim_right(s);
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, s);
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
+}
+
 int String_subString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         int b = args > 1 ? get_arg_int(2, args, ctx) : 0;
-        int l = args > 2 ? get_arg_int(3, args, ctx) : 0;
-        if (b < 0 || l < 0) {
+        int l = args > 2 ? get_arg_int(3, args, ctx) : -1;
+        if (b < 0 || l < -1) {
             KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid range, it should be zero or positive number");
         }
         int max = strlen(str);
-        if (!l) {
+        if (l < 0) {
             l = max - b;
         }
         kstr_t *s = allocate_str(ctx);
@@ -615,6 +645,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "toInt", String_parseInt },
     { "toDouble", String_parseDouble },
     { "trim", String_trim },
+    { "trimLeft", String_trimLeft },
+    { "trimRight", String_trimRight },
     { "subString", String_subString },
     { "startsWith", String_startsWith },
     { "endsWith", String_endsWith },
