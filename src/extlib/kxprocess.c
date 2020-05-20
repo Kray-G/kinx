@@ -1,13 +1,8 @@
-#ifndef KX_DEBUG
 #include <dbg.h>
 #include <inttypes.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
-#else
-#define kx_calloc calloc
-#define kx_free free
-#endif
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -28,9 +23,13 @@ typedef struct kx_process_ {
     kx_pipe_t *h_stdin;     // Standard Input of Child Process.
     kx_pipe_t *h_stdout;    // Standard Output of Child Process.
     kx_pipe_t *h_stderr;    // Standard Error Output of Child Process.
-    int started;
     PROCESS_INFORMATION pi; // Process information.
 } kx_process_t;
+
+static unsigned int get_tick_count(void)
+{
+    return GetTickCount();
+}
 
 static int is_process_alive(kx_process_t *proc)
 {
@@ -45,10 +44,8 @@ static int get_process_status(kx_process_t *proc)
             return -1;
         }
         DWORD exitCode = STILL_ACTIVE;
-        while (exitCode == STILL_ACTIVE) {
-            if (!GetExitCodeProcess(proc->pi.hProcess, &exitCode)) {
-                return -1;
-            }
+        if (!GetExitCodeProcess(proc->pi.hProcess, &exitCode)) {
+            return -1;
         }
         return (int)exitCode;
     }
@@ -58,21 +55,23 @@ static int get_process_status(kx_process_t *proc)
 kx_process_t *create_proc(void)
 {
     kx_process_t *p = kx_calloc(1, sizeof(kx_process_t));
-    p->started = 0;
     return p;
 }
 
-void free_proc(kx_process_t *p)
+void free_proc(kx_process_t *proc)
 {
-    kx_free(p);
+    kx_free(proc);
 }
 
 void finalize_process(kx_process_t *proc)
 {
-    if (proc->started) {
-        proc->started = 0;
+    if (proc->pi.hThread != INVALID_HANDLE_VALUE) {
         CloseHandle(proc->pi.hThread);
+        proc->pi.hThread = INVALID_HANDLE_VALUE;
+    }
+    if (proc->pi.hProcess != INVALID_HANDLE_VALUE) {
         CloseHandle(proc->pi.hProcess);
+        proc->pi.hProcess = INVALID_HANDLE_VALUE;
     }
 }
 
@@ -254,7 +253,6 @@ static int make_command(char *dst, const char *cmd)
 
 int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, kx_pipe_t *h_stderr, int argc, char *const argv[])
 {
-    proc->started = 0;
     HANDLE currproc = GetCurrentProcess();
     KX_PROCESS_DUP_HANDLE(h_stdin, FALSE, TRUE);
     KX_PROCESS_DUP_HANDLE(h_stdout, TRUE, FALSE);
@@ -285,7 +283,6 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
         goto CLEANUP;
     }
 
-    proc->started = 1;
     return 1;
 
 CLEANUP:
@@ -293,9 +290,10 @@ CLEANUP:
     return 0;
 }
 
-static unsigned int get_tick_count(void)
+static int process_detach(kx_process_t *proc)
 {
-    return GetTickCount();
+    finalize_process(proc);
+    return 1;
 }
 
 #else
@@ -329,6 +327,13 @@ typedef struct kx_process_ {
     pid_t pid;              // Process information.
     int status;             // Process status.
 } kx_process_t;
+
+static unsigned int get_tick_count(void)
+{
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) != 0) return 0;
+    return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+}
 
 static int is_process_alive(kx_process_t *proc)
 {
@@ -393,6 +398,8 @@ void finalize_process(kx_process_t *proc)
 {
     proc->pid = 0;
     proc->status = -1;
+    // no wait, this is called only at the end of this process if starting a child process correctly.
+    // when this process is terminated, the necessary wait will be performed by init process.
 }
 
 int peek_pipe(kx_pipe_t *p)
@@ -479,10 +486,10 @@ kx_pipe_t *create_pipe(void)
     if (pipe(h) < 0) {
         return NULL;
     }
-    if (fcntl(h[R], F_SETFL, O_NONBLOCK) < 0) {
+    if (fcntl(h[R], F_SETFL, fcntl(h[R], F_GETFL) | O_NONBLOCK) < 0) {
         return NULL;
     }
-    if (fcntl(h[W], F_SETFL, O_NONBLOCK) < 0) {
+    if (fcntl(h[W], F_SETFL, fcntl(h[W], F_GETFL) | O_NONBLOCK) < 0) {
         return NULL;
     }
     kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
@@ -577,15 +584,37 @@ CLEANUP:
     return 0;
 }
 
-static unsigned int get_tick_count(void)
-{
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) != 0) return 0;
-    return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-}
-
 #undef W
 #undef R
+
+static thread_return_t STDCALL run_process_wait_thread(void *p)
+{
+    pid_t pid = (pid)proc->pid;
+    int status = 0;
+    while (1) {
+        pid_t p = waitpid(pid, &status, 0);
+        if (proc->pid == p && (WIFEXITED(status) || WIFSIGNALED(status))) {
+            break;
+        }
+        msec_sleep(1000);
+    }
+    return 0;
+}
+
+static int process_detach(kx_process_t *proc)
+{
+    if (!proc || proc->pid == 0) {
+        return 0;
+    }
+
+    // detaching a process in Linux is a little complex...
+    if (pthread_create_extra(&t, run_process_wait_thread, (void *)(proc->pid), 0) != 0) {
+        return 0; // starting a thread was failed.
+    }
+    pthread_detach(t);
+
+    return 1;
+}
 
 #endif
 
@@ -962,11 +991,29 @@ int Process_getStatus(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     return 0;
 }
 
+int Process_detach(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *pobj = get_arg_obj(1, args, ctx);
+    kx_val_t *prca = NULL;
+    kx_process_t *proc = NULL;
+    KEX_GET_PROP(prca, pobj, "_proc");
+    if (prca && prca->type == KX_ANY_T) {
+        proc = (kx_process_t *)(prca->value.av->p);
+    }
+
+    process_detach(proc);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "createPipe", Process_createPipe },
     { "run", Process_run },
     { "isAlive", Process_isAlive },
     { "getStatus", Process_getStatus },
+    { "detach", Process_detach },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
