@@ -12,6 +12,7 @@ var modules = [
     "kxstring.dll",
     "kxsystem.dll",
     "kxxml.dll",
+    "kxprocess.dll",
     "libcrypto-3.dll",
     "libssl-3.dll",
     "libxml2.dll",
@@ -23,9 +24,14 @@ var modules = [
     "x86.ins",
     "lib/",
 ];
-var zip = new Zip("package_win64.zip", File.READ|File.WRITE);
+
+const packageName = "package_win64.zip";
+var zip = new Zip(packageName, File.READ|File.WRITE);
 modules.each(&(entry) => {
-    System.print("Adding %s... " % entry);
+    System.print("Adding %-20s... " % entry);
+    var tmr = new SystemTimer();
     zip.addFile(entry);
-    System.println("done");
+    System.println("done, elapsed %6.3f s." % tmr.elapsed());
 });
+var size = File.filesize(packageName);
+System.println("- %s: Total %8.3f Mb (%d bytes)" % packageName % (size / 1024) % size);
