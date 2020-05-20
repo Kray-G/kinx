@@ -601,45 +601,6 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
 
 }
 
-class GetOpt {
-
-    var hasArgMap_;
-
-    private hasOptArg(opts, ch) {
-        var c = *ch;
-        if (hasArgMap_.isUndefined) {
-            for (var i = 0, len = opts.length(); i < len; ++i) {
-                if (opts[i] == ch && ((i + 1) < len) && opts[i+1] == ':'[0]) {
-                    hasArgMap_[c] = true;
-                }
-            }
-        }
-        return hasArgMap_[c];
-    }
-
-    public getopt(args, opts) {
-        for (var i = 0, len = args.length(); i < len; i++) {
-            var argstr = args[i];
-            if (argstr[0] == '-'[0] && argstr[1] != '-'[0]) {
-                var arg, type = argstr[1];
-                if (hasOptArg(opts, type)) {
-                    i++;
-                    arg = args[i];
-                } else {
-                    arg = "";
-                }
-                yield {
-                    type: argstr[1],
-                    arg: arg,
-                };
-            }
-        }
-    }
-
-}
-
-var getopt = new Fiber(new GetOpt().getopt).resume;
-
 class SpecTest(args_) {
     var spec_;
     var top_;
@@ -648,7 +609,7 @@ class SpecTest(args_) {
     var result_;
 
     public analyzeOptions() {
-        while (c = getopt(args_, "vf:t:T:P")) {
+        while (c = System.getopt(args_, "vf:t:T:P")) {
             switch (c.type) {
             case 'v'[0]:
                 @options.verbose = true;
