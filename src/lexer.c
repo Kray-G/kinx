@@ -244,6 +244,9 @@ static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_
     return STR;
 }
 
+#define is_oct_number(c) ('0' <= (c) && (c) <= '7')
+#define is_hex_number(c) (('0' <= (c) && (c) <= '9') || ('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z'))
+
 static int kx_lex_make_string(char quote)
 {
     if (kx_lexinfo.ch == quote) {
@@ -258,6 +261,7 @@ static int kx_lex_make_string(char quote)
     kstr_t *s = ks_new();
     int pos = 0;
     do {
+        int move_next = 1;
         if (kx_lexinfo.ch == '%') {
             kx_lex_next(kx_lexinfo);
             if (kx_lexinfo.ch == '{') {
@@ -271,10 +275,66 @@ static int kx_lex_make_string(char quote)
             if (kx_lexinfo.ch == '\\') {
                 kx_lex_next(kx_lexinfo);
                 switch (kx_lexinfo.ch) {
+                case 'a':  kx_lexinfo.ch = '\a'; break;
+                case 'b':  kx_lexinfo.ch = '\b'; break;
+                case 'f':  kx_lexinfo.ch = '\f'; break;
                 case 'n':  kx_lexinfo.ch = '\n'; break;
-                case 't':  kx_lexinfo.ch = '\t'; break;
                 case 'r':  kx_lexinfo.ch = '\r'; break;
+                case 't':  kx_lexinfo.ch = '\t'; break;
+                case 'v':  kx_lexinfo.ch = '\f'; break;
+                case '"':  kx_lexinfo.ch = '\"'; break;
+                case '\'': kx_lexinfo.ch = '\''; break;
+                case '?':  kx_lexinfo.ch = '?';  break;
+                case '1':  kx_lexinfo.ch = '\1'; break;
+                case '2':  kx_lexinfo.ch = '\2'; break;
+                case '3':  kx_lexinfo.ch = '\3'; break;
+                case '4':  kx_lexinfo.ch = '\4'; break;
+                case '5':  kx_lexinfo.ch = '\5'; break;
+                case '6':  kx_lexinfo.ch = '\6'; break;
+                case '7':  kx_lexinfo.ch = '\7'; break;
                 case '\\': kx_lexinfo.ch = '\\'; break;
+                case '0': {
+                    kx_lex_next(kx_lexinfo);
+                    int c1 = kx_lexinfo.ch;
+                    if (is_oct_number(c1)) {
+                        kx_lex_next(kx_lexinfo);
+                        int c2 = kx_lexinfo.ch;
+                        if (is_oct_number(c2)) {
+                            char buf[] = { '0', c1, c2, 0 };
+                            kx_lexinfo.ch = strtol(buf, NULL, 8);
+                            break;
+                        } else {
+                            kx_yywarning("Invalid character in string literal");
+                            move_next = 0;
+                        }
+                    } else {
+                        // can not set '\0' into the string, just ignoring.
+                        move_next = 0;
+                    }
+                    break;
+                }
+                case 'x': {
+                    kx_lex_next(kx_lexinfo);
+                    int c1 = kx_lexinfo.ch;
+                    if (is_hex_number(c1)) {
+                        kx_lex_next(kx_lexinfo);
+                        int c2 = kx_lexinfo.ch;
+                        if (is_hex_number(c2)) {
+                            char buf[] = { c1, c2, 0 };
+                            kx_lexinfo.ch = strtol(buf, NULL, 16);
+                            break;
+                        } else {
+                            kx_yywarning("Invalid character in string literal");
+                            move_next = 0;
+                        }
+                    } else {
+                        kx_yywarning("Invalid character in string literal");
+                        move_next = 0;
+                    }
+                    break;
+                }
+                default:
+                    kx_yywarning("Invalid character in string literal");
                 }
             }
         }
@@ -284,7 +344,9 @@ static int kx_lex_make_string(char quote)
             ks_append(s, kx_strbuf);
             pos = 0;
         }
-        kx_lex_next(kx_lexinfo);
+        if (move_next) {
+            kx_lex_next(kx_lexinfo);
+        }
     } while (kx_lexinfo.ch != quote);
 
     if (pos > 0) {
