@@ -978,7 +978,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
 
     case KXOP_DECL: {
         if (node->rhs) {
-            if (node->lhs->init) {
+            if (node->optional == KXDC_CONST && node->lhs->init) {
                 int no_code_output = 0;
                 switch (node->lhs->init->type) {
                 case KXVL_INT:
