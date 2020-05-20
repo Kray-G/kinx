@@ -1,7 +1,7 @@
 Process = _import('kxprocess');
 
-_class Process(cmdary, opts) {
-    var p_;
+class Process(cmdary, opts) {
+    var p_, detached_;
     private initialize() {
         p_ = Process.run(cmdary, opts);
     }
@@ -13,16 +13,29 @@ _class Process(cmdary, opts) {
         };
     }
     public isAlive() {
+        if (detached_) {
+            return false;
+        }
         return Process.isAlive(p_);
     }
     public getStatus() {
+        if (detached_) {
+            return false;
+        }
         return Process.getStatus(p_);
     }
     public wait() {
+        if (detached_) {
+            return false;
+        }
         while (Process.isAlive(p_)) {
             ;
         }
         return Process.getStatus(p_);
+    }
+    public detach() {
+        detached_ = true;
+        Process.detach(p_);
     }
 };
 
