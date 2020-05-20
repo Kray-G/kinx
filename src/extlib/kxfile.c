@@ -918,7 +918,7 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         KX_ADJST_STACK();
         push_i(ctx->stack, KX_KEY_BS);
         return 0;
-    case 0x10:
+    case 0x0a:
         KX_ADJST_STACK();
         push_i(ctx->stack, KX_KEY_ENTER);
         return 0;
