@@ -533,6 +533,7 @@ PropertyName
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
     | USING { $$ = kx_gen_str_object("using"); }
+    | TYPE { $$ = kx_gen_str_object(kx_gen_typestr_object($1)); }
     | SHL { $$ = kx_gen_str_object("<<"); }
     | SHR { $$ = kx_gen_str_object(">>"); }
     | EQEQ { $$ = kx_gen_str_object("=="); }
