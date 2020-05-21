@@ -142,10 +142,10 @@ const int KX_KEY_TAB   = 0x09;
 const int KX_KEY_ENTER = 0x0d;
 const int KX_KEY_ESC   = 0x1b;
 const int KX_KEY_DEL   = 0x7f;
-const int KX_KEY_UP    = (0xe0 << 8) | 0x10;
-const int KX_KEY_DOWN  = (0xe0 << 8) | 0x11;
-const int KX_KEY_RIGHT = (0xe0 << 8) | 0x12;
-const int KX_KEY_LEFT  = (0xe0 << 8) | 0x13;
+const int KX_KEY_UP    = (0xff << 8) | 0x10;
+const int KX_KEY_DOWN  = (0xff << 8) | 0x11;
+const int KX_KEY_RIGHT = (0xff << 8) | 0x12;
+const int KX_KEY_LEFT  = (0xff << 8) | 0x13;
 
 #if defined(_WIN32) || defined(_WIN64)
 // This can not work correctly in multithreading.
@@ -225,7 +225,7 @@ static int kx_getch(void)
             }
         }
     }
-    return ch & 0xff;
+    return ch;
 }
 #else
 static int kx_kbhit(void)
