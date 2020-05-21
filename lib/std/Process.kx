@@ -1,24 +1,7 @@
 Process = _import('kxprocess');
 
-class Process(cmdary, opts) {
-    var p_, detached_;
-    private initialize() {
-    }
-    public std() {
-        return {
-            in: opts.in,
-            out: opts.out,
-            err: opts.err,
-        };
-    }
-    public run() {
-        p_ = Process.run(cmdary, opts);
-        return this;
-    }
-    public launch() {
-        detached_ = true;
-        Process.launch(cmdary, opts);
-    }
+class ProcessContoller(p_) {
+    var detached_;
     public isAlive() {
         if (detached_) {
             return false;
@@ -43,6 +26,25 @@ class Process(cmdary, opts) {
     public detach() {
         detached_ = true;
         Process.detach(p_);
+    }
+}
+
+class Process(cmdary, opts) {
+    var p_;
+    public std() {
+        return {
+            in: opts.in,
+            out: opts.out,
+            err: opts.err,
+        };
+    }
+    public run() {
+        p_ = Process.run(cmdary, opts);
+        return new ProcessContoller(p_);
+    }
+    public launch() {
+        detached_ = true;
+        Process.launch(cmdary, opts);
     }
 };
 
@@ -91,7 +93,8 @@ Process.pipeline = (_function() {
             }
             var cmdary = splitCommand(cmd);
             var [r, w] = Process.createPipe();
-            var p = new Process(cmdary, { in: output, out: w });
+            var proc = new Process(cmdary, { in: output, out: w });
+            var p = proc.run();
             output.close();
             w.close();
             processes.push(p);
