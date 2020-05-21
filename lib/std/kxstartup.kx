@@ -297,13 +297,16 @@ var Xml, Net;
         }
     };
     _class GetOpt {
-        var hasArgMap_;
+        var optMap_, hasArgMap_;
         private hasOptArg(opts, ch) {
             var c = *ch;
             if (hasArgMap_.isUndefined) {
                 for (var i = 0, len = opts.length(); i < len; ++i) {
-                    if (opts[i] == ch && ((i + 1) < len) && opts[i+1] == ':'[0]) {
-                        hasArgMap_[c] = true;
+                    var def = opts[i];
+                    optMap_[def] = true;
+                    if (((i + 1) < len) && (opts[i+1] == ':'[0])) {
+                        hasArgMap_[*def] = true;
+                        ++i;
                     }
                 }
             }
@@ -312,16 +315,25 @@ var Xml, Net;
         public getopt(args, opts) {
             for (var i = 0, len = args.length(); i < len; i++) {
                 var argstr = args[i];
-                if (argstr[0] == '-'[0] && argstr[1] != '-'[0]) {
+                if (argstr[0] == '-'[0] || argstr[0] == '/'[0]) {
                     var arg, type = argstr[1];
                     if (hasOptArg(opts, type)) {
-                        i++;
-                        arg = args[i];
+                        if (argstr.length() > 2) {
+                            arg = argstr.subString(2);
+                        } else {
+                            if ((i + 1) >= len) {
+                                throw RuntimeException("Needs an argument for -" + (*type));
+                            }
+                            arg = args[++i];
+                            if (arg[0] == '-'[0] || arg[0] == '/'[0]) {
+                                throw RuntimeException("Needs an argument for -" + (*type));
+                            }
+                        }
                     } else {
                         arg = "";
                     }
                     yield {
-                        type: argstr[1],
+                        type: optMap_[type] ? *type : '?',
                         arg: arg,
                     };
                 }
