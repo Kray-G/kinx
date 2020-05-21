@@ -137,14 +137,93 @@ if (obj) { \
 } \
 /**/
 
+const int KX_KEY_BS    = 0x08;
+const int KX_KEY_TAB   = 0x09;
+const int KX_KEY_ENTER = 0x0d;
+const int KX_KEY_ESC   = 0x1b;
+const int KX_KEY_DEL   = 0x7f;
+const int KX_KEY_UP    = (0xe0 << 8) | 0x10;
+const int KX_KEY_DOWN  = (0xe0 << 8) | 0x11;
+const int KX_KEY_RIGHT = (0xe0 << 8) | 0x12;
+const int KX_KEY_LEFT  = (0xe0 << 8) | 0x13;
+
 #if defined(_WIN32) || defined(_WIN64)
+#define KX_MAX_INPUTLEN (255)
+static int g_mbpos = 0;
+static char g_mbstr[KX_MAX_INPUTLEN * 3 + 1];
 static int kx_kbhit(void)
 {
-    return _kbhit();
+    if (g_mbpos > 0) {
+        return 1;
+    }
+    INPUT_RECORD ra[512];
+    DWORD read;
+    PeekConsoleInputW(GetStdHandle(STD_INPUT_HANDLE), ra, 512, &read);
+    for (int i = 0; i < read; ++i) {
+        if (ra[i].EventType == KEY_EVENT && ra[i].Event.KeyEvent.bKeyDown) {
+            switch (ra[i].Event.KeyEvent.wVirtualKeyCode) {
+            case VK_UP:     return 1;
+            case VK_DOWN:   return 1;
+            case VK_RIGHT:  return 1;
+            case VK_LEFT:   return 1;
+            case VK_DELETE: return 1;
+            case VK_BACK:   return 1;
+            case VK_TAB:    return 1;
+            case VK_RETURN: return 1;
+            case VK_ESCAPE: return 1;
+            }
+            if (ra[i].Event.KeyEvent.uChar.UnicodeChar > 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 static int kx_getch(void)
 {
-    return _getch();
+    if (g_mbpos > 0) {
+        int ch = g_mbstr[g_mbpos++];
+        if (g_mbstr[g_mbpos] == 0) {
+            memset(g_mbstr, 0x00, sizeof(g_mbstr));
+            g_mbpos = 0;
+        }
+        return ch & 0xff;
+    }
+    wint_t ch = 0;
+    while (1) {
+        INPUT_RECORD r;
+        DWORD read;
+        ReadConsoleInputW(GetStdHandle(STD_INPUT_HANDLE), &r, 1, &read);
+        if (r.EventType == KEY_EVENT && r.Event.KeyEvent.bKeyDown) {
+            switch (r.Event.KeyEvent.wVirtualKeyCode) {
+            case VK_UP:     ch = KX_KEY_UP;    break;
+            case VK_DOWN:   ch = KX_KEY_DOWN;  break;
+            case VK_RIGHT:  ch = KX_KEY_RIGHT; break;
+            case VK_LEFT:   ch = KX_KEY_LEFT;  break;
+            case VK_DELETE: ch = KX_KEY_DEL;   break;
+            case VK_BACK:   ch = KX_KEY_BS;    break;
+            case VK_TAB:    ch = KX_KEY_TAB;   break;
+            case VK_RETURN: ch = KX_KEY_ENTER; break;
+            case VK_ESCAPE: ch = KX_KEY_ESC;   break;
+            }
+            if (ch) {
+                break;
+            }
+            ch = r.Event.KeyEvent.uChar.UnicodeChar;
+            if (ch > 0) {
+                if (ch > 0xff) {
+                    // it assume not to be ascii.
+                    wchar_t wstr[] = { ch, 0 };
+                    int size = WideCharToMultiByte(CP_UTF8, 0, wstr, 1, g_mbstr, sizeof(g_mbstr), NULL, NULL);
+                    g_mbstr[size] = 0;
+                    ch = g_mbstr[0] & 0xff;
+                    g_mbpos = 1;
+                }
+                break;
+            }
+        }
+    }
+    return ch & 0xff;
 }
 #else
 static int kx_kbhit(void)
@@ -186,16 +265,22 @@ static int kx_getch(void)
 static int stdin_peek(unsigned int msec)
 {
     #if defined(_WIN32) || defined(_WIN64)
+    if (kx_kbhit()) {
+        return 1;
+    }
     DWORD e = WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), msec);
     switch (e) {
-    case WAIT_OBJECT_0:
-        if (_kbhit()) {
+    case WAIT_OBJECT_0: {
+        if (kx_kbhit()) {
             return 1;
-        } else {
-            INPUT_RECORD r[512];
-            DWORD read;
-            ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), r, 512, &read);
         }
+        // Clear input buffer.
+        INPUT_RECORD r[512];
+        DWORD read;
+        ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), r, 512, &read);
+    }
+    default:
+        ;
     }
     return 0;
     #else
@@ -847,49 +932,21 @@ int get_keycode(kx_context_t *ctx, int tmout)
     return kx_getch();
 }
 
-const int KX_KEY_BS    = 0x08;
-const int KX_KEY_ENTER = 0x0d;
-const int KX_KEY_DEL   = 0x7f;
-const int KX_KEY_UP    = (0xe0 << 8) | 0x10;
-const int KX_KEY_DOWN  = (0xe0 << 8) | 0x11;
-const int KX_KEY_RIGHT = (0xe0 << 8) | 0x12;
-const int KX_KEY_LEFT  = (0xe0 << 8) | 0x13;
-
 #if defined(_WIN32) || defined(_WIN64)
 int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     int ch = get_keycode(ctx, 0);
     if (ch < 0) {
         KX_ADJST_STACK();
-        push_i(ctx->stack, ch);
+        push_i(ctx->stack, 3);
         return 0;
     }
-    if (('0' <= ch && ch <= '9') || ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')) {
+    if (ch == 0x03) {
+        ctx->signal.signal_received = 1;
+        ctx->signal.sigint_count++;
         KX_ADJST_STACK();
         push_i(ctx->stack, ch);
         return 0;
-    }
-    switch (ch) {
-    case '!': case '"': case '#': case '$': case '%': case '&': case '\'': case '(':
-    case ')': case '=': case '-': case '~': case '^': case '|': case '\\': case '`':
-    case '@': case '{': case '[': case '+': case ';': case '*': case ':': case '}':
-    case ']': case '<': case ',': case '>': case '.': case '?': case '/': case '_':
-        KX_ADJST_STACK();
-        push_i(ctx->stack, ch);
-        return 0;
-    }
-    if (ch == 0xe0 || ch == 0x00) {
-        ch = get_keycode(ctx, 0);
-        switch (ch) {
-        case 0x48: ch = KX_KEY_UP;    break; // arrow up.
-        case 0x50: ch = KX_KEY_DOWN;  break; // arrow down.
-        case 0x4d: ch = KX_KEY_RIGHT; break; // arrow right.
-        case 0x4b: ch = KX_KEY_LEFT;  break; // arrow left.
-        case 0x53: ch = KX_KEY_DEL;   break; // del.
-        default:
-            ch = 0;
-            break;
-        }
     }
     KX_ADJST_STACK();
     push_i(ctx->stack, ch);
@@ -904,19 +961,19 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         push_i(ctx->stack, ch);
         return 0;
     }
+    if (ch == 0x03) {
+        ctx->signal.signal_received = 1;
+        ctx->signal.sigint_count++;
+        KX_ADJST_STACK();
+        push_i(ctx->stack, ch);
+        return 0;
+    }
     if (('0' <= ch && ch <= '9') || ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')) {
         KX_ADJST_STACK();
         push_i(ctx->stack, ch);
         return 0;
     }
     switch (ch) {
-    case '!': case '"': case '#': case '$': case '%': case '&': case '\'': case '(':
-    case ')': case '=': case '-': case '~': case '^': case '|': case '\\': case '`':
-    case '@': case '{': case '[': case '+': case ';': case '*': case ':': case '}':
-    case ']': case '<': case ',': case '>': case '.': case '?': case '/': case '_':
-        KX_ADJST_STACK();
-        push_i(ctx->stack, ch);
-        return 0;
     case 0x7f:
         KX_ADJST_STACK();
         push_i(ctx->stack, KX_KEY_BS);
