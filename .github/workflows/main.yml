@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build-linux-amd64:
+    name: ubuntu-18.04-gcc
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: build
+        run: |
+          make
+          sudo make install
+      - name: package
+        run: |
+          ref='${{ github.ref }}'
+          tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
+
+          mkdir -p $tag/bin
+          cp /usr/bin/kinx $tag/bin/kinx
+          cp -r /usr/bin/kinxlib $tag/lib
+          tar zcvf linux-amd64.tar.gz $tag/
+      - name: upload archive
+        uses: actions/upload-artifact@v1
+        with:
+          name: build-linux-amd64
+          path: linux-amd64.tar.gz
+
+  build-windows-x64:
+    name: windows-2019-vc
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+      - name: build
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          make.cmd
+      - name: package
+        shell: pwsh
+        run: Compress-Archive -Path kinx.exe,*.dll,*.ins,lib/ -DestinationPath windows-x64.zip -Force -Verbose
+      - name: upload archive
+        uses: actions/upload-artifact@v1
+        with:
+          name: build-windows-x64
+          path: windows-x64.zip
+
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    outputs:
+      release_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+
+  upload-assets:
+    name: upload assets
+    needs:
+      - release
+      - build-linux-amd64
+      - build-windows-x64
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job: [build-linux-amd64, build-windows-x64]
+        include:
+          - job: build-linux-amd64
+            asset_path: linux-amd64.tar.gz
+            asset_name: package_linux-amd64.tar.gz
+            content_type: application/gzip
+          - job: build-windows-x64
+            asset_path: windows-x64.zip
+            asset_name: package_win64.zip
+            content_type: application/zip
+    steps:
+      - name: download archive
+        id: download_archive
+        uses: actions/download-artifact@v1
+        with:
+          name: ${{ matrix.job }}
+      - name: upload asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release_url }}
+          asset_path: ${{ matrix.job }}/${{ matrix.asset_path }}
+          asset_name: ${{ matrix.asset_name }}
+          asset_content_type: ${{ matrix.content_type }}
