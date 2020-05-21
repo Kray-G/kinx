@@ -1,0 +1,174 @@
+Signal.trap(Signal.SIGINT, &() => {
+    System.println("\nTerminate.");
+    return false;
+});
+
+class Repl {
+
+    /*
+          p
+              p
+        abあef
+        113 11
+    */
+
+    var widthMap_;
+
+    private showPrompt(pos, info, lines) {
+        var infolen = info.length();
+        var prompt = lines > 0 ? "        > " : ("kinx[%2d]> " % pos).format();
+        System.print(("\x1b[2K\r\x1b[32m%{prompt}\x1b[0m ") + info.map(&(e) => e.str).join(''));
+        if (pos != infolen) {
+            var linepos = 0;
+            for (var i = pos; i < infolen; ++i) {
+                linepos += info[i].len > 1 ? (widthMap_[info[i].str] || 2) : 1;
+            }
+            System.print("\x1b[%{linepos}D");
+        }
+    }
+
+    public read() {
+        var brs = 0;
+        var lines = 0;
+        var pos = 0;
+        var buf = [];
+        var info = [];
+        while (true) {
+            showPrompt(pos, info, lines);
+            var l, c = $stdin.getKeyCode();
+            switch (c) {
+            case KX_KEY_ENTER:
+                System.println("");
+                buf.push(info);
+                if (brs > 0) {
+                    ++lines;
+                    info = [];
+                    pos = 0;
+                    continue;
+                }
+                return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
+            case KX_KEY_TAB:
+                add = (4 - (pos % 4));
+                if (pos == info.length()) {
+                    add.times(&() => info.push({ len: 1, str: ' ' }));
+                } else {
+                    var e = info.subArray(pos);
+                    info = info.subArray(0, pos);
+                    add.times(&() => info.push({ len: 1, str: ' ' }));
+                    info += e;
+                }
+                pos = pos + add;
+                continue;
+            case KX_KEY_LEFT:
+                if (0 < pos) {
+                    --pos;
+                }
+                continue;
+            case KX_KEY_RIGHT:
+                if (pos < info.length()) {
+                    ++pos;
+                }
+                continue;
+            case KX_KEY_BS:
+                if (pos > 0) {
+                    if (pos == info.length()) {
+                        l = info.pop();
+                    } else {
+                        var e = info.subArray(pos);
+                        info = info.subArray(0, pos - 1);
+                        info += e;
+                    }
+                    --pos;
+                }
+                continue;
+            case KX_KEY_DEL:
+                if (pos > 0) {
+                    if (pos == info.length()) {
+                        l = info.pop();
+                    } else {
+                        var e = info.subArray(pos + 1);
+                        info = info.subArray(0, pos);
+                        info += e;
+                    }
+                }
+                continue;
+            }
+            if ((l = System.isUtf8Bytes(c)) > 1) {
+                var len = l;
+                var str = *c;
+                while (--l) {
+                    c = $stdin.getKeyCode();
+                    str += *c;
+                }
+                if (pos == info.length()) {
+                    info.push({
+                        len: len,
+                        str: str,
+                    });
+                } else {
+                    var e = info.subArray(pos);
+                    info = info.subArray(0, pos);
+                    info.push({
+                        len: len,
+                        str: str,
+                    });
+                    info += e;
+                }
+                ++pos;
+            } else if (20 <= c && c <= '}'[0]) {
+                if (c == '{'[0]) ++brs;
+                else if (c == '}'[0]) --brs;
+                if (pos == info.length()) {
+                    info.push({
+                        len: 1,
+                        str: *c,
+                    });
+                } else {
+                    var e = info.subArray(pos);
+                    info = info.subArray(0, pos);
+                    info.push({
+                        len: 1,
+                        str: *c,
+                    });
+                    info += e;
+                }
+                ++pos;
+            }
+        }
+    }
+
+    var command_ = {
+        decl: [],
+    };
+
+    public eval(input) {
+        if (input.find(';') < 0) {
+            // 1 line, means expression;
+            input = "return " + input + ';';
+            return input.evalNew();
+        }
+        var g;
+        while (g = (input =~ /\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)(?:;|\s*\n)?/)) {
+            command_.decl.push({
+                name: g[1].string,
+                value: g[2].string,
+            });
+        }
+        return input.evalNew();
+    }
+
+    public print(result) {
+        System.println(result);
+    }
+
+    public run() {
+        while (1) {
+            var input = read();
+            var result = eval(input);
+            print(result);
+        }
+    }
+
+}
+
+new Repl().run();

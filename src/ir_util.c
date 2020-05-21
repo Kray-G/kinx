@@ -526,7 +526,45 @@ kx_context_t *compile_code(const char *code)
     return ctx;
 }
 
-int run_ctx(kx_context_t *ctx, int ac, char **av)
+static void set_string_value(kx_context_t *ctx, kx_val_t *retval, const char *str)
+{
+    kstr_t *s = allocate_str(ctx);
+    ks_append(s, str);
+    retval->type = KX_STR_T;
+    retval->value.sv = s;
+}
+
+static void set_binary_value(kx_context_t *ctx, kx_val_t *retval, kx_bin_t *bin)
+{
+    kx_bin_t *dst = allocate_bin(ctx);
+    kv_copy(uint8_t, dst->bin, bin->bin);
+    retval->type = KX_BIN_T;
+    retval->value.bn = dst;
+}
+
+static void set_bigint_value(kx_context_t *ctx, kx_val_t *retval, BigZ bz)
+{
+    retval->type = KX_BIG_T;
+    retval->value.bz = make_big_alive(ctx, BzCopy(bz));
+}
+
+static void set_object_value(kx_context_t *ctx, kx_val_t *retval, kx_obj_t *obj)
+{
+    kstr_t *s = allocate_str(ctx);
+    kx_val_t *dst = NULL;
+    KEX_GET_PROP(dst, obj, "_className");
+    if (dst) {
+        if (dst->type == KX_CSTR_T) {
+            ks_appendf(s, "(class %s)", dst->value.pv);
+        } else if (dst->type == KX_STR_T) {
+            ks_appendf(s, "(class %s)", ks_string(dst->value.sv));
+        }
+    }
+    retval->type = KX_STR_T;
+    retval->value.sv = s;
+}
+
+int run_ctx(kx_context_t *ctx, kx_context_t *parent, int ac, char **av)
 {
     kv_expand_if(kx_val_t, ctx->stack, KEX_DEFAULT_STACK);
     kx_obj_t *obj = allocate_obj(ctx);
@@ -538,8 +576,46 @@ int run_ctx(kx_context_t *ctx, int ac, char **av)
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
     int r = ir_exec(ctx);
+    if (parent) {
+        kx_val_t *rv = &(ctx->retval);
+        switch (rv->type) {
+        case KX_UND_T:  set_string_value(parent, &(parent->retval), "(null)"); break;
+        case KX_INT_T:  parent->retval = *rv; break;
+        case KX_BIG_T:  set_bigint_value(parent, &(parent->retval), rv->value.bz); break;
+        case KX_DBL_T:  parent->retval = *rv; break;
+        case KX_CSTR_T: set_string_value(parent, &(parent->retval), rv->value.pv); break;
+        case KX_STR_T:  set_string_value(parent, &(parent->retval), ks_string(rv->value.sv)); break;
+        case KX_BIN_T:  set_binary_value(parent, &(parent->retval), rv->value.bn); break;
+        case KX_OBJ_T:  set_object_value(parent, &(parent->retval), rv->value.ov); break;
+        case KX_FNC_T:  set_string_value(parent, &(parent->retval), "(function)"); break;
+        default:
+            set_string_value(parent, &(parent->retval), "(null)");
+            break;
+        }
+    }
     context_cleanup(ctx);
     return r;
+}
+
+kx_fnc_t *do_eval_new(kx_context_t *parent, kx_val_t *host, int count, void *jumptable[])
+{
+    const char *code;
+    if (host->type == KX_CSTR_T) {
+        code = host->value.pv;
+    } else if (host->type == KX_STR_T) {
+        code = ks_string(host->value.sv);
+    } else {
+        return NULL;
+    }
+    kx_fnc_t *fnc = allocate_fnc(parent);
+    kx_context_t *ctx = compile_code(code);
+    if (ctx) {
+        (void)run_ctx(ctx, parent, 1, (char *[]){(char*)code});
+        fnc->push = parent->retval;
+    } else {
+        set_string_value(parent, &(fnc->push), "(null)");
+    }
+    return fnc;
 }
 
 thread_return_t STDCALL run_isolate_code(void *pp)
@@ -549,7 +625,7 @@ thread_return_t STDCALL run_isolate_code(void *pp)
     msec_sleep(1);
     kx_context_t *ctx = compile_code(p->code);
     if (ctx) {
-        p->value = run_ctx(ctx, 1, (char *[]){(char*)p->code});
+        p->value = run_ctx(ctx, NULL, 1, (char *[]){(char*)p->code});
     } else {
         msec_sleep(500);
     }
@@ -817,8 +893,12 @@ kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp
 
 kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[])
 {
-    if (method[0] == 'e' && method && !strcmp(method, "eval")) {
-        return do_eval(ctx, host, count, jumptable);
+    if (method[0] == 'e' && method) {
+        if (!strcmp(method, "eval")) {
+            return do_eval(ctx, host, count, jumptable);
+        } else if (!strcmp(method, "evalNew")) {
+            return do_eval_new(ctx, host, count, jumptable);
+        }
     }
     if (method[0] == '_' && method && !strcmp(method, "_run_isolate")) {
         return run_isolate(ctx, host, count, jumptable);
