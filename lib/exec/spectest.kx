@@ -611,20 +611,20 @@ class SpecTest(args_) {
     public analyzeOptions() {
         while (c = System.getopt(args_, "vf:t:T:P")) {
             switch (c.type) {
-            case 'v'[0]:
+            case 'v':
                 @options.verbose = true;
                 break;
-            case 'f'[0]:
+            case 'f':
                 @options.file = c.arg;
                 break;
-            case 't'[0]:
+            case 't':
                 @options.onlyone = c.arg;
                 break;
-            case 'T'[0]:
+            case 'T':
                 @options.onlyone = c.arg;
                 @options.doChildren = true;
                 break;
-            case 'P'[0]:
+            case 'P':
                 @options.codeView = true;
                 break;
             }
