@@ -553,6 +553,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     case KX_DBL_T: ri = (int)rv->value.dv; break;
     case KX_BIG_T: ri = -1; break;
     }
+    ctx->retval = *rv;
 
     kxp_toa();
     kxp_disp();

@@ -396,6 +396,7 @@ void gc_mark_and_sweep(kx_context_t *ctx)
     print_gc_info(ctx);
     #endif
     gc_mark_val(&(ctx->excval));
+    gc_mark_val(&(ctx->retval));
     gc_mark_fnc(ctx->signal.signal_hook);
     gc_mark_obj(ctx->objs.true_obj);
     gc_mark_obj(ctx->objs.false_obj);
