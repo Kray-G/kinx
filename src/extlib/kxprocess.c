@@ -875,38 +875,7 @@ int Process_createPipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
-int Process_launch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    kx_obj_t *cmdary = get_arg_obj(1, args, ctx);
-    if (!cmdary) {
-        KX_THROW_BLTIN_EXCEPTION("IoException", "Invalid command line");
-    }
-
-    int len = kv_size(cmdary->ary);
-    char **argv = ALLOCA((len + 1) * sizeof(char*));
-    for (int i = 0; i < len; ++i) {
-        kx_val_t *val = &kv_A(cmdary->ary, i);
-        if (val->type == KX_CSTR_T) {
-            argv[i] = (char *)val->value.pv;
-        } else if (val->type == KX_STR_T) {
-            argv[i] = (char *)ks_string(val->value.sv);
-        } else {
-            KX_THROW_BLTIN_EXCEPTION("IoException", "Invalid command line");
-        }
-    }
-    argv[len] = NULL;
-
-    kx_process_t *proc = create_proc();
-    proc->launch = 1;
-    int success = start_process(proc, NULL, NULL, NULL, len, argv);
-    free_proc(proc);
-
-    KX_ADJST_STACK();
-    push_undef(ctx->stack);
-    return 0;
-}
-
-int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, int launch)
 {
     kx_obj_t *cmdary = get_arg_obj(1, args, ctx);
     if (!cmdary) {
@@ -1000,6 +969,7 @@ int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         }
 
         proc = create_proc();
+        proc->launch = launch;
         int success = start_process(proc, ri, wo, we, len, argv);
         if (!success) {
             free_proc(proc);
@@ -1007,6 +977,7 @@ int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         }
     } else {
         proc = create_proc();
+        proc->launch = launch;
         int success = start_process(proc, NULL, NULL, NULL, len, argv);
         if (!success) {
             free_proc(proc);
@@ -1023,6 +994,16 @@ int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_ADJST_STACK();
     push_obj(ctx->stack, pobj);
     return 0;
+}
+
+int Process_launch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return Process_runImpl(args, frmv, lexv, ctx, 1);
+}
+
+int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return Process_runImpl(args, frmv, lexv, ctx, 0);
 }
 
 int Process_isAlive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
