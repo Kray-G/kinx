@@ -3,7 +3,6 @@ Process = _import('kxprocess');
 class Process(cmdary, opts) {
     var p_, detached_;
     private initialize() {
-        p_ = Process.run(cmdary, opts);
     }
     public std() {
         return {
@@ -11,6 +10,14 @@ class Process(cmdary, opts) {
             out: opts.out,
             err: opts.err,
         };
+    }
+    public run() {
+        p_ = Process.run(cmdary, opts);
+        return this;
+    }
+    public launch() {
+        detached_ = true;
+        Process.launch(cmdary, opts);
     }
     public isAlive() {
         if (detached_) {
