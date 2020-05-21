@@ -10,8 +10,10 @@
 #include "zip/include/mz_zip_rw.h"
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <stdio.h>
 #include <windows.h>
 #define STRICMP(s1, s2) stricmp(s1, s2)
+int _fprintf_w32(FILE* fp, const char* format, ...);
 #else
 #include <string.h>
 #include <unistd.h>
@@ -20,6 +22,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #define STRICMP(s1, s2) strcasecmp(s1, s2)
+# define _fprintf_w32(...) fprintf(__VA_ARGS__)
 #endif
 #define KX_DLL
 #include <kinx.h>
@@ -722,7 +725,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 fprintf(fi->fp, "%s", val.value.pv);
             } else {
                 buf = conv_utf82acp_alloc(val.value.pv);
-                fprintf(fi->fp, "%s", buf);
+                _fprintf_w32(fi->fp, "%s", buf);
                 conv_free(buf);
             }
             break;
@@ -732,7 +735,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 fprintf(fi->fp, "%s", ks_string(val.value.sv));
             } else {
                 buf = conv_utf82acp_alloc(ks_string(val.value.sv));
-                fprintf(fi->fp, "%s", buf);
+                _fprintf_w32(fi->fp, "%s", buf);
                 conv_free(buf);
             }
             break;
@@ -747,10 +750,10 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 printf("[...]");
             } else {
                 if (!fi->is_std || ctx->options.utf8inout) {
-                    printf("%s", ks_string(out));
+                    fprintf(fi->fp, "%s", ks_string(out));
                 } else {
                     buf = conv_utf82acp_alloc(ks_string(out));
-                    fprintf(fi->fp, "%s", buf);
+                    _fprintf_w32(fi->fp, "%s", buf);
                     conv_free(buf);
                 }
                 ks_free(out);

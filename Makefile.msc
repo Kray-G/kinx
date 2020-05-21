@@ -35,6 +35,7 @@ OBJS = \
     src/optimizer/optimizer.obj \
     src/optimizer/opt_cfold.obj \
     src/optimizer/opt_jumpx.obj \
+    src/extlib/ansicolor/ansicolor_w32.obj \
     src/extlib/kc-json/kc-json.obj
 SLJIT_DEP = \
     src/jit/sljitConfig.h \
@@ -223,7 +224,7 @@ kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxarray.c $(PICOBJS)
 
 kxfile.dll: src/extlib/kxfile.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib
-	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxfile.c $(PICOBJS) src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxfile.c $(PICOBJS) src/extlib/ansicolor/ansicolor_w32.obj src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib advapi32.lib
 
 kxprocess.dll: src/extlib/kxprocess.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxprocess.c $(PICOBJS)
