@@ -150,7 +150,7 @@ var Xml, Net;
     };
     Signal.SIGINT = 1;
     Signal.SIGTERM = 2;
-    Signal.hook = { sigint: [], sigterm: [] };
+    Signal.hook = System._globalSignalHookMap();
     Signal.trap = _function(sig, func) {
         var id = -1;
         if (sig == 1) {
