@@ -654,6 +654,7 @@ typedef struct kx_libobjs_ {
     kx_obj_t *true_obj;
     kx_obj_t *false_obj;
     kx_obj_t *exception_map;
+    kx_obj_t *signalhook_map;
     kx_fnc_t *range_create;
     kx_fnc_t *global_method_missing;
 } kx_libobjs_t;
@@ -679,6 +680,7 @@ typedef struct kx_context_ {
     kvec_t(kx_module_t) module;
     kvec_pt(kx_code_t) fixcode;
 
+    kx_val_t retval;
     kx_string_manager_t str_mgr;
     kx_signal_t signal;
 } kx_context_t;
