@@ -148,6 +148,8 @@ const int KX_KEY_RIGHT = (0xe0 << 8) | 0x12;
 const int KX_KEY_LEFT  = (0xe0 << 8) | 0x13;
 
 #if defined(_WIN32) || defined(_WIN64)
+// This can not work correctly in multithreading.
+//  Locking is required on your script side.
 #define KX_MAX_INPUTLEN (255)
 static int g_mbpos = 0;
 static char g_mbstr[KX_MAX_INPUTLEN * 3 + 1];
