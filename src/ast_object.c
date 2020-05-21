@@ -424,6 +424,15 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
             rhs,
             kx_gen_stmt_object(KXST_EXPR,
                 kx_gen_bassign_object(KXOP_ASSIGN,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object("_className")),
+                    kx_gen_str_object(name)
+                ),
+            NULL, NULL)
+        );
+        rhs = kx_gen_bexpr_object(KXST_STMTLIST,
+            rhs,
+            kx_gen_stmt_object(KXST_EXPR,
+                kx_gen_bassign_object(KXOP_ASSIGN,
                     kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object(name, KX_UNKNOWN_T), kx_gen_str_object("_classid")),
                     kx_gen_bassign_object(KXOP_ASSIGN,
                         kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object("_classid")),
