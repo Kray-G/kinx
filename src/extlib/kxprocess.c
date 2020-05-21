@@ -24,6 +24,7 @@ typedef struct kx_process_ {
     kx_pipe_t *h_stdout;    // Standard Output of Child Process.
     kx_pipe_t *h_stderr;    // Standard Error Output of Child Process.
     PROCESS_INFORMATION pi; // Process information.
+    int launch;             // run and detach.
 } kx_process_t;
 
 static unsigned int get_tick_count(void)
@@ -55,6 +56,7 @@ static int get_process_status(kx_process_t *proc)
 kx_process_t *create_proc(void)
 {
     kx_process_t *p = kx_calloc(1, sizeof(kx_process_t));
+    p->launch = 0;
     return p;
 }
 
@@ -283,6 +285,9 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
         goto CLEANUP;
     }
 
+    if (proc->launch) {
+        finalize_process(proc);
+    }
     return 1;
 
 CLEANUP:
@@ -326,6 +331,7 @@ typedef struct kx_process_ {
     kx_pipe_t *h_stderr;    // Standard Error Output of Child Process.
     pid_t pid;              // Process information.
     int status;             // Process status.
+    int launch;             // run and detach.
 } kx_process_t;
 
 static unsigned int get_tick_count(void)
@@ -386,6 +392,7 @@ kx_process_t *create_proc(void)
     kx_process_t *p = kx_calloc(1, sizeof(kx_process_t));
     p->pid = 0;
     p->status = -1;
+    p->launch = 0;
     return p;
 }
 
@@ -548,6 +555,25 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
     }
 
     if (pid == 0) { // child
+        if (proc->launch) {
+            pid_t pid_child;
+            pid_child = fork(); // double-fork
+            if (pid_child < 0) {
+                exit(1);
+            }
+            if (pid_child > 0) {
+                // pipe close and ended.
+                close_read_pipe(h_stdin);
+                close_write_pipe(h_stdin);
+                close_read_pipe(h_stdout);
+                close_write_pipe(h_stdout);
+                close_read_pipe(h_stderr);
+                close_write_pipe(h_stderr);
+                exit(0);
+            }
+            // after double-fork.
+        }
+
         if (h_stdin) {
             close_write_pipe(h_stdin);
             dup2(h_stdin->r, 0);
@@ -574,9 +600,19 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
             fprintf(stderr, "failed: exec when craeting child process\n");
             exit(1);
         }
+    } else {
+        if (proc->launch) {
+            finalize_process(proc);
+            int status;
+            pid_t p = waitpid(pid, &status, 0);
+            if ((p != pid) || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) {
+                return 0;
+            }
+        } else {
+            proc->pid = pid;
+        }
     }
 
-    proc->pid = pid;
     return 1;
 
 CLEANUP:
@@ -839,6 +875,37 @@ int Process_createPipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
+int Process_launch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *cmdary = get_arg_obj(1, args, ctx);
+    if (!cmdary) {
+        KX_THROW_BLTIN_EXCEPTION("IoException", "Invalid command line");
+    }
+
+    int len = kv_size(cmdary->ary);
+    char **argv = ALLOCA((len + 1) * sizeof(char*));
+    for (int i = 0; i < len; ++i) {
+        kx_val_t *val = &kv_A(cmdary->ary, i);
+        if (val->type == KX_CSTR_T) {
+            argv[i] = (char *)val->value.pv;
+        } else if (val->type == KX_STR_T) {
+            argv[i] = (char *)ks_string(val->value.sv);
+        } else {
+            KX_THROW_BLTIN_EXCEPTION("IoException", "Invalid command line");
+        }
+    }
+    argv[len] = NULL;
+
+    kx_process_t *proc = create_proc();
+    proc->launch = 1;
+    int success = start_process(proc, NULL, NULL, NULL, len, argv);
+    free_proc(proc);
+
+    KX_ADJST_STACK();
+    push_undef(ctx->stack);
+    return 0;
+}
+
 int Process_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *cmdary = get_arg_obj(1, args, ctx);
@@ -1012,6 +1079,7 @@ int Process_detach(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 static kx_bltin_def_t kx_bltin_info[] = {
     { "createPipe", Process_createPipe },
     { "run", Process_run },
+    { "launch", Process_launch },
     { "isAlive", Process_isAlive },
     { "getStatus", Process_getStatus },
     { "detach", Process_detach },
