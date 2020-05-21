@@ -801,6 +801,20 @@ int System_halt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int System_globalSignalHookMap(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (!ctx->objs.signalhook_map) {
+        ctx->objs.signalhook_map = allocate_obj(ctx);
+        kx_obj_t *si = allocate_obj(ctx);
+        kx_obj_t *st = allocate_obj(ctx);
+        KEX_SET_PROP_OBJ(ctx->objs.signalhook_map, "sigint", si);
+        KEX_SET_PROP_OBJ(ctx->objs.signalhook_map, "sigterm", st);
+    }
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, ctx->objs.signalhook_map);
+    return 0;
+}
+
 int System_setSignalHookFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kvec_t(kx_val_t) *stack = &(ctx->stack);
@@ -808,7 +822,9 @@ int System_setSignalHookFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     if (val->type != KX_FNC_T) {
         KX_THROW_BLTIN_EXCEPTION("SignalException", "Invalid signal handler");
     }
-    ctx->signal.signal_hook = val->value.fn;
+    if (!ctx->signal.signal_hook) {
+        ctx->signal.signal_hook = val->value.fn;
+    }
 
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);
@@ -1497,6 +1513,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "sleep", System_sleep },
     { "convType", System_convType },
     { "isFiberAlive", System_isFiberAlive },
+    { "_globalSignalHookMap", System_globalSignalHookMap },
     { "setSignalHookFunction", System_setSignalHookFunction },
     { "getSigintCount", System_getSigintCount },
     { "getSigtermCount", System_getSigtermCount },
