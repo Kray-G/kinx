@@ -5,13 +5,6 @@ Signal.trap(Signal.SIGINT, &() => {
 
 class Repl {
 
-    /*
-          p
-              p
-        abあef
-        113 11
-    */
-
     var widthMap_;
 
     private showPrompt(pos, info, lines) {
@@ -142,12 +135,21 @@ class Repl {
     };
 
     public eval(input) {
+        var g;
+        if (g = (input =~ /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)\s*;?\n$/)) {
+            var name = g[1].string;
+            command_.decl.push({
+                name: name,
+                value: g[2].string,
+            });
+            input += ";return %{name};";
+            return name + " = " + input.evalNew();
+        }
         if (input.find(';') < 0) {
             // 1 line, means expression;
             input = "return " + input + ';';
             return input.evalNew();
         }
-        var g;
         while (g = (input =~ /\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)(?:;|\s*\n)?/)) {
             command_.decl.push({
                 name: g[1].string,
