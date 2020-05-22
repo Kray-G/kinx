@@ -1,5 +1,9 @@
 Process = _import('kxprocess');
 
+_class Pipe() {
+    return Process.createPipe();
+}
+
 _class ProcessContoller(p_) {
     var detached_;
     public isAlive() {
