@@ -277,6 +277,7 @@ static int kx_lex_make_string(char quote)
                 switch (kx_lexinfo.ch) {
                 case 'a':  kx_lexinfo.ch = '\a'; break;
                 case 'b':  kx_lexinfo.ch = '\b'; break;
+                case 'e':  kx_lexinfo.ch = '\x1b'; break;
                 case 'f':  kx_lexinfo.ch = '\f'; break;
                 case 'n':  kx_lexinfo.ch = '\n'; break;
                 case 'r':  kx_lexinfo.ch = '\r'; break;
