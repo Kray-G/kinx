@@ -640,6 +640,7 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
             // after double-fork.
         }
 
+        int o = dup(1);
         if (h_stdin) {
             close_write_pipe(h_stdin);
             if (h_stdin->r > 2) {
@@ -650,6 +651,8 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
             close_read_pipe(h_stdout);
             if (h_stdout->w > 2) {
                 dup2(h_stdout->w, 1);
+            } else if (h_stdout->e) {
+                dup2(2, 1);
             }
         } else {
             KX_PROCESS_SET_DEVNULL(stdout, 1);
@@ -658,10 +661,13 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
             close_read_pipe(h_stderr);
             if (h_stderr->w > 2) {
                 dup2(h_stderr->w, 2);
+            } else if (h_stderr->o) {
+                dup2(o, 2);
             }
         } else {
             KX_PROCESS_SET_DEVNULL(stderr, 2);
         }
+        close(o);
         close_read_pipe(h_stdin);
         close_write_pipe(h_stdout);
         close_write_pipe(h_stderr);
