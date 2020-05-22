@@ -1,0 +1,12 @@
+System.print("0%%       50%%       100%%\n");
+System.print("+---------+---------+\n");
+for (i = 0; i <= 100; i++) {
+    for (j = 0; j < i / 5 + 1; j++) {
+        System.print("#");
+    }
+    System.print("\n");
+    System.print("%3d%%\n" % i);
+    System.sleep(100);
+    System.print("\e[2A");
+}
+System.print("\n\nfinish!\n");

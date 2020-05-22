@@ -1,0 +1,6 @@
+for (i = 0; i < 16; i++) {
+    for (j = 0; j < 32; j++) {
+        System.print("\e[38;2;%d;%d;255mX" % (i<<4) % (j<<3));
+    }
+    System.print("\e[0m\n");
+}
