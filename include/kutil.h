@@ -63,4 +63,17 @@ static inline void sleep_ms(kx_context_t *ctx, int msec)
     #endif
 }
 
+/* for file access */
+
+typedef struct fileinfo_ {
+    FILE *fp;
+    const char *filename;
+    int mode;
+    int is_text;
+    int is_std;
+    uint8_t is_in:1;
+    uint8_t is_out:1;
+    uint8_t is_err:1;
+} fileinfo_t;
+
 #endif /* KX_KUTIL_H */
