@@ -19,6 +19,7 @@ typedef struct kx_pipe_ {
     HANDLE w;
     HANDLE r;
     int i, o, e;            // Use standard in/out/err.
+    int no_alloc;
 } kx_pipe_t;
 
 typedef struct kx_process_ {
@@ -147,7 +148,7 @@ int close_read_pipe(kx_pipe_t *p)
         CloseHandle(p->r);
         p->r = INVALID_HANDLE_VALUE;
         if (p->w == INVALID_HANDLE_VALUE) {
-            kx_free(p);
+            if (!p->no_alloc) kx_free(p);
             return 1;
         }
     }
@@ -160,7 +161,7 @@ int close_write_pipe(kx_pipe_t *p)
         CloseHandle(p->w);
         p->w = INVALID_HANDLE_VALUE;
         if (p->r == INVALID_HANDLE_VALUE) {
-            kx_free(p);
+            if (!p->no_alloc) kx_free(p);
             return 1;
         }
     }
@@ -184,6 +185,7 @@ kx_pipe_t *create_pipe(void)
     p->i = 0;
     p->o = 0;
     p->e = 0;
+    p->no_alloc = 0;
     return p;
 }
 
@@ -216,6 +218,7 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
     p->i = 0;
     p->o = 0;
     p->e = 0;
+    p->no_alloc = 0;
     return p;
 }
 
@@ -350,6 +353,7 @@ typedef struct kx_pipe_ {
     int w;
     int r;
     int i, o, e;            // Use standard in/out/err.
+    int no_alloc;
 } kx_pipe_t;
 
 typedef struct kx_process_ {
@@ -496,7 +500,7 @@ int close_read_pipe(kx_pipe_t *p)
         }
         p->r = -1;
         if (p->w < 0) {
-            kx_free(p);
+            if (!p->no_alloc) kx_free(p);
             return 1;
         }
     }
@@ -511,7 +515,7 @@ int close_write_pipe(kx_pipe_t *p)
         }
         p->w = -1;
         if (p->r < 0) {
-            kx_free(p);
+            if (!p->no_alloc) kx_free(p);
             return 1;
         }
     }
@@ -536,6 +540,7 @@ kx_pipe_t *create_pipe(void)
     p->i = 0;
     p->o = 0;
     p->e = 0;
+    p->no_alloc = 0;
     return p;
 }
 
@@ -562,6 +567,7 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
     p->i = 0;
     p->o = 0;
     p->e = 0;
+    p->no_alloc = 0;
     return p;
 }
 
@@ -946,9 +952,9 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
         kx_obj_t *obj = NULL;
         kx_val_t *val = NULL;
 
-        kx_pipe_t i = { .i = 1 };
-        kx_pipe_t o = { .o = 1 };
-        kx_pipe_t e = { .e = 1 };
+        kx_pipe_t i = { .i = 1, .no_alloc = 1 };
+        kx_pipe_t o = { .o = 1, .no_alloc = 1 };
+        kx_pipe_t e = { .e = 1, .no_alloc = 1 };
         kx_pipe_t *ri = NULL;
         KEX_GET_PROP(val, options, "in");
         if (val) {
