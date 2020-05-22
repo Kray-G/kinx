@@ -1,6 +1,6 @@
 Process = _import('kxprocess');
 
-class ProcessContoller(p_) {
+_class ProcessContoller(p_) {
     var detached_;
     public isAlive() {
         if (detached_) {
@@ -29,56 +29,63 @@ class ProcessContoller(p_) {
     }
 }
 
-class Process(cmdary, opts) {
+_class Process(cmdary_, opts_) {
+    private initialize() {
+        if (cmdary_.isString) {
+            cmdary_ = Process.splitCommand(cmdary_);
+        }
+    }
     public std() {
         return {
-            in: opts.in,
-            out: opts.out,
-            err: opts.err,
+            in: opts_.in,
+            out: opts_.out,
+            err: opts_.err,
         };
     }
     public run() {
-        var p = Process.run(cmdary, opts);
+        var p = Process.run(cmdary_, opts_);
         return new ProcessContoller(p);
     }
     public launch() {
         detached_ = true;
-        Process.launch(cmdary, opts);
+        Process.launch(cmdary_, opts_);
     }
 };
 
-Process.pipeline = (_function() {
-    _function splitCommand(cmd) {
-        var str;
-        var cmdary = [];
-        var sz = cmd.length();
-        for (var i = 0; i < sz; ) {
-            var c = cmd[i];
-            if (c == ' '[0] || c == '\t'[0] || c == '\r'[0] || c == '\n'[0]) {
-                ++i;
-                continue;
-            }
-            str = "";
-            if (c == '"'[0] || c == "'"[0]) {
-                var q = c;
-                c = cmd[++i];
-                while (i < sz && c != q) {
-                    str += *c;
-                    c = cmd[++i];
-                }
-                ++i;
-                cmdary.push(str);
-            } else {
-                while (i < sz && (c != ' '[0] && c != '\t'[0] && c != '\r'[0] && c != '\n'[0])) {
-                    str += *c;
-                    c = cmd[++i];
-                }
-                ++i;
-                cmdary.push(str);
-            }
+Process.splitCommand = _function(cmd) {
+    var str;
+    var cmdary = [];
+    var sz = cmd.length();
+    for (var i = 0; i < sz; ) {
+        var c = cmd[i];
+        if (c == ' '[0] || c == '\t'[0] || c == '\r'[0] || c == '\n'[0]) {
+            ++i;
+            continue;
         }
-        return cmdary;
+        str = "";
+        if (c == '"'[0] || c == "'"[0]) {
+            var q = c;
+            c = cmd[++i];
+            while (i < sz && c != q) {
+                str += *c;
+                c = cmd[++i];
+            }
+            ++i;
+            cmdary.push(str);
+        } else {
+            while (i < sz && (c != ' '[0] && c != '\t'[0] && c != '\r'[0] && c != '\n'[0])) {
+                str += *c;
+                c = cmd[++i];
+            }
+            ++i;
+            cmdary.push(str);
+        }
     }
+    return cmdary;
+};
+
+
+Process.pipeline = (_function() {
     return _function(...list) {
         var processes = [];
         var [output, input] = Process.createPipe();
@@ -90,7 +97,7 @@ Process.pipeline = (_function() {
             if (cmd.length() == 0) {
                 return;
             }
-            var cmdary = splitCommand(cmd);
+            var cmdary = Process.splitCommand(cmd);
             var [r, w] = Process.createPipe();
             var proc = new Process(cmdary, { in: output, out: w });
             var p = proc.run();
