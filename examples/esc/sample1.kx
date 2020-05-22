@@ -1,0 +1,7 @@
+for (i = 0; i < 16; i++) {
+    for (j = 0; j < 16; j++) {
+        const v = i*16+j;
+        System.print("\e[38;5;%dm%02X\e[0m " % v % v);
+    }
+    System.print("\n");
+}
