@@ -297,8 +297,10 @@ retry:
                 attr |= FOREGROUND_BLUE;
             }
             else if (i != n && v[i] == 38 || v[i] == 48) {
-              if (v[i] == 48)
+              attr = (attr & FOREGROUND_MASK);
+              if (v[i] == 48) {
                 inverse = 1 - inverse;
+              }
               int type = v[++i];
               int use256 = 1;
               color256_t c256 = { 0, 0, 0, 0 };
