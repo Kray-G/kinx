@@ -97,11 +97,13 @@ Process.pipeline = (_function() {
         if (list[-1].isFunction) {
             func = list.pop();
         }
-        list.each(&(cmd) => {
-            if (cmd.length() == 0) {
-                return;
+        list.each(&(cmdary) => {
+            if (cmdary.isString) {
+                if (cmdary.length() == 0) {
+                    return;
+                }
+                cmdary = Process.splitCommand(cmdary);
             }
-            var cmdary = Process.splitCommand(cmd);
             var [r, w] = Process.createPipe();
             var proc = new Process(cmdary, { in: output, out: w });
             var p = proc.run();
