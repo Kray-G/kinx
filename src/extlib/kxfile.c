@@ -37,6 +37,10 @@ KX_DECL_MEM_ALLOCATORS();
 #define KXFILE_MODE_WRITE  (0x20)
 #define KXFILE_MODE_APPEND (0x40)
 
+typedef struct dirinfo_ {
+    DIR *dir;
+} dirinfo_t;
+
 #define KX_FILE_GET_RPACK(r, obj) \
 fileinfo_t *r = NULL; \
 if (obj) { \
@@ -59,18 +63,6 @@ if (obj) { \
     r = (dirinfo_t *)(val->value.av->p); \
 } \
 /**/
-
-typedef struct fileinfo_ {
-    FILE *fp;
-    const char *filename;
-    int mode;
-    int is_text;
-    int is_std;
-} fileinfo_t;
-
-typedef struct dirinfo_ {
-    DIR *dir;
-} dirinfo_t;
 
 #define KX_ZIP_GET_ZIPOBJ(r, obj) \
 kx_obj_t *r = NULL; \
@@ -345,7 +337,7 @@ static const char *get_mode(int mode, char mode_str[4])
     return mode_str;
 }
 
-static fileinfo_t *create_std(const char *name, FILE* fp, int mode)
+static fileinfo_t *create_std(const char *name, FILE* fp, int mode, int in, int out, int err)
 {
     fileinfo_t *fi = kx_calloc(1, sizeof(fileinfo_t));
     fi->fp = fp;
@@ -353,19 +345,22 @@ static fileinfo_t *create_std(const char *name, FILE* fp, int mode)
     fi->mode = mode;
     fi->is_text = 1;
     fi->is_std = 1;
+    fi->is_in = in;
+    fi->is_out = out;
+    fi->is_err = err;
     return fi;
 }
 
 static fileinfo_t *create_fileinfo(kx_context_t *ctx, const char *file, int mode)
 {
     if (!strcmp(file, "<stdin>")) {
-        return create_std(file, stdin, KXFILE_MODE_READ);
+        return create_std(file, stdin, KXFILE_MODE_READ, 1, 0, 0);
     }
     if (!strcmp(file, "<stdout>")) {
-        return create_std(file, stdout, KXFILE_MODE_WRITE);
+        return create_std(file, stdout, KXFILE_MODE_WRITE, 0, 1, 0);
     }
     if (!strcmp(file, "<stderr>")) {
-        return create_std(file, stderr, KXFILE_MODE_WRITE);
+        return create_std(file, stderr, KXFILE_MODE_WRITE, 0, 0, 1);
     }
     if (!mode) {
         mode = KXFILE_MODE_READ | KXFILE_MODE_TEXT;
@@ -384,6 +379,9 @@ static fileinfo_t *create_fileinfo(kx_context_t *ctx, const char *file, int mode
     fi->mode = mode;
     fi->is_text = (fi->mode & KXFILE_MODE_BINARY) != KXFILE_MODE_BINARY;
     fi->is_std = 0;
+    fi->is_in = 0;
+    fi->is_out = 0;
+    fi->is_err = 0;
     return fi;
 }
 
@@ -1240,6 +1238,9 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     r->p = fi;
     r->any_free = free_fileinfo;
     KEX_SET_PROP_ANY(obj, "_pack", r);
+    KEX_SET_PROP_INT(obj, "_isStdin", (fi->is_std && fi->is_in));
+    KEX_SET_PROP_INT(obj, "_isStdout", (fi->is_std && fi->is_out));
+    KEX_SET_PROP_INT(obj, "_isStderr", (fi->is_std && fi->is_err));
     KEX_SET_PROP_INT(obj, "BINARY", KXFILE_MODE_BINARY);
     KEX_SET_PROP_INT(obj, "TEXT", KXFILE_MODE_TEXT);
     KEX_SET_PROP_INT(obj, "READ", KXFILE_MODE_READ);
