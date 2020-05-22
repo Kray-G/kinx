@@ -283,6 +283,7 @@ static int make_command(char *dst, const char *cmd)
 
 int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, kx_pipe_t *h_stderr, int argc, char *const argv[])
 {
+    int console_output = 0;
     HANDLE currproc = GetCurrentProcess();
     KX_PROCESS_DUP_HANDLE(h_stdin, FALSE, TRUE);
     KX_PROCESS_DUP_HANDLE(h_stdout, TRUE, FALSE);
@@ -296,8 +297,30 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
     si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
     si.wShowWindow = SW_HIDE;
     si.hStdInput = h_stdin ? (h_stdin->i ? GetStdHandle(STD_INPUT_HANDLE) : h_stdin->r) : INVALID_HANDLE_VALUE;
-    si.hStdOutput = h_stdout ? (h_stdout->o ? GetStdHandle(STD_OUTPUT_HANDLE) : h_stdout->w) : INVALID_HANDLE_VALUE;
-    si.hStdError = h_stderr ? (h_stderr->e ? GetStdHandle(STD_ERROR_HANDLE) : h_stderr->w) : INVALID_HANDLE_VALUE;
+    si.hStdOutput = INVALID_HANDLE_VALUE;
+    si.hStdError = INVALID_HANDLE_VALUE;
+    if (h_stdout) {
+        if (h_stdout->o) {
+            si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+            console_output = 1;
+        } else if (h_stdout->e) {
+            si.hStdOutput = GetStdHandle(STD_ERROR_HANDLE);
+            console_output = 1;
+        } else {
+            si.hStdOutput = h_stdout->w;
+        }
+    }
+    if (h_stderr) {
+        if (h_stderr->o) {
+            si.hStdError = GetStdHandle(STD_OUTPUT_HANDLE);
+            console_output = 1;
+        } else if (h_stderr->e) {
+            si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+            console_output = 1;
+        } else {
+            si.hStdError = h_stderr->w;
+        }
+    }
 
     int cmdlen = 0;
     for (int i = 0; i < argc; ++i) {
@@ -309,7 +332,7 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
     for (int i = 1; i < argc; ++i) {
         make_command(cmd, argv[i]);
     }
-    DWORD flag = ((h_stdout && h_stdout->o) || (h_stderr && h_stderr->e)) ? 0 : CREATE_NO_WINDOW;
+    DWORD flag = console_output ? 0 : CREATE_NO_WINDOW;
     if (!CreateProcessA(0, cmd, 0, 0, TRUE, flag, 0, 0, &si, &proc->pi)) {
         goto CLEANUP;
     }
@@ -1004,6 +1027,13 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 }
                 if (!wo) {
                     val = NULL;
+                    KEX_GET_PROP(val, obj, "_isStderr");
+                    if (val && val->type == KX_INT_T && val->value.iv != 0) {
+                        wo = &e;
+                    }
+                }
+                if (!wo) {
+                    val = NULL;
                     KEX_GET_PROP(val, obj, "_write");
                     if (val && val->type == KX_ANY_T) {
                         wo = (kx_pipe_t *)(val->value.av->p);
@@ -1027,9 +1057,16 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 obj = val->value.ov;
                 KEX_SET_PROP_OBJ(pobj, "_err", obj);
                 val = NULL;
-                KEX_GET_PROP(val, obj, "_isStdout");
+                KEX_GET_PROP(val, obj, "_isStderr");
                 if (val && val->type == KX_INT_T && val->value.iv != 0) {
                     we = &e;
+                }
+                if (!we) {
+                    val = NULL;
+                    KEX_GET_PROP(val, obj, "_isStdout");
+                    if (val && val->type == KX_INT_T && val->value.iv != 0) {
+                        we = &o;
+                    }
                 }
                 if (!we) {
                     val = NULL;
