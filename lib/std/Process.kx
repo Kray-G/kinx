@@ -10,13 +10,13 @@ class ProcessContoller(p_) {
     }
     public getStatus() {
         if (detached_) {
-            return false;
+            return 0;
         }
         return Process.getStatus(p_);
     }
     public wait() {
         if (detached_) {
-            return false;
+            return 0;
         }
         while (Process.isAlive(p_)) {
             ;
