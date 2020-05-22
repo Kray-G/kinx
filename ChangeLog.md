@@ -3,6 +3,7 @@
 ## V1.0.0 (Future Planned)
 
 *   Planned, or remaining tasks.
+    *   Support Environment Variable.
     *   Support OpenCV library.
     *   Support PDF library with libHaru.
     *   Support HTTP Server library with libhttp.
@@ -21,6 +22,10 @@
 
 *   Updated
     *   Updated some of native code output.
+    *   Supported a dot style of string literal like `.abc` means `"abc"`.
+    *   Supported Process library.
+    *   Supported `System.gtopt()`.
+    *   Supported Escape Sequence with `\e`.
     *   Some bug fixes and improvement.
 
 ## V0.7.1 (7th Preview Release)
