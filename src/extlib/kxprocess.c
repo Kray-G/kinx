@@ -2,6 +2,7 @@
 #include <inttypes.h>
 #define KX_DLL
 #include <kinx.h>
+#include <kutil.h>
 #include <kxthread.h>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -17,6 +18,7 @@
 typedef struct kx_pipe_ {
     HANDLE w;
     HANDLE r;
+    int i, o, e;            // Use standard in/out/err.
 } kx_pipe_t;
 
 typedef struct kx_process_ {
@@ -26,6 +28,23 @@ typedef struct kx_process_ {
     PROCESS_INFORMATION pi; // Process information.
     int launch;             // run and detach.
 } kx_process_t;
+
+/* for debug */
+static void display_debug_last_error()
+{
+    DWORD errorcode = GetLastError();
+    LPVOID lpMsgBuf;
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER
+        | FORMAT_MESSAGE_FROM_SYSTEM
+        | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL, errorcode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR)&lpMsgBuf,
+        0,
+        NULL);
+    printf("%s\n", (const char *)lpMsgBuf);
+    LocalFree(lpMsgBuf);
+}
 
 static unsigned int get_tick_count(void)
 {
@@ -162,6 +181,9 @@ kx_pipe_t *create_pipe(void)
     kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
     p->r = r;
     p->w = w;
+    p->i = 0;
+    p->o = 0;
+    p->e = 0;
     return p;
 }
 
@@ -191,10 +213,13 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
     kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
     p->r = r;
     p->w = w;
+    p->i = 0;
+    p->o = 0;
+    p->e = 0;
     return p;
 }
 
-#define KX_PROCESS_DUP_HANDLE(handle, tfw, tfr) if (handle) { \
+#define KX_PROCESS_DUP_HANDLE(handle, tfw, tfr) if (handle && !(handle->i || handle->o || handle->e)) { \
     HANDLE h; \
     if (handle->w != INVALID_HANDLE_VALUE) { \
         h = INVALID_HANDLE_VALUE; \
@@ -267,9 +292,9 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
     si.cb = sizeof(STARTUPINFO);
     si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
     si.wShowWindow = SW_HIDE;
-    si.hStdInput = h_stdin ? h_stdin->r : INVALID_HANDLE_VALUE;
-    si.hStdOutput = h_stdout ? h_stdout->w : INVALID_HANDLE_VALUE;
-    si.hStdError = h_stderr ? h_stderr->w : INVALID_HANDLE_VALUE;
+    si.hStdInput = h_stdin ? (h_stdin->i ? GetStdHandle(STD_INPUT_HANDLE) : h_stdin->r) : INVALID_HANDLE_VALUE;
+    si.hStdOutput = h_stdout ? (h_stdout->o ? GetStdHandle(STD_OUTPUT_HANDLE) : h_stdout->w) : INVALID_HANDLE_VALUE;
+    si.hStdError = h_stderr ? (h_stderr->e ? GetStdHandle(STD_ERROR_HANDLE) : h_stderr->w) : INVALID_HANDLE_VALUE;
 
     int cmdlen = 0;
     for (int i = 0; i < argc; ++i) {
@@ -281,7 +306,8 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
     for (int i = 1; i < argc; ++i) {
         make_command(cmd, argv[i]);
     }
-    if (!CreateProcessA(0, cmd, 0, 0, TRUE, CREATE_NO_WINDOW, 0, 0, &si, &proc->pi)) {
+    DWORD flag = ((h_stdout && h_stdout->o) || (h_stderr && h_stderr->e)) ? 0 : CREATE_NO_WINDOW;
+    if (!CreateProcessA(0, cmd, 0, 0, TRUE, flag, 0, 0, &si, &proc->pi)) {
         goto CLEANUP;
     }
 
@@ -323,6 +349,7 @@ static int process_detach(kx_process_t *proc)
 typedef struct kx_pipe_ {
     int w;
     int r;
+    int i, o, e;            // Use standard in/out/err.
 } kx_pipe_t;
 
 typedef struct kx_process_ {
@@ -463,10 +490,12 @@ int read_pipe(kx_pipe_t *p, char *buf, int len)
 
 int close_read_pipe(kx_pipe_t *p)
 {
-    if (p && p->r != 0) {
-        close(p->r);
-        p->r = 0;
-        if (p->w == 0) {
+    if (p && p->r >= 0) {
+        if (p->r > 2) {
+            close(p->r);
+        }
+        p->r = -1;
+        if (p->w < 0) {
             kx_free(p);
             return 1;
         }
@@ -476,10 +505,12 @@ int close_read_pipe(kx_pipe_t *p)
 
 int close_write_pipe(kx_pipe_t *p)
 {
-    if (p && p->w != 0) {
-        close(p->w);
-        p->w = 0;
-        if (p->r == 0) {
+    if (p && p->w >= 0) {
+        if (p->w > 2) {
+            close(p->w);
+        }
+        p->w = -1;
+        if (p->r < 0) {
             kx_free(p);
             return 1;
         }
@@ -502,6 +533,9 @@ kx_pipe_t *create_pipe(void)
     kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
     p->r = h[R];
     p->w = h[W];
+    p->i = 0;
+    p->o = 0;
+    p->e = 0;
     return p;
 }
 
@@ -525,6 +559,9 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
     kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
     p->r = h[R];
     p->w = h[W];
+    p->i = 0;
+    p->o = 0;
+    p->e = 0;
     return p;
 }
 
@@ -576,17 +613,23 @@ int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, k
 
         if (h_stdin) {
             close_write_pipe(h_stdin);
-            dup2(h_stdin->r, 0);
+            if (h_stdin->r > 2) {
+                dup2(h_stdin->r, 0);
+            }
         }
         if (h_stdout) {
             close_read_pipe(h_stdout);
-            dup2(h_stdout->w, 1);
+            if (h_stdout->w > 2) {
+                dup2(h_stdout->w, 1);
+            }
         } else {
             KX_PROCESS_SET_DEVNULL(stdout, 1);
         }
         if (h_stderr) {
             close_read_pipe(h_stderr);
-            dup2(h_stderr->w, 2);
+            if (h_stderr->w > 2) {
+                dup2(h_stderr->w, 2);
+            }
         } else {
             KX_PROCESS_SET_DEVNULL(stderr, 2);
         }
@@ -903,6 +946,9 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
         kx_obj_t *obj = NULL;
         kx_val_t *val = NULL;
 
+        kx_pipe_t i = { .i = 1 };
+        kx_pipe_t o = { .o = 1 };
+        kx_pipe_t e = { .e = 1 };
         kx_pipe_t *ri = NULL;
         KEX_GET_PROP(val, options, "in");
         if (val) {
@@ -917,9 +963,16 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 obj = val->value.ov;
                 KEX_SET_PROP_OBJ(pobj, "_in", obj);
                 val = NULL;
-                KEX_GET_PROP(val, obj, "_read");
-                if (val && val->type == KX_ANY_T) {
-                    ri = (kx_pipe_t *)(val->value.av->p);
+                KEX_GET_PROP(val, obj, "_isStdin");
+                if (val && val->type == KX_INT_T && val->value.iv != 0) {
+                    ri = &i;
+                }
+                if (!ri) {
+                    val = NULL;
+                    KEX_GET_PROP(val, obj, "_read");
+                    if (val && val->type == KX_ANY_T) {
+                        ri = (kx_pipe_t *)(val->value.av->p);
+                    }
                 }
             }
         }
@@ -939,9 +992,16 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 obj = val->value.ov;
                 KEX_SET_PROP_OBJ(pobj, "_out", obj);
                 val = NULL;
-                KEX_GET_PROP(val, obj, "_write");
-                if (val && val->type == KX_ANY_T) {
-                    wo = (kx_pipe_t *)(val->value.av->p);
+                KEX_GET_PROP(val, obj, "_isStdout");
+                if (val && val->type == KX_INT_T && val->value.iv != 0) {
+                    wo = &o;
+                }
+                if (!wo) {
+                    val = NULL;
+                    KEX_GET_PROP(val, obj, "_write");
+                    if (val && val->type == KX_ANY_T) {
+                        wo = (kx_pipe_t *)(val->value.av->p);
+                    }
                 }
             }
         }
@@ -961,9 +1021,16 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 obj = val->value.ov;
                 KEX_SET_PROP_OBJ(pobj, "_err", obj);
                 val = NULL;
-                KEX_GET_PROP(val, obj, "_write");
-                if (val && val->type == KX_ANY_T) {
-                    we = (kx_pipe_t *)(val->value.av->p);
+                KEX_GET_PROP(val, obj, "_isStdout");
+                if (val && val->type == KX_INT_T && val->value.iv != 0) {
+                    we = &e;
+                }
+                if (!we) {
+                    val = NULL;
+                    KEX_GET_PROP(val, obj, "_write");
+                    if (val && val->type == KX_ANY_T) {
+                        we = (kx_pipe_t *)(val->value.av->p);
+                    }
                 }
             }
         }
