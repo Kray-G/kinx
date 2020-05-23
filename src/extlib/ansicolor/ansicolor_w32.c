@@ -76,6 +76,34 @@ const color256_t g_color256[] = {
   { 0xd0, 0xd0, 0xd0, 0x00 }, { 0xda, 0xda, 0xda, 0x00 }, { 0xe4, 0xe4, 0xe4, 0x00 }, { 0xee, 0xee, 0xee, 0x00 },
 };
 
+#define DCOL_THRESHOLD1 (0x30)
+#define MCOL_THRESHOLD1 (0x5f)
+#define LCOL_THRESHOLD1 (0xbf)
+#define MK_INTENSITY(c256) { \
+  int d = 0; \
+  if (c256.r > LCOL_THRESHOLD1) d = (int)sqrt(c256.g*c256.g + c256.b*c256.b); \
+  if (c256.g > LCOL_THRESHOLD1) d = (int)sqrt(c256.r*c256.r + c256.b*c256.b); \
+  if (c256.b > LCOL_THRESHOLD1) d = (int)sqrt(c256.r*c256.r + c256.g*c256.g); \
+  if (d > 181) \
+    c256.x = 1; \
+  if (!c256.x && (0 < c256.r || 0 < c256.g || 0 < c256.b) && \
+                 (c256.r <= MCOL_THRESHOLD1 && c256.g <= MCOL_THRESHOLD1 && c256.b <= MCOL_THRESHOLD1)) { \
+    c256.x = 1; \
+    if (DCOL_THRESHOLD1 < c256.r && (c256.g <= DCOL_THRESHOLD1 || c256.b <= DCOL_THRESHOLD1)) { \
+      c256.r = (MCOL_THRESHOLD1 + 0x10); \
+      c256.x = 0; \
+    } \
+    if (DCOL_THRESHOLD1 < c256.g && (c256.r <= DCOL_THRESHOLD1 || c256.b <= DCOL_THRESHOLD1)) { \
+      c256.g = (MCOL_THRESHOLD1 + 0x10); \
+      c256.x = 0; \
+    } \
+    if (DCOL_THRESHOLD1 < c256.b && (c256.r <= DCOL_THRESHOLD1 || c256.g <= DCOL_THRESHOLD1)) { \
+      c256.b = (MCOL_THRESHOLD1 + 0x10); \
+      c256.x = 0; \
+    } \
+  } \
+}
+
 #ifndef FOREGROUND_MASK
 # define FOREGROUND_MASK (FOREGROUND_RED|FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY)
 #endif
@@ -296,11 +324,8 @@ retry:
               if ((v[i] - 30) & 4)
                 attr |= FOREGROUND_BLUE;
             }
-            else if (i != n && v[i] == 38 || v[i] == 48) {
+            else if (i != n && v[i] == 38) {
               attr = (attr & FOREGROUND_MASK);
-              if (v[i] == 48) {
-                inverse = 1 - inverse;
-              }
               int type = v[++i];
               int use256 = 1;
               color256_t c256 = { 0, 0, 0, 0 };
@@ -331,42 +356,21 @@ retry:
                     attr |= FOREGROUND_BLUE;
                 } else {
                   c256 = g_color256[col];
-                  c256.r = c256.r;
-                  c256.g = c256.g;
-                  c256.b = c256.b;
                 }
               } else {
-                ;
+                use256 = 0;
               }
               if (use256) {
-                if (((c256.r > 0xc0) + (c256.g > 0xc0) + (c256.b > 0xc0)) >= 2) {
-                  c256.x = 1;
-                } else if ((c256.r + c256.g + c256.b) > 512) {
-                  c256.x = 1;
-                } else if ((0 < c256.r || 0 < c256.g || 0 < c256.b) && (c256.r <= 0x60 && c256.g <= 0x60 && c256.b <= 0x60)) {
-                  c256.x = 1;
-                  if (0x30 < c256.r && (c256.g <= 0x30 || c256.b <= 0x30)) {
-                    c256.r = 0x80;
-                    c256.x = 0;
-                  }
-                  if (0x30 < c256.g && (c256.r <= 0x30 || c256.b <= 0x30)) {
-                    c256.g = 0x80;
-                    c256.x = 0;
-                  }
-                  if (0x30 < c256.b && (c256.r <= 0x30 || c256.g <= 0x30)) {
-                    c256.b = 0x80;
-                    c256.x = 0;
-                  }
-                }
-                if (c256.r > 0x60)
+                MK_INTENSITY(c256);
+                if (c256.r > MCOL_THRESHOLD1)
                   attr |= FOREGROUND_RED;
                 else
                   attr &= ~FOREGROUND_RED;
-                if (c256.g > 0x60)
+                if (c256.g > MCOL_THRESHOLD1)
                   attr |= FOREGROUND_GREEN;
                 else
                   attr &= ~FOREGROUND_GREEN;
-                if (c256.b > 0x60)
+                if (c256.b > MCOL_THRESHOLD1)
                   attr |= FOREGROUND_BLUE;
                 else
                   attr &= ~FOREGROUND_BLUE;
@@ -386,6 +390,66 @@ retry:
                 attr |= BACKGROUND_GREEN;
               if ((v[i] - 40) & 4)
                 attr |= BACKGROUND_BLUE;
+            }
+            else if (i != n && v[i] == 48) {
+              attr = (attr & BACKGROUND_MASK) | FOREGROUND_MASK;
+              int type = v[++i];
+              int use256 = 1;
+              color256_t c256 = { 0, 0, 0, 0 };
+              if (i <= (n-3) && type == 2) {
+                int c1 = v[++i];
+                int c2 = v[++i];
+                int c3 = v[++i];
+                c256 = (color256_t){ c1, c2, c3, 0 };
+              } else if (i != n && type == 5) {
+                int col = v[++i];
+                if (0 <= col && col < 8) {
+                  use256 = 0;
+                  attr = (attr & FOREGROUND_MASK);
+                  if (col & 1)
+                    attr |= BACKGROUND_RED;
+                  if (col & 2)
+                    attr |= BACKGROUND_GREEN;
+                  if (col & 4)
+                    attr |= BACKGROUND_BLUE;
+                } else if (8 <= col && col < 16) {
+                  use256 = 0;
+                  attr = (attr & FOREGROUND_MASK) | BACKGROUND_INTENSITY;
+                  if (col & 1)
+                    attr |= BACKGROUND_RED;
+                  if (col & 2)
+                    attr |= BACKGROUND_GREEN;
+                  if (col & 4)
+                    attr |= BACKGROUND_BLUE;
+                } else {
+                  c256 = g_color256[col];
+                }
+              } else {
+                use256 = 0;
+              }
+              if (use256) {
+                MK_INTENSITY(c256);
+                if (c256.r > MCOL_THRESHOLD1)
+                  attr |= BACKGROUND_RED;
+                else
+                  attr &= ~BACKGROUND_RED;
+                if (c256.g > MCOL_THRESHOLD1)
+                  attr |= BACKGROUND_GREEN;
+                else
+                  attr &= ~BACKGROUND_GREEN;
+                if (c256.b > MCOL_THRESHOLD1)
+                  attr |= BACKGROUND_BLUE;
+                else
+                  attr &= ~BACKGROUND_BLUE;
+                if (c256.x)
+                  attr |= BACKGROUND_INTENSITY;
+                else
+                  attr &= ~BACKGROUND_INTENSITY;
+              }
+              if (attr & BACKGROUND_INTENSITY)
+                attr &= ~FOREGROUND_INTENSITY;
+              else
+                attr |= FOREGROUND_INTENSITY;
             }
             else if (v[i] >= 90 && v[i] <= 97) {
               attr = (attr & BACKGROUND_MASK) | FOREGROUND_INTENSITY;
