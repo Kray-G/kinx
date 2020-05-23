@@ -1,12 +1,24 @@
-System.print("0%%       50%%       100%%\n");
-System.print("+---------+---------+\n");
-for (i = 0; i <= 100; i++) {
-    for (j = 0; j < i / 5 + 1; j++) {
-        System.print("#");
+System.print("  --   ");
+for (b in 40..47) {
+  System.print("\e[%{b}m    %{b}   \e[0m ");
+}
+System.print("\n");
+for (c in [ 30, 31, 32, 33, 34, 35, 36, 37, 90, 91, 92, 93, 94, 95, 96, 97 ]) {
+  s = (""+c);
+  System.print("\e[%{c}m %{c}   \e[0m ");
+  for (b in 40..47) {
+    s = "%{c};%{b}";
+    System.print("\e[%{s}m %{s}   \e[0m ");
+  }
+  System.print("\n");
+  for (a in [ 1, 4 ]) {
+    s = "%{c};%{a}";
+    System.print("\e[%{s}m %{s} \e[0m ");
+    for (b in 40..47) {
+      s = "%{c};%{b};%{a}";
+      System.print("\e[%{s}m %{s} \e[0m ");
     }
     System.print("\n");
-    System.print("%3d%%\n" % i);
-    System.sleep(100);
-    System.print("\e[2A");
+  }
 }
-System.print("\n\nfinish!\n");
+__END__
