@@ -295,8 +295,8 @@ retry:
               attr = attr_olds[type];
             else if (v[i] == 1)
               attr |= FOREGROUND_INTENSITY;
-            else if (v[i] == 4)
-              attr |= FOREGROUND_INTENSITY;
+            // else if (v[i] == 4)
+            //   attr |= FOREGROUND_INTENSITY;
             else if (v[i] == 5)
               attr |= FOREGROUND_INTENSITY;
             else if (v[i] == 7)
