@@ -67,6 +67,7 @@
 %type<obj> Modifier_Opt
 %type<obj> BreakStatement
 %type<obj> LabelStatement
+%type<obj> LabelledStatement
 %type<obj> AssignExpression_Opt
 %type<obj> AssignExpression
 %type<obj> AssignRightHandSide
@@ -143,11 +144,7 @@ Statement
     | NamespaceStatement
     | EnumStatement
     | IfStatement
-    | WhileStatement
-    | DoWhileStatement
-    | SwitchCaseStatement
     | CaseStatement
-    | ForStatement
     | TryCatchStatement
     | ReturnStatement
     | YieldStatement
@@ -157,8 +154,16 @@ Statement
     | DefinitionStatement
     | BreakStatement
     | LabelStatement
+    | LabelledStatement
     | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
     | error ';' { yyerrok; }
+    ;
+
+LabelledStatement
+    : WhileStatement
+    | DoWhileStatement
+    | SwitchCaseStatement
+    | ForStatement
     ;
 
 BlockStatement
@@ -198,7 +203,7 @@ DefinitionStatement
     ;
 
 LabelStatement
-    : NAME ':' Statement { $$ = kx_gen_label_object(KXST_LABEL, $1, $3); }
+    : NAME ':' LabelledStatement { $$ = kx_gen_label_object(KXST_LABEL, $1, $3); }
     ;
 
 IfStatement
@@ -604,8 +609,11 @@ KeyValueList
 
 KeyValue
     : '(' STR ')' ':' AssignExpression { $$ = kx_gen_keyvalue_object($2, $5); }
+    | '(' STR ')' ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($2, $5); }
     | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    | NAME ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($1, $3); }
     | KeySpecialName ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
+    | KeySpecialName ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
     ;
 
