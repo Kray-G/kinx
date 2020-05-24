@@ -76,36 +76,55 @@ const color256_t g_color256[] = {
   { 0xd0, 0xd0, 0xd0, 0x00 }, { 0xda, 0xda, 0xda, 0x00 }, { 0xe4, 0xe4, 0xe4, 0x00 }, { 0xee, 0xee, 0xee, 0x00 },
 };
 
-#define BCOL_THRESHOLD1 (0x10)
-#define DCOL_THRESHOLD1 (0x30)
+#define DCOL_THRESHOLD1 (0x10)
+#define DCOL_THRESHOLD2 (0x40)
 #define MCOL_THRESHOLD1 (0x5f)
 #define LCOL_THRESHOLD1 (0xbf)
+#define MIN3(a,b,c) ((a > b) ? (b > c ? c : b) : (a > c ? c : a))
+#define MAX3(a,b,c) ((a > b) ? (a > c ? a : c) : (b > c ? b : c))
 #define MK_INTENSITY(c256) { \
   if (c256.r < DCOL_THRESHOLD1 && c256.g < DCOL_THRESHOLD1 && c256.b < DCOL_THRESHOLD1) { \
       c256.x = 0; \
       c256.r = c256.g = c256.b = 0; \
+  } else if (c256.r == c256.g && c256.r == c256.b) { \
+    if (c256.r < 0x16) \
+      c256.r = c256.g = c256.b = 0, c256.x = 0; \
+    else if (c256.r < 0x70) \
+      c256.r = c256.g = c256.b = 0, c256.x = 1; \
+    else if (c256.r < 0xb8) \
+      c256.r = c256.g = c256.b = 0xff, c256.x = 0; \
+    else \
+      c256.r = c256.g = c256.b = 0xff, c256.x = 1; \
   } else { \
     int d = 0; \
-    if (c256.r > LCOL_THRESHOLD1) d = (int)sqrt(c256.g*c256.g + c256.b*c256.b); \
-    if (c256.g > LCOL_THRESHOLD1) d = (int)sqrt(c256.r*c256.r + c256.b*c256.b); \
-    if (c256.b > LCOL_THRESHOLD1) d = (int)sqrt(c256.r*c256.r + c256.g*c256.g); \
+    if (c256.r > LCOL_THRESHOLD1) \
+      d = (int)sqrt(c256.g*c256.g + c256.b*c256.b); \
+    if (c256.g > LCOL_THRESHOLD1) \
+      d = (int)sqrt(c256.r*c256.r + c256.b*c256.b); \
+    if (c256.b > LCOL_THRESHOLD1) \
+      d = (int)sqrt(c256.r*c256.r + c256.g*c256.g); \
     if (d > 181) \
       c256.x = 1; \
-    if (!c256.x && (0 < c256.r || 0 < c256.g || 0 < c256.b) && \
-                  (c256.r <= MCOL_THRESHOLD1 && c256.g <= MCOL_THRESHOLD1 && c256.b <= MCOL_THRESHOLD1)) { \
+    int maxc = MAX3(c256.r, c256.g, c256.b); \
+    int minc = MIN3(c256.r, c256.g, c256.b); \
+    if (minc > LCOL_THRESHOLD1) { \
       c256.x = 1; \
-      if (DCOL_THRESHOLD1 < c256.r && (c256.g <= DCOL_THRESHOLD1 || c256.b <= DCOL_THRESHOLD1)) { \
-        c256.r = (MCOL_THRESHOLD1 + 0x10); \
-        c256.x = 0; \
-      } \
-      if (DCOL_THRESHOLD1 < c256.g && (c256.r <= DCOL_THRESHOLD1 || c256.b <= DCOL_THRESHOLD1)) { \
-        c256.g = (MCOL_THRESHOLD1 + 0x10); \
-        c256.x = 0; \
-      } \
-      if (DCOL_THRESHOLD1 < c256.b && (c256.r <= DCOL_THRESHOLD1 || c256.g <= DCOL_THRESHOLD1)) { \
-        c256.b = (MCOL_THRESHOLD1 + 0x10); \
-        c256.x = 0; \
-      } \
+      c256.r = c256.g = c256.b = 0xff; \
+    } else if (((maxc - minc) > DCOL_THRESHOLD2)) { \
+      if (c256.r == minc) \
+        c256.r = c256.r > MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 - (MCOL_THRESHOLD1/2): c256.r; \
+      else if ((c256.r - minc) > DCOL_THRESHOLD2) \
+        c256.r = c256.r < MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 + (MCOL_THRESHOLD1/2): c256.r; \
+      if (c256.g == minc) \
+        c256.g = c256.g > MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 - (MCOL_THRESHOLD1/2): c256.g; \
+      else if ((c256.g - minc) > DCOL_THRESHOLD2) \
+        c256.g = c256.g < MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 + (MCOL_THRESHOLD1/2): c256.g; \
+      if (c256.b == minc) \
+        c256.b = c256.b > MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 - (MCOL_THRESHOLD1/2): c256.b; \
+      else if ((c256.b - minc) > DCOL_THRESHOLD2) \
+        c256.b = c256.b < MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 + (MCOL_THRESHOLD1/2): c256.b; \
+      if (c256.r <= MCOL_THRESHOLD1 && c256.g <= MCOL_THRESHOLD1 && c256.b <= MCOL_THRESHOLD1) \
+        c256.x = 1; \
     } \
   } \
 }
