@@ -4,25 +4,29 @@ Signal.trap(Signal.SIGINT, &() => {
 });
 
 class ReplHelper {
+    var stringLiteral = "(\"(?:\\\\\"|.)*?\"|'(?:\\\\'|.)*?')";
     var keywords_ = "\\b(:break|class|catch|case|continue|const|do|default|else|enum|"
                     "function|for|finally|false|if|in|module|mixin|null|new|native|namespace|"
                     "public|private|protected|return|super|switch|this|throw|try|true|using|undefined|var|while|yield)\\b";
     var numbers_ = "(0[0-7]*|[1-9][0-9]*|0x[0-9a-fA-F]+)";
     var variables_ = "\\b(@|[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)\\b";
-    var re_ = new Regex("%{keywords_}|%{numbers_}|%{variables_}");
+    var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
 
     public coloringLine(inputLine) {
         if (inputLine) {
             inputLine = inputLine.replace(re_, &(g) => {
                 if (g[1].string) {
-                    return "\x1b[35m%{g[1].string}\x1b[0m";
+                    return "\x1b[38;5;8m%{g[1].string}\x1b[0m";
                 }
                 if (g[2].string) {
-                    return "\x1b[36m%{g[2].string}\x1b[0m";
+                    return "\x1b[35m%{g[2].string}\x1b[0m";
                 }
                 if (g[3].string) {
-                    return "\x1b[33m%{g[3].string}\x1b[0m";
+                    return "\x1b[36m%{g[3].string}\x1b[0m";
+                }
+                if (g[4].string) {
+                    return "\x1b[33m%{g[4].string}\x1b[0m";
                 }
                 return g[0].string;
             });
@@ -266,15 +270,22 @@ class Repl {
         return r;
     }
 
+    private makeValue(name) {
+        return "(%{name}.isObject ? %{name}.toJsonString() : (%{name}.isString ? %{name}.quote() : %{name}))";
+    }
+    private makeReturnCode(name) {
+        return ";return %{makeValue(name)};";
+    }
+
     public eval(input) {
         var r;
         try {
             var g;
             // assignment.
-            if (g = (input =~ /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)\s*;?\n$/)) {
+            if (g = (input =~ /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/)) {
                 var name = g[1].string;
                 var value = g[2].string;
-                input = appendPreCode() + input + ";return %{name}.isObject ? %{name}.toJsonString() : %{name};";
+                input = appendPreCode() + input + makeReturnCode(name);
                 # System.println(input);
                 if (info_.vars[value].func) {
                     r = input.evalNew();
@@ -336,8 +347,8 @@ class Repl {
             var expr = input.trim().trim(';');
             if (expr.find(';') < 0) {
                 // 1 line, means expression;
-                input = appendPreCode() + ";_$ = (%{expr}); if (_$.isObject) return _$.toJsonString(); return _$;";
-                System.println(input);
+                input = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
+                # System.println(input);
                 return input.evalNew();
             }
 
@@ -347,13 +358,17 @@ class Repl {
                 var name = g[1].string;
                 var value = g[2].string;
                 v += "%{name},";
-                r += "%{name}: %{name},";
+                r += "%{name}: %{makeValue(name)},";
             }
 
             input = appendPreCode() + "var %{v}_dummy;" + input + ";if ('%{r}' != '') return ({%{r}}.toJsonString());";
             # System.println(input);
             r = input.evalNew();
-            r = System.try(&() => JSON.parse(r)).else();
+            if (r[0] != '{'[0] && r[0] != '['[0]) {
+                r = r.quote();
+            } else {
+                r = System.try(&() => JSON.parse(r)).else();
+            }
             if (r) {
                 r.keySet().each(&(name) => {
                     info_.vars[name] = {
@@ -376,6 +391,18 @@ class Repl {
     public run() {
         while (1) {
             var input = read();
+            if (input[0] == '!'[0]) {
+                var h = Integer.parseInt(input.subString(1));
+                input = info_.history[h].info;
+                if (!input.isArray) {
+                    printError("Invaild history number.");
+                    info_.history.pop();
+                    continue;
+                }
+                info_.history[-1].info = input;
+                input = input.map(&(e) => e.str).join('') + '\n';
+                printCommand(input);
+            }
             if (input[0] == '.'[0]) {
                 // command.
                 var f = input.subString(1).trim();
@@ -391,18 +418,6 @@ class Repl {
                     info_.history.pop();
                 }
                 continue;
-            }
-            if (input[0] == '!'[0]) {
-                var h = Integer.parseInt(input.subString(1));
-                input = info_.history[h].info;
-                if (!input.isArray) {
-                    printError("Invaild history number.");
-                    info_.history.pop();
-                    continue;
-                }
-                info_.history[-1].info = input;
-                input = input.map(&(e) => e.str).join('') + '\n';
-                printCommand(input);
             }
             var result = eval(input);
             if (result.isDefined) {
