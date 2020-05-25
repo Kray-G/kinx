@@ -129,15 +129,19 @@ if (obj) { \
 } \
 /**/
 
-const int KX_KEY_BS    = 0x08;
-const int KX_KEY_TAB   = 0x09;
-const int KX_KEY_ENTER = 0x0d;
-const int KX_KEY_ESC   = 0x1b;
-const int KX_KEY_DEL   = 0x7f;
-const int KX_KEY_UP    = (0xff << 8) | 0x10;
-const int KX_KEY_DOWN  = (0xff << 8) | 0x11;
-const int KX_KEY_RIGHT = (0xff << 8) | 0x12;
-const int KX_KEY_LEFT  = (0xff << 8) | 0x13;
+const int KX_KEY_BS         = 0x08;
+const int KX_KEY_TAB        = 0x09;
+const int KX_KEY_ENTER      = 0x0d;
+const int KX_KEY_ESC        = 0x1b;
+const int KX_KEY_DEL        = 0x7f;
+const int KX_KEY_UP         = (0x80 << 8) | 0x10;
+const int KX_KEY_DOWN       = (0x80 << 8) | 0x11;
+const int KX_KEY_RIGHT      = (0x80 << 8) | 0x12;
+const int KX_KEY_LEFT       = (0x80 << 8) | 0x13;
+const int KX_KEY_CTRL_UP    = (0x88 << 8) | 0x10;
+const int KX_KEY_CTRL_DOWN  = (0x88 << 8) | 0x11;
+const int KX_KEY_CTRL_RIGHT = (0x88 << 8) | 0x12;
+const int KX_KEY_CTRL_LEFT  = (0x88 << 8) | 0x13;
 
 #if defined(_WIN32) || defined(_WIN64)
 // This can not work correctly in multithreading.
@@ -948,6 +952,13 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         push_i(ctx->stack, ch);
         return 0;
     }
+    if (ch == KX_KEY_RIGHT || ch == KX_KEY_LEFT) {
+        int ctrlkey = ((GetKeyState(VK_LCONTROL) & 0xf0) != 0) || ((GetKeyState(VK_RCONTROL) & 0xf0) != 0);
+        printf("ctrlkey => %d\n", ctrlkey);
+        if (ctrlkey) {
+            ch |= 0x0800;
+        }
+    }
     KX_ADJST_STACK();
     push_i(ctx->stack, ch);
     return 0;
@@ -983,6 +994,7 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
         push_i(ctx->stack, KX_KEY_ENTER);
         return 0;
     }
+
     if (ch == 0x1b) {
         ch = get_keycode(ctx, 1);
         if (ch < 0) {
@@ -992,6 +1004,29 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
             case 0x5b:
                 ch = get_keycode(ctx, 0);
                 switch (ch) {
+                case 0x31: {
+                    ch = get_keycode(ctx, 0);
+                    if (ch != 0x3b) {
+                        ch = 0;
+                        break;
+                    }
+                    ch = get_keycode(ctx, 0);
+                    if (ch != 0x35) {
+                        ch = 0;
+                        break;
+                    }
+                    ch = get_keycode(ctx, 0);
+                    switch (ch) {
+                    case 0x41: ch = KX_KEY_CTEL_UP;    break; // ctrl + up.
+                    case 0x42: ch = KX_KEY_CTEL_DOWN;  break; // ctrl + down.
+                    case 0x43: ch = KX_KEY_CTEL_RIGHT; break; // ctrl + right.
+                    case 0x44: ch = KX_KEY_CTEL_LEFT;  break; // ctrl + left.
+                    default:
+                        ch = 0;
+                        break;
+                    }
+                    break;
+                }
                 case 0x33:
                     ch = get_keycode(ctx, 0);
                     switch (ch) {
