@@ -5,13 +5,40 @@ Signal.trap(Signal.SIGINT, &() => {
 
 class ReplHelper {
     var stringLiteral = "(\"(?:\\\\\"|.)*?\"|'(?:\\\\'|.)*?')";
-    var keywords_ = "\\b(:break|class|catch|case|continue|const|do|default|else|enum|"
-                    "function|for|finally|false|if|in|module|mixin|null|new|native|namespace|"
-                    "public|private|protected|return|super|switch|this|throw|try|true|using|undefined|var|while|yield)\\b";
+    var keywordList_ = [
+        "break", "class", "catch", "case", "continue", "const", "do", "default", "else", "enum", ""
+        "function", "for", "finally", "false", "if", "in", "module", "mixin", "null", "new", "native", "namespace", ""
+        "public", "private", "protected", "return", "super", "switch", "this", "throw", "try", "true",
+        "using", "undefined", "var", "while", "yield"
+    ];
+    var keywords_ = "\\b(%{keywordList_.join('|')})\\b";
     var numbers_ = "(0[0-7]*|[1-9][0-9]*|0x[0-9a-fA-F]+)";
     var variables_ = "\\b(@|[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)\\b";
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
+
+    var hints_ = {
+        chars: "",
+        pos: 0,
+        cont: false,
+        list: null
+    };
+
+    public addHintChar(ch) {
+        hints_.chars += ch;
+    }
+    public removeHintChar() {
+        var l = hints_.chars.length();
+        if (l > 0) {
+            hints_.chars[-1] = 0;
+        }
+    }
+    public resetHint() {
+        if (!hints_.cont) {
+            hints_.list = null;
+            hints_.pos = 0;
+        }
+    }
 
     public coloringLine(inputLine) {
         if (inputLine) {
@@ -82,7 +109,15 @@ class Repl {
         line: 0,
         history: [],
         vars: {},
-        usings: {}
+        usings: {},
+    };
+    var re_ = {
+        assign: /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/,
+        func: /^\s*function\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
+        usings: /^\s*using\s*([$_a-zA-Z0-9]+)/,
+        clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
+        modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
+        vars: /\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)(?:;|\s*\n)?/,
     };
 
     private initialize() {
@@ -282,7 +317,8 @@ class Repl {
         try {
             var g;
             // assignment.
-            if (g = (input =~ /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/)) {
+            re_.assign.reset(input);
+            if (g = (input =~ re_.assign)) {
                 var name = g[1].string;
                 var value = g[2].string;
                 input = appendPreCode() + input + makeReturnCode(name);
@@ -305,7 +341,8 @@ class Repl {
                 return r;
             }
 
-            if (g = (input =~ /^\s*function\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/)) {
+            re_.func.reset(input);
+            if (g = (input =~ re_.func)) {
                 var name = g[1].string;
                 input = "%{name} = function(%{g[2].string}) %{g[3].string}";
                 input = appendPreCode() + input + ";return 'function %{name}(%{g[2].string})';";
@@ -321,21 +358,20 @@ class Repl {
                 return r;
             }
 
-            if (g = (input =~ /^\s*using\s*([$_a-zA-Z0-9]+)/)) {
+            re_.usings.reset(input);
+            if (g = (input =~ re_.usings)) {
                 info_.usings.push(g[1].string);
                 return;
             }
 
             var unsupported = false;
-            if (g = (input =~ /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/)) {
+            re_.clas.reset(input);
+            if (g = (input =~ re_.clas)) {
                 // Unsupported so far.
                 unsupported = true;
             }
-            if (g = (input =~ /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/)) {
-                // Unsupported so far.
-                unsupported = true;
-            }
-            if (g = (input =~ /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/)) {
+            re_.modl.reset(input);
+            if (g = (input =~ re_.modl)) {
                 // Unsupported so far.
                 unsupported = true;
             }
@@ -348,13 +384,14 @@ class Repl {
             if (expr.find(';') < 0) {
                 // 1 line, means expression;
                 input = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
-                # System.println(input);
+                System.println(input);
                 return input.evalNew();
             }
 
             v = "";
             r = "";
-            while (g = (input =~ /\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)(?:;|\s*\n)?/)) {
+            re_.vars.reset(input);
+            while (g = (input =~ re_.vars)) {
                 var name = g[1].string;
                 var value = g[2].string;
                 v += "%{name},";
