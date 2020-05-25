@@ -76,14 +76,13 @@ const color256_t g_color256[] = {
   { 0xd0, 0xd0, 0xd0, 0x00 }, { 0xda, 0xda, 0xda, 0x00 }, { 0xe4, 0xe4, 0xe4, 0x00 }, { 0xee, 0xee, 0xee, 0x00 },
 };
 
-#define DCOL_THRESHOLD1 (0x10)
-#define DCOL_THRESHOLD2 (0x40)
-#define MCOL_THRESHOLD1 (0x5f)
-#define LCOL_THRESHOLD1 (0xbf)
+#define BLACK_THRESHOLD1 (0x10)
+#define DIFF_THRESHOLD2 (0x20)
+#define COLOR_THRESHOLD1 (0x6f)
 #define MIN3(a,b,c) ((a > b) ? (b > c ? c : b) : (a > c ? c : a))
-#define MAX3(a,b,c) ((a > b) ? (a > c ? a : c) : (b > c ? b : c))
+#define SQRE(a) ((long long)(a)*(long long)(a))
 #define MK_INTENSITY(c256) { \
-  if (c256.r < DCOL_THRESHOLD1 && c256.g < DCOL_THRESHOLD1 && c256.b < DCOL_THRESHOLD1) { \
+  if (c256.r < BLACK_THRESHOLD1 && c256.g < BLACK_THRESHOLD1 && c256.b < BLACK_THRESHOLD1) { \
       c256.x = 0; \
       c256.r = c256.g = c256.b = 0; \
   } else if (c256.r == c256.g && c256.r == c256.b) { \
@@ -92,38 +91,34 @@ const color256_t g_color256[] = {
     else if (c256.r < 0x70) \
       c256.r = c256.g = c256.b = 0, c256.x = 1; \
     else if (c256.r < 0xb8) \
-      c256.r = c256.g = c256.b = 0xff, c256.x = 0; \
+      c256.r = c256.g = c256.b = 1, c256.x = 0; \
     else \
-      c256.r = c256.g = c256.b = 0xff, c256.x = 1; \
+      c256.r = c256.g = c256.b = 1, c256.x = 1; \
   } else { \
-    int d = 0; \
-    if (c256.r > LCOL_THRESHOLD1) \
-      d = (int)sqrt(c256.g*c256.g + c256.b*c256.b); \
-    if (c256.g > LCOL_THRESHOLD1) \
-      d = (int)sqrt(c256.r*c256.r + c256.b*c256.b); \
-    if (c256.b > LCOL_THRESHOLD1) \
-      d = (int)sqrt(c256.r*c256.r + c256.g*c256.g); \
-    if (d > 181) \
+    int d1 = (int)sqrt(SQRE(c256.r) + SQRE(c256.g) + SQRE(c256.b)); \
+    if (d1 > 413) { \
+      c256.r = c256.g = c256.b = 1; \
       c256.x = 1; \
-    int maxc = MAX3(c256.r, c256.g, c256.b); \
-    int minc = MIN3(c256.r, c256.g, c256.b); \
-    if (minc > LCOL_THRESHOLD1) { \
-      c256.x = 1; \
-      c256.r = c256.g = c256.b = 0xff; \
-    } else if (((maxc - minc) > DCOL_THRESHOLD2)) { \
-      if (c256.r == minc) \
-        c256.r = c256.r > MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 - (MCOL_THRESHOLD1/2): c256.r; \
-      else if ((c256.r - minc) > DCOL_THRESHOLD2) \
-        c256.r = c256.r < MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 + (MCOL_THRESHOLD1/2): c256.r; \
-      if (c256.g == minc) \
-        c256.g = c256.g > MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 - (MCOL_THRESHOLD1/2): c256.g; \
-      else if ((c256.g - minc) > DCOL_THRESHOLD2) \
-        c256.g = c256.g < MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 + (MCOL_THRESHOLD1/2): c256.g; \
-      if (c256.b == minc) \
-        c256.b = c256.b > MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 - (MCOL_THRESHOLD1/2): c256.b; \
-      else if ((c256.b - minc) > DCOL_THRESHOLD2) \
-        c256.b = c256.b < MCOL_THRESHOLD1 ? MCOL_THRESHOLD1 + (MCOL_THRESHOLD1/2): c256.b; \
-      if (c256.r <= MCOL_THRESHOLD1 && c256.g <= MCOL_THRESHOLD1 && c256.b <= MCOL_THRESHOLD1) \
+    } else if (d1 > 386) { \
+      c256.r = c256.g = c256.b = 1; \
+      c256.x = 0; \
+    } else { \
+      int minc = MIN3(c256.r, c256.g, c256.b); \
+      if ((c256.r != minc) && (c256.r > COLOR_THRESHOLD1) && (c256.r - minc) > DIFF_THRESHOLD2) \
+        c256.r = 1; \
+      else \
+        c256.r = 0; \
+      if ((c256.g != minc) && (c256.g > COLOR_THRESHOLD1) && (c256.g - minc) > DIFF_THRESHOLD2) \
+        c256.g = 1; \
+      else \
+        c256.g = 0; \
+      if ((c256.b != minc) && (c256.b > COLOR_THRESHOLD1) && (c256.b - minc) > DIFF_THRESHOLD2) \
+        c256.b = 1; \
+      else \
+        c256.b = 0; \
+      if (c256.r == 0 && c256.g == 0 && c256.b == 0) \
+        c256.x = 1; \
+      else if (!(c256.r == 1 && c256.g == 1 && c256.b == 1) && d1 > 330) \
         c256.x = 1; \
     } \
   } \
@@ -387,15 +382,15 @@ retry:
               }
               if (use256) {
                 MK_INTENSITY(c256);
-                if (c256.r > MCOL_THRESHOLD1)
+                if (c256.r)
                   attr |= FOREGROUND_RED;
                 else
                   attr &= ~FOREGROUND_RED;
-                if (c256.g > MCOL_THRESHOLD1)
+                if (c256.g)
                   attr |= FOREGROUND_GREEN;
                 else
                   attr &= ~FOREGROUND_GREEN;
-                if (c256.b > MCOL_THRESHOLD1)
+                if (c256.b)
                   attr |= FOREGROUND_BLUE;
                 else
                   attr &= ~FOREGROUND_BLUE;
@@ -454,15 +449,15 @@ retry:
               }
               if (use256) {
                 MK_INTENSITY(c256);
-                if (c256.r > MCOL_THRESHOLD1)
+                if (c256.r)
                   attr |= BACKGROUND_RED;
                 else
                   attr &= ~BACKGROUND_RED;
-                if (c256.g > MCOL_THRESHOLD1)
+                if (c256.g)
                   attr |= BACKGROUND_GREEN;
                 else
                   attr &= ~BACKGROUND_GREEN;
-                if (c256.b > MCOL_THRESHOLD1)
+                if (c256.b)
                   attr |= BACKGROUND_BLUE;
                 else
                   attr &= ~BACKGROUND_BLUE;
