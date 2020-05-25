@@ -515,7 +515,7 @@ kx_context_t *compile_code(const char *code)
     if (start < 0) {
         context_cleanup(ctx);
         ctx = make_context();
-        start = eval_string("throw SystemException('Isolate compile error');", ctx);
+        start = eval_string("throw SystemException('Compile error');", ctx);
         if (start < 0) {
             return NULL;
         }
