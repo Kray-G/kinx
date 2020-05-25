@@ -954,7 +954,6 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     }
     if (ch == KX_KEY_RIGHT || ch == KX_KEY_LEFT) {
         int ctrlkey = ((GetKeyState(VK_LCONTROL) & 0xf0) != 0) || ((GetKeyState(VK_RCONTROL) & 0xf0) != 0);
-        printf("ctrlkey => %d\n", ctrlkey);
         if (ctrlkey) {
             ch |= 0x0800;
         }
