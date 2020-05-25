@@ -271,72 +271,71 @@ static int kx_lex_make_string(char quote)
             if (kx_lexinfo.ch == quote) {
                 break;
             }
-        } else {
-            if (kx_lexinfo.ch == '\\') {
+        }
+        if (kx_lexinfo.ch == '\\') {
+            kx_lex_next(kx_lexinfo);
+            switch (kx_lexinfo.ch) {
+            case 'a':  kx_lexinfo.ch = '\a'; break;
+            case 'b':  kx_lexinfo.ch = '\b'; break;
+            case 'e':  kx_lexinfo.ch = '\x1b'; break;
+            case 'f':  kx_lexinfo.ch = '\f'; break;
+            case 'n':  kx_lexinfo.ch = '\n'; break;
+            case 'r':  kx_lexinfo.ch = '\r'; break;
+            case 't':  kx_lexinfo.ch = '\t'; break;
+            case 'v':  kx_lexinfo.ch = '\f'; break;
+            case '"':  kx_lexinfo.ch = '\"'; break;
+            case '\'': kx_lexinfo.ch = '\''; break;
+            case '?':  kx_lexinfo.ch = '?';  break;
+            case '1':  kx_lexinfo.ch = '\1'; break;
+            case '2':  kx_lexinfo.ch = '\2'; break;
+            case '3':  kx_lexinfo.ch = '\3'; break;
+            case '4':  kx_lexinfo.ch = '\4'; break;
+            case '5':  kx_lexinfo.ch = '\5'; break;
+            case '6':  kx_lexinfo.ch = '\6'; break;
+            case '7':  kx_lexinfo.ch = '\7'; break;
+            case '\\': kx_lexinfo.ch = '\\'; break;
+            case '0': {
                 kx_lex_next(kx_lexinfo);
-                switch (kx_lexinfo.ch) {
-                case 'a':  kx_lexinfo.ch = '\a'; break;
-                case 'b':  kx_lexinfo.ch = '\b'; break;
-                case 'e':  kx_lexinfo.ch = '\x1b'; break;
-                case 'f':  kx_lexinfo.ch = '\f'; break;
-                case 'n':  kx_lexinfo.ch = '\n'; break;
-                case 'r':  kx_lexinfo.ch = '\r'; break;
-                case 't':  kx_lexinfo.ch = '\t'; break;
-                case 'v':  kx_lexinfo.ch = '\f'; break;
-                case '"':  kx_lexinfo.ch = '\"'; break;
-                case '\'': kx_lexinfo.ch = '\''; break;
-                case '?':  kx_lexinfo.ch = '?';  break;
-                case '1':  kx_lexinfo.ch = '\1'; break;
-                case '2':  kx_lexinfo.ch = '\2'; break;
-                case '3':  kx_lexinfo.ch = '\3'; break;
-                case '4':  kx_lexinfo.ch = '\4'; break;
-                case '5':  kx_lexinfo.ch = '\5'; break;
-                case '6':  kx_lexinfo.ch = '\6'; break;
-                case '7':  kx_lexinfo.ch = '\7'; break;
-                case '\\': kx_lexinfo.ch = '\\'; break;
-                case '0': {
+                int c1 = kx_lexinfo.ch;
+                if (is_oct_number(c1)) {
                     kx_lex_next(kx_lexinfo);
-                    int c1 = kx_lexinfo.ch;
-                    if (is_oct_number(c1)) {
-                        kx_lex_next(kx_lexinfo);
-                        int c2 = kx_lexinfo.ch;
-                        if (is_oct_number(c2)) {
-                            char buf[] = { '0', c1, c2, 0 };
-                            kx_lexinfo.ch = strtol(buf, NULL, 8);
-                            break;
-                        } else {
-                            kx_yywarning("Invalid character in string literal");
-                            move_next = 0;
-                        }
-                    } else {
-                        // can not set '\0' into the string, just ignoring.
-                        move_next = 0;
-                    }
-                    break;
-                }
-                case 'x': {
-                    kx_lex_next(kx_lexinfo);
-                    int c1 = kx_lexinfo.ch;
-                    if (is_hex_number(c1)) {
-                        kx_lex_next(kx_lexinfo);
-                        int c2 = kx_lexinfo.ch;
-                        if (is_hex_number(c2)) {
-                            char buf[] = { c1, c2, 0 };
-                            kx_lexinfo.ch = strtol(buf, NULL, 16);
-                            break;
-                        } else {
-                            kx_yywarning("Invalid character in string literal");
-                            move_next = 0;
-                        }
+                    int c2 = kx_lexinfo.ch;
+                    if (is_oct_number(c2)) {
+                        char buf[] = { '0', c1, c2, 0 };
+                        kx_lexinfo.ch = strtol(buf, NULL, 8);
+                        break;
                     } else {
                         kx_yywarning("Invalid character in string literal");
                         move_next = 0;
                     }
-                    break;
+                } else {
+                    // can not set '\0' into the string, just ignoring.
+                    move_next = 0;
                 }
-                default:
+                break;
+            }
+            case 'x': {
+                kx_lex_next(kx_lexinfo);
+                int c1 = kx_lexinfo.ch;
+                if (is_hex_number(c1)) {
+                    kx_lex_next(kx_lexinfo);
+                    int c2 = kx_lexinfo.ch;
+                    if (is_hex_number(c2)) {
+                        char buf[] = { c1, c2, 0 };
+                        kx_lexinfo.ch = strtol(buf, NULL, 16);
+                        break;
+                    } else {
+                        kx_yywarning("Invalid character in string literal");
+                        move_next = 0;
+                    }
+                } else {
                     kx_yywarning("Invalid character in string literal");
+                    move_next = 0;
                 }
+                break;
+            }
+            default:
+                kx_yywarning("Invalid character in string literal");
             }
         }
         kx_strbuf[pos++] = kx_lexinfo.ch;
