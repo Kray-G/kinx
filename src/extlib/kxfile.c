@@ -1016,10 +1016,10 @@ int Stdin_scan_keycode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
                     }
                     ch = get_keycode(ctx, 0);
                     switch (ch) {
-                    case 0x41: ch = KX_KEY_CTEL_UP;    break; // ctrl + up.
-                    case 0x42: ch = KX_KEY_CTEL_DOWN;  break; // ctrl + down.
-                    case 0x43: ch = KX_KEY_CTEL_RIGHT; break; // ctrl + right.
-                    case 0x44: ch = KX_KEY_CTEL_LEFT;  break; // ctrl + left.
+                    case 0x41: ch = KX_KEY_CTRL_UP;    break; // ctrl + up.
+                    case 0x42: ch = KX_KEY_CTRL_DOWN;  break; // ctrl + down.
+                    case 0x43: ch = KX_KEY_CTRL_RIGHT; break; // ctrl + right.
+                    case 0x44: ch = KX_KEY_CTRL_LEFT;  break; // ctrl + left.
                     default:
                         ch = 0;
                         break;
