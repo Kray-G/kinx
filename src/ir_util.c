@@ -7,6 +7,7 @@
 #include <kvec.h>
 #include <kstr.h>
 #include <kinx.h>
+#include <kutil.h>
 #include <kxexec.h>
 #include <kxthread.h>
 
