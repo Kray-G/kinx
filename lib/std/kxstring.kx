@@ -33,7 +33,7 @@ String.each = _function(str, callback) {
     }
 };
 
-String.replace = function(str, cond, newstr) {
+String.replace = _function(str, cond, newstr) {
     if (cond.isString) {
         if (!newstr.isString) {
             throw RuntimeException('Replacing must be done by string');
