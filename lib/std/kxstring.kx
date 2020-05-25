@@ -33,14 +33,35 @@ String.each = _function(str, callback) {
     }
 };
 
-String.replace = _function(str, cond, newstr) {
-    if (!newstr.isString) {
-        throw RuntimeException('Replacing must be done by string');
-    }
+String.replace = function(str, cond, newstr) {
     if (cond.isString) {
+        if (!newstr.isString) {
+            throw RuntimeException('Replacing must be done by string');
+        }
         return str.replaceByString(cond, newstr);
     } else if (cond.isRegex) {
-        return cond.replaceOf(str, newstr);
+        if (newstr.isString) {
+            return cond.replaceOf(str, newstr);
+        } else if (newstr.isFunction) {
+            var start = 0, end = 0;
+            var rstr = "";
+            cond.reset(str);
+            while (cond.find()) {
+                var matched = cond.group[0];
+                var mb = matched.begin;
+                end = matched.end;
+                rstr += str.subString(start, mb - start);
+                rstr += newstr(cond.group);
+                start = end;
+            }
+            if (start > 0) {
+                rstr += str.subString(start);
+            } else {
+                rstr = str;
+            }
+            return rstr;
+        }
+        throw RuntimeException('Invalid replace condition');
     } else {
         throw RuntimeException('Invalid replace condition');
     }
