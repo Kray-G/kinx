@@ -26,6 +26,7 @@
     *   Supported Process library.
     *   Supported `System.gtopt()`.
     *   Supported Escape Sequence with `\e`.
+    *   Supported a part of REPL (Read-Eval-Print Loop), but it is not a full version.
     *   Some bug fixes and improvement.
 
 ## V0.7.1 (7th Preview Release)
