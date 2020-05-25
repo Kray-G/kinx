@@ -24,6 +24,9 @@ class ReplHelper {
         list: null
     };
 
+    public continueHint() {
+        hints_.cont = true;
+    }
     public addHintChar(ch) {
         hints_.chars += ch;
     }
@@ -38,6 +41,7 @@ class ReplHelper {
             hints_.list = null;
             hints_.pos = 0;
         }
+        hints_.cont = false;
     }
 
     public coloringLine(inputLine) {
@@ -163,6 +167,28 @@ class Repl {
         return brs;
     }
 
+    private removeIndent(pos, info) {
+        if (pos > 1) {
+            var del = 0;
+            for (var i = 0; i < pos; ++i) {
+                if (info[i].str == ' ') {
+                    ++del;
+                } else {
+                    break;
+                }
+            }
+            if (del == pos) {
+                if (pos > 3) del = 4;
+                else         del = pos;
+                while (del--) {
+                    info.pop();
+                    --pos;
+                }
+            }
+        }
+        return pos;
+    }
+
     public read() {
         var historyPos = info_.history.length();
         var lines = 0;
@@ -184,18 +210,26 @@ class Repl {
                 ++lines;
                 info = [];
                 pos = 0;
+                for (var i = 0; i < brs; ++i) {
+                    4.times(&() => info.push({ len: 1, str: ' ' }));
+                    pos += 4;
+                }
                 continue;
             case KX_KEY_TAB:
-                add = (4 - (pos % 4));
-                if (pos == info.length()) {
-                    add.times(&() => info.push({ len: 1, str: ' ' }));
+                if (pos > 1 && info[pos-1].str != ' ') {
+                    ;
                 } else {
-                    var e = info.subArray(pos);
-                    info = info.subArray(0, pos);
-                    add.times(&() => info.push({ len: 1, str: ' ' }));
-                    info += e;
+                    add = (4 - (pos % 4));
+                    if (pos == info.length()) {
+                        add.times(&() => info.push({ len: 1, str: ' ' }));
+                    } else {
+                        var e = info.subArray(pos);
+                        info = info.subArray(0, pos);
+                        add.times(&() => info.push({ len: 1, str: ' ' }));
+                        info += e;
+                    }
+                    pos = pos + add;
                 }
-                pos = pos + add;
                 continue;
             case KX_KEY_UP:
                 if (0 < historyPos) {
@@ -268,6 +302,9 @@ class Repl {
                 }
                 ++pos;
             } else if (20 <= c && c <= '}'[0]) {
+                if (c == '}'[0]) {
+                    pos = removeIndent(pos, info);
+                }
                 if (pos == info.length()) {
                     info.push({
                         len: 1,
@@ -384,7 +421,7 @@ class Repl {
             if (expr.find(';') < 0) {
                 // 1 line, means expression;
                 input = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
-                System.println(input);
+                # System.println(input);
                 return input.evalNew();
             }
 
@@ -401,17 +438,19 @@ class Repl {
             input = appendPreCode() + "var %{v}_dummy;" + input + ";if ('%{r}' != '') return ({%{r}}.toJsonString());";
             # System.println(input);
             r = input.evalNew();
-            if (r[0] != '{'[0] && r[0] != '['[0]) {
-                r = r.quote();
-            } else {
-                r = System.try(&() => JSON.parse(r)).else();
-            }
-            if (r) {
-                r.keySet().each(&(name) => {
-                    info_.vars[name] = {
-                        value: r[name],
-                    };
-                });
+            if (r != "(null)") {
+                if (r[0] != '{'[0] && r[0] != '['[0]) {
+                    r = r.quote();
+                } else {
+                    r = System.try(&() => JSON.parse(r)).else();
+                }
+                if (r) {
+                    r.keySet().each(&(name) => {
+                        info_.vars[name] = {
+                            value: r[name],
+                        };
+                    });
+                }
             }
         } catch (e) {
             printError("Compile Error.");
