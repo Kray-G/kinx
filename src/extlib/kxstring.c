@@ -110,7 +110,12 @@ int String_trim(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (str) {
         kstr_t *s = allocate_str(ctx);
         ks_append(s, str);
-        ks_trim(s);
+        const char *ch = args > 1 ? get_arg_str(2, args, ctx) : NULL;
+        if (ch && ch[0]) {
+            ks_trim_char(s, ch[0]);
+        } else {
+            ks_trim(s);
+        }
         KX_ADJST_STACK();
         push_sv(ctx->stack, s);
         return 0;
@@ -125,7 +130,12 @@ int String_trimLeft(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (str) {
         kstr_t *s = allocate_str(ctx);
         ks_append(s, str);
-        ks_trim_left(s);
+        const char *ch = args > 1 ? get_arg_str(2, args, ctx) : NULL;
+        if (ch && ch[0]) {
+            ks_trim_left_char(s, ch[0]);
+        } else {
+            ks_trim_left(s);
+        }
         KX_ADJST_STACK();
         push_sv(ctx->stack, s);
         return 0;
@@ -140,7 +150,12 @@ int String_trimRight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     if (str) {
         kstr_t *s = allocate_str(ctx);
         ks_append(s, str);
-        ks_trim_right(s);
+        const char *ch = args > 1 ? get_arg_str(2, args, ctx) : NULL;
+        if (ch && ch[0]) {
+            ks_trim_right_char(s, ch[0]);
+        } else {
+            ks_trim_right(s);
+        }
         KX_ADJST_STACK();
         push_sv(ctx->stack, s);
         return 0;
