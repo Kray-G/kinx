@@ -63,6 +63,46 @@ static inline void sleep_ms(kx_context_t *ctx, int msec)
     #endif
 }
 
+/* utility */
+
+static inline void make_quote_string(kstr_t *str, const char *p)
+{
+    if (p) {
+        ks_append(str, "\"");
+        while (*p) {
+            if (*p == '\"' || *p == '\\') {
+                ks_append(str, "\\");
+                char buf[] = { *p, 0 };
+                ks_append(str, buf);
+                ++p;
+            } else {
+                switch (*p) {
+                case '\n':
+                    ks_append(str, "\\n");
+                    ++p;
+                    break;
+                case '\t':
+                    ks_append(str, "\\t");
+                    ++p;
+                    break;
+                case '\r':
+                    ks_append(str, "\\r");
+                    ++p;
+                    break;
+                default: {
+                    char buf[] = { *p, 0 };
+                    ks_append(str, buf);
+                    ++p;
+                    break;
+                }}
+            }
+        }
+        ks_append(str, "\"");
+    } else {
+        ks_append(str, "\"\"");
+    }
+}
+
 /* for file access */
 
 typedef struct fileinfo_ {
