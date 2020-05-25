@@ -1,12 +1,21 @@
-System.print("0%%       50%%       100%%\n");
-System.print("+---------+---------+\n");
-for (i = 0; i <= 100; i++) {
-    for (j = 0; j < i / 5 + 1; j++) {
-        System.print("#");
-    }
-    System.print("\n");
-    System.print("%3d%%\n" % i);
-    System.sleep(100);
-    System.print("\e[2A");
-}
-System.print("\n\nfinish!\n");
+(0..4).each(&(r) => {
+    var g=5;
+    (0..5).each(&(b) => {
+        var col = r*36 + g*6 + b + 16;
+        System.print("\e[48;5;%dm%8d \e[0m" % col % col);
+    });
+    System.println("");
+});
+(0..5).each(&(g) => {
+    var r=5;
+    (0..5).each(&(b) => {
+        var col = r*36 + 30 - g*6 + b + 16;
+        System.print("\e[48;5;%dm%8d \e[0m" % col % col);
+    });
+    var b=5;
+    (1..5).each(&(r) => {
+        var col = 180 - r*36 + 30 - g*6 + b + 16;
+        System.print("\e[48;5;%dm%8d \e[0m" % col % col);
+    });
+    System.println("");
+});
