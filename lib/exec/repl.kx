@@ -1,5 +1,5 @@
 Signal.trap(Signal.SIGINT, &() => {
-    System.println("\nTerminate.");
+    System.println("\nREPL Terminated.");
     return false;
 });
 
@@ -54,12 +54,20 @@ class ReplCommand(helper_, info_) {
                 System.println(helper_.coloringLine("(%{info_.vars[key].disp})"));
             }
         });
+        System.println("");
     }
     public history() {
         info_.history.each(&(h, i) => {
             var l = helper_.coloringLine(h.info.map(&(e) => e.str).join(''));
             System.println("[%3d]: %s" % i % l);
         });
+        System.println("");
+    }
+    public func(name) {
+        if (info_.vars[name || ""].func) {
+            System.println(helper_.coloringLine("%{info_.vars[name].disp} %{info_.vars[name].body.trim()}"));
+        }
+        System.println("");
     }
 }
 
@@ -70,6 +78,7 @@ class Repl {
         line: 0,
         history: [],
         vars: {},
+        usings: {}
     };
 
     private initialize() {
@@ -93,7 +102,7 @@ class Repl {
     }
 
     private printCommand(cmd) {
-        System.println("\x1b[34;1m=> %{cmd}\x1b[0m\n");
+        System.println("\x1b[34;1m=> %{cmd.trim()}\x1b[0m");
     }
 
     private printResult(result) {
@@ -240,7 +249,8 @@ class Repl {
     }
 
     private appendPreCode(code) {
-        var r = info_.vars.keySet()
+        var r = info_.usings.map(&(modules) => "using %{modules};").join('\n') + '\n';
+        r += info_.vars.keySet()
             .map(&(key) => {
                 if (info_.vars[key].value) {
                     return "var %{key} = %{info_.vars[key].value};";
@@ -270,6 +280,7 @@ class Repl {
                     r = input.evalNew();
                     info_.vars[name] = {
                         func: info_.vars[value].func,
+                        body: info_.vars[value].body,
                         disp: 'function %{name}(%{info_.vars[value].args})',
                         name: name,
                         args: info_.vars[value].args
@@ -291,6 +302,7 @@ class Repl {
                 r = input.evalNew();
                 info_.vars[name] = {
                     func: "function(%{g[2].string}) %{g[3].string}",
+                    body: g[3].string,
                     disp: 'function %{name}(%{g[2].string})',
                     name: name,
                     args: g[2].string
@@ -298,11 +310,34 @@ class Repl {
                 return r;
             }
 
+            if (g = (input =~ /^\s*using\s*([$_a-zA-Z0-9]+)/)) {
+                info_.usings.push(g[1].string);
+                return;
+            }
+
+            var unsupported = false;
+            if (g = (input =~ /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/)) {
+                // Unsupported so far.
+                unsupported = true;
+            }
+            if (g = (input =~ /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/)) {
+                // Unsupported so far.
+                unsupported = true;
+            }
+            if (g = (input =~ /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/)) {
+                // Unsupported so far.
+                unsupported = true;
+            }
+            if (unsupported) {
+                printError("Sorry, currently it is not supported.");
+                return;
+            }
+
             var expr = input.trim().trim(';');
             if (expr.find(';') < 0) {
                 // 1 line, means expression;
                 input = appendPreCode() + ";_$ = (%{expr}); if (_$.isObject) return _$.toJsonString(); return _$;";
-                # System.println(input);
+                System.println(input);
                 return input.evalNew();
             }
 
@@ -327,9 +362,9 @@ class Repl {
                 });
             }
         } catch (e) {
-            System.println("Error: " + e.what());
-            System.println("Code:");
-            System.println(input);
+            printError("Compile Error.");
+            # System.println("Code:");
+            # System.println(input);
         }
         return r;
     }
@@ -347,8 +382,10 @@ class Repl {
                 if (f == "quit") {
                     break;
                 }
-                if (cmd_[f].isFunction) {
-                    cmd_[f]();
+                f = f.split(/\s+/);
+                var cname = f.shift();
+                if (cmd_[cname].isFunction) {
+                    cmd_[cname](...f);
                 } else {
                     printError("Unknown command.");
                     info_.history.pop();
@@ -364,11 +401,13 @@ class Repl {
                     continue;
                 }
                 info_.history[-1].info = input;
-                input = input.map(&(e) => e.str).join('');
+                input = input.map(&(e) => e.str).join('') + '\n';
                 printCommand(input);
             }
             var result = eval(input);
-            print(result);
+            if (result.isDefined) {
+                print(result);
+            }
         }
     }
 
