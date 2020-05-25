@@ -3,14 +3,67 @@ Signal.trap(Signal.SIGINT, &() => {
     return false;
 });
 
+class ReplCommand(repl_, info_) {
+    var keywords_ = "\\b(:break|class|catch|case|continue|const|do|default|else|enum|"
+                    "function|for|finally|false|if|in|module|mixin|null|new|native|namespace|"
+                    "public|private|protected|return|super|switch|this|throw|try|true|using|undefined|var|while|yield)\\b";
+    var numbers_ = "(0[0-7]*|[1-9][0-9]+|0x[0-9a-fA-F]+)";
+    var variables_ = "\\b(@|[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)\\b";
+    var re_ = new Regex("%{keywords_}|%{numbers_}|%{variables_}");
+
+    public coloringLine(inputLine) {
+        if (inputLine) {
+            inputLine = inputLine.replace(re_, &(g) => {
+                if (g[1].string) {
+                    return "\x1b[35m%{g[1].string}\x1b[0m";
+                }
+                if (g[2].string) {
+                    return "\x1b[36m%{g[2].string}\x1b[0m";
+                }
+                if (g[3].string) {
+                    return "\x1b[33m%{g[3].string}\x1b[0m";
+                }
+                return g[0].string;
+            });
+        }
+        return inputLine;
+    }
+    public vars() {
+        info_.vars.keySet().each(&(key) => {
+            if (info_.vars[key].value) {
+                System.println(coloringLine("%{key} = %{info_.vars[key].value}"));
+            } else if (info_.vars[key].func) {
+                System.println(coloringLine("%{info_.vars[key].name}"));
+            }
+        });
+    }
+    public history() {
+        info_.history.each(&(h, i) => {
+            var l = coloringLine(h.info.map(&(e) => e.str).join(''));
+            System.println("[%3d]: %s" % i % l);
+        });
+    }
+}
+
 class Repl {
 
-    var widthMap_;
+    var widthMap_, cmd_;
+    var info_ = {
+        line: 0,
+        history: [],
+        vars: {},
+    };
+
+    private initialize() {
+        cmd_ = new ReplCommand(this, info_);
+    }
 
     private showPrompt(pos, info, lines) {
         var infolen = info.length();
-        var prompt = lines > 0 ? "        > " : ("kinx[%2d]> " % pos).format();
-        System.print(("\x1b[2K\r\x1b[32m%{prompt}\x1b[0m ") + info.map(&(e) => e.str).join(''));
+        var histlen = info_.history.length();
+        var prompt = ((lines > 0 ? "    [%3d]> " : "kinx[%3d]> ") % histlen).format();
+        inputLine = cmd_.coloringLine(info.map(&(e) => e.str).join(''));
+        System.print(("\x1b[2K\r\x1b[32m%{prompt}\x1b[0m ") + inputLine);
         if (pos != infolen) {
             var linepos = 0;
             for (var i = pos; i < infolen; ++i) {
@@ -20,8 +73,27 @@ class Repl {
         }
     }
 
-    public read() {
+    private printCommand(cmd) {
+        System.print("\x1b[34;1m=> %{cmd}\x1b[0m\n");
+    }
+
+    private printResult(result) {
+        System.print("\x1b[32;1m=> \x1b[0m%{result}\n");
+    }
+
+    private countBrs(buf) {
         var brs = 0;
+        buf.each(&(info) => {
+            info.each(&(l) => {
+                if (l.str == '{') brs++;
+                if (l.str == '}') brs--;
+            });
+        });
+        return brs;
+    }
+
+    public read() {
+        var historyPos = info_.history.length();
         var lines = 0;
         var pos = 0;
         var buf = [];
@@ -32,14 +104,16 @@ class Repl {
             switch (c) {
             case KX_KEY_ENTER:
                 System.println("");
+                info_.history.push({ info: info });
                 buf.push(info);
-                if (brs > 0) {
-                    ++lines;
-                    info = [];
-                    pos = 0;
-                    continue;
+                var brs = countBrs(buf);
+                if (brs == 0) {
+                    return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
                 }
-                return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
+                ++lines;
+                info = [];
+                pos = 0;
+                continue;
             case KX_KEY_TAB:
                 add = (4 - (pos % 4));
                 if (pos == info.length()) {
@@ -51,6 +125,20 @@ class Repl {
                     info += e;
                 }
                 pos = pos + add;
+                continue;
+            case KX_KEY_UP:
+                if (0 < historyPos) {
+                    historyPos--;
+                    info = info_.history[historyPos].info.clone();
+                    pos = info.length();
+                }
+                continue;
+            case KX_KEY_DOWN:
+                if (historyPos < info_.history.length() - 1) {
+                    historyPos++;
+                    info = info_.history[historyPos].info.clone();
+                    pos = info.length();
+                }
                 continue;
             case KX_KEY_LEFT:
                 if (0 < pos) {
@@ -109,8 +197,6 @@ class Repl {
                 }
                 ++pos;
             } else if (20 <= c && c <= '}'[0]) {
-                if (c == '{'[0]) ++brs;
-                else if (c == '}'[0]) --brs;
                 if (pos == info.length()) {
                     info.push({
                         len: 1,
@@ -130,42 +216,113 @@ class Repl {
         }
     }
 
-    var command_ = {
-        decl: [],
-    };
+    private error(msg) {
+        System.println("Error: ", msg);
+    }
+
+    private appendPreCode(code) {
+        return info_.vars.keySet()
+            .map(&(key) => {
+                if (info_.vars[key].value) {
+                    return "var %{key} = %{info_.vars[key].value};";
+                } else if (info_.vars[key].func) {
+                    return "%{info_.vars[key].func};";
+                }
+                return ";";
+            })
+            .join('') + code;
+    }
 
     public eval(input) {
-        var g;
-        if (g = (input =~ /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)\s*;?\n$/)) {
-            var name = g[1].string;
-            command_.decl.push({
-                name: name,
-                value: g[2].string,
+        var r;
+        try {
+            var g;
+            // assignment.
+            if (g = (input =~ /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)\s*;?\n$/)) {
+                var name = g[1].string;
+                input = appendPreCode(input) + ";return %{name};";
+            System.println(input);
+                r = input.evalNew();
+                info_.vars[name] = {
+                    value: r,
+                };
+                return r;
+            }
+
+            if (g = (input =~ /^\s*function\s*([$_a-zA-Z0-9]+)\s*(\((.|\n)+)/)) {
+                var name = g[1].string;
+                input = "%{name} = function %{g[2].string}";
+                info_.vars[name] = {
+                    func: input,
+                    name: 'function %{name}()',
+                };
+                input = appendPreCode(input) + ";return 'function %{name}()';";
+                r = input.evalNew();
+                return r;
+            }
+
+            // TODO: any other codes.
+            if (input.find(';') < 0) {
+                // 1 line, means expression;
+                input = appendPreCode("return %{input};");
+                return input.evalNew();
+            }
+
+            v = "";
+            r = "";
+            while (g = (input =~ /\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)(?:;|\s*\n)?/)) {
+                var name = g[1].string;
+                v += "%{name},";
+                r += "%{name}: %{name},";
+            }
+
+            input = appendPreCode("var %{v}_dummy; %{input}; return ({%{r}}.toJsonString());");
+            # System.println(input);
+            r = input.evalNew();
+            r = JSON.parse(r);
+            r.keySet().each(&(name) => {
+                info_.vars[name] = {
+                    value: r[name],
+                };
             });
-            input += ";return %{name};";
-            return name + " = " + input.evalNew();
+        } catch (e) {
+            System.println("Error: " + e.what());
+            System.println("Code:");
+            System.println(input);
         }
-        if (input.find(';') < 0) {
-            // 1 line, means expression;
-            input = "return " + input + ';';
-            return input.evalNew();
-        }
-        while (g = (input =~ /\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*(.+)(?:;|\s*\n)?/)) {
-            command_.decl.push({
-                name: g[1].string,
-                value: g[2].string,
-            });
-        }
-        return input.evalNew();
+        return r;
     }
 
     public print(result) {
-        System.println(result);
+        printResult(result);
     }
 
     public run() {
         while (1) {
             var input = read();
+            if (input[0] == '.'[0]) {
+                // command.
+                var f = input.subString(1).trim();
+                if (f == "quit") {
+                    break;
+                }
+                if (cmd_[f].isFunction) {
+                    cmd_[f]();
+                }
+                continue;
+            }
+            if (input[0] == '!'[0]) {
+                var h = Integer.parseInt(input.subString(1));
+                input = info_.history[h].info;
+                if (!input.isArray) {
+                    error("Invaild history number.");
+                    info_.history.pop();
+                    continue;
+                }
+                info_.history[-1].info = input;
+                input = input.map(&(e) => e.str).join('');
+                printCommand(input);
+            }
             var result = eval(input);
             print(result);
         }
