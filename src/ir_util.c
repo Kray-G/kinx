@@ -506,17 +506,21 @@ kx_fnc_t *do_eval(kx_context_t *ctx, kx_val_t *host, int count, void *jumptable[
     return fnc;
 }
 
-kx_context_t *compile_code(const char *code)
+kx_context_t *compile_code(const char *code, int exc_in_err)
 {
     kx_context_t *ctx = make_context();
 
     kx_lexinfo.quiet = 1;
     int start = eval_string(code, ctx);
     if (start < 0) {
-        context_cleanup(ctx);
-        ctx = make_context();
-        start = eval_string("throw SystemException('Compile error');", ctx);
-        if (start < 0) {
+        if (exc_in_err) {
+            context_cleanup(ctx);
+            ctx = make_context();
+            start = eval_string("throw SystemException('Compile error');", ctx);
+            if (start < 0) {
+                return NULL;
+            }
+        } else {
             return NULL;
         }
     }
@@ -608,12 +612,13 @@ kx_fnc_t *do_eval_new(kx_context_t *parent, kx_val_t *host, int count, void *jum
         return NULL;
     }
     kx_fnc_t *fnc = allocate_fnc(parent);
-    kx_context_t *ctx = compile_code(code);
+    kx_context_t *ctx = compile_code(code, 0);
     if (ctx) {
         (void)run_ctx(ctx, parent, 1, (char *[]){(char*)code});
         fnc->push = parent->retval;
     } else {
-        set_string_value(parent, &(fnc->push), "(null)");
+        fnc->typ = const_str(parent, "CompileException");
+        fnc->wht = const_str(parent, "eval() failed");
     }
     return fnc;
 }
@@ -623,7 +628,7 @@ thread_return_t STDCALL run_isolate_code(void *pp)
     kx_thread_pack_t *p = (kx_thread_pack_t*)pp;
     p->is_running = KX_THREAD_RUNNING;
     msec_sleep(1);
-    kx_context_t *ctx = compile_code(p->code);
+    kx_context_t *ctx = compile_code(p->code, 1);
     if (ctx) {
         p->value = run_ctx(ctx, NULL, 1, (char *[]){(char*)p->code});
     } else {
@@ -1452,14 +1457,14 @@ kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cu
     } \
     case KX_CSTR_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d", val); \
+        ks_appendf(s, "%"PRId64, val); \
         (v1)->value.iv = strcmp((v1)->value.pv, ks_string(s)) == 0; \
         (v1)->type = KX_INT_T; \
         break; \
     } \
     case KX_STR_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d", val); \
+        ks_appendf(s, "%"PRId64, val); \
         (v1)->value.iv = strcmp(ks_string((v1)->value.sv), ks_string(s)) == 0; \
         (v1)->type = KX_INT_T; \
         break; \
@@ -1717,14 +1722,14 @@ kx_fnc_t *kx_try_eqeq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_CSTR_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d", val); \
+        ks_appendf(s, "%"PRId64, val); \
         (v1)->value.iv = strcmp((v1)->value.pv, ks_string(s)) != 0; \
         (v1)->type = KX_INT_T; \
         break; \
     } \
     case KX_STR_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d", val); \
+        ks_appendf(s, "%"PRId64, val); \
         (v1)->value.iv = strcmp(ks_string((v1)->value.sv), ks_string(s)) != 0; \
         (v1)->type = KX_INT_T; \
         break; \
@@ -1989,14 +1994,14 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_CSTR_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d", val); \
+        ks_appendf(s, "%"PRId64, val); \
         (v1)->value.iv = strcmp((v1)->value.pv, ks_string(s)); \
         (v1)->type = KX_INT_T; \
         break; \
     } \
     case KX_STR_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d", val); \
+        ks_appendf(s, "%"PRId64, val); \
         (v1)->value.iv = strcmp(ks_string((v1)->value.sv), ks_string(s)); \
         (v1)->type = KX_INT_T; \
         break; \
@@ -3194,7 +3199,7 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
             kstr_t *out = kx_format(v2);
             if (out) {
                 kstr_t *sv = allocate_str(ctx);
-                ks_appendf(sv, "%d", (v1)->value.iv);
+                ks_appendf(sv, "%"PRId64, (v1)->value.iv);
                 ks_append(sv, ks_string(out));
                 ks_free(out);
                 (v1)->type = KX_STR_T;
@@ -3278,20 +3283,20 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
     } \
     case KX_CSTR_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%s%d", (v1)->value.pv, val); \
+        ks_appendf(s, "%s%"PRId64, (v1)->value.pv, val); \
         (v1)->value.sv = s; \
         (v1)->type = KX_STR_T; \
         break; \
     } \
     case KX_STR_T: { \
-        ks_appendf((v1)->value.sv, "%d", val); \
+        ks_appendf((v1)->value.sv, "%"PRId64, val); \
         break; \
     } \
     case KX_OBJ_T: { \
         kstr_t *out = kx_format(v1); \
         if (out) { \
             kstr_t *sv = allocate_str(ctx); \
-            ks_appendf(sv, "%s%d", ks_string(out), val); \
+            ks_appendf(sv, "%s%"PRId64, ks_string(out), val); \
             ks_free(out); \
             (v1)->type = KX_STR_T; \
             (v1)->value.sv = sv; \
@@ -3428,7 +3433,7 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
 #define KX_ADD_ADD_S(v1, val) { \
     if ((v1)->type == KX_INT_T) { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d%s", (v1)->value.iv, val); \
+        ks_appendf(s, "%"PRId64"%s", (v1)->value.iv, val); \
         (v1)->value.sv = s; \
         (v1)->type = KX_STR_T; \
     } else switch ((v1)->type) { \
@@ -4141,7 +4146,7 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         kstr_t *s = allocate_str(ctx); \
         ks_append(s, pv); \
         ks_trim_right_char(s, '/'); \
-        ks_appendf(s, "/%d", val); \
+        ks_appendf(s, "/%"PRId64, val); \
         (v1)->value.sv = s; \
         (v1)->type = KX_STR_T; \
         break; \
@@ -4151,7 +4156,7 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         kstr_t *s = allocate_str(ctx); \
         ks_append(s, pv); \
         ks_trim_right_char(s, '/'); \
-        ks_appendf(s, "/%d", val); \
+        ks_appendf(s, "/%"PRId64, val); \
         (v1)->value.sv = s; \
         break; \
     } \
@@ -4311,7 +4316,7 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_INT_T: { \
         kstr_t *s = allocate_str(ctx); \
-        ks_appendf(s, "%d", (v1)->value.iv); \
+        ks_appendf(s, "%"PRId64, (v1)->value.iv); \
         const char *p = val; while (p && *p != 0 && *p == '/') ++p; \
         ks_appendf(s, "/%s", p); \
         (v1)->value.sv = s; \
