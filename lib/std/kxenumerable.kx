@@ -539,10 +539,10 @@ _class _Range(start_, end_, excludeEnd_) {
         return i;
     }
     public each(func) {
-        if (!start_) {
+        if (start_.isUndefined) {
             throw FiberException("Cannot iterate the range because of no start value");
         }
-        if (start_ && end_) {
+        if (start_.isDefined && end_.isDefined) {
             if (excludeEnd_ && ((start_ <=> end_) >= 0)) {
                 return false;
             }
@@ -560,13 +560,13 @@ _class _Range(start_, end_, excludeEnd_) {
             return false;
         }
         while (true) {
-            if (end_ && excludeEnd_) {
+            if (end_.isDefined && excludeEnd_) {
                 if ((cur_ <=> end_) >= 0) {
                     return false;
                 }
             }
             yield cur_;
-            if (end_ && !excludeEnd_) {
+            if (end_.isDefined && !excludeEnd_) {
                 if ((cur_ <=> end_) >= 0) {
                     return false;
                 }
