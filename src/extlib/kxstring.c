@@ -602,6 +602,48 @@ int String_splitUtf8Object(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     return 0;
 }
 
+int String_eastAsianWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *r = "N";
+    kx_val_t *val = &kv_last_by(ctx->stack, 1);
+    if (val->type == KX_INT_T) {
+        r = east_asian_width_code(val->value.iv);
+    } else if (val->type == KX_CSTR_T) {
+        const char *p = val->value.pv;
+        r = east_asian_width(p, strlen(p), NULL, NULL);
+    } else if (val->type == KX_STR_T) {
+        const char *p = ks_string(val->value.sv);
+        r = east_asian_width(p, strlen(p), NULL, NULL);
+    }
+
+    int width = (*r == 'F' || *r == 'W' || *r == 'A') ? 2 : 1;
+    KX_ADJST_STACK();
+    push_i(ctx->stack, width);
+    return 0;
+}
+
+int String_eastAsianWidthType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *r = "N";
+    kx_val_t *val = &kv_last_by(ctx->stack, 1);
+    if (val->type == KX_INT_T) {
+        r = east_asian_width_code(val->value.iv);
+    } else if (val->type == KX_CSTR_T) {
+        const char *p = val->value.pv;
+        r = east_asian_width(p, strlen(p), NULL, NULL);
+    } else if (val->type == KX_STR_T) {
+        const char *p = ks_string(val->value.sv);
+        r = east_asian_width(p, strlen(p), NULL, NULL);
+    }
+
+    kstr_t *sv = allocate_str(ctx);
+    ks_append(sv, r);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
@@ -732,6 +774,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "parentPath", String_parentPath },
     { "splitUtf8String", String_splitUtf8String },
     { "splitUtf8Object", String_splitUtf8Object },
+    { "eastAsianWidth", String_eastAsianWidth },
+    { "eastAsianWidthType", String_eastAsianWidthType },
     { "next", String_next },
 };
 
