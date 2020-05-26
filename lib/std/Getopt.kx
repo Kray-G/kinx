@@ -1,0 +1,95 @@
+_class GetOpt {
+    var optMap_, hasArgMap_;
+    private setupMap(opts, longopts) {
+        for (var i = 0, len = opts.length(); i < len; ++i) {
+            var def = opts[i];
+            optMap_[def] = true;
+            if (((i + 1) < len) && (opts[i+1] == ':'[0])) {
+                hasArgMap_[*def] = true;
+                ++i;
+            }
+        }
+        if (longopts.isObject) {
+            longopts.keySet().each(_function(name) {
+                var info = longopts[name];
+                if (info[0] == '='[0] || info[1] == '='[0]) {
+                    hasArgMap_[name] = true;
+                }
+                optMap_[name] = true;
+            });
+        }
+    }
+    public getopt(args, opts, longopts) {
+        if (hasArgMap_.isUndefined) {
+            setupMap(opts, longopts);
+        }
+        for (var i = 0, len = args.length(); i < len; i++) {
+            var argstr = args[i];
+            if (argstr[0] != '-'[0] && argstr[0] != '/'[0]) {
+                yield {
+                    type: '-',
+                    arg: argstr,
+                };
+            } else {
+                if (argstr[0] == '-'[0] && argstr[1] == '-'[0]) {
+                    var longoptLine = argstr.subString(2);
+                    var [longName, longValue] = longoptLine.split('=');
+                    var info = longopts[longName];
+                    if (!optMap_[longName]) {
+                        throw ArgumentException("Unknown option: --" + longName);
+                    }
+                    var type = (info && info.length() > 0 && info[0] != '='[0]) ? info[0] : null;
+                    if (type) {
+                        var ch = *type;
+                        if (hasArgMap_[ch] && longValue.isUndefined) {
+                            throw ArgumentException("Needs an argument for --" + longName);
+                        }
+                        yield {
+                            type: optMap_[type] ? ch : '?',
+                            arg: hasArgMap_[ch] ? longValue : "",
+                        };
+                    } else {
+                        if (hasArgMap_[longName] && longValue.isUndefined) {
+                            throw ArgumentException("Needs an argument for --" + longName);
+                        }
+                        yield {
+                            type: optMap_[longName] ? longName : '?',
+                            arg: hasArgMap_[longName] ? longValue : "",
+                        };
+                    }
+                } else {
+                    var pos = 1;
+                    do {
+                        var arg, type = argstr[pos];
+                        var ch = *type;
+                        if (hasArgMap_[ch]) {
+                            ++pos;
+                            if (argstr.length() > pos) {
+                                arg = argstr.subString(pos);
+                            } else {
+                                if ((i + 1) >= len) {
+                                    throw ArgumentException("Needs an argument for -" + ch);
+                                }
+                                arg = args[++i];
+                                if (arg[0] == '-'[0] || arg[0] == '/'[0]) {
+                                    throw ArgumentException("Needs an argument for -" + ch);
+                                }
+                            }
+                            pos = 0;
+                        } else {
+                            arg = "";
+                            ++pos;
+                        }
+                        if (!optMap_[type]) {
+                            throw ArgumentException("Unknown option: -" + ch);
+                        }
+                        yield {
+                            type: ch,
+                            arg: arg,
+                        };
+                    } while (0 < pos && pos < argstr.length());
+                }
+            }
+        }
+    }
+}
