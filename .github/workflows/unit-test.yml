@@ -39,5 +39,5 @@ jobs:
           sudo cp -vr lib /usr/bin/kinxlib
       - uses: actions/checkout@v2
       - name: run test
-        run: kinx --exec:spectest
+        run: kinx --exec:spectest -v
 

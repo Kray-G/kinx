@@ -35,5 +35,5 @@ System.println(a);  // => 10
 
 ```
 100
-100
+1000 - should be failed, the correct value is 10.
 ```
