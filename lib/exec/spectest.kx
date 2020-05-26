@@ -724,7 +724,9 @@ class SpecTest(args_) {
         System.println("");
         System.println("<Test Result Detail>");
         System.println("");
-        top_.showResult(indent);
+        if (!@options.verbose) {
+            top_.showResult(indent);
+        }
         @progress.showResult();
     }
 
