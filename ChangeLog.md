@@ -18,14 +18,19 @@
             *   `KXOPT_LENGTH` ... for `Array`, `Binary`, `String`
             *   `KXOPT_PARSEINT` ... `Integer.parseInt`
 
-## V0.8.0 (Current Development)
+## V0.9.0 (Current Development)
+
+*   Updated
+    *   Supported `System.getopt()` with long option.
+
+## V0.8.1 (8th Preview Release)
 
 *   Updated
     *   Updated some of native code output.
     *   Supported a dot style of string literal like `.abc` means `"abc"`.
     *   Supported Process library.
-    *   Supported `System.gtopt()`.
-    *   Supported Escape Sequence with `\e`.
+    *   Supported `System.getopt()`.
+    *   Supported Escape Sequence with `\e`, `\033`, or `\x1b`.
     *   Supported a part of REPL (Read-Eval-Print Loop), but it is not a full version.
     *   Some bug fixes and improvement.
 
