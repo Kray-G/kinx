@@ -1,0 +1,32 @@
+System.defineException = (_function() {
+    var excmap = System._globalExceptionMap();
+    return _function(type) {
+        if (excmap[type]) {
+            return excmap[type];
+        }
+        _class ExceptionClassTemplate(what) {
+            @_type = type;
+            @_what = what;
+        }
+        excmap[type] = ExceptionClassTemplate;
+        return ExceptionClassTemplate;
+    };
+})();
+
+RuntimeExceptionClass = System.defineException('RuntimeException');
+RuntimeException = RuntimeExceptionClass.create;
+
+ArgumentExceptionClass = System.defineException('ArgumentException');
+ArgumentException = ArgumentExceptionClass.create;
+
+SystemExceptionClass = System.defineException('SystemException');
+SystemException = SystemExceptionClass.create;
+
+FileExceptionClass = System.defineException('FileException');
+FileException = FileExceptionClass.create;
+
+StopIterationExceptionClass = System.defineException('StopIterationException');
+StopIterationException = StopIterationExceptionClass.create;
+
+FiberExceptionClass = System.defineException('FiberException');
+FiberException = FiberExceptionClass.create;
