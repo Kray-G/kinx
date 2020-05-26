@@ -411,6 +411,28 @@ _class _ArrayEnumerator(obj_) {
     }
 }
 
+_class _FileEnumerator(file_) {
+    var last_, prev_;
+    public peek() {
+        if (prev_.isUndefined) {
+            prev_ = file_.readLine();
+        }
+        return prev_;
+    }
+    public next() {
+        if (prev_.isDefined) {
+            last_ = prev_;
+            prev_ = null;
+        } else {
+            last_ = file_.readLine();
+        }
+        return last_;
+    }
+    public isEnded() {
+        return last_.isDefined && !last_.isString;
+    }
+}
+
 _class _ObjectEnumerator(obj_) {
     var ary_, i_, sz_;
     private initialize() {
@@ -445,6 +467,8 @@ _class _Enumerator(obj_) {
     private initialize() {
         if (obj_.enumerator.isFunction) {
             enumerator_ = obj_.enumerator();
+        } else if (obj_.isFile) {
+            enumerator_ = new _FileEnumerator(obj_);
         } else if (obj_.isArray) {
             enumerator_ = new _ArrayEnumerator(obj_);
         } else if (obj_.isObject) {
