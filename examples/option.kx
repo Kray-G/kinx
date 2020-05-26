@@ -1,0 +1,24 @@
+var opt, add, check, list = [];
+while (opt = System.getopt($$, "a:d", { add: 'a', delete: 'd', help: null, "do-check": '=' })) {
+    switch (opt.type) {
+    case 'a':               // Retuns 'a' also when specofied '--add'.
+        add = opt.arg;      // ':' means the option of 'check' has an argument.
+        System.println('-a with "%{add}"');
+        break;
+    case 'd':               // Retuns 'd' also when specofied '--delete'.
+        System.println('-d');
+        break;
+    case 'help':            // When specified '--help'.
+        System.println('--help');
+        break;
+    case 'do-check':        // When specified '--do-check'.
+        check = opt.arg;    // '=' means the option of 'check' has an argument.
+        System.println('--do-check with "%{check}"');
+        break;
+    case '-':
+        list.push(opt.arg);
+        break;
+    }
+}
+
+System.println("Program options: ", list);

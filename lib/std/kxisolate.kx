@@ -1,0 +1,76 @@
+Isolate.create = _function(code) {
+    var this;
+    this.isIsolate = true;
+    this.join = _function() {
+        throw SystemException('Isolate is not started yet');
+    };
+    this.run = _function() {
+        if (code.isObject && code._format) {
+            code = code.format();
+        }
+        var t = code._run_isolate();
+        this.isRunning = t.isRunning;
+        this.join = _function() {
+            while (t.isRunning()) {
+                System.sleep(250);
+            }
+            return t.join();
+        };
+        return this;
+    };
+    return this;
+};
+Isolate.Mutex.create = _function(name) {
+    var m = System.getMutex(name || '_main');
+    m.lock = _function(f) {
+        while (!System.trylockMutex(m)) {
+            System.sleep(250);
+        }
+        try {
+            return f();
+        } finally {
+            System.unlockMutex(m);
+        }
+    };
+    return m;
+};
+Isolate.NamedMutex.create = _function(name) {
+    var m = System.getNamedMutex(name || '_main');
+    m.lock = _function(f) {
+        while (!System.trylockNamedMutex(m)) {
+            System.sleep(250);
+        }
+        try {
+            return f();
+        } finally {
+            System.unlockNamedMutex(m);
+        }
+    };
+    return m;
+};
+Isolate.Condition.create = _function(name) {
+    var c = System.getNamedCondition(name || '_main');
+    c.wait = _function(m) {
+        return System.conditionWait(c, m);
+    };
+    c.timedWait = _function(m, msec) {
+        return System.conditionTimedWait(c, m, msec ?? 1000);
+    };
+    c.notifyAll = _function() {
+        return System.conditionBroadcast(c);
+    };
+    return c;
+};
+Isolate.send = _function(name, val) {
+    if (val.isUndefined) {
+        System.isolateSendAll('_main', name);
+    } else {
+        System.isolateSendAll(name, val);
+    }
+};
+Isolate.receive = _function(name) {
+    return System.isolateReceive(name || '_main');
+};
+Isolate.clear = _function(name) {
+    return System.isolateClear(name || '_main');
+};
