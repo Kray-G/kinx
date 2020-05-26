@@ -1527,28 +1527,6 @@ int System_isUtf8Bytes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
-int System_eastAsianWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    const char *r = "N";
-    kx_val_t *val = &kv_last_by(ctx->stack, 1);
-    if (val->type == KX_INT_T) {
-        r = east_asian_width_code(val->value.iv);
-    } else if (val->type == KX_CSTR_T) {
-        const char *p = val->value.pv;
-        r = east_asian_width(p, strlen(p), NULL, NULL);
-    } else if (val->type == KX_STR_T) {
-        const char *p = ks_string(val->value.sv);
-        r = east_asian_width(p, strlen(p), NULL, NULL);
-    }
-
-    kstr_t *sv = allocate_str(ctx);
-    ks_append(sv, r);
-
-    KX_ADJST_STACK();
-    push_sv(ctx->stack, sv);
-    return 0;
-}
-
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -1589,7 +1567,6 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "localtime", System_localtime },
     { "setupRange", System_setupRange },
     { "isUtf8Bytes", System_isUtf8Bytes },
-    { "eastAsianWidth", System_eastAsianWidth },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
