@@ -1275,6 +1275,7 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_PROP_INT(obj, "_isStdin", (fi->is_std && fi->is_in));
     KEX_SET_PROP_INT(obj, "_isStdout", (fi->is_std && fi->is_out));
     KEX_SET_PROP_INT(obj, "_isStderr", (fi->is_std && fi->is_err));
+    KEX_SET_PROP_INT(obj, "isFile", 1);
     KEX_SET_PROP_INT(obj, "BINARY", KXFILE_MODE_BINARY);
     KEX_SET_PROP_INT(obj, "TEXT", KXFILE_MODE_TEXT);
     KEX_SET_PROP_INT(obj, "READ", KXFILE_MODE_READ);
