@@ -760,6 +760,7 @@ class SpecTest(args_) {
     # st.print();
     System.println("Test Cout = " + st.count());
     st.start();
+    return st.progress.info.failed; // returns a failed count.
 # } catch (e) {
 #     ;
 # }
