@@ -5,6 +5,7 @@
 #define KX_DLL
 #include <kinx.h>
 #include <kutil.h>
+#include <kxutf8.h>
 #include <kxthread.h>
 #include "kc-json/kc-json.h"
 
@@ -1497,6 +1498,57 @@ int System_setupRange(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     return 0;
 }
 
+int System_isUtf8Bytes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    int i = -1;
+
+    kx_val_t *val = &kv_last_by(ctx->stack, 1);
+    if (val->type == KX_INT_T) {
+        i = val->value.iv & 0xff;
+    } else if (val->type == KX_CSTR_T) {
+        i = val->value.pv[0] & 0xff;
+    } else if (val->type == KX_STR_T) {
+        i = ks_string(val->value.sv)[0] & 0xff;
+    }
+
+    if (i < 0) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object type for checking UTF8");
+    }
+
+    int r = g_utf8bytes[i];
+    if (r == 0) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("RuntimeException", "Invalid UTF8 byte");
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int System_eastAsianWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *r = "N";
+    kx_val_t *val = &kv_last_by(ctx->stack, 1);
+    if (val->type == KX_INT_T) {
+        r = east_asian_width_code(val->value.iv);
+    } else if (val->type == KX_CSTR_T) {
+        const char *p = val->value.pv;
+        r = east_asian_width(p, strlen(p), NULL, NULL);
+    } else if (val->type == KX_STR_T) {
+        const char *p = ks_string(val->value.sv);
+        r = east_asian_width(p, strlen(p), NULL, NULL);
+    }
+
+    kstr_t *sv = allocate_str(ctx);
+    ks_append(sv, r);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -1536,6 +1588,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "mktime", System_mktime },
     { "localtime", System_localtime },
     { "setupRange", System_setupRange },
+    { "isUtf8Bytes", System_isUtf8Bytes },
+    { "eastAsianWidth", System_eastAsianWidth },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
