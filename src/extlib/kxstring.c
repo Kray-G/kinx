@@ -3,6 +3,7 @@
 #define KX_DLL
 #include <kinx.h>
 #include <kutil.h>
+#include <kxutf8.h>
 #include <kxthread.h>
 
 KX_DECL_MEM_ALLOCATORS();
@@ -13,6 +14,29 @@ int String_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (str) {
         KX_ADJST_STACK();
         push_i(ctx->stack, strlen(str));
+        return 0;
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
+}
+
+int String_utf8Length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (str) {
+        const unsigned char *s = (const unsigned char *)str;
+        int p = 0, r = 0;
+        int len = strlen(str);
+        while (p < len) {
+            int b = g_utf8bytes[s[p] & 0xff];
+            if (b == 0) {
+                KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid utf8 object");
+            }
+            ++r;
+            p += b;
+        }
+        KX_ADJST_STACK();
+        push_i(ctx->stack, r);
         return 0;
     }
 
@@ -512,6 +536,72 @@ int String_parentPath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs two string values");
 }
 
+int String_splitUtf8String(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const unsigned char *str = (const unsigned char *)get_arg_str(1, args, ctx);
+    if (!str) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value");
+    }
+
+    kx_obj_t *ary = allocate_obj(ctx);
+    int p = 0;
+    int len = strlen(str);
+    unsigned int cp;
+    while (p < len) {
+        int cur = p;
+        const char *w = east_asian_width((const unsigned char*)str, len, &cp, &p);
+        if (cp == 0xfffd) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid utf8 object");
+        }
+        int bytes = p - cur;
+        kstr_t *sv = allocate_str(ctx);
+        ks_append_n(sv, (const char *)str + cur, bytes);
+        KEX_PUSH_ARRAY_STR(ary, ks_string(sv));
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, ary);
+    return 0;
+}
+
+int String_splitUtf8Object(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (!str) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value");
+    }
+
+    kx_obj_t *ary = allocate_obj(ctx);
+    int p = 0;
+    int len = strlen(str);
+    unsigned int cp;
+    while (p < len) {
+        int cur = p;
+        const char *w = east_asian_width((const unsigned char*)str, len, &cp, &p);
+        if (cp == 0xfffd) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid utf8 object");
+        }
+        int bytes = p - cur;
+        kx_obj_t *obj = allocate_obj(ctx);
+        KEX_SET_PROP_INT(obj, "bytes", bytes);
+        kstr_t *s = allocate_str(ctx);
+        ks_append_n(s, (const char *)str + cur, bytes);
+        KEX_SET_PROP_CSTR(obj, "str", ks_string(s));
+        KEX_SET_PROP_CSTR(obj, "type", w);
+        int width = (*w == 'F' || *w == 'W' || *w == 'A') ? 2 : 1;
+        KEX_SET_PROP_INT(obj, "width", width);
+        KEX_SET_PROP_INT(obj, "unicode", cp);
+        kstr_t *cs = allocate_str(ctx);
+        ks_appendf(cs, "U+%04X", cp);
+        KEX_SET_PROP_CSTR(obj, "codepoint", ks_string(cs));
+        KEX_PUSH_ARRAY_OBJ(ary, obj);
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, ary);
+    return 0;
+}
+
 int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
@@ -617,6 +707,7 @@ int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", String_length },
+    { "utf8Length", String_utf8Length },
     { "quote", String_quote },
     { "parseInt", String_parseInt },
     { "parseDouble", String_parseDouble },
@@ -639,6 +730,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "extension", String_extension },
     { "filename", String_filename },
     { "parentPath", String_parentPath },
+    { "splitUtf8String", String_splitUtf8String },
+    { "splitUtf8Object", String_splitUtf8Object },
     { "next", String_next },
 };
 
