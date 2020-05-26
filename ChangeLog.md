@@ -22,6 +22,13 @@
 
 *   Updated
     *   Supported `System.getopt()` with long option.
+    *   Supported UTF8 utilities.
+        *   `String.utf8Length()` to get a length of a utf8 string.
+        *   `String.splitUtf8String()` to split a string as an array of a utf8 string.
+        *   `String.splitUtf8Object()` to split a string as an array of a utf8 information object.
+        *   `String.eastAsianWidth()` to get a width of a utf8 character.
+        *   `String.eastAsianWidthType()` to get a type character of width of a utf8 character.
+    *   Some bug fixes and improvement.
 
 ## V0.8.1 (8th Preview Release)
 
