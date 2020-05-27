@@ -3546,7 +3546,7 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         if (fn) { \
             break; \
         } \
-        if ((v1)->type == KX_OBJ_T && kv_size(v2->value.ov->ary) > 0) { \
+        if ((v1)->type == KX_OBJ_T) { \
             kx_obj_t *o1 = v1->value.ov; \
             kx_obj_t *ov = v2->value.ov; \
             int sz = kv_size(ov->ary); \
