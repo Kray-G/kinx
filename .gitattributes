@@ -1,0 +1,13 @@
+# workaround for Kinx highlight
+*.kx          text linguist-language=CoffeeScript
+.spectest     text linguist-language=JSON linguist-detectable
+
+# exclude files in directories below from github stats
+src/extlib/libcurl/**   linguist-vendored
+src/extlib/libxml2/**   linguist-vendored
+src/extlib/onig/**      linguist-vendored
+src/extlib/openssl/**   linguist-vendored
+src/extlib/sqlite/**    linguist-vendored
+src/extlib/zip/**       linguist-vendored
+src/extlib/*/README.md  -linguist-vendored
+src/extlib/*/x64/**     -linguist-vendored binary
