@@ -13,7 +13,7 @@ class ReplHelper {
     ];
     var keywords_ = "\\b(%{keywordList_.join('|')})\\b";
     var numbers_ = "(0[0-7]*|[1-9][0-9]*|0x[0-9a-fA-F]+)";
-    var variables_ = "\\b(@|[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)\\b";
+    var variables_ = "\\b(@|[\\$_a-zA-Z][\\$_a-zA-Z0-9]*\\.?)";
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
 
@@ -27,13 +27,14 @@ class ReplHelper {
     public setCommandList(cmdlist) {
         hints_.cmdlist = cmdlist;
     }
-    private getCommandHint(line, start, end) {
-        var cur = line.subString(start+1, end-start);
-        var cmdlist = hints_.cmdlist;
-        var len = cmdlist.length();
+    private getHint(line, start, end) {
+        var isCommand = line[start] == '.'[0];
+        var list = isCommand ? hints_.cmdlist : keywordList_;
+        var cur = isCommand ? line.subString(start+1, end-start) : line.subString(start, end-start+1);
+        var len = list.length();
         var p = hints_.cmdpos;
         for (var i = 0; i < len; ++i) {
-            var candidate = cmdlist[p];
+            var candidate = list[p];
             p = (p+1) % len;
             if (candidate.startsWith(cur)) {
                 hints_.cmdpos = p;
@@ -58,13 +59,12 @@ class ReplHelper {
             --start;
         }
         ++start;
-        if (line[start] == '.'[0]) {
-            var hint = getCommandHint(line, start, end);
-            if (hint) {
-                return { start: start, end: end, hint: hint };
-            }
-            return; // no hint
+
+        var hint = getHint(line, start, end);
+        if (hint) {
+            return { start: start, end: end, hint: hint };
         }
+        return; // no hint
     }
     public coloringHint(hint) {
         return "\x1b[90m%{hint}\x1b[0m";
@@ -82,6 +82,9 @@ class ReplHelper {
                     return "\x1b[36m%{g[3].string}\x1b[0m";
                 }
                 if (g[4].string) {
+                    if (g[4].string[-1] == '.'[0]) {
+                        return "\x1b[94m%{g[4].string}\x1b[0m";
+                    }
                     return "\x1b[33m%{g[4].string}\x1b[0m";
                 }
                 return g[0].string;
@@ -92,6 +95,9 @@ class ReplHelper {
     public replaceVariale(code, vars) {
         return code.replace(va_, &(g) => {
             var name = g[1].string;
+            if (name[-1] == '.'[0]) {
+                name[-1] = 0;
+            }
             if (name) {
                 if (vars[name].value) {
                     return vars[name].value;
@@ -259,11 +265,13 @@ class Repl {
             switch (c) {
             case KX_KEY_ENTER:
                 helper_.resetHint();
-                System.println("");
                 if (hint) {
                     info = updateInfo(info, hint);
+                    pos += hint.hint.length();
                     hint = null;
+                    continue;
                 }
+                System.println("");
                 info_.history.push({ info: info });
                 buf.push(info);
                 var brs = countBrs(buf);
@@ -298,7 +306,11 @@ class Repl {
                 continue;
             case KX_KEY_UP:
                 helper_.resetHint();
-                hint = null;
+                if (hint) {
+                    info = updateInfo(info, hint);
+                    pos += hint.hint.length();
+                    hint = null;
+                }
                 if (0 < historyPos) {
                     historyPos--;
                     info = info_.history[historyPos].info.clone();
@@ -307,7 +319,11 @@ class Repl {
                 continue;
             case KX_KEY_DOWN:
                 helper_.resetHint();
-                hint = null;
+                if (hint) {
+                    info = updateInfo(info, hint);
+                    pos += hint.hint.length();
+                    hint = null;
+                }
                 if (historyPos < info_.history.length() - 1) {
                     historyPos++;
                     info = info_.history[historyPos].info.clone();
@@ -316,21 +332,33 @@ class Repl {
                 continue;
             case KX_KEY_LEFT:
                 helper_.resetHint();
-                hint = null;
+                if (hint) {
+                    info = updateInfo(info, hint);
+                    pos += hint.hint.length();
+                    hint = null;
+                }
                 if (0 < pos) {
                     --pos;
                 }
                 continue;
             case KX_KEY_RIGHT:
                 helper_.resetHint();
-                hint = null;
+                if (hint) {
+                    info = updateInfo(info, hint);
+                    pos += hint.hint.length();
+                    hint = null;
+                }
                 if (pos < info.length()) {
                     ++pos;
                 }
                 continue;
             case KX_KEY_BS:
                 helper_.resetHint();
-                hint = null;
+                if (hint) {
+                    info = updateInfo(info, hint);
+                    pos += hint.hint.length();
+                    hint = null;
+                }
                 if (pos > 0) {
                     if (pos == info.length()) {
                         l = info.pop();
@@ -344,7 +372,11 @@ class Repl {
                 continue;
             case KX_KEY_DEL:
                 helper_.resetHint();
-                hint = null;
+                if (hint) {
+                    info = updateInfo(info, hint);
+                    pos += hint.hint.length();
+                    hint = null;
+                }
                 if (pos > 0) {
                     if (pos == info.length()) {
                         l = info.pop();
@@ -356,7 +388,14 @@ class Repl {
                 }
                 continue;
             }
-            hint = null; // hint information is clear only.
+            helper_.resetHint();
+            if (hint && c == ' '[0]) {
+                info = updateInfo(info, hint);
+                pos += hint.hint.length();
+                hint = null;
+            } else {
+                hint = null;
+            }
             if ((l = System.isUtf8Bytes(c)) > 1) {
                 var len = l;
                 var str = *c;
@@ -532,8 +571,8 @@ class Repl {
             }
         } catch (e) {
             printError("Compile Error.");
-            # System.println("Code:");
-            # System.println(input);
+            System.println("Code:");
+            System.println(input);
         }
         return r;
     }
