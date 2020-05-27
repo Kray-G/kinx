@@ -536,10 +536,15 @@ class Repl {
 
             var expr = input.trim().trim(';');
             if (expr.find(';') < 0) {
-                // 1 line, means expression;
-                input = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
-                # System.println(input);
-                return input.evalNew();
+                // 1 line, guess expression;
+                try {
+                    var tryinput = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
+                    System.println(tryinput);
+                    return tryinput.evalNew();
+                } catch (e) {
+                    ;   // oh, it is not a expression.
+                        // try it in the next step.
+                }
             }
 
             v = "";
