@@ -1,6 +1,7 @@
 #ifndef KX_KUTIL_H
 #define KX_KUTIL_H
 
+#include <ctype.h>
 #include <kinx.h>
 
 #if defined(_WIN32) || defined(_WIN64)
