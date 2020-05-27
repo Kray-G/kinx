@@ -1433,6 +1433,26 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     case KXST_IF: {       /* lhs: cond, rhs: then-block: ex: else-block */
+        if (node->lhs) {
+            if (node->lhs->type == KXVL_TRUE || (node->lhs->type == KXVL_INT && node->lhs->value.i != 0)) {
+                if (node->rhs) {
+                    int blk = new_block(ana);
+                    get_block(module, ana->block)->tf[0] = blk;
+                    ana->block = blk;
+                    gencode_ast_hook(ctx, node->rhs, ana, 0);
+                }
+                break;
+            }
+            if (node->lhs->type == KXVL_FALSE || (node->lhs->type == KXVL_INT && node->lhs->value.i == 0)) {
+                if (node->ex) {
+                    int blk = new_block(ana);
+                    get_block(module, ana->block)->tf[0] = blk;
+                    ana->block = blk;
+                    gencode_ast_hook(ctx, node->ex, ana, 0);
+                }
+                break;
+            }
+        }
         int block = ana->block;
         int cond, thtop, thend, eltop, elend, out;
         cond = new_block(ana);
@@ -1965,7 +1985,7 @@ static void append_jmp(kx_block_t *block, kx_analyze_t *ana)
         int othw = block->tf[1];
         if (next && othw) {
             if (get_block(module, next)->index == block->index + 1) {
-                if (len > 0 && (kv_last(block->code).op == KX_PUSH_TRUE || (kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i == 0))) {
+                if (len > 0 && (kv_last(block->code).op == KX_PUSH_FALSE || (kv_last(block->code).op == KX_PUSHI && kv_last(block->code).value1.i == 0))) {
                     kv_last(block->code).op = KX_JMP;
                     kv_last(block->code).value1.i = get_block(module, othw)->index;
                 } else {
