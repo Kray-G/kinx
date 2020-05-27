@@ -262,7 +262,6 @@ class Repl {
                 System.println("");
                 if (hint) {
                     info = updateInfo(info, hint);
-System.println(info.toJsonString(true));
                     hint = null;
                 }
                 info_.history.push({ info: info });
