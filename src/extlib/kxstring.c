@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <string.h>
 #include <ctype.h>
 #define KX_DLL
 #include <kinx.h>
