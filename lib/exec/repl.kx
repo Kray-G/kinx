@@ -158,7 +158,7 @@ class Repl {
     private initialize() {
         helper_ = new ReplHelper();
         cmd_ = new ReplCommand(helper_, info_);
-        helper_.setCommandList(cmd_.keySet().filter(&(name) => name != "instanceOf" && cmd_[name].isFunction));
+        helper_.setCommandList(cmd_.keySet().filter(&(name) => name != "instanceOf" && cmd_[name].isFunction) + ["quit"]);
     }
 
     private showPrompt(pos, info, hint, lines) {
@@ -571,8 +571,8 @@ class Repl {
             }
         } catch (e) {
             printError("Compile Error.");
-            System.println("Code:");
-            System.println(input);
+            # System.println("Code:");
+            # System.println(input);
         }
         return r;
     }
