@@ -18,32 +18,57 @@ class ReplHelper {
     var va_ = new Regex("%{variables_}");
 
     var hints_ = {
-        chars: "",
-        pos: 0,
-        cont: false,
-        list: null
+        cmdpos: 0,
+        cmdlist: [],
     };
-
-    public continueHint() {
-        hints_.cont = true;
-    }
-    public addHintChar(ch) {
-        hints_.chars += ch;
-    }
-    public removeHintChar() {
-        var l = hints_.chars.length();
-        if (l > 0) {
-            hints_.chars[-1] = 0;
-        }
-    }
     public resetHint() {
-        if (!hints_.cont) {
-            hints_.list = null;
-            hints_.pos = 0;
-        }
-        hints_.cont = false;
+        hints_.cmdpos = 0;
     }
-
+    public setCommandList(cmdlist) {
+        hints_.cmdlist = cmdlist;
+    }
+    private getCommandHint(line, start, end) {
+        var cur = line.subString(start+1, end-start);
+        var cmdlist = hints_.cmdlist;
+        var len = cmdlist.length();
+        var p = hints_.cmdpos;
+        for (var i = 0; i < len; ++i) {
+            var candidate = cmdlist[p];
+            p = (p+1) % len;
+            if (candidate.startsWith(cur)) {
+                hints_.cmdpos = p;
+                return candidate.subString(cur.length());
+            }
+        }
+        // no hint.
+    }
+    public getNextHint(line, pos) {
+        if (pos == 0 || line[pos-1] == ' '[0]) {
+            return; // no hint.
+        }
+        var end = pos - 1;
+        while (0 <= end && line[end] == ' ') {
+            --end;
+        }
+        if (end < 0) {
+            return;
+        }
+        var start = end;
+        while (0 <= start && line[start] != ' ') {
+            --start;
+        }
+        ++start;
+        if (line[start] == '.'[0]) {
+            var hint = getCommandHint(line, start, end);
+            if (hint) {
+                return { start: start, end: end, hint: hint };
+            }
+            return; // no hint
+        }
+    }
+    public coloringHint(hint) {
+        return "\x1b[90m%{hint}\x1b[0m";
+    }
     public coloringLine(inputLine) {
         if (inputLine) {
             inputLine = inputLine.replace(re_, &(g) => {
@@ -127,14 +152,22 @@ class Repl {
     private initialize() {
         helper_ = new ReplHelper();
         cmd_ = new ReplCommand(helper_, info_);
+        helper_.setCommandList(cmd_.keySet().filter(&(name) => name != "instanceOf" && cmd_[name].isFunction));
     }
 
-    private showPrompt(pos, info, lines) {
+    private showPrompt(pos, info, hint, lines) {
         var infolen = info.length();
         var histlen = info_.history.length();
         var prompt = ((lines > 0 ? "    [%3d]> " : "kinx[%3d]> ") % histlen).format();
-        inputLine = helper_.coloringLine(info.map(&(e) => e.str).join(''));
-        System.print(("\x1b[2K\r\x1b[32m%{prompt}\x1b[0m ") + inputLine);
+        var line = info.map(&(e) => e.str).join('');
+        if (hint) {
+            var s = line.subString(0, hint.end + 1);
+            var e = line.subString(hint.end + 1);
+            line = helper_.coloringLine(s) + helper_.coloringHint(hint.hint) + helper_.coloringLine(e);
+        } else {
+            line = helper_.coloringLine(line);
+        }
+        System.print(("\x1b[2K\r\x1b[32m%{prompt}\x1b[0m ") + line);
         if (pos != infolen) {
             var linepos = 0;
             for (var i = pos; i < infolen; ++i) {
@@ -189,23 +222,55 @@ class Repl {
         return pos;
     }
 
+    private updateInfo(info, hint) {
+        var p = 0, e = hint.end;
+        var ilen = info.length();
+        var idx = 0, newinfo = [];
+        for ( ; idx < ilen; ++idx) {
+            newinfo.push(info[idx]);
+            p += info[idx].len;
+            if (e < p) {
+                break;
+            }
+        }
+        var hlen = hint.hint.length();
+        for (var i = 0; i < hlen; ++i) {
+            newinfo.push({
+                str: *(hint.hint[i]),
+                len: 1,
+            });
+        }
+        for (++idx; idx < ilen; ++idx) {
+            newinfo.push(info[idx]);
+        }
+        return newinfo;
+    }
+
     public read() {
         var historyPos = info_.history.length();
         var lines = 0;
         var pos = 0;
         var buf = [];
         var info = [];
+        var hint;
         while (true) {
-            showPrompt(pos, info, lines);
+            showPrompt(pos, info, hint, lines);
             var l, c = $stdin.getKeyCode();
             switch (c) {
             case KX_KEY_ENTER:
+                helper_.resetHint();
                 System.println("");
+                if (hint) {
+                    info = updateInfo(info, hint);
+System.println(info.toJsonString(true));
+                    hint = null;
+                }
                 info_.history.push({ info: info });
                 buf.push(info);
                 var brs = countBrs(buf);
                 if (brs == 0) {
-                    return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
+                    var line = buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
+                    return line;
                 }
                 ++lines;
                 info = [];
@@ -216,8 +281,9 @@ class Repl {
                 }
                 continue;
             case KX_KEY_TAB:
-                if (pos > 1 && info[pos-1].str != ' ') {
-                    ;
+                if (pos > 0 && info[pos-1].str != ' ') {
+                    var line = info.map(&(e) => e.str).join('');
+                    hint = helper_.getNextHint(line, pos);
                 } else {
                     add = (4 - (pos % 4));
                     if (pos == info.length()) {
@@ -232,6 +298,8 @@ class Repl {
                 }
                 continue;
             case KX_KEY_UP:
+                helper_.resetHint();
+                hint = null;
                 if (0 < historyPos) {
                     historyPos--;
                     info = info_.history[historyPos].info.clone();
@@ -239,6 +307,8 @@ class Repl {
                 }
                 continue;
             case KX_KEY_DOWN:
+                helper_.resetHint();
+                hint = null;
                 if (historyPos < info_.history.length() - 1) {
                     historyPos++;
                     info = info_.history[historyPos].info.clone();
@@ -246,16 +316,22 @@ class Repl {
                 }
                 continue;
             case KX_KEY_LEFT:
+                helper_.resetHint();
+                hint = null;
                 if (0 < pos) {
                     --pos;
                 }
                 continue;
             case KX_KEY_RIGHT:
+                helper_.resetHint();
+                hint = null;
                 if (pos < info.length()) {
                     ++pos;
                 }
                 continue;
             case KX_KEY_BS:
+                helper_.resetHint();
+                hint = null;
                 if (pos > 0) {
                     if (pos == info.length()) {
                         l = info.pop();
@@ -268,6 +344,8 @@ class Repl {
                 }
                 continue;
             case KX_KEY_DEL:
+                helper_.resetHint();
+                hint = null;
                 if (pos > 0) {
                     if (pos == info.length()) {
                         l = info.pop();
@@ -279,6 +357,7 @@ class Repl {
                 }
                 continue;
             }
+            hint = null; // hint information is clear only.
             if ((l = System.isUtf8Bytes(c)) > 1) {
                 var len = l;
                 var str = *c;
@@ -490,7 +569,7 @@ class Repl {
                 if (cmd_[cname].isFunction) {
                     cmd_[cname](...f);
                 } else {
-                    printError("Unknown command.");
+                    printError("Unknown command: " + cname);
                     info_.history.pop();
                 }
                 continue;
