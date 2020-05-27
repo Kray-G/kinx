@@ -16,6 +16,10 @@ else {
 }
 ```
 
+And also the block has a scope.
+The variable shadowing occurs if the same name of variable was declared.
+Please see the example 1.
+
 ## Examples
 
 ### Example 1. Scope
