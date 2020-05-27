@@ -38,6 +38,9 @@ jobs:
           sudo cp -v bin/kinx /usr/bin/kinx
           sudo cp -vr lib /usr/bin/kinxlib
       - uses: actions/checkout@v2
+      - name: update to the latest
+        run: |
+          sudo cp -vr lib/* /usr/bin/kinxlib
       - name: run test
-        run: kinx --exec:spectest -v
-
+        run: |
+          kinx --exec:spectest -v
