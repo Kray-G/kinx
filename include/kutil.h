@@ -91,7 +91,7 @@ static inline void make_quote_string(kstr_t *str, const char *p)
                     ++p;
                     break;
                 default: {
-                    if (!isprint(*p)) {
+                    if (0x00 <= *p && *p < 0x20) {
                         ks_appendf(str, "\\x%02x", *p);
                     } else {
                         char buf[] = { *p, 0 };
