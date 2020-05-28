@@ -1,0 +1,70 @@
+
+Directory.close = File.dirclose;
+Directory.walk = _function(dirname, func, opts) {
+    var dir = File.diropen(dirname);
+    try {
+        opts ??= { i: 0 };
+        while (true) {
+            var entry = File.direntry(dir);
+            if (entry == '.' || entry == '..') {
+                continue;
+            }
+            break if (!entry);
+            var path = dirname / entry;
+            if (path.startsWith('./')) path = path.subString(2);
+            var r = func(path, ++(opts.i));
+            break if (r.isDefined && !r);
+        }
+    } finally {
+        Directory.close(dir);
+    }
+};
+Directory.recursiveWalk = _function(dirname, func, opts) {
+    opts ??= { i: 0 };
+    Directory.walk(dirname, _function(entry, i) {
+        var r = func(entry, i);
+        return false if (r.isDefined && !r);
+        if (File.isDirectory(entry)) {
+            r = Directory.recursiveWalk(entry, func, opts);
+            return false if (r.isDefined && !r);
+        }
+    }, opts);
+};
+File._setup(File);
+File.create = _function(name, mode) {
+    var f = File._create(name, mode);
+    f.isFile = true;
+    f.mkdir = _function() { return File.mkdir(f.source); };
+    f.rename = _function(target) { return File.rename(f.source, target); };
+    f.unlink = _function() { return File.unlink(f.source); };
+    f.filesize = _function() { return File.filesize(f.source); };
+    f.filedate = _function() { return File.filedate(f.source); };
+    f.setFiledate = _function(date) { return File.setFiledate(f.source, date); };
+    f.print = _function(...arg) { f.printImpl(...arg.stringify()); };
+    f.println = _function(...arg) { f.printlnImpl(...arg.stringify()); };
+    f.eachLine = _function(func) {
+        var lineno = 1; 
+        do {
+            var line = f.readLine();
+            if (line.isInteger) return line;
+            func(line, lineno++);
+        } while (1);
+    };
+    return f;
+};
+File.open = _function(name, mode, func) {
+    var f;
+    if (name.isUndefined) {
+        throw FileException('No file name');
+    }
+    if (func.isUndefined && mode.isFunction) {
+        func = mode;
+        mode = File.TEXT|File.READ;
+    }
+    try {
+        f = new File(name, mode);
+        return func(f);
+    } finally {
+        f.close();
+    }
+};
