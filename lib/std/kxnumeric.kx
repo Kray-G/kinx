@@ -44,14 +44,30 @@ Integer.downto = _function(val, min, callback) {
     return ary;
 };
 
-Integer.methodMissing = _function(d, method, a0) {
-    var item = Math[method];
-    if (item.isFunction) {
-        Integer[method] = _function(v1, v2) { return item(v1, v2); };
-        return Integer[method](Double.parseDouble(d), Double.parseDouble(a0));
-    }
-    throw RuntimeException('Method not found for Integer');
-};
+# `Integer.methodMissing` causes a bad result in some cases, so do not define `Integer.methodMissing`.
+# For example, `1.unknownProperty` should be null, but to push `methodMissing function` to the stack unexpectedly.
+Integer.acos    = _function(x) { return Math.acos(Double.parseDouble(x)); };
+Integer.asin    = _function(x) { return Math.asin(Double.parseDouble(x)); };
+Integer.atan    = _function(x) { return Math.atan(Double.parseDouble(x)); };
+Integer.atan2   = _function(x, y) { return Math.atan2(Double.parseDouble(x), Double.parseDouble(y)); };
+Integer.cos     = _function(x) { return Math.cos(Double.parseDouble(x)); };
+Integer.sin     = _function(x) { return Math.sin(Double.parseDouble(x)); };
+Integer.tan     = _function(x) { return Math.tan(Double.parseDouble(x)); };
+Integer.cosh    = _function(x) { return Math.cosh(Double.parseDouble(x)); };
+Integer.sinh    = _function(x) { return Math.sinh(Double.parseDouble(x)); };
+Integer.tanh    = _function(x) { return Math.tanh(Double.parseDouble(x)); };
+Integer.exp     = _function(x) { return Math.exp(Double.parseDouble(x)); };
+Integer.ldexp   = _function(x, exp) { return Math.ldexp(Double.parseDouble(x), exp); };
+Integer.log     = _function(x) { return Math.log(Double.parseDouble(x)); };
+Integer.log10   = _function(x) { return Math.log10(Double.parseDouble(x)); };
+Integer.pow     = _function(x, y) { return Math.pow(Double.parseDouble(x), Double.parseDouble(y)); };
+Integer.sqrt    = _function(x) { return Math.sqrt(Double.parseDouble(x)); };
+Integer.ceil    = _function(x) { return Math.ceil(Double.parseDouble(x)); };
+Integer.fabs    = _function(x) { return Math.fabs(Double.parseDouble(x)); };
+Integer.abs     = _function(x) { return Math.fabs(Double.parseDouble(x)); };
+Integer.floor   = _function(x) { return Math.floor(Double.parseDouble(x)); };
+Integer.fmod    = _function(x, y) { return Math.fmod(Double.parseDouble(x), Double.parseDouble(y)); };
+Integer.random  = _function(x) { return Math.random(); };
 
 Integer.next = _function(val) {
     return ++val;
@@ -61,11 +77,27 @@ Integer.== = _function(val, obj) {
     return obj == val;
 };
 
-Double.methodMissing = _function(d, method, a0) {
-    var item = Math[method];
-    if (item.isFunction) {
-        Double[method] = _function(v1, v2) { return item(v1, v2); };
-        return Double[method](Double.parseDouble(d), Double.parseDouble(a0));
-    }
-    throw RuntimeException('Method not found for Double');
-};
+# `Double.methodMissing` causes a bad result in some cases, so do not define `Double.methodMissing`.
+# It is because the same reason as Integer above.
+Double.acos    = _function(x) { return Math.acos(x); };
+Double.asin    = _function(x) { return Math.asin(x); };
+Double.atan    = _function(x) { return Math.atan(x); };
+Double.atan2   = _function(x, y) { return Math.atan2(x, Double.parseDouble(y)); };
+Double.cos     = _function(x) { return Math.cos(x); };
+Double.sin     = _function(x) { return Math.sin(x); };
+Double.tan     = _function(x) { return Math.tan(x); };
+Double.cosh    = _function(x) { return Math.cosh(x); };
+Double.sinh    = _function(x) { return Math.sinh(x); };
+Double.tanh    = _function(x) { return Math.tanh(x); };
+Double.exp     = _function(x) { return Math.exp(x); };
+Double.ldexp   = _function(x, exp) { return Math.ldexp(x, exp); };
+Double.log     = _function(x) { return Math.log(x); };
+Double.log10   = _function(x) { return Math.log10(x); };
+Double.pow     = _function(x, y) { return Math.pow(x, Double.parseDouble(y)); };
+Double.sqrt    = _function(x) { return Math.sqrt(x); };
+Double.ceil    = _function(x) { return Math.ceil(x); };
+Double.fabs    = _function(x) { return Math.fabs(x); };
+Double.abs     = _function(x) { return Math.fabs(x); };
+Double.floor   = _function(x) { return Math.floor(x); };
+Double.fmod    = _function(x, y) { return Math.fmod(x, Double.parseDouble(y)); };
+Double.random  = _function(x) { return Math.random(); };
