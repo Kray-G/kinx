@@ -1143,7 +1143,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     KX_DEF_BINCMD(XOR);
 
     case KXOP_LAND: {
-        KX_CANNOT_BE_LVALUE(node, "logical and operation");
+        KX_CANNOT_BE_LVALUE(node, "logical-and operation");
         int block = ana->block;
         int ls, le, rs, re, out;
         ls = new_block(ana);
@@ -1167,7 +1167,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_LOR: {
-        KX_CANNOT_BE_LVALUE(node, "logical or operation");
+        KX_CANNOT_BE_LVALUE(node, "logical-or operation");
         int block = ana->block;
         int ls, le, rs, re, out;
         ls = new_block(ana);
@@ -1191,7 +1191,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_LUNDEF: {
-        KX_CANNOT_BE_LVALUE(node, "logical null operation");
+        KX_CANNOT_BE_LVALUE(node, "logical-null operation");
         int block = ana->block;
         int cond, alt, out;
 
