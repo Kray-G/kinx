@@ -159,11 +159,13 @@ class ReplCommand(helper_, info_) {
     public vars() {
         info_.vars.keySet()
             .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
+            .partition(&(key) => info_.vars[key].func)
+            .flatten()
             .each(&(key) => {
                 if (info_.vars[key].value) {
                     System.println(helper_.coloringLine("%{key} = %{info_.vars[key].value}"));
                 } else if (info_.vars[key].func) {
-                    System.println(helper_.coloringLine("%{key} = %{info_.vars[key].disp}"));
+                    System.println(helper_.coloringLine("%{info_.vars[key].disp}"));
                 }
             });
         System.println("");
@@ -578,6 +580,8 @@ class Repl {
         var r = info_.usings.map(&(modules) => "using %{modules};").join('\n') + '\n';
         r += info_.vars.keySet()
             .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
+            .partition(&(key) => info_.vars[key].func)
+            .flatten()
             .map(&(key) => {
                 if (info_.vars[key].value) {
                     return "var %{key} = %{info_.vars[key].value};";
