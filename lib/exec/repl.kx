@@ -145,10 +145,16 @@ class ReplHelper {
 
 class ReplCommand(helper_, info_) {
     public fullcode(onoff) {
-        info_.fullcode = onoff && onoff.trim() == '1';
+        info_.fullcode = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
+        System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
+        System.println("");
     }
     public run() {
         ;
+    }
+    public mode() {
+        System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
+        System.println("");
     }
     public vars() {
         info_.vars.keySet()
@@ -233,7 +239,7 @@ class Repl {
     private showPrompt(pos, info, hint, lines) {
         var infolen = info.length();
         var histlen = info_.history.length();
-        var prompt = ((lines > 0 ? "    [%3d]> " : "kinx[%3d]> ") % histlen).format();
+        var prompt = ((lines > 0 ? "    [%3d]>" : "kinx[%3d]>") % histlen).format();
         var line = info.map(&(e) => e.str).join('');
         if (hint) {
             var s = line.subString(0, hint.end);
@@ -265,11 +271,29 @@ class Repl {
     }
 
     private countBrs(buf) {
+        var quote = 0;
+        var escape = 0;
         var brs = 0;
         buf.each(&(info) => {
             info.each(&(l) => {
-                if (l.str == '{') brs++;
-                if (l.str == '}') brs--;
+                if (quote) {
+                    if (l.str == '\\') {
+                        escape = 1;
+                    } else if (escape) {
+                        escape = 0;
+                    } if (l.str == quote) {
+                        quote = 0;
+                        escape = 0;
+                    }
+                } else {
+                    if (l.str == '"' || l.str == "'") {
+                        quote = l.str;
+                    } else if (l.str == '{') {
+                        brs++;
+                    } else if (l.str == '}') {
+                        brs--;
+                    }
+                }
             });
         });
         return brs;
@@ -386,10 +410,10 @@ class Repl {
                 buf.push(info);
                 var brs = countBrs(buf);
                 if (brs == 0) {
-                    if (!info_.fullcode) {
+                    var line = info.map(&(e) => e.str).join('');
+                    if (!info_.fullcode || line[0] == '.'[0]) {
                         return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
                     }
-                    var line = info.map(&(e) => e.str).join('');
                     if (line == ".run") {
                         buf.pop();
                         return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
