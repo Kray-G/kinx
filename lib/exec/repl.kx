@@ -691,8 +691,8 @@ class Repl {
             }
         } catch (e) {
             printError("Compile Error.");
-            System.println("Code:");
-            System.println(input);
+            # System.println("Code:");
+            # System.println(input);
         }
         return r;
     }
