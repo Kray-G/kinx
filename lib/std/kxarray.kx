@@ -136,7 +136,9 @@ Array.sort = (_function() {
 
     return _function(ary, comp) {
         ary = ary.clone();
-        _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+        if (ary.length() > 1) {
+            _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+        }
         return ary;
     };
 })();
