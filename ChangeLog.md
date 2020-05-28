@@ -28,6 +28,9 @@
         *   `String.splitUtf8Object()` to split a string as an array of a utf8 information object.
         *   `String.eastAsianWidth()` to get a width of a utf8 character.
         *   `String.eastAsianWidthType()` to get a type character of width of a utf8 character.
+    *   Updated a part of REPL (Read-Eval-Print Loop), but it is not a full version.
+        *   Auto-complete by `[TAB]` key.
+        *   Moving by word with Ctrl + arrow left/right.
     *   Some bug fixes and improvement.
 
 ## V0.8.1 (8th Preview Release)
@@ -37,7 +40,7 @@
     *   Supported a dot style of string literal like `.abc` means `"abc"`.
     *   Supported Process library.
     *   Supported `System.getopt()`.
-    *   Supported Escape Sequence with `\e`, `\033`, or `\x1b`.
+    *   Supported Escape Sequence with `\e`, `\033`, or `\x1b` even with Windows.
     *   Supported a part of REPL (Read-Eval-Print Loop), but it is not a full version.
     *   Some bug fixes and improvement.
 
