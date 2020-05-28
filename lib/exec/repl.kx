@@ -163,7 +163,7 @@ class ReplCommand(helper_, info_) {
             .flatten()
             .each(&(key) => {
                 if (info_.vars[key].value) {
-                    System.println(helper_.coloringLine("%{key} = %{info_.vars[key].value}"));
+                    System.println(helper_.coloringLine("%{key} = %{info_.vars[key].expr || info_.vars[key].value}"));
                 } else if (info_.vars[key].func) {
                     System.println(helper_.coloringLine("%{info_.vars[key].disp}"));
                 }
@@ -177,7 +177,7 @@ class ReplCommand(helper_, info_) {
         });
         System.println("");
     }
-    public func(name) {
+    public showdef(name) {
         if (info_.vars[name || ""].func) {
             System.println(helper_.coloringLine("%{info_.vars[name].disp} %{info_.vars[name].body.trim()}"));
         }
@@ -189,7 +189,7 @@ class ReplCommand(helper_, info_) {
         System.println("    .quit               Quit REPL.");
         System.println("    .history            Display command history.");
         System.println("    .vars               Display variables with its value.");
-        System.println("    .func name          Display function definition by name.");
+        System.println("    .showdef name       Display function/class definition by name.");
         System.println("    .fullcode           Set 1 not to execute the code immediately and only execute it by .run.");
         System.println("    .run                Execute the code only with .fullcode 1.");
         System.println("");
@@ -223,9 +223,9 @@ class Repl {
         usings: {},
     };
     var re_ = {
+        usings: /^\s*using\s*([$_a-zA-Z0-9]+)/,
         assign: /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/,
         func: /^\s*function\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
-        usings: /^\s*using\s*([$_a-zA-Z0-9]+)/,
         clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         vars: /\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)(?:;|\s*\n)?/,
@@ -584,9 +584,13 @@ class Repl {
             .flatten()
             .map(&(key) => {
                 if (info_.vars[key].value) {
-                    return "var %{key} = %{info_.vars[key].value};";
+                    return "var %{key} = %{info_.vars[key].expr || info_.vars[key].value};";
                 } else if (info_.vars[key].func) {
-                    return "%{info_.vars[key].name} = %{info_.vars[key].func};";
+                    if (info_.vars[key].isClass) {
+                        return "%{info_.vars[key].func};";
+                    } else {
+                        return "%{info_.vars[key].name} = %{info_.vars[key].func};";
+                    }
                 }
                 return ";";
             })
@@ -598,7 +602,7 @@ class Repl {
     }
 
     private makeValue(name) {
-        return "(%{name}.isObject ? %{name}.toJsonString() : (%{name}.isString ? %{name}.quote() : %{name}))";
+        return "(%{name}._className ? null : (%{name}.isObject ? %{name}.toJsonString() : (%{name}.isString ? %{name}.quote() : %{name})))";
     }
     private makeReturnCode(name) {
         return ";return %{makeValue(name)};";
@@ -607,6 +611,7 @@ class Repl {
     public eval(input) {
         var r;
         try {
+            var unsupported = false;
             var g;
             if (!info_.fullcode) {
                 // assignment.
@@ -614,6 +619,7 @@ class Repl {
                 if (g = (input =~ re_.assign)) {
                     var name = g[1].string;
                     var value = g[2].string;
+                    var hasNew = value.find(/\bnew\b/);
                     input = appendPreCode() + input + makeReturnCode(name);
                     # System.println(input);
                     if (info_.vars[value].func) {
@@ -632,6 +638,9 @@ class Repl {
                             id: ++cmdid_,
                             value: r,
                         };
+                        if (hasNew) {
+                            info_.vars[name].expr = value;
+                        }
                     }
                     return r;
                 }
@@ -640,7 +649,7 @@ class Repl {
                 if (g = (input =~ re_.func)) {
                     var name = g[1].string;
                     input = "%{name} = function(%{g[2].string}) %{g[3].string};";
-                    input = appendPreCode() + input + ";return 'function %{name}(%{g[2].string})';";
+                    input = appendPreCode() + input + ";return 'function %{name}';";
                     # System.println(input);
                     r = input.evalNew();
                     info_.vars[name] = {
@@ -660,11 +669,23 @@ class Repl {
                     return;
                 }
 
-                var unsupported = false;
                 re_.clas.reset(input);
                 if (g = (input =~ re_.clas)) {
-                    // Unsupported so far.
-                    unsupported = true;
+                    var name = g[1].string;
+                    input = "class %{name}(%{g[2].string}) %{g[3].string};";
+                    input = appendPreCode() + input + ";return 'class %{name}';";
+                    # System.println(input);
+                    r = input.evalNew();
+                    info_.vars[name] = {
+                        id: ++cmdid_,
+                        isClass: true,
+                        func: "class %{name}(%{g[2].string}) %{g[3].string};",
+                        body: g[3].string,
+                        disp: 'class %{name}(%{g[2].string})',
+                        name: name,
+                        args: g[2].string
+                    };
+                    return r;
                 }
                 re_.modl.reset(input);
                 if (g = (input =~ re_.modl)) {
@@ -695,13 +716,15 @@ class Repl {
             while (g = (input =~ re_.vars)) {
                 var name = g[1].string;
                 var value = g[2].string;
+                var hasNew = value.find(/\bnew\b/);
                 v += "%{name},";
-                r += "%{name}: %{makeValue(name)},";
+                r += hasNew ? "%{name}: \"%{value.quote()}\"," : "%{name}: %{makeValue(name)},";
             }
 
             input = appendPreCode() + "var %{v}_dummy;" + input + ";if ('%{r}' != '') return ({%{r}}.toJsonString());";
-            # System.println(input);
+            System.println(input);
             r = input.evalNew();
+            System.println(input);
             if (r != "(null)") {
                 if (r[0] != '{'[0] && r[0] != '['[0]) {
                     r = r.quote();
@@ -710,17 +733,20 @@ class Repl {
                 }
                 if (r) {
                     r.keySet().each(&(name) => {
-                        info_.vars[name] = {
-                            id: ++cmdid_,
-                            value: r[name],
-                        };
+                        if (r[name].isDefined) {
+                            info_.vars[name] = {
+                                id: ++cmdid_,
+                                value: r[name],
+                            };
+                        }
                     });
                 }
             }
         } catch (e) {
             printError("Compile Error.");
-            # System.println("Code:");
-            # System.println(input);
+        # } finally {
+        #     System.println("Code:");
+        #     System.println(input);
         }
         return r;
     }
