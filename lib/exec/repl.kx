@@ -53,7 +53,7 @@ class ReplHelper {
         return line.subString(start, end - start);
     }
     private getHint(info, line, start, end, isCommand) {
-        var cur = isCommand ? line.subString(start, end-start) : line.subString(start, end-start+1);
+        var cur = line.subString(start, end-start);
         var prev = getPrevObject(line, start);
         var list = prev ? objectMethodList_[prev] : (isCommand ? hints_.cmdlist : (keywordList_ + objectList_ + info.vars.keySet()));
         if (list.isUndefined) {
