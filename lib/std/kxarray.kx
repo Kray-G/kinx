@@ -94,6 +94,21 @@ Array.any = _function(ary, callback) {
     return false;
 };
 
+Array.partition = _function(ary, condition) {
+    var t = [];
+    var f = [];
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        var e = ary[i];
+        if (condition(e)) {
+            t.push(e);
+        } else {
+            f.push(e);
+        }
+    }
+    return [t, f];
+};
+
 Array.join = _function(ary, delm) {
     return Array.joinImpl(ary.stringify(), delm);
 };
@@ -136,7 +151,9 @@ Array.sort = (_function() {
 
     return _function(ary, comp) {
         ary = ary.clone();
-        _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+        if (ary.length() > 1) {
+            _quicksort(ary, 0, ary.length() - 1, comp ?? (_function(a,b) { return a<=>b; }));
+        }
         return ary;
     };
 })();

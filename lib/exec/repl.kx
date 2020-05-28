@@ -18,7 +18,7 @@ class ReplHelper {
     var va_ = new Regex("%{variables_}");
     var objectList_ = ["System"];
     var objectMethodList_ = {
-        "System": System.keySet().filter(&(k) => System[k].isFunction),
+        "System": [ "println", "print" ],
     };
 
     var hints_ = {
@@ -52,10 +52,10 @@ class ReplHelper {
         --end;
         return line.subString(start, end - start);
     }
-    private getHint(line, start, end, isCommand) {
-        var cur = isCommand ? line.subString(start, end-start) : line.subString(start, end-start+1);
+    private getHint(info, line, start, end, isCommand) {
+        var cur = line.subString(start, end-start);
         var prev = getPrevObject(line, start);
-        var list = prev ? objectMethodList_[prev] : (isCommand ? hints_.cmdlist : (keywordList_ + objectList_));
+        var list = prev ? objectMethodList_[prev] : (isCommand ? hints_.cmdlist : (keywordList_ + objectList_ + info.vars.keySet()));
         if (list.isUndefined) {
             return;
         }
@@ -71,7 +71,7 @@ class ReplHelper {
         }
         // no hint.
     }
-    public getNextHint(line, pos) {
+    public getNextHint(info, line, pos) {
         if (pos == 0 || line[pos-1] == ' '[0]) {
             return; // no hint.
         }
@@ -88,7 +88,7 @@ class ReplHelper {
         }
         var isCommand = start == 0 && line[0] == '.'[0];
         ++start;
-        var hint = getHint(line, start, end, isCommand);
+        var hint = getHint(info, line, start, end, isCommand);
         if (hint) {
             return { start: start, end: end, hint: hint };
         }
@@ -144,14 +144,30 @@ class ReplHelper {
 }
 
 class ReplCommand(helper_, info_) {
+    public fullcode(onoff) {
+        info_.fullcode = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
+        System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
+        System.println("");
+    }
+    public run() {
+        ;
+    }
+    public mode() {
+        System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
+        System.println("");
+    }
     public vars() {
-        info_.vars.keySet().each(&(key) => {
-            if (info_.vars[key].value) {
-                System.println(helper_.coloringLine("%{key} = %{info_.vars[key].value}"));
-            } else if (info_.vars[key].func) {
-                System.println(helper_.coloringLine("(%{info_.vars[key].disp})"));
-            }
-        });
+        info_.vars.keySet()
+            .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
+            .partition(&(key) => info_.vars[key].func)
+            .flatten()
+            .each(&(key) => {
+                if (info_.vars[key].value) {
+                    System.println(helper_.coloringLine("%{key} = %{info_.vars[key].expr || info_.vars[key].value}"));
+                } else if (info_.vars[key].func) {
+                    System.println(helper_.coloringLine("%{info_.vars[key].disp}"));
+                }
+            });
         System.println("");
     }
     public history() {
@@ -161,7 +177,7 @@ class ReplCommand(helper_, info_) {
         });
         System.println("");
     }
-    public func(name) {
+    public showdef(name) {
         if (info_.vars[name || ""].func) {
             System.println(helper_.coloringLine("%{info_.vars[name].disp} %{info_.vars[name].body.trim()}"));
         }
@@ -173,13 +189,17 @@ class ReplCommand(helper_, info_) {
         System.println("    .quit               Quit REPL.");
         System.println("    .history            Display command history.");
         System.println("    .vars               Display variables with its value.");
-        System.println("    .func name          Display function definition by name.");
+        System.println("    .showdef name       Display function/class definition by name.");
+        System.println("    .fullcode           Set 1 not to execute the code immediately and only execute it by .run.");
+        System.println("    .run                Execute the code only with .fullcode 1.");
         System.println("");
         System.println("REPL Operation:");
         System.println("    [^] Arrow up        Choose a previous command.");
         System.println("    [v] Arrow down      Choose a next command.");
         System.println("    [<] Arrow left      Move cursor to left.");
         System.println("    [>] Arrow right     Move cursor to right.");
+        System.println("    Ctrl+[<]            Move cursor to left by word.");
+        System.println("    Ctrl+[>]            Move cursor to right by word.");
         System.println("    [DEL]               Delete character on cursor.");
         System.println("    [BS]                Delete previous character.");
         System.println("    [TAB]               Move to the next tab stop.");
@@ -194,21 +214,23 @@ class ReplCommand(helper_, info_) {
 
 class Repl {
 
-    var widthMap_, cmd_, helper_;
+    var cmd_, helper_;
     var info_ = {
         line: 0,
+        fullcode: 0,
         history: [],
         vars: {},
         usings: {},
     };
     var re_ = {
+        usings: /^\s*using\s*([$_a-zA-Z0-9]+)/,
         assign: /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/,
         func: /^\s*function\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
-        usings: /^\s*using\s*([$_a-zA-Z0-9]+)/,
         clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         vars: /\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)(?:;|\s*\n)?/,
     };
+    var cmdid_ = 0;
 
     private initialize() {
         helper_ = new ReplHelper();
@@ -219,7 +241,7 @@ class Repl {
     private showPrompt(pos, info, hint, lines) {
         var infolen = info.length();
         var histlen = info_.history.length();
-        var prompt = ((lines > 0 ? "    [%3d]> " : "kinx[%3d]> ") % histlen).format();
+        var prompt = ((lines > 0 ? "    [%3d]>" : "kinx[%3d]>") % histlen).format();
         var line = info.map(&(e) => e.str).join('');
         if (hint) {
             var s = line.subString(0, hint.end);
@@ -232,7 +254,7 @@ class Repl {
         if (pos != infolen) {
             var linepos = 0;
             for (var i = pos; i < infolen; ++i) {
-                linepos += info[i].len > 1 ? (widthMap_[info[i].str] || 2) : 1;
+                linepos += info[i].width || 1;
             }
             System.print("\x1b[%{linepos}D");
         }
@@ -251,11 +273,29 @@ class Repl {
     }
 
     private countBrs(buf) {
+        var quote = 0;
+        var escape = 0;
         var brs = 0;
         buf.each(&(info) => {
             info.each(&(l) => {
-                if (l.str == '{') brs++;
-                if (l.str == '}') brs--;
+                if (quote) {
+                    if (l.str == '\\') {
+                        escape = 1;
+                    } else if (escape) {
+                        escape = 0;
+                    } if (l.str == quote) {
+                        quote = 0;
+                        escape = 0;
+                    }
+                } else {
+                    if (l.str == '"' || l.str == "'") {
+                        quote = l.str;
+                    } else if (l.str == '{') {
+                        brs++;
+                    } else if (l.str == '}') {
+                        brs--;
+                    }
+                }
             });
         });
         return brs;
@@ -272,13 +312,53 @@ class Repl {
                 }
             }
             if (del == pos) {
-                if (pos > 3) del = 4;
-                else         del = pos;
+                del = (pos > 3) ? 4 : pos;
                 while (del--) {
                     info.pop();
                     --pos;
                 }
             }
+        }
+        return pos;
+    }
+
+    private movePrevWord(info, pos) {
+        if (--pos <= 0) {
+            return pos;
+        }
+        var s = info[pos].str;
+        if (!helper_.isVariableChar(s[0])) {
+            do {
+                --pos;
+                s = info[pos].str;
+            } while (pos > 0 && !helper_.isVariableChar(s[0]));
+        } else {
+            do {
+                --pos;
+                s = info[pos].str;
+            } while (pos >= 0 && helper_.isVariableChar(s[0]));
+            ++pos;
+        }
+        return pos;
+    }
+
+    private moveNextWord(info, pos) {
+        var max = info.length();
+        if (++pos >= max) {
+            return pos;
+        }
+        var s = info[pos].str;
+        if (!helper_.isVariableChar(s[0])) {
+            do {
+                ++pos;
+                s = info[pos].str;
+            } while (pos < max && !helper_.isVariableChar(s[0]));
+        } else {
+            do {
+                ++pos;
+                s = info[pos].str;
+            } while (pos < max && helper_.isVariableChar(s[0]));
+            --pos;
         }
         return pos;
     }
@@ -296,10 +376,7 @@ class Repl {
         }
         var hlen = hint.hint.length();
         for (var i = 0; i < hlen; ++i) {
-            newinfo.push({
-                str: *(hint.hint[i]),
-                len: 1,
-            });
+            newinfo.push({ str: *(hint.hint[i]), width: 1, len: 1 });
         }
         for (++idx; idx < ilen; ++idx) {
             newinfo.push(info[idx]);
@@ -335,29 +412,35 @@ class Repl {
                 buf.push(info);
                 var brs = countBrs(buf);
                 if (brs == 0) {
-                    var line = buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
-                    return line;
+                    var line = info.map(&(e) => e.str).join('');
+                    if (!info_.fullcode || line[0] == '.'[0]) {
+                        return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
+                    }
+                    if (line == ".run") {
+                        buf.pop();
+                        return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
+                    }
                 }
                 ++lines;
                 info = [];
                 pos = 0;
                 for (var i = 0; i < brs; ++i) {
-                    4.times(&() => info.push({ len: 1, str: ' ' }));
+                    4.times(&() => info.push({ len: 1, width: 1, str: ' ' }));
                     pos += 4;
                 }
                 continue;
             case KX_KEY_TAB:
                 if (pos > 0 && info[pos-1].str != ' ') {
                     var line = info.map(&(e) => e.str).join('');
-                    hint = helper_.getNextHint(line, pos);
+                    hint = helper_.getNextHint(info_, line, pos);
                 } else {
                     add = (4 - (pos % 4));
                     if (pos == info.length()) {
-                        add.times(&() => info.push({ len: 1, str: ' ' }));
+                        add.times(&() => info.push({ len: 1, width: 1, str: ' ' }));
                     } else {
                         var e = info.subArray(pos);
                         info = info.subArray(0, pos);
-                        add.times(&() => info.push({ len: 1, str: ' ' }));
+                        add.times(&() => info.push({ len: 1, width: 1, str: ' ' }));
                         info += e;
                     }
                     pos = pos + add;
@@ -401,6 +484,24 @@ class Repl {
                 }
                 if (pos < info.length()) {
                     ++pos;
+                }
+                continue;
+            case KX_KEY_CTRL_LEFT:
+                helper_.resetHint();
+                if (hint) {
+                    [info, pos, hint] = updateInfoByHint(info, pos, hint);
+                }
+                if (0 < pos) {
+                    pos = movePrevWord(info, pos);
+                }
+                continue;
+            case KX_KEY_CTRL_RIGHT:
+                helper_.resetHint();
+                if (hint) {
+                    [info, pos, hint] = updateInfoByHint(info, pos, hint);
+                }
+                if (pos < info.length()) {
+                    pos = moveNextWord(info, pos);
                 }
                 continue;
             case KX_KEY_BS:
@@ -450,17 +551,11 @@ class Repl {
                     str += *c;
                 }
                 if (pos == info.length()) {
-                    info.push({
-                        len: len,
-                        str: str,
-                    });
+                    info.push({ len: len, width: str.eastAsianWidth(), str: str });
                 } else {
                     var e = info.subArray(pos);
                     info = info.subArray(0, pos);
-                    info.push({
-                        len: len,
-                        str: str,
-                    });
+                    info.push({ len: len, width: str.eastAsianWidth(), str: str });
                     info += e;
                 }
                 ++pos;
@@ -469,17 +564,11 @@ class Repl {
                     pos = removeIndent(pos, info);
                 }
                 if (pos == info.length()) {
-                    info.push({
-                        len: 1,
-                        str: *c,
-                    });
+                    info.push({ len: 1, width: 1, str: *c });
                 } else {
                     var e = info.subArray(pos);
                     info = info.subArray(0, pos);
-                    info.push({
-                        len: 1,
-                        str: *c,
-                    });
+                    info.push({ len: 1, width: 1, str: *c });
                     info += e;
                 }
                 ++pos;
@@ -490,11 +579,18 @@ class Repl {
     private appendPreCode(code) {
         var r = info_.usings.map(&(modules) => "using %{modules};").join('\n') + '\n';
         r += info_.vars.keySet()
+            .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
+            .partition(&(key) => info_.vars[key].func)
+            .flatten()
             .map(&(key) => {
                 if (info_.vars[key].value) {
-                    return "var %{key} = %{info_.vars[key].value};";
+                    return "var %{key} = %{info_.vars[key].expr || info_.vars[key].value};";
                 } else if (info_.vars[key].func) {
-                    return "%{info_.vars[key].name} = %{info_.vars[key].func};";
+                    if (info_.vars[key].isClass) {
+                        return "%{info_.vars[key].func};";
+                    } else {
+                        return "%{info_.vars[key].name} = %{info_.vars[key].func};";
+                    }
                 }
                 return ";";
             })
@@ -506,7 +602,7 @@ class Repl {
     }
 
     private makeValue(name) {
-        return "(%{name}.isObject ? %{name}.toJsonString() : (%{name}.isString ? %{name}.quote() : %{name}))";
+        return "(%{name}._className ? null : (%{name}.isObject ? %{name}.toJsonString() : (%{name}.isString ? %{name}.quote() : %{name})))";
     }
     private makeReturnCode(name) {
         return ";return %{makeValue(name)};";
@@ -515,80 +611,102 @@ class Repl {
     public eval(input) {
         var r;
         try {
-            var g;
-            // assignment.
-            re_.assign.reset(input);
-            if (g = (input =~ re_.assign)) {
-                var name = g[1].string;
-                var value = g[2].string;
-                input = appendPreCode() + input + makeReturnCode(name);
-                # System.println(input);
-                if (info_.vars[value].func) {
-                    r = input.evalNew();
-                    info_.vars[name] = {
-                        func: info_.vars[value].func,
-                        body: info_.vars[value].body,
-                        disp: 'function %{name}(%{info_.vars[value].args})',
-                        name: name,
-                        args: info_.vars[value].args
-                    };
-                } else {
-                    r = input.evalNew();
-                    info_.vars[name] = {
-                        value: r,
-                    };
-                }
-                return r;
-            }
-
-            re_.func.reset(input);
-            if (g = (input =~ re_.func)) {
-                var name = g[1].string;
-                input = "%{name} = function(%{g[2].string}) %{g[3].string}";
-                input = appendPreCode() + input + ";return 'function %{name}(%{g[2].string})';";
-                # System.println(input);
-                r = input.evalNew();
-                info_.vars[name] = {
-                    func: "function(%{g[2].string}) %{g[3].string}",
-                    body: g[3].string,
-                    disp: 'function %{name}(%{g[2].string})',
-                    name: name,
-                    args: g[2].string
-                };
-                return r;
-            }
-
-            re_.usings.reset(input);
-            if (g = (input =~ re_.usings)) {
-                info_.usings.push(g[1].string);
-                return;
-            }
-
             var unsupported = false;
-            re_.clas.reset(input);
-            if (g = (input =~ re_.clas)) {
-                // Unsupported so far.
-                unsupported = true;
-            }
-            re_.modl.reset(input);
-            if (g = (input =~ re_.modl)) {
-                // Unsupported so far.
-                unsupported = true;
-            }
-            if (unsupported) {
-                printError("Sorry, currently it is not supported.");
-                return;
-            }
+            var g;
+            if (!info_.fullcode) {
+                // assignment.
+                re_.assign.reset(input);
+                if (g = (input =~ re_.assign)) {
+                    var name = g[1].string;
+                    var value = g[2].string;
+                    var hasNew = value.find(/\bnew\b/);
+                    input = appendPreCode() + input + makeReturnCode(name);
+                    # System.println(input);
+                    if (info_.vars[value].func) {
+                        r = input.evalNew();
+                        info_.vars[name] = {
+                            id: ++cmdid_,
+                            func: info_.vars[value].func,
+                            body: info_.vars[value].body,
+                            disp: 'function %{name}(%{info_.vars[value].args})',
+                            name: name,
+                            args: info_.vars[value].args
+                        };
+                    } else {
+                        r = input.evalNew();
+                        info_.vars[name] = {
+                            id: ++cmdid_,
+                            value: r,
+                        };
+                        if (hasNew) {
+                            info_.vars[name].expr = value;
+                        }
+                    }
+                    return r;
+                }
 
-            var expr = input.trim().trim(';');
-            if (expr.find(';') < 0) {
-                // 1 line, guess expression;
-                try {
-                    var tryinput = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
-                    return tryinput.evalNew();
-                } catch (e) {
-                    ;   // oh, it is not a expression.
-                        // try it in the next step.
+                re_.func.reset(input);
+                if (g = (input =~ re_.func)) {
+                    var name = g[1].string;
+                    input = "%{name} = function(%{g[2].string}) %{g[3].string};";
+                    input = appendPreCode() + input + ";return 'function %{name}';";
+                    # System.println(input);
+                    r = input.evalNew();
+                    info_.vars[name] = {
+                        id: ++cmdid_,
+                        func: "function(%{g[2].string}) %{g[3].string}",
+                        body: g[3].string,
+                        disp: 'function %{name}(%{g[2].string})',
+                        name: name,
+                        args: g[2].string
+                    };
+                    return r;
+                }
+
+                re_.usings.reset(input);
+                if (g = (input =~ re_.usings)) {
+                    info_.usings.push(g[1].string);
+                    return;
+                }
+
+                re_.clas.reset(input);
+                if (g = (input =~ re_.clas)) {
+                    var name = g[1].string;
+                    input = "class %{name}(%{g[2].string}) %{g[3].string};";
+                    input = appendPreCode() + input + ";return 'class %{name}';";
+                    # System.println(input);
+                    r = input.evalNew();
+                    info_.vars[name] = {
+                        id: ++cmdid_,
+                        isClass: true,
+                        func: "class %{name}(%{g[2].string}) %{g[3].string};",
+                        body: g[3].string,
+                        disp: 'class %{name}(%{g[2].string})',
+                        name: name,
+                        args: g[2].string
+                    };
+                    return r;
+                }
+                re_.modl.reset(input);
+                if (g = (input =~ re_.modl)) {
+                    // Unsupported so far.
+                    unsupported = true;
+                }
+                if (unsupported) {
+                    printError("Sorry, currently it is not supported.");
+                    return;
+                }
+
+                var expr = input.trim().trim(';');
+                if (expr.find(';') < 0) {
+                    // 1 line, guess expression;
+                    try {
+                        var tryinput = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
+                        return tryinput.evalNew();
+                    } catch (e) {
+                        ;   // oh, it is not a expression.
+                            // try it in the next step.
+                    }
                 }
             }
 
@@ -598,13 +716,15 @@ class Repl {
             while (g = (input =~ re_.vars)) {
                 var name = g[1].string;
                 var value = g[2].string;
+                var hasNew = value.find(/\bnew\b/);
                 v += "%{name},";
-                r += "%{name}: %{makeValue(name)},";
+                r += hasNew ? "%{name}: \"%{value.quote()}\"," : "%{name}: %{makeValue(name)},";
             }
 
             input = appendPreCode() + "var %{v}_dummy;" + input + ";if ('%{r}' != '') return ({%{r}}.toJsonString());";
-            # System.println(input);
+            System.println(input);
             r = input.evalNew();
+            System.println(input);
             if (r != "(null)") {
                 if (r[0] != '{'[0] && r[0] != '['[0]) {
                     r = r.quote();
@@ -613,16 +733,20 @@ class Repl {
                 }
                 if (r) {
                     r.keySet().each(&(name) => {
-                        info_.vars[name] = {
-                            value: r[name],
-                        };
+                        if (r[name].isDefined) {
+                            info_.vars[name] = {
+                                id: ++cmdid_,
+                                value: r[name],
+                            };
+                        }
                     });
                 }
             }
         } catch (e) {
             printError("Compile Error.");
-            # System.println("Code:");
-            # System.println(input);
+        # } finally {
+        #     System.println("Code:");
+        #     System.println(input);
         }
         return r;
     }
