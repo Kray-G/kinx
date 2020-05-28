@@ -20,185 +20,28 @@ var Xml, Net;
     Xml = _import('kxxml');
     Net = _import('kxnet');
     SQLite = _import('kxsqlite');
-    Zip.create = File._zipCreate;
-    JSON.parse = System.parseJson;
-    JSON.stringify = Array.toJsonString;
-    _class BooleanClass(tf) { @_False = @isFalse = !tf; @isTrue = tf; public toString() { return tf ? 'true' : 'false'; } }
-    Boolean = BooleanClass;
-    True = System._setTrueFalse(1, new Boolean(true));
-    False = System._setTrueFalse(0, new Boolean(false));
-    SystemTimer = { create: System.SystemTimer_create };
     using kxisolate;
     using kxexception;
     using kxsqlite;
-    Database = _SQLiteDatabase;
     using kxxml;
     using kxnet;
     using kxenumerable;
-    Enumerable = _Enumerable;
-    Enumerator = _Enumerator;
-    Range = _Range;
-    System.setupRange(Range.create);
-    Fiber.create = _function(coroutine) {
-        var this;
-        this.isFiber = true;
-        this.resume = _coroutine(...val) {
-            return coroutine(...val);
-        };
-        this.isAlive = _function() {
-            return System.isFiberAlive(this.resume);
-        };
-        return this;
-    };
-    Signal.SIGINT = 1;
-    Signal.SIGTERM = 2;
-    Signal.hook = System._globalSignalHookMap();
-    Signal.trap = _function(sig, func) {
-        var id = -1;
-        if (sig == 1) {
-            id = Signal.hook.sigint.length();
-            Signal.hook.sigint.push(func);
-        } else if (sig == 2) {
-            id = Signal.hook.sigterm.length();
-            Signal.hook.sigterm.push(func);
-        }
-        return { id: id, sig: sig };
-    };
-    Signal.remove = _function(info) {
-        if (info.sig == 1) {
-            var sz = Signal.hook.sigint.length();
-            if (0 <= info.id && info.id < sz) {
-                Signal.hook.sigint[info.id] = null;
-            }
-        } else if (info.sig == 2) {
-            var sz = Signal.hook.sigterm.length();
-            if (0 <= info.id && info.id < sz) {
-                Signal.hook.sigterm[info.id] = null;
-            }
-        }
-    };
-    System.setSignalHookFunction(_function() {
-        var sz, hooks, done = 0;
-        sz = Signal.hook.sigint.length();
-        hooks = Signal.hook.sigint;
-        while (System.getSigintCount()) {
-            for (var i = 0; i < sz; ++i) {
-                if (hooks[i].isFunction) {
-                    var r = hooks[i](Signal.SIGINT);
-                    if (r.isDefined && !r) return System.halt(); 
-                    done = 1;
-                }
-            }
-        }
-        sz = Signal.hook.sigterm.length();
-        hooks = Signal.hook.sigterm;
-        while (System.getSigtermCount()) {
-            for (var i = 0; i < sz; ++i) {
-                if (hooks[i].isFunction) {
-                    var r = hooks[i](Signal.SIGTERM);
-                    if (r.isDefined && !r) return System.halt(); 
-                    done = 1;
-                }
-            }
-        }
-        System.setSigtermEnded();
-        if (!done) return System.halt();
-        _ret_nv;
-    });
-    System.try = _function(f) {
-        try {
-            var r = f();
-            return {
-                'else': _function() { return r; },
-                'try': _function() { return System.try(_function() { return r; }); },
-                'retry': _function() { return System.try(_function() { return r; }); },
-            };
-        } catch (e) {
-            ;
-        }
-        return {
-            'else': _function(expr) { return expr.isFunction ? expr() : expr; },
-            'try': System.try,
-            'retry': _function(count, wait) {
-                System.sleep(wait);
-                return count <= 1 ? System.try(f) : System.try(f).retry(count-1, wait);
-            },
-        };
-    };
+    using kxsysutil;
     using kxstring;
     using kxarray;
     using kxbinary;
     using kxnumeric;
-    Directory.close = File.dirclose;
-    Directory.walk = _function(dirname, func, opts) {
-        var dir = File.diropen(dirname);
-        try {
-            opts ??= { i: 0 };
-            while (true) {
-                var entry = File.direntry(dir);
-                if (entry == '.' || entry == '..') {
-                    continue;
-                }
-                break if (!entry);
-                var path = dirname / entry;
-                if (path.startsWith('./')) path = path.subString(2);
-                var r = func(path, ++(opts.i));
-                break if (r.isDefined && !r);
-            }
-        } finally {
-            Directory.close(dir);
-        }
-    };
-    Directory.recursiveWalk = _function(dirname, func, opts) {
-        opts ??= { i: 0 };
-        Directory.walk(dirname, _function(entry, i) {
-            var r = func(entry, i);
-            return false if (r.isDefined && !r);
-            if (File.isDirectory(entry)) {
-                r = Directory.recursiveWalk(entry, func, opts);
-                return false if (r.isDefined && !r);
-            }
-        }, opts);
-    };
-    File._setup(File);
-    File.create = _function(name, mode) {
-        var f = File._create(name, mode);
-        f.isFile = true;
-        f.mkdir = _function() { return File.mkdir(f.source); };
-        f.rename = _function(target) { return File.rename(f.source, target); };
-        f.unlink = _function() { return File.unlink(f.source); };
-        f.filesize = _function() { return File.filesize(f.source); };
-        f.filedate = _function() { return File.filedate(f.source); };
-        f.setFiledate = _function(date) { return File.setFiledate(f.source, date); };
-        f.print = _function(...arg) { f.printImpl(...arg.stringify()); };
-        f.println = _function(...arg) { f.printlnImpl(...arg.stringify()); };
-        f.eachLine = _function(func) {
-            var lineno = 1; 
-            do {
-                var line = f.readLine();
-                if (line.isInteger) return line;
-                func(line, lineno++);
-            } while (1);
-        };
-        return f;
-    };
-    File.open = _function(name, mode, func) {
-        var f;
-        if (name.isUndefined) {
-            throw FileException('No file name');
-        }
-        if (func.isUndefined && mode.isFunction) {
-            func = mode;
-            mode = File.TEXT|File.READ;
-        }
-        try {
-            f = new File(name, mode);
-            return func(f);
-        } finally {
-            f.close();
-        }
-    };
-    using Getopt;
+    using kxfile;
+    using kxgetopt;
+    Zip.create = File._zipCreate;
+    JSON.parse = System.parseJson;
+    JSON.stringify = Array.toJsonString;
+    Boolean = _BooleanClass;
+    Database = _SQLiteDatabase;
+    Enumerable = _Enumerable;
+    Enumerator = _Enumerator;
+    Range = _Range;
+    System.setupRange(Range.create);
     System.getopt = new Fiber(new GetOpt().getopt).resume;
     $stdin = new File('<stdin>', File.READ);
     $stdin.print = $stdin.printImpl;
