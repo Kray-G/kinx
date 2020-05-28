@@ -333,6 +333,25 @@ _module _Enumerable {
         }
         return false;
     }
+    public partition(func) {
+        if (host_.end().isUndefined) {
+            throw FiberException("Cannot complete the iteration");
+        }
+        var t = [];
+        var f = [];
+        while (src_.isAlive()) {
+            var v = src_.resume();
+            if (!src_.isAlive()) {
+                break;
+            }
+            if (func(v)) {
+                t.push(v);
+            } else {
+                f.push(v);
+            }
+        }
+        return [t, f];
+    }
     public sum() {
         if (host_.end().isUndefined) {
             throw FiberException("Cannot complete the iteration");
