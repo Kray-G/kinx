@@ -64,6 +64,7 @@
 /**/
 #define KX_DEF_BINCMD(CMD) \
     case KXOP_##CMD: {\
+        KX_CANNOT_BE_LVALUE(node, "operation"); \
         gencode_ast_hook(ctx, node->lhs, ana, 0); \
         gencode_ast_hook(ctx, node->rhs, ana, 0); \
         KX_DEF_BINCHKCMD(CMD);\
@@ -72,6 +73,7 @@
 /**/
 #define KX_DEF_BINCMD_OPT(CMD) \
     case KXOP_##CMD: {\
+        KX_CANNOT_BE_LVALUE(node, "operation"); \
         gencode_ast_hook(ctx, node->lhs, ana, 0); \
         gencode_ast_hook(ctx, node->rhs, ana, 0); \
         KX_DEF_BINCHKCMD(CMD);\
@@ -90,6 +92,7 @@
 /**/
 #define KX_DEF_BINCMD_COMP(CMD) \
     case KXOP_##CMD: {\
+        KX_CANNOT_BE_LVALUE(node, "comparison"); \
         gencode_ast_hook(ctx, node->lhs, ana, 0); \
         gencode_ast_hook(ctx, node->rhs, ana, 0); \
         KX_DEF_BINCHKCMD(CMD);\
@@ -798,6 +801,11 @@ static int gencode_spread_vars(kx_context_t *ctx, kx_object_t *node, kx_analyze_
     return index + 1;
 }
 
+#define KX_CANNOT_BE_LVALUE(node, info) if (lvalue) { \
+    kx_yyerror_line("Can not be l-value as " info, node->file, node->line); \
+} \
+/**/
+
 static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana, int lvalue)
 {
     if (!node) {
@@ -807,33 +815,42 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     kx_module_t *module = ana->module;
     switch (node->type) {
     case KXVL_UNKNOWN:
+        KX_CANNOT_BE_LVALUE(node, "null");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_HALT }));
         break;
     case KXVL_CTX:
         break;
 
     case KXVL_INT:
+        KX_CANNOT_BE_LVALUE(node, "integer");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHI, .value1 = { .i = node->value.i } }));
         break;
     case KXVL_DBL:
+        KX_CANNOT_BE_LVALUE(node, "double");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHD, .value1 = { .d = node->value.d } }));
         break;
     case KXVL_STR:
+        KX_CANNOT_BE_LVALUE(node, "string literal");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHS, .value1 = { .s = const_str(ctx, node->value.s) } }));
         break;
     case KXVL_BIG:
+        KX_CANNOT_BE_LVALUE(node, "big integer");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHB, .value1 = { .i = node->optional }, .value2 = { .s = const_str(ctx, node->value.s) } }));
         break;
     case KXVL_NULL:
+        KX_CANNOT_BE_LVALUE(node, "null");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_NULL }));
         break;
     case KXVL_TRUE:
+        KX_CANNOT_BE_LVALUE(node, "true");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_TRUE }));
         break;
     case KXVL_FALSE:
+        KX_CANNOT_BE_LVALUE(node, "false");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_FALSE }));
         break;
     case KXVL_REGEX:
+        KX_CANNOT_BE_LVALUE(node, "regular expression");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSH_REGEX, .value1 = { .i = node->optional }, .value2 = { .s = const_str(ctx, node->value.s) } }));
         break;
 
@@ -852,6 +869,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_KEYVALUE: {
+        KX_CANNOT_BE_LVALUE(node, "key-vaule");
         if (node->lhs->type == KXOP_SPREAD) {
             gencode_ast_hook(ctx, node->lhs->lhs, ana, 0);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDA }));\
@@ -863,26 +881,32 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     }
 
     case KXOP_BNOT:
+        KX_CANNOT_BE_LVALUE(node, "bitwise-not");
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_BNOT }));
         break;
     case KXOP_NOT:
+        KX_CANNOT_BE_LVALUE(node, "not");
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_NOT }));
         break;
     case KXOP_POSITIVE:
+        KX_CANNOT_BE_LVALUE(node, "positive operator");
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         break;
     case KXOP_NEGATIVE:
+        KX_CANNOT_BE_LVALUE(node, "negative operator");
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_NEG }));
         break;
     case KXOP_CONV: {
+        KX_CANNOT_BE_LVALUE(node, "convert operator");
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         kv_last(get_block(module, ana->block)->code).count = node->count_args;
         break;
     }
     case KXOP_INC: {
+        KX_CANNOT_BE_LVALUE(node, "increment");
         if (node->lhs->type == KXOP_VAR) {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
@@ -892,6 +916,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_DEC: {
+        KX_CANNOT_BE_LVALUE(node, "decrement");
         if (node->lhs->type == KXOP_VAR) {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DECV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
@@ -901,6 +926,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_INCP: {     /* postfix */
+        KX_CANNOT_BE_LVALUE(node, "increment");
         if (node->lhs->type == KXOP_VAR) {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCVP, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
@@ -910,6 +936,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_DECP: {     /* postfix */
+        KX_CANNOT_BE_LVALUE(node, "decrement");
         if (node->lhs->type == KXOP_VAR) {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DECVP, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
         } else {
@@ -919,6 +946,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_MKRANGE:
+        KX_CANNOT_BE_LVALUE(node, "range");
         if (node->lhs && node->rhs) {
             if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){
@@ -953,12 +981,14 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }));
         break;
     case KXOP_MKBIN:
+        KX_CANNOT_BE_LVALUE(node, "binary literal");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKBIN }));
         if (node->lhs) {
             apply_array(ctx, node->lhs, ana);
         }
         break;
     case KXOP_MKARY:
+        KX_CANNOT_BE_LVALUE(node, "array literal");
         if (node->lhs && is_array_of_literal(node->lhs)) {
             kx_obj_t *obj = allocate_obj(ctx);
             obj->frozen = 1;
@@ -972,6 +1002,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         }
         break;
     case KXOP_MKOBJ:
+        KX_CANNOT_BE_LVALUE(node, "object literal");
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MKARY }));
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         break;
@@ -1097,6 +1128,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     KX_DEF_BINCMD_OPT(SUB);
 
     case KXOP_POW: {
+        KX_CANNOT_BE_LVALUE(node, "operation");
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POW }));
@@ -1111,6 +1143,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     KX_DEF_BINCMD(XOR);
 
     case KXOP_LAND: {
+        KX_CANNOT_BE_LVALUE(node, "logical and operation");
         int block = ana->block;
         int ls, le, rs, re, out;
         ls = new_block(ana);
@@ -1134,6 +1167,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_LOR: {
+        KX_CANNOT_BE_LVALUE(node, "logical or operation");
         int block = ana->block;
         int ls, le, rs, re, out;
         ls = new_block(ana);
@@ -1157,6 +1191,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     }
     case KXOP_LUNDEF: {
+        KX_CANNOT_BE_LVALUE(node, "logical null operation");
         int block = ana->block;
         int cond, alt, out;
 
@@ -1188,7 +1223,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         gencode_ast_hook(ctx, node->lhs, ana, lvalue);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         if (code_size(module, ana) == 0) {
-            if (lvalue) { 
+            if (lvalue) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYL }));
             } else {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYV }));
