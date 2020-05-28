@@ -229,6 +229,7 @@ class Repl {
         clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         vars: /\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)(?:;|\s*\n)?/,
+        histRange: /!(0|[1-9][0-9]*)(?:-(0|[1-9][0-9]*))?/, 
     };
     var cmdid_ = 0;
 
@@ -261,7 +262,7 @@ class Repl {
     }
 
     private printCommand(cmd) {
-        System.println("\x1b[34;1m=> %{cmd.trim()}\x1b[0m");
+        System.println("\x1b[34;1m=> %{cmd.trim().quote()}\x1b[0m");
     }
 
     private printResult(result) {
@@ -406,6 +407,9 @@ class Repl {
                 if (hint) {
                     [info, pos, hint] = updateInfoByHint(info, pos, hint);
                     showPrompt(pos, info, hint, lines); // display again with colors.
+                }
+                if (buf.length() == 0 && info.length() == 0) {
+                    continue;
                 }
                 System.println("");
                 info_.history.push({ info: info });
@@ -718,13 +722,11 @@ class Repl {
                 var value = g[2].string;
                 var hasNew = value.find(/\bnew\b/);
                 v += "%{name},";
-                r += hasNew ? "%{name}: \"%{value.quote()}\"," : "%{name}: %{makeValue(name)},";
+                r += hasNew ? "%{name}: %{value.quote()}," : "%{name}: %{makeValue(name)},";
             }
 
             input = appendPreCode() + "var %{v}_dummy;" + input + ";if ('%{r}' != '') return ({%{r}}.toJsonString());";
-            System.println(input);
             r = input.evalNew();
-            System.println(input);
             if (r != "(null)") {
                 if (r[0] != '{'[0] && r[0] != '['[0]) {
                     r = r.quote();
@@ -744,6 +746,7 @@ class Repl {
             }
         } catch (e) {
             printError("Compile Error.");
+            r = null;
         # } finally {
         #     System.println("Code:");
         #     System.println(input);
@@ -757,18 +760,31 @@ class Repl {
 
     public run() {
         while (1) {
-            var input = read();
-            if (input[0] == '!'[0]) {
-                var h = Integer.parseInt(input.subString(1));
-                input = info_.history[h].info;
-                if (!input.isArray) {
+            input = read();
+            while (input[0] == '!'[0]) {
+                var g, s, e;
+                re_.histRange.reset(input);
+                if (g = (input =~ re_.histRange)) {
+                    s = Integer.parseInt(g[1].string || 0);
+                    e = Integer.parseInt(g[2].string || s);
+                } else {
                     printError("Invaild history number.");
                     info_.history.pop();
                     continue;
                 }
-                info_.history[-1].info = input;
-                input = input.map(&(e) => e.str).join('') + '\n';
-                printCommand(input);
+                var l = info_.history.length();
+                if (l <= s || l <= e || e < s) {
+                    printError("Invaild history number.");
+                    info_.history.pop();
+                    continue;
+                }
+                input = info_.history.subArray(s, e-s+1)
+                    .map(&(obj) => obj.info.map(&(e) => e.str).join('')).join(';\n') + ';\n';
+                if (input[0] != '!'[0]) {
+                    printCommand(input);
+                    input = '{%{input}}';
+                    break;
+                }
             }
             if (input[0] == '.'[0]) {
                 // command.
