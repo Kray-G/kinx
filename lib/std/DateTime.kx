@@ -42,6 +42,9 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
             % datetime_.year % datetime_.month % datetime_.day % datetime_.hour % datetime_.minute % datetime_.second;
     }
     public format(fmtString) {
+        if (fmtString.isUndefined) {
+            return toString();
+        }
         return fmtString
             .replace("%YYYY%", ("%04d" % datetime_.year).format())
             .replace("%YY%", ("%02d" % (datetime_.year % 1000)).format())
