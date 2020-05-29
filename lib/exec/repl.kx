@@ -13,14 +13,18 @@ class ReplHelper {
     var keywords_ = "\\b(%{keywordList_.join('|')})\\b";
     var stringLiteral = "(\"(?:\\\\\"|.)*?\"|'(?:\\\\'|.)*?')";
     var numbers_ = "(0[0-7]*|[1-9][_0-9]*(?:\\.[0-9]+(?:[eE][-+][0-9]+)?)?|0x[0-9a-fA-F]+)";
-    var variables_ = "(@|\\.?[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)";
+    var variables_ = "(\\.?[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)";
+    var is_ = new Regex("^\\s*new\\s+(%{variables_})\\s*\\(");
+    var pb_ = new Regex("\\s*public\\s+(%{variables_})\\s*\\(");
+    var mn_ = new Regex("\\s*mixin\\s+((?:%{variables_})(?:,\\s*(?:%{variables_}))*)\\s*;");
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
     var li_ = new Regex("^(?:%{stringLiteral}|%{numbers_})$");
     var objectList_ = ["System"];
-    var objectMethodList_ = {
+    var objectMethodListBase_ = {
         "System": [ "println", "print" ],
     };
+    var objectMethodList_ = objectMethodListBase_.clone();
 
     var hints_ = {
         cmdpos: 0,
@@ -30,6 +34,42 @@ class ReplHelper {
     public isLiteral(text) {
         li_.reset(""+text);
         return li_.find();
+    }
+    public setupHint(replinfo) {
+        objectMethodList_ = objectMethodListBase_.clone();
+        if (replinfo.vars.isObject) {
+            replinfo.vars.keySet()
+                .filter(&(key) => replinfo.vars[key].isClassModule)
+                .each(&(name) => {
+                    objectMethodList_[name] = [];
+                    pb_.reset(replinfo.vars[name].body);
+                    while (pb_.find()) {
+                        var methodName = pb_.group[1].string;
+                        objectMethodList_[name].push(methodName);
+                    }
+                });
+            replinfo.vars.keySet()
+                .filter(&(key) => replinfo.vars[key].isClassModule)
+                .each(&(name) => {
+                    mn_.reset(replinfo.vars[name].body);
+                    while (mn_.find()) {
+                        var mixins = (mn_.group[1].string).split(',').map(&(e) => e.trim());
+                        mixins.each(&(m) => {
+                            objectMethodList_[name] += objectMethodList_[m];
+                        });
+                    }
+                });
+            replinfo.vars.keySet()
+                .filter(&(key) => !replinfo.vars[key].isClassModule && replinfo.vars[key].expr.isString)
+                .each(&(name) => {
+                    var expr = replinfo.vars[name].expr;
+                    is_.reset(expr);
+                    if (is_.find()) {
+                        var className = is_.group[1].string;
+                        objectMethodList_[name] = objectMethodList_[className];
+                    }
+                });
+        }
     }
     public resetHint() {
         hints_.cmdpos = 0;
@@ -148,69 +188,75 @@ class ReplHelper {
     }
 }
 
-class ReplCommand(helper_, info_) {
+class ReplCommand(helper_, replinfo_) {
     public cursor(onoff, hide) {
-        info_.cursor = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
-        if (info_.cursor) {
+        replinfo_.cursor = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
+        if (replinfo_.cursor) {
             System.print("\e[?25h");
         } else {
             System.print("\e[?25l");
         }
         if (!hide) {
-            System.println(helper_.coloringLine(".cursor: " + (info_.cursor ? "on" : "off")));
+            System.println(helper_.coloringLine(".cursor: " + (replinfo_.cursor ? "on" : "off")));
             System.println("");
         }
     }
     public fullcode(onoff) {
-        info_.fullcode = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
-        System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
+        replinfo_.fullcode = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
+        System.println(helper_.coloringLine(".fullcode: " + (replinfo_.fullcode ? "on" : "off")));
         System.println("");
     }
     public run() {
         ;
     }
     public mode() {
-        System.println(helper_.coloringLine(".cursor:   " + (info_.cursor ? "on" : "off")));
-        System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
+        System.println(helper_.coloringLine(".cursor:   " + (replinfo_.cursor ? "on" : "off")));
+        System.println(helper_.coloringLine(".fullcode: " + (replinfo_.fullcode ? "on" : "off")));
         System.println("");
     }
     public vars() {
-        info_.vars.keySet()
-            .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
-            .partition(&(key) => info_.vars[key].func || !info_.vars[key].expr)
+        replinfo_.vars.keySet()
+            .filter(&(key) => replinfo_.vars[key].isDefined)
+            .sort(&(key1, key2) => replinfo_.vars[key1].id <=> replinfo_.vars[key2].id)
+            .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr)
             .flatten()
-            .partition(&(key) => info_.vars[key].func)
+            .partition(&(key) => replinfo_.vars[key].func)
             .flatten()
             .each(&(key) => {
-                if (info_.vars[key].value) {
-                    System.println(helper_.coloringLine("%{key} = %{info_.vars[key].expr || info_.vars[key].value}"));
-                } else if (info_.vars[key].func) {
-                    System.println(helper_.coloringLine("%{info_.vars[key].disp}"));
+                if (replinfo_.vars[key].value) {
+                    System.println(helper_.coloringLine("%{key} = %{replinfo_.vars[key].expr || replinfo_.vars[key].value}"));
+                } else if (replinfo_.vars[key].func) {
+                    System.println(helper_.coloringLine("%{replinfo_.vars[key].disp}"));
                 }
             });
         System.println("");
     }
+    public delete(name) {
+        replinfo_.vars[name] = null;
+    }
     public history() {
-        info_.history.each(&(h, i) => {
+        replinfo_.history.each(&(h, i) => {
             var l = helper_.coloringLine(h.info.map(&(e) => e.str).join(''));
             System.println("[%3d]: %s" % i % l);
         });
         System.println("");
     }
     public showdef(name) {
-        if (info_.vars[name || ""].func) {
-            System.println(helper_.coloringLine("%{info_.vars[name].disp} %{info_.vars[name].body.trim()}"));
+        if (replinfo_.vars[name || ""].func) {
+            System.println(helper_.coloringLine("%{replinfo_.vars[name].disp} %{replinfo_.vars[name].body.trim()}"));
         }
         System.println("");
     }
     public help() {
-        System.println("Kinx REPL Command:");
+        System.println("Kinx REPL Command: * means by default");
         System.println("    .help               Display this help.");
         System.println("    .quit               Quit REPL.");
         System.println("    .history            Display command history.");
         System.println("    .vars               Display variables with its value.");
+        System.println("    .delete name        Delete a variable by name.");
         System.println("    .showdef name       Display function/class definition by name.");
-        System.println("    .fullcode           Set 1 not to execute the code immediately and only execute it by .run.");
+        System.println("    .cursor [*on|off]   Set 'off' to make the cursor invisible.");
+        System.println("    .fullcode [on|*off] Set 'on' not to execute the code immediately and only execute it by .run.");
         System.println("    .run                Execute the code only with .fullcode 1.");
         System.println("");
         System.println("REPL Operation:");
@@ -235,7 +281,7 @@ class ReplCommand(helper_, info_) {
 class Repl {
 
     var cmd_, helper_;
-    var info_ = {
+    var replinfo_ = {
         line: 0,
         fullcode: 0,
         cursor: 1,
@@ -248,7 +294,7 @@ class Repl {
         assign: /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/,
         func: /^\s*function\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
         clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
-        modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
+        modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*((.|\n)+)/,
         vars: /\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)(?:;|\s*\n)?/,
         histRange: /!(0|[1-9][0-9]*)(?:-(0|[1-9][0-9]*))?/, 
     };
@@ -256,15 +302,15 @@ class Repl {
 
     private initialize() {
         helper_ = new ReplHelper();
-        cmd_ = new ReplCommand(helper_, info_);
+        cmd_ = new ReplCommand(helper_, replinfo_);
         helper_.setCommandList(cmd_.keySet().filter(&(name) => name != "instanceOf" && cmd_[name].isFunction) + ["quit"]);
         cmd_.cursor("on", true);
     }
 
     private showPrompt(pos, info, hint, lines) {
-        cmd_.cursor(info_.cursor ? "on" : "off", true);
+        cmd_.cursor(replinfo_.cursor ? "on" : "off", true);
         var infolen = info.length();
-        var histlen = info_.history.length();
+        var histlen = replinfo_.history.length();
         var prompt = ((lines > 0 ? "    [%3d]>" : "kinx[%3d]>") % histlen).format();
         var line = info.map(&(e) => e.str).join('');
         if (hint) {
@@ -415,12 +461,13 @@ class Repl {
     }
 
     public read() {
-        var historyPos = info_.history.length();
+        var historyPos = replinfo_.history.length();
         var lines = 0;
         var pos = 0;
         var buf = [];
         var info = [];
         var hint;
+        helper_.setupHint(replinfo_);
         while (true) {
             showPrompt(pos, info, hint, lines);
             var l, c = $stdin.getKeyCode();
@@ -435,12 +482,12 @@ class Repl {
                     continue;
                 }
                 System.println("");
-                info_.history.push({ info: info });
+                replinfo_.history.push({ info: info });
                 buf.push(info);
                 var brs = countBrs(buf);
                 if (brs == 0) {
                     var line = info.map(&(e) => e.str).join('');
-                    if (!info_.fullcode || line[0] == '.'[0]) {
+                    if (!replinfo_.fullcode || line[0] == '.'[0]) {
                         return buf.map(&(info) => info.map(&(e) => e.str).join('')).join('\n') + '\n';
                     }
                     if (line == ".run") {
@@ -459,7 +506,7 @@ class Repl {
             case KX_KEY_TAB:
                 if (pos > 0 && info[pos-1].str != ' ') {
                     var line = info.map(&(e) => e.str).join('');
-                    hint = helper_.getNextHint(info_, line, pos);
+                    hint = helper_.getNextHint(replinfo_, line, pos);
                 } else {
                     add = (4 - (pos % 4));
                     if (pos == info.length()) {
@@ -480,7 +527,7 @@ class Repl {
                 }
                 if (0 < historyPos) {
                     historyPos--;
-                    info = info_.history[historyPos].info.clone();
+                    info = replinfo_.history[historyPos].info.clone();
                     pos = info.length();
                 }
                 continue;
@@ -489,9 +536,9 @@ class Repl {
                 if (hint) {
                     [info, pos, hint] = updateInfoByHint(info, pos, hint);
                 }
-                if (historyPos < info_.history.length() - 1) {
+                if (historyPos < replinfo_.history.length() - 1) {
                     historyPos++;
-                    info = info_.history[historyPos].info.clone();
+                    info = replinfo_.history[historyPos].info.clone();
                     pos = info.length();
                 }
                 continue;
@@ -604,28 +651,33 @@ class Repl {
     }
 
     private appendPreCode(code) {
-        var r = info_.usings.map(&(modules) => "using %{modules};").join('\n') + '\n';
-        r += info_.vars.keySet()
-            .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
-            .partition(&(key) => info_.vars[key].func || !info_.vars[key].expr)
-            .flatten()
-            .partition(&(key) => info_.vars[key].func)
-            .flatten()
-            .map(&(key) => {
-                if (info_.vars[key].value) {
-                    return "var %{key} = %{info_.vars[key].expr || info_.vars[key].value};";
-                } else if (info_.vars[key].func) {
-                    if (info_.vars[key].isClass) {
-                        return "%{info_.vars[key].func};";
-                    } else {
-                        return "%{info_.vars[key].name} = %{info_.vars[key].func};";
+        var r = replinfo_.usings.map(&(modules) => "using %{modules};").join('\n') + '\n';
+        var names = replinfo_.vars.keySet()
+            .filter(&(key) => replinfo_.vars[key].isDefined);
+        if (names.length() > 0) {
+            r += "var %{names.join(',')};";
+            r += names
+                .sort(&(key1, key2) => replinfo_.vars[key1].id <=> replinfo_.vars[key2].id)
+                .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr)
+                .flatten()
+                .partition(&(key) => replinfo_.vars[key].func)
+                .flatten()
+                .map(&(key) => {
+                    if (replinfo_.vars[key].value) {
+                        return "var %{key} = %{replinfo_.vars[key].expr || replinfo_.vars[key].value};";
+                    } else if (replinfo_.vars[key].func) {
+                        if (replinfo_.vars[key].isClassModule) {
+                            return "%{replinfo_.vars[key].func};";
+                        } else {
+                            return "%{replinfo_.vars[key].name} = %{replinfo_.vars[key].func};";
+                        }
                     }
-                }
-                return ";";
-            })
-            .join('');
+                    return ";";
+                })
+                .join('');
+        }
         if (code.isString) {
-            r += helper_.replaceVariale(code, info_.vars);
+            r += helper_.replaceVariale(code, replinfo_.vars);
         }
         return r;
     }
@@ -642,7 +694,7 @@ class Repl {
         try {
             var unsupported = false;
             var g;
-            if (!info_.fullcode) {
+            if (!replinfo_.fullcode) {
                 // assignment.
                 re_.assign.reset(input);
                 if (g = (input =~ re_.assign)) {
@@ -650,25 +702,25 @@ class Repl {
                     var value = g[2].string;
                     input = appendPreCode() + input + makeReturnCode(name);
                     # System.println(input);
-                    if (info_.vars[value].func) {
+                    if (replinfo_.vars[value].func) {
                         r = input.evalNew();
-                        info_.vars[name] = {
+                        replinfo_.vars[name] = {
                             id: ++cmdid_,
-                            func: info_.vars[value].func,
-                            body: info_.vars[value].body,
-                            disp: 'function %{name}(%{info_.vars[value].args})',
+                            func: replinfo_.vars[value].func,
+                            body: replinfo_.vars[value].body,
+                            disp: 'function %{name}(%{replinfo_.vars[value].args})',
                             name: name,
-                            args: info_.vars[value].args
+                            args: replinfo_.vars[value].args
                         };
                     } else {
                         r = input.evalNew();
-                        info_.vars[name] = {
+                        replinfo_.vars[name] = {
                             id: ++cmdid_,
                             value: r,
                         };
                         var isLiteral = helper_.isLiteral(r);
                         if (!isLiteral) {
-                            info_.vars[name].expr = value;
+                            replinfo_.vars[name].expr = value;
                         }
                     }
                     return r;
@@ -681,7 +733,7 @@ class Repl {
                     input = appendPreCode() + input + ";return 'function %{name}';";
                     # System.println(input);
                     r = input.evalNew();
-                    info_.vars[name] = {
+                    replinfo_.vars[name] = {
                         id: ++cmdid_,
                         func: "function(%{g[2].string}) %{g[3].string}",
                         body: g[3].string,
@@ -694,7 +746,7 @@ class Repl {
 
                 re_.usings.reset(input);
                 if (g = (input =~ re_.usings)) {
-                    info_.usings.push(g[1].string);
+                    replinfo_.usings.push(g[1].string);
                     return "using %{g[1].string}";
                 }
 
@@ -705,9 +757,9 @@ class Repl {
                     input = appendPreCode() + input + ";return 'class %{name}';";
                     # System.println(input);
                     r = input.evalNew();
-                    info_.vars[name] = {
+                    replinfo_.vars[name] = {
                         id: ++cmdid_,
-                        isClass: true,
+                        isClassModule: true,
                         func: "class %{name}(%{g[2].string}) %{g[3].string};",
                         body: g[3].string,
                         disp: 'class %{name}(%{g[2].string})',
@@ -718,8 +770,21 @@ class Repl {
                 }
                 re_.modl.reset(input);
                 if (g = (input =~ re_.modl)) {
-                    // Unsupported so far.
-                    unsupported = true;
+                    var name = g[1].string;
+                    input = "module %{name} %{g[2].string};";
+                    input = appendPreCode() + input + ";return 'module %{name}';";
+                    # System.println(input);
+                    r = input.evalNew();
+                    replinfo_.vars[name] = {
+                        id: ++cmdid_,
+                        isClassModule: true,
+                        func: "module %{name} %{g[2].string};",
+                        body: g[2].string,
+                        disp: 'module %{name}',
+                        name: name,
+                        args: ""
+                    };
+                    return r;
                 }
                 if (unsupported) {
                     printError("Sorry, currently it is not supported.");
@@ -764,13 +829,13 @@ class Repl {
                 if (r) {
                     r.keySet().each(&(name) => {
                         if (r[name].isDefined) {
-                            info_.vars[name] = {
+                            replinfo_.vars[name] = {
                                 id: ++cmdid_,
                                 value: r[name],
                             };
                         }
                         if (exprMap[name]) {
-                            info_.vars[name].expr = exprMap[name];
+                            replinfo_.vars[name].expr = exprMap[name];
                         }
                     });
                 }
@@ -800,16 +865,16 @@ class Repl {
                     e = Integer.parseInt(g[2].string || s);
                 } else {
                     printError("Invaild history number.");
-                    info_.history.pop();
+                    replinfo_.history.pop();
                     continue;
                 }
-                var l = info_.history.length();
+                var l = replinfo_.history.length();
                 if (l <= s || l <= e || e < s) {
                     printError("Invaild history number.");
-                    info_.history.pop();
+                    replinfo_.history.pop();
                     continue;
                 }
-                input = info_.history.subArray(s, e-s+1)
+                input = replinfo_.history.subArray(s, e-s+1)
                     .map(&(obj) => obj.info.map(&(e) => e.str).join('')).join(';\n') + ';\n';
                 if (input[0] != '!'[0]) {
                     printCommand(input);
@@ -829,7 +894,6 @@ class Repl {
                     cmd_[cname](...f);
                 } else {
                     printError("Unknown command: " + cname);
-                    info_.history.pop();
                 }
                 continue;
             }
