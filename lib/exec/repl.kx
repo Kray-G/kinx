@@ -484,6 +484,7 @@ class Repl {
                 }
                 System.println("");
                 replinfo_.history.push({ info: info });
+                historyPos = replinfo_.history.length();
                 buf.push(info);
                 var brs = countBrs(buf);
                 if (brs == 0) {
@@ -797,6 +798,7 @@ class Repl {
                     // 1 line, guess expression;
                     try {
                         var tryinput = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
+                        # System.println(tryinput);
                         return tryinput.evalNew();
                     } catch (e) {
                         ;   // oh, it is not a expression.
