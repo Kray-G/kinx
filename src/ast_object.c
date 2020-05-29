@@ -535,7 +535,8 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     case KXFT_PUBLIC: {
         kx_object_t *prop = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object(name));
         kx_object_t *passign = kx_gen_bassign_object(KXOP_ASSIGN, prop, assign);
-        stmt = passign;
+        kx_object_t *decl = kx_gen_bassign_object(KXOP_DECL, kx_gen_var_object(name, KX_UNKNOWN_T), NULL);
+        stmt = kx_gen_bexpr_object(KXST_STMTLIST, decl, passign);
         break;
     }
     default:
