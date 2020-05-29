@@ -149,15 +149,17 @@ class ReplHelper {
 }
 
 class ReplCommand(helper_, info_) {
-    public cursor(onoff) {
+    public cursor(onoff, hide) {
         info_.cursor = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
-        System.println(helper_.coloringLine(".cursor: " + (info_.cursor ? "on" : "off")));
         if (info_.cursor) {
             System.println("\e[?25h");
         } else {
             System.println("\e[?25l");
         }
-        System.println("");
+        if (!hide) {
+            System.println(helper_.coloringLine(".cursor: " + (info_.cursor ? "on" : "off")));
+            System.println("");
+        }
     }
     public fullcode(onoff) {
         info_.fullcode = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
@@ -256,11 +258,11 @@ class Repl {
         helper_ = new ReplHelper();
         cmd_ = new ReplCommand(helper_, info_);
         helper_.setCommandList(cmd_.keySet().filter(&(name) => name != "instanceOf" && cmd_[name].isFunction) + ["quit"]);
-        cmd_.cursor("on");
+        cmd_.cursor("on", true);
     }
 
     private showPrompt(pos, info, hint, lines) {
-        cmd_.cursor(info_.cursor ? "on" : "off");
+        cmd_.cursor(info_.cursor ? "on" : "off", true);
         var infolen = info.length();
         var histlen = info_.history.length();
         var prompt = ((lines > 0 ? "    [%3d]>" : "kinx[%3d]>") % histlen).format();
