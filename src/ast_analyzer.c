@@ -45,6 +45,7 @@ static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node,
                         goto DECL_VAR;
                     }
                     /* No warning for the same level variable, use it. */
+                    sym->lexical_index = 0; // means the same level.
                 } else {
                     if (!sym->label) {
                         sym->lexical_index = i - 1;
