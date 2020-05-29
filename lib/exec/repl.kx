@@ -152,9 +152,9 @@ class ReplCommand(helper_, info_) {
     public cursor(onoff, hide) {
         info_.cursor = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
         if (info_.cursor) {
-            System.println("\e[?25h");
+            System.print("\e[?25h");
         } else {
-            System.println("\e[?25l");
+            System.print("\e[?25l");
         }
         if (!hide) {
             System.println(helper_.coloringLine(".cursor: " + (info_.cursor ? "on" : "off")));
