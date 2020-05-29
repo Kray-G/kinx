@@ -20,11 +20,11 @@ class ReplHelper {
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
     var li_ = new Regex("^(?:%{stringLiteral}|%{numbers_})$");
-    var objectList_ = ["System"];
     var objectMethodListBase_ = {
         "System": [ "println", "print" ],
     };
-    var objectMethodList_ = objectMethodListBase_.clone();
+    var objectList_ = objectMethodListBase_.keySet();
+    var objectMethodList_;
 
     var hints_ = {
         cmdpos: 0,
@@ -402,7 +402,8 @@ class Repl {
                 --pos;
                 s = info[pos].str;
             } while (pos > 0 && !helper_.isVariableChar(s[0]));
-        } else {
+        }
+        if (0 < pos) {
             do {
                 --pos;
                 s = info[pos].str;
@@ -423,12 +424,12 @@ class Repl {
                 ++pos;
                 s = info[pos].str;
             } while (pos < max && !helper_.isVariableChar(s[0]));
-        } else {
+        }
+        if (pos < (max - 1)) {
             do {
                 ++pos;
                 s = info[pos].str;
             } while (pos < max && helper_.isVariableChar(s[0]));
-            --pos;
         }
         return pos;
     }
@@ -483,6 +484,7 @@ class Repl {
                 }
                 System.println("");
                 replinfo_.history.push({ info: info });
+                historyPos = replinfo_.history.length();
                 buf.push(info);
                 var brs = countBrs(buf);
                 if (brs == 0) {
@@ -796,6 +798,7 @@ class Repl {
                     // 1 line, guess expression;
                     try {
                         var tryinput = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
+                        # System.println(tryinput);
                         return tryinput.evalNew();
                     } catch (e) {
                         ;   // oh, it is not a expression.

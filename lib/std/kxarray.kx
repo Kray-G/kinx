@@ -117,6 +117,12 @@ Array.toString = (_function() {
     var depth = 0;
     return _function(ary) {
         if (!ary.isArray) {
+            if (ary._classid) {
+                if (ary.create.isFunction) {
+                    return ("<class %s:%08x>" % ary._className % ary._classid).format();
+                }
+                return ("<instance(class %s:%08x)>" % ary._className % ary._classid).format();
+            }
             return ary.toJsonString();
         }
         try {
