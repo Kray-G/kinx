@@ -4,7 +4,6 @@ Signal.trap(Signal.SIGINT, &() => {
 });
 
 class ReplHelper {
-    var stringLiteral = "(\"(?:\\\\\"|.)*?\"|'(?:\\\\'|.)*?')";
     var keywordList_ = [
         "break", "class", "catch", "case", "continue", "const", "do", "default", "else", "enum", ""
         "function", "for", "finally", "false", "if", "in", "module", "mixin", "null", "new", "native", "namespace", ""
@@ -12,10 +11,12 @@ class ReplHelper {
         "using", "undefined", "var", "while", "yield"
     ];
     var keywords_ = "\\b(%{keywordList_.join('|')})\\b";
-    var numbers_ = "(0[0-7]*|[1-9][_0-9]*|0x[0-9a-fA-F]+)";
+    var stringLiteral = "(\"(?:\\\\\"|.)*?\"|'(?:\\\\'|.)*?')";
+    var numbers_ = "(0[0-7]*|[1-9][_0-9]*(?:\\.[0-9]+(?:[eE][-+][0-9]+)?)?|0x[0-9a-fA-F]+)";
     var variables_ = "(@|\\.?[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)";
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
+    var li_ = new Regex("^(?:%{stringLiteral}|%{numbers_})$");
     var objectList_ = ["System"];
     var objectMethodList_ = {
         "System": [ "println", "print" ],
@@ -26,6 +27,10 @@ class ReplHelper {
         cmdlist: [],
         cmdmap: {},
     };
+    public isLiteral(text) {
+        li_.reset(""+text);
+        return li_.find();
+    }
     public resetHint() {
         hints_.cmdpos = 0;
     }
@@ -97,7 +102,7 @@ class ReplHelper {
     public coloringHint(hint) {
         return "\x1b[90m%{hint}\x1b[0m";
     }
-    public coloringLine(inputLine) {
+    public coloringLine(inputLine, pos) {
         if (inputLine) {
             inputLine = inputLine.replace(re_, &(g) => {
                 if (g[1].string) {
@@ -144,6 +149,16 @@ class ReplHelper {
 }
 
 class ReplCommand(helper_, info_) {
+    public cursor(onoff) {
+        info_.cursor = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
+        System.println(helper_.coloringLine(".cursor: " + (info_.cursor ? "on" : "off")));
+        if (info_.cursor) {
+            System.println("\e[?25h");
+        } else {
+            System.println("\e[?25l");
+        }
+        System.println("");
+    }
     public fullcode(onoff) {
         info_.fullcode = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
         System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
@@ -153,12 +168,15 @@ class ReplCommand(helper_, info_) {
         ;
     }
     public mode() {
+        System.println(helper_.coloringLine(".cursor:   " + (info_.cursor ? "on" : "off")));
         System.println(helper_.coloringLine(".fullcode: " + (info_.fullcode ? "on" : "off")));
         System.println("");
     }
     public vars() {
         info_.vars.keySet()
             .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
+            .partition(&(key) => info_.vars[key].func || !info_.vars[key].expr)
+            .flatten()
             .partition(&(key) => info_.vars[key].func)
             .flatten()
             .each(&(key) => {
@@ -218,6 +236,7 @@ class Repl {
     var info_ = {
         line: 0,
         fullcode: 0,
+        cursor: 1,
         history: [],
         vars: {},
         usings: {},
@@ -237,9 +256,11 @@ class Repl {
         helper_ = new ReplHelper();
         cmd_ = new ReplCommand(helper_, info_);
         helper_.setCommandList(cmd_.keySet().filter(&(name) => name != "instanceOf" && cmd_[name].isFunction) + ["quit"]);
+        cmd_.cursor("on");
     }
 
     private showPrompt(pos, info, hint, lines) {
+        cmd_.cursor(info_.cursor ? "on" : "off");
         var infolen = info.length();
         var histlen = info_.history.length();
         var prompt = ((lines > 0 ? "    [%3d]>" : "kinx[%3d]>") % histlen).format();
@@ -584,6 +605,8 @@ class Repl {
         var r = info_.usings.map(&(modules) => "using %{modules};").join('\n') + '\n';
         r += info_.vars.keySet()
             .sort(&(key1, key2) => info_.vars[key1].id <=> info_.vars[key2].id)
+            .partition(&(key) => info_.vars[key].func || !info_.vars[key].expr)
+            .flatten()
             .partition(&(key) => info_.vars[key].func)
             .flatten()
             .map(&(key) => {
@@ -623,7 +646,6 @@ class Repl {
                 if (g = (input =~ re_.assign)) {
                     var name = g[1].string;
                     var value = g[2].string;
-                    var hasNew = value.find(/\bnew\b/);
                     input = appendPreCode() + input + makeReturnCode(name);
                     # System.println(input);
                     if (info_.vars[value].func) {
@@ -642,7 +664,8 @@ class Repl {
                             id: ++cmdid_,
                             value: r,
                         };
-                        if (hasNew) {
+                        var isLiteral = helper_.isLiteral(r);
+                        if (!isLiteral) {
                             info_.vars[name].expr = value;
                         }
                     }
@@ -670,7 +693,7 @@ class Repl {
                 re_.usings.reset(input);
                 if (g = (input =~ re_.usings)) {
                     info_.usings.push(g[1].string);
-                    return;
+                    return "using %{g[1].string}";
                 }
 
                 re_.clas.reset(input);
@@ -714,15 +737,18 @@ class Repl {
                 }
             }
 
-            v = "";
-            r = "";
+            var exprMap = {};
+            v = ""; r = "";
             re_.vars.reset(input);
             while (g = (input =~ re_.vars)) {
                 var name = g[1].string;
                 var value = g[2].string;
-                var hasNew = value.find(/\bnew\b/);
                 v += "%{name},";
-                r += hasNew ? "%{name}: %{value.quote()}," : "%{name}: %{makeValue(name)},";
+                var isLiteral = helper_.isLiteral(value);
+                if (isLiteral) {
+                    exprMap[name] = value;
+                }
+                r += "%{name}: %{makeValue(name)},";
             }
 
             input = appendPreCode() + "var %{v}_dummy;" + input + ";if ('%{r}' != '') return ({%{r}}.toJsonString());";
@@ -740,6 +766,9 @@ class Repl {
                                 id: ++cmdid_,
                                 value: r[name],
                             };
+                        }
+                        if (exprMap[name]) {
+                            info_.vars[name].expr = exprMap[name];
                         }
                     });
                 }
