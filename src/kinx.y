@@ -308,7 +308,7 @@ MixinStatement
 
 MixinModuleList
     : NAME { $$ = kx_gen_stmt_object(KXST_MIXIN, NULL, kx_gen_var_object($1, KX_OBJ_T), NULL); }
-    | MixinModuleList ',' NAME { kx_gen_stmt_object(KXST_MIXIN, $1, kx_gen_var_object($3, KX_OBJ_T), NULL); }
+    | MixinModuleList ',' NAME { $$ = kx_gen_stmt_object(KXST_MIXIN, $1, kx_gen_var_object($3, KX_OBJ_T), NULL); }
     ;
 
 ExpressionStatement
