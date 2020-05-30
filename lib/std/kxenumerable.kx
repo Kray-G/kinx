@@ -551,6 +551,19 @@ _class _Range(start_, end_, excludeEnd_) {
     public next() {
         return cur_.next();
     }
+    private comp(a, b) {
+        if (a.isString && b.isString) {
+            var al = a.length();
+            var bl = b.length();
+            if (al < bl) {
+                return -1;
+            }
+            if (al > bl) {
+                return 1;
+            }
+        }
+        return a <=> b;
+    }
     private eachByFunction(func) {
         if (@array) {
             var i = 0;
@@ -566,14 +579,14 @@ _class _Range(start_, end_, excludeEnd_) {
         }
         var i = 0;
         while (true) {
-            if (end_ && excludeEnd_ && (cur_ <=> end_) == 0) {
+            if (end_ && excludeEnd_ && comp(cur_, end_) == 0) {
                 break;
             }
             var r = func(cur_, i);
             if (r.isDefined && !r) {
                 break;
             }
-            if (end_ && !excludeEnd_ && (cur_ <=> end_) == 0) {
+            if (end_ && !excludeEnd_ && comp(cur_, end_) == 0) {
                 break;
             }
             cur_ = cur_.next();
@@ -586,10 +599,10 @@ _class _Range(start_, end_, excludeEnd_) {
             throw FiberException("Cannot iterate the range because of no start value");
         }
         if (start_.isDefined && end_.isDefined) {
-            if (excludeEnd_ && ((start_ <=> end_) >= 0)) {
+            if (excludeEnd_ && (comp(start_, end_) >= 0)) {
                 return false;
             }
-            if (!excludeEnd_ && ((start_ <=> end_) > 0)) {
+            if (!excludeEnd_ && (comp(start_, end_) > 0)) {
                 return false;
             }
         }
@@ -604,13 +617,13 @@ _class _Range(start_, end_, excludeEnd_) {
         }
         while (true) {
             if (end_.isDefined && excludeEnd_) {
-                if ((cur_ <=> end_) >= 0) {
+                if (comp(cur_, end_) >= 0) {
                     return false;
                 }
             }
             yield cur_;
             if (end_.isDefined && !excludeEnd_) {
-                if ((cur_ <=> end_) >= 0) {
+                if (comp(cur_, end_) >= 0) {
                     return false;
                 }
             }
@@ -628,15 +641,15 @@ _class _Range(start_, end_, excludeEnd_) {
         return Integer.parseInt((end + start_) * (end - start_ + 1) / 2);
     }
     public ==(rhs) {
-        if ((start_ <=> rhs) > 0) {
+        if (comp(start_, rhs) > 0) {
             return false;
         }
         if (excludeEnd_) {
-            if ((end_ <=> rhs) <= 0) {
+            if (comp(end_, rhs) <= 0) {
                 return false;
             }
         } else {
-            if ((end_ <=> rhs) < 0) {
+            if (comp(end_, rhs) < 0) {
                 return false;
             }
         }
