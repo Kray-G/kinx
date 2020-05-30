@@ -2130,16 +2130,7 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         int r = 0; \
         const char *p1 = (v1)->value.pv; \
         const char *p2 = val; \
-        int sz1 = strlen(p1); \
-        int sz2 = strlen(p2); \
-        if (sz1 == sz2) { \
-            r = strcmp(p1, p2); \
-        } else if (sz1 < sz2) { \
-            r = -1;\
-        } else if (sz1 > sz2) { \
-            r = 1;\
-        } \
-        (v1)->value.iv = r; \
+        (v1)->value.iv = strcmp(p1, p2); \
         (v1)->type = KX_INT_T; \
         break; \
     } \
@@ -2147,16 +2138,7 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         int r = 0; \
         const char *p1 = ks_string((v1)->value.sv); \
         const char *p2 = val; \
-        int sz1 = strlen(p1); \
-        int sz2 = strlen(p2); \
-        if (sz1 == sz2) { \
-            r = strcmp(p1, p2); \
-        } else if (sz1 < sz2) { \
-            r = -1;\
-        } else if (sz1 > sz2) { \
-            r = 1;\
-        } \
-        (v1)->value.iv = r; \
+        (v1)->value.iv = strcmp(p1, p2); \
         (v1)->type = KX_INT_T; \
         break; \
     } \
