@@ -4,6 +4,7 @@
 #include <time.h>
 #define KX_DLL
 #include <kinx.h>
+#include <fileutil.h>
 #include <kutil.h>
 #include <kxutf8.h>
 #include <kxthread.h>
@@ -1527,6 +1528,18 @@ int System_isUtf8Bytes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     return 0;
 }
 
+int System_exepath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kstr_t *sv = allocate_str(ctx);
+    char *buf = conv_acp2utf8_alloc(get_exe_path());
+    ks_append(sv, buf);
+    conv_free(buf);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -1567,6 +1580,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "localtime", System_localtime },
     { "setupRange", System_setupRange },
     { "isUtf8Bytes", System_isUtf8Bytes },
+    { "exepath", System_exepath },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
