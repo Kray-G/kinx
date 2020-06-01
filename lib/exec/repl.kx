@@ -21,7 +21,9 @@ class ReplHelper {
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
     var li_ = new Regex("^(?:%{stringLiteral}|%{numbers_})$");
+    var cl_ = new Regex("(?:(?:_?class\\s+%{variables_})|(?:_?module\\s+%{variables_})|(?:public\\s+%{variables_}))");
     var thisMethodList_ = [];
+    var loadedClassMethodList_ = {};
     var arrayMethodList_ = [
         "all", "any", "clone", "collect", "collectConcat", "each", "extend", "filter", "findAll", "flatMap", "flatten", "format",
         "inject", "join", "keySet", "length", "map", "partition", "pop", "push", "reduce", "reject", "reverse", "shift", "sort",
@@ -44,6 +46,9 @@ class ReplHelper {
     }
     public setupHint(replinfo) {
         objectMethodList_ = objectMethodListBase_.clone();
+        loadedClassMethodList_.keySet().each(&(clsName) => {
+            objectMethodList_[clsName] = loadedClassMethodList_[clsName];
+        });
         if (replinfo.vars.isObject) {
             replinfo.vars.keySet()
                 .filter(&(key) => replinfo.vars[key].isClassModule)
@@ -83,6 +88,26 @@ class ReplHelper {
                 });
         }
         objectMethodList_['this'] = thisMethodList_;
+    }
+    private addLoadedClassMethod(clsName, mtdName) {
+        loadedClassMethodList_[clsName] ??= [];
+        loadedClassMethodList_[clsName].push(mtdName);
+    }
+    public setupClassMethod(content) {
+        var clsName = [];
+        cl_.reset(content);
+        while (cl_.find()) {
+            var g = cl_.group;
+            if (g[1].string) {
+                clsName.push(g[1].string);
+            } else if (g[2].string) {
+                clsName.pop() if (clsName.length() > 0);
+            } else if (g[3].string) {
+                if (clsName.length() > 0) {
+                    addLoadedClassMethod(clsName[-1], g[3].string);
+                }
+            }
+        }
     }
     public addThisMethod(name) {
         thisMethodList_.push(name);
@@ -231,6 +256,27 @@ class ReplCommand(helper_, replinfo_) {
     public run() {
         ;
     }
+    public load(file) {
+        var filepath;
+        file += '.kx' if (!file.endsWith('.kx'));
+        if (File.exists(file)) {
+            filepath = file;
+        }
+        if (!filepath && File.exists($exepath / 'lib' / file)) {
+            filepath = $exepath / 'lib' / file;
+        }
+        if (!filepath && File.exists($exepath / 'lib/std' / file)) {
+            filepath = $exepath / 'lib/std' / file;
+        }
+        if (!filepath && File.exists($exepath / '../lib' / file)) {
+            filepath = $exepath / '../lib' / file;
+        }
+        if (filepath) {
+            var content = File.load(filepath);
+            helper_.setupClassMethod(content);
+            replinfo_.loaded.push(content);
+        }
+    }
     public mode() {
         System.println(helper_.coloringLine(".cursor:   " + (replinfo_.cursor ? "on" : "off")));
         System.println(helper_.coloringLine(".fullcode: " + (replinfo_.fullcode ? "on" : "off")));
@@ -240,10 +286,8 @@ class ReplCommand(helper_, replinfo_) {
         replinfo_.vars.keySet()
             .filter(&(key) => replinfo_.vars[key].isDefined)
             .sort(&(key1, key2) => replinfo_.vars[key1].id <=> replinfo_.vars[key2].id)
-            .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr)
-            .flatten()
-            .partition(&(key) => replinfo_.vars[key].func)
-            .flatten()
+            .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr).flatten()
+            .partition(&(key) => replinfo_.vars[key].func).flatten()
             .each(&(key) => {
                 if (replinfo_.vars[key].value) {
                     System.println(helper_.coloringLine("%{key} = %{replinfo_.vars[key].expr || replinfo_.vars[key].value}"));
@@ -693,10 +737,8 @@ class Repl {
             r += "var %{names.join(',')};";
             r += names
                 .sort(&(key1, key2) => replinfo_.vars[key1].id <=> replinfo_.vars[key2].id)
-                .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr)
-                .flatten()
-                .partition(&(key) => replinfo_.vars[key].func)
-                .flatten()
+                .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr).flatten()
+                .partition(&(key) => replinfo_.vars[key].func).flatten()
                 .map(&(key) => {
                     if (replinfo_.vars[key].value) {
                         return "var %{key} = %{replinfo_.vars[key].expr || replinfo_.vars[key].value};";
