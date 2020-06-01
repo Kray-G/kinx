@@ -21,7 +21,10 @@ class ReplHelper {
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
     var li_ = new Regex("^(?:%{stringLiteral}|%{numbers_})$");
+    var cl_ = new Regex("(?:(?:_?class\\s+%{variables_})|(?:_?module\\s+%{variables_})|(?:public\\s+%{variables_}))");
+    var hintOrder_ = {}, order_ = 0;
     var thisMethodList_ = [];
+    var loadedClassMethodList_ = {};
     var arrayMethodList_ = [
         "all", "any", "clone", "collect", "collectConcat", "each", "extend", "filter", "findAll", "flatMap", "flatten", "format",
         "inject", "join", "keySet", "length", "map", "partition", "pop", "push", "reduce", "reject", "reverse", "shift", "sort",
@@ -44,6 +47,9 @@ class ReplHelper {
     }
     public setupHint(replinfo) {
         objectMethodList_ = objectMethodListBase_.clone();
+        loadedClassMethodList_.keySet().each(&(clsName) => {
+            objectMethodList_[clsName] = loadedClassMethodList_[clsName];
+        });
         if (replinfo.vars.isObject) {
             replinfo.vars.keySet()
                 .filter(&(key) => replinfo.vars[key].isClassModule)
@@ -84,6 +90,35 @@ class ReplHelper {
         }
         objectMethodList_['this'] = thisMethodList_;
     }
+    public selectedHint(hint) {
+        if (hint.prev) {
+            hintOrder_[hint.prev][hint.word] = ++order_;
+        } else if (hint.isCommand) {
+            hintOrder_['.cmd'][hint.word] = ++order_;
+        } else {
+            hintOrder_['.global'][hint.word] = ++order_;
+        }
+    }
+    private addLoadedClassMethod(clsName, mtdName) {
+        loadedClassMethodList_[clsName] ??= [];
+        loadedClassMethodList_[clsName].push(mtdName);
+    }
+    public setupClassMethod(content) {
+        var clsName = [];
+        cl_.reset(content);
+        while (cl_.find()) {
+            var g = cl_.group;
+            if (g[1].string) {
+                clsName.push(g[1].string);
+            } else if (g[2].string) {
+                clsName.pop() if (clsName.length() > 0);
+            } else if (g[3].string) {
+                if (clsName.length() > 0) {
+                    addLoadedClassMethod(clsName[-1], g[3].string);
+                }
+            }
+        }
+    }
     public addThisMethod(name) {
         thisMethodList_.push(name);
     }
@@ -119,13 +154,14 @@ class ReplHelper {
         --end;
         return line.subString(start, end - start);
     }
-    private getHint(info, line, start, end, isCommand) {
+    private getHint(info, line, start, end, prev, isCommand) {
         var cur = line.subString(start, end-start);
-        var prev = getPrevObject(line, start);
         var list = prev ? objectMethodList_[prev] : (isCommand ? hints_.cmdlist : (keywordList_ + objectList_ + info.vars.keySet()));
         if (list.isUndefined) {
             return;
         }
+        var order = prev ? hintOrder_[prev] : (isCommand ? hintOrder_['.cmd'] : hintOrder_['.global']);
+        list = list.sort(&(e1, e2) => (order[e2] || 0) <=> (order[e1] || 0));
         var len = list.length();
         var p = hints_.cmdpos;
         for (var i = 0; i < len; ++i) {
@@ -133,7 +169,7 @@ class ReplHelper {
             p = (p+1) % len;
             if (candidate.startsWith(cur)) {
                 hints_.cmdpos = p;
-                return candidate.subString(cur.length());
+                return [candidate, candidate.subString(cur.length())];
             }
         }
         // no hint.
@@ -155,9 +191,10 @@ class ReplHelper {
         }
         var isCommand = start == 0 && line[0] == '.'[0];
         ++start;
-        var hint = getHint(info, line, start, end, isCommand);
+        var prev = getPrevObject(line, start);
+        var [word, hint] = getHint(info, line, start, end, prev, isCommand);
         if (hint) {
-            return { start: start, end: end, hint: hint };
+            return { start: start, end: end, word: word, hint: hint, prev: prev, isCommand: isCommand };
         }
         return; // no hint
     }
@@ -231,6 +268,27 @@ class ReplCommand(helper_, replinfo_) {
     public run() {
         ;
     }
+    public load(file) {
+        var filepath;
+        file += '.kx' if (!file.endsWith('.kx'));
+        if (File.exists(file)) {
+            filepath = file;
+        }
+        if (!filepath && File.exists($exepath / 'lib' / file)) {
+            filepath = $exepath / 'lib' / file;
+        }
+        if (!filepath && File.exists($exepath / 'lib/std' / file)) {
+            filepath = $exepath / 'lib/std' / file;
+        }
+        if (!filepath && File.exists($exepath / '../lib' / file)) {
+            filepath = $exepath / '../lib' / file;
+        }
+        if (filepath) {
+            var content = File.load(filepath);
+            helper_.setupClassMethod(content);
+            replinfo_.loaded.push(content);
+        }
+    }
     public mode() {
         System.println(helper_.coloringLine(".cursor:   " + (replinfo_.cursor ? "on" : "off")));
         System.println(helper_.coloringLine(".fullcode: " + (replinfo_.fullcode ? "on" : "off")));
@@ -240,10 +298,8 @@ class ReplCommand(helper_, replinfo_) {
         replinfo_.vars.keySet()
             .filter(&(key) => replinfo_.vars[key].isDefined)
             .sort(&(key1, key2) => replinfo_.vars[key1].id <=> replinfo_.vars[key2].id)
-            .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr)
-            .flatten()
-            .partition(&(key) => replinfo_.vars[key].func)
-            .flatten()
+            .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr).flatten()
+            .partition(&(key) => replinfo_.vars[key].func).flatten()
             .each(&(key) => {
                 if (replinfo_.vars[key].value) {
                     System.println(helper_.coloringLine("%{key} = %{replinfo_.vars[key].expr || replinfo_.vars[key].value}"));
@@ -313,6 +369,7 @@ class Repl {
     };
     var re_ = {
         assign: /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/,
+        natv: /^\s*native\s*(?:\<([a-z]+)\>)?\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
         func: /^\s*function\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
         clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*((.|\n)+)/,
@@ -478,6 +535,7 @@ class Repl {
     }
 
     private updateInfoByHint(info, pos, hint) {
+        helper_.selectedHint(hint);
         info = updateInfo(info, hint);
         pos += hint.hint.length();
         return [info, pos, null];
@@ -690,13 +748,11 @@ class Repl {
         var names = replinfo_.vars.keySet()
             .filter(&(key) => replinfo_.vars[key].isDefined);
         if (names.length() > 0) {
-            r += "var %{names.join(',')};";
+            r += "var %{names.map(&(n) => replinfo_.vars[n].type ? (n+':'+replinfo_.vars[n].type) : n).join(',')};";
             r += names
                 .sort(&(key1, key2) => replinfo_.vars[key1].id <=> replinfo_.vars[key2].id)
-                .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr)
-                .flatten()
-                .partition(&(key) => replinfo_.vars[key].func)
-                .flatten()
+                .partition(&(key) => replinfo_.vars[key].func || !replinfo_.vars[key].expr).flatten()
+                .partition(&(key) => replinfo_.vars[key].func).flatten()
                 .map(&(key) => {
                     if (replinfo_.vars[key].value) {
                         return "var %{key} = %{replinfo_.vars[key].expr || replinfo_.vars[key].value};";
@@ -709,7 +765,7 @@ class Repl {
                     }
                     return ";";
                 })
-                .join('');
+                .join('\n');
         }
         if (code.isString) {
             r += helper_.replaceVariale(code, replinfo_.vars);
@@ -777,6 +833,28 @@ class Repl {
                         disp: 'function %{name}(%{g[2].string})',
                         name: name,
                         args: g[2].string
+                    };
+                    return r;
+                }
+
+                re_.natv.reset(input);
+                if (re_.natv.find()) {
+                    g = re_.natv.group;
+                    var rtyp = g[1].string || 'int';
+                    var name = g[2].string;
+                    input = "var %{name}:native(%{rtyp}) = native<%{rtyp}>(%{g[3].string}) %{g[4].string};";
+                    input = appendPreCode() + input + ";return 'native<%{rtyp}> %{name}';";
+                    # System.println(input);
+                    r = input.evalNew();
+                    replinfo_.vars[name] = {
+                        id: ++cmdid_,
+                        isNative: true,
+                        func: "native<%{rtyp}>(%{g[3].string}) %{g[4].string}",
+                        body: g[4].string,
+                        disp: 'native<%{rtyp}> %{name}(%{g[3].string})',
+                        name: name,
+                        type: "native(%{rtyp})",
+                        args: g[3].string
                     };
                     return r;
                 }
@@ -890,6 +968,7 @@ class Repl {
 
     public run() {
         while (1) {
+            System.gc();
             input = read();
             while (input[0] == '!'[0]) {
                 var g, s, e;

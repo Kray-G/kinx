@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <kinx.h>
 #include <kxnative.h>
+#include <math.h>
 
 /* extern functions */
 extern int64_t kxn_print_val(sljit_sw val);
@@ -179,41 +180,6 @@ static void natir_compile_get_addr(kx_native_context_t *nctx, int var_type, kxn_
     } \
 } \
 /**/
-#define KXN_COMPILE_BOPPRECHECK(code, r0neg_r1pos, r0pos_rneg, same) \
-    KXN_COMPILE_LOAD_R0R1(code); \
-    sljit_emit_op2(nctx->C, SLJIT_LSHR, SLJIT_R0, 0, SLJIT_R0, 0, SLJIT_IMM, 63); \
-    sljit_emit_op2(nctx->C, SLJIT_LSHR, SLJIT_R1, 0, SLJIT_R1, 0, SLJIT_IMM, 63); \
-    sljit_emit_op2(nctx->C, SLJIT_ADD, SLJIT_R2, 0, SLJIT_R0, 0, SLJIT_R1, 0); \
-    sljump_t *same = sljit_emit_cmp(nctx->C, SLJIT_NOT_EQUAL, SLJIT_R2, 0, SLJIT_IMM, 1); \
-    sljump_t *chk1 = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, SLJIT_R0, 0, SLJIT_IMM, 1); \
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, r0pos_rneg); \
-    sljump_t *toend1 = sljit_emit_jump(nctx->C, SLJIT_JUMP); \
-    sljit_set_label(chk1, sljit_emit_label(nctx->C)); \
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, r0neg_r1pos); \
-    sljump_t *toend2 = sljit_emit_jump(nctx->C, SLJIT_JUMP); \
-/**/
-#define KXN_COMPILE_BOP_COMP_MAIN(code, comp, opcomp) \
-    sljit_set_label(same, sljit_emit_label(nctx->C)); \
-    KXN_COMPILE_LOAD_R0R1(code); \
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, 1); \
-    sljump_t *toend3 = sljit_emit_cmp(nctx->C, comp, SLJIT_R0, 0, SLJIT_R1, 0); \
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, 0); \
-/**/
-#define KXN_COMPILE_BOP_GOTOEND_LABEL3() { \
-    sllabel_t *label = sljit_emit_label(nctx->C); \
-    sljit_set_label(toend1, label); \
-    sljit_set_label(toend2, label); \
-    sljit_set_label(toend3, label); \
-} \
-/**/
-#define KXN_COMPILE_BOP_GOTOEND_LABEL4() { \
-    sllabel_t *label = sljit_emit_label(nctx->C); \
-    sljit_set_label(toend1, label); \
-    sljit_set_label(toend2, label); \
-    sljit_set_label(toend3, label); \
-    sljit_set_label(toend4, label); \
-} \
-/**/
 
 static void natir_compile_bop(kx_native_context_t *nctx, kxn_code_t *code)
 {
@@ -258,11 +224,15 @@ static void natir_compile_bop(kx_native_context_t *nctx, kxn_code_t *code)
         KXN_COMPILE_BOPF(SLJIT_MUL_F64);
         break;
     case KXNOP_DIVF:
-        // KXN_COMPILE_BOP_DIV(SLJIT_DIV_SW, SLJIT_R0);
+        KXN_COMPILE_BOPF(SLJIT_DIV_F64);
         break;
-    case KXNOP_MODF:
-        // KXN_COMPILE_BOP_DIV(SLJIT_DIVMOD_SW, SLJIT_R0);
+    case KXNOP_MODF: {
+    	sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, SLJIT_FR0, 0, KXN_R(code->op1));
+    	sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, SLJIT_FR1, 0, KXN_R(code->op2));
+    	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(F64) | SLJIT_ARG1(F64) | SLJIT_ARG2(F64), SLJIT_IMM, SLJIT_FUNC_OFFSET(fmod));
+    	sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, KXN_R(code->dst), SLJIT_FR0, 0);
         break;
+    }
     case KXNOP_EQEQ: {
         KXN_COMPILE_CMP_BOP(SLJIT_EQUAL);
         break;
@@ -272,68 +242,83 @@ static void natir_compile_bop(kx_native_context_t *nctx, kxn_code_t *code)
         break;
     }
     case KXNOP_LE: {
-        KXN_COMPILE_BOPPRECHECK(code, 1, 0, same);
-        KXN_COMPILE_BOP_COMP_MAIN(code, SLJIT_LESS_EQUAL, SLJIT_GREATER);
-        KXN_COMPILE_BOP_GOTOEND_LABEL3();
-        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R2, 0);
+        KXN_COMPILE_LOAD_R0R1(code);
+        sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_SIG_LESS_EQUAL, SLJIT_UNUSED, 0, SLJIT_R0, 0, SLJIT_R1, 0);
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_SIG_LESS_EQUAL);
         break;
     }
     case KXNOP_LT: {
-        KXN_COMPILE_BOPPRECHECK(code, 1, 0, same);
-        KXN_COMPILE_BOP_COMP_MAIN(code, SLJIT_LESS, SLJIT_GREATER_EQUAL);
-        KXN_COMPILE_BOP_GOTOEND_LABEL3();
-        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R2, 0);
+        KXN_COMPILE_LOAD_R0R1(code);
+        sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_SIG_LESS, SLJIT_UNUSED, 0, SLJIT_R0, 0, SLJIT_R1, 0);
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_SIG_LESS);
         break;
     }
     case KXNOP_GE: {
-        KXN_COMPILE_BOPPRECHECK(code, 0, 1, same);
-        KXN_COMPILE_BOP_COMP_MAIN(code, SLJIT_GREATER_EQUAL, SLJIT_LESS);
-        KXN_COMPILE_BOP_GOTOEND_LABEL3();
-        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R2, 0);
+        KXN_COMPILE_LOAD_R0R1(code);
+        sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_SIG_GREATER_EQUAL, SLJIT_UNUSED, 0, SLJIT_R0, 0, SLJIT_R1, 0);
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_SIG_GREATER_EQUAL);
         break;
     }
     case KXNOP_GT: {
-        KXN_COMPILE_BOPPRECHECK(code, 0, 1, same);
-        KXN_COMPILE_BOP_COMP_MAIN(code, SLJIT_GREATER, SLJIT_LESS_EQUAL);
-        KXN_COMPILE_BOP_GOTOEND_LABEL3();
-        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R2, 0);
+        KXN_COMPILE_LOAD_R0R1(code);
+        sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_SIG_GREATER, SLJIT_UNUSED, 0, SLJIT_R0, 0, SLJIT_R1, 0);
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_SIG_GREATER);
         break;
     }
     case KXNOP_LGE: {
-        KXN_COMPILE_BOPPRECHECK(code, -1, 1, same);
-
-        sljit_set_label(same, sljit_emit_label(nctx->C));
         KXN_COMPILE_LOAD_R0R1(code);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, 1);
-        sljump_t *toend3 = sljit_emit_cmp(nctx->C, SLJIT_GREATER, SLJIT_R0, 0, SLJIT_R1, 0);
+        sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_SIG_GREATER, SLJIT_UNUSED, 0, SLJIT_R0, 0, SLJIT_R1, 0);
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_SIG_GREATER);
+        sljump_t *toend1 = sljit_emit_cmp(nctx->C, SLJIT_GREATER, SLJIT_R2, 0, SLJIT_IMM, 0);
+        sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_SIG_LESS, SLJIT_UNUSED, 0, SLJIT_R0, 0, SLJIT_R1, 0);
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_SIG_LESS);
+        sljit_emit_op1(nctx->C, SLJIT_NEG, SLJIT_R2, 0, SLJIT_R2, 0);
+        sljump_t *toend2 = sljit_emit_cmp(nctx->C, SLJIT_GREATER, SLJIT_R2, 0, SLJIT_IMM, 0);
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, 0);
-        sljump_t *toend4 = sljit_emit_cmp(nctx->C, SLJIT_EQUAL, SLJIT_R0, 0, SLJIT_R1, 0);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, -1);
-
-        KXN_COMPILE_BOP_GOTOEND_LABEL4();
+        sllabel_t *setvalue = sljit_emit_label(nctx->C);
+        sljit_set_label(toend1, setvalue);
+        sljit_set_label(toend2, setvalue);
         sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R2, 0);
         break;
     }
-    case KXNOP_EQEQF:
-        // KXN_DISP_BOP("eqeqf");
+    case KXNOP_EQEQF: {
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_EQUAL_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_EQUAL_F64);
         break;
+    }
     case KXNOP_NEQF:
-        // KXN_DISP_BOP("neqf");
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_NOT_EQUAL_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_NOT_EQUAL_F64);
         break;
     case KXNOP_LEF:
-        // KXN_DISP_BOP("lef");
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_LESS_EQUAL_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_LESS_EQUAL_F64);
         break;
     case KXNOP_LTF:
-        // KXN_DISP_BOP("ltf");
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_LESS_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_LESS_F64);
         break;
     case KXNOP_GEF:
-        // KXN_DISP_BOP("gef");
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_GREATER_EQUAL_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_GREATER_EQUAL_F64);
         break;
     case KXNOP_GTF:
-        // KXN_DISP_BOP("gtf");
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_GREATER_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_GREATER_F64);
         break;
     case KXNOP_LGEF:
-        // KXN_DISP_BOP("lgef");
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_GREATER_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_GREATER_F64);
+        sljump_t *toend1 = sljit_emit_cmp(nctx->C, SLJIT_GREATER, SLJIT_R2, 0, SLJIT_IMM, 0);
+        sljit_emit_fop1(nctx->C, SLJIT_CMP_F64 | SLJIT_SET_LESS_F, KXN_R(code->op1), KXN_R(code->op2));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_LESS_F64);
+        sljit_emit_op1(nctx->C, SLJIT_NEG, SLJIT_R2, 0, SLJIT_R2, 0);
+        sljump_t *toend2 = sljit_emit_cmp(nctx->C, SLJIT_GREATER, SLJIT_R2, 0, SLJIT_IMM, 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R2, 0, SLJIT_IMM, 0);
+        sllabel_t *setvalue = sljit_emit_label(nctx->C);
+        sljit_set_label(toend1, setvalue);
+        sljit_set_label(toend2, setvalue);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R2, 0);
         break;
     }
 }
@@ -357,7 +342,7 @@ static void natir_compile_uop(kx_native_context_t *nctx, kxn_code_t *code)
         } else {
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, KXN_R(code->dst));
             if (code->var_type == KX_DBL_T) {
-                sljit_emit_op1(nctx->C, SLJIT_MOV_F64, SLJIT_MEM1(SLJIT_R0), 0, KXN_R(code->op1));
+                sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, SLJIT_MEM1(SLJIT_R0), 0, KXN_R(code->op1));
             } else if (code->op1.type == KXNOP_IMM) {
                 sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_R0), 0, KXN_I(code->op1));
             } else {
@@ -431,7 +416,8 @@ static void natir_compile_code(kx_native_context_t *nctx, kxn_code_t *code)
     case KXN_LOADF:
         if (code->op1.type == KXNOP_XMM) {
             // dst: KXNOP_REG / op1:KXNOP_XMM
-            KXN_MOVF(code->dst, SLJIT_IMM, code->op1.dv);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_IMM, (sljit_sw)&(code->op1.dv));
+            sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, KXN_R(code->dst), SLJIT_MEM1(SLJIT_R0), 0);
         } else if (code->op1.type == KXNOP_VAR) {
             // dst: KXNOP_REG / op1:KXNOP_VAR
             natir_compile_get_value(nctx, code->var_type, &(code->dst), &(code->op1));
