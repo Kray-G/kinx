@@ -1,4 +1,4 @@
-const STDIN, STDOUT, STDERR;
+const STDIN, STDOUT, STDERR, $exepath;
 const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
