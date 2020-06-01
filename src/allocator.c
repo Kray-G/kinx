@@ -85,6 +85,8 @@ kx_context_t *make_context(void)
     kv_init(ctx->fixcode);
     kv_init(ctx->regex);
     init_allocation(ctx);
+    ctx->options.case_threshold = 16;
+    ctx->options.max_call_depth = 1024;
     return ctx;
 }
 
