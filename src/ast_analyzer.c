@@ -567,6 +567,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
     case KXOP_LGE:
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
+        make_cast(node, node->lhs, node->rhs);
         node->var_type = KX_INT_T;
         break;
     case KXOP_REGEQ:
