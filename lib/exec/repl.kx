@@ -22,6 +22,7 @@ class ReplHelper {
     var va_ = new Regex("%{variables_}");
     var li_ = new Regex("^(?:%{stringLiteral}|%{numbers_})$");
     var cl_ = new Regex("(?:(?:_?class\\s+%{variables_})|(?:_?module\\s+%{variables_})|(?:public\\s+%{variables_}))");
+    var hintOrder_ = {}, order_ = 0;
     var thisMethodList_ = [];
     var loadedClassMethodList_ = {};
     var arrayMethodList_ = [
@@ -89,6 +90,15 @@ class ReplHelper {
         }
         objectMethodList_['this'] = thisMethodList_;
     }
+    public selectedHint(hint) {
+        if (hint.prev) {
+            hintOrder_[hint.prev][hint.word] = ++order_;
+        } else if (hint.isCommand) {
+            hintOrder_['.cmd'][hint.word] = ++order_;
+        } else {
+            hintOrder_['.global'][hint.word] = ++order_;
+        }
+    }
     private addLoadedClassMethod(clsName, mtdName) {
         loadedClassMethodList_[clsName] ??= [];
         loadedClassMethodList_[clsName].push(mtdName);
@@ -144,13 +154,14 @@ class ReplHelper {
         --end;
         return line.subString(start, end - start);
     }
-    private getHint(info, line, start, end, isCommand) {
+    private getHint(info, line, start, end, prev, isCommand) {
         var cur = line.subString(start, end-start);
-        var prev = getPrevObject(line, start);
         var list = prev ? objectMethodList_[prev] : (isCommand ? hints_.cmdlist : (keywordList_ + objectList_ + info.vars.keySet()));
         if (list.isUndefined) {
             return;
         }
+        var order = prev ? hintOrder_[prev] : (isCommand ? hintOrder_['.cmd'] : hintOrder_['.global']);
+        list = list.sort(&(e1, e2) => (order[e2] || 0) <=> (order[e1] || 0));
         var len = list.length();
         var p = hints_.cmdpos;
         for (var i = 0; i < len; ++i) {
@@ -158,7 +169,7 @@ class ReplHelper {
             p = (p+1) % len;
             if (candidate.startsWith(cur)) {
                 hints_.cmdpos = p;
-                return candidate.subString(cur.length());
+                return [candidate, candidate.subString(cur.length())];
             }
         }
         // no hint.
@@ -180,9 +191,10 @@ class ReplHelper {
         }
         var isCommand = start == 0 && line[0] == '.'[0];
         ++start;
-        var hint = getHint(info, line, start, end, isCommand);
+        var prev = getPrevObject(line, start);
+        var [word, hint] = getHint(info, line, start, end, prev, isCommand);
         if (hint) {
-            return { start: start, end: end, hint: hint };
+            return { start: start, end: end, word: word, hint: hint, prev: prev, isCommand: isCommand };
         }
         return; // no hint
     }
@@ -522,6 +534,7 @@ class Repl {
     }
 
     private updateInfoByHint(info, pos, hint) {
+        helper_.selectedHint(hint);
         info = updateInfo(info, hint);
         pos += hint.hint.length();
         return [info, pos, null];
