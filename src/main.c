@@ -145,8 +145,6 @@ int main(int ac, char **av)
 
     kx_context_t *ctx = make_context();
     g_main_thread = ctx;
-    ctx->options.case_threshold = 16;
-    ctx->options.max_call_depth = 1024;
     char lname[LONGNAME_MAX] = {0};
     char param[LONGNAME_MAX] = {0};
     char *execname = NULL;
