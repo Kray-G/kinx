@@ -72,6 +72,8 @@ System.setSignalHookFunction(_function() {
 
 # Some Other Utilities.
 
+$exepath = System.exepath();
+
 System.try = _function(f) {
     try {
         var r = f();
