@@ -7,7 +7,6 @@
     *   Support OpenCV library.
     *   Support PDF library with libHaru.
     *   Support HTTP Server library with libhttp.
-    *   Support REPL (Read-Eval-Print Loop).
     *   User selectable installation.
     *   Documentation & SpecTest complete.
     *   Library mode like `libkinx.so`.
@@ -21,7 +20,7 @@
 ## V0.9.0 (Current Development)
 
 *   Updated
-    *   Supported `System.getopt()` with long option.
+    *   Supported a long option by `System.getopt()`.
     *   Supported UTF8 utilities.
         *   `String.utf8Length()` to get a length of a utf8 string.
         *   `String.splitUtf8String()` to split a string as an array of a utf8 string.
@@ -31,6 +30,7 @@
     *   Updated a part of REPL (Read-Eval-Print Loop), but it is not a full version.
         *   Auto-complete by `[TAB]` key.
         *   Moving by word with Ctrl + arrow left/right.
+    *   Supported REPL (Read-Eval-Print Loop).
     *   Some bug fixes and improvement.
 
 ## V0.8.1 (8th Preview Release)
