@@ -716,7 +716,9 @@ class Repl {
                 if (hint) {
                     [info, pos, hint] = updateInfoByHint(info, pos, hint);
                 }
-                if (pos > 0) {
+                if (pos == 0) {
+                    info = info.subArray(1);
+                } else if (pos > 0) {
                     if (pos == info.length()) {
                         info = info.subArray(0, pos);
                     } else {
