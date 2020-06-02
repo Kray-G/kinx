@@ -3529,10 +3529,15 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
             break; \
         } \
         if ((v1)->type == KX_OBJ_T) { \
-            kx_obj_t *o1 = v1->value.ov; \
-            kx_obj_t *ov = v2->value.ov; \
-            int sz = kv_size(ov->ary); \
-            for (int i = 0; i < sz; ++i) { \
+            kx_obj_t *o1 = allocate_obj(ctx); \
+            kx_obj_t *ov = v1->value.ov; \
+            int i = 0, sz = kv_size(ov->ary); \
+            while (sz--) { \
+                *kv_pushp(kx_val_t, o1->ary) = kv_A(ov->ary, i++); \
+            } \
+            ov = v2->value.ov; \
+            sz = kv_size(ov->ary); \
+            for (i = 0; i < sz; ++i) { \
                 kx_val_t *val = &kv_A(ov->ary, i); \
                 if (val->type == KX_INT_T) { \
                     KEX_PUSH_ARRAY_INT(o1, val->value.iv); \
@@ -3550,6 +3555,7 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
                     KEX_PUSH_ARRAY_VAL(o1, *val); \
                 } \
             } \
+            v1->value.ov = o1; \
             break; \
         } \
         /* fall through */ \
