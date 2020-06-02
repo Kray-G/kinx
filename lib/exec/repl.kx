@@ -981,7 +981,7 @@ class Repl {
             }
         } catch (e) {
             printError("Compile Error.");
-            e.printStackTrace();
+            # e.printStackTrace();
             r = null;
         # } finally {
         #     System.println("Code:");
