@@ -8,8 +8,9 @@ DEPFILE	= Makefile.dep
 CC = gcc
 #CFLAGS = -DKX_PROFILE -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -Iinclude -O2 \
 	 -fno-crossjumping -Wno-unused-result -Wno-missing-braces -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
-CFLAGS = -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -Iinclude -O2 -mtune=native -march=native \
-	 -fno-crossjumping -Wno-trigraphs -Wno-unused-result -Wno-missing-braces -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
+CFLAGS = -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -Iinclude -O2 \
+	 -fno-crossjumping -Wno-trigraphs -Wno-unused-result -Wno-missing-braces \
+	 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
 OBJS = \
     allocator.o \
     alloccore.o \
