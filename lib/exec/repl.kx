@@ -31,9 +31,9 @@ class ReplHelper {
         "subArray", "toJsonString", "toString", "unshift"
     ];
     var objectMethodListBase_ = {
-        "System": [ "println", "print" ],
+        ":System": [ "println", "print" ],
     };
-    var objectList_ = objectMethodListBase_.keySet();
+    var objectList_ = objectMethodListBase_.keySet().map(&(e) => e.subString(1));
     var objectMethodList_;
 
     var hints_ = {
@@ -54,11 +54,11 @@ class ReplHelper {
             replinfo.vars.keySet()
                 .filter(&(key) => replinfo.vars[key].isClassModule)
                 .each(&(name) => {
-                    objectMethodList_[name] = [];
+                    objectMethodList_[':'+name] = [];
                     pb_.reset(replinfo.vars[name].body);
                     while (pb_.find()) {
                         var methodName = pb_.group[1].string;
-                        objectMethodList_[name].push(methodName);
+                        objectMethodList_[':'+name].push(methodName);
                     }
                 });
             replinfo.vars.keySet()
@@ -68,7 +68,7 @@ class ReplHelper {
                     while (mn_.find()) {
                         var mixins = (mn_.group[1].string).split(',').map(&(e) => e.trim());
                         mixins.each(&(m) => {
-                            objectMethodList_[name] += objectMethodList_[m];
+                            objectMethodList_[':'+name] += objectMethodList_[':'+m];
                         });
                     }
                 });
@@ -79,29 +79,29 @@ class ReplHelper {
                     is_.reset(expr);
                     if (is_.find()) {
                         var className = is_.group[1].string;
-                        objectMethodList_[name] = objectMethodList_[className];
+                        objectMethodList_[':'+name] = objectMethodList_[':'+className];
                     } else {
                         ar_.reset(expr);
                         if (ar_.find()) {
-                            objectMethodList_[name] = arrayMethodList_;
+                            objectMethodList_[':'+name] = arrayMethodList_;
                         }
                     }
                 });
         }
-        objectMethodList_['this'] = thisMethodList_;
+        objectMethodList_[':this'] = thisMethodList_;
     }
     public selectedHint(hint) {
         if (hint.prev) {
-            hintOrder_[hint.prev][hint.word] = ++order_;
+            hintOrder_[':'+hint.prev][':'+hint.word] = ++order_;
         } else if (hint.isCommand) {
-            hintOrder_['.cmd'][hint.word] = ++order_;
+            hintOrder_[':cmd'][':'+hint.word] = ++order_;
         } else {
-            hintOrder_['.global'][hint.word] = ++order_;
+            hintOrder_[':global'][':'+hint.word] = ++order_;
         }
     }
     private addLoadedClassMethod(clsName, mtdName) {
-        loadedClassMethodList_[clsName] ??= [];
-        loadedClassMethodList_[clsName].push(mtdName);
+        loadedClassMethodList_[':'+clsName] ??= [];
+        loadedClassMethodList_[':'+clsName].push(mtdName);
     }
     public setupClassMethod(content) {
         var clsName = [];
@@ -154,14 +154,27 @@ class ReplHelper {
         --end;
         return line.subString(start, end - start);
     }
+    private sort(a, comp) {
+        # Use a stable sort because Array.sort() is not a stable sort.
+        a = a.clone();
+        var n = a.length();
+        var j;
+        for (var i = 1; i < n; i++) {
+            var x = a[i];
+            for (j = i - 1; j >= 0 && comp(a[j], x) > 0; j--)
+                a[j + 1] = a[j];
+            a[j + 1] = x;
+        }
+        return a;
+    }
     private getHint(info, line, start, end, prev, isCommand) {
         var cur = line.subString(start, end-start);
-        var list = prev ? objectMethodList_[prev] : (isCommand ? hints_.cmdlist : (keywordList_ + objectList_ + info.vars.keySet()));
+        var list = prev ? objectMethodList_[':'+prev] : (isCommand ? hints_.cmdlist : (keywordList_ + objectList_ + info.vars.keySet()));
         if (list.isUndefined) {
             return;
         }
-        var order = prev ? hintOrder_[prev] : (isCommand ? hintOrder_['.cmd'] : hintOrder_['.global']);
-        list = list.sort(&(e1, e2) => (order[e2] || 0) <=> (order[e1] || 0));
+        var order = prev ? hintOrder_[':'+prev] : (isCommand ? hintOrder_[':cmd'] : hintOrder_[':global']);
+        list = sort(list.uniq(), &(e1, e2) => (order[':'+e2] || 0) <=> (order[':'+e1] || 0));
         var len = list.length();
         var p = hints_.cmdpos;
         for (var i = 0; i < len; ++i) {
@@ -288,11 +301,14 @@ class ReplCommand(helper_, replinfo_) {
         if (!filepath && File.exists($exepath / '../lib' / file)) {
             filepath = $exepath / '../lib' / file;
         }
-        if (filepath) {
-            var content = File.load(filepath);
-            helper_.setupClassMethod(content);
-            replinfo_.loaded.push(content);
+        if (!filepath) {
+            return "File not found: " + file;
         }
+        var content = File.load(filepath);
+        helper_.setupClassMethod(content);
+        replinfo_.loaded.push(content);
+        System.println("\x1b[32;1m=> Successfully loaded.\x1b[0m");
+        System.println("");
     }
     public mode() {
         System.println(helper_.coloringLine(".cursor:   " + (replinfo_.cursor ? "on" : "off")));
@@ -965,6 +981,7 @@ class Repl {
             }
         } catch (e) {
             printError("Compile Error.");
+            e.printStackTrace();
             r = null;
         # } finally {
         #     System.println("Code:");
@@ -1019,7 +1036,10 @@ class Repl {
                 f = f.split(/\s+/);
                 var cname = f.shift();
                 if (cmd_[cname].isFunction) {
-                    cmd_[cname](...f);
+                    var r = cmd_[cname](...f);
+                    if (r.isString) {
+                        printError(r);
+                    }
                 } else {
                     printError("Unknown command: " + cname);
                 }
