@@ -207,34 +207,28 @@ See [Quick Reference Guide](doc/QuickReference.md) for details.
 You can add the functionalities easily.
 Basic strategy is to add the dll following by some rules.
 
-First, you use `import` directive like this.
+First, you use `using` directive like this.
 
 ```js
-import YourLibrary;
+using YourLibrary;
 ```
 
-This is same as follows.
+This means to load `YourLibrary.kx`. The library is searched by the order below.
+
+*   Current directory.
+*   The same directory as executable of `kinx`.
+*   The child `lib` directory of a directory of `kinx` executable.
+*   The child `lib` directory of a parent directory of `kinx` executable.
+
+If you want to use your own `yourlibrary.dll`, write the code below inside `YourLibrary.kx`.
 
 ```js
-var YourLibrary = _import("kxyourlibrary");
-using? kxyourlibrary;
+var YourLibrary = _import("yourlibrary");
 ```
 
-The import library name is `kx` plus your specified name with lower-case.
-For example in the above case, the name will be `"kxyourlibrary"`.
-`import` directive will do the followings.
-
-*   Loading the dll of `kxyourlibrary.dll` dynamically and making an object with a dll rule.
-    *   The dll is searched by the following order.
-        *   The same directory as executable of `kinx`.
-        *   Following the system search path.
 *   About a dll rule is like below.
     *   See [`kxstring.c`](src/extlib/kxstring.c) for single object. It will be very simple example.
     *   See [`kxregex.c`](src/extlib/kxregex.c) for class definition. Just defines a `create` method for `new` operator.
-*   Assigning the object to the variable of the name you specified.
-    For example, the variable name is `YourLibrary` in the above case.
-*   After that, if there is `kxyourlibrary.kx` is found in the library path, automatically loading it.
-    *   The library is searched by the order which is same as `using`.
 
 For `new` operator, `new A` is just alias of `A.create`.
 See [Class Design](doc/HowClassWorks.md) for how class works.
@@ -302,17 +296,6 @@ class Value(v) {
 
 var v = new Value(100);
 v.println();    // 100
-```
-
-### Command Line Arguments
-
-The variable named `$$` is an array of command line arguments.
-Here is an example.
-
-```coffee
-for (var i = 0, len = $$.length(); i < len; ++i) {
-    System.println("arg[%{i}] = ", $$[i]);
-}
 ```
 
 ### Type Property
