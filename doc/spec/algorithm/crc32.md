@@ -42,7 +42,7 @@ function crc2(c) {
             else       r >>= 1;
     }
 
-    return ~r & 0xFFFFFFFF;
+    return r ^ 0xFFFFFFFF;
 }
 
 var s = "Hello, world!";
