@@ -10,13 +10,16 @@
 #define PROGNAME "kinx"
 #endif
 #ifndef VER_MAJ
-#define VER_MAJ 0
+#define VER_MAJ 1
 #endif
 #ifndef VER_MIN
-#define VER_MIN 9
+#define VER_MIN 0
 #endif
 #ifndef VER_PAT
 #define VER_PAT 0
+#endif
+#ifndef VER_SUFFIX
+#define VER_SUFFIX "beta.1"
 #endif
 
 extern void alloc_initialize(void);
@@ -98,7 +101,7 @@ static void usage(void)
 
 static void version(void)
 {
-    printf(PROGNAME " version %d.%d.%d\n", VER_MAJ, VER_MIN, VER_PAT);
+    printf(PROGNAME " version %d.%d.%d-%s\n", VER_MAJ, VER_MIN, VER_PAT, VER_SUFFIX);
 }
 
 #define LONGNAME_MAX (128)
