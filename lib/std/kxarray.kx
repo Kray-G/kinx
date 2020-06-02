@@ -164,6 +164,17 @@ Array.sort = (_function() {
     };
 })();
 
+Array.uniq = _function(ary) {
+    var m = {}, n = [], sz = ary.length();
+    for (var i = 0; i < sz; ++i) {
+        if (m[':'+ary[i]].found.isUndefined) {
+            m[':'+ary[i]].found = true;
+            n.push(ary[i]);
+        }
+    }
+    return n;
+};
+
 Array.clone = (_function() {
     var depth = 0;
     return _function(ary) {
