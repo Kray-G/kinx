@@ -8,7 +8,7 @@ class ReplHelper {
         "break", "class", "catch", "case", "continue", "const", "do", "default", "else", "enum", ""
         "function", "for", "finally", "false", "if", "in", "module", "mixin", "null", "new", "native", "namespace", ""
         "public", "private", "protected", "return", "super", "switch", "this", "throw", "try", "true",
-        "using", "undefined", "var", "while", "yield"
+        "using", "undefined", "var", "while", "yield", "on", "off"
     ];
     var keywords_ = "\\b(%{keywordList_.join('|')})\\b";
     var stringLiteral = "(\"(?:\\\\\"|.)*?\"|'(?:\\\\'|.)*?')";
@@ -16,12 +16,12 @@ class ReplHelper {
     var variables_ = "(\\.?[\\$_a-zA-Z][\\$_a-zA-Z0-9]*)";
     var is_ = new Regex("^\\s*new\\s+(%{variables_})\\s*\\(");
     var ar_ = new Regex("^\\[[^\\]]*\\]\\s*$");
-    var pb_ = new Regex("\\s*public\\s+(%{variables_})\\s*\\(");
+    var pb_ = new Regex("\\s*(?:public\\s+|@\\s*)%{variables_}");
     var mn_ = new Regex("\\s*mixin\\s+((?:%{variables_})(?:,\\s*(?:%{variables_}))*)\\s*;");
     var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}");
     var va_ = new Regex("%{variables_}");
     var li_ = new Regex("^(?:%{stringLiteral}|%{numbers_})$");
-    var cl_ = new Regex("(?:(?:_?class\\s+%{variables_})|(?:_?module\\s+%{variables_})|(?:public\\s+%{variables_}))");
+    var cl_ = new Regex("(?:(?:_?class\\s+%{variables_})|(?:_?module\\s+%{variables_})|(?:(?:public\\s+|@\\s*)%{variables_}))");
     var hintOrder_ = {}, order_ = 0;
     var thisMethodList_ = [];
     var loadedClassMethodList_ = {};
@@ -265,6 +265,11 @@ class ReplCommand(helper_, replinfo_) {
         System.println(helper_.coloringLine(".fullcode: " + (replinfo_.fullcode ? "on" : "off")));
         System.println("");
     }
+    public time(onoff) {
+        replinfo_.elapsedMode = onoff && (onoff.trim() == '1' || onoff.trim() == 'on');
+        System.println(helper_.coloringLine(".time: " + (replinfo_.elapsedMode ? "on" : "off")));
+        System.println("");
+    }
     public run() {
         ;
     }
@@ -292,6 +297,7 @@ class ReplCommand(helper_, replinfo_) {
     public mode() {
         System.println(helper_.coloringLine(".cursor:   " + (replinfo_.cursor ? "on" : "off")));
         System.println(helper_.coloringLine(".fullcode: " + (replinfo_.fullcode ? "on" : "off")));
+        System.println(helper_.coloringLine(".time:     " + (replinfo_.elapsedMode ? "on" : "off")));
         System.println("");
     }
     public vars() {
@@ -333,8 +339,9 @@ class ReplCommand(helper_, replinfo_) {
         System.println("    .vars               Display variables with its value.");
         System.println("    .delete name        Delete a variable by name.");
         System.println("    .showdef name       Display function/class definition by name.");
-        System.println("    .cursor [*on|off]   Set 'off' to make the cursor invisible.");
-        System.println("    .fullcode [on|*off] Set 'on' not to execute the code immediately and only execute it by .run.");
+        System.println("    .cursor [*on|off]   Set to 'off' to make the cursor invisible.");
+        System.println("    .fullcode [on|*off] Set to 'on', and the code will be executed by .run instead of immediately.");
+        System.println("    .time [on|*off]     Set to 'on' to measure and display elapsed time.");
         System.println("    .run                Execute the code only with .fullcode 1.");
         System.println("");
         System.println("REPL Operation:");
@@ -346,12 +353,7 @@ class ReplCommand(helper_, replinfo_) {
         System.println("    Ctrl+[>]            Move cursor to right by word.");
         System.println("    [DEL]               Delete character on cursor.");
         System.println("    [BS]                Delete previous character.");
-        System.println("    [TAB]               Move to the next tab stop.");
-        System.println("                        Or Auto-complete on current position.");
-        System.println("                        [Auto-complete]");
-        System.println("                         - Press [TAB] to move to the next candidate");
-        System.println("                         - Press [Enter] to set and execute it");
-        System.println("                         - Press [BS],[DEL],[SPC] or some symbol key to set.");
+        System.println("    [TAB]               Move to the next tab stop, or auto-complete.");
         System.println("");
     }
 }
@@ -362,6 +364,8 @@ class Repl {
     var replinfo_ = {
         line: 0,
         fullcode: 0,
+        elapsedMode: 0,
+        elapsedTime: 0,
         cursor: 1,
         history: [],
         loaded: [],
@@ -779,7 +783,14 @@ class Repl {
     private makeReturnCode(name) {
         return ";return %{makeValue(name)};";
     }
-
+    private tryEval(input) {
+        var tmr = new SystemTimer();
+        try {
+            return input.evalNew();
+        } finally {
+            replinfo_.elapsedTime = tmr.elapsed();
+        }
+    }
     public eval(input) {
         var r;
         try {
@@ -795,7 +806,7 @@ class Repl {
                     input = appendPreCode() + input + makeReturnCode(name);
                     # System.println(input);
                     if (replinfo_.vars[value].func) {
-                        r = input.evalNew();
+                        r = tryEval(input);
                         replinfo_.vars[name] = {
                             id: ++cmdid_,
                             func: replinfo_.vars[value].func,
@@ -805,7 +816,7 @@ class Repl {
                             args: replinfo_.vars[value].args
                         };
                     } else {
-                        r = input.evalNew();
+                        r = tryEval(input);
                         replinfo_.vars[name] = {
                             id: ++cmdid_,
                             value: r,
@@ -825,7 +836,7 @@ class Repl {
                     input = "%{name} = function(%{g[2].string}) %{g[3].string};";
                     input = appendPreCode() + input + ";return 'function %{name}';";
                     # System.println(input);
-                    r = input.evalNew();
+                    r = tryEval(input);
                     replinfo_.vars[name] = {
                         id: ++cmdid_,
                         func: "function(%{g[2].string}) %{g[3].string}",
@@ -845,7 +856,7 @@ class Repl {
                     input = "var %{name}:native(%{rtyp}) = native<%{rtyp}>(%{g[3].string}) %{g[4].string};";
                     input = appendPreCode() + input + ";return 'native<%{rtyp}> %{name}';";
                     # System.println(input);
-                    r = input.evalNew();
+                    r = tryEval(input);
                     replinfo_.vars[name] = {
                         id: ++cmdid_,
                         isNative: true,
@@ -866,7 +877,7 @@ class Repl {
                     input = "class %{name}(%{g[2].string}) %{g[3].string};";
                     input = appendPreCode() + input + ";return 'class %{name}';";
                     # System.println(input);
-                    r = input.evalNew();
+                    r = tryEval(input);
                     replinfo_.vars[name] = {
                         id: ++cmdid_,
                         isClassModule: true,
@@ -885,7 +896,7 @@ class Repl {
                     input = "module %{name} %{g[2].string};";
                     input = appendPreCode() + input + ";return 'module %{name}';";
                     # System.println(input);
-                    r = input.evalNew();
+                    r = tryEval(input);
                     replinfo_.vars[name] = {
                         id: ++cmdid_,
                         isClassModule: true,
@@ -908,7 +919,7 @@ class Repl {
                     try {
                         var tryinput = appendPreCode() + ";_$ = (%{expr});" + makeReturnCode("_$");;
                         # System.println(tryinput);
-                        return tryinput.evalNew();
+                        return tryEval(tryinput);
                     } catch (e) {
                         ;   // oh, it is not a expression.
                             // try it in the next step.
@@ -931,7 +942,7 @@ class Repl {
             }
 
             input = appendPreCode() + "var %{v}_dummy;" + input + ";if ('%{r}' != '') return ({%{r}}.toJsonString());";
-            r = input.evalNew();
+            r = tryEval(input);
             if (r != "(null)") {
                 if (r[0] != '{'[0] && r[0] != '['[0]) {
                     r = r.quote();
@@ -964,6 +975,10 @@ class Repl {
 
     public print(result) {
         printResult(result);
+        if (replinfo_.elapsedMode) {
+            System.println(helper_.coloringLine(("elapsed: %8.3f s" % replinfo_.elapsedTime).format()));
+            System.println("");
+        }
     }
 
     public run() {
