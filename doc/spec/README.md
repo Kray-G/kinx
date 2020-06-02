@@ -58,7 +58,6 @@ This statement will be described also in `Module` section again.
 *   [expression](statement/expression.md)
 *   [mixin](statement/mixin.md)
 *   [using](statement/using.md)
-*   [import](statement/import.md)
 
 By the way, declaration of a Function or a Class, etc,
 is described not in this section but in **Definitions** section.
@@ -123,8 +122,6 @@ The following properties are used to check the type of a variable.
 *   [isArray](typecheck/is_array.md)
 *   [isObject](typecheck/is_object.md)
 *   [isFunction](typecheck/is_function.md)
-*   [isTrue](typecheck/is_true.md)
-*   [isFalse](typecheck/is_false.md)
 
 ### Others
 
@@ -168,6 +165,8 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Directory](lib/basic/directory.md)
 *   [Regex](lib/basic/regex.md)
 *   [Range](lib/basic/range.md)
+*   [DateTime](lib/basic/datetime.md)
+*   [Process](lib/basic/process.md)
 *   [JSON](lib/basic/json.md)
 *   [Xml](lib/basic/xml.md)
 *   [Zip](lib/basic/zip.md)
