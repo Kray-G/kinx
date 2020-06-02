@@ -17,7 +17,9 @@
             *   `KXOPT_LENGTH` ... for `Array`, `Binary`, `String`
             *   `KXOPT_PARSEINT` ... `Integer.parseInt`
 
-## V0.9.0 (Current Development)
+## V1.0.0-beta.1 (Current Development)
+
+## V0.9.0 (9th Preview Release)
 
 *   Updated
     *   Supported a long option by `System.getopt()`.
@@ -27,10 +29,9 @@
         *   `String.splitUtf8Object()` to split a string as an array of a utf8 information object.
         *   `String.eastAsianWidth()` to get a width of a utf8 character.
         *   `String.eastAsianWidthType()` to get a type character of width of a utf8 character.
-    *   Updated a part of REPL (Read-Eval-Print Loop), but it is not a full version.
+    *   Supported REPL (Read-Eval-Print Loop) with updated below.
         *   Auto-complete by `[TAB]` key.
         *   Moving by word with Ctrl + arrow left/right.
-    *   Supported REPL (Read-Eval-Print Loop).
     *   Some bug fixes and improvement.
 
 ## V0.8.1 (8th Preview Release)
