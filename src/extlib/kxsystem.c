@@ -945,7 +945,7 @@ void print_value(kx_val_t *v, int recursive)
         if (recursive) {
             int len = kv_size(frm->v);
             for (int i = 0; i < len; ++i) {
-                printf("   * ");
+                printf("   * [%3d] ", i);
                 print_value(&kv_A(frm->v, i), 0);
             }
         }
