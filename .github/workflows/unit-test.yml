@@ -1,46 +1,19 @@
 name: Unit Test
 
-on: [push, pull_request]
+on:
+  push:
+      paths: ['**.kx', '**/.spectest', 'doc/spec/**.md']
+  pull_request:
+      paths: ['**.kx', '**/.spectest', 'doc/spec/**.md']
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: get archive url
-        id: get_archive_url
-        uses: actions/github-script@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-
-            // get tag list and sort them descending by name
-            const tags = (await github.repos.listTags({ owner, repo }))
-              .data.sort((a, b) =>
-                a.name < b.name ? 1
-              : a.name > b.name ? -1
-              : 0);
-
-            for (const { name } of tags) {
-              try {
-                const { data: { assets } } =
-                  await github.repos.getReleaseByTag({ owner, repo, tag: name }).catch(_ => null);
-                const asset = assets.find(x => x.name.endsWith('linux-amd64.tar.gz'));
-                return asset.browser_download_url;
-              } catch (e) {
-                console.log(`skip: ${name}`);
-              }
-            }
-      - name: download archive and unpack
-        run: "curl -vL ${{ steps.get_archive_url.outputs.result }} | tar zxv --strip-components=1"
+      - uses: actions/checkout@v2
       - name: install
         run: |
-          sudo cp -v bin/kinx /usr/bin/kinx
-          sudo cp -vr lib /usr/bin/kinxlib
-      - uses: actions/checkout@v2
-      - name: update to the latest
-        run: |
-          sudo cp -vr lib/* /usr/bin/kinxlib
+          make
+          sudo make install
       - name: run test
-        run: |
-          kinx --exec:spectest -v
+        run: kinx --exec:spectest -v
