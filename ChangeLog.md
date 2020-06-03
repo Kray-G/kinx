@@ -19,7 +19,12 @@
 
 ## V1.0.0-beta.1 (Current Development)
 
-## V0.9.0 (9th Preview Release)
+* A current plan and development items in progress.
+    * Supporting a first version of Native Functions.
+    * Full documenting by SpecTest.
+    * Making it be a library suited for C program.
+
+## V0.9.2 (9th Preview Release)
 
 *   Updated
     *   Supported a long option by `System.getopt()`.
