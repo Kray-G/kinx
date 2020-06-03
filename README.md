@@ -120,6 +120,7 @@ Here is current available options.
 | `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.     |
 | `--case-threshold`        | Specify the max interval between case's integer value. 16 by default. |
 |                           |                                                                       |
+| `--exec:repl`             | Run the **Repl**.                                                     |
 | `--exec:spectest`         | Run the **SpecTest**.                                                 |
 
 ## Examples
