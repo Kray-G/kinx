@@ -49,7 +49,7 @@ jobs:
 
             const debug = core.getInput('debug') === 'true';
 
-            const log = obj => debug && console.log(obj);
+            const log = (...args) => debug && console.log(...args);
             const listFilesAsync = (dir = '.') => promisify(fs.readdir)(dir);
             const readFileAsync = (file, enc = 'utf8') => promisify(fs.readFile)(file, enc);
 
@@ -70,7 +70,9 @@ jobs:
                 linkPattern = /\[([^\]]+)\]\s*\(([^\)]+\.md)\)/,
                 interpreter = 'kinx',
                 ignoreFiles = [],
-              } = require('.spectest');
+              } = JSON.parse(await readFileAsync('.spectest'));
+
+              ignoreFiles.forEach((x, i) => ignoreFiles[i] = path.normalize(x));
               log('.spectest info', { root, topLevelFilePattern, linkPattern, interpreter, ignoreFiles });
 
               if (interpreter !== 'kinx') throw new UnnecessaryException;
@@ -81,31 +83,32 @@ jobs:
               log({ files, targets });
               if (!targets.length) throw new UnnecessaryException;
 
-              // exclude ingored files
-              for (const file of ignoreFiles) {
-                diffs.delete(path.normalize(file));
-              }
-
               // extract written links
               const pickLinks = async (file, pickedLinks) => { // (string, Set<string>) => void
                 const text = await readFileAsync(file);
-                const matches = text.match(RegExp(linkPattern, 'g'));
+                const matches = text.match(RegExp(linkPattern, 'g')) || [];
                 const newFiles = matches
                   .map(link => link.match(RegExp(linkPattern))[2])
-                  .filter(uri => !pickedFiles.has(uri));
+                  .map(uri => path.join(root, uri))
+                  .filter(uri => fs.existsSync(uri) && !(ignoreFiles.includes(uri) || pickedLinks.has(uri)));
 
-                newFiles.forEach(x => pickedFiles.add(x));
-                for (const file of newFiles) {
-                  await pickLinks(file, pickedFiles);
+                newFiles.forEach(x => pickedLinks.add(x));
+                for (const newFile of newFiles) {
+                  await pickLinks(newFile, pickedLinks);
                 }
               };
               const links = new Set();
               for (const target of targets) {
-                await pickLinks(target, links);
+                await pickLinks(path.join(root, target), links);
+              }
+
+              // exclude ingored files
+              for (const file of ignoreFiles) {
+                links.delete(file);
               }
               log({ links });
 
-              const b = diffs.some(diff => links.has(diff));
+              const b = [...diffs].some(diff => links.has(diff));
               if (!b) throw new UnnecessaryException;
               return b;
             }
