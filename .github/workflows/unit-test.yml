@@ -71,6 +71,7 @@ jobs:
                 interpreter = 'kinx',
                 ignoreFiles = [],
               } = require('.spectest');
+              log('.spectest info', { root, topLevelFilePattern, linkPattern, interpreter, ignoreFiles });
 
               if (interpreter !== 'kinx') throw new UnnecessaryException;
 
