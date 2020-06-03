@@ -15,7 +15,7 @@ _module _Enumerable {
                 .filter(&(e) => this[e].isFunction)
                 .map(&(e) => [e, e == 'each' ? this._each : this[e]])
                 .reduce(&(r, e) => {
-                    r[e[0]] = e[1] || (_function(){});
+                    r[e[0]] = e[1].isFunction ? e[1] : (_function(){});
                     return r;
                 }, {});
         }
