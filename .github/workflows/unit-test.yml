@@ -1,19 +1,127 @@
 name: Unit Test
 
-on:
-  push:
-      paths: ['**.kx', '**/.spectest', 'doc/spec/**.md']
-  pull_request:
-      paths: ['**.kx', '**/.spectest', 'doc/spec/**.md']
+on: [push, pull_request]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: retrieve diff filenames
+        id: diff_filenames
+        uses: actions/github-script@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          debug: true
+          script: |
+            const { compare, pull_request } = context.payload;
+
+            let base, head;
+            switch (context.eventName) {
+              case 'push':
+                [, base, head] = compare.match(/\/compare\/([0-9a-f]+)\.\.\.([0-9a-f]+)$/);
+                break;
+              case 'pull_request':
+                base = pull_request.base.sha;
+                head = pull_request.head.sha;
+                break;
+            }
+
+            if (base && head) {
+              const { owner, repo } = context.repo;
+              const diffs = await github.repos.compareCommits({ owner, repo, base, head });
+              return diffs.data.files.map(file => file.filename);
+            }
+            return [];
+
+      - name: read .spectest files
+        id: linked_files
+        uses: actions/github-script@v1
+        env:
+          DIFF_FILES: ${{ steps.diff_filenames.outputs.result }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          debug: true
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { promisify } = require('util');
+
+            const debug = core.getInput('debug') === 'true';
+
+            const log = (...args) => debug && console.log(...args);
+            const listFilesAsync = (dir = '.') => promisify(fs.readdir)(dir);
+            const readFileAsync = (file, enc = 'utf8') => promisify(fs.readFile)(file, enc);
+
+            class UnnecessaryException extends Error {
+              constructor() {
+                super(`no need unittest in this ${context.eventName === 'push' ? 'commit' : 'PR'}`);
+              }
+            }
+
+            try {
+              if (!fs.existsSync('.spectest')) throw new UnnecessaryException;
+
+              const diffs = new Set(JSON.parse(process.env.DIFF_FILES));
+              log({ diffs });
+              if (!diffs.size) throw new UnnecessaryException;
+
+              const {
+                root,
+                topLevelFilePattern = /(README|CONTENTS)\.md/,
+                linkPattern = /\[([^\]]+)\]\s*\(([^\)]+\.md)\)/,
+                interpreter = 'kinx',
+                ignoreFiles = [],
+              } = JSON.parse(await readFileAsync('.spectest'));
+
+              ignoreFiles.forEach((x, i) => ignoreFiles[i] = path.normalize(x));
+              log('.spectest info', { root, topLevelFilePattern, linkPattern, interpreter, ignoreFiles });
+
+              if (interpreter !== 'kinx') throw new UnnecessaryException;
+
+              // get testfiles from 'root'
+              const files = await listFilesAsync(root);
+              const targets = files.filter(file => RegExp(topLevelFilePattern).test(file));
+              log({ files, targets });
+              if (!targets.length) throw new UnnecessaryException;
+
+              // extract written links
+              const pickLinks = async (file, pickedLinks) => { // (string, Set<string>) => Promise<void>
+                const text = await readFileAsync(file);
+                const matches = text.match(RegExp(linkPattern, 'g')) || [];
+                const newFiles = matches
+                  .map(link => link.match(RegExp(linkPattern))[2])
+                  .map(uri => path.join(path.dirname(file), uri))
+                  .filter(uri => fs.existsSync(uri) && !(ignoreFiles.includes(uri) || pickedLinks.has(uri)));
+
+                newFiles.forEach(x => pickedLinks.add(x));
+                for (const newFile of newFiles) {
+                  await pickLinks(newFile, pickedLinks);
+                }
+              };
+              const links = new Set();
+              for (const target of targets) {
+                await pickLinks(path.join(root, target), links);
+              }
+              log({ links });
+
+              const b = [...diffs].some(diff => links.has(diff));
+              if (!b) throw new UnnecessaryException;
+              return b;
+            }
+            catch (e) {
+              if (e instanceof UnnecessaryException) {
+                console.log(e.message);
+                return false;
+              }
+              throw e;
+            }
+
       - name: install
+        if: steps.linked_files.outputs.result == 'true'
         run: |
           make
           sudo make install
       - name: run test
+        if: steps.linked_files.outputs.result == 'true'
         run: kinx --exec:spectest -v
