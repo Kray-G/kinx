@@ -45,6 +45,7 @@ Argument[9] = end
 // Command Line Example:
 //  $ ./kinx test.kx 1 2 3 4 5 6 7 8 end
 //
+System.println("Argument length = ", $$.length());
 for (var i = 0, len = $$.length(); i < len; ++i) {
     System.println("Argument[%{i}] = ", $$[i]);
 }
@@ -53,6 +54,7 @@ for (var i = 0, len = $$.length(); i < len; ++i) {
 #### Result
 
 ```
+Argument length = 10
 Argument[0] = test.kx
 Argument[1] = 1
 Argument[2] = 2
