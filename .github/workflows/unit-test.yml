@@ -91,7 +91,7 @@ jobs:
                 const matches = text.match(RegExp(linkPattern, 'g')) || [];
                 const newFiles = matches
                   .map(link => link.match(RegExp(linkPattern))[2])
-                  .map(uri => path.join(root, uri))
+                  .map(uri => path.join(path.dirname(file), uri))
                   .filter(uri => fs.existsSync(uri) && !(ignoreFiles.includes(uri) || pickedLinks.has(uri)));
 
                 newFiles.forEach(x => pickedLinks.add(x));
@@ -102,11 +102,6 @@ jobs:
               const links = new Set();
               for (const target of targets) {
                 await pickLinks(path.join(root, target), links);
-              }
-
-              // exclude ingored files
-              for (const file of ignoreFiles) {
-                links.delete(file);
               }
               log({ links });
 
