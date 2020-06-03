@@ -71,7 +71,7 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 ##### Block
 
 *   [block](statement/block.md)
-*   [namespace](statement/namespace.md)
+*   [namespace](statement/namespace.md) - *not documented yet*
 
 ##### Branch
 
@@ -99,29 +99,29 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
 #### Object Definitions
 
-*   [Function](definition/function.md)
-*   [Class](definition/class.md)
-*   [Module](definition/module.md)
-*   [Native](definition/native.md)
+*   [Function](definition/function.md) - *not documented yet*
+*   [Class](definition/class.md) - *not documented yet*
+*   [Module](definition/module.md) - *not documented yet*
+*   [Native](definition/native.md) - *not documented yet*
 
 #### Special Objects
 
-*   [Lambda](definition/lambda.md)
-*   [Closure](definition/closure.md)
-*   [Fiber](definition/fiber.md)
+*   [Lambda](definition/lambda.md) - *not documented yet*
+*   [Closure](definition/closure.md) - *not documented yet*
+*   [Fiber](definition/fiber.md) - *not documented yet*
 
 ### Type Check
 
 The following properties are used to check the type of a variable.
 
-*   [isUndefined](typecheck/is_undefined.md)
-*   [isDefined](typecheck/is_defined.md)
-*   [isInteger](typecheck/is_integer.md)
-*   [isDouble](typecheck/is_double.md)
-*   [isString](typecheck/is_string.md)
-*   [isArray](typecheck/is_array.md)
-*   [isObject](typecheck/is_object.md)
-*   [isFunction](typecheck/is_function.md)
+*   [isUndefined](typecheck/is_undefined.md) - *not documented yet*
+*   [isDefined](typecheck/is_defined.md) - *not documented yet*
+*   [isInteger](typecheck/is_integer.md) - *not documented yet*
+*   [isDouble](typecheck/is_double.md) - *not documented yet*
+*   [isString](typecheck/is_string.md) - *not documented yet*
+*   [isArray](typecheck/is_array.md) - *not documented yet*
+*   [isObject](typecheck/is_object.md) - *not documented yet*
+*   [isFunction](typecheck/is_function.md) - *not documented yet*
 
 ### Others
 
@@ -139,16 +139,16 @@ Kinx goal is to become a glue between libraries, and Kinx will include many of u
 This is not a library but basic methods for a primitive data type,
 but the description is included in this section because its feature is near a library.
 
-*   [Integer](lib/primitive/integer.md)
-*   [Double](lib/primitive/double.md)
-*   [String](lib/primitive/string.md)
-*   [Binary](lib/primitive/binary.md)
-*   [Array](lib/primitive/array.md)
+*   [Integer](lib/primitive/integer.md) - *not documented yet*
+*   [Double](lib/primitive/double.md) - *not documented yet*
+*   [String](lib/primitive/string.md) - *not documented yet*
+*   [Binary](lib/primitive/binary.md) - *not documented yet*
+*   [Array](lib/primitive/array.md) - *not documented yet*
 
 #### Functions
 
-*   [eval()](lib/function/eval.md)
-*   [DefineException()](lib/function/define_exception.md)
+*   [eval()](lib/function/eval.md) - *not documented yet*
+*   [DefineException()](lib/function/define_exception.md) - *not documented yet*
 
 #### Standard Objects
 
@@ -159,25 +159,26 @@ Here are provided objects as a Kinx Standard.
 Basic objects are the list of components usually used in many products.
 The functionality is very simple but powerful, so a lot of developpers will use those naturally.
 
-*   [System](lib/basic/system.md)
-*   [Math](lib/primitive/math.md)
-*   [File](lib/basic/file.md)
-*   [Directory](lib/basic/directory.md)
-*   [Regex](lib/basic/regex.md)
+*   [System](lib/basic/system.md) - *not documented yet*
+*   [Math](lib/basic/math.md) - *not documented yet*
+*   [File](lib/basic/file.md) - *not documented yet*
+*   [Directory](lib/basic/directory.md) - *not documented yet*
+*   [Regex](lib/basic/regex.md) - *not documented yet*
+*   [Enumerable](lib/basic/enumerable.md)
 *   [Range](lib/basic/range.md)
-*   [DateTime](lib/basic/datetime.md)
-*   [Process](lib/basic/process.md)
-*   [JSON](lib/basic/json.md)
-*   [Xml](lib/basic/xml.md)
-*   [Zip](lib/basic/zip.md)
-*   [SQLite](lib/basic/sqlite.md)
+*   [DateTime](lib/basic/datetime.md) - *not documented yet*
+*   [Process](lib/basic/process.md) - *not documented yet*
+*   [JSON](lib/basic/json.md) - *not documented yet*
+*   [Xml](lib/basic/xml.md) - *not documented yet*
+*   [Zip](lib/basic/zip.md) - *not documented yet*
+*   [SQLite](lib/basic/sqlite.md) - *not documented yet*
 
 ##### Network Objects
 
 Network library is now very few, but it will be increased in future
 because now the networking library is needed by many developpers.
 
-*   [Http](lib/net/http.md)
+*   [Http](lib/net/http.md) - *not documented yet*
 
 I provide Http library only, but it is based on libcurl.
 Therefore adding a library based on the same technology must be easy.
@@ -185,11 +186,11 @@ I strongly want **contributers**. How about you?
 
 ##### Exception Objects
 
-*   [SystemException](lib/exception/system.md)
-*   [FileException](lib/exception/file.md)
-*   [RegexException](lib/exception/regex.md)
-*   [XmlException](lib/exception/xml.md)
-*   [RuntimeException](lib/exception/runtime.md)
+*   [SystemException](lib/exception/system.md) - *not documented yet*
+*   [FileException](lib/exception/file.md) - *not documented yet*
+*   [RegexException](lib/exception/regex.md) - *not documented yet*
+*   [XmlException](lib/exception/xml.md) - *not documented yet*
+*   [RuntimeException](lib/exception/runtime.md) - *not documented yet*
 
 #### Algorithm and Data Structure
 

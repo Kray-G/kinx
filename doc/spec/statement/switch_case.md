@@ -11,7 +11,7 @@ Otherwise, the condition written first is checked first.
 You need `break` for exitting `case` statement because kinx `switch-case` is **fall through**.
 
 ```javascript
-switch {
+switch (x) {
 case 1:
     /* ... */
     break;
@@ -26,7 +26,7 @@ case 2:
 It is not necessary to put `default` case at the bottom.
 
 ```javascript
-switch {
+switch (x) {
 case 1:
     /* ... */
     break;
@@ -42,14 +42,14 @@ case 2:
 Any value is available for `case` label.
 
 ```javascript
-switch {
+switch (x) {
 case 1:         // Number is available
     break;
 case a:         // variable is available
     break;
 case x[1]+1:    // expression is available
     break;
-case f():       // function call is available
+case f():       // function call is available, but calling a function will be performed every time when comparing here.
     break;
 }
 ```
