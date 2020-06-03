@@ -76,7 +76,8 @@ class ReplHelper {
             replinfo.vars.keySet()
                 .filter(&(key) => !replinfo.vars[key].isClassModule && (replinfo.vars[key].value || replinfo.vars[key].expr).isString)
                 .each(&(name) => {
-                    var expr = replinfo.vars[name].value ?? replinfo.vars[name].expr;
+                    var value = replinfo.vars[name].value;
+                    var expr = value.isDefined && value != "(null)" ? value : replinfo.vars[name].expr;
                     is_.reset(""+expr);
                     if (is_.find()) {
                         var className = is_.group[1].string;
