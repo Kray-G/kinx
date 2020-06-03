@@ -14,7 +14,9 @@ new Range(begin, end, excludingEnd)
 ### dot style
 
 The instance of class `Range` is also created by the dot style syntax as below.
-There are 2 styles of `..` and `...`. `..` means to include the end, but `...` means to exclude the end.
+
+There are 2 styles of `..` and `...`.
+The style of `..` means to include the end, but the style of `...` means to exclude the end.
 
 ```javascript
 var a = 2..10;  // new Range(2, 10)

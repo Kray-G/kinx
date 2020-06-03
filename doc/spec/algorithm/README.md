@@ -6,7 +6,7 @@ This will help your understanding.
 ## Sort
 
 *   [Quicksort](qsort.md)
-*   [Heaport](heapsort.md)
+*   [Heapsort](heapsort.md)
 *   [Merge Sort](mergesort.md)
 
 ## Verification
