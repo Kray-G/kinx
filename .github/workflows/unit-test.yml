@@ -114,6 +114,7 @@ jobs:
                 console.log(e.message);
                 return false;
               }
+              throw e;
             }
 
       - name: install
