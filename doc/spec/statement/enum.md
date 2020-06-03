@@ -153,7 +153,7 @@ System.println(C_VAL_STRING);   // => 2
 2
 ```
 
-### Example 5. The scope
+### Example 5. Negative value
 
 #### Code
 
