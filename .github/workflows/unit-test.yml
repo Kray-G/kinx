@@ -58,9 +58,11 @@ jobs:
             }
 
             try {
+              if (!fs.existsSync('.spectest')) throw new UnnecessaryException;
+
               const diffs = new Set(JSON.parse(process.env.DIFF_FILES));
               log({ diffs });
-              if (!diffs.has('.spectest')) throw new UnnecessaryException;
+              if (!diffs.size) throw new UnnecessaryException;
 
               const {
                 root,
@@ -68,7 +70,7 @@ jobs:
                 linkPattern = /\[([^\]]+)\]\s*\(([^\)]+\.md)\)/,
                 interpreter = 'kinx',
                 ignoreFiles = [],
-              } = require(spec);
+              } = require('.spectest');
 
               if (interpreter !== 'kinx') throw new UnnecessaryException;
 
