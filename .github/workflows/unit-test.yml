@@ -54,7 +54,9 @@ jobs:
             const readFileAsync = (file, enc = 'utf8') => promisify(fs.readFile)(file, enc);
 
             class UnnecessaryException extends Error {
-              constructor() { super('no need unittest in this commit/PR') }
+              constructor() {
+                super(`no need unittest in this ${context.eventName === 'push' ? 'commit' : 'PR'}`);
+              }
             }
 
             try {
@@ -84,7 +86,7 @@ jobs:
               if (!targets.length) throw new UnnecessaryException;
 
               // extract written links
-              const pickLinks = async (file, pickedLinks) => { // (string, Set<string>) => void
+              const pickLinks = async (file, pickedLinks) => { // (string, Set<string>) => Promise<void>
                 const text = await readFileAsync(file);
                 const matches = text.match(RegExp(linkPattern, 'g')) || [];
                 const newFiles = matches
