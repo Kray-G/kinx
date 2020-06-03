@@ -101,7 +101,7 @@ a = 2 ** 3 ** 4;    // means 2 ** (3 ** 4), not (2 ** 3) ** 4.
 
 This operator is like Logical OR operator of `||`.
 When using `||` and LHS is `false`, the RHS will be evaluated.
-Compared to that, whe using `??` and LHS is `null`, the RHS will be evaluated.
+Compared to that, when using `??` and LHS is `null`, the RHS will be evaluated.
 
 The `false` meaning is wider than undefined,
 that is why the `??` is very useful especially when you destingish between 0 and `null`.

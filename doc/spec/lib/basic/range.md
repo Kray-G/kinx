@@ -35,6 +35,15 @@ The class `Range` have following methods.
 
 Note that in `each(func)` with no end point, it will be an infinite loop.
 
+### Range as an index
+
+`Range` object can be used as an index for Array, String, Binary, or Range like this.
+
+```javascript
+a[2..3] // The variable `a` can be Array, String, Binary, or Range.
+        // This means to return a set of elements from 2nd element to 3rd element.
+```
+
 ### Mechanism
 
 The object used at the begin and end point of the class `Range` must have followings.
@@ -211,4 +220,89 @@ okay 1 (ac)
 okay 1 (ad)
 okay 1 (ae)
 out of range (af)
+```
+
+### Example 6. Range for String
+
+Range for String means to return a part of string between the start and the end of `Range`.
+It is like `String#subString()` but note that `String#subString()` requires a length.
+
+#### Code
+
+```javascript
+var str = "abcdefghijklmnopqrstuvwxyz";
+System.println(str[2..25]);            // "cdefghijklmnopqrstuvwxyz"
+System.println(str[2...25]);           // "cdefghijklmnopqrstuvwxy"
+System.println(str.subString(2, 23));  // "cdefghijklmnopqrstuvwxy"
+```
+
+#### Result
+
+```
+cdefghijklmnopqrstuvwxyz
+cdefghijklmnopqrstuvwxy
+cdefghijklmnopqrstuvwxy
+```
+
+### Example 7. Range for Array
+
+Range for Array means to return a part of array between the start and the end of `Range`.
+It is like `Array#subArray()` but note that `Array#subArray()` requires a length.
+
+#### Code
+
+```javascript
+var ary = 16.times();
+System.println(ary[2..12]);            // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+System.println(ary[2...12]);           // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+System.println(ary.subArray(2, 10));   // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+```
+
+#### Result
+
+```
+[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+[2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+[2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+```
+
+### Example 8. Range for Binary
+
+Range for Binary means to return a part of binary between the start and the end of `Range`.
+It is like `Binary#subBinary()` but note that `Binary#subBinary()` requires a length.
+
+#### Code
+
+```javascript
+var bin = <0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f>;
+System.println(bin[2..12]);            // <0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c>
+System.println(bin[2...12]);           // <0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b>
+System.println(bin.subBinary(2, 10));  // <0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b>
+```
+
+#### Result
+
+```
+<0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c>
+<0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b>
+<0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b>
+```
+
+### Example 9. Range for Range
+
+Range for Range means to return parts between the start and the end by `Range` at the index.
+
+#### Code
+
+```javascript
+var range = 0..16;
+System.println(range[2..12]);   // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+System.println(range[2...12]);  // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+```
+
+#### Result
+
+```
+[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+[2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 ```
