@@ -15,9 +15,9 @@ native mandelbrot(x:dbl, y:dbl) {
         var zi2 = zi * zi;
         zr = zr2 - zi2 + cr;
         zi = temp + temp + ci;
-        if (zi2 + zr2 > 16)
+        if (zi2 + zr2 > BAILOUT)
             return i;
-        if (i > 1000)
+        if (i > MAX_ITERATIONS)
             return 0;
     }
 }
@@ -36,4 +36,4 @@ for (y = -39; y < 39; y++) {
     }
 }
 System.print("\n");
-System.print("C Elapsed %0.3f\n" % tmr.elapsed());
+System.print("Kinx(native) Elapsed %0.3f\n" % tmr.elapsed());
