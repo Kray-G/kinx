@@ -36,4 +36,4 @@ for (y = -39; y < 39; y++) {
     }
 }
 System.print("\n");
-System.print("C Elapsed %0.3f\n" % tmr.elapsed());
+System.print("Kinx Elapsed %0.3f\n" % tmr.elapsed());
