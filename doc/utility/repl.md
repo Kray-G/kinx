@@ -8,7 +8,7 @@ It is also termed an interactive terminal or language shell.
 
 Look at the following demonstration for your easy understanding.
 
-<p align="center"><img src="repl.gif" /></p>
+<p align="center"><img src="repl.gif" width="90%" /></p>
 
 As seeing the above, you will understand you can try many things of the Kinx on the REPL.
 Have fun with the REPL!
