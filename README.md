@@ -220,7 +220,7 @@ See [REPL](doc/utility/repl.md) for details.
 
 Have fun with it!
 
-<p align="center"><img src="doc/utility/repl.gif" /></p>
+<p align="center"><img src="doc/utility/repl.gif" width="90%" /></p>
 
 ### Extending Functionalities
 
