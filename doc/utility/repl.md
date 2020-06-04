@@ -13,6 +13,10 @@ Look at the following demonstration for your easy understanding.
 As seeing the above, you will understand you can try many things of the Kinx on the REPL.
 Have fun with the REPL!
 
+## Known issues
+
+* Currently `namespace` is not supported.
+
 ## How to Use
 
 ### Starting REPL
