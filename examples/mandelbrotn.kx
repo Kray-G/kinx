@@ -1,0 +1,39 @@
+const BAILOUT = 16;
+const MAX_ITERATIONS = 1000;
+
+native mandelbrot(x:dbl, y:dbl) {
+    var cr = y - 0.5;
+    var ci = x;
+    var zi = 0.0;
+    var zr = 0.0;
+    var i = 0;
+
+    while (true) {
+        i++;
+        var temp = zr * zi;
+        var zr2 = zr * zr;
+        var zi2 = zi * zi;
+        zr = zr2 - zi2 + cr;
+        zi = temp + temp + ci;
+        if (zi2 + zr2 > 16)
+            return i;
+        if (i > 1000)
+            return 0;
+    }
+}
+
+
+var tmr = new SystemTimer();
+var x,y;
+for (y = -39; y < 39; y++) {
+    System.print("\n");
+    for (x = -39; x < 39; x++) {
+        var i = mandelbrot(x/40.0, y/40.0);
+        if (i==0)
+            System.print("*");
+        else
+            System.print(" ");
+    }
+}
+System.print("\n");
+System.print("C Elapsed %0.3f\n" % tmr.elapsed());
