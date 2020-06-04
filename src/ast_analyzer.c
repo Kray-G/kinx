@@ -265,9 +265,11 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
     case KXVL_TRUE:
         node->var_type = KX_INT_T;
+        node->value.i = 1;
         break;
     case KXVL_FALSE:
         node->var_type = KX_INT_T;
+        node->value.i = 0;
         break;
     case KXVL_REGEX:
         node->var_type = KX_OBJ_T;
@@ -278,6 +280,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         int is_enum_value = lookup_enum_value(actx, node->value.s, &enumv);
         if (is_enum_value) {
             node->lhs = kx_gen_int_object(enumv);
+            node->var_type = KX_INT_T;
             analyze_ast(ctx, node->lhs, actx);    // expanding const value.
             break;
         }
@@ -289,28 +292,36 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             break;
         }
         kx_object_t *n = NULL;
+        int vtype = KX_UNKNOWN_T;
         if (!actx->lvalue && sym->optional == KXDC_CONST && sym->base->init) {
             switch (sym->base->init->type) {
             case KXVL_INT:
                 n = kx_gen_int_object(sym->base->init->value.i);
+                vtype = KX_INT_T;
                 break;
             case KXVL_DBL:
                 n = kx_gen_dbl_object(sym->base->init->value.d);
+                vtype = KX_DBL_T;
                 break;
             case KXVL_STR:
                 n = kx_gen_str_object(sym->base->init->value.s);
+                vtype = KX_CSTR_T;
                 break;
             case KXVL_BIG:
                 n = kx_gen_big_object(sym->base->init->value.s);
+                vtype = KX_BIG_T;
                 break;
             case KXVL_NULL:
                 n = kx_gen_special_object(KXVL_NULL);
+                vtype = KX_UND_T;
                 break;
             case KXVL_TRUE:
                 n = kx_gen_special_object(KXVL_TRUE);
+                vtype = KX_INT_T;
                 break;
             case KXVL_FALSE:
                 n = kx_gen_special_object(KXVL_FALSE);
+                vtype = KX_INT_T;
                 break;
             }
             if (n) {
@@ -346,7 +357,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
-        node->var_type = (sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type;
+        node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
         if (sym->base->var_type == KX_NFNC_T) {
             node->ret_type = sym->base->ret_type;
         }

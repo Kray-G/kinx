@@ -516,6 +516,7 @@ static void natir_compile_jmp(kx_native_context_t *nctx, kxn_block_t *block, int
         return;
     }
     if (kv_size(block->code) == 0) {
+        block->tf0 = sljit_emit_jump(nctx->C, SLJIT_JUMP);
         return;
     }
 
