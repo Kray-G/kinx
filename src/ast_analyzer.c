@@ -265,9 +265,11 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
     case KXVL_TRUE:
         node->var_type = KX_INT_T;
+        node->value.i = 1;
         break;
     case KXVL_FALSE:
         node->var_type = KX_INT_T;
+        node->value.i = 0;
         break;
     case KXVL_REGEX:
         node->var_type = KX_OBJ_T;
