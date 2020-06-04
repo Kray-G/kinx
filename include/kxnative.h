@@ -132,6 +132,7 @@ typedef struct kx_native_context_ {
     int count_args; /* argument count in definition */
     int nir_argi;
     uint8_t *args;
+    int in_trycount;
     int in_finally;
     kx_finally_vec_t *finallies;
     kvec_t(kxn_block_t) block_list;
