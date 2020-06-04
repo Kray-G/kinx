@@ -445,6 +445,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
 
     case KXOP_VAR: {
+        kx_object_t *lhs = NULL;
         if (lvalue) {
             kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
                 .inst = KXN_LOADA, .var_type = node->var_type,
@@ -452,13 +453,30 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                     .op1 = { .type = KXNOP_VAR, .lex = node->lexical, .idx = node->index }
             }));
         } else {
-            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-                .inst = node->var_type == KX_DBL_T ? KXN_LOADF : KXN_LOAD, .var_type = node->var_type,
-                    .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
-                    .op1 = { .type = KXNOP_VAR, .lex = node->lexical, .idx = node->index }
-            }));
+            lhs = node->lhs;
+            if (lhs && (lhs->type == KXVL_INT || lhs->type == KXVL_DBL)) {
+                if (lhs->type == KXVL_INT) {
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                        .inst = KXN_LOAD, .var_type = node->var_type,
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                            .op1 = { .type = KXNOP_IMM, .iv = lhs->value.i }
+                    }));
+                } else {
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                        .inst = KXN_LOADF, .var_type = node->var_type,
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                            .op1 = { .type = KXNOP_XMM, .dv = lhs->value.d }
+                    }));
+                }
+            } else {
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = node->var_type == KX_DBL_T ? KXN_LOADF : KXN_LOAD, .var_type = node->var_type,
+                        .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                        .op1 = { .type = KXNOP_VAR, .lex = node->lexical, .idx = node->index }
+                }));
+            }
         }
-        if (node->lexical > 0) {
+        if (!lhs && node->lexical > 0) {
             check_exception(nctx, node, nctx->regno, 0);
         }
         break;
@@ -550,6 +568,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
 
     case KXOP_DECL: {
+        if (nctx->in_trycount == 0) nctx->regno = 0;
         if (node->var_type == KX_INT_T && node->rhs->type == KXVL_INT) {
             nativejit_ast(nctx, node->lhs, 1);
             int a = nctx->regno;
@@ -891,10 +910,13 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         nativejit_ast(nctx, node->rhs, 0);
         break;
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
+        if (nctx->in_trycount == 0) nctx->regno = 0;
         nativejit_ast(nctx, node->lhs, 0);
+        if (nctx->in_trycount == 0) nctx->regno = 0;
         nativejit_ast(nctx, node->rhs, 0);
         break;
     case KXST_BLOCK:      /* lhs: block */
+        if (nctx->in_trycount == 0) nctx->regno = 0;
         nativejit_ast(nctx, node->lhs, 0);
         break;
     case KXST_IF: {       /* lhs: cond, rhs: then-block: ex: else-block */
@@ -903,17 +925,20 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             int ex2;
             cond = gen_kxn_block(nctx);
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = cond;
             nctx->block = cond;
             nativejit_ast(nctx, node->lhs, 0);
             cond = nctx->block;
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             ex1 = gen_kxn_block(nctx);
             KXNJP_T(nctx, cond) = ex1;
             nctx->block = ex1;
             nativejit_ast(nctx, node->rhs, 0);
             ex1 = nctx->block;
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             ex2 = gen_kxn_block(nctx);
             KXNJP_F(nctx, cond) = ex2;
             nctx->block = ex2;
@@ -923,11 +948,13 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         } else {
             cond = gen_kxn_block(nctx);
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = cond;
             nctx->block = cond;
             nativejit_ast(nctx, node->lhs, 0);
             cond = nctx->block;
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             ex1 = gen_kxn_block(nctx);
             KXNJP_T(nctx, cond) = ex1;
             nctx->block = ex1;
@@ -942,18 +969,20 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
     }
     case KXST_SWITCH: {  /* lhs: cond: rhs: block */
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
     }
     case KXST_CASE: {  /* lhs: cond */
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
     }
     case KXST_WHILE: {    /* lhs: cond: rhs: block */
-        if (!node->lhs || node->lhs->var_type == KX_INT_T && node->lhs->value.i != 0) {
+        if (!node->lhs || (node->lhs->var_type == KX_INT_T && node->lhs->value.i != 0)) {
             int body = gen_kxn_block(nctx);
             int next = gen_kxn_block(nctx);
             kv_push(kx_label_t, nctx->continue_list, KXBLOCK(body));
             kv_push(kx_label_t, nctx->break_list, KXBLOCK(next));
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = body;
             nctx->block = body;
             nativejit_ast(nctx, node->rhs, 0);
@@ -972,9 +1001,12 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             kv_push(kx_label_t, nctx->continue_list, KXBLOCK(cond));
             kv_push(kx_label_t, nctx->break_list, KXBLOCK(out));
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = cond;
             nctx->block = body;
             nativejit_ast(nctx, node->rhs, 0);
+
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = cond;
             nctx->block = cond;
             nativejit_ast(nctx, node->lhs, 0);
@@ -994,6 +1026,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             kv_push(kx_label_t, nctx->continue_list, KXBLOCK(body));
             kv_push(kx_label_t, nctx->break_list, KXBLOCK(next));
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = body;
             nctx->block = body;
             nativejit_ast(nctx, node->rhs, 0);
@@ -1012,9 +1045,12 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             kv_push(kx_label_t, nctx->continue_list, KXBLOCK(cond));
             kv_push(kx_label_t, nctx->break_list, KXBLOCK(out));
 
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = body;
             nctx->block = body;
             nativejit_ast(nctx, node->rhs, 0);
+
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, nctx->block) = cond;
             nctx->block = cond;
             nativejit_ast(nctx, node->lhs, 0);
@@ -1039,15 +1075,20 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kv_push(kx_label_t, nctx->break_list, KXBLOCK(out));
 
         if (init >= 0) {
+            if (nctx->in_trycount == 0) nctx->regno = 0;
             KXNJP(nctx, prev) = init;
             nctx->block = init;
             nativejit_ast(nctx, forcond->lhs, 0);
             prev = nctx->block;
         }
+
+        if (nctx->in_trycount == 0) nctx->regno = 0;
         KXNJP(nctx, prev) = body;
         nctx->block = body;
         nativejit_ast(nctx, node->rhs, 0);
         prev = nctx->block;
+
+        if (nctx->in_trycount == 0) nctx->regno = 0;
         if (incr >= 0) {
             KXNJP(nctx, prev) = incr;
             nctx->block = incr;
@@ -1073,6 +1114,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
+        ++(nctx->in_trycount);
         int tryb = gen_kxn_block(nctx);
         int catb = gen_kxn_block(nctx);
         kv_push(kx_label_t, nctx->catch_list, KXBLOCK(catb));
@@ -1110,6 +1152,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         nctx->block = out;
 
         kv_remove_last(*(nctx->finallies));
+        --(nctx->in_trycount);
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
