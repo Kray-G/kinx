@@ -301,6 +301,7 @@ static int natir_display_jmp(kxn_block_t *block, int i, int addr)
                 add = 1;
             }
         } else {
+            add = 1;
             printf("%8x:   ", addr);
             if (block->tf[0] == (i+1)) {
                 printf("%-23s .L%d\n", "jnz", block->tf[1]);
@@ -310,9 +311,10 @@ static int natir_display_jmp(kxn_block_t *block, int i, int addr)
                 printf("%-23s .L%d\n", "jmp", block->tf[0]);
             } else {
                 printf("%-23s .L%d\n", "jnz", block->tf[1]);
+                printf("%8x:   ", addr+1);
                 printf("%-23s .L%d\n", "jmp", block->tf[0]);
+                ++add;
             }
-            add = 1;
         }
     }
     return add;
