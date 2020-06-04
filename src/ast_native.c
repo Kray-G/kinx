@@ -960,6 +960,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
     }
     case KXST_SWITCH: {  /* lhs: cond: rhs: block */
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
     }
     case KXST_CASE: {  /* lhs: cond */
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
