@@ -24,6 +24,7 @@ Now **Native Thread without GIL** has been supported as an **Isolate**.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
 *   **Isolate** object to control native threads without Global Interpreter Lock.
 *   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, etc.
+*   **[REPL](doc/repl/repl.md)** is provided by default.
 *   Useful Testing System named as **[SpecTest](doc/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
 
 The script language is a platform as a glue between libraries.
@@ -41,6 +42,9 @@ For the detail of Kinx specification, see [Kinx Specification](doc/spec/README.m
 This document is also including **Test Codes**.
 I named this system as **SpecTest**.
 See **[SpecTest](doc/spec/spectest/README.md)** for detail.
+
+And you can try it on the **[REPL](doc/repl/repl.md)**.
+See **[REPL](doc/repl/repl.md)** for detail.
 
 ### Motivation
 
@@ -202,6 +206,21 @@ How nice it is around 10x faster.
 
 But you have to know the limitations with native function.
 See [Quick Reference Guide](doc/QuickReference.md) for details.
+
+### REPL
+
+You can use REPL (Read-Eval-Print-Loop) with the option of `--exec:repl` as below.
+
+```
+$ ./kinx --exec:repl
+```
+
+Here is a demo animation. REPL has an autocomplete by `[TAB]` key.
+See [REPL](doc/repl/repl.md) for details.
+
+Have fun with it!
+
+<p align="center"><img src="doc/utility/repl.gif" /></p>
 
 ### Extending Functionalities
 
