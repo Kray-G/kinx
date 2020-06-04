@@ -302,6 +302,12 @@ class ReplCommand(helper_, replinfo_) {
         if (!filepath && File.exists($exepath / 'lib/std' / file)) {
             filepath = $exepath / 'lib/std' / file;
         }
+        if (!filepath && File.exists($exepath / 'kinxlib' / file)) {
+            filepath = $exepath / 'kinxlib' / file;
+        }
+        if (!filepath && File.exists($exepath / 'kinxlib/std' / file)) {
+            filepath = $exepath / 'kinxlib/std' / file;
+        }
         if (!filepath && File.exists($exepath / '../lib' / file)) {
             filepath = $exepath / '../lib' / file;
         }
