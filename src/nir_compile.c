@@ -516,6 +516,7 @@ static void natir_compile_jmp(kx_native_context_t *nctx, kxn_block_t *block, int
         return;
     }
     if (kv_size(block->code) == 0) {
+        block->tf0 = sljit_emit_jump(nctx->C, SLJIT_JUMP);
         return;
     }
 
@@ -523,10 +524,7 @@ static void natir_compile_jmp(kx_native_context_t *nctx, kxn_block_t *block, int
     if (code->inst != KXN_JMP) {
         if (!block->tf[1]) {
             if (block->tf[0] != (i+1)) {
-                kxn_block_t *next = &kv_A(nctx->block_list, i+1);
-                if (kv_size(next->code) == 0 && block->tf[0] != (i+2)) {
-                    block->tf0 = sljit_emit_jump(nctx->C, SLJIT_JUMP);
-                }
+                block->tf0 = sljit_emit_jump(nctx->C, SLJIT_JUMP);
             }
         } else {
             if (block->tf[0] == (i+1)) {
