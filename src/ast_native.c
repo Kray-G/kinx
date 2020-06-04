@@ -445,6 +445,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
 
     case KXOP_VAR: {
+        kx_object_t *lhs = NULL;
         if (lvalue) {
             kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
                 .inst = KXN_LOADA, .var_type = node->var_type,
@@ -452,13 +453,30 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                     .op1 = { .type = KXNOP_VAR, .lex = node->lexical, .idx = node->index }
             }));
         } else {
-            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-                .inst = node->var_type == KX_DBL_T ? KXN_LOADF : KXN_LOAD, .var_type = node->var_type,
-                    .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
-                    .op1 = { .type = KXNOP_VAR, .lex = node->lexical, .idx = node->index }
-            }));
+            lhs = node->lhs;
+            if (lhs && (lhs->type == KXVL_INT || lhs->type == KXVL_DBL)) {
+                if (lhs->type == KXVL_INT) {
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                        .inst = KXN_LOAD, .var_type = node->var_type,
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                            .op1 = { .type = KXNOP_IMM, .iv = lhs->value.i }
+                    }));
+                } else {
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                        .inst = KXN_LOADF, .var_type = node->var_type,
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                            .op1 = { .type = KXNOP_XMM, .dv = lhs->value.d }
+                    }));
+                }
+            } else {
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = node->var_type == KX_DBL_T ? KXN_LOADF : KXN_LOAD, .var_type = node->var_type,
+                        .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                        .op1 = { .type = KXNOP_VAR, .lex = node->lexical, .idx = node->index }
+                }));
+            }
         }
-        if (node->lexical > 0) {
+        if (!lhs && node->lexical > 0) {
             check_exception(nctx, node, nctx->regno, 0);
         }
         break;
