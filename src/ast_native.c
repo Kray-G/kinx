@@ -966,7 +966,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
     }
     case KXST_WHILE: {    /* lhs: cond: rhs: block */
-        if (!node->lhs || node->lhs->var_type == KX_INT_T && node->lhs->value.i != 0) {
+        if (!node->lhs || (node->lhs->var_type == KX_INT_T && node->lhs->value.i != 0)) {
             int body = gen_kxn_block(nctx);
             int next = gen_kxn_block(nctx);
             kv_push(kx_label_t, nctx->continue_list, KXBLOCK(body));
