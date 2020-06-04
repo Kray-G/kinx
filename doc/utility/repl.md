@@ -206,7 +206,7 @@ sample = new Sample(a, b, c, d, e, f, g)
 
 ### Deleting a variable
 
-You can delete the registerred variable.
+You can delete the registered variable.
 It is a rare case to use this functionality, but sometimes it helps you.
 For example, there is a situation below.
 
