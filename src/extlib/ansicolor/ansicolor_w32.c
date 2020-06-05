@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <errno.h>
 
+#ifndef COMMON_LVB_UNDERSCORE
+#define COMMON_LVB_UNDERSCORE 0x8000
+#endif
+
 typedef struct color256_ {
   unsigned char r, g, b, x;
 } color256_t;
@@ -315,8 +319,8 @@ retry:
               attr = attr_olds[type];
             else if (v[i] == 1)
               attr |= FOREGROUND_INTENSITY;
-            // else if (v[i] == 4)
-            //   attr |= FOREGROUND_INTENSITY;
+            else if (v[i] == 4)
+              attr |= COMMON_LVB_UNDERSCORE;
             else if (v[i] == 5)
               attr |= FOREGROUND_INTENSITY;
             else if (v[i] == 7)
