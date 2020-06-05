@@ -7,6 +7,15 @@
     node->rhs = NULL; \
 \
 /**/
+#define KX_CONST_VAR_CHECK(p, br) { \
+    kx_object_t *n = p->br; \
+    if (n->type == KXOP_VAR && n->lhs) { \
+        if (n->lhs->type == KXVL_INT || n->lhs->type == KXVL_DBL) { \
+            p->br = n->lhs; \
+        } \
+    } \
+} \
+/**/
 
 void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
 {
@@ -95,6 +104,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_SHL:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -108,6 +119,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_SHR:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -119,6 +132,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_ADD:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -134,6 +149,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_SUB:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -149,6 +166,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_POW:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -162,6 +181,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_MUL:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -177,6 +198,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_DIV:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -195,6 +218,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_MOD:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -204,6 +229,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_AND:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -213,6 +240,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_OR:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
@@ -222,6 +251,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_XOR:
         opt_ast_constant_folding(ctx, node->lhs);
         opt_ast_constant_folding(ctx, node->rhs);
+        KX_CONST_VAR_CHECK(node, lhs);
+        KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
             int64_t v1val = node->lhs->value.i;
             int64_t v2val = node->rhs->value.i;
