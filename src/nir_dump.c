@@ -192,6 +192,20 @@ static void natir_display_0op(kxn_code_t *code)
     }
 }
 
+static void natir_display_sop(kxn_code_t *code)
+{
+    switch (code->op) {
+    case KXNOP_STR_GETCH:
+        printf("%-23s ", "str_getch");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        printf(", ");
+        natir_display_op(&(code->op2));
+        break;
+    }
+}
+
 static void natir_display_exc(kxn_code_t *code)
 {
     printf("%-23s ", "excpt");
@@ -240,6 +254,9 @@ static void natir_display_code(kxn_code_t *code, int addr)
         break; 
     case KXN_0OP:
         natir_display_0op(code);
+        break; 
+    case KXN_SOP:
+        natir_display_sop(code);
         break; 
     case KXN_ARG:
         printf("%-23s ", "arg");

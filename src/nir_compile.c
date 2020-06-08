@@ -18,6 +18,7 @@ extern sljit_sw native_cast_dbl_to_str(sljit_sw *info, double d);
 extern sljit_sw native_cast_cstr_to_str(sljit_sw *info, const char *s);
 extern sljit_sw native_str_add_str(sljit_sw *info, kstr_t *s1, kstr_t *s2);
 extern sljit_sw native_str_mul_int(sljit_sw *info, kstr_t *s1, int64_t i);
+extern sljit_sw native_get_string_ch(kstr_t *s1, int64_t i);
 
 #define ARGB SLJIT_MEM1(SLJIT_SP)
 #define ARG(n) ((2 + (n) + nctx->local_vars) * KXN_WDSZ)
@@ -26,7 +27,7 @@ extern sljit_sw native_str_mul_int(sljit_sw *info, kstr_t *s1, int64_t i);
     SETARG_BLK; \
     sljit_get_local_base(nctx->C, SLJIT_R0, 0, (nctx->local_vars + 2) * KXN_WDSZ); \
     sljit_emit_icall(nctx->C, SLJIT_CALL, \
-        SLJIT_RET(RT) | SLJIT_ARG1(A0T) | SLJIT_ARG1(A1T) | SLJIT_ARG1(A2T), \
+        SLJIT_RET(RT) | SLJIT_ARG1(A0T) | SLJIT_ARG2(A1T) | SLJIT_ARG3(A2T), \
         SLJIT_IMM, SLJIT_FUNC_OFFSET(name)); \
     if (r0 != SLJIT_RETURN_REG) { \
         sljit_emit_##op1(nctx->C, MOV, r0, 0, SLJIT_RETURN_REG, 0); \
@@ -407,6 +408,18 @@ static void natir_compile_0op(kx_native_context_t *nctx, kxn_code_t *code)
     }
 }
 
+static void natir_compile_sop(kx_native_context_t *nctx, kxn_code_t *code)
+{
+    switch (code->op) {
+    case KXNOP_STR_GETCH:
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, KXN_R(code->op1));
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, KXN_R(code->op2));
+        sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_get_string_ch));
+        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_RETURN_REG, 0);
+        break;
+    }
+}
+
 static void natir_compile_exc(kx_native_context_t *nctx, kxn_code_t *code)
 {
     switch (code->op) {
@@ -471,6 +484,9 @@ static void natir_compile_code(kx_native_context_t *nctx, kxn_code_t *code)
     case KXN_0OP:
         natir_compile_0op(nctx, code);
         break; 
+    case KXN_SOP:
+        natir_compile_sop(nctx, code);
+        break; 
     case KXN_ARG:
         if (nctx->nir_argi == 0) {
             nctx->nir_argi = nctx->local_vars + KXN_LOCALVAR_OFFSET;
@@ -490,12 +506,12 @@ static void natir_compile_code(kx_native_context_t *nctx, kxn_code_t *code)
         sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->local_vars * KXN_WDSZ);
         if (code->var_type == KX_INT_T) {
             sljit_emit_icall(nctx->C, SLJIT_CALL,
-                SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG1(SW),
+                SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW),
                 SLJIT_R3, 0);
             sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_RETURN_REG, 0);
         } else if (code->var_type == KX_DBL_T) {
             sljit_emit_icall(nctx->C, SLJIT_CALL,
-                SLJIT_RET(F64) | SLJIT_ARG1(SW) | SLJIT_ARG1(SW),
+                SLJIT_RET(F64) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW),
                 SLJIT_R3, 0);
             sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, KXN_R(code->dst), SLJIT_RETURN_REG, 0);
         } else {
@@ -626,7 +642,7 @@ void natir_compile_function(kx_native_context_t *nctx)
 
     /* function body */
     for (int i = 0; i < nctx->count_args; ++i) {
-        if (nctx->args[i] == KX_INT_T) {
+        if (nctx->args[i] == KX_INT_T || nctx->args[i] == KX_STR_T) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), i * KXN_WDSZ,
                 SLJIT_MEM1(SLJIT_S1), (i+KXN_LOCALVAR_OFFSET) * KXN_WDSZ);
         } else {
