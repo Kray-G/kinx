@@ -99,10 +99,10 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
 #### Object Definitions
 
-*   [Function](definition/function.md) - *not documented yet*
+*   [Function](definition/function.md)
 *   [Class](definition/class.md) - *not documented yet*
 *   [Module](definition/module.md) - *not documented yet*
-*   [Native](definition/native.md) - *not documented yet*
+*   [Native](definition/native.md)
 
 #### Special Objects
 

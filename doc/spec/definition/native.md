@@ -271,7 +271,7 @@ System.println("do_while(%{n}) = ", loop_do_while(n));
 do_while(10000) = 46
 ```
 
-### Example 10. Too deep to call a native.
+### Example 10. Too deep to call a native
 
 #### Code
 
@@ -291,7 +291,7 @@ Stack Trace Information:
         at <main-block>(test.kx:4)
 ```
 
-### Example 11. Try-Catch-Finally.
+### Example 11. Try-Catch-Finally
 
 #### Code
 
@@ -343,7 +343,7 @@ b = 102
 c = 999
 ```
 
-### Example 12. Finally with return.
+### Example 12. Finally with return
 
 #### Code
 
