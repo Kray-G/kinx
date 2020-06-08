@@ -39,11 +39,16 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         kx_val_t *v = &kv_last_by(ctx->stack, i);
         switch (v->type) {
         case KX_INT_T:
-            if (type != KX_INT_T) {
+            if (type == KX_INT_T) {
+                arglist[j] = (sljit_sw)(v->value.iv);
+                arglist[j+type_offset] = KX_INT_T;
+            } else if (type == KX_DBL_T) {
+                union { sljit_sw sw; double dw; } conv = { .dw = (double)(v->value.iv) };
+                arglist[j] = conv.sw;
+                arglist[j+type_offset] = KX_DBL_T;
+            } else {
                 return KXN_TYPE_MISMATCH;
             }
-            arglist[j] = (sljit_sw)(v->value.iv);
-            arglist[j+type_offset] = KX_INT_T;
             break;
         case KX_DBL_T:
             if (type != KX_DBL_T) {
@@ -53,6 +58,17 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
             arglist[j] = conv.sw;
             arglist[j+type_offset] = KX_DBL_T;
             break;
+        case KX_CSTR_T:
+        case KX_STR_T: {
+            if (type != KX_STR_T) {
+                return KXN_TYPE_MISMATCH;
+            }
+            kstr_t *sv = allocate_str(ctx);
+            ks_append(sv, v->type == KX_CSTR_T ? v->value.pv : ks_string(v->value.sv));
+            arglist[j] = (sljit_sw)sv;
+            arglist[j+type_offset] = KX_STR_T;
+            break;
+        }
         case KX_NFNC_T:
             if (type != KX_NFNC_T) {
                 return KXN_TYPE_MISMATCH;
@@ -88,6 +104,12 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         union { sljit_sw sw; double dw; } conv = { .sw = func(info, arglist) };
         kv_shrink(ctx->stack, count);
         push_d(ctx->stack, conv.dw);
+        break;
+    }
+    case KX_STR_T: {
+        kstr_t *sv = (kstr_t *)func(info, arglist);
+        kv_shrink(ctx->stack, count);
+        push_sv(ctx->stack, sv);
         break;
     }
     default:
@@ -158,3 +180,50 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
 KX_DEF_NATIVE_HELPER(int, iv, KX_INT_T, sljit_sw)
 KX_DEF_NATIVE_HELPER(dbl, dv, KX_DBL_T, sljit_f64)
 KX_DEF_NATIVE_HELPER(nfunc, fn->native.func, KX_NFNC_T, sljit_sw)
+
+/* cast operation */
+
+sljit_sw native_cast_int_to_str(sljit_sw *info, int64_t i)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    kstr_t *str = allocate_str(ctx);
+    ks_appendf(str, "%"PRId64, i);
+    return (sljit_sw)str;
+}
+
+sljit_sw native_cast_dbl_to_str(sljit_sw *info, double d)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    kstr_t *str = allocate_str(ctx);
+    ks_appendf(str, "%g", d);
+    return (sljit_sw)str;
+}
+
+sljit_sw native_cast_cstr_to_str(sljit_sw *info, const char *s)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    kstr_t *str = allocate_str(ctx);
+    ks_append(str, s);
+    return (sljit_sw)str;
+}
+
+/* string operation */
+
+sljit_sw native_str_add_str(sljit_sw *info, kstr_t *s1, kstr_t *s2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    kstr_t *str = allocate_str(ctx);
+    ks_appendf(str, "%s%s", ks_string(s1), ks_string(s2));
+    return (sljit_sw)str;
+}
+
+sljit_sw native_str_mul_int(sljit_sw *info, kstr_t *s1, int64_t iv)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    kstr_t *str = allocate_str(ctx);
+    ks_append(str, ks_string(s1));
+    for (int i = 1; i < (int)iv; ++i) {
+        ks_append(str, ks_string(s1));
+    }
+    return (sljit_sw)str;
+}
