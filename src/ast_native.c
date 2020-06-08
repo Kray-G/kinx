@@ -5,6 +5,8 @@
 #include <kxnative.h>
 #include <jit.h>
 
+extern sljit_sw native_string_length(sljit_sw *info, sljit_sw *a1);
+
 #define KXN_RESET_REGNO_IF_POSSIBLE(nctx) \
     if (nctx->in_trycount == 0) nctx->regno = 0; \
 /**/
@@ -403,7 +405,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
             .inst = KXN_LOADA, .var_type = node->var_type,
                 .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
-                .op1 = { .type = KXNOP_IMM, .adr = (uint64_t)node->value.s }
+                .op1 = { .type = KXNOP_IMM, .iv = (uint64_t)node->value.s }
         }));
         kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
             .inst = KXN_UOP, .op = KXNOP_TOBIG, .var_type = node->var_type,
@@ -729,9 +731,41 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
     case KXOP_LUNDEF:
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
-    case KXOP_IDX:
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+    case KXOP_IDX: {
+        if (node->lhs->var_type == KX_STR_T) {
+            if (node->rhs->var_type == KX_INT_T) {
+                nativejit_ast(nctx, node->lhs, 0);
+                int r1 = nctx->regno;
+                nativejit_ast(nctx, node->rhs, 0);
+                int r2 = nctx->regno;
+                int v = ++nctx->regno;
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = KXN_SOP, .op = KXNOP_STR_GETCH, .var_type = node->var_type,
+                        .dst = { .type = KXNOP_REG, .r = v },
+                        .op1 = { .type = KXNOP_REG, .r = r1 },
+                        .op2 = { .type = KXNOP_REG, .r = r2 },
+                }));
+            } else if (node->rhs->var_type == KX_CSTR_T) {
+                /* String#length is a special */
+                if (!strcmp(node->rhs->value.s, "length")) {
+                    nativejit_ast(nctx, node->lhs, 0);
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                        .inst = KXN_LOADA, .var_type = node->var_type,
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                            .op1 = { .type = KXNOP_IMM, .iv = (uint64_t)native_string_length }
+                    }));
+                    set_args(nctx, node->lhs);
+                } else {
+                    kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+                }
+            } else {
+                kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+            }
+        } else {
+            kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        }
         break;
+    }
     case KXOP_YIELD:
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
@@ -783,10 +817,10 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             check_exception(nctx, node, dst, 0);
         } else {
             nativejit_ast(nctx, node->rhs, 0);
+            set_args(nctx, node->rhs);
             nativejit_ast(nctx, node->lhs, 0);
             int adr = nctx->regno;
             int dst = ++nctx->regno;
-            set_args(nctx, node->rhs);
             kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
                 .inst = KXN_CALL, .ret_type = node->ret_type, .var_type = node->var_type,
                     .dst = { .type = KXNOP_REG, .r = dst },
