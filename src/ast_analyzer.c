@@ -104,7 +104,7 @@ static void make_cast_to(int ntype, kx_object_t *node)
     }
 }
 
-static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
+static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs, int is_native)
 {
     if (!lhs || !rhs) {
         return;
@@ -125,7 +125,9 @@ static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
             } else if (rtype == KX_CSTR_T) {
                 node->var_type = KX_STR_T;
                 node->lhs = kx_gen_cast_object(node->lhs, KX_INT_T, KX_STR_T);
-                node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
+                if (is_native) {
+                    node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
+                }
             } else if (rtype == KX_STR_T) {
                 node->var_type = KX_STR_T;
                 node->lhs = kx_gen_cast_object(node->lhs, KX_INT_T, KX_STR_T);
@@ -142,7 +144,9 @@ static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
             } else if (rtype == KX_CSTR_T) {
                 node->var_type = KX_STR_T;
                 node->lhs = kx_gen_cast_object(node->lhs, KX_DBL_T, KX_STR_T);
-                node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
+                if (is_native) {
+                    node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
+                }
             } else if (rtype == KX_STR_T) {
                 node->var_type = KX_STR_T;
                 node->lhs = kx_gen_cast_object(node->lhs, KX_DBL_T, KX_STR_T);
@@ -159,7 +163,9 @@ static void make_cast(kx_object_t *node, kx_object_t *lhs, kx_object_t *rhs)
             } else if (rtype == KX_CSTR_T) {
                 node->var_type = KX_STR_T;
                 node->lhs = kx_gen_cast_object(node->lhs, KX_BIG_T, KX_STR_T);
-                node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
+                if (is_native) {
+                    node->rhs = kx_gen_cast_object(node->rhs, KX_CSTR_T, KX_STR_T);
+                }
             } else if (rtype == KX_STR_T) {
                 node->var_type = KX_STR_T;
                 node->lhs = kx_gen_cast_object(node->lhs, KX_BIG_T, KX_STR_T);
@@ -533,7 +539,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         actx->lvalue = 0;
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
-        make_cast(node, node->lhs, node->rhs);
+        make_cast(node, node->lhs, node->rhs, actx->in_native);
         node->var_type = node->lhs->var_type;
         actx->lvalue = lvalue;
         break;
@@ -544,15 +550,17 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
         actx->lvalue = lvalue;
-        if (node->lhs->var_type == KX_CSTR_T) {
-            node->lhs = kx_gen_cast_object(node->lhs, KX_CSTR_T, KX_STR_T);
-        }
-        if (node->lhs->var_type == KX_STR_T) {
-            if (node->rhs->var_type == KX_DBL_T) {
-                node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
+        if (actx->in_native) {
+            if (node->lhs->var_type == KX_CSTR_T) {
+                node->lhs = kx_gen_cast_object(node->lhs, KX_CSTR_T, KX_STR_T);
             }
-            if (actx->in_native && node->rhs->var_type != KX_INT_T) {
-                kx_yyerror_line("Can only multiply strings by integers in native function", node->file, node->line);
+            if (node->lhs->var_type == KX_STR_T) {
+                if (node->rhs->var_type == KX_DBL_T) {
+                    node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
+                }
+                if (node->rhs->var_type != KX_INT_T) {
+                    kx_yyerror_line("Can only multiply strings by integers in native function", node->file, node->line);
+                }
             }
         }
         node->var_type = node->lhs->var_type;
@@ -582,12 +590,12 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
     case KXOP_LUNDEF:
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
-        make_cast(node, node->lhs, node->rhs);
+        make_cast(node, node->lhs, node->rhs, actx->in_native);
         break;
     case KXOP_IDX:
-        analyze_ast(ctx, node->lhs, actx);
-        analyze_ast(ctx, node->rhs, actx);
         if (actx->in_native) {
+            analyze_ast(ctx, node->lhs, actx);
+            analyze_ast(ctx, node->rhs, actx);
             if (actx->lvalue) {
                 kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
                 break;
@@ -697,7 +705,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         actx->lvalue = 0;
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
-        make_cast(node, node->lhs, node->rhs);
+        make_cast(node, node->lhs, node->rhs, actx->in_native);
         node->var_type = KX_INT_T;
         actx->lvalue = lvalue;
         break;
@@ -723,7 +731,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         actx->decl = 0;
         if ((node->lhs->var_type == KX_CSTR_T || node->lhs->var_type == KX_STR_T) && (node->rhs->var_type == KX_CSTR_T || node->rhs->var_type == KX_STR_T)) {
             node->type = KXOP_ADD;
-            make_cast(node, node->lhs, node->rhs);
+            make_cast(node, node->lhs, node->rhs, actx->in_native);
         } else {
             node->count_args = count_args(node->rhs);
             if (actx->func && node->count_args > actx->func->callargs_max) {
