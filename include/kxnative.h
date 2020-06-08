@@ -15,6 +15,7 @@ enum kxn_code_inst {
     KXN_BOP,        /* binary op:   dst = op1 OP op2 */
     KXN_UOP,        /* unary op:    dst = OP op1 */
     KXN_0OP,
+    KXN_SOP,        /* string operation */
     KXN_ARG,
     KXN_CALL,
     KXN_CAST,
@@ -45,11 +46,15 @@ enum kxn_bopecode_type {
     KXNOP_MUL,
     KXNOP_DIV,
     KXNOP_MOD,
+    KXNOP_POW,
     KXNOP_ADDF,
     KXNOP_SUBF,
     KXNOP_MULF,
     KXNOP_DIVF,
     KXNOP_MODF,
+    KXNOP_POWF,
+    KXNOP_ADDS,
+    KXNOP_MULS,
 
     KXNOP_EQEQ,
     KXNOP_NEQ,
@@ -80,11 +85,14 @@ enum kxn_uopecode_type {
     KXNOP_CHKE,
 };
 
+enum kxn_string_op {
+    KXNOP_STR_GETCH,
+};
+
 typedef struct kxn_operand_ {
     int type;
     int r, rx;
     int lex, idx;
-    uint64_t adr;
     int64_t iv;
     double dv;
 } kxn_operand_t;
