@@ -620,6 +620,7 @@ void natir_compile_function(kx_native_context_t *nctx)
                         nctx->reg_max * KXN_WDSZ                /* temporary variable */
     );
     nctx->regtemp_base = (nctx->local_vars + KXN_MAX_FUNC_ARGS * 2 + 3/* 4 - 1 */) * KXN_WDSZ;
+    nctx->nir_argi = 0;
 
     /* check depth */
     sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
