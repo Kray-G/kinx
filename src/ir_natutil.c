@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include <inttypes.h>
 #include <kinx.h>
 #include <kxnative.h>
@@ -248,3 +249,117 @@ sljit_sw native_string_length(sljit_sw *info, sljit_sw *a1)
     kstr_t* s1 = (kstr_t*)a1[KXN_LOCALVAR_OFFSET];
     return (sljit_sw)ks_length(s1);
 }
+
+/* Math operation */
+
+#define KNX_TYPE(a1, n) (a1[KXN_LOCALVAR_OFFSET + KXN_MAX_FUNC_ARGS + 1 + n])
+
+#define KNX_DEF_MATH_FUNCTION(name) \
+sljit_f64 native_math_##name(sljit_sw *info, sljit_sw *a1) \
+{ \
+    int t1 = KNX_TYPE(a1, 0); \
+    if (t1 != KX_INT_T && t1 != KX_DBL_T)  { \
+        info[KXN_EXC_FLAG] = 1; \
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH; \
+        return 0; \
+    } \
+    double d1; \
+    union { sljit_sw sw; double dw; } conv = {0}; \
+    if (t1 == KX_INT_T) { \
+        d1 = (double)(sljit_sw)a1[KXN_LOCALVAR_OFFSET]; \
+    } else if (t1 == KX_DBL_T) { \
+        conv.sw = (sljit_sw)a1[KXN_LOCALVAR_OFFSET]; \
+        d1 = conv.dw; \
+    } \
+    return name(d1); \
+} \
+/**/
+#define KNX_DEF_MATH_FUNCTION2(name) \
+sljit_f64 native_math_##name(sljit_sw *info, sljit_sw *a1) \
+{ \
+    int t1 = KNX_TYPE(a1, 0); \
+    if (t1 != KX_INT_T && t1 != KX_DBL_T)  { \
+        info[KXN_EXC_FLAG] = 1; \
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH; \
+        return 0; \
+    } \
+    int t2 = KNX_TYPE(a1, 1); \
+    if (t2 != KX_INT_T && t2 != KX_DBL_T)  { \
+        info[KXN_EXC_FLAG] = 1; \
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH; \
+        return 0; \
+    } \
+    double d1, d2; \
+    union { sljit_sw sw; double dw; } conv = {0}; \
+    if (t1 == KX_INT_T) { \
+        d1 = (double)(sljit_sw)a1[KXN_LOCALVAR_OFFSET]; \
+    } else { \
+        conv.sw = (sljit_sw)a1[KXN_LOCALVAR_OFFSET]; \
+        d1 = conv.dw; \
+    } \
+    if (t2 == KX_INT_T) { \
+        d2 = (double)(sljit_sw)a1[KXN_LOCALVAR_OFFSET + 1]; \
+    } else { \
+        conv.sw = (sljit_sw)a1[KXN_LOCALVAR_OFFSET + 1]; \
+        d2 = conv.dw; \
+    } \
+    return name(d1, d2); \
+} \
+/**/
+#define KNX_DEF_MATH_FUNCTION2_INT(name) \
+sljit_f64 native_math_##name(sljit_sw *info, sljit_sw *a1) \
+{ \
+    int t1 = KNX_TYPE(a1, 0); \
+    if (t1 != KX_INT_T && t1 != KX_DBL_T)  { \
+        info[KXN_EXC_FLAG] = 1; \
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH; \
+        return 0; \
+    } \
+    int t2 = KNX_TYPE(a1, 1); \
+    if (t2 != KX_INT_T && t2 != KX_DBL_T)  { \
+        info[KXN_EXC_FLAG] = 1; \
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH; \
+        return 0; \
+    } \
+    double d1; \
+    int64_t i2; \
+    union { sljit_sw sw; double dw; } conv = {0}; \
+    if (t1 == KX_INT_T) { \
+        d1 = (double)(sljit_sw)a1[KXN_LOCALVAR_OFFSET]; \
+    } else { \
+        conv.sw = (sljit_sw)a1[KXN_LOCALVAR_OFFSET]; \
+        d1 = conv.dw; \
+    } \
+    if (t2 == KX_INT_T) { \
+        i2 = (sljit_sw)a1[KXN_LOCALVAR_OFFSET + 1]; \
+    } else { \
+        conv.sw = (sljit_sw)a1[KXN_LOCALVAR_OFFSET + 1]; \
+        i2 = (double)conv.dw; \
+    } \
+    /* printf("%s(%f, %lld) => %f\n", #name, d1, i2, name(d1, i2)); */ \
+    return name(d1, i2); \
+} \
+/**/
+
+KNX_DEF_MATH_FUNCTION(acos)
+KNX_DEF_MATH_FUNCTION(asin)
+KNX_DEF_MATH_FUNCTION(atan)
+KNX_DEF_MATH_FUNCTION(cos)
+KNX_DEF_MATH_FUNCTION(sin)
+KNX_DEF_MATH_FUNCTION(tan)
+KNX_DEF_MATH_FUNCTION(cosh)
+KNX_DEF_MATH_FUNCTION(sinh)
+KNX_DEF_MATH_FUNCTION(tanh)
+KNX_DEF_MATH_FUNCTION(exp)
+KNX_DEF_MATH_FUNCTION(log)
+KNX_DEF_MATH_FUNCTION(log10)
+KNX_DEF_MATH_FUNCTION(sqrt)
+KNX_DEF_MATH_FUNCTION(ceil)
+KNX_DEF_MATH_FUNCTION(fabs)
+KNX_DEF_MATH_FUNCTION(floor)
+
+KNX_DEF_MATH_FUNCTION2(atan2)
+KNX_DEF_MATH_FUNCTION2(pow)
+KNX_DEF_MATH_FUNCTION2(fmod)
+
+KNX_DEF_MATH_FUNCTION2_INT(ldexp)
