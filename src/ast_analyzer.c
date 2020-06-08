@@ -646,6 +646,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
                             !strcmp(node->rhs->value.s, "sqrt") ||
                             !strcmp(node->rhs->value.s, "ceil") ||
                             !strcmp(node->rhs->value.s, "fabs") ||
+                            !strcmp(node->rhs->value.s, "abs") ||
                             !strcmp(node->rhs->value.s, "floor") ||
                             !strcmp(node->rhs->value.s, "atan2") ||
                             !strcmp(node->rhs->value.s, "pow") ||
