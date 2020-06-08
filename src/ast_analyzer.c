@@ -595,29 +595,65 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             if (node->lhs->var_type == KX_CSTR_T) {
                 node->lhs = kx_gen_cast_object(node->lhs, KX_CSTR_T, KX_STR_T);
             }
-            if (node->lhs->var_type != KX_STR_T) {
-                kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
-                break;
-            }
-            switch (node->rhs->var_type) {
-            case KX_INT_T:
-                node->var_type = KX_INT_T;
-                break;
-            case KX_DBL_T:
-                node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
-                node->var_type = KX_INT_T;
-                break;
-            case KX_CSTR_T:
-                /* String#length is a special */
-                if (!strcmp(node->rhs->value.s, "length")) {
+            if (node->lhs->var_type == KX_STR_T) {
+                switch (node->rhs->var_type) {
+                case KX_INT_T:
                     node->var_type = KX_INT_T;
-                } else {
+                    break;
+                case KX_DBL_T:
+                    node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
+                    node->var_type = KX_INT_T;
+                    break;
+                case KX_CSTR_T:
+                    /* String#length is a special */
+                    if (!strcmp(node->rhs->value.s, "length")) {
+                        node->var_type = KX_INT_T;
+                    } else {
+                        node->var_type = KX_UNKNOWN_T;
+                    }
+                    break;
+                default:
                     node->var_type = KX_UNKNOWN_T;
+                    break;
                 }
-                break;
-            default:
-                node->var_type = KX_UNKNOWN_T;
-                break;
+            } else if (node->lhs->var_type == KX_DBL_T || node->lhs->var_type == KX_INT_T || (node->lhs->type == KXOP_VAR && !strcmp(node->lhs->value.s, "Math"))) {
+                if (node->lhs->var_type == KX_INT_T) {
+                    node->lhs = kx_gen_cast_object(node->lhs, KX_INT_T, KX_DBL_T);
+                }
+                switch (node->rhs->var_type) {
+                case KX_CSTR_T:
+                    /* Math functions are special */
+                    if (!strcmp(node->rhs->value.s, "acos") ||
+                            !strcmp(node->rhs->value.s, "asin") ||
+                            !strcmp(node->rhs->value.s, "atan") ||
+                            !strcmp(node->rhs->value.s, "cos") ||
+                            !strcmp(node->rhs->value.s, "sin") ||
+                            !strcmp(node->rhs->value.s, "tan") ||
+                            !strcmp(node->rhs->value.s, "cosh") ||
+                            !strcmp(node->rhs->value.s, "sinh") ||
+                            !strcmp(node->rhs->value.s, "tanh") ||
+                            !strcmp(node->rhs->value.s, "exp") ||
+                            !strcmp(node->rhs->value.s, "log") ||
+                            !strcmp(node->rhs->value.s, "log10") ||
+                            !strcmp(node->rhs->value.s, "sqrt") ||
+                            !strcmp(node->rhs->value.s, "ceil") ||
+                            !strcmp(node->rhs->value.s, "fabs") ||
+                            !strcmp(node->rhs->value.s, "floor") ||
+                            !strcmp(node->rhs->value.s, "atan2") ||
+                            !strcmp(node->rhs->value.s, "pow") ||
+                            !strcmp(node->rhs->value.s, "fmod") ||
+                            !strcmp(node->rhs->value.s, "ldexp")) {
+                        node->var_type = KX_DBL_T;
+                    } else {
+                        node->var_type = KX_UNKNOWN_T;
+                    }
+                    break;
+                default:
+                    node->var_type = KX_UNKNOWN_T;
+                    break;
+                }
+            } else {
+                kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
             }
             break;
         }

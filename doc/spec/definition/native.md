@@ -15,15 +15,17 @@ native fib(n) {
 It is very fast but there are some limitations.
 
 *   Currently you can use the type of integer and double only.
-*   All variables are defined as a type. Available type is `int`, `dbl`, or `native`.
+*   All variables are defined as a type. Available type is `int`, `dbl`, `str`, or `native`.
     *   If type information is omitted, the type would be followings.
         *   On argument, it become automatically `int`.
         *   Without initializer on declaration, it become automatically `int`.
         *   With initializer on declaration, it is decided by the result of right hand side.
             *   When it can not be decided, it occurs a compile error.
     *   `native` function's return type is shown like `native<int>`.
-    *   Even in this case, you can omit `<int>` like just `native` and automatically make it `int`. 
-*   Integer value is not automatically promoted to big integer, just overfow it.
+    *   Even in this case, you can omit `<int>` like just `native` and automatically make it `int`.
+    *   `str` is only supported for adding 2 strings and multiplying string by integer.
+*   Integer value is not automatically promoted to big integer, it will just overflow instead.
+*   Math functions like `Math.pow(2, 10)` or `2.pow(10)` are supported.
 *   Can not call a script function. Only can call a native function.
 *   `switch-case` is not supported.
 *   Can access to the lexical scope and variables, but only for an integer value, a double value, and a native function.
