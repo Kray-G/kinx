@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <kinx.h>
+#include <kxnative.h>
 #include <jit.h>
 
 int64_t kxn_print_val(sljit_sw *val)
@@ -226,4 +227,24 @@ sljit_sw native_str_mul_int(sljit_sw *info, kstr_t *s1, int64_t iv)
         ks_append(str, ks_string(s1));
     }
     return (sljit_sw)str;
+}
+
+sljit_sw native_get_string_ch(kstr_t *s1, int64_t i)
+{
+    int l = ks_length(s1);
+    if (l == 0 || l <= i) {
+        return 0;
+    }
+    if (i < 0) {
+        do {
+            i += l;
+        } while (0 <= i);
+    }
+    return (sljit_sw)ks_string(s1)[i];
+}
+
+sljit_sw native_string_length(sljit_sw *info, sljit_sw *a1)
+{
+    kstr_t* s1 = (kstr_t*)a1[KXN_LOCALVAR_OFFSET];
+    return (sljit_sw)ks_length(s1);
 }

@@ -585,8 +585,40 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         make_cast(node, node->lhs, node->rhs);
         break;
     case KXOP_IDX:
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
         if (actx->in_native) {
-            kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
+            if (actx->lvalue) {
+                kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
+                break;
+            }
+            if (node->lhs->var_type == KX_CSTR_T) {
+                node->lhs = kx_gen_cast_object(node->lhs, KX_CSTR_T, KX_STR_T);
+            }
+            if (node->lhs->var_type != KX_STR_T) {
+                kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
+                break;
+            }
+            switch (node->rhs->var_type) {
+            case KX_INT_T:
+                node->var_type = KX_INT_T;
+                break;
+            case KX_DBL_T:
+                node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
+                node->var_type = KX_INT_T;
+                break;
+            case KX_CSTR_T:
+                /* String#length is a special */
+                if (!strcmp(node->rhs->value.s, "length")) {
+                    node->var_type = KX_INT_T;
+                } else {
+                    node->var_type = KX_UNKNOWN_T;
+                }
+                break;
+            default:
+                node->var_type = KX_UNKNOWN_T;
+                break;
+            }
             break;
         }
         if (!actx->lvalue && node->lhs && node->rhs) {
@@ -662,7 +694,9 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
                 actx->func->callargs_max = node->count_args;
             }
             if (actx->in_native && node->lhs->var_type != KX_NFNC_T) {
-                kx_yyerror_line("Can not call a non-native function from native function", node->file, node->line);
+                if (node->lhs->type != KXOP_IDX || node->lhs->var_type == KX_UNKNOWN_T) {
+                    kx_yyerror_line("Can not call a non-native function from native function", node->file, node->line);
+                }
             }
             node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->ret_type : node->lhs->var_type;
             if (node->lhs->var_type == KX_NFNC_T && node->lhs->ret_type == KX_UNKNOWN_T) {
