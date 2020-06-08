@@ -521,7 +521,6 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
     case KXOP_SHR:
     case KXOP_ADD:
     case KXOP_SUB:
-    case KXOP_POW:
     case KXOP_MUL:
     case KXOP_DIV:
     case KXOP_MOD:
@@ -534,6 +533,23 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         analyze_ast(ctx, node->rhs, actx);
         make_cast(node, node->lhs, node->rhs);
         actx->lvalue = lvalue;
+        break;
+    }
+    case KXOP_POW: {
+        int lvalue = actx->lvalue;
+        actx->lvalue = 0;
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        actx->lvalue = lvalue;
+        if (actx->in_native) {
+            if (node->lhs->var_type == KX_INT_T) {
+                node->lhs = kx_gen_cast_object(node->lhs, KX_INT_T, KX_DBL_T);
+            }
+            if (node->rhs->var_type == KX_INT_T) {
+                node->rhs = kx_gen_cast_object(node->rhs, KX_INT_T, KX_DBL_T);
+            }
+            node->var_type = KX_DBL_T;
+        }
         break;
     }
     case KXOP_LAND:
