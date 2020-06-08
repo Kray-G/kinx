@@ -796,6 +796,15 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                     })); \
                 } \
             /**/
+            #define if_MATH2(name, fname) \
+                if (!strcmp(node->rhs->value.s, #name)) { \
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){ \
+                        .inst = KXN_LOADA, .var_type = node->var_type, \
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno }, \
+                            .op1 = { .type = KXNOP_IMM, .iv = (uint64_t)native_math_##fname } \
+                    })); \
+                } \
+            /**/
             if_MATH(acos)
             else if_MATH(asin)
             else if_MATH(atan)
@@ -811,11 +820,13 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             else if_MATH(sqrt)
             else if_MATH(ceil)
             else if_MATH(fabs)
+            else if_MATH2(abs, fabs)
             else if_MATH(floor)
             else if_MATH(atan2)
             else if_MATH(pow)
             else if_MATH(fmod)
             else if_MATH(ldexp)
+            #undef if_MATH2
             #undef if_MATH
         } else {
             kx_yyerror_line("Not supported operation in native function", node->file, node->line);

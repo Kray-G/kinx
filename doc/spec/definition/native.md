@@ -12,6 +12,8 @@ native fib(n) {
 }
 ```
 
+### Supports and Limitations
+
 It is very fast but there are some limitations.
 
 *   Currently you can use the type of integer and double only.
@@ -31,6 +33,12 @@ It is very fast but there are some limitations.
 *   Can access to the lexical scope and variables, but only for an integer value, a double value, and a native function.
 *   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
 *   Support 64bit only. Libraries are supporting x64, ARM, MIPS, but sorry I can not test it except x64 Windows or Linux.
+
+### Math Functions
+
+Especially, see below for examples of `Math` functions.
+
+* [Math functions](native/math.md)
 
 ## Examples
 
