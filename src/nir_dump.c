@@ -70,6 +70,9 @@ static void natir_display_bop(kxn_code_t *code)
     case KXNOP_MOD:
         KXN_DISP_BOP("mod");
         break;
+    case KXNOP_POW:
+        KXN_DISP_BOP("pow");
+        break;
     case KXNOP_ADDF:
         KXN_DISP_BOP("addf");
         break;
@@ -84,6 +87,9 @@ static void natir_display_bop(kxn_code_t *code)
         break;
     case KXNOP_MODF:
         KXN_DISP_BOP("modf");
+        break;
+    case KXNOP_POWF:
+        KXN_DISP_BOP("powf");
         break;
     case KXNOP_EQEQ:
         KXN_DISP_BOP("eqeq");

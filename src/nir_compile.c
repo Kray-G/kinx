@@ -214,6 +214,9 @@ static void natir_compile_bop(kx_native_context_t *nctx, kxn_code_t *code)
     case KXNOP_MOD:
         KXN_COMPILE_BOP_DIV(SLJIT_DIVMOD_SW, SLJIT_R0);
         break;
+    case KXNOP_POW:
+        assert(0);
+        break;
     case KXNOP_ADDF:
         KXN_COMPILE_BOPF(SLJIT_ADD_F64);
         break;
@@ -233,6 +236,12 @@ static void natir_compile_bop(kx_native_context_t *nctx, kxn_code_t *code)
     	sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, KXN_R(code->dst), SLJIT_FR0, 0);
         break;
     }
+    case KXNOP_POWF:
+    	sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, SLJIT_FR0, 0, KXN_R(code->op1));
+    	sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, SLJIT_FR1, 0, KXN_R(code->op2));
+    	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(F64) | SLJIT_ARG1(F64) | SLJIT_ARG2(F64), SLJIT_IMM, SLJIT_FUNC_OFFSET(pow));
+    	sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, KXN_R(code->dst), SLJIT_FR0, 0);
+        break;
     case KXNOP_EQEQ: {
         KXN_COMPILE_CMP_BOP(SLJIT_EQUAL);
         break;
