@@ -45,11 +45,13 @@ enum kxn_bopecode_type {
     KXNOP_MUL,
     KXNOP_DIV,
     KXNOP_MOD,
+    KXNOP_POW,
     KXNOP_ADDF,
     KXNOP_SUBF,
     KXNOP_MULF,
     KXNOP_DIVF,
     KXNOP_MODF,
+    KXNOP_POWF,
 
     KXNOP_EQEQ,
     KXNOP_NEQ,
