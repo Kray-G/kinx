@@ -392,7 +392,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
             .inst = KXN_LOADA, .var_type = node->var_type,
                 .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
-                .op1 = { .type = KXNOP_IMM, .adr = (uint64_t)node->value.s }
+                .op1 = { .type = KXNOP_IMM, .iv = (uint64_t)node->value.s }
         }));
         break;
     case KXVL_BIG:
@@ -626,7 +626,21 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
     }
     case KXOP_ADD: {
-        KXN_DEFINE_BOP_F(KXNOP_ADD);
+        if (node->var_type == KX_STR_T) {
+            nativejit_ast(nctx, node->lhs, 0);
+            int r1 = nctx->regno;
+            nativejit_ast(nctx, node->rhs, 0);
+            int r2 = nctx->regno;
+            int v = ++nctx->regno;
+            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                .inst = KXN_BOP, .op = KXNOP_ADDS, .var_type = node->var_type,
+                    .dst = { .type = KXNOP_REG, .r = v },
+                    .op1 = { .type = KXNOP_REG, .r = r1 },
+                    .op2 = { .type = KXNOP_REG, .r = r2 },
+            }));
+        } else {
+            KXN_DEFINE_BOP_F(KXNOP_ADD);
+        }
         break;
     }
     case KXOP_SUB: {
@@ -638,7 +652,21 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
     }
     case KXOP_MUL: {
-        KXN_DEFINE_BOP_F(KXNOP_MUL);
+        if (node->var_type == KX_STR_T) {
+            nativejit_ast(nctx, node->lhs, 0);
+            int r1 = nctx->regno;
+            nativejit_ast(nctx, node->rhs, 0);
+            int r2 = nctx->regno;
+            int v = ++nctx->regno;
+            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                .inst = KXN_BOP, .op = KXNOP_MULS, .var_type = node->var_type,
+                    .dst = { .type = KXNOP_REG, .r = v },
+                    .op1 = { .type = KXNOP_REG, .r = r1 },
+                    .op2 = { .type = KXNOP_REG, .r = r2 },
+            }));
+        } else {
+            KXN_DEFINE_BOP_F(KXNOP_MUL);
+        }
         break;
     }
     case KXOP_DIV: {

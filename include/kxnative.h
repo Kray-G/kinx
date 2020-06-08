@@ -52,6 +52,8 @@ enum kxn_bopecode_type {
     KXNOP_DIVF,
     KXNOP_MODF,
     KXNOP_POWF,
+    KXNOP_ADDS,
+    KXNOP_MULS,
 
     KXNOP_EQEQ,
     KXNOP_NEQ,
