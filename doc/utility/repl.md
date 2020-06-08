@@ -138,8 +138,8 @@ Using this editor's functionality, you can define the `function`, `class`, and `
 
 ```
 kinx[  0]> function func(...a) {
-	[  1]>     return a.reduce(&(r, e) => r + e);
-	[  2]> }
+    [  1]>     return a.reduce(&(r, e) => r + e);
+    [  2]> }
 => function func
 ```
 
@@ -264,42 +264,42 @@ class Sample(...a) {
 You can see the history by `.history` command.
 Here is the example of history.
 
-	[  0]: class Sample(...a) {
-	[  1]:     @value = a;
-	[  2]:     public sum() {
-	[  3]:         return @value.reduce(&(r, e) => r + e);
-	[  4]:     }
-	[  5]: }
-	[  6]: a = new Sample(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-	[  7]: .vars
-	[  8]: System.println(a.sum());
-	[  9]: a = 10
-	[ 10]: b = 20
-	[ 11]: c = 30
-	[ 12]: d = 40
-	[ 13]: e = 50
-	[ 14]: f = 60
-	[ 15]: g = 70
-	[ 16]: .vars
-	[ 17]: var sample = new Sample(a, b, c, d, e, f, g)
-	[ 18]: sample.sum()
-	[ 19]: .vars
-	[ 20]: sample.sum()
-	[ 21]: .showdef System
-	[ 22]: .showdef Sample
-	[ 23]: .vars
-	[ 24]: sample.sum()
-	[ 25]: .delete g
-	[ 26]: sample.sum()
-	[ 27]: .vars
-	[ 28]: g = 60
-	[ 29]: g = 60
-	[ 30]: .vars
-	[ 31]: .delete sample
-	[ 32]: g = 60
-	[ 33]: var sample = new Sample(a, b, c, d, e, f, g)
-	[ 34]: sample.sum()
-	[ 35]: .history
+    [  0]: class Sample(...a) {
+    [  1]:     @value = a;
+    [  2]:     public sum() {
+    [  3]:         return @value.reduce(&(r, e) => r + e);
+    [  4]:     }
+    [  5]: }
+    [  6]: a = new Sample(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    [  7]: .vars
+    [  8]: System.println(a.sum());
+    [  9]: a = 10
+    [ 10]: b = 20
+    [ 11]: c = 30
+    [ 12]: d = 40
+    [ 13]: e = 50
+    [ 14]: f = 60
+    [ 15]: g = 70
+    [ 16]: .vars
+    [ 17]: var sample = new Sample(a, b, c, d, e, f, g)
+    [ 18]: sample.sum()
+    [ 19]: .vars
+    [ 20]: sample.sum()
+    [ 21]: .showdef System
+    [ 22]: .showdef Sample
+    [ 23]: .vars
+    [ 24]: sample.sum()
+    [ 25]: .delete g
+    [ 26]: sample.sum()
+    [ 27]: .vars
+    [ 28]: g = 60
+    [ 29]: g = 60
+    [ 30]: .vars
+    [ 31]: .delete sample
+    [ 32]: g = 60
+    [ 33]: var sample = new Sample(a, b, c, d, e, f, g)
+    [ 34]: sample.sum()
+    [ 35]: .history
 
 You can also use `!` with the history number to execute the line by selecting the line from the history.
 
