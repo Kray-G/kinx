@@ -404,6 +404,7 @@ static int eval(kx_context_t *ctx)
 
     start_optimize_ast(ctx, kx_ast_root);
     start_analyze_ast(ctx, kx_ast_root);
+    start_optimize_ast(ctx, kx_ast_root); // optimize AST again after analyzed.
     if (g_yyerror > 0) {
         return -1;
     }

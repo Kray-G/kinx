@@ -254,6 +254,7 @@ kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t)
     kx_object_t *obj = kx_gen_obj(KXOP_CAST, 0, lhs, NULL, NULL);
     obj->optional = f;
     obj->value.i = t;
+    obj->var_type = t;
     return obj;
 }
 
