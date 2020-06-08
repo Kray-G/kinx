@@ -2,54 +2,29 @@
 
 ## Overview
 
-### Normal Function
+### Lambda
 
-The `function` to share code has long been used.
-The `function` receives some arguments, does something, and returns a result.
+Lambda is a simple style of an anonymous function.
+`&` is used instead of `function`, and `=> expression` is used instead of block.
 
 ```javascript
-function add(a, b) {
-    return a + b;
-}
-System.println(add(1, 2));  // 3
+var calc = &(func, a, b) => func(a, b);
+System.println(calc(&(a, b) => a + b, 2, 3));   // 5
 ```
 
-### Rest Operator
+Note that `=> { /* block */ }` is also available, so you can not use `&(args) => { /* object */ }`.
+If you want to use an object, you have to write it with `&(args) => ({ /* object */ })`.
 
-The `function` can accept a rest operator only at the last argument like JavaScript.
-It is useful for variable arguments.
+### Block object
 
-```javascript
-function toArrayWith3(...a) {
-    var b = [...a]; // copy
-    return b + [3];
-}
-System.println(toArrayWith3(1, 2).join(', '));  // "1, 2, 3"
-```
-
-### Recursive call
-
-Recursive calling is available, but not supported a tail-recursion optimization.
+If the function has no arguments, a lambda can be written like `&{...}` style.
 
 ```javascript
-function fib(n) {
-    if (n < 3) return n;
-    return fib(n-2) + fib(n-1);
-}
-
-System.println("fib(34) = ", fib(34));  // fib(34) = 9227465
-```
-
-### Anonymous Function
-
-Here is the example of anonymous function.
-That can be written directly into an expression, and it can be also an argument of a function.
-
-```javascript
-var calc = function(func, a, b) {
-    return func(a, b);
-};
-System.println(calc(function(a, b) { return a + b; }, 2, 3));   // 5
+var a = 10;
+var doit = &(block) => block();
+System.println(doit(&{
+    return a + 100;
+}));
 ```
 
 ## Examples
@@ -59,10 +34,10 @@ System.println(calc(function(a, b) { return a + b; }, 2, 3));   // 5
 #### Code
 
 ```javascript
-function fib(n) {
+var fib = &(n) => {
     if (n < 3) return n;
     return fib(n-2) + fib(n-1);
-}
+};
 System.println(fib(34));  // => 9227465
 ```
 
@@ -77,10 +52,10 @@ System.println(fib(34));  // => 9227465
 #### Code
 
 ```javascript
-function fact(a) {
+var fact = &(a) => {
     if (a < 1) return 1;
     return a * fact(a-1);
-}
+};
 for (var i = 0; i <= 20; ++i) {
     System.println("fact(%{i}) = ", fact(i));
 }
@@ -120,13 +95,13 @@ fact(500) = 12201368259911100687012387854230469262535743428031928421924135883858
 
 ```javascript
 var n = 10000;
-function loop_while(n) {
+var loop_while = &(n) => {
     var v = 0, i = 0;
     while (i <= n) {
         v += i++;
     }
     return v;
-}
+};
 System.println("while(%{n}) = ", loop_while(n));
 ```
 
@@ -142,13 +117,13 @@ while(10000) = 50005000
 
 ```javascript
 var n = 10000;
-function loop_for(n) {
+var loop_for = &(n) => {
     var v = 0;
     for (var i = 0; i <= n; ++i) {
         v += i;
     }
     return v;
-}
+};
 System.println("for(%{n}) = ", loop_for(n));
 ```
 
@@ -164,13 +139,13 @@ for(10000) = 50005000
 
 ```javascript
 var n = 10000;
-function loop_do_while(n) {
+var loop_do_while = &(n) => {
     var v = 0, i = 0;
     do {
         v += i++;
     } while (i <= n);
     return v;
-}
+};
 System.println("do_while(%{n}) = ", loop_do_while(n));
 ```
 
@@ -186,9 +161,9 @@ do_while(10000) = 50005000
 
 ```javascript
 var b = 1.7;
-function test(a:dbl) {
+var test = &(a:dbl) => {
     return a + b;
-}
+};
 System.println(test(1.5));
 ```
 
@@ -204,7 +179,7 @@ System.println(test(1.5));
 
 ```javascript
 var n = 10000;
-function loop_while(n) {
+var loop_while = &(n) => {
     var v = 0, i = 0;
     LABEL:
     while (1) {
@@ -218,7 +193,7 @@ function loop_while(n) {
         }
     }
     return v;
-}
+};
 System.println("while(%{n}) = ", loop_while(n));
 ```
 
@@ -234,7 +209,7 @@ while(10000) = 46
 
 ```javascript
 var n = 10000;
-function loop_for(n) {
+var loop_for = &(n) => {
     var v = 0;
     LABEL:
     while (1) {
@@ -245,7 +220,7 @@ function loop_for(n) {
         }
     }
     return v;
-}
+};
 System.println("for(%{n}) = ", loop_for(n));
 ```
 
@@ -261,7 +236,7 @@ for(10000) = 46
 
 ```javascript
 var n = 10000;
-function loop_do_while(n) {
+var loop_do_while = &(n) => {
     var v = 0, i = 0;
     LABEL:
     while (1) {
@@ -275,7 +250,7 @@ function loop_do_while(n) {
         } while (i <= n);
     }
     return v;
-}
+};
 System.println("do_while(%{n}) = ", loop_do_while(n));
 ```
 
@@ -311,7 +286,7 @@ function test() {
         }
         return a;
     };
-}
+};
 
 var try_catch = test();
 try {
