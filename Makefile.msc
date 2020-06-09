@@ -22,6 +22,7 @@ OBJS = \
     src/ir_aotcore.obj \
     src/ir_aotdump.obj \
     src/ir_natutil.obj \
+    src/jit_util.obj \
     src/nir_compile.obj \
     src/nir_dump.obj \
     src/kstr.obj \
@@ -99,24 +100,12 @@ IR_EXEC_DEP = \
     src/exec/code/throw.inc \
     src/exec/code/xor.inc
 DISASM = \
-    src/disasm/dis.obj \
-    src/disasm/disas.obj \
-    src/disasm/dss.obj \
-    src/disasm/lex.obj \
-    src/disasm/sym.obj \
-    src/disasm/arch/arm/aload.obj \
-    src/disasm/arch/arm/arm.obj \
-    src/disasm/arch/arm/astrings.obj \
-    src/disasm/arch/mips/mips.obj \
-    src/disasm/arch/mips/mload.obj \
-    src/disasm/arch/mips/mstrings.obj \
-    src/disasm/arch/x86/x86.obj \
-    src/disasm/arch/x86/x86asm.obj \
-    src/disasm/arch/x86/x86load.obj \
-    src/disasm/arch/x86/x86strings.obj \
-    src/disasm/common/file.obj \
-    src/disasm/common/table.obj \
-    src/disasm/common/trie.obj
+    src/disasm-x64/libudis86/decode.obj \
+    src/disasm-x64/libudis86/itab.obj \
+    src/disasm-x64/libudis86/syn-att.obj \
+    src/disasm-x64/libudis86/syn-intel.obj \
+    src/disasm-x64/libudis86/syn.obj \
+    src/disasm-x64/libudis86/udis86.obj
 SOFILES = \
     kxsystem.dll \
     kxstring.dll \
@@ -195,12 +184,12 @@ clean:
 
 kinx: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM) $(RCFILE)
 	$(CC) /Fe$@ /Fmkinx.map $(OBJS) $(DISASM) $(RCFILE)
-    copy /y src\disasm\arch\x86\x86.ins .
-    copy /y src\disasm\arch\x86\x64.ins .
-    copy /y src\disasm\arch\mips\mips.ins .
-    copy /y src\disasm\arch\arm\arm.ins .
-    copy /y src\disasm\spec\x86.spec .
-    copy /y src\disasm\spec\mips.spec .
+    rem copy /y src\disasm\arch\x86\x86.ins .
+    rem copy /y src\disasm\arch\x86\x64.ins .
+    rem copy /y src\disasm\arch\mips\mips.ins .
+    rem copy /y src\disasm\arch\arm\arm.ins .
+    rem copy /y src\disasm\spec\x86.spec .
+    rem copy /y src\disasm\spec\mips.spec .
 
 kinx.res: kinx.rc
 	$(RC) kinx.rc

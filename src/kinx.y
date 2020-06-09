@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <kvec.h>
 #include <kinx.h>
+#include <kxastobject.h>
 
 // #define YYDEBUG 1
 

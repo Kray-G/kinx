@@ -4,6 +4,7 @@
 #include <parser.h>
 #include <kvec.h>
 #include <khash.h>
+#include <kxastobject.h>
 
 KHASH_MAP_INIT_STR(enum_value, int)
 typedef khash_t(enum_value) *enum_map_t;
