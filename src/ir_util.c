@@ -11,6 +11,7 @@
 #include <kxexec.h>
 #include <kxthread.h>
 #include <kxirutil.h>
+#include <kxastobject.h>
 
 #define KX_EQEQ_OP_NAME "=="
 #define KX_NEQ_OP_NAME "!="

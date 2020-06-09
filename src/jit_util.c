@@ -37,7 +37,7 @@ int disasm_hex(struct ud* u)
             printf("%02x ", *src_ptr & 0xFF);
             ++count;
         }
-        for (int i = 0, s = 10 - count; i < s; ++i) {
+        for (int i = 0, s = 12 - count; i < s; ++i) {
             printf("   ");
         }
     }
@@ -60,3 +60,4 @@ void disasm_code(void *code, int size)
         printf("\t%s\n", ud_insn_asm(&ud_obj));
     }
 }
+

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <kinx.h>
 #include <kxthread.h>
+#include <kxirutil.h>
+#include <kxastobject.h>
 #include <getopt.h>
 
 #if defined(_WIN32) || defined(_WIN64)
