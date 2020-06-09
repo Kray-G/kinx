@@ -1,9 +1,11 @@
+#define KX_LIB_DLL
 #include <dbg.h>
 #include <stdio.h>
 #include <kinx.h>
 #include <kxthread.h>
 #include <kxirutil.h>
 #include <kxastobject.h>
+#include <libkinx.h>
 #include <getopt.h>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -301,4 +303,148 @@ CLEANUP:
     pthread_mutex_destroy(&g_mutex);
     alloc_finalize();
     return r;
+}
+
+/* Interfaces As a Library */
+
+static void kinx_initialize(void)
+{
+    pthread_mutex_init(&g_mutex, NULL);
+    init_allocator();
+    alloc_initialize();
+}
+
+static void kinx_finalize(void)
+{
+    free_nodes();
+    pthread_mutex_destroy(&g_mutex);
+    alloc_finalize();
+}
+
+static int kinx_loadfile(kinx_compiler *kc, const char *filename)
+{
+    if (!kc) {
+        return 0;
+    }
+    kstr_t *codestr = (kstr_t *)kc->code;
+    FILE *fp = fopen(filename, "r");
+    if (!fp) {
+        return 0;
+    }
+    char buf[2048] = {0};
+    while (fgets(buf, 2040, fp) != NULL) {
+        ks_append(codestr, buf);
+    }
+    fclose(fp);
+    return 1;
+}
+
+static int kinx_add_code(kinx_compiler *kc, const char *code)
+{
+    if (!kc) {
+        return 0;
+    }
+    kstr_t *codestr = (kstr_t *)kc->code;
+    ks_append(codestr, code);
+    return 1;
+}
+
+static int kinx_run(kinx_compiler *kc)
+{
+    if (!kc) {
+        return 0;
+    }
+    kstr_t *codestr = (kstr_t *)kc->code;
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    kinx_timer(&(kc->timer.v));
+    int start = eval_string(ks_string(codestr), ctx);
+    kc->timer.compile = kinx_elapsed(&(kc->timer.v));
+    if (start < 0) {
+        fprintf(stderr, "eval() failed at the line %d (pos:%d)", kx_lexinfo.line, kx_lexinfo.pos);
+        return 0;
+    }
+
+    kinx_timer(&(kc->timer.v));
+    ctx->frmv = allocate_frm(ctx); /* initial frame */
+    ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */
+    kv_expand_if(kx_val_t, ctx->stack, KEX_DEFAULT_STACK);
+    kx_obj_t *obj = allocate_obj(ctx);
+    for (int i = 0; i < kc->ac; ++i) {
+        KEX_PUSH_ARRAY_CSTR(obj, kc->av[i]);
+    }
+    push_obj(ctx->stack, obj);
+    push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
+    push_i(ctx->stack, 1);
+    push_adr(ctx->stack, NULL);
+    int r = ir_exec(ctx);
+    kc->timer.runtime = kinx_elapsed(&(kc->timer.v));
+    return r;
+}
+
+static int kinx_add_argument(kinx_compiler *kc, const char *arg)
+{
+    if (!kc || !arg) {
+        return 0;
+    }
+    if (kc->ac >= KX_LIB_MAX_ARGS) {
+        return 0;
+    }
+    kc->av[kc->ac] = kx_calloc(strlen(arg) + 1, sizeof(char));
+    strcpy(kc->av[kc->ac], arg);
+    ++(kc->ac);
+    return 1;
+}
+
+static int s_loaded = 0;
+
+/* Thread unsafe */
+static void kinx_free_compiler(kinx_compiler *kc)
+{
+    if (!kc) {
+        return;
+    }
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    if (kc->is_main_context) {
+        g_terminated = 1;
+        g_main_thread = NULL;
+    }
+    context_cleanup(ctx);
+    ks_free((kstr_t *)kc->code);
+    for (int i = 0; i < kc->ac; ++i) {
+        kx_free(kc->av[i]);
+    }
+    kx_free(kc);
+
+    if (--s_loaded == 0) {
+        kinx_finalize();
+    }
+}
+
+/* Thread unsafe */
+DllExport kinx_compiler *kinx_new_compiler(void* h)
+{
+    if (s_loaded++ == 0) {
+        kinx_initialize();
+    }
+
+    kinx_compiler *kc = kx_calloc(1, sizeof(kinx_compiler));
+    if (!kc) {
+        return NULL;
+    }
+    kx_context_t *ctx = make_context();
+    kc->ctx = ctx;
+    kc->h = h;
+    kc->code = (void*)ks_new();
+    kc->timer.compile = 0.0;
+    kc->timer.runtime = 0.0;
+    kc->add_code = kinx_add_code;
+    kc->loadfile = kinx_loadfile;
+    kc->run = kinx_run;
+    kc->add_argument = kinx_add_argument;
+    kc->finalize = kinx_free_compiler;
+    if (!g_main_thread) {
+        kc->is_main_context = 1;
+        g_main_thread = ctx;
+    }
+    return kc;
 }
