@@ -38,7 +38,7 @@ OBJS = \
     lexer.o \
     fileutil.o \
     loadlib.o \
-    main.o \
+    mainlib.o \
     parser.o \
     format.o \
     string.o \
@@ -203,8 +203,11 @@ clean:
 	rm -f $(OBJS) $(DISASM) $(SOFILES) $(PICOBJS) timex kinx myacc test
 	rm -f src/optimizer.c src/opt_*.c
 
-kinx: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
-	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm -pthread
+kinx: src/main.c libkinx.so
+	./timex $(CC) $(CFLAGS) -o $@ main.c fileutil.o
+
+libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
 
 kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-jsonpic.o
@@ -488,7 +491,7 @@ lexer.o: src/lexer.c include/dbg.h include/parser.h include/kinx.h \
 fileutil.o: src/fileutil.c include/dbg.h include/fileutil.h
 loadlib.o: src/loadlib.c include/dbg.h include/fileutil.h \
  include/kxthread.h
-main.o: src/main.c include/dbg.h include/kinx.h include/kvec.h \
+mainlib.o: src/mainlib.c include/dbg.h include/kinx.h include/kvec.h \
  include/ir.h include/khash.h include/klist.h include/kstr.h \
  include/bigz.h include/bign.h include/jit.h \
  include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
