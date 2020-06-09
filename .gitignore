@@ -2,6 +2,7 @@
 *.obj
 *.dll
 *.exp
+*.map
 *.lib
 *.s
 *.output
@@ -32,4 +33,3 @@ kx.tab.h
 package_win64.zip
 temp*
 src/opt*.c
-
