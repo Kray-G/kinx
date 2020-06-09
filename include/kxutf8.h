@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-const char g_utf8bytes[]; /* format.c */
+const char g_utf8bytes[256]; /* format.c */
 static inline const char *east_asian_width_code(int64_t c);
 
 #define utf8_length(c) (utf8bytes[c & 0xff])
