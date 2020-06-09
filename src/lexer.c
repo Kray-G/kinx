@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <parser.h>
+#include <kxalloc.h>
 
 #define POSMAX ((KX_BUF_MAX)-128)
 static char kx_strbuf[KX_BUF_MAX] = {0};

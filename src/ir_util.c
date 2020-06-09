@@ -10,6 +10,7 @@
 #include <kutil.h>
 #include <kxexec.h>
 #include <kxthread.h>
+#include <kxirutil.h>
 
 #define KX_EQEQ_OP_NAME "=="
 #define KX_NEQ_OP_NAME "!="
