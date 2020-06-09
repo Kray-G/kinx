@@ -129,12 +129,12 @@ SOFILES = \
     kxxml.so \
     kxprocess.so
 PICOBJS = \
-    bignpic.o \
-    bigzpic.o \
-    allocutilpic.o \
-    fileutilpic.o \
-    formatpic.o \
-    kstrpic.o
+    bign.o \
+    bigz.o \
+    allocutil.o \
+    fileutil.o \
+    format.o \
+    kstr.o
 TESTCORE = \
     apply \
     append \
@@ -174,6 +174,7 @@ install:
 	if [ ! -d /usr/bin/kinxlib ]; then mkdir -p /usr/bin/kinxlib; fi;
 	cp -f ./kinx /usr/bin/kinx
 	cp -rf lib/* /usr/bin/kinxlib/
+	cp -f libkinx.so /usr/bin/kinxlib/
 	cp -f kxarray.so /usr/bin/kinxlib/
 	cp -f kxbinary.so /usr/bin/kinxlib/
 	cp -f kxdouble.so /usr/bin/kinxlib/
@@ -204,7 +205,7 @@ clean:
 	rm -f src/optimizer.c src/opt_*.c
 
 kinx: src/main.c libkinx.so
-	./timex $(CC) $(CFLAGS) -o $@ main.c fileutil.o
+	./timex $(CC) $(CFLAGS) -o $@ src/main.c fileutil.o -ldl
 
 libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
@@ -290,44 +291,23 @@ libonig.so:
 	ln -s libonig.so.5.0.0 libonig.so.5; \
 	ln -s libonig.so.5 libonig.so;
 
-bignpic.o: src/bign.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-bigzpic.o: src/bigz.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-allocutilpic.o: src/allocutil.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-fileutilpic.o: src/fileutil.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-formatpic.o: src/format.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-kstrpic.o: src/kstr.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-kc-jsonpic.o: src/extlib/kc-json/kc-json.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
 sqlite3.o: src/extlib/sqlite/sqlite3.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/optimizer/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/optimizer/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/optimizer/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/disasm-x64/libudis86/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 test-core: $(OBJS)
 	for file in $(TESTCORE) ; do \
