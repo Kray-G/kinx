@@ -1,9 +1,24 @@
 #include <stdio.h>
+#include <inttypes.h>
 #include <jit.h>
-#include "disasm/disas.h"
 
 void native_dump(unsigned char *bytes, int size)
 {
+#if USE_DISASM_X64
+    ud_t ud_obj;
+
+    ud_init(&ud_obj);
+    ud_set_input_buffer(&ud_obj, bytes, size);
+    ud_set_mode(&ud_obj, 64);
+    ud_set_syntax(&ud_obj, UD_SYN_INTEL);
+
+    uint64_t adr = 0;
+    while (ud_disassemble(&ud_obj)) {
+        printf("%8"PRIx64":   ", adr);
+        adr += disasm_hex(&ud_obj);
+        printf("\t%s\n", ud_insn_asm(&ud_obj));
+    }
+#else
     #if defined(SLJIT_CONFIG_X86_64)
     struct disassembler *ds = ds_init(X86_ARCH, MODE_64B);
     #elif defined(SLJIT_CONFIG_ARM_64)
@@ -33,4 +48,5 @@ void native_dump(unsigned char *bytes, int size)
     #else
     return;
     #endif
+#endif
 }

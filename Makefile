@@ -31,6 +31,7 @@ OBJS = \
     ir_aotcore.o \
     ir_aotdump.o \
     ir_natutil.o \
+    jit_util.o \
     nir_compile.o \
     nir_dump.o \
     kstr.o \
@@ -107,24 +108,12 @@ IR_EXEC_DEP = \
     src/exec/code/throw.inc \
     src/exec/code/xor.inc
 DISASM = \
-    dis.o \
-    disas.o \
-    dss.o \
-    lex.o \
-    sym.o \
-    aload.o \
-    arm.o \
-    astrings.o \
-    mips.o \
-    mload.o \
-    mstrings.o \
-    x86.o \
-    x86asm.o \
-    x86load.o \
-    x86strings.o \
-    file.o \
-    table.o \
-    trie.o
+    decode.o \
+    itab.o \
+    syn-att.o \
+    syn-intel.o \
+    syn.o \
+    udis86.o
 SOFILES = \
     kxsystem.so \
     kxstring.so \
@@ -216,12 +205,6 @@ clean:
 
 kinx: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm -pthread
-	cp -f src/disasm/arch/x86/x86.ins .
-	cp -f src/disasm/arch/x86/x64.ins .
-	cp -f src/disasm/arch/mips/mips.ins .
-	cp -f src/disasm/arch/arm/arm.ins .
-	cp -f src/disasm/spec/x86.spec .
-	cp -f src/disasm/spec/mips.spec .
 
 kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-jsonpic.o
@@ -340,19 +323,7 @@ sqlite3.o: src/extlib/sqlite/sqlite3.c
 %.o: src/optimizer/%.c
 	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
-%.o: src/disasm/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
-
-%.o: src/disasm/common/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
-
-%.o: src/disasm/arch/x86/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
-
-%.o: src/disasm/arch/arm/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
-
-%.o: src/disasm/arch/mips/%.c
+%.o: src/disasm-x64/libudis86/%.c
 	./timex $(CC) -c $(CFLAGS) -o $@ $<
 
 test-core: $(OBJS)
