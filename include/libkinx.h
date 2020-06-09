@@ -65,9 +65,13 @@ static inline void *load_kinx_dll(void)
     if (s_result[0] == 0) {
         const char *exepath = get_exe_path();
         strcpy(s_result, exepath);
-        strcat(s_result, "/libkinx.so");
+        strcat(s_result, "/kinxlib/libkinx.so");
+        if (!file_exists(s_result)) {
+            strcpy(s_result, exepath);
+            strcat(s_result, "/libkinx.so");
+        }
     }
-    return dlopen(libfile, RTLD_LAZY);
+    return dlopen(s_result, RTLD_LAZY);
 }
 static inline void *get_libfunc(void *h, const char *name)
 {
@@ -83,6 +87,7 @@ static inline kinx_compiler *kinx_initialize(void)
 {
     void *h = load_kinx_dll();
     if (!h) {
+        fprintf(stderr, "Cannot open kinx core library.\n");
         return NULL;    /* failed */
     }
 
@@ -94,6 +99,7 @@ static inline kinx_compiler *kinx_initialize(void)
     kinx_do_main = get_libfunc(h, "do_main");
 
     if (kinx_new_compiler == NULL || kinx_loadfile == NULL || kinx_add_code == NULL || kinx_run == NULL || kinx_free_compiler == NULL || kinx_do_main == NULL) {
+        fprintf(stderr, "Cannot load a necessary function from core library.\n");
         unload_library(h);
         return NULL;    /* failed */
     }
@@ -105,11 +111,13 @@ static inline int kinx_call_main(int ac, char **av)
 {
     void *h = load_kinx_dll();
     if (!h) {
+        fprintf(stderr, "Cannot open kinx core library.\n");
         return 1;   /* failed */
     }
 
     kinx_do_main = get_libfunc(h, "do_main");
     if (kinx_do_main == NULL) {
+        fprintf(stderr, "Cannot load a necessary function from core library.\n");
         unload_library(h);
         return 1;   /* failed */
     }
