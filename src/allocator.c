@@ -1,5 +1,7 @@
 #include <dbg.h>
 #include <kinx.h>
+#include <kinx.h>
+#include <kxalloc.h>
 
 static void gc_mark_obj(kx_obj_t *c);
 static void gc_mark_fnc(kx_fnc_t *c);
