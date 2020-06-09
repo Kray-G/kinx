@@ -5,6 +5,7 @@
 #include <kvec.h>
 #include <kstr.h>
 #include <kinx.h>
+#include <kxirutil.h>
 #include <kxexec.h>
 
 #include "exec/code/_except.inc"
