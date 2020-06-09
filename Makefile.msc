@@ -182,10 +182,10 @@ clean:
 	del /Q *.dll
 	del kx.output timex.exe kinx.exe test.exe
 
-kinx: src/main.c include/libkinx.h kinx.dll
+kinx: src/main.c include/libkinx.h libkinx.dll
 	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map src/main.c src/fileutil.obj $(RCFILE)
 
-kinx.dll: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
+libkinx.dll: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
 	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM)
 
 kinx.res: kinx.rc

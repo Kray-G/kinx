@@ -46,7 +46,7 @@ static inline void *load_kinx_dll(void)
     if (s_result[0] == 0) {
         const char *exepath = get_exe_path();
         strcpy(s_result, exepath);
-        strcat(s_result, "\\kinx.dll");
+        strcat(s_result, "\\libkinx.dll");
     }
     return (void*)LoadLibrary(s_result);
 }
