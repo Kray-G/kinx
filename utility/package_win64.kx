@@ -18,10 +18,6 @@ var modules = [
     "libxml2.dll",
     "onig.dll",
     "zlib.dll",
-    "arm.ins",
-    "mips.ins",
-    "x64.ins",
-    "x86.ins",
     "lib/",
 ];
 
