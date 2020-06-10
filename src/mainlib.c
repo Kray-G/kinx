@@ -488,11 +488,12 @@ static void kinx_set_return_value_str(kinx_compiler *kc, const char *v)
 static int s_loaded = 0;
 
 /* Thread unsafe */
-static void kinx_free_compiler_inside(kinx_compiler *kc)
+static void kinx_free_compiler_inside(void *p)
 {
-    if (!kc) {
+    if (!p) {
         return;
     }
+    kinx_compiler *kc = (kinx_compiler *)p;
     ks_free((kstr_t *)kc->code);
     for (int i = 0; i < kc->ac; ++i) {
         kx_free(kc->av[i]);
@@ -501,8 +502,12 @@ static void kinx_free_compiler_inside(kinx_compiler *kc)
 }
 
 /* Thread unsafe */
-static void kinx_free_compiler(kinx_compiler *kc)
+static void kinx_free_compiler(void *p)
 {
+    if (!p) {
+        return;
+    }
+    kinx_compiler *kc = (kinx_compiler *)p;
     int is_main_context = kc->is_main_context;
     kx_context_t *ctx = (kx_context_t *)kc->ctx;
     kinx_free_compiler_inside(kc);

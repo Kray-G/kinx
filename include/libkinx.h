@@ -36,7 +36,7 @@ typedef int (*kinx_loadfile_t)(struct kinx_compiler_ *kc, const char *filename);
 typedef int (*kinx_add_code_t)(struct kinx_compiler_ *kc, const char *code);
 typedef int (*kinx_run_t)(struct kinx_compiler_ *kc);
 typedef int (*kinx_add_argument_t)(struct kinx_compiler_ *kc, const char *arg);
-typedef void (*kinx_free_compiler_t)(struct kinx_compiler_ *kc);
+typedef void (*kinx_free_compiler_t)(void *p);
 
 typedef int64_t (*kinx_get_argument_as_int_t)(struct kinx_compiler_ *kc, int i);
 typedef double (*kinx_get_argument_as_dbl_t)(struct kinx_compiler_ *kc, int i);
