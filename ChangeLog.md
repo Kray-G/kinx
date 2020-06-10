@@ -27,14 +27,14 @@
     *   Supported some of string operations in native.
     *   Kinx As A Library, see `examples/c/runkinx.c` for example.
     *   Supported underline by escape sequence.
+    *   Supported __FILE__, __LINE__, __FUNC__.
+    *   Supported Environment Variable.
 
 * A current plan and development items in progress.
-    *   Support Environment Variable.
     *   Supporting a first version of Native Functions.
         *   Addition with String.
         *   Switch case.
         *   Array/Binary
-    *   Support __FILE__, __LINE__, __FUNC__.
     *   Full documenting by SpecTest.
 
 ## V0.9.2 (9th Preview Release)
