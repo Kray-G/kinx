@@ -326,6 +326,9 @@ static int kinx_loadfile(kinx_compiler *kc, const char *filename)
     if (!kc) {
         return 0;
     }
+    if (!kc->code) {
+        kc->code = (void*)ks_new();
+    }
     kstr_t *codestr = (kstr_t *)kc->code;
     FILE *fp = fopen(filename, "r");
     if (!fp) {
@@ -344,6 +347,9 @@ static int kinx_add_code(kinx_compiler *kc, const char *code)
     if (!kc) {
         return 0;
     }
+    if (!kc->code) {
+        kc->code = (void*)ks_new();
+    }
     kstr_t *codestr = (kstr_t *)kc->code;
     ks_append(codestr, code);
     return 1;
@@ -352,6 +358,9 @@ static int kinx_add_code(kinx_compiler *kc, const char *code)
 static int kinx_run(kinx_compiler *kc)
 {
     if (!kc) {
+        return 0;
+    }
+    if (!kc->code) {
         return 0;
     }
     kstr_t *codestr = (kstr_t *)kc->code;
@@ -493,7 +502,9 @@ static void kinx_free_compiler_inside(kinx_compiler *kc)
     if (!kc) {
         return;
     }
-    ks_free((kstr_t *)kc->code);
+    if (kc->code) {
+        ks_free((kstr_t *)kc->code);
+    }
     for (int i = 0; i < kc->ac; ++i) {
         kx_free(kc->av[i]);
     }
@@ -529,7 +540,7 @@ kinx_compiler *kinx_create_compiler_with_context(void* h, kx_context_t *ctx)
     int is_inside = ctx != NULL;
     kc->ctx = is_inside ? ctx : make_context();
     kc->h = h;
-    kc->code = (void*)ks_new();
+    kc->code = NULL;
     kc->timer.compile = 0.0;
     kc->timer.runtime = 0.0;
     kc->add_code = kinx_add_code;
