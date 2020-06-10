@@ -32,6 +32,7 @@
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS2 DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
 %token<strval> NAME
 %token<strval> STR
+%token<strval> SRCFILE
 %token<strval> BIGINT
 %token<intval> INT
 %token<intval> TYPE
@@ -485,6 +486,7 @@ Factor
     | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
+    | SRCFILE { $$ = kx_gen_str_object($1); }
     | Array
     | Binary
     | Object
