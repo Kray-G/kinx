@@ -1,3 +1,4 @@
+#define KX_LIB_DLL
 #include <dbg.h>
 #include <assert.h>
 #include <float.h>
@@ -12,6 +13,7 @@
 #include <kxthread.h>
 #include <kxirutil.h>
 #include <kxastobject.h>
+#include <libkinx.h>
 
 #define KX_EQEQ_OP_NAME "=="
 #define KX_NEQ_OP_NAME "!="
@@ -1096,6 +1098,86 @@ int System_force_gc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int System_call_sharedlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (!obj) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to call c function");
+    }
+    const char *funcname = get_arg_str(2, args, ctx);
+    if (!funcname) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function name to call c function");
+    }
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, obj, "_kc");
+    if (val && val->type == KX_ANY_T) {
+        kinx_compiler *kc = (kinx_compiler *)(val->value.av->p);
+        if (kc && kc->h) {
+            typedef int (*call_function_t)(int, void*);
+            call_function_t f = (call_function_t)get_libfunc(kc->h, funcname);
+            if (f) {
+                ctx->retval.type = KX_UND_T;
+                int r = f(args - 2, (void *)kc);
+                KX_ADJST_STACK();
+                switch (ctx->retval.type) {
+                case KX_INT_T:
+                    push_i(ctx->stack, ctx->retval.value.iv);
+                    break;
+                case KX_DBL_T:
+                    push_d(ctx->stack, ctx->retval.value.dv);
+                    break;
+                case KX_STR_T:
+                    push_sv(ctx->stack, ctx->retval.value.sv);
+                    break;
+                default:
+                    push_i(ctx->stack, r);
+                    break;
+                }
+                ctx->retval.type = KX_UND_T;
+                return 0;
+            }
+            KX_ADJST_STACK();
+            const char *msg = static_format("Cannot find the function: %s", funcname);
+            KX_THROW_BLTIN_EXCEPTION("SystemException", msg);
+        }
+    }
+    KX_ADJST_STACK();
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to call c function");
+}
+
+int System_load_sharedlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *libname = get_arg_str(2, args, ctx);
+    if (!libname) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a library name");
+    }
+    void *h = load_library(libname, NULL);
+    if (!h) {
+        KX_ADJST_STACK();
+        const char *msg = static_format("Cannot find the library: %s", libname);
+        KX_THROW_BLTIN_EXCEPTION("SystemException", msg);
+    }
+    kinx_compiler *kc = kinx_create_compiler_with_context(h, ctx);
+    if (!kc) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Out of Memory");
+    }
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "isClib", 1);
+    kx_any_t *r = allocate_any(ctx);
+    r->p = kc;
+    r->any_free = kc->finalize;
+    KEX_SET_PROP_ANY(obj, "_kc", r);
+    KEX_SET_METHOD("call", obj, System_call_sharedlib);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
 {
     int absent;
@@ -1151,6 +1233,7 @@ kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur)
         ctx->objs.regexlib = obj;
     } else if (!strcmp(name, "kxsystem")) {
         append_function(ctx, obj, "gc", &System_force_gc);
+        append_function(ctx, obj, "loadSharedLibrary", &System_load_sharedlib);
     }
     int l = p->get_bltin_count();
     for (int i = 0; i < l; ++i) {
