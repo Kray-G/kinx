@@ -36,7 +36,7 @@ var Xml, Net;
     C.setFunction = _function(name, kc, addr) {
         C.func ??= {};
         C.func[name] = _function(...a) {
-            System.callCFunction(kc, addr, ...a);
+            return System.callCFunction(kc, addr, ...a);
         };
     };
     Zip.create = File._zipCreate;
