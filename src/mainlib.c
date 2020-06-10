@@ -488,41 +488,43 @@ static void kinx_set_return_value_str(kinx_compiler *kc, const char *v)
 static int s_loaded = 0;
 
 /* Thread unsafe */
-static void kinx_free_compiler(kinx_compiler *kc)
+static void kinx_free_compiler_inside(kinx_compiler *kc)
 {
     if (!kc) {
         return;
     }
-    kx_context_t *ctx = (kx_context_t *)kc->ctx;
-    if (kc->is_main_context) {
-        g_terminated = 1;
-        g_main_thread = NULL;
-    }
-    context_cleanup(ctx);
     ks_free((kstr_t *)kc->code);
     for (int i = 0; i < kc->ac; ++i) {
         kx_free(kc->av[i]);
     }
     kx_free(kc);
+}
 
+/* Thread unsafe */
+static void kinx_free_compiler(kinx_compiler *kc)
+{
+    int is_main_context = kc->is_main_context;
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    kinx_free_compiler_inside(kc);
+    if (is_main_context) {
+        g_terminated = 1;
+        g_main_thread = NULL;
+    }
+    context_cleanup(ctx);
     if (--s_loaded == 0) {
         kinx_finalize();
     }
 }
 
 /* Thread unsafe */
-DllExport kinx_compiler *kinx_new_compiler(void* h)
+kinx_compiler *kinx_create_compiler_with_context(void* h, kx_context_t *ctx)
 {
-    if (s_loaded++ == 0) {
-        kinx_initialize();
-    }
-
     kinx_compiler *kc = kx_calloc(1, sizeof(kinx_compiler));
     if (!kc) {
         return NULL;
     }
-    kx_context_t *ctx = make_context();
-    kc->ctx = ctx;
+    int is_inside = ctx != NULL;
+    kc->ctx = is_inside ? ctx : make_context();
     kc->h = h;
     kc->code = (void*)ks_new();
     kc->timer.compile = 0.0;
@@ -531,7 +533,7 @@ DllExport kinx_compiler *kinx_new_compiler(void* h)
     kc->loadfile = kinx_loadfile;
     kc->run = kinx_run;
     kc->add_argument = kinx_add_argument;
-    kc->finalize = kinx_free_compiler;
+    kc->finalize = is_inside ? kinx_free_compiler_inside : kinx_free_compiler;
     kc->get_argument_type = kinx_get_argument_type;
     kc->get_argument_as_int = kinx_get_argument_as_int;
     kc->get_argument_as_dbl = kinx_get_argument_as_dbl;
@@ -544,4 +546,13 @@ DllExport kinx_compiler *kinx_new_compiler(void* h)
         g_main_thread = ctx;
     }
     return kc;
+}
+
+/* Thread unsafe */
+DllExport kinx_compiler *kinx_new_compiler(void* h)
+{
+    if (s_loaded++ == 0) {
+        kinx_initialize();
+    }
+    return kinx_create_compiler_with_context(h, NULL);
 }

@@ -16,15 +16,15 @@
 #endif
 #endif
 #if defined(_WIN32) || defined(_WIN64)
-typedef struct timer_ {
+typedef struct libkx_systemtimer_ {
     LARGE_INTEGER freq;
     LARGE_INTEGER start;
-} systemtimer_t;
+} libkx_systemtimer_t;
 #else
 #include <sys/time.h>
-typedef struct timer_ {
+typedef struct libkx_systemtimer_ {
     struct timeval s;
-} systemtimer_t;
+} libkx_systemtimer_t;
 #endif
 
 #define KX_LIB_MAX_ARGS (32)
@@ -48,7 +48,7 @@ typedef void (*kinx_set_return_value_dbl_t)(struct kinx_compiler_ *kc, double v)
 typedef void (*kinx_set_return_value_str_t)(struct kinx_compiler_ *kc, const char *v);
 
 typedef struct kinx_timer_ {
-    systemtimer_t v;
+    libkx_systemtimer_t v;
     double compile;
     double runtime;
 } kinx_timer_t;
@@ -86,12 +86,12 @@ typedef int (*kinx_do_main_t)(int ac, char **av);
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-static inline void kinx_timer(systemtimer_t *v)
+static inline void kinx_timer(libkx_systemtimer_t *v)
 {
     QueryPerformanceFrequency(&(v->freq));
     QueryPerformanceCounter(&(v->start));
 }
-static inline double kinx_elapsed(systemtimer_t *v)
+static inline double kinx_elapsed(libkx_systemtimer_t *v)
 {
     LARGE_INTEGER end;
     QueryPerformanceCounter(&end);
@@ -116,11 +116,11 @@ static inline void unload_kinx_dll(void *h)
     FreeLibrary((HINSTANCE)h);
 }
 #else
-static inline void kinx_timer(systemtimer_t *v)
+static inline void kinx_timer(libkx_systemtimer_t *v)
 {
     gettimeofday(&(v->s), NULL);
 }
-static inline double kinx_elapsed(systemtimer_t *v)
+static inline double kinx_elapsed(libkx_systemtimer_t *v)
 {
     struct timeval e;
     gettimeofday(&e, NULL);
@@ -150,7 +150,9 @@ static inline void unload_kinx_dll(void *h)
 }
 #endif
 
-#ifndef KX_LIB_DLL
+#ifdef KX_LIB_DLL
+extern kinx_compiler *kinx_create_compiler_with_context(void* h, kx_context_t *ctx);
+#else
 /*
     Copy from ir.h. Don't forget copy this again if it has changed.
 */
