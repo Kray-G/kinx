@@ -33,12 +33,6 @@ var Xml, Net;
     using kxnumeric;
     using kxfile;
     using kxgetopt;
-    Clib.setFunction = _function(name, kc, addr) {
-        Clib.func ??= {};
-        return Clib.func[name] = _function(...a) {
-            return System.callCFunction(kc, addr, ...a);
-        };
-    };
     Zip.create = File._zipCreate;
     JSON.parse = System.parseJson;
     JSON.stringify = Array.toJsonString;
