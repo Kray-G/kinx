@@ -263,7 +263,7 @@ static inline int kinx_add_callback(kinx_compiler *kc, const char *name, void *f
     if (!kc) {
         return 0;
     }
-    return kinx_add_codef(kc, "C.setFunction(\"%s\", 0x%"PRIx64", 0x%"PRIx64");", name, kc, func);
+    return kinx_add_codef(kc, "Clib.setFunction(\"%s\", 0x%"PRIx64", 0x%"PRIx64");", name, kc, func);
 }
 
 static inline int kinx_run(kinx_compiler *kc)
