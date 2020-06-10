@@ -2,7 +2,7 @@
 
 /*
     cl -I include examples/c/callback.c kx.lib
-    gcc -I include examples/c/callback.c -L. -lkx
+    gcc -o callback.exe -I include examples/c/callback.c -ldl -L. -lkx
 */
 
 int print_arguments(int args, kinx_compiler *kc)
