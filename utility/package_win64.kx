@@ -1,5 +1,6 @@
 var modules = [
     "kinx.exe",
+    "kx.lib",
     "libkinx.dll",
     "kxarray.dll",
     "kxbinary.dll",
