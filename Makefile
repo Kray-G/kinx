@@ -38,7 +38,7 @@ OBJS = \
     lexer.o \
     fileutil.o \
     loadlib.o \
-    main.o \
+    mainlib.o \
     parser.o \
     format.o \
     string.o \
@@ -129,12 +129,12 @@ SOFILES = \
     kxxml.so \
     kxprocess.so
 PICOBJS = \
-    bignpic.o \
-    bigzpic.o \
-    allocutilpic.o \
-    fileutilpic.o \
-    formatpic.o \
-    kstrpic.o
+    bign.o \
+    bigz.o \
+    allocutil.o \
+    fileutil.o \
+    format.o \
+    kstr.o
 TESTCORE = \
     apply \
     append \
@@ -174,6 +174,8 @@ install:
 	if [ ! -d /usr/bin/kinxlib ]; then mkdir -p /usr/bin/kinxlib; fi;
 	cp -f ./kinx /usr/bin/kinx
 	cp -rf lib/* /usr/bin/kinxlib/
+	cp -f libkx.a /usr/bin/kinxlib/
+	cp -f libkinx.so /usr/bin/kinxlib/
 	cp -f kxarray.so /usr/bin/kinxlib/
 	cp -f kxbinary.so /usr/bin/kinxlib/
 	cp -f kxdouble.so /usr/bin/kinxlib/
@@ -203,8 +205,12 @@ clean:
 	rm -f $(OBJS) $(DISASM) $(SOFILES) $(PICOBJS) timex kinx myacc test
 	rm -f src/optimizer.c src/opt_*.c
 
-kinx: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
-	./timex $(CC) -o $@ $(OBJS) $(DISASM) -ldl -lm -pthread
+kinx: src/main.c libkinx.so
+	./timex $(CC) $(CFLAGS) -o $@ src/main.c fileutil.o -ldl
+
+libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
+	ar rcs libkx.a fileutil.o
 
 kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-jsonpic.o
@@ -287,44 +293,23 @@ libonig.so:
 	ln -s libonig.so.5.0.0 libonig.so.5; \
 	ln -s libonig.so.5 libonig.so;
 
-bignpic.o: src/bign.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-bigzpic.o: src/bigz.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-allocutilpic.o: src/allocutil.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-fileutilpic.o: src/fileutil.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-formatpic.o: src/format.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-kstrpic.o: src/kstr.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
-kc-jsonpic.o: src/extlib/kc-json/kc-json.c
-	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
-
 sqlite3.o: src/extlib/sqlite/sqlite3.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/optimizer/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/optimizer/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/optimizer/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 %.o: src/disasm-x64/libudis86/%.c
-	./timex $(CC) -c $(CFLAGS) -o $@ $<
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 test-core: $(OBJS)
 	for file in $(TESTCORE) ; do \
@@ -488,7 +473,7 @@ lexer.o: src/lexer.c include/dbg.h include/parser.h include/kinx.h \
 fileutil.o: src/fileutil.c include/dbg.h include/fileutil.h
 loadlib.o: src/loadlib.c include/dbg.h include/fileutil.h \
  include/kxthread.h
-main.o: src/main.c include/dbg.h include/kinx.h include/kvec.h \
+mainlib.o: src/mainlib.c include/dbg.h include/kinx.h include/kvec.h \
  include/ir.h include/khash.h include/klist.h include/kstr.h \
  include/bigz.h include/bign.h include/jit.h \
  include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \

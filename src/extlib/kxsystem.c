@@ -1540,6 +1540,37 @@ int System_exepath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    typedef int (*call_function_t)(int, void*);
+    uint64_t kc = get_arg_int(1, args, ctx);
+    uint64_t addr = get_arg_int(2, args, ctx);
+    call_function_t f = (call_function_t)addr;
+    if (f && kc) {
+        ctx->retval.type = KX_UND_T;
+        int r = f(args - 2, (void *)kc);
+        KX_ADJST_STACK();
+        switch (ctx->retval.type) {
+        case KX_INT_T:
+            push_i(ctx->stack, ctx->retval.value.iv);
+            break;
+        case KX_DBL_T:
+            push_d(ctx->stack, ctx->retval.value.dv);
+            break;
+        case KX_STR_T:
+            push_sv(ctx->stack, ctx->retval.value.sv);
+            break;
+        default:
+            push_i(ctx->stack, r);
+            break;
+        }
+        ctx->retval.type = KX_UND_T;
+        return 0;
+    }
+    KX_ADJST_STACK();
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function address");
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -1581,6 +1612,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "setupRange", System_setupRange },
     { "isUtf8Bytes", System_isUtf8Bytes },
     { "exepath", System_exepath },
+    { "callCFunction", System_callCFunction },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);

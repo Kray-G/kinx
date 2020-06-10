@@ -1,5 +1,25 @@
 #include <inttypes.h>
 #include <kinx.h>
+#include <kxutf8.h>
+
+const char g_utf8bytes[] = {
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 00 - 0F */
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 10 - 1F */
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 20 - 2F */
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 30 - 3F */
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 40 - 4F */
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 50 - 5F */
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 60 - 6F */
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 70 - 7F */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 80 - 8F */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 90 - 9F */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* A0 - AF */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* B0 - BF */
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, /* C0 - CF */
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, /* D0 - DF */
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, /* E0 - EF */
+    4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, /* F0 - FF */
+};
 
 #define KX_MAX_BUF (255)
 #define KX_APPEND_CH(out, ch) { outbuf[0] = ch; outbuf[1] = 0; ks_append(out, outbuf); }
@@ -91,6 +111,16 @@ static void kx_format_one(kstr_t *out, kx_val_t *val, int ch, int num, int prec,
     } else if (val->type == KX_CSTR_T || val->type == KX_STR_T) {
         const char *strp = val->type == KX_CSTR_T ? val->value.pv : ks_string(val->value.sv);
         if (num > 0) {
+            int len = strlen(strp);
+            int width = 0;
+            const char *s = strp;
+            for (int i = 0; i < len; ) {
+                int b = g_utf8bytes[s[i] & 0xff];
+                const char *r = east_asian_width(s+i, b, NULL, NULL);
+                width += (*r == 'F' || *r == 'W' || *r == 'A') ? 2 : 1;
+                i += b;
+            }
+            num += (len - width);
             sprintf(fmtbuf, "%%%s%s%ds", KX_FMT_SIGN(sign), zero ? "0" : "", num);
             ks_appendf(out, fmtbuf, strp);
         } else {
