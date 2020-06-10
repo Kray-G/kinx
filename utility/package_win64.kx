@@ -1,5 +1,7 @@
 var modules = [
     "kinx.exe",
+    "kx.lib",
+    "libkinx.dll",
     "kxarray.dll",
     "kxbinary.dll",
     "kxdouble.dll",
@@ -18,10 +20,6 @@ var modules = [
     "libxml2.dll",
     "onig.dll",
     "zlib.dll",
-    "arm.ins",
-    "mips.ins",
-    "x64.ins",
-    "x86.ins",
     "lib/",
 ];
 

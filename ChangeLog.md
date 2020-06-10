@@ -1,15 +1,11 @@
 # Change Log
 
-## V1.0.0 (Future Planned)
+## V1.1.0 (Future Planned)
 
 *   Planned, or remaining tasks.
-    *   Support Environment Variable.
     *   Support OpenCV library.
     *   Support PDF library with libHaru.
     *   Support HTTP Server library with libhttp.
-    *   User selectable installation.
-    *   Documentation & SpecTest complete.
-    *   Library mode like `libkinx.so`.
     *   The followings are planned but priority is low.
         *   Improvement with `KX_FASTENTER`.
             *   `KX_FASTENTER` is entering function without frame.
@@ -17,12 +13,29 @@
             *   `KXOPT_LENGTH` ... for `Array`, `Binary`, `String`
             *   `KXOPT_PARSEINT` ... `Integer.parseInt`
 
+## V1.0.0 (Planned)
+
+    *   User selectable installation.
+    *   Documentation & SpecTest complete.
+
 ## V1.0.0-beta.1 (Current Development)
 
+*   Updated
+    *   Changed disassembler for x64.
+    *   In formatting like `"%-20s" % v` it is correctly worked with UTF8 string with correct width.
+    *   Supported some of `Math` functions in native.
+    *   Supported some of string operations in native.
+    *   Kinx As A Library, see `examples/c/runkinx.c` for example.
+    *   Supported underline by escape sequence.
+
 * A current plan and development items in progress.
-    * Supporting a first version of Native Functions.
-    * Full documenting by SpecTest.
-    * Making it be a library suited for C program.
+    *   Support Environment Variable.
+    *   Supporting a first version of Native Functions.
+        *   Addition with String.
+        *   Switch case.
+        *   Array/Binary
+    *   Support __FILE__, __LINE__, __FUNC__.
+    *   Full documenting by SpecTest.
 
 ## V0.9.2 (9th Preview Release)
 

@@ -42,6 +42,7 @@
 #if !defined(__UD_STANDALONE__)
 # include <stdint.h>
 # include <stdio.h>
+# include <string.h>
 # include <stdlib.h>
 #endif
 
