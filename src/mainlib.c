@@ -395,7 +395,7 @@ static int kinx_add_argument(kinx_compiler *kc, const char *arg)
     return 1;
 }
 
-int kinx_get_argument_type(struct kinx_compiler_ *kc, int i)
+static int kinx_get_argument_type(struct kinx_compiler_ *kc, int i)
 {
     if (!kc) {
         return 0;
@@ -409,7 +409,7 @@ int kinx_get_argument_type(struct kinx_compiler_ *kc, int i)
     return type;
 }
 
-int64_t kinx_get_argument_as_int(struct kinx_compiler_ *kc, int i)
+static int64_t kinx_get_argument_as_int(struct kinx_compiler_ *kc, int i)
 {
     if (!kc) {
         return 0;
@@ -423,7 +423,7 @@ int64_t kinx_get_argument_as_int(struct kinx_compiler_ *kc, int i)
     return 0;
 }
 
-double kinx_get_argument_as_dbl(struct kinx_compiler_ *kc, int i)
+static double kinx_get_argument_as_dbl(struct kinx_compiler_ *kc, int i)
 {
     if (!kc) {
         return 0.0;
@@ -437,7 +437,7 @@ double kinx_get_argument_as_dbl(struct kinx_compiler_ *kc, int i)
     return 0.0;
 }
 
-const char *kinx_get_argument_as_str(struct kinx_compiler_ *kc, int i)
+static const char *kinx_get_argument_as_str(struct kinx_compiler_ *kc, int i)
 {
     kx_context_t *ctx = (kx_context_t *)kc->ctx;
     if (kc) {
@@ -451,6 +451,38 @@ const char *kinx_get_argument_as_str(struct kinx_compiler_ *kc, int i)
         }
     }
     return NULL;
+}
+
+static void kinx_set_return_value_int(kinx_compiler *kc, int64_t v)
+{
+    if (!kc) {
+        return;
+    }
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    ctx->retval.type = KX_INT_T;
+    ctx->retval.value.iv = v;
+}
+
+static void kinx_set_return_value_dbl(kinx_compiler *kc, double v)
+{
+    if (!kc) {
+        return;
+    }
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    ctx->retval.type = KX_DBL_T;
+    ctx->retval.value.dv = v;
+}
+
+static void kinx_set_return_value_str(kinx_compiler *kc, const char *v)
+{
+    if (!kc) {
+        return;
+    }
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    kstr_t *sv = allocate_str(ctx);
+    ks_append(sv, v);
+    ctx->retval.type = KX_STR_T;
+    ctx->retval.value.sv = sv;
 }
 
 static int s_loaded = 0;
@@ -504,6 +536,9 @@ DllExport kinx_compiler *kinx_new_compiler(void* h)
     kc->get_argument_as_int = kinx_get_argument_as_int;
     kc->get_argument_as_dbl = kinx_get_argument_as_dbl;
     kc->get_argument_as_str = kinx_get_argument_as_str;
+    kc->set_return_value_int = kinx_set_return_value_int;
+    kc->set_return_value_dbl = kinx_set_return_value_dbl;
+    kc->set_return_value_str = kinx_set_return_value_str;
     if (!g_main_thread) {
         kc->is_main_context = 1;
         g_main_thread = ctx;

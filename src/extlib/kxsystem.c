@@ -1547,9 +1547,24 @@ int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     uint64_t addr = get_arg_int(2, args, ctx);
     call_function_t f = (call_function_t)addr;
     if (f && kc) {
+        ctx->retval.type = KX_UND_T;
         int r = f(args - 2, (void *)kc);
         KX_ADJST_STACK();
-        push_i(ctx->stack, r);
+        switch (ctx->retval.type) {
+        case KX_INT_T:
+            push_i(ctx->stack, ctx->retval.value.iv);
+            break;
+        case KX_DBL_T:
+            push_d(ctx->stack, ctx->retval.value.dv);
+            break;
+        case KX_STR_T:
+            push_sv(ctx->stack, ctx->retval.value.sv);
+            break;
+        default:
+            push_i(ctx->stack, r);
+            break;
+        }
+        ctx->retval.type = KX_UND_T;
         return 0;
     }
     KX_ADJST_STACK();
