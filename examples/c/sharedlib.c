@@ -2,7 +2,7 @@
 
 /*
     cl -LD -I include examples/c/sharedlib.c kx.lib
-    gcc -fPIC -shared -o callback.so -I include examples/c/sharedlib.c -ldl -L. -lkx
+    gcc -fPIC -shared -o sharedlib.so -I include examples/c/sharedlib.c -ldl -L. -lkx
 */
 
 /*
