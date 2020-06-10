@@ -1,5 +1,10 @@
 #include <libkinx.h>
 
+/*
+    cl -I include examples/c/runkinx.c kx.lib
+    gcc -I include examples/c/runkinx.c -L. -lkx
+*/
+
 int build_and_run_script(kinx_compiler *kc)
 {
     kinx_add_argument(kc, "34");
@@ -10,7 +15,6 @@ int build_and_run_script(kinx_compiler *kc)
         return 1;
     }
     kinx_add_code(kc, "return r;");
-
     return kinx_run(kc);
 }
 
