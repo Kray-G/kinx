@@ -209,6 +209,7 @@ kinx: src/main.c libkinx.so
 
 libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
+	ar rcs libkx.a fileutil.o
 
 kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-jsonpic.o
