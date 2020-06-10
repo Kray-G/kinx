@@ -6,6 +6,8 @@
 #include <khash.h>
 #include <kxastobject.h>
 
+#define KX_ENV_VAR ("$env")
+
 KHASH_MAP_INIT_STR(enum_value, int)
 typedef khash_t(enum_value) *enum_map_t;
 kvec_init_t(enum_map_t);
@@ -492,6 +494,20 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         // fall through
     }
     case KXOP_ASSIGN: {
+        if (node->lhs->type == KXOP_IDX && node->lhs->lhs && node->lhs->rhs) {
+            kx_object_t *l = node->lhs->lhs;
+            if (l->type == KXOP_VAR && !strcmp(l->value.s, KX_ENV_VAR)) {
+                kx_object_t *r = node->lhs->rhs;
+                node->lhs = kx_gen_bexpr_object(KXOP_CALL,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("setenv")),
+                        kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, r)
+                );
+                analyze_ast(ctx, node->lhs, actx);
+                node->rhs = NULL;
+                node->type = KXST_EXPRLIST;
+                break;
+            }
+        }
         if (node->optional == KXDC_CONST && node->lhs->type == KXOP_MKARY) {
             add_const(ctx, actx, node, node->lhs);
         }
@@ -608,6 +624,18 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         make_cast(node, node->lhs, node->rhs, actx->in_native);
         break;
     case KXOP_IDX:
+        if (!actx->lvalue) {
+            if (node->lhs && node->lhs->type == KXOP_VAR && !strcmp(node->lhs->value.s, KX_ENV_VAR)) {
+                node->lhs = kx_gen_bexpr_object(KXOP_CALL,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("getenv")),
+                    node->rhs
+                );
+                analyze_ast(ctx, node->lhs, actx);
+                node->rhs = NULL;
+                node->type = KXST_EXPRLIST;
+                break;
+            }
+        }
         if (actx->in_native) {
             analyze_ast(ctx, node->lhs, actx);
             analyze_ast(ctx, node->rhs, actx);
