@@ -1,5 +1,5 @@
 const STDIN, STDOUT, STDERR, $exepath;
-const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, C;
+const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass;
@@ -33,9 +33,9 @@ var Xml, Net;
     using kxnumeric;
     using kxfile;
     using kxgetopt;
-    C.setFunction = _function(name, kc, addr) {
-        C.func ??= {};
-        C.func[name] = _function(...a) {
+    Clib.setFunction = _function(name, kc, addr) {
+        Clib.func ??= {};
+        Clib.func[name] = _function(...a) {
             return System.callCFunction(kc, addr, ...a);
         };
     };
