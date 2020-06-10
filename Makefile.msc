@@ -187,6 +187,7 @@ kinx: src/main.c include/libkinx.h libkinx.dll
 
 libkinx.dll: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
 	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM)
+	lib.exe /OUT:kx.lib src\fileutil.obj
 
 kinx.res: kinx.rc
 	$(RC) kinx.rc

@@ -1,5 +1,5 @@
 const STDIN, STDOUT, STDERR, $exepath;
-const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory;
+const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, C;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass;
@@ -33,6 +33,12 @@ var Xml, Net;
     using kxnumeric;
     using kxfile;
     using kxgetopt;
+    C.setFunction = _function(name, kc, addr) {
+        C.func ??= {};
+        C.func[name] = _function(...a) {
+            System.callCFunction(kc, addr, ...a);
+        };
+    };
     Zip.create = File._zipCreate;
     JSON.parse = System.parseJson;
     JSON.stringify = Array.toJsonString;
