@@ -1147,6 +1147,17 @@ int System_call_sharedlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to call c function");
 }
 
+static void unload_sharedlib(void *p)
+{
+    if (!p) {
+        return;
+    }
+    kinx_compiler *kc = (kinx_compiler *)p;
+    void *h = kc->h;
+    kc->finalize(kc);
+    unload_library(h);
+}
+
 int System_load_sharedlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *libname = get_arg_str(2, args, ctx);
@@ -1169,7 +1180,7 @@ int System_load_sharedlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_PROP_INT(obj, "isClib", 1);
     kx_any_t *r = allocate_any(ctx);
     r->p = kc;
-    r->any_free = kc->finalize;
+    r->any_free = unload_sharedlib;
     KEX_SET_PROP_ANY(obj, "_kc", r);
     KEX_SET_METHOD("call", obj, System_call_sharedlib);
 
