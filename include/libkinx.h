@@ -43,6 +43,10 @@ typedef double (*kinx_get_argument_as_dbl_t)(struct kinx_compiler_ *kc, int i);
 typedef const char *(*kinx_get_argument_as_str_t)(struct kinx_compiler_ *kc, int i);
 typedef int (*kinx_get_argument_type_t)(struct kinx_compiler_ *kc, int i);
 
+typedef void (*kinx_set_return_value_int_t)(struct kinx_compiler_ *kc, int64_t v);
+typedef void (*kinx_set_return_value_dbl_t)(struct kinx_compiler_ *kc, double v);
+typedef void (*kinx_set_return_value_str_t)(struct kinx_compiler_ *kc, const char *v);
+
 typedef struct kinx_timer_ {
     systemtimer_t v;
     double compile;
@@ -56,16 +60,19 @@ typedef struct kinx_compiler_ {
     int  is_main_context;
     int  ac;
     char *av[KX_LIB_MAX_ARGS];
-    kinx_timer_t               timer;
-    kinx_loadfile_t            loadfile;
-    kinx_add_code_t            add_code;
-    kinx_run_t                 run;
-    kinx_add_argument_t        add_argument;
-    kinx_free_compiler_t       finalize;
-    kinx_get_argument_type_t   get_argument_type;
-    kinx_get_argument_as_int_t get_argument_as_int;
-    kinx_get_argument_as_dbl_t get_argument_as_dbl;
-    kinx_get_argument_as_str_t get_argument_as_str;
+    kinx_timer_t                timer;
+    kinx_loadfile_t             loadfile;
+    kinx_add_code_t             add_code;
+    kinx_run_t                  run;
+    kinx_add_argument_t         add_argument;
+    kinx_free_compiler_t        finalize;
+    kinx_get_argument_type_t    get_argument_type;
+    kinx_get_argument_as_int_t  get_argument_as_int;
+    kinx_get_argument_as_dbl_t  get_argument_as_dbl;
+    kinx_get_argument_as_str_t  get_argument_as_str;
+    kinx_set_return_value_int_t set_return_value_int;
+    kinx_set_return_value_dbl_t set_return_value_dbl;
+    kinx_set_return_value_str_t set_return_value_str;
 } kinx_compiler;
 
 typedef int (*kinx_do_main_t)(int ac, char **av);
@@ -305,6 +312,27 @@ static inline const char *kinx_get_argument_as_str(kinx_compiler *kc, int i)
         return 0;
     }
     return kc->get_argument_as_str(kc, i);
+}
+
+static inline void kinx_set_return_value_int(kinx_compiler *kc, int64_t v)
+{
+    if (kc) {
+        kc->set_return_value_int(kc, v);
+    }
+}
+
+static inline void kinx_set_return_value_dbl(kinx_compiler *kc, double v)
+{
+    if (kc) {
+        kc->set_return_value_dbl(kc, v);
+    }
+}
+
+static inline void kinx_set_return_value_str(kinx_compiler *kc, const char *v)
+{
+    if (kc) {
+        kc->set_return_value_str(kc, v);
+    }
 }
 #endif
 

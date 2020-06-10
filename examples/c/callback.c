@@ -31,20 +31,23 @@ int print_arguments(int args, kinx_compiler *kc)
             break;
         }
     }
-
+    kinx_set_return_value_str(kc, "return!!");
     return 0;
 }
 
 int build_and_run_script(kinx_compiler *kc)
 {
-    kinx_add_callback(kc, "printArguments", print_arguments);
+    kinx_add_callback(kc, "printArguments", &print_arguments);
+
     kinx_add_code(kc, "System.println('');");
     kinx_add_code(kc, "System.println('This is a callback sample.');");
     kinx_add_code(kc, "System.println('');");
-    kinx_add_codef(kc, "System.println('- The function address is %p.');", print_arguments);
+    kinx_add_codef(kc, "System.println('- The function address is %p.');", &print_arguments);
     kinx_add_code(kc, "System.println('- The function is assigned to `C.func.printArguments`.');");
     kinx_add_code(kc, "System.println('\ndo call\n\n    C.func.printArguments(1, 2.0, \\'This is a message\\');\n\n');");
-    kinx_add_code(kc, "C.func.printArguments(1, 2.0, 'This is a message');");
+
+    kinx_add_code(kc, "var ret = C.func.printArguments(1, 2.0, 'This is a message');");
+    kinx_add_code(kc, "System.println('ret => %s\n' % ret);");
     return kinx_run(kc);
 }
 
