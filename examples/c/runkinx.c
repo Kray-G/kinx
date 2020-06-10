@@ -2,7 +2,7 @@
 
 /*
     cl -I include examples/c/runkinx.c kx.lib
-    gcc -I include examples/c/runkinx.c -L. -lkx
+    gcc -o runkinx.exe -I include examples/c/runkinx.c -ldl -L. -lkx
 */
 
 int build_and_run_script(kinx_compiler *kc)
