@@ -1,5 +1,5 @@
 const STDIN, STDOUT, STDERR, $exepath;
-const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory;
+const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass;
