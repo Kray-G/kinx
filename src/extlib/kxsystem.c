@@ -1540,6 +1540,52 @@ int System_exepath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int System_getenv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No environment variable name");
+    }
+    kstr_t *sv = allocate_str(ctx);
+    char *buf = conv_acp2utf8_alloc(getenv(name));
+    ks_append(sv, buf);
+    conv_free(buf);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
+int System_setenv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *name = get_arg_str(1, args, ctx);
+    if (!name) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No environment variable name");
+    }
+    const char *value = get_arg_str(2, args, ctx);
+    if (!value) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No value for environment variable");
+    }
+    kstr_t *sv = allocate_str(ctx);
+    #if defined(_WIN32) || defined(_WIN64)
+    kstr_t *ksv = ks_new();
+    ks_appendf(ksv, "%s=%s", name, value);
+    char *buf = conv_utf82acp_alloc(ks_string(ksv));
+    _putenv(buf);
+    conv_free(buf);
+    ks_free(ksv);
+    #else
+    setenv(conv_utf82acp_alloc(name), conv_utf82acp_alloc(value), 1);
+    #endif
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     typedef int (*call_function_t)(int, void*);
@@ -1612,6 +1658,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "setupRange", System_setupRange },
     { "isUtf8Bytes", System_isUtf8Bytes },
     { "exepath", System_exepath },
+    { "getenv", System_getenv },
+    { "setenv", System_setenv },
     { "callCFunction", System_callCFunction },
 };
 
