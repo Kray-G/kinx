@@ -41,7 +41,7 @@ jobs:
           make.cmd
       - name: package
         shell: pwsh
-        run: Compress-Archive -Path kinx.exe,*.dll,*.ins,lib/ -DestinationPath windows-x64.zip -Force -Verbose
+        run: Compress-Archive -Path kinx.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
