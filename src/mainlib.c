@@ -395,6 +395,64 @@ static int kinx_add_argument(kinx_compiler *kc, const char *arg)
     return 1;
 }
 
+int kinx_get_argument_type(struct kinx_compiler_ *kc, int i)
+{
+    if (!kc) {
+        return 0;
+    }
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    kvec_t(kx_val_t) *stack = &(ctx->stack);
+    int type = kv_last_by(*stack, i+3).type;
+    if (type == KX_CSTR_T) {
+        return KX_STR_T;
+    }
+    return type;
+}
+
+int64_t kinx_get_argument_as_int(struct kinx_compiler_ *kc, int i)
+{
+    if (!kc) {
+        return 0;
+    }
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    kvec_t(kx_val_t) *stack = &(ctx->stack);
+    kx_val_t val = kv_last_by(*stack, i+3);
+    if (val.type == KX_INT_T) {
+        return val.value.iv;
+    }
+    return 0;
+}
+
+double kinx_get_argument_as_dbl(struct kinx_compiler_ *kc, int i)
+{
+    if (!kc) {
+        return 0.0;
+    }
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    kvec_t(kx_val_t) *stack = &(ctx->stack);
+    kx_val_t val = kv_last_by(*stack, i+3);
+    if (val.type == KX_DBL_T) {
+        return val.value.dv;
+    }
+    return 0.0;
+}
+
+const char *kinx_get_argument_as_str(struct kinx_compiler_ *kc, int i)
+{
+    kx_context_t *ctx = (kx_context_t *)kc->ctx;
+    if (kc) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        kx_val_t val = kv_last_by(*stack, i+3);
+        if (val.type == KX_STR_T) {
+            return ks_string(val.value.sv);
+        }
+        if (val.type == KX_CSTR_T) {
+            return val.value.pv;
+        }
+    }
+    return NULL;
+}
+
 static int s_loaded = 0;
 
 /* Thread unsafe */
@@ -442,6 +500,10 @@ DllExport kinx_compiler *kinx_new_compiler(void* h)
     kc->run = kinx_run;
     kc->add_argument = kinx_add_argument;
     kc->finalize = kinx_free_compiler;
+    kc->get_argument_type = kinx_get_argument_type;
+    kc->get_argument_as_int = kinx_get_argument_as_int;
+    kc->get_argument_as_dbl = kinx_get_argument_as_dbl;
+    kc->get_argument_as_str = kinx_get_argument_as_str;
     if (!g_main_thread) {
         kc->is_main_context = 1;
         g_main_thread = ctx;
