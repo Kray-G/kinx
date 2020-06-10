@@ -35,7 +35,7 @@ var Xml, Net;
     using kxgetopt;
     Clib.setFunction = _function(name, kc, addr) {
         Clib.func ??= {};
-        Clib.func[name] = _function(...a) {
+        return Clib.func[name] = _function(...a) {
             return System.callCFunction(kc, addr, ...a);
         };
     };
