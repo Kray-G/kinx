@@ -110,3 +110,14 @@ False = System._setTrueFalse(0, new _BooleanClass(false));
 SystemTimer = {
     create: System.SystemTimer_create
 };
+
+# Clib is the library to use C program from Kinx.
+
+Clib.setFunction = _function(name, kc, addr) {
+    Clib.func ??= {};
+    return Clib.func[name] = _function(...a) {
+        return System.callCFunction(kc, addr, ...a);
+    };
+};
+
+Clib.loadSharedLibrary =  System.loadSharedLibrary;

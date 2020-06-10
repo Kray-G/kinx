@@ -35,7 +35,9 @@ void alloc_initialize(void)
 void alloc_finalize(void)
 {
     BzFree(i64maxp1);
+    i64maxp1 = BZNULL;
     BzFree(i64minm1);
+    i64minm1 = BZNULL;
 }
 
 BigZ get_int64max_plus1(void)
