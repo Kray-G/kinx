@@ -286,6 +286,20 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
 
     case KXOP_VAR: {
+        if (!strcmp(node->value.s, "__FUNC__")) {
+            if (actx->func) {
+                if (actx->class_node) {
+                    node->lhs = kx_gen_str_object(const_str2(ctx, actx->class_node->value.s, actx->func->value.s));
+                } else {
+                    node->lhs = kx_gen_str_object(const_str(ctx, actx->func->value.s));
+                }
+                node->var_type = KX_CSTR_T;
+            } else {
+                node->lhs = kx_gen_str_object(const_str(ctx, NULL));
+                node->var_type = KX_UND_T;
+            }
+            break;
+        }
         int enumv = 0;
         int is_enum_value = lookup_enum_value(actx, node->value.s, &enumv);
         if (is_enum_value) {
