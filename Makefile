@@ -174,6 +174,8 @@ install:
 	if [ ! -d /usr/bin/kinxlib ]; then mkdir -p /usr/bin/kinxlib; fi;
 	cp -f ./kinx /usr/bin/kinx
 	cp -rf lib/* /usr/bin/kinxlib/
+	cp -f include/libkinx.h /usr/bin/kinxlib/include/libkinx.h
+	cp -f include/fileutil.h /usr/bin/kinxlib/include/fileutil.h
 	cp -f libkx.a /usr/bin/kinxlib/
 	cp -f libkinx.so /usr/bin/kinxlib/
 	cp -f kxarray.so /usr/bin/kinxlib/
