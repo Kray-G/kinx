@@ -292,7 +292,7 @@ static inline int kinx_get_argument_type(kinx_compiler *kc, int i)
     return kc->get_argument_type(kc, i);
 }
 
-static inline int kinx_get_argument_as_int(kinx_compiler *kc, int i)
+static inline int64_t kinx_get_argument_as_int(kinx_compiler *kc, int i)
 {
     if (!kc) {
         return 0;
