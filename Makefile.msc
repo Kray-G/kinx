@@ -119,6 +119,7 @@ SOFILES = \
     kxsqlite.dll \
     kxnet.dll \
     kxxml.dll \
+    kxjit.dll \
     kxprocess.dll
 PICOBJS = \
     src/bign.obj \
@@ -235,6 +236,9 @@ kxnet.dll: src/extlib/kxnet.c $(PICOBJS) libssl-3.dll libcrypto-3.dll
 kxxml.dll: src/extlib/kxxml.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /I src/extlib/libxml2/include/libxml2 /Fe$@ src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/vs2017/libxml2.lib
 
+kxjit.dll: src/extlib/kxjit.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxjit.c $(PICOBJS) src/ir_aotcore.obj src/disasm-x64/libudis86/*.obj
+
 zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
 	copy /y src\extlib\zip\x64\vs2017\zlib.dll zlib.dll
 
@@ -340,9 +344,7 @@ src/ir_dump.obj: src/ir_dump.c include/dbg.h include/kvec.h include/kinx.h \
  include/../src/jit/sljitConfigInternal.h
 src/ir_exec.obj: src/ir_exec.c include/dbg.h include/kvec.h include/kstr.h \
  include/kinx.h include/ir.h include/khash.h include/klist.h \
- include/bigz.h include/bign.h include/jit.h \
- include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
- include/../src/jit/sljitConfigInternal.h include/kxexec.h \
+ include/bigz.h include/bign.h include/jit.h include/kxexec.h \
  src/exec/code/_except.inc src/exec/code/_inlines.inc \
  src/exec/code/haltnop.inc src/exec/code/enter.inc src/exec/code/call.inc \
  src/exec/code/ret.inc src/exec/code/throw.inc src/exec/code/catch.inc \

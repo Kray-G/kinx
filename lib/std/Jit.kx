@@ -1,0 +1,139 @@
+const Jit;
+(_function() {
+    var JitCompiler = _import("kxjit");
+    Jit = JitCompiler.setup();
+
+    Jit.MEM = 0x80;
+    Jit.MEM0 = _function(r1, offset) { return [Jit.MEM, offset]; };
+    Jit.MEM1 = _function(r1, offset, isV) { return [(Jit.MEM | (r1)), offset, isV]; };
+    Jit.MEM2 = _function(r1, r2, offset) { return [(Jit.MEM | (r1) | ((r2) << 8)), offset]; };
+    Jit.IMM = _function(v) { return [0x40, v]; };
+    Jit.VAR = _function(n) { return Jit.MEM1(Jit.SP, n * 8, "local"); };
+
+    _class Code(c_) {
+        public dump() {
+            return c_.dumpCode();
+        }
+        public run(a, b, c) {
+            return c_.runCode(a, b, c);
+        }
+    }
+
+    _class JumpTarget(c_, repl_, i_) {
+        public setLabel(label) {
+            repl_.push(_function() { c_.setLabel(i_, label); });
+        }
+    }
+
+    _class Compiler() {
+        var c_ = new JitCompiler();
+        var func_ = [], repl_ = [];
+        var chk_, inst_, label_ = 0, jump_ = 0;
+        private checkRegister(op) {
+            if (op.length() <= 2) {
+                return;
+            }
+            var key = op[2];
+            var n = op[3];
+            if (key.isString && key == "local") {
+                var index = op[1];
+                if (index.isInteger && chk_.local <= index) {
+                    chk_.local = index + 1;
+                }
+            } else if (key.isDefined && n.isInteger) {
+                key = *key;
+                ++n;
+                if (chk_[key] < n) {
+                    chk_[key] = n;
+                }
+            }
+        }
+        public label() {
+            inst_.push(_function() { c_.label(); });
+            return label_++;
+        }
+        public enter() {
+            inst_ = [];
+            chk_ = { R: 0, S: 3, r: 0, s: 0, local: 0, entry: label(), fast: false };
+            func_.push({ inst: inst_, chk: chk_ });
+            inst_.push(_function(callback) { callback.enter(); });
+            return chk_.entry;
+        }
+        public fastEnter(reg) {
+            inst_ = [];
+            chk_ = { R: 0, S: 0, r: 0, s: 0, local: 0, entry: label(), fast: true, reg: reg };
+            func_.push({ inst: inst_, chk: chk_ });
+            checkRegister(reg);
+            inst_.push(_function(callback) { callback.enter(reg); });
+            return chk_.entry;
+        }
+        public ret(val) {
+            checkRegister(val);
+            if (chk_.fast) {
+                if (Jit.R0[0] != val[0] || Jit.R0[1] != val[1]) {
+                    inst_.push(_function() { c_.mov(Jit.R0, val); });
+                }
+                inst_.push(_function() { c_.fastRet(chk_.reg); });
+            } else {
+                inst_.push(_function() { c_.ret(val); });
+            }
+        }
+        private operate1(intf, dst, op1) {
+            checkRegister(dst);
+            checkRegister(op1);
+            inst_.push(_function() { c_[intf](dst, op1); });
+        }
+        public mov(dst, op1) {
+            operate1("mov", dst, op1);
+        }
+        private operate2(intf, dst, op1, op2) {
+            checkRegister(dst);
+            checkRegister(op1);
+            checkRegister(op2);
+            inst_.push(_function() { c_[intf](dst, op1, op2); });
+        }
+        public add(dst, op1, op2) {
+            operate2("add", dst, op1, op2);
+        }
+        public sub(dst, op1, op2) {
+            operate2("sub", dst, op1, op2);
+        }
+        public mul(dst, op1, op2) {
+            operate2("mul", dst, op1, op2);
+        }
+        public call(label) {
+            inst_.push(_function() { c_.call(label); });
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public fastCall(label) {
+            inst_.push(_function() { c_.fastCall(label); });
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public setLabel(target, label) {
+            target.setLabel(label);
+        }
+        public generate() {
+            func_.each(function(f) {
+                var chk = f.chk;
+                var enter = chk.fast
+                    ? _function(reg) {
+                        c_.fastEnter({ R: chk.R, S: chk.S, FR: chk.r, FS: chk.s, local: 0 }, reg);
+                    }
+                    : _function() {
+                        c_.enter({ R: chk.R, S: chk.S, FR: chk.r, FS: chk.s, local: chk.local * 8 });
+                    };
+                f.inst.each(_function(inst) {
+                    inst({ enter: enter });
+                });
+            });
+            repl_.each(&(inst) => {
+                inst();
+            });
+            c_.fix();
+            return new Code(c_);
+        }
+    }
+
+    Jit.Compiler = Compiler;
+
+})();
