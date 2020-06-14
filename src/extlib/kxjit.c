@@ -230,8 +230,8 @@ int Jit_fastEnter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_GET_JIT_CTX(jtx, obj);
 
     kx_obj_t *params = get_arg_obj(2, args, ctx);
-    sljit_set_context(jtx->C, 0,
-        SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),   /* argument type */
+    KX_GET_REGSET(params, jtx->r, jtx->s, jtx->fr, jtx->fs);
+    sljit_set_context(jtx->C, 0, 0,
         jtx->r,     /* scratch  : temporary R0-R*   */
         jtx->s,     /* saved    : safety    S0-S*   */
         jtx->fr,    /* fscratch : temporary FR0-FR* */
