@@ -54,7 +54,7 @@ const Jit;
         }
         public enter() {
             inst_ = [];
-            chk_ = { R: 0, S: 3, r: 0, s: 0, local: 0, entry: label(), fast: false };
+            chk_ = { R: 3, S: 3, r: 0, s: 0, local: 0, entry: label(), fast: false };
             func_.push({ inst: inst_, chk: chk_ });
             inst_.push(_function(callback) { callback.enter(); });
             return chk_.entry;
