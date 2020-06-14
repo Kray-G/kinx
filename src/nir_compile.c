@@ -608,9 +608,9 @@ static void natir_compile_jmp(kx_native_context_t *nctx, kxn_block_t *block, int
 void natir_compile_function(kx_native_context_t *nctx)
 {
     sljit_emit_enter(nctx->C, 0, SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
-        /*scratch*/     6,
-        /*saved*/       6,
-        /*fscratch*/    6,
+        /*scratch*/     4,  /* currently R0 to R3 */
+        /*saved*/       2,  /* currently S0 to S1 */
+        /*fscratch*/    2,  /* currently FR0 to FR1 */
         /*fsaved*/      0,
         /*local*/       (nctx->local_vars * KXN_WDSZ) +         /* Local Variables */
                         KXN_WDSZ +                              /* CallArgsLength */

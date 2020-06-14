@@ -127,6 +127,7 @@ SOFILES = \
     kxsqlite.so \
     kxnet.so \
     kxxml.so \
+    kxjit.so \
     kxprocess.so
 PICOBJS = \
     bign.o \
@@ -190,6 +191,7 @@ install:
 	cp -f kxstring.so /usr/bin/kinxlib/
 	cp -f kxsystem.so /usr/bin/kinxlib/
 	cp -f kxxml.so /usr/bin/kinxlib/
+	cp -f kxjit.so /usr/bin/kinxlib/
 	cp -f kxprocess.so /usr/bin/kinxlib/
 	cp -f libcrypto.so.3 /usr/bin/kinxlib/
 	cp -f libonig.so.5.0.0 /usr/bin/kinxlib/
@@ -251,6 +253,9 @@ kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a lib
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libxml2/include/libxml2 src/extlib/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
 kxprocess.so: src/extlib/kxprocess.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+
+kxjit.so: src/extlib/kxjit.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 libz.so: libz.so.1
