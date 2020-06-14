@@ -175,6 +175,7 @@ install:
 	if [ ! -d /usr/bin/kinxlib ]; then mkdir -p /usr/bin/kinxlib; fi;
 	cp -f ./kinx /usr/bin/kinx
 	cp -rf lib/* /usr/bin/kinxlib/
+	mkdir -p /usr/bin/kinxlib/include
 	cp -f include/libkinx.h /usr/bin/kinxlib/include/libkinx.h
 	cp -f include/fileutil.h /usr/bin/kinxlib/include/fileutil.h
 	cp -f libkx.a /usr/bin/kinxlib/
@@ -256,7 +257,7 @@ kxprocess.so: src/extlib/kxprocess.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxjit.so: src/extlib/kxjit.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(DISASM) ir_aotcore.o
 
 libz.so: libz.so.1
 	ln -s libz.so.1 libz.so
