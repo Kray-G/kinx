@@ -92,15 +92,16 @@ static void usage(void)
     printf("    -D      Display AST.\n");
     printf("    -u      Use UTF8 in standard I/O without converting. (Windows only)\n");
     printf("    -i      Input source code from stdin.\n");
-    printf("\n");
-    printf("Detail controls:\n");
+    printf("    -v, --version\n");
+    printf("            Display the version number.\n");
+    printf("    --exec:spectest\n");
+    printf("            Run SpecTest based on .spectest file under the current directory.\n");
+    printf("    --exec:repl\n");
+    printf("            Run the REPL. This is more useful than -i, and friendly with UTF8.\n");
     printf("    --with-native\n");
     printf("            Use this with -d to dump a compiled native function.\n");
     printf("    --native-call-max-depth\n");
     printf("            Specify the max depth to call a native function. 1024 by default.\n");
-    printf("    --case-threshold\n");
-    printf("            Specify the interval threshold between case's integer value.\n");
-    printf("            16 by default, means the interval within 16 will be in the same block.\n");
 }
 
 static void version(void)
@@ -160,7 +161,10 @@ DllExport int do_main(int ac, char **av)
         switch (opt) {
         case '-':
             get_long_option(optarg, lname, param);
-            if (!strcmp(lname, "native-call-max-depth")) {
+            if (!strcmp(lname, "version")) {
+                version();
+                goto CLEANUP;
+            } else if (!strcmp(lname, "native-call-max-depth")) {
                 ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 1024;
             } else if (!strcmp(lname, "with-native")) {
                 ctx->options.with_native = param[0] ? strtol(param, NULL, 0) : 1;
