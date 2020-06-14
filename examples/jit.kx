@@ -1,0 +1,60 @@
+using Jit;
+
+function runJit(c, ...a) {
+    var code = c.generate();
+    code.dump();
+    var r = code.run(...a);
+    System.println(r);
+}
+
+function jit_001() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.add(Jit.VAR(0), Jit.S0, Jit.S1);
+        c.add(Jit.VAR(0), Jit.VAR(0), Jit.S2);
+        c.add(Jit.VAR(0), Jit.VAR(0), Jit.IMM(100));
+        c.mov(Jit.R0, Jit.IMM(1));
+        c.mov(Jit.R1, Jit.IMM(2));
+        c.mov(Jit.R2, Jit.IMM(3));
+        var call1 = c.call();
+        c.add(Jit.VAR(0), Jit.VAR(0), Jit.R0);
+        c.ret(Jit.VAR(0));
+
+    var entry1 = c.enter();
+        c.ret(Jit.IMM(100));
+
+    var entry2 = c.enter();
+        c.add(Jit.R1, Jit.S0, Jit.S1);
+        c.add(Jit.R1, Jit.R1, Jit.S2);
+        c.call(entry1);
+        c.add(Jit.R0, Jit.R0, Jit.R1);
+        c.ret(Jit.R0);
+
+    c.setLabel(call1, entry2);
+
+    runJit(c, 10, 20, 30);
+}
+
+function jit_002() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.R0, Jit.IMM(100));
+        c.mov(Jit.R1, Jit.IMM(110));
+        c.mov(Jit.R2, Jit.IMM(120));
+        c.mov(Jit.R3, Jit.IMM(130));
+        var c1 = c.fastCall();
+        c.ret(Jit.R0);
+
+    var e1 = c.fastEnter(Jit.R4);
+        c.add(Jit.R0, Jit.R0, Jit.R1);
+        c.add(Jit.R0, Jit.R0, Jit.R2);
+        c.add(Jit.R0, Jit.R0, Jit.R3);
+        c.ret(Jit.R0);
+
+    c1.setLabel(e1);
+
+    runJit(c);
+}
+
+jit_001();
+jit_002();

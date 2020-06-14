@@ -20,6 +20,8 @@ var modules = [
     "libxml2.dll",
     "onig.dll",
     "zlib.dll",
+    "include/libkinx.h",
+    "include/fileutil.h",
     "lib/",
 ];
 

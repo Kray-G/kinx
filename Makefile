@@ -127,6 +127,7 @@ SOFILES = \
     kxsqlite.so \
     kxnet.so \
     kxxml.so \
+    kxjit.so \
     kxprocess.so
 PICOBJS = \
     bign.o \
@@ -174,6 +175,9 @@ install:
 	if [ ! -d /usr/bin/kinxlib ]; then mkdir -p /usr/bin/kinxlib; fi;
 	cp -f ./kinx /usr/bin/kinx
 	cp -rf lib/* /usr/bin/kinxlib/
+	mkdir -p /usr/bin/kinxlib/include
+	cp -f include/libkinx.h /usr/bin/kinxlib/include/libkinx.h
+	cp -f include/fileutil.h /usr/bin/kinxlib/include/fileutil.h
 	cp -f libkx.a /usr/bin/kinxlib/
 	cp -f libkinx.so /usr/bin/kinxlib/
 	cp -f kxarray.so /usr/bin/kinxlib/
@@ -188,6 +192,7 @@ install:
 	cp -f kxstring.so /usr/bin/kinxlib/
 	cp -f kxsystem.so /usr/bin/kinxlib/
 	cp -f kxxml.so /usr/bin/kinxlib/
+	cp -f kxjit.so /usr/bin/kinxlib/
 	cp -f kxprocess.so /usr/bin/kinxlib/
 	cp -f libcrypto.so.3 /usr/bin/kinxlib/
 	cp -f libonig.so.5.0.0 /usr/bin/kinxlib/
@@ -250,6 +255,9 @@ kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a lib
 
 kxprocess.so: src/extlib/kxprocess.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+
+kxjit.so: src/extlib/kxjit.c $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(DISASM) ir_aotcore.o
 
 libz.so: libz.so.1
 	ln -s libz.so.1 libz.so
