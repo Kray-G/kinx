@@ -116,6 +116,24 @@ int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
     return 0; \
 } \
 /**/
+#define KX_JIT_OP0(func, inst) \
+int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
+{ \
+    if (args != 1) { \
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments"); \
+    } \
+    kx_jit_context_t *jtx = NULL; \
+    kx_obj_t *obj = get_arg_obj(1, args, ctx); \
+    KX_GET_JIT_CTX(jtx, obj); \
+    sljit_emit_op0(jtx->C, inst); \
+    if (jtx->C->error != SLJIT_SUCCESS) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT"); \
+    } \
+    KX_ADJST_STACK(); \
+    push_obj(ctx->stack, obj); \
+    return 0; \
+} \
+/**/
 #define KX_JIT_OP1(func, inst) \
 int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 { \
@@ -577,13 +595,28 @@ KX_JIT_CMP(Jit_sig_le, SLJIT_SIG_LESS_EQUAL);
 KX_JIT_CMP(Jit_sig_gt, SLJIT_SIG_GREATER);
 KX_JIT_CMP(Jit_sig_ge, SLJIT_SIG_GREATER_EQUAL);
 
+/* op0 */
+KX_JIT_OP0(Jit_div, SLJIT_DIV_UW);
+KX_JIT_OP0(Jit_sig_div, SLJIT_DIV_SW);
+KX_JIT_OP0(Jit_divmod, SLJIT_DIVMOD_UW);
+KX_JIT_OP0(Jit_sig_divmod, SLJIT_DIVMOD_SW);
+
 /* op1 */
 KX_JIT_OP1(Jit_mov, SLJIT_MOV);
+KX_JIT_OP1(Jit_not, SLJIT_NOT);
+KX_JIT_OP1(Jit_neg, SLJIT_NEG);
+KX_JIT_OP1(Jit_clz, SLJIT_CLZ);
 
 /* op2 */
 KX_JIT_OP2(Jit_add, SLJIT_ADD);
 KX_JIT_OP2(Jit_sub, SLJIT_SUB);
 KX_JIT_OP2(Jit_mul, SLJIT_MUL);
+KX_JIT_OP2(Jit_and, SLJIT_AND);
+KX_JIT_OP2(Jit_or,  SLJIT_OR);
+KX_JIT_OP2(Jit_xor, SLJIT_XOR);
+KX_JIT_OP2(Jit_shl, SLJIT_SHL);
+KX_JIT_OP2(Jit_lshr, SLJIT_LSHR);
+KX_JIT_OP2(Jit_ashr, SLJIT_ASHR);
 
 int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
@@ -632,13 +665,28 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("sig_gt", obj, Jit_sig_gt);
     KEX_SET_METHOD("sig_ge", obj, Jit_sig_ge);
 
+    /* op0 */
+    KEX_SET_METHOD("div", obj, Jit_div);
+    KEX_SET_METHOD("sig_div", obj, Jit_sig_div);
+    KEX_SET_METHOD("divmod", obj, Jit_divmod);
+    KEX_SET_METHOD("sig_divmod", obj, Jit_sig_divmod);
+
     /* op1 */
     KEX_SET_METHOD("mov", obj, Jit_mov);
+    KEX_SET_METHOD("not", obj, Jit_not);
+    KEX_SET_METHOD("neg", obj, Jit_neg);
+    KEX_SET_METHOD("clz", obj, Jit_clz);
 
     /* op2 */
     KEX_SET_METHOD("add", obj, Jit_add);
     KEX_SET_METHOD("sub", obj, Jit_sub);
     KEX_SET_METHOD("mul", obj, Jit_mul);
+    KEX_SET_METHOD("and", obj, Jit_and);
+    KEX_SET_METHOD("or", obj, Jit_or);
+    KEX_SET_METHOD("xor", obj, Jit_xor);
+    KEX_SET_METHOD("shl", obj, Jit_shl);
+    KEX_SET_METHOD("lshr", obj, Jit_lshr);
+    KEX_SET_METHOD("ashr", obj, Jit_ashr);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
