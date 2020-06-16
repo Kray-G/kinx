@@ -24,6 +24,26 @@ typedef struct kx_jit_context_ {
     kvec_pt(sljump_t) jumps;
 } kx_jit_context_t;
 
+static inline int is_int(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        return kv_last_by(*stack, n).type == KX_INT_T;
+    }
+    return 0;
+}
+
+static inline int is_dbl(int n, int args, kx_context_t *ctx)
+{
+    if (args > 0) {
+        kvec_t(kx_val_t) *stack = &(ctx->stack);
+        return kv_last_by(*stack, n).type == KX_INT_T;
+    }
+    return 0;
+}
+#define KX_IS_INT(n) is_int(n, args, ctx)
+#define KX_IS_DBL(n) is_dbl(n, args, ctx)
+
 #define KX_GET_JIT_CTX(r, obj) \
 r = NULL; \
 if (obj) { \
@@ -172,6 +192,52 @@ int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
     int src2, src2w; \
     KX_GET_OP(args, ctx, obj, jtx, src2, src2w, 4); \
     sljit_emit_op2(jtx->C, inst, dst1, dst2, src1, src1w, src2, src2w); \
+    if (jtx->C->error != SLJIT_SUCCESS) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT"); \
+    } \
+    KX_ADJST_STACK(); \
+    push_obj(ctx->stack, obj); \
+    return 0; \
+} \
+/**/
+#define KX_JIT_FOP1(func, inst) \
+int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
+{ \
+    if (args != 3) { \
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments"); \
+    } \
+    kx_jit_context_t *jtx = NULL; \
+    kx_obj_t *obj = get_arg_obj(1, args, ctx); \
+    KX_GET_JIT_CTX(jtx, obj); \
+    int dst1, dst2; \
+    KX_GET_OP(args, ctx, obj, jtx, dst1, dst2, 2); \
+    int src1, src1w; \
+    KX_GET_OP(args, ctx, obj, jtx, src1, src1w, 3); \
+    sljit_emit_fop1(jtx->C, inst, dst1, dst2, src1, src1w); \
+    if (jtx->C->error != SLJIT_SUCCESS) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT"); \
+    } \
+    KX_ADJST_STACK(); \
+    push_obj(ctx->stack, obj); \
+    return 0; \
+} \
+/**/
+#define KX_JIT_FOP2(func, inst) \
+int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
+{ \
+    if (args != 4) { \
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments"); \
+    } \
+    kx_jit_context_t *jtx = NULL; \
+    kx_obj_t *obj = get_arg_obj(1, args, ctx); \
+    KX_GET_JIT_CTX(jtx, obj); \
+    int dst1, dst2; \
+    KX_GET_OP(args, ctx, obj, jtx, dst1, dst2, 2); \
+    int src1, src1w; \
+    KX_GET_OP(args, ctx, obj, jtx, src1, src1w, 3); \
+    int src2, src2w; \
+    KX_GET_OP(args, ctx, obj, jtx, src2, src2w, 4); \
+    sljit_emit_fop2(jtx->C, inst, dst1, dst2, src1, src1w, src2, src2w); \
     if (jtx->C->error != SLJIT_SUCCESS) { \
         KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT"); \
     } \
@@ -554,11 +620,35 @@ int Jit_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     int64_t a1 = get_arg_int(2, args, ctx);
     int64_t a2 = get_arg_int(3, args, ctx);
     int64_t a3 = get_arg_int(4, args, ctx);
-    int (*f)(sljit_sw, sljit_sw, sljit_sw) = (int (*)(sljit_sw, sljit_sw, sljit_sw))jtx->code;
+    int64_t (*f)(sljit_sw, sljit_sw, sljit_sw) = (int64_t (*)(sljit_sw, sljit_sw, sljit_sw))jtx->code;
     int64_t r = f(a1, a2, a3);
 
     KX_ADJST_STACK();
     push_i(ctx->stack, r);
+    return 0;
+}
+
+int Jit_frun(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+
+    if (!jtx->code) {
+        jtx->code = sljit_generate_code(jtx->C);
+        jtx->len = jtx->C->executable_size;
+    }
+    if (!jtx->code) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "No avaliable code in JIT");
+    }
+    int64_t a1 = get_arg_int(2, args, ctx);
+    int64_t a2 = get_arg_int(3, args, ctx);
+    int64_t a3 = get_arg_int(4, args, ctx);
+    double (*f)(sljit_sw, sljit_sw, sljit_sw) = (double (*)(sljit_sw, sljit_sw, sljit_sw))jtx->code;
+    double r = f(a1, a2, a3);
+
+    KX_ADJST_STACK();
+    push_d(ctx->stack, r);
     return 0;
 }
 
@@ -618,6 +708,19 @@ KX_JIT_OP2(Jit_shl, SLJIT_SHL);
 KX_JIT_OP2(Jit_lshr, SLJIT_LSHR);
 KX_JIT_OP2(Jit_ashr, SLJIT_ASHR);
 
+/* fop1 */
+KX_JIT_FOP1(Jit_fmov, SLJIT_MOV_F64);
+KX_JIT_FOP1(Jit_f64_2_sw, SLJIT_CONV_SW_FROM_F64);
+KX_JIT_FOP1(Jit_sw_2_f64, SLJIT_CONV_F64_FROM_SW);
+KX_JIT_FOP1(Jit_fneg, SLJIT_NEG_F64);
+KX_JIT_FOP1(Jit_fabs, SLJIT_ABS_F64);
+
+/* fop2 */
+KX_JIT_FOP2(Jit_fadd, SLJIT_ADD_F64);
+KX_JIT_FOP2(Jit_fsub, SLJIT_SUB_F64);
+KX_JIT_FOP2(Jit_fmul, SLJIT_MUL_F64);
+KX_JIT_FOP2(Jit_fdiv, SLJIT_DIV_F64);
+
 int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_jit_context_t *jtx = kx_calloc(1, sizeof(kx_jit_context_t));
@@ -652,6 +755,7 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("fix", obj, Jit_fix);
     KEX_SET_METHOD("dumpCode", obj, Jit_dump);
     KEX_SET_METHOD("runCode", obj, Jit_run);
+    KEX_SET_METHOD("runCodeDouble", obj, Jit_frun);
 
     /* cmp */
     KEX_SET_METHOD("eq", obj, Jit_eq);
@@ -687,6 +791,19 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("shl", obj, Jit_shl);
     KEX_SET_METHOD("lshr", obj, Jit_lshr);
     KEX_SET_METHOD("ashr", obj, Jit_ashr);
+
+    /* fop1 */
+    KEX_SET_METHOD("fmov", obj, Jit_fmov);
+    KEX_SET_METHOD("f2sw", obj, Jit_f64_2_sw);
+    KEX_SET_METHOD("sw2f", obj, Jit_sw_2_f64);
+    KEX_SET_METHOD("fneg", obj, Jit_fneg);
+    KEX_SET_METHOD("fabs", obj, Jit_fabs);
+
+    /* fop2 */
+    KEX_SET_METHOD("fadd", obj, Jit_fadd);
+    KEX_SET_METHOD("fsub", obj, Jit_fsub);
+    KEX_SET_METHOD("fmul", obj, Jit_fmul);
+    KEX_SET_METHOD("fdiv", obj, Jit_fdiv);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -749,6 +866,9 @@ int Jit_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     kx_obj_t *r = allocate_obj(ctx);
     KEX_PUSH_ARRAY_INT(r, SLJIT_SP);
+    KEX_PUSH_ARRAY_INT(r, 0);
+    KEX_PUSH_ARRAY_INT(r, 'P');
+    KEX_PUSH_ARRAY_INT(r, 0);
     KEX_SET_PROP_OBJ(obj, "SP", r);
 
     KX_ADJST_STACK();
