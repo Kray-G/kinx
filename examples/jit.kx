@@ -93,7 +93,9 @@ function jit_004() {
 function jit_005() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.VAR(4), Jit.IMM(0));
+        c.mov(Jit.R1, Jit.IMM(-1));
+        var jump0 = c.slt(Jit.S0, Jit.IMM(0));
+        var jump1 = c.sgt(Jit.S0, Jit.IMM(3));
         var const0 = c.makeConst(Jit.VAR(0));
         var const1 = c.makeConst(Jit.VAR(1));
         var const2 = c.makeConst(Jit.VAR(2));
@@ -112,7 +114,11 @@ function jit_005() {
         c.ret(Jit.R1);
         var l3 = c.label();
         c.mov(Jit.R1, Jit.IMM(105));
+        var l4 = c.label();
         c.ret(Jit.R1);
+
+    jump0.setLabel(l4);
+    jump1.setLabel(l4);
 
     var code = c.generate();
     const0.setLabel(l0);
@@ -121,13 +127,52 @@ function jit_005() {
     const3.setLabel(l3);
     code.dump();
 
-    for (var i = 0; i < 4; ++i) {
+    for (var i = -1; i < 5; ++i) {
         var r = code.run(i);
         System.println(r);
     }
 }
 
 function jit_006() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.VAR(4), Jit.IMM(0));
+        var jump0 = c.eq(Jit.S0, Jit.IMM(0));
+        var jump1 = c.eq(Jit.S0, Jit.IMM(1));
+        var jump2 = c.eq(Jit.S0, Jit.IMM(2));
+        var jump3 = c.eq(Jit.S0, Jit.IMM(3));
+        c.mov(Jit.R1, Jit.IMM(-1));
+        var jump4 = c.jmp();
+        var l0 = c.label();
+        c.mov(Jit.R1, Jit.IMM(102));
+        c.ret(Jit.R1);
+        var l1 = c.label();
+        c.mov(Jit.R1, Jit.IMM(103));
+        c.ret(Jit.R1);
+        var l2 = c.label();
+        c.mov(Jit.R1, Jit.IMM(104));
+        c.ret(Jit.R1);
+        var l3 = c.label();
+        c.mov(Jit.R1, Jit.IMM(105));
+        var l4 = c.label();
+        c.ret(Jit.R1);
+
+    jump0.setLabel(l0);
+    jump1.setLabel(l1);
+    jump2.setLabel(l2);
+    jump3.setLabel(l3);
+    jump4.setLabel(l4);
+
+    var code = c.generate();
+    code.dump();
+
+    for (var i = -1; i < 5; ++i) {
+        var r = code.run(i);
+        System.println(r);
+    }
+}
+
+function jit_007() {
     var c = new Jit.Compiler();
     c.enter();
         c.mov(Jit.R0, Jit.IMM(100));
@@ -151,9 +196,39 @@ function jit_006() {
     }
 }
 
+
+function jit_008() {
+    # Fibonacci.
+    var c = new Jit.Compiler();
+    var entry1 = c.enter();
+        var jump0 = c.ge(Jit.S0, Jit.IMM(3));
+        c.ret(Jit.S0);
+        var l1 = c.label();
+        c.sub(Jit.R0, Jit.S0, Jit.IMM(2));
+        c.call(entry1);
+        c.mov(Jit.S1, Jit.R0);
+        c.sub(Jit.R0, Jit.S0, Jit.IMM(1));
+        c.call(entry1);
+        c.add(Jit.R0, Jit.R0, Jit.S1);
+        c.ret(Jit.R0);
+
+    jump0.setLabel(l1);
+
+    var code = c.generate();
+    code.dump();
+
+    for (var i = 1; i <= 42; ++i) {
+        var tmr = new SystemTimer();
+        var r = code.run(i);
+        System.println("[%8.3f] fib(%2d) = %d" % tmr.elapsed() % i % r);
+    }
+}
+
 jit_001();
 jit_002();
 jit_003();
 jit_004();
 jit_005();
 jit_006();
+jit_007();
+jit_008();
