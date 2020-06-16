@@ -196,8 +196,20 @@ function jit_007() {
     }
 }
 
-
 function jit_008() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.FR1, Jit.S0);
+        c.ret(Jit.FR1);
+
+    var code = c.generate();
+    code.dump();
+
+    var r = code.frun(3);
+    System.println("%f" % r);
+}
+
+function jit_fib() {
     # Fibonacci.
     var c = new Jit.Compiler();
     var entry1 = c.enter();
@@ -232,3 +244,4 @@ jit_005();
 jit_006();
 jit_007();
 jit_008();
+# jit_fib();
