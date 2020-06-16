@@ -4,9 +4,9 @@ const Jit;
     Jit = JitCompiler.setup();
 
     Jit.MEM = 0x80;
-    Jit.MEM0 = _function(r1, offset) { return [Jit.MEM, offset]; };
-    Jit.MEM1 = _function(r1, offset, isV) { return [(Jit.MEM | (r1)), offset, isV]; };
-    Jit.MEM2 = _function(r1, r2, offset) { return [(Jit.MEM | (r1) | ((r2) << 8)), offset]; };
+    Jit.MEM0 = _function(offset) { return [Jit.MEM, offset ?? 0]; };
+    Jit.MEM1 = _function(r1, offset, isV) { return [(Jit.MEM | (r1[0])), offset ?? 0, isV]; };
+    Jit.MEM2 = _function(r1, r2, offset) { return [(Jit.MEM | (r1[0]) | ((r2[0]) << 8)), offset ?? 0]; };
     Jit.IMM = _function(v) { return [0x40, v]; };
     Jit.VAR = _function(n) { return Jit.MEM1(Jit.SP, n * 8, "local"); };
 
@@ -25,11 +25,23 @@ const Jit;
         }
     }
 
+    _class ConstTarget(c_, i_) {
+        public setLabel(label) {
+            if (!c_.fixed) {
+                throw RuntimeException("Setting a const value should be after generated a code");
+            }
+            c_.setConstByLabel(i_, label);
+        }
+    }
+
     _class Compiler() {
         var c_ = new JitCompiler();
         var func_ = [], repl_ = [];
-        var chk_, inst_, label_ = 0, jump_ = 0;
+        var chk_, inst_, label_ = 0, jump_ = 0, const_ = 0;
         private checkRegister(op) {
+            if (op.isUndefined || !op.isArray) {
+                return;
+            }
             if (op.length() <= 2) {
                 return;
             }
@@ -51,6 +63,21 @@ const Jit;
         public label() {
             inst_.push(_function() { c_.label(); });
             return label_++;
+        }
+        public makeConst(reg, init) {
+            checkRegister(reg);
+            checkRegister(init);
+            inst_.push(_function() { c_.makeConst(reg, init ?? 0); });
+            return new ConstTarget(c_, const_++);
+        }
+        public localp(dst, offset) {
+            checkRegister(dst);
+            if (offset.isUndefined || offset.isInteger) {
+                inst_.push(_function() { c_.getLocalAddress(dst, offset ?? 0); });
+            } else {
+                checkRegister(offset);
+                inst_.push(_function() { c_.getLocalAddressBy(dst, offset); });
+            }
         }
         public enter() {
             inst_ = [];
@@ -109,8 +136,58 @@ const Jit;
             inst_.push(_function() { c_.fastCall(label); });
             return new JumpTarget(c_, repl_, jump_++);
         }
-        public setLabel(target, label) {
-            target.setLabel(label);
+        public jmp(label) {
+            inst_.push(_function() { c_.jump(label); });
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public ijmp(dst) {
+            checkRegister(dst);
+            inst_.push(_function() { c_.ijump(dst); });
+        }
+        private operateCmp(intf, op1, op2) {
+            checkRegister(op1);
+            checkRegister(op2);
+            inst_.push(_function() { c_[intf](op1, op2); });
+        }
+        public eq(op1, op2) {
+            operateCmp("eq", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public neq(op1, op2) {
+            operateCmp("neq", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public lt(op1, op2) {
+            operateCmp("lt", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public le(op1, op2) {
+            operateCmp("le", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public gt(op1, op2) {
+            operateCmp("gt", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public ge(op1, op2) {
+            operateCmp("ge", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public siglt(op1, op2) {
+            operateCmp("sig_lt", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public sigle(op1, op2) {
+            operateCmp("sig_le", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public siggt(op1, op2) {
+            operateCmp("sig_gt", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public sigge(op1, op2) {
+            operateCmp("sig_ge", op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
         }
         public generate() {
             func_.each(function(f) {
@@ -130,6 +207,7 @@ const Jit;
                 inst();
             });
             c_.fix();
+            c_.fixed = true;
             return new Code(c_);
         }
     }
