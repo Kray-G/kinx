@@ -10,12 +10,18 @@ const Jit;
     Jit.IMM = _function(v) { return [0x40, v]; };
     Jit.VAR = _function(n) { return Jit.MEM1(Jit.SP, n * 8, "local"); };
 
+    Jit.isFP["r"[0]] = true;
+    Jit.isFP["s"[0]] = true;
+
     _class Code(c_) {
         public dump() {
             return c_.dumpCode();
         }
         public run(a, b, c) {
             return c_.runCode(a, b, c);
+        }
+        public frun(a, b, c) {
+            return c_.runCodeDouble(a, b, c);
         }
     }
 
@@ -45,7 +51,7 @@ const Jit;
             if (op.length() <= 2) {
                 return;
             }
-            var key = op[2];
+            var key = op[2] ?? 0;
             var n = op[3];
             if (key.isString && key == "local") {
                 var index = op[1];
@@ -72,6 +78,9 @@ const Jit;
         }
         public localp(dst, offset) {
             checkRegister(dst);
+            if (Jit.isFP[dst[3]]) {
+                throw RuntimeException("Can not use a floating point register");
+            }
             if (offset.isUndefined || offset.isInteger) {
                 inst_.push(_function() { c_.getLocalAddress(dst, offset ?? 0); });
             } else {
@@ -97,12 +106,19 @@ const Jit;
         public ret(val) {
             checkRegister(val);
             if (chk_.fast) {
-                if (Jit.R0[0] != val[0] || Jit.R0[1] != val[1]) {
+                if (Jit.isFP[val[2] ?? 0]) {
+                    inst_.push(_function() { c_.fmov(Jit.FR0, val); });
+                } else if (Jit.R0[0] != val[0] || Jit.R0[1] != val[1]) {
                     inst_.push(_function() { c_.mov(Jit.R0, val); });
                 }
                 inst_.push(_function() { c_.fastRet(chk_.reg); });
             } else {
-                inst_.push(_function() { c_.ret(val); });
+                if (Jit.isFP[val[2] ?? 0]) {
+                    inst_.push(_function() { c_.fmov(Jit.FR0, val); });
+                    inst_.push(_function() { c_.ret(Jit.R0); });
+                } else {
+                    inst_.push(_function() { c_.ret(val); });
+                }
             }
         }
         public div() { # (unsigned) Jit.R0 / Jit.R1 => Jit.R0
@@ -123,7 +139,15 @@ const Jit;
             inst_.push(_function() { c_[intf](dst, op1); });
         }
         public mov(dst, op1) {
-            operate1("mov", dst, op1);
+            if (Jit.isFP[dst[2] ?? 0] && Jit.isFP[op1[2] ?? 0]) {
+                operate1("fmov", dst, op1);
+            } else if (Jit.isFP[dst[2] ?? 0] && !Jit.isFP[op1[2] ?? 0]) {
+                operate1("sw2f", dst, op1);
+            } else if (!Jit.isFP[dst[2] ?? 0] && Jit.isFP[op1[2] ?? 0]) {
+                operate1("f2sw", dst, op1);
+            } else {
+                operate1("mov", dst, op1);
+            }
         }
         public not(dst, op1) {
             operate1("not", dst, op1);
