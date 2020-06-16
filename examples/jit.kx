@@ -131,18 +131,24 @@ function jit_006() {
     var c = new Jit.Compiler();
     c.enter();
         c.mov(Jit.R0, Jit.IMM(100));
-        var jump1 = c.sigge(Jit.R0, Jit.IMM(100));
+        var jump1 = c.sge(Jit.S0, Jit.R0);
         c.ret(Jit.IMM(0));
         var l1 = c.label();
-        c.ret(Jit.IMM(1));
+        c.mov(Jit.R0, Jit.IMM(9));
+        c.neg(Jit.R0, Jit.R0);
+        c.mov(Jit.R1, Jit.IMM(2));
+        c.divmod();
+        c.ret(Jit.R1);
 
     jump1.setLabel(l1);
 
     var code = c.generate();
     code.dump();
 
-    var r = code.run();
-    System.println(r);
+    for (var i = 99; i <= 101; ++i) {
+        var r = code.run(i);
+        System.println("%x" % r);
+    }
 }
 
 jit_001();
