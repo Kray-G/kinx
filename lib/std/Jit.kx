@@ -105,6 +105,18 @@ const Jit;
                 inst_.push(_function() { c_.ret(val); });
             }
         }
+        public div() { # (unsigned) Jit.R0 / Jit.R1 => Jit.R0
+            inst_.push(_function() { c_.div(); });
+        }
+        public sdiv() { # (signed) Jit.R0 / Jit.R1 => Jit.R0
+            inst_.push(_function() { c_.sig_div(); });
+        }
+        public divmod() { # (unsigned) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
+            inst_.push(_function() { System.println("divmod"); c_.divmod(); });
+        }
+        public sdivmod() { # (signed) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
+            inst_.push(_function() { c_.sig_divmod(); });
+        }
         private operate1(intf, dst, op1) {
             checkRegister(dst);
             checkRegister(op1);
@@ -112,6 +124,15 @@ const Jit;
         }
         public mov(dst, op1) {
             operate1("mov", dst, op1);
+        }
+        public not(dst, op1) {
+            operate1("not", dst, op1);
+        }
+        public neg(dst, op1) {
+            operate1("neg", dst, op1);
+        }
+        public clz(dst, op1) {
+            operate1("clz", dst, op1);
         }
         private operate2(intf, dst, op1, op2) {
             checkRegister(dst);
@@ -127,6 +148,24 @@ const Jit;
         }
         public mul(dst, op1, op2) {
             operate2("mul", dst, op1, op2);
+        }
+        public and(dst, op1, op2) {
+            operate2("and", dst, op1, op2);
+        }
+        public or(dst, op1, op2) {
+            operate2("or", dst, op1, op2);
+        }
+        public xor(dst, op1, op2) {
+            operate2("xor", dst, op1, op2);
+        }
+        public shl(dst, op1, op2) {
+            operate2("shl", dst, op1, op2);
+        }
+        public lshr(dst, op1, op2) {
+            operate2("lshr", dst, op1, op2);
+        }
+        public ashr(dst, op1, op2) {
+            operate2("ashr", dst, op1, op2);
         }
         public call(label) {
             inst_.push(_function() { c_.call(label); });
@@ -173,19 +212,19 @@ const Jit;
             operateCmp("ge", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
-        public siglt(op1, op2) {
+        public slt(op1, op2) {
             operateCmp("sig_lt", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
-        public sigle(op1, op2) {
+        public sle(op1, op2) {
             operateCmp("sig_le", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
-        public siggt(op1, op2) {
+        public sgt(op1, op2) {
             operateCmp("sig_gt", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
-        public sigge(op1, op2) {
+        public sge(op1, op2) {
             operateCmp("sig_ge", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
