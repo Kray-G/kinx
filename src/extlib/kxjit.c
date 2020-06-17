@@ -7,7 +7,6 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
-const SW_SW_SW = (SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW));
 #define KX_ARGTYPE_SW_SW_SW ((1 << 4) | (1 << 8) | (1 << 12))
 #define KX_ARGTYPE_SW_SW_UW ((1 << 4) | (1 << 8) | (2 << 12))
 #define KX_ARGTYPE_SW_SW_FP ((1 << 4) | (1 << 8) | (6 << 12))
