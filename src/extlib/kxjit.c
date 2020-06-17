@@ -7,6 +7,35 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
+const SW_SW_SW = (SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW));
+#define KX_ARGTYPE_SW_SW_SW ((1 << 4) | (1 << 8) | (1 << 12))
+#define KX_ARGTYPE_SW_SW_UW ((1 << 4) | (1 << 8) | (2 << 12))
+#define KX_ARGTYPE_SW_SW_FP ((1 << 4) | (1 << 8) | (6 << 12))
+#define KX_ARGTYPE_SW_UW_SW ((1 << 4) | (2 << 8) | (1 << 12))
+#define KX_ARGTYPE_SW_UW_UW ((1 << 4) | (2 << 8) | (2 << 12))
+#define KX_ARGTYPE_SW_UW_FP ((1 << 4) | (2 << 8) | (6 << 12))
+#define KX_ARGTYPE_SW_FP_SW ((1 << 4) | (6 << 8) | (1 << 12))
+#define KX_ARGTYPE_SW_FP_UW ((1 << 4) | (6 << 8) | (2 << 12))
+#define KX_ARGTYPE_SW_FP_FP ((1 << 4) | (6 << 8) | (6 << 12))
+#define KX_ARGTYPE_UW_SW_SW ((2 << 4) | (1 << 8) | (1 << 12))
+#define KX_ARGTYPE_UW_SW_UW ((2 << 4) | (1 << 8) | (2 << 12))
+#define KX_ARGTYPE_UW_SW_FP ((2 << 4) | (1 << 8) | (6 << 12))
+#define KX_ARGTYPE_UW_UW_SW ((2 << 4) | (2 << 8) | (1 << 12))
+#define KX_ARGTYPE_UW_UW_UW ((2 << 4) | (2 << 8) | (2 << 12))
+#define KX_ARGTYPE_UW_UW_FP ((2 << 4) | (2 << 8) | (6 << 12))
+#define KX_ARGTYPE_UW_FP_SW ((2 << 4) | (6 << 8) | (1 << 12))
+#define KX_ARGTYPE_UW_FP_UW ((2 << 4) | (6 << 8) | (2 << 12))
+#define KX_ARGTYPE_UW_FP_FP ((2 << 4) | (6 << 8) | (6 << 12))
+#define KX_ARGTYPE_FP_SW_SW ((6 << 4) | (1 << 8) | (1 << 12))
+#define KX_ARGTYPE_FP_SW_UW ((6 << 4) | (1 << 8) | (2 << 12))
+#define KX_ARGTYPE_FP_SW_FP ((6 << 4) | (1 << 8) | (6 << 12))
+#define KX_ARGTYPE_FP_UW_SW ((6 << 4) | (2 << 8) | (1 << 12))
+#define KX_ARGTYPE_FP_UW_UW ((6 << 4) | (2 << 8) | (2 << 12))
+#define KX_ARGTYPE_FP_UW_FP ((6 << 4) | (2 << 8) | (6 << 12))
+#define KX_ARGTYPE_FP_FP_SW ((6 << 4) | (6 << 8) | (1 << 12))
+#define KX_ARGTYPE_FP_FP_UW ((6 << 4) | (6 << 8) | (2 << 12))
+#define KX_ARGTYPE_FP_FP_FP ((6 << 4) | (6 << 8) | (6 << 12))
+
 typedef struct sljit_const slconst_t;
 typedef struct sljit_jump sljump_t;
 typedef struct sljit_label sllabel_t;
@@ -17,7 +46,7 @@ kvec_init_pt(sljump_t);
 typedef struct kx_jit_context_ {
     struct sljit_compiler *C;
     void *code;
-    int r, s, fr, fs, local;
+    int r, s, fr, fs, local, argtype;
     int len;
     kvec_pt(slconst_t) consts;
     kvec_pt(sllabel_t) labels;
@@ -77,13 +106,23 @@ if (obj) { \
     KX_GET_OPX_INT(op2, op, 1); \
 } \
 /**/
-#define KX_GET_LOCAL(obj, local) \
-kx_val_t *locval = NULL; \
-KEX_GET_PROP(locval, obj, "local"); \
-if (!locval || !(locval->type == KX_INT_T || locval->type == KX_DBL_T)) { \
-    KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid register information"); \
+#define KX_GET_LOCAL(obj, local) { \
+    kx_val_t *locval = NULL; \
+    KEX_GET_PROP(locval, obj, "local"); \
+    if (!locval || !(locval->type == KX_INT_T || locval->type == KX_DBL_T)) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid register information"); \
+    } \
+    local = (locval->type == KX_INT_T) ? (int)locval->value.iv : (int)(locval->value.dv); \
 } \
-local = (locval->type == KX_INT_T) ? (int)locval->value.iv : (int)(locval->value.dv); \
+/**/
+#define KX_GET_ARGTYPE(obj, argtype) { \
+    kx_val_t *atval = NULL; \
+    KEX_GET_PROP(atval, obj, "argType"); \
+    if (!atval || atval->type != KX_INT_T) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid register information"); \
+    } \
+    argtype = (int)atval->value.iv; \
+} \
 /**/
 #define KX_GET_REGSET(obj, r, s, fr, fs) \
 if (!obj) { \
@@ -200,6 +239,27 @@ int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
     return 0; \
 } \
 /**/
+#define KX_JIT_FCMP(func, cmp1) \
+int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
+{ \
+    kx_jit_context_t *jtx = NULL; \
+    kx_obj_t *obj = get_arg_obj(1, args, ctx); \
+    KX_GET_JIT_CTX(jtx, obj); \
+    int src1, src1w; \
+    KX_GET_OP(args, ctx, obj, jtx, src1, src1w, 2); \
+    int src2, src2w; \
+    KX_GET_OP(args, ctx, obj, jtx, src2, src2w, 3); \
+	sljump_t *jump = sljit_emit_fcmp(jtx->C, cmp1, src1, src1w, src2, src2w); \
+    int i = kv_size(jtx->jumps); \
+    kv_push(sljump_t*, jtx->jumps, jump); \
+    if (jtx->C->error != SLJIT_SUCCESS) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT"); \
+    } \
+    KX_ADJST_STACK(); \
+    push_i(ctx->stack, i); \
+    return 0; \
+} \
+/**/
 #define KX_JIT_FOP1(func, inst) \
 int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 { \
@@ -290,10 +350,14 @@ static void kx_jit_free(void *p)
         if (jtx->code) {
             sljit_free_code(jtx->code);
         }
+        kv_destroy(jtx->consts);
+        kv_destroy(jtx->labels);
+        kv_destroy(jtx->jumps);
         kx_free(jtx);
     }
 }
 
+#define SLJIT_DEF_MASK ((1 << SLJIT_DEF_SHIFT) - 1)
 int Jit_enter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_jit_context_t *jtx = NULL;
@@ -303,14 +367,44 @@ int Jit_enter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_obj_t *params = get_arg_obj(2, args, ctx);
     KX_GET_REGSET(params, jtx->r, jtx->s, jtx->fr, jtx->fs);
     KX_GET_LOCAL(params, jtx->local);
+    KX_GET_ARGTYPE(params, jtx->argtype);
+
+    int fs_count = 0;
+    sljit_s32 types = (jtx->argtype >> SLJIT_DEF_SHIFT);
+    sljit_s32 arg_count = 0;
+    while (types != 0 && arg_count < 3) {
+        sljit_s32 curr_type = (types & SLJIT_DEF_MASK);
+        if (curr_type == SLJIT_ARG_TYPE_F64) {
+            ++fs_count;
+        }
+        arg_count++;
+        types >>= SLJIT_DEF_SHIFT;
+    }
+
+    jtx->fs = jtx->fs < fs_count ? fs_count : jtx->fs;
     sljit_emit_enter(jtx->C, 0,
-        SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),   /* argument type */
-        jtx->r,     /* scratch  : temporary R0-R*   */
-        jtx->s,     /* saved    : safety    S0-S*   */
-        jtx->fr,    /* fscratch : temporary FR0-FR* */
-        jtx->fs,    /* fsaved   : safety    FS0-FS* */
-        jtx->local  /* local    :                   */
+        KX_ARGTYPE_SW_SW_SW,    /* argument type                */
+        jtx->r,                 /* scratch  : temporary R0-R*   */
+        jtx->s,                 /* saved    : safety    S0-S*   */
+        jtx->fr,                /* fscratch : temporary FR0-FR* */
+        jtx->fs,                /* fsaved   : safety    FS0-FS* */
+        jtx->local + (3 * 8)    /* local    :                   */
     );
+    sljit_s32 sr[] = { SLJIT_S0, SLJIT_S1, SLJIT_S2 };
+    sljit_s32 fr[] = { SLJIT_FS0, SLJIT_FS1, SLJIT_FS2 };
+    types = (jtx->argtype >> SLJIT_DEF_SHIFT);
+    arg_count = 0;
+    while (types != 0 && arg_count < 3) {
+        sljit_s32 curr_type = (types & SLJIT_DEF_MASK);
+        if (curr_type == SLJIT_ARG_TYPE_F64) {
+            if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= arg_count) {
+                sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, SLJIT_MEM1(SLJIT_SP), jtx->local + (arg_count * 8), fr[arg_count], 0);
+            }
+            sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, fr[arg_count], 0, SLJIT_MEM1(sr[arg_count]), 0);
+        }
+        arg_count++;
+        types >>= SLJIT_DEF_SHIFT;
+    }
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -325,6 +419,20 @@ int Jit_ret(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     int src1, src1w;
     KX_GET_OP(args, ctx, obj, jtx, src1, src1w, 2);
+
+    sljit_s32 fr[] = { SLJIT_FS0, SLJIT_FS1, SLJIT_FS2 };
+    sljit_s32 types = (jtx->argtype >> SLJIT_DEF_SHIFT);
+    sljit_s32 arg_count = 0;
+    while (types != 0 && arg_count < 3) {
+        sljit_s32 curr_type = (types & SLJIT_DEF_MASK);
+        if (curr_type == SLJIT_ARG_TYPE_F64) {
+            if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= arg_count) {
+                sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, fr[arg_count], 0, SLJIT_MEM1(SLJIT_SP), jtx->local + (arg_count * 8));
+            }
+        }
+        arg_count++;
+        types >>= SLJIT_DEF_SHIFT;
+    }
 
     sljit_emit_return(jtx->C, SLJIT_MOV, src1, src1w);
     if (jtx->C->error != SLJIT_SUCCESS) {
@@ -604,53 +712,75 @@ int Jit_fix(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Jit_run(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    kx_jit_context_t *jtx = NULL;
-    kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_GET_JIT_CTX(jtx, obj);
+#define sljit_sw_param(t) t
+#define sljit_uw_param(t) t
+#define sljit_f64_param(t) (sljit_sw)&t
+#define sljit_sw_getter (sljit_sw)get_arg_int
+#define sljit_uw_getter (sljit_uw)get_arg_int
+#define sljit_f64_getter (sljit_f64)get_arg_dbl
+#define KX_ARG_GETTER(type) type##_getter
+#define KX_ARG_PARAM(type,t) type##_param(t)
+#define KX_JIT_RUN_PARAM(argtype, type, t1, t2, t3, r, push) \
+case argtype: { \
+    t1 a1 = KX_ARG_GETTER(t1)(2, args, ctx); \
+    t2 a2 = KX_ARG_GETTER(t2)(3, args, ctx); \
+    t3 a3 = KX_ARG_GETTER(t3)(4, args, ctx); \
+    typedef type (*func_t)(sljit_sw, sljit_sw, sljit_sw); \
+    func_t f = (func_t)jtx->code; \
+    type r = f(KX_ARG_PARAM(t1,a1), KX_ARG_PARAM(t2,a2), KX_ARG_PARAM(t3,a3)); \
+    KX_ADJST_STACK(); \
+    push; \
+    break; \
+} \
+/**/
+#define KX_JIT_RUN(func, type, r, push) \
+int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
+{ \
+    kx_jit_context_t *jtx = NULL; \
+    kx_obj_t *obj = get_arg_obj(1, args, ctx); \
+    KX_GET_JIT_CTX(jtx, obj); \
+    if (!jtx->code) { \
+        jtx->code = sljit_generate_code(jtx->C); \
+        jtx->len = jtx->C->executable_size; \
+    } \
+    if (!jtx->code) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "No avaliable code in JIT"); \
+    } \
+    switch (jtx->argtype) { \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_SW_SW, type, sljit_sw, sljit_sw, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_SW_UW, type, sljit_sw, sljit_sw, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_SW_FP, type, sljit_sw, sljit_sw, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_UW_SW, type, sljit_sw, sljit_uw, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_UW_UW, type, sljit_sw, sljit_uw, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_UW_FP, type, sljit_sw, sljit_uw, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_FP_SW, type, sljit_sw, sljit_f64, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_FP_UW, type, sljit_sw, sljit_f64, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_SW_FP_FP, type, sljit_sw, sljit_f64, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_SW_SW, type, sljit_uw, sljit_sw, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_SW_UW, type, sljit_uw, sljit_sw, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_SW_FP, type, sljit_uw, sljit_sw, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_UW_SW, type, sljit_uw, sljit_uw, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_UW_UW, type, sljit_uw, sljit_uw, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_UW_FP, type, sljit_uw, sljit_uw, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_FP_SW, type, sljit_uw, sljit_f64, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_FP_UW, type, sljit_uw, sljit_f64, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_UW_FP_FP, type, sljit_uw, sljit_f64, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_SW_SW, type, sljit_f64, sljit_sw, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_SW_UW, type, sljit_f64, sljit_sw, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_SW_FP, type, sljit_f64, sljit_sw, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_UW_SW, type, sljit_f64, sljit_uw, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_UW_UW, type, sljit_f64, sljit_uw, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_UW_FP, type, sljit_f64, sljit_uw, sljit_f64, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_FP_SW, type, sljit_f64, sljit_f64, sljit_sw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_FP_UW, type, sljit_f64, sljit_f64, sljit_uw, r, push); \
+    KX_JIT_RUN_PARAM(KX_ARGTYPE_FP_FP_FP, type, sljit_f64, sljit_f64, sljit_f64, r, push); \
+    } \
+    return 0; \
+} \
+/**/
 
-    if (!jtx->code) {
-        jtx->code = sljit_generate_code(jtx->C);
-        jtx->len = jtx->C->executable_size;
-    }
-    if (!jtx->code) {
-        KX_THROW_BLTIN_EXCEPTION("JitException", "No avaliable code in JIT");
-    }
-    int64_t a1 = get_arg_int(2, args, ctx);
-    int64_t a2 = get_arg_int(3, args, ctx);
-    int64_t a3 = get_arg_int(4, args, ctx);
-    int64_t (*f)(sljit_sw, sljit_sw, sljit_sw) = (int64_t (*)(sljit_sw, sljit_sw, sljit_sw))jtx->code;
-    int64_t r = f(a1, a2, a3);
-
-    KX_ADJST_STACK();
-    push_i(ctx->stack, r);
-    return 0;
-}
-
-int Jit_frun(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    kx_jit_context_t *jtx = NULL;
-    kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_GET_JIT_CTX(jtx, obj);
-
-    if (!jtx->code) {
-        jtx->code = sljit_generate_code(jtx->C);
-        jtx->len = jtx->C->executable_size;
-    }
-    if (!jtx->code) {
-        KX_THROW_BLTIN_EXCEPTION("JitException", "No avaliable code in JIT");
-    }
-    int64_t a1 = get_arg_int(2, args, ctx);
-    int64_t a2 = get_arg_int(3, args, ctx);
-    int64_t a3 = get_arg_int(4, args, ctx);
-    double (*f)(sljit_sw, sljit_sw, sljit_sw) = (double (*)(sljit_sw, sljit_sw, sljit_sw))jtx->code;
-    double r = f(a1, a2, a3);
-
-    KX_ADJST_STACK();
-    push_d(ctx->stack, r);
-    return 0;
-}
+KX_JIT_RUN(Jit_run, int64_t, r, push_i(ctx->stack, r));
+KX_JIT_RUN(Jit_frun, double, r, push_d(ctx->stack, r));
 
 int Jit_dump(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
@@ -707,6 +837,14 @@ KX_JIT_OP2(Jit_xor, SLJIT_XOR);
 KX_JIT_OP2(Jit_shl, SLJIT_SHL);
 KX_JIT_OP2(Jit_lshr, SLJIT_LSHR);
 KX_JIT_OP2(Jit_ashr, SLJIT_ASHR);
+
+/* fcmp */
+KX_JIT_FCMP(Jit_feq, SLJIT_EQUAL_F64);
+KX_JIT_FCMP(Jit_fneq, SLJIT_NOT_EQUAL_F64);
+KX_JIT_FCMP(Jit_flt, SLJIT_LESS_F64);
+KX_JIT_FCMP(Jit_fle, SLJIT_LESS_EQUAL_F64);
+KX_JIT_FCMP(Jit_fgt, SLJIT_GREATER_F64);
+KX_JIT_FCMP(Jit_fge, SLJIT_GREATER_EQUAL_F64);
 
 /* fop1 */
 KX_JIT_FOP1(Jit_fmov, SLJIT_MOV_F64);
@@ -791,6 +929,14 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("shl", obj, Jit_shl);
     KEX_SET_METHOD("lshr", obj, Jit_lshr);
     KEX_SET_METHOD("ashr", obj, Jit_ashr);
+
+    /* fcmp */
+    KEX_SET_METHOD("feq", obj, Jit_feq);
+    KEX_SET_METHOD("fneq", obj, Jit_fneq);
+    KEX_SET_METHOD("flt", obj, Jit_flt);
+    KEX_SET_METHOD("fle", obj, Jit_fle);
+    KEX_SET_METHOD("fgt", obj, Jit_fgt);
+    KEX_SET_METHOD("fge", obj, Jit_fge);
 
     /* fop1 */
     KEX_SET_METHOD("fmov", obj, Jit_fmov);

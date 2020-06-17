@@ -199,13 +199,39 @@ function jit_007() {
 function jit_008() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.FR1, Jit.S0);
-        c.ret(Jit.FR1);
+        c.mov(Jit.FR1, Jit.IMM(100));
+        c.add(Jit.S0, Jit.S0, Jit.IMM(100));
+        c.i2f(Jit.FR2, Jit.S0);
+        var jump1 = c.lt(Jit.FR1, Jit.FR2);
+        c.ret(Jit.IMM(-1));
+        var l1 = c.label();
+        c.mov(Jit.R1, Jit.S0);
+        c.f2i(Jit.R2, Jit.FR1);
+        c.add(Jit.R1, Jit.R1, Jit.R2);
+        c.i2f(Jit.FR0, Jit.R1);
+        c.ret(Jit.R1);
+
+    jump1.setLabel(l1);
 
     var code = c.generate();
     code.dump();
 
-    var r = code.frun(3);
+    var r = code.frun(4);
+    System.println("%f" % r);
+}
+
+function jit_009() {
+    var c = new Jit.Compiler();
+    c.enter(Jit.ArgType.FP_FP_FP);
+        c.mov(Jit.VAR(3), Jit.IMM(100));
+        c.add(Jit.FR0, Jit.FS0, Jit.FS1);
+        c.add(Jit.FR0, Jit.FR0, Jit.FS2);
+        c.ret(Jit.FR0);
+
+    var code = c.generate();
+    code.dump();
+
+    var r = code.frun(0.5, 1.5, 9.5);
     System.println("%f" % r);
 }
 
@@ -244,4 +270,5 @@ jit_005();
 jit_006();
 jit_007();
 jit_008();
+jit_009();
 # jit_fib();
