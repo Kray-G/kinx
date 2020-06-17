@@ -30,7 +30,7 @@ function jit_001() {
         c.add(Jit.R0, Jit.R0, Jit.R1);
         c.ret(Jit.R0);
 
-    c.setLabel(call1, entry2);
+    call1.setLabel(entry2);
 
     runJit(c, 10, 20, 30);
 }
@@ -56,5 +56,219 @@ function jit_002() {
     runJit(c);
 }
 
+function jit_003() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.R0, Jit.IMM(100));
+        var j1 = c.jmp();
+        c.ret(Jit.R0);
+        var l1 = c.label();
+        c.mov(Jit.R1, Jit.IMM(101));
+        c.ret(Jit.R1);
+
+    j1.setLabel(l1);
+
+    runJit(c);
+}
+
+function jit_004() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.R0, Jit.IMM(100));
+        var const1 = c.makeConst(Jit.R1);
+        c.ijmp(Jit.R1);
+        c.ret(Jit.R0);
+        var l1 = c.label();
+        c.mov(Jit.R1, Jit.IMM(102));
+        c.ret(Jit.R1);
+
+    var code = c.generate();
+    const1.setLabel(l1);        # Setting a const value should be after generated a code.
+    code.dump();
+
+    var r = code.run();
+    System.println(r);
+}
+
+function jit_005() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.R1, Jit.IMM(-1));
+        var jump0 = c.slt(Jit.S0, Jit.IMM(0));
+        var jump1 = c.sgt(Jit.S0, Jit.IMM(3));
+        var const0 = c.makeConst(Jit.VAR(0));
+        var const1 = c.makeConst(Jit.VAR(1));
+        var const2 = c.makeConst(Jit.VAR(2));
+        var const3 = c.makeConst(Jit.VAR(3));
+        c.localp(Jit.R0, Jit.S0);
+        c.mov(Jit.R0, Jit.MEM1(Jit.R0));
+        c.ijmp(Jit.R0);
+        var l0 = c.label();
+        c.mov(Jit.R1, Jit.IMM(102));
+        c.ret(Jit.R1);
+        var l1 = c.label();
+        c.mov(Jit.R1, Jit.IMM(103));
+        c.ret(Jit.R1);
+        var l2 = c.label();
+        c.mov(Jit.R1, Jit.IMM(104));
+        c.ret(Jit.R1);
+        var l3 = c.label();
+        c.mov(Jit.R1, Jit.IMM(105));
+        var l4 = c.label();
+        c.ret(Jit.R1);
+
+    jump0.setLabel(l4);
+    jump1.setLabel(l4);
+
+    var code = c.generate();
+    const0.setLabel(l0);
+    const1.setLabel(l1);
+    const2.setLabel(l2);
+    const3.setLabel(l3);
+    code.dump();
+
+    for (var i = -1; i < 5; ++i) {
+        var r = code.run(i);
+        System.println(r);
+    }
+}
+
+function jit_006() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.VAR(4), Jit.IMM(0));
+        var jump0 = c.eq(Jit.S0, Jit.IMM(0));
+        var jump1 = c.eq(Jit.S0, Jit.IMM(1));
+        var jump2 = c.eq(Jit.S0, Jit.IMM(2));
+        var jump3 = c.eq(Jit.S0, Jit.IMM(3));
+        c.mov(Jit.R1, Jit.IMM(-1));
+        var jump4 = c.jmp();
+        var l0 = c.label();
+        c.mov(Jit.R1, Jit.IMM(102));
+        c.ret(Jit.R1);
+        var l1 = c.label();
+        c.mov(Jit.R1, Jit.IMM(103));
+        c.ret(Jit.R1);
+        var l2 = c.label();
+        c.mov(Jit.R1, Jit.IMM(104));
+        c.ret(Jit.R1);
+        var l3 = c.label();
+        c.mov(Jit.R1, Jit.IMM(105));
+        var l4 = c.label();
+        c.ret(Jit.R1);
+
+    jump0.setLabel(l0);
+    jump1.setLabel(l1);
+    jump2.setLabel(l2);
+    jump3.setLabel(l3);
+    jump4.setLabel(l4);
+
+    var code = c.generate();
+    code.dump();
+
+    for (var i = -1; i < 5; ++i) {
+        var r = code.run(i);
+        System.println(r);
+    }
+}
+
+function jit_007() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.R0, Jit.IMM(100));
+        var jump1 = c.sge(Jit.S0, Jit.R0);
+        c.ret(Jit.IMM(0));
+        var l1 = c.label();
+        c.mov(Jit.R0, Jit.IMM(9));
+        c.neg(Jit.R0, Jit.R0);
+        c.mov(Jit.R1, Jit.IMM(2));
+        c.divmod();
+        c.ret(Jit.R1);
+
+    jump1.setLabel(l1);
+
+    var code = c.generate();
+    code.dump();
+
+    for (var i = 99; i <= 101; ++i) {
+        var r = code.run(i);
+        System.println("%x" % r);
+    }
+}
+
+function jit_008() {
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.FR1, Jit.IMM(100));
+        c.add(Jit.S0, Jit.S0, Jit.IMM(100));
+        c.i2f(Jit.FR2, Jit.S0);
+        var jump1 = c.lt(Jit.FR1, Jit.FR2);
+        c.ret(Jit.IMM(-1));
+        var l1 = c.label();
+        c.mov(Jit.R1, Jit.S0);
+        c.f2i(Jit.R2, Jit.FR1);
+        c.add(Jit.R1, Jit.R1, Jit.R2);
+        c.i2f(Jit.FR0, Jit.R1);
+        c.ret(Jit.R1);
+
+    jump1.setLabel(l1);
+
+    var code = c.generate();
+    code.dump();
+
+    var r = code.frun(4);
+    System.println("%f" % r);
+}
+
+function jit_009() {
+    var c = new Jit.Compiler();
+    c.enter(Jit.ArgType.FP_FP_FP);
+        c.mov(Jit.VAR(3), Jit.IMM(100));
+        c.add(Jit.FR0, Jit.FS0, Jit.FS1);
+        c.add(Jit.FR0, Jit.FR0, Jit.FS2);
+        c.ret(Jit.FR0);
+
+    var code = c.generate();
+    code.dump();
+
+    var r = code.frun(0.5, 1.5, 9.5);
+    System.println("%f" % r);
+}
+
+function jit_fib() {
+    # Fibonacci.
+    var c = new Jit.Compiler();
+    var entry1 = c.enter();
+        var jump0 = c.ge(Jit.S0, Jit.IMM(3));
+        c.ret(Jit.S0);
+        var l1 = c.label();
+        c.sub(Jit.R0, Jit.S0, Jit.IMM(2));
+        c.call(entry1);
+        c.mov(Jit.S1, Jit.R0);
+        c.sub(Jit.R0, Jit.S0, Jit.IMM(1));
+        c.call(entry1);
+        c.add(Jit.R0, Jit.R0, Jit.S1);
+        c.ret(Jit.R0);
+
+    jump0.setLabel(l1);
+
+    var code = c.generate();
+    code.dump();
+
+    for (var i = 1; i <= 42; ++i) {
+        var tmr = new SystemTimer();
+        var r = code.run(i);
+        System.println("[%8.3f] fib(%2d) = %d" % tmr.elapsed() % i % r);
+    }
+}
+
 jit_001();
 jit_002();
+jit_003();
+jit_004();
+jit_005();
+jit_006();
+jit_007();
+jit_008();
+jit_009();
+# jit_fib();
