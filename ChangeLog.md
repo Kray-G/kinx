@@ -29,10 +29,14 @@
     *   Supported underline by escape sequence.
     *   Supported __FILE__, __LINE__, __FUNC__.
     *   Supported Environment Variable.
+    *   Supported a JIT library for 64-bit integer and 64-bit floating point.
+    *   Supported `libkinx.h` and a library file of `kx.lib` on Windows or `libkx.a` on Linux.
+    *   Supported the option of `--version` to show the detail of the version.
 
 * A current plan and development items in progress.
+    *   Support to read/write from/to Clipboard.
+    *   Support the option of compiling only to check the syntax.
     *   Supporting a first version of Native Functions.
-        *   Addition with String.
         *   Switch case.
         *   Array/Binary
     *   Full documenting by SpecTest.
