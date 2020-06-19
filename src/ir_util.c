@@ -416,6 +416,11 @@ static int eval(kx_context_t *ctx)
         return 0;
     }
 
+    /* It is a strange location to print it!. But native functions dump will be done in start_gencode_ast()... */
+    if (ctx->options.dump) {
+        printf("*** Native Section ***\n");
+    }
+
     kx_module_t *module = kv_pushp(kx_module_t, ctx->module);
     memset(module, 0x00, sizeof(kx_module_t));
     int start = kv_size(ctx->fixcode);

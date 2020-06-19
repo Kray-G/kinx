@@ -1,4 +1,5 @@
 #include <dbg.h>
+#include <assert.h>
 #include <inttypes.h>
 #define KX_DLL
 #include <kinx.h>
@@ -47,6 +48,7 @@ typedef struct kx_jit_context_ {
     void *code;
     int r, s, fr, fs, local, argtype;
     int len;
+    int entries;
     kvec_pt(slconst_t) consts;
     kvec_pt(sllabel_t) labels;
     kvec_pt(sljump_t) jumps;
@@ -380,7 +382,44 @@ int Jit_enter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         types >>= SLJIT_DEF_SHIFT;
     }
 
+    sllabel_t *label = NULL;
+    sljump_t *jump = NULL;
+    sljit_s32 sr[] = { SLJIT_FR0, SLJIT_FR1, SLJIT_FR2 };
+    sljit_s32 fr[] = { SLJIT_FS0, SLJIT_FS1, SLJIT_FS2 };
     jtx->fs = jtx->fs < fs_count ? fs_count : jtx->fs;
+    if (jtx->entries == 0 && fs_count > 0) {
+        if (jtx->fr < jtx->fs) {
+            jtx->fr = jtx->fs;
+        }
+        sljit_emit_enter(jtx->C, 0,
+            KX_ARGTYPE_SW_SW_SW,
+            jtx->r,     /* scratch  : temporary R0-R*   */
+            jtx->s,     /* saved    : safety    S0-S*   */
+            jtx->fr,    /* fscratch : temporary FR0-FR* */
+            jtx->fs,    /* fsaved   : safety    FS0-FS* */
+            0           /* local    :                   */
+        );
+        sljit_s32 rr[] = { SLJIT_R0, SLJIT_R1, SLJIT_R2 };
+        sljit_s32 ar[] = { SLJIT_S0, SLJIT_S1, SLJIT_S2 };
+        types = (jtx->argtype >> SLJIT_DEF_SHIFT);
+        arg_count = 0;
+        while (types != 0 && arg_count < 3) {
+            sljit_s32 curr_type = (types & SLJIT_DEF_MASK);
+            if (curr_type == SLJIT_ARG_TYPE_F64) {
+                sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, sr[arg_count], 0, SLJIT_MEM1(ar[arg_count]), 0);
+            } else {
+                sljit_emit_op1(jtx->C, SLJIT_MOV, rr[arg_count], 0, ar[arg_count], 0);
+            }
+            arg_count++;
+            types >>= SLJIT_DEF_SHIFT;
+        }
+    	jump = sljit_emit_call(jtx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW));
+        sljit_emit_return(jtx->C, SLJIT_MOV, SLJIT_R0, 0);
+        label = sljit_emit_label(jtx->C);
+        assert(kv_size(jtx->labels) == 1);
+        kv_A(jtx->labels, 0) = label;
+    }
+
     sljit_emit_enter(jtx->C, 0,
         KX_ARGTYPE_SW_SW_SW,    /* argument type                */
         jtx->r,                 /* scratch  : temporary R0-R*   */
@@ -389,22 +428,27 @@ int Jit_enter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         jtx->fs,                /* fsaved   : safety    FS0-FS* */
         jtx->local + (3 * 8)    /* local    :                   */
     );
-    sljit_s32 sr[] = { SLJIT_S0, SLJIT_S1, SLJIT_S2 };
-    sljit_s32 fr[] = { SLJIT_FS0, SLJIT_FS1, SLJIT_FS2 };
+    for (int i = 0; i < jtx->fs; ++i) {
+        if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= i) {
+            sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, SLJIT_MEM1(SLJIT_SP), jtx->local + (i * 8), fr[i], 0);
+        }
+    }
     types = (jtx->argtype >> SLJIT_DEF_SHIFT);
     arg_count = 0;
     while (types != 0 && arg_count < 3) {
         sljit_s32 curr_type = (types & SLJIT_DEF_MASK);
         if (curr_type == SLJIT_ARG_TYPE_F64) {
-            if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= arg_count) {
-                sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, SLJIT_MEM1(SLJIT_SP), jtx->local + (arg_count * 8), fr[arg_count], 0);
-            }
-            sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, fr[arg_count], 0, SLJIT_MEM1(sr[arg_count]), 0);
+            sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, fr[arg_count], 0, sr[arg_count], 0);
         }
         arg_count++;
         types >>= SLJIT_DEF_SHIFT;
     }
 
+    if (jump && label) {
+        sljit_set_label(jump, label);
+    }
+
+    ++(jtx->entries);
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
     return 0;
@@ -421,16 +465,10 @@ int Jit_ret(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     sljit_s32 fr[] = { SLJIT_FS0, SLJIT_FS1, SLJIT_FS2 };
     sljit_s32 types = (jtx->argtype >> SLJIT_DEF_SHIFT);
-    sljit_s32 arg_count = 0;
-    while (types != 0 && arg_count < 3) {
-        sljit_s32 curr_type = (types & SLJIT_DEF_MASK);
-        if (curr_type == SLJIT_ARG_TYPE_F64) {
-            if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= arg_count) {
-                sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, fr[arg_count], 0, SLJIT_MEM1(SLJIT_SP), jtx->local + (arg_count * 8));
-            }
+    for (int i = 0; i < jtx->fs; ++i) {
+        if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= i) {
+            sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, fr[i], 0, SLJIT_MEM1(SLJIT_SP), jtx->local + (i * 8));
         }
-        arg_count++;
-        types >>= SLJIT_DEF_SHIFT;
     }
 
     sljit_emit_return(jtx->C, SLJIT_MOV, src1, src1w);
@@ -592,7 +630,7 @@ int Jit_label(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_JIT_CTX(jtx, obj);
 
-    struct sljit_label *label = sljit_emit_label(jtx->C);
+    sllabel_t *label = sljit_emit_label(jtx->C);
     int i = kv_size(jtx->labels);
     kv_push(sllabel_t*, jtx->labels, label);
 
