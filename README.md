@@ -1,4 +1,7 @@
-<p align="right"><img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat"/></p>
+<p align="right">
+    <img src="https://github.com/Kray-G/kinx/workflows/Unit%20Test/badge.svg?branch=master"/>
+    <img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat"/>
+</p>
 <p align="center"><img src="doc/kinxlogo.png" height="84px" /></p>
 <p align="center">
 <strong>Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
