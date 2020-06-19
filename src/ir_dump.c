@@ -507,13 +507,6 @@ static void ir_module_dump(int llen, kx_module_t *module, kvec_t(uint32_t) *labe
 
 static void ir_native_dump(kx_context_t *ctx)
 {
-    static int is_displayed = 0;
-    if (!is_displayed) {
-        is_displayed = 1;
-        if (ctx->options.dump) {
-            printf("*** Native Section ***\n");
-        }
-    }
     for (khint_t k = 0; k < kh_end(ctx->nfuncs); ++k) {
         if (kh_exist(ctx->nfuncs, k)) {
             kxn_func_t nf = kh_value(ctx->nfuncs, k);
