@@ -223,7 +223,6 @@ function jit_008() {
 function jit_009() {
     var c = new Jit.Compiler();
     c.enter(Jit.ArgType.FP_FP_FP);
-        c.mov(Jit.VAR(3), Jit.IMM(100));
         c.add(Jit.FR0, Jit.FS0, Jit.FS1);
         c.add(Jit.FR0, Jit.FR0, Jit.FS2);
         c.ret(Jit.FR0);
@@ -262,6 +261,42 @@ function jit_fib() {
     }
 }
 
+function jit_fib_fp() {
+    # Fibonacci with floating point.
+    var c = new Jit.Compiler();
+    var entry1 = c.enter(Jit.ArgType.FP);
+        c.mov(Jit.FR0, Jit.IMM(3));
+        c.mov(Jit.FR1, Jit.IMM(10));
+        c.div(Jit.FR0, Jit.FR0, Jit.FR1);
+        var jump0 = c.ge(Jit.FS0, Jit.FR0);
+        c.ret(Jit.FS0);
+        var l1 = c.label();
+        c.mov(Jit.FR0, Jit.IMM(2));
+        c.mov(Jit.FR1, Jit.IMM(10));
+        c.div(Jit.FR0, Jit.FR0, Jit.FR1);
+        c.sub(Jit.FR0, Jit.FS0, Jit.FR0);
+        c.call(entry1);
+        c.mov(Jit.FS1, Jit.FR0);
+        c.mov(Jit.FR0, Jit.IMM(1));
+        c.mov(Jit.FR1, Jit.IMM(10));
+        c.div(Jit.FR0, Jit.FR0, Jit.FR1);
+        c.sub(Jit.FR0, Jit.FS0, Jit.FR0);
+        c.call(entry1);
+        c.add(Jit.FR0, Jit.FR0, Jit.FS1);
+        c.ret(Jit.FR0);
+
+    jump0.setLabel(l1);
+
+    var code = c.generate();
+    code.dump();
+
+    for (var i = 0.1; i <= 3.5; i += 0.1) {
+        var tmr = new SystemTimer();
+        var r = code.frun(i);
+        System.println("[%8.3f] fib(%3.1f) = %.1f" % tmr.elapsed() % i % r);
+    }
+}
+
 jit_001();
 jit_002();
 jit_003();
@@ -271,4 +306,5 @@ jit_006();
 jit_007();
 jit_008();
 jit_009();
-# jit_fib();
+jit_fib();
+jit_fib_fp();
