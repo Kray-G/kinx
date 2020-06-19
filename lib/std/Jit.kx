@@ -10,32 +10,41 @@ const Jit;
     Jit.IMM = _function(v) { return [0x40, v, 'c'[0]]; };
     Jit.VAR = _function(n) { return Jit.MEM1(Jit.SP, n * 8, 'l'[0]); };
 
+    Jit.ArgType.SW =
     Jit.ArgType.SW_SW_SW = (1 << 4) | (1 << 8) | (1 << 12);
     Jit.ArgType.SW_SW_UW = (1 << 4) | (1 << 8) | (2 << 12);
     Jit.ArgType.SW_SW_FP = (1 << 4) | (1 << 8) | (6 << 12);
+    Jit.ArgType.SW_UW =
     Jit.ArgType.SW_UW_SW = (1 << 4) | (2 << 8) | (1 << 12);
     Jit.ArgType.SW_UW_UW = (1 << 4) | (2 << 8) | (2 << 12);
     Jit.ArgType.SW_UW_FP = (1 << 4) | (2 << 8) | (6 << 12);
+    Jit.ArgType.SW_FP =
     Jit.ArgType.SW_FP_SW = (1 << 4) | (6 << 8) | (1 << 12);
     Jit.ArgType.SW_FP_UW = (1 << 4) | (6 << 8) | (2 << 12);
     Jit.ArgType.SW_FP_FP = (1 << 4) | (6 << 8) | (6 << 12);
 
+    Jit.ArgType.UW =
     Jit.ArgType.UW_SW_SW = (2 << 4) | (1 << 8) | (1 << 12);
     Jit.ArgType.UW_SW_UW = (2 << 4) | (1 << 8) | (2 << 12);
     Jit.ArgType.UW_SW_FP = (2 << 4) | (1 << 8) | (6 << 12);
+    Jit.ArgType.UW_UW =
     Jit.ArgType.UW_UW_SW = (2 << 4) | (2 << 8) | (1 << 12);
     Jit.ArgType.UW_UW_UW = (2 << 4) | (2 << 8) | (2 << 12);
     Jit.ArgType.UW_UW_FP = (2 << 4) | (2 << 8) | (6 << 12);
+    Jit.ArgType.UW_FP =
     Jit.ArgType.UW_FP_SW = (2 << 4) | (6 << 8) | (1 << 12);
     Jit.ArgType.UW_FP_UW = (2 << 4) | (6 << 8) | (2 << 12);
     Jit.ArgType.UW_FP_FP = (2 << 4) | (6 << 8) | (6 << 12);
 
+    Jit.ArgType.FP =
     Jit.ArgType.FP_SW_SW = (6 << 4) | (1 << 8) | (1 << 12);
     Jit.ArgType.FP_SW_UW = (6 << 4) | (1 << 8) | (2 << 12);
     Jit.ArgType.FP_SW_FP = (6 << 4) | (1 << 8) | (6 << 12);
+    Jit.ArgType.FP_UW =
     Jit.ArgType.FP_UW_SW = (6 << 4) | (2 << 8) | (1 << 12);
     Jit.ArgType.FP_UW_UW = (6 << 4) | (2 << 8) | (2 << 12);
     Jit.ArgType.FP_UW_FP = (6 << 4) | (2 << 8) | (6 << 12);
+    Jit.ArgType.FP_FP =
     Jit.ArgType.FP_FP_SW = (6 << 4) | (6 << 8) | (1 << 12);
     Jit.ArgType.FP_FP_UW = (6 << 4) | (6 << 8) | (2 << 12);
     Jit.ArgType.FP_FP_FP = (6 << 4) | (6 << 8) | (6 << 12);
@@ -183,22 +192,38 @@ const Jit;
                 }
             }
         }
-        public div() { # (unsigned) Jit.R0 / Jit.R1 => Jit.R0
-            inst_.push(_function() { c_.div(); });
-        }
-        public sdiv() { # (signed) Jit.R0 / Jit.R1 => Jit.R0
-            inst_.push(_function() { c_.sig_div(); });
-        }
-        public divmod() { # (unsigned) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
-            inst_.push(_function() { c_.divmod(); });
-        }
-        public sdivmod() { # (signed) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
-            inst_.push(_function() { c_.sig_divmod(); });
-        }
         private operate1(intf, dst, op1) {
             checkRegister(dst);
             checkRegister(op1);
             inst_.push(_function() { c_[intf](dst, op1); });
+        }
+        private operate2(intf, dst, op1, op2) {
+            checkRegister(dst);
+            checkRegister(op1);
+            checkRegister(op2);
+            inst_.push(_function() { c_[intf](dst, op1, op2); });
+        }
+        public div(dst, op1, op2) {
+            if (dst.isUndefined && op1.isUndefined && op2.isUndefined) {
+                # (unsigned) Jit.R0 / Jit.R1 => Jit.R0
+                inst_.push(_function() { c_.div(); });
+            } else if (isFP(dst, op1, op2)) {
+                operate2("fdiv", dst, op1, op2);
+            } else {
+                throw RuntimeException("Type mismatch");
+            }
+        }
+        public sdiv() {
+            # (signed) Jit.R0 / Jit.R1 => Jit.R0
+            inst_.push(_function() { c_.sig_div(); });
+        }
+        public divmod() {
+            # (unsigned) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
+            inst_.push(_function() { c_.divmod(); });
+        }
+        public sdivmod() {
+            # (signed) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
+            inst_.push(_function() { c_.sig_divmod(); });
         }
         public f2i(dst, op1) {
             if (isNotFP(dst) && isFP(op1)) {
@@ -220,6 +245,12 @@ const Jit;
                     operate1("fmov", dst, op1);
                 } else {
                     operate1("sw2f", dst, op1);
+                }
+            } else if (isMEM(dst)) {
+                if (isFP(op1)) {
+                    operate1("fmov", dst, op1);
+                } else {
+                    operate1("mov", dst, op1);
                 }
             } else {
                 if (isFP(op1)) {
@@ -255,12 +286,6 @@ const Jit;
             } else {
                 operate1("clz", dst, op1);
             }
-        }
-        private operate2(intf, dst, op1, op2) {
-            checkRegister(dst);
-            checkRegister(op1);
-            checkRegister(op2);
-            inst_.push(_function() { c_[intf](dst, op1, op2); });
         }
         public add(dst, op1, op2) {
             if (isFP(dst, op1, op2)) {
@@ -393,7 +418,11 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public ge(op1, op2) {
-            operateCmp("ge", op1, op2);
+            if (isNotFP(op1)) {
+                operateCmp("ge", op1, op2);
+            } else {
+                operateCmp("fge", op1, op2);
+            }
             return new JumpTarget(c_, repl_, jump_++);
         }
         public slt(op1, op2) {
