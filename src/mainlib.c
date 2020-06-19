@@ -85,7 +85,7 @@ void kx_signal_handler(int signum)
 
 static void usage(void)
 {
-    printf("Usage: " PROGNAME " -[hdDui]\n");
+    printf("Usage: " PROGNAME " -[hdDuiv]\n");
     printf("Main options:\n");
     printf("    -h      Display this help.\n");
     printf("    -d      Dump compiled code.\n");
@@ -93,7 +93,7 @@ static void usage(void)
     printf("    -u      Use UTF8 in standard I/O without converting. (Windows only)\n");
     printf("    -i      Input source code from stdin.\n");
     printf("    -v, --version\n");
-    printf("            Display the version number.\n");
+    printf("            Display the version number. --version shows also a detail.\n");
     printf("    --exec:spectest\n");
     printf("            Run SpecTest based on .spectest file under the current directory.\n");
     printf("    --exec:repl\n");
@@ -104,9 +104,12 @@ static void usage(void)
     printf("            Specify the max depth to call a native function. 1024 by default.\n");
 }
 
-static void version(void)
+static void version(int detail)
 {
     printf(PROGNAME " version %d.%d.%d%s\n", VER_MAJ, VER_MIN, VER_PAT, VER_SUFFIX);
+    if (detail) {
+        printf("platform: %s\n", sljit_get_platform_name());
+    }
 }
 
 #define LONGNAME_MAX (128)
@@ -162,7 +165,7 @@ DllExport int do_main(int ac, char **av)
         case '-':
             get_long_option(optarg, lname, param);
             if (!strcmp(lname, "version")) {
-                version();
+                version(1);
                 goto CLEANUP;
             } else if (!strcmp(lname, "native-call-max-depth")) {
                 ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 1024;
@@ -198,7 +201,7 @@ DllExport int do_main(int ac, char **av)
             usage();
             goto CLEANUP;
         case 'v':
-            version();
+            version(0);
             goto CLEANUP;
         default:
             usage();
