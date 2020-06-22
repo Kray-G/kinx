@@ -72,11 +72,15 @@ enum kxn_bopecode_type {
     KXNOP_GTF,
     KXNOP_LGEF,
 
-    KXNOP_IDX,
+    KXNOP_SWAP8,
+    KXNOP_SWAP,
+    KXNOP_BIDX,
+    KXNOP_BIDXA,
 };
 
 enum kxn_uopecode_type {
     KXNOP_TOBIG,
+    KXNOP_MOV8,
     KXNOP_MOV,
     KXNOP_NOT,
     KXNOP_NEG,
