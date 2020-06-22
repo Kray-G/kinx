@@ -645,8 +645,9 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             }
             if (node->lhs->var_type == KX_CSTR_T) {
                 node->lhs = kx_gen_cast_object(node->lhs, KX_CSTR_T, KX_STR_T);
-            }
-            if (node->lhs->var_type == KX_STR_T) {
+            } else if (node->lhs->var_type == KX_BIN_T) {
+                node->var_type = KX_INT_T;
+            } else if (node->lhs->var_type == KX_STR_T) {
                 switch (node->rhs->var_type) {
                 case KX_INT_T:
                     node->var_type = KX_INT_T;

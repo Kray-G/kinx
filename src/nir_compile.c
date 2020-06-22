@@ -20,6 +20,9 @@ extern sljit_sw native_str_add_str(sljit_sw *info, kstr_t *s1, kstr_t *s2);
 extern sljit_sw native_str_mul_int(sljit_sw *info, kstr_t *s1, int64_t i);
 extern sljit_sw native_get_string_ch(kstr_t *s1, int64_t i);
 
+extern sljit_sw native_get_var_bin_head(sljit_sw *args);
+extern sljit_sw native_get_var_bin_index(sljit_sw *args);
+
 #define ARGB SLJIT_MEM1(SLJIT_SP)
 #define ARG(n) ((2 + (n) + nctx->local_vars) * KXN_WDSZ)
 
@@ -139,6 +142,30 @@ static void natir_compile_get_value(kx_native_context_t *nctx, int var_type, kxn
         KXN_MOV(*dst, SLJIT_R0, 0);
         break;
     }
+}
+
+static void natir_compile_get_bin_head(kx_native_context_t *nctx, int var_type, kxn_operand_t *dst, kxn_operand_t *op)
+{
+    if (op->lex == 0) {
+        KXN_LOAD_LOCAL(*dst, op->idx);
+    } else {
+        KXN_CALL_NATIVE_V(SLJIT_R0, native_get_var_bin_head, op1, SLJIT_MOV, SW, SW, SW, SW, {
+            sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), SLJIT_IMM, op->lex);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), SLJIT_IMM, op->idx);
+        });
+        KXN_MOV(*dst, SLJIT_R0, 0);
+    }
+}
+
+static void natir_compile_get_bin_index(kx_native_context_t *nctx, int var_type, kxn_operand_t *dst, kxn_operand_t *op1, kxn_operand_t *op2)
+{
+    KXN_CALL_NATIVE_V(SLJIT_R0, native_get_var_bin_index, op1, SLJIT_MOV, SW, SW, SW, SW, {
+        sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(0), SLJIT_S0, 0);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(1), KXN_R(*op1));
+        sljit_emit_op1(nctx->C, SLJIT_MOV, ARGB, ARG(2), KXN_R(*op2));
+    });
+    KXN_MOV(*dst, SLJIT_R0, 0);
 }
 
 static void natir_compile_get_addr(kx_native_context_t *nctx, int var_type, kxn_operand_t *dst, kxn_operand_t *op)
@@ -351,6 +378,10 @@ static void natir_compile_bop(kx_native_context_t *nctx, kxn_code_t *code)
         sljit_set_label(toend2, setvalue);
         sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R2, 0);
         break;
+
+    case KXNOP_IDX:
+        natir_compile_get_bin_index(nctx, code->var_type, &(code->dst), &(code->op1), &(code->op2));
+        break;
     }
 }
 
@@ -474,6 +505,10 @@ static void natir_compile_code(kx_native_context_t *nctx, kxn_code_t *code)
             // dst: KXNOP_REG / op1:KXNOP_VAR
             natir_compile_get_addr(nctx, code->var_type, &(code->dst), &(code->op1));
         }
+        break;
+    case KXN_LOADBIN:
+        // dst: KXNOP_REG / op1:KXNOP_VAR
+        natir_compile_get_bin_head(nctx, code->var_type, &(code->dst), &(code->op1));
         break;
     case KXN_BOP:
         natir_compile_bop(nctx, code);
@@ -643,7 +678,7 @@ void natir_compile_function(kx_native_context_t *nctx)
 
     /* function body */
     for (int i = 0; i < nctx->count_args; ++i) {
-        if (nctx->args[i] == KX_INT_T || nctx->args[i] == KX_STR_T) {
+        if (nctx->args[i] == KX_INT_T || nctx->args[i] == KX_STR_T || nctx->args[i] == KX_BIN_T) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), i * KXN_WDSZ,
                 SLJIT_MEM1(SLJIT_S1), (i+KXN_LOCALVAR_OFFSET) * KXN_WDSZ);
         } else {
