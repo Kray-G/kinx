@@ -90,16 +90,7 @@
     } \
     kx_val_t v1v = *(v1->value.lv); \
     kx_val_t v2v = *(v2->value.lv); \
-    if (v1v.type == KX_OBJ_T && v2v.type == KX_OBJ_T) { \
-        *(v1->value.lv) = v2v; \
-        *(v2->value.lv) = v1v; \
-        kx_obj_t *obj = allocate_obj(ctx); \
-        kv_resize(kx_val_t, obj->ary, 4); \
-        kv_shrinkto(obj->ary, 2); \
-        kv_A(obj->ary, 0) = v2v; \
-        kv_A(obj->ary, 1) = v1v; \
-        push_obj((ctx)->stack, obj); \
-    } else if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
+    if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
         if (v1v.type == KX_CSTR_T && (v2v.type != KX_CSTR_T || (v1v.value.pv != v2v.value.pv))) { \
             THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
         } \
@@ -109,6 +100,12 @@
     } else { \
         *(v1->value.lv) = v2v; \
         *(v2->value.lv) = v1v; \
+        kx_obj_t *obj = allocate_obj(ctx); \
+        kv_resize(kx_val_t, obj->ary, 4); \
+        kv_shrinkto(obj->ary, 2); \
+        kv_A(obj->ary, 0) = v2v; \
+        kv_A(obj->ary, 1) = v1v; \
+        push_obj((ctx)->stack, obj); \
     } \
     cur = cur->next; \
 } \
@@ -123,10 +120,7 @@
     } \
     kx_val_t v1v = *(v1->value.lv); \
     kx_val_t v2v = *(v2->value.lv); \
-    if (v1v.type == KX_OBJ_T && v2v.type == KX_OBJ_T) { \
-        *(v1->value.lv) = v2v; \
-        *(v2->value.lv) = v1v; \
-    } else if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
+    if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
         if (v1v.type == KX_CSTR_T && (v2v.type != KX_CSTR_T || (v1v.value.pv != v2v.value.pv))) { \
             THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
         } \
