@@ -89,14 +89,26 @@
         THROW_SYSTEM_EXCEPTION("SystemException", "Swap with not lvalues"); \
     } \
     kx_val_t v1v = *(v1->value.lv); \
-    *(v1->value.lv) = *(v2->value.lv); \
-    *(v2->value.lv) = v1v; \
-    kx_obj_t *obj = allocate_obj(ctx); \
-    kv_resize(kx_val_t, obj->ary, 4); \
-    kv_shrinkto(obj->ary, 2); \
-    kv_A(obj->ary, 0) = *(v1->value.lv); \
-    kv_A(obj->ary, 1) = v1v; \
-    push_obj((ctx)->stack, obj); \
+    kx_val_t v2v = *(v2->value.lv); \
+    if (v1v.type == KX_OBJ_T && v2v.type == KX_OBJ_T) { \
+        *(v1->value.lv) = v2v; \
+        *(v2->value.lv) = v1v; \
+        kx_obj_t *obj = allocate_obj(ctx); \
+        kv_resize(kx_val_t, obj->ary, 4); \
+        kv_shrinkto(obj->ary, 2); \
+        kv_A(obj->ary, 0) = v2v; \
+        kv_A(obj->ary, 1) = v1v; \
+        push_obj((ctx)->stack, obj); \
+    } else if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
+        if (v1v.type == KX_CSTR_T && (v2v.type != KX_CSTR_T || (v1v.value.pv != v2v.value.pv))) { \
+            THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
+        } \
+        kx_try_str_swap(ctx, cur, v1, v2, 1); \
+    } else if (v1v.type == KX_BIN_T && v2v.type == KX_BIN_T) { \
+        kx_try_bin_swap(ctx, cur, v1, v2, 1); \
+    } else { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
+    } \
     cur = cur->next; \
 } \
 /**/
@@ -109,8 +121,20 @@
         THROW_SYSTEM_EXCEPTION("SystemException", "Swap with not lvalues"); \
     } \
     kx_val_t v1v = *(v1->value.lv); \
-    *(v1->value.lv) = *(v2->value.lv); \
-    *(v2->value.lv) = v1v; \
+    kx_val_t v2v = *(v2->value.lv); \
+    if (v1v.type == KX_OBJ_T && v2v.type == KX_OBJ_T) { \
+        *(v1->value.lv) = v2v; \
+        *(v2->value.lv) = v1v; \
+    } else if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
+        if (v1v.type == KX_CSTR_T && (v2v.type != KX_CSTR_T || (v1v.value.pv != v2v.value.pv))) { \
+            THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
+        } \
+        kx_try_str_swap(ctx, cur, v1, v2, 1); \
+    } else if (v1v.type == KX_BIN_T && v2v.type == KX_BIN_T) { \
+        kx_try_bin_swap(ctx, cur, v1, v2, 1); \
+    } else { \
+        THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
+    } \
     cur = cur->next; \
 } \
 /**/
@@ -133,3 +157,4 @@
     cur = cur->next; \
 } \
 /**/
+
