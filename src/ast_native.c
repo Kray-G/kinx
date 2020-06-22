@@ -829,7 +829,28 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             #undef if_MATH2
             #undef if_MATH
         } else {
-            kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+            kx_object_t *lhs = node->lhs;
+            kx_object_t *rhs = node->rhs;
+            if (lvalue) {
+                kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+            } else if (lhs && rhs) {
+                if (lhs->var_type == KX_BIN_T) {
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                        .inst = KXN_LOADBIN, .var_type = lhs->var_type,
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                            .op1 = { .type = KXNOP_VAR, .lex = lhs->lexical, .idx = lhs->index }
+                    }));
+                    int r1 = nctx->regno;
+                    nativejit_ast(nctx, node->rhs, 0);
+                    int r2 = nctx->regno;
+                    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                        .inst = KXN_BOP, .op = KXNOP_IDX, .var_type = KX_INT_T,
+                            .dst = { .type = KXNOP_REG, .r = ++nctx->regno },
+                            .op1 = { .type = KXNOP_REG, .r = r1 },
+                            .op2 = { .type = KXNOP_REG, .r = r2 },
+                    }));
+                }
+            }
         }
         break;
     }

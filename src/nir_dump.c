@@ -139,6 +139,15 @@ static void natir_display_bop(kxn_code_t *code)
     case KXNOP_LGEF:
         KXN_DISP_BOP("lgef");
         break;
+    case KXNOP_IDX:
+        printf("%-23s ", "index");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        printf("[");
+        natir_display_op(&(code->op2));
+        printf("]");
+        break;
     }
 }
 
@@ -242,6 +251,12 @@ static void natir_display_code(kxn_code_t *code, int addr)
         break;
     case KXN_LOADA:
         printf("%-23s ", "loada");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        break;
+    case KXN_LOADBIN:
+        printf("%-23s ", "loadbin");
         natir_display_op(&(code->dst));
         printf(", ");
         natir_display_op(&(code->op1));
