@@ -71,6 +71,14 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
             arglist[j+type_offset] = KX_STR_T;
             break;
         }
+        case KX_BIN_T: {
+            if (type != KX_BIN_T) {
+                return KXN_TYPE_MISMATCH;
+            }
+            arglist[j] = (sljit_sw)v->value.bn;
+            arglist[j+type_offset] = KX_BIN_T;
+            break;
+        }
         case KX_NFNC_T:
             if (type != KX_NFNC_T) {
                 return KXN_TYPE_MISMATCH;
@@ -182,6 +190,69 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
 KX_DEF_NATIVE_HELPER(int, iv, KX_INT_T, sljit_sw)
 KX_DEF_NATIVE_HELPER(dbl, dv, KX_DBL_T, sljit_f64)
 KX_DEF_NATIVE_HELPER(nfunc, fn->native.func, KX_NFNC_T, sljit_sw)
+
+/* bin access */
+
+static sljit_sw native_get_var_bin_index_of(sljit_sw *info, kx_context_t *ctx, kx_bin_t *bin, int index)
+{
+    if (!bin) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+        return 0;
+    }
+    int size = kv_size(bin->bin);
+    if (size == 0) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
+        return 0;
+    }
+    if (size <= index) {
+        index %= size;
+    } else if (index < 0) {
+        index += size;
+        while (index < 0) {
+            index += size;
+        }
+    }
+    return kv_A(bin->bin, index);
+}
+
+sljit_sw native_get_var_bin_index(sljit_sw *args)
+{
+    sljit_sw *info = (sljit_sw *)args[0];
+    kx_bin_t *baddr = (kx_bin_t *)args[1];
+    int64_t index = (int64_t)args[2];
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    return native_get_var_bin_index_of(info, ctx, baddr, index);
+}
+
+static sljit_sw native_get_var_bin_head_of(sljit_sw *info, kx_context_t *ctx, kx_frm_t *frm, int index)
+{
+    if ((kv_A(frm->v, index)).type == KX_BIN_T) {
+        return (sljit_sw)(kv_A(frm->v, index)).value.bn;
+    }
+    info[KXN_EXC_FLAG] = 1;
+    info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+    return 0;
+}
+
+sljit_sw native_get_var_bin_head(sljit_sw *args)
+{
+    sljit_sw *info = (sljit_sw *)args[0];
+    int64_t lex = (int64_t)args[1];
+    int64_t index = (int64_t)args[2];
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    if (lex == 0) {
+        return native_get_var_bin_head_of(info, ctx, (kx_frm_t *)info[1], index);
+    } else if (lex == 1) {
+        return native_get_var_bin_head_of(info, ctx, (kx_frm_t *)info[2], index);
+    }
+    kx_frm_t *lexv = (kx_frm_t *)info[2];
+    while (lexv && --lex) {
+        lexv = lexv->lex;
+    }
+    return native_get_var_bin_head_of(info, ctx, lexv, index);
+}
 
 /* cast operation */
 
