@@ -451,10 +451,6 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
     case KXOP_MKARY:
         node->var_type = KX_OBJ_T;
-        if (actx->in_native) {
-            kx_yyerror_line("Can not use array object in native function", node->file, node->line);
-            break;
-        }
         analyze_ast(ctx, node->lhs, actx);
         break;
     case KXOP_MKOBJ:
@@ -640,6 +636,17 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             analyze_ast(ctx, node->lhs, actx);
             analyze_ast(ctx, node->rhs, actx);
             if (actx->lvalue) {
+                if (node->lhs->var_type == KX_BIN_T) {
+                    if (node->rhs->var_type != KX_INT_T) {
+                        if (node->rhs->var_type == KX_DBL_T) {
+                            node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
+                        } else {
+                            kx_yyerror_line("Can not use apply index with non-integer value in native function", node->file, node->line);
+                        }
+                    }
+                    node->var_type = KX_INT_T;
+                    break;
+                }
                 kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
                 break;
             }
