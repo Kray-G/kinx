@@ -139,8 +139,29 @@ static void natir_display_bop(kxn_code_t *code)
     case KXNOP_LGEF:
         KXN_DISP_BOP("lgef");
         break;
-    case KXNOP_IDX:
-        printf("%-23s ", "index");
+    case KXNOP_SWAP8:
+        printf("%-23s ", "swap8");
+        natir_display_op(&(code->op1));
+        printf(", ");
+        natir_display_op(&(code->op2));
+        break;
+    case KXNOP_SWAP:
+        printf("%-23s ", "swap");
+        natir_display_op(&(code->op1));
+        printf(", ");
+        natir_display_op(&(code->op2));
+        break;
+    case KXNOP_BIDX:
+        printf("%-23s ", "bidx");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        printf("[");
+        natir_display_op(&(code->op2));
+        printf("]");
+        break;
+    case KXNOP_BIDXA:
+        printf("%-23s ", "bidxa");
         natir_display_op(&(code->dst));
         printf(", ");
         natir_display_op(&(code->op1));
@@ -162,6 +183,12 @@ static void natir_display_uop(kxn_code_t *code)
         break;
     case KXNOP_MOV:
         printf("%-23s ", "mov");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        break;
+    case KXNOP_MOV8:
+        printf("%-23s ", "mov8");
         natir_display_op(&(code->dst));
         printf(", ");
         natir_display_op(&(code->op1));
