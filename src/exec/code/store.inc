@@ -35,7 +35,7 @@
 
 #define KX_STORE_TO_STRPOS(v1, v2) \
 { \
-    kx_val_t *v1v = v1; \
+    kx_val_t *v1v = v1->value.lv; \
     kx_val_t *v2v = v2; \
     if (v1v->type == KX_CSTR_T || v1v->type == KX_STR_T) { \
         if (v1v->type == KX_CSTR_T) { \
@@ -45,29 +45,29 @@
             v1v->value.sv = s; \
         } \
         char *pv = ks_string(v1v->value.sv); \
-        KX_SET_STRING_CHAR(pv[v1v->pos], v2v) \
+        KX_SET_STRING_CHAR(pv[v1->pos], v2v) \
     } else if (v1v->type == KX_BIN_T) { \
         uint8_t *bin = &kv_A((v1v)->value.bn->bin, 0); \
-        KX_SET_BINARY_CHAR(bin[v1v->pos], v2v); \
+        KX_SET_BINARY_CHAR(bin[v1->pos], v2v); \
     } else if (v1v->type == KX_OBJ_T) { \
-        KX_SET_OBJECT_ITEM(v1v->value.ov, v2v, v1v->pos) \
+        KX_SET_OBJECT_ITEM(v1v->value.ov, v2v, v1->pos) \
     } else { \
         THROW_SYSTEM_EXCEPTION("SystemException", "Unsupported Operator"); \
     } \
-    v1v->has_pos = 0; \
+    v1->has_pos = 0; \
 } \
 /**/
 
 #define KX_STORE_CODE() \
 { \
-    kx_val_t *v1 = kv_pop((ctx)->stack).value.lv; \
-    KEX_SAVE_VARINFO(*v1); \
+    kx_val_t *v1 = &kv_pop((ctx)->stack); \
+    KEX_SAVE_VARINFO(*(v1->value.lv)); \
     if (v1->has_pos) { \
         KX_STORE_TO_STRPOS(v1, &kv_last((ctx)->stack)); \
     } else { \
-        *v1 = kv_last((ctx)->stack); \
+        *(v1->value.lv) = kv_last((ctx)->stack); \
     } \
-    KEX_RESTORE_VARINFO(*v1); \
+    KEX_RESTORE_VARINFO(*(v1->value.lv)); \
     cur = cur->next; \
 } \
 /**/
@@ -98,14 +98,14 @@
 
 #define KX_STOREX_CODE() \
 { \
-    kx_val_t *v1 = kv_pop((ctx)->stack).value.lv; \
-    KEX_SAVE_VARINFO(*v1); \
+    kx_val_t *v1 = &kv_pop((ctx)->stack); \
+    KEX_SAVE_VARINFO(*(v1->value.lv)); \
     if (v1->has_pos) { \
         KX_STORE_TO_STRPOS(v1, &kv_pop((ctx)->stack)); \
     } else { \
-        *v1 = kv_pop((ctx)->stack); \
+        *(v1->value.lv) = kv_pop((ctx)->stack); \
     } \
-    KEX_RESTORE_VARINFO(*v); \
+    KEX_RESTORE_VARINFO(*(v1->value.lv)); \
     cur = cur->next; \
 } \
 /**/
@@ -133,3 +133,4 @@
     cur = cur->next; \
 } \
 /**/
+
