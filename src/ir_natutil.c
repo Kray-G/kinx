@@ -247,7 +247,7 @@ static sljit_sw native_get_var_bin_indexa_of(sljit_sw *info, kx_context_t *ctx, 
             index += size;
         }
     }
-    return &kv_A(bin->bin, index);
+    return (sljit_sw)&kv_A(bin->bin, index);
 }
 
 sljit_sw native_get_var_bin_indexa(sljit_sw *args)
