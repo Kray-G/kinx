@@ -5910,11 +5910,11 @@ int kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2
                 }
                 char *pv = ks_string(vp->value.sv);
                 if (v->type == KX_INT_T) {
-                    pv[vp->has_pos] = v->value.iv;
+                    pv[vp->pos] = v->value.iv;
                 } else if (v->type == KX_CSTR_T) {
-                    pv[vp->has_pos] = v->value.pv[0];
+                    pv[vp->pos] = v->value.pv[0];
                 } else if (v->type == KX_STR_T) {
-                    pv[vp->has_pos] = ks_string(v->value.sv)[0];
+                    pv[vp->pos] = ks_string(v->value.sv)[0];
                 } else {
                     exc = KXN_UNSUPPORTED_OPERATOR;
                 }
@@ -5982,3 +5982,55 @@ void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v
     vp->type = KX_OBJ_T;
     vp->value.ov = obj;
 }
+
+void kx_try_str_swap(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int push)
+{
+    kx_val_t *v1x = v1->value.lv;
+    kx_val_t *v2x = v2->value.lv;
+    int p1 = v1->pos;
+    int p2 = v2->pos;
+
+    if (v1x->type == KX_CSTR_T) {
+        kstr_t *sv = allocate_str(ctx);
+        ks_append(sv, v1x->value.pv);
+        v1x->value.sv = sv;
+        v1x->type = KX_STR_T;
+        v2x->value.sv = sv;
+        v2x->type = KX_STR_T;
+    }
+    uint8_t *v1p = ks_string(v1x->value.sv);
+    uint8_t v1b = v1p[p1];
+    uint8_t v2b = v1p[p2];
+    v1p[p1] = v2b;
+    v1p[p2] = v1b;
+    if (push) {
+        kx_obj_t *obj = allocate_obj(ctx);
+        kv_resize(kx_val_t, obj->ary, 4);
+        kv_shrinkto(obj->ary, 2);
+        kv_A(obj->ary, 0) = (kx_val_t){ .type = KX_INT_T, .value.iv = v2b };
+        kv_A(obj->ary, 1) = (kx_val_t){ .type = KX_INT_T, .value.iv = v1b };
+        push_obj((ctx)->stack, obj);
+    }
+}
+
+void kx_try_bin_swap(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int push)
+{
+    kx_val_t *v1x = v1->value.lv;
+    kx_val_t *v2x = v2->value.lv;
+    int p1 = v1->pos;
+    int p2 = v2->pos;
+
+    uint8_t v1b = kv_A(v1x->value.bn->bin, p1);
+    uint8_t v2b = kv_A(v2x->value.bn->bin, p2);
+    kv_A(v1->value.lv->value.bn->bin, p1) = v2b;
+    kv_A(v2->value.lv->value.bn->bin, p2) = v1b;
+    if (push) {
+        kx_obj_t *obj = allocate_obj(ctx);
+        kv_resize(kx_val_t, obj->ary, 4);
+        kv_shrinkto(obj->ary, 2);
+        kv_A(obj->ary, 0) = (kx_val_t){ .type = KX_INT_T, .value.iv = v2b };
+        kv_A(obj->ary, 1) = (kx_val_t){ .type = KX_INT_T, .value.iv = v1b };
+        push_obj((ctx)->stack, obj);
+    }
+}
+
