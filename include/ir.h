@@ -591,6 +591,8 @@ typedef struct kx_regex_ {
 kvec_init_t(kx_regex_t);
 
 typedef struct kx_options_ {
+    int quiet:1;
+    int syntax:1;
     int dump:1;
     int ast:1;
     int src_stdin:1;
@@ -823,7 +825,7 @@ typedef struct kx_context_ {
         kx_val_t *top = &kv_push_undef(st);\
         top->type = KX_LVAL_T;\
         top->value.lv = (v);\
-        (v)->has_pos = 0;\
+        top->has_pos = 0;\
     } while (0);\
 /**/
 #define push_lvalue_pos(st, v, p) \
@@ -831,8 +833,8 @@ typedef struct kx_context_ {
         kx_val_t *top = &kv_push_undef(st);\
         top->type = KX_LVAL_T;\
         top->value.lv = (v);\
-        (v)->has_pos = 1;\
-        (v)->pos = (p);\
+        top->has_pos = 1;\
+        top->pos = (p);\
     } while (0);\
 /**/
 #define push_value(st, v) \
