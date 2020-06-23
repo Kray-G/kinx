@@ -7,6 +7,7 @@
 #include <kxastobject.h>
 
 #define KX_ENV_VAR ("$env")
+#define KXN_ISOBJ(x) (((x) == KX_OBJ_T) || ((x) == KX_ARY_T))
 
 KHASH_MAP_INIT_STR(enum_value, int)
 typedef khash_t(enum_value) *enum_map_t;
@@ -635,6 +636,9 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         if (actx->in_native) {
             analyze_ast(ctx, node->lhs, actx);
             analyze_ast(ctx, node->rhs, actx);
+            if (node->lhs->type == KXOP_IDX && node->lhs->var_type == KX_INT_T) {
+                node->lhs->var_type = KX_OBJ_T;
+            }
             if (actx->lvalue) {
                 if (node->lhs->var_type == KX_BIN_T) {
                     if (node->rhs->var_type != KX_INT_T) {
@@ -644,7 +648,23 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
                             kx_yyerror_line("Can not use apply index with non-integer value in native function", node->file, node->line);
                         }
                     }
+                    if (node->var_type != KX_UNKNOWN_T) {
+                        kx_yyerror_line("Binary object should hold only an integer value", node->file, node->line);
+                    }
                     node->var_type = KX_INT_T;
+                    break;
+                }
+                if (KXN_ISOBJ(node->lhs->var_type)) {
+                    if (node->rhs->var_type != KX_INT_T) {
+                        if (node->rhs->var_type == KX_DBL_T) {
+                            node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
+                        } else {
+                            kx_yyerror_line("Can not use apply index with non-integer value in native function", node->file, node->line);
+                        }
+                    }
+                    if (node->var_type == KX_UNKNOWN_T) {
+                        node->var_type = KX_INT_T;
+                    }
                     break;
                 }
                 kx_yyerror_line("Can not use apply index operation in native function", node->file, node->line);
@@ -654,6 +674,10 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
                 node->lhs = kx_gen_cast_object(node->lhs, KX_CSTR_T, KX_STR_T);
             } else if (node->lhs->var_type == KX_BIN_T) {
                 node->var_type = KX_INT_T;
+            } else if (KXN_ISOBJ(node->lhs->var_type)) {
+                if (node->var_type == KX_UNKNOWN_T) {
+                    node->var_type = KX_INT_T;
+                }
             } else if (node->lhs->var_type == KX_STR_T) {
                 switch (node->rhs->var_type) {
                 case KX_INT_T:
@@ -932,6 +956,9 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         if (node->lhs) {
             analyze_ast(ctx, node->lhs, actx);
             if (actx->in_native || actx->func->ret_type != KX_UNKNOWN_T) {
+                if (node->lhs->type == KXOP_IDX && node->lhs->var_type == KX_INT_T && KXN_ISOBJ(actx->func->ret_type)) {
+                    node->lhs->var_type = KX_OBJ_T;
+                }
                 make_cast_to(actx->func->ret_type, node);
                 if (actx->func->ret_type != node->lhs->var_type) {
                     kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(actx->func->ret_type), get_typename(node->lhs->var_type));

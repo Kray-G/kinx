@@ -1,5 +1,5 @@
 
-native quicksort_n(a:bin, first, last) {
+native quicksort_n(a:ary, first, last) {
     var i = first;
     var j = last;
     var x = a[(first + last) / 2];
@@ -17,7 +17,7 @@ native quicksort_n(a:bin, first, last) {
         quicksort_n(a, j + 1, last);
 }
 
-function quicksort_f(a:bin, first, last) {
+function quicksort_f(a:ary, first, last) {
     var i = first;
     var j = last;
     var x = a[(first + last) / 2];
@@ -35,33 +35,45 @@ function quicksort_f(a:bin, first, last) {
         quicksort_f(a, j + 1, last);
 }
 
-function demo(N, quicksort) {
-    var a = <>; // array
+function demo(N, D, quicksort) {
+    var a = []; // array
 
-    # System.print("Before:");
     for (var i = 0; i < N; i++) {
         a[i] = Integer.parseInt(Math.random() * 100);
-        # System.print(" %2d" % a[i]);
     }
-    # System.print("\n");
+
+    if (D) {
+        System.print("Before:");
+        for (var i = 0; i < N; i++) {
+            System.print(" %2d" % a[i]);
+        }
+        System.print("\n");
+    }
 
     quicksort(a, 0, N - 1);
 
-    # System.print("After: ");
-    # for (var i = 0; i < N; i++)
-    #     System.print(" %2d" % a[i]);
-    # System.print("\n");
+    if (D) {
+        System.print("After: ");
+        for (var i = 0; i < N; i++)
+            System.print(" %2d" % a[i]);
+        System.print("\n");
+    }
 }
 
+# const D = true;
+# const C = 10;
+# const N = 20;
+const D = false;
 const C = 1000;
+const N = 200;
 var tmr = new SystemTimer();
 tmr.restart();
 for (var i = 0; i < C; ++i) {
-    demo(200, quicksort_n);
+    demo(N, D, quicksort_n);
 }
 System.println("elapsed = %f" % tmr.elapsed());
 tmr.restart();
 for (var i = 0; i < C; ++i) {
-    demo(200, quicksort_f);
+    demo(N, D, quicksort_f);
 }
 System.println("elapsed = %f" % tmr.elapsed());
