@@ -11,6 +11,8 @@ enum kxn_code_inst {
     KXN_LOAD,       /* load int value */
     KXN_LOADF,      /* load dbl value */
     KXN_LOADA,      /* load address */
+    KXN_LOADBIN,    /* load binary address */
+    KXN_LOADOBJ,    /* load object address */
 
     KXN_BOP,        /* binary op:   dst = op1 OP op2 */
     KXN_UOP,        /* unary op:    dst = OP op1 */
@@ -70,15 +72,27 @@ enum kxn_bopecode_type {
     KXNOP_GEF,
     KXNOP_GTF,
     KXNOP_LGEF,
+
+    KXNOP_SWAP8,
+    KXNOP_SWAP,
+    KXNOP_BIDX,
+    KXNOP_BIDXA,
+    KXNOP_OIDXI,
+    KXNOP_OIDXIA,
+    KXNOP_OIDXO,
+    KXNOP_OIDXOA,
 };
 
 enum kxn_uopecode_type {
     KXNOP_TOBIG,
+    KXNOP_MOV8,
     KXNOP_MOV,
     KXNOP_NOT,
     KXNOP_NEG,
     KXNOP_INC,
     KXNOP_DEC,
+    KXNOP_SWVAL,
+    KXNOP_SWICOND,
     KXNOP_TYPEOF,
     KXNOP_SETE,
     KXNOP_SETEC,
@@ -126,6 +140,26 @@ typedef struct kx_label_ {
 } kx_label_t;
 kvec_init_t(kx_label_t);
 
+typedef struct kx_ival_case_ {
+    int64_t ival;
+    int block;
+} kx_ival_case_t;
+kvec_init_t(kx_ival_case_t);
+typedef struct kx_expr_case_ {
+    kx_object_t *expr;
+    int block;
+} kx_expr_case_t;
+kvec_init_t(kx_expr_case_t);
+
+typedef struct kx_switch_ {
+    int reg;
+    int var_type;
+    int defblock;
+    kvec_t(kx_ival_case_t) ival_case_list;
+    kvec_t(kx_expr_case_t) expr_case_list;
+} kx_switch_t;
+kvec_init_t(kx_switch_t);
+
 typedef struct kx_native_context_ {
     struct sljit_compiler *C;
     const char *func_name;
@@ -147,10 +181,14 @@ typedef struct kx_native_context_ {
     kvec_t(kx_label_t) continue_list;
     kvec_t(kx_label_t) break_list;
     kvec_t(kx_label_t) catch_list;
+    kvec_t(kx_switch_t) switch_list;
 } kx_native_context_t;
 
 #define KXLABEL(name)  (kx_label_t){ .label = name, .block = -1 }
 #define KXBLOCK(index) (kx_label_t){ .block = index }
+#define KXSWITCH() (kx_switch_t){0}
+#define KXCASE_IVAL(v, index) (kx_ival_case_t){ .ival = v, .block = index }
+#define KXCASE_EXPR(e, index) (kx_expr_case_t){ .expr = e, .block = index }
 
 #define KXNBLK(nctx) (&kv_A(nctx->block_list, nctx->block))
 #define KXNBLK_A(nctx, block) (&kv_A(nctx->block_list, block))
