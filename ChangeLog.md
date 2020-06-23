@@ -25,6 +25,8 @@
     *   In formatting like `"%-20s" % v` it is correctly worked with UTF8 string with correct width.
     *   Supported some of `Math` functions in native.
     *   Supported some of string operations in native.
+    *   Supported some of binary operations in native.
+    *   Supported some of array operations in native.
     *   Kinx As A Library, see `examples/c/runkinx.c` for example.
     *   Supported underline by escape sequence.
     *   Supported __FILE__, __LINE__, __FUNC__.
@@ -32,13 +34,14 @@
     *   Supported a JIT library for 64-bit integer and 64-bit floating point.
     *   Supported `libkinx.h` and a library file of `kx.lib` on Windows or `libkx.a` on Linux.
     *   Supported the option of `--version` to show the detail of the version.
+    *   Supported the option of `-c` for compiling only to check the syntax.
+    *   Supported the option of `-q` for quiet mode.
+    *   Some bug fixes and improvement.
 
 * A current plan and development items in progress.
     *   Support to read/write from/to Clipboard.
-    *   Support the option of compiling only to check the syntax.
     *   Supporting a first version of Native Functions.
         *   Switch case.
-        *   Array/Binary
     *   Full documenting by SpecTest.
 
 ## V0.9.2 (9th Preview Release)
