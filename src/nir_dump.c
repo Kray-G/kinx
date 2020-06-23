@@ -247,6 +247,12 @@ static void natir_display_uop(kxn_code_t *code)
         printf(", ");
         natir_display_op(&(code->op1));
         break;
+    case KXNOP_SWICOND:
+        printf("%-23s ", "swicond");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        break;
     }
 }
 
@@ -259,6 +265,10 @@ static void natir_display_0op(kxn_code_t *code)
         break;
     case KXNOP_DEC:
         printf("%-23s ", "deca");
+        natir_display_op(&(code->dst));
+        break;
+    case KXNOP_SWVAL:
+        printf("%-23s ", "swval");
         natir_display_op(&(code->dst));
         break;
     }
