@@ -531,6 +531,10 @@ static void natir_compile_uop(kx_native_context_t *nctx, kxn_code_t *code)
         break;
     case KXNOP_TYPEOF:
         break;
+    case KXNOP_SWICOND:
+        sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_Z, SLJIT_UNUSED, 0, SLJIT_S4, 0, KXN_I(code->op1));
+        sljit_emit_op_flags(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_ZERO);
+        break;
     }
 }
 
@@ -546,6 +550,9 @@ static void natir_compile_0op(kx_native_context_t *nctx, kxn_code_t *code)
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, KXN_R(code->dst));
         sljit_emit_op2(nctx->C, SLJIT_SUB, SLJIT_MEM1(SLJIT_R0), 0, SLJIT_MEM1(SLJIT_R0), 0, SLJIT_IMM, 1);
         sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_MEM1(SLJIT_R0), 0);
+        break;
+    case KXNOP_SWVAL:
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_S4, 0, KXN_R(code->dst));
         break;
     }
 }
