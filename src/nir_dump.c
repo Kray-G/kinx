@@ -169,6 +169,42 @@ static void natir_display_bop(kxn_code_t *code)
         natir_display_op(&(code->op2));
         printf("]");
         break;
+    case KXNOP_OIDXI:
+        printf("%-23s ", "oidxi");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        printf("[");
+        natir_display_op(&(code->op2));
+        printf("]");
+        break;
+    case KXNOP_OIDXIA:
+        printf("%-23s ", "oidxia");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        printf("[");
+        natir_display_op(&(code->op2));
+        printf("]");
+        break;
+    case KXNOP_OIDXO:
+        printf("%-23s ", "oidxo");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        printf("[");
+        natir_display_op(&(code->op2));
+        printf("]");
+        break;
+    case KXNOP_OIDXOA:
+        printf("%-23s ", "oidxoa");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        printf("[");
+        natir_display_op(&(code->op2));
+        printf("]");
+        break;
     }
 }
 
@@ -284,6 +320,12 @@ static void natir_display_code(kxn_code_t *code, int addr)
         break;
     case KXN_LOADBIN:
         printf("%-23s ", "loadbin");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        break;
+    case KXN_LOADOBJ:
+        printf("%-23s ", "loadobj");
         natir_display_op(&(code->dst));
         printf(", ");
         natir_display_op(&(code->op1));
