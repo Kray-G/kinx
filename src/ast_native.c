@@ -415,6 +415,40 @@ static int is_swap(kx_object_t *lhs, kx_object_t *rhs, int type)
     return 0;
 }
 
+static void nativejit_gen_casejmp(kx_native_context_t *nctx, kx_switch_t *sw, int out)
+{
+    int isz = kv_size(sw->ival_case_list);
+
+    /* linear search */
+    int cond = gen_kxn_block(nctx);
+    KXNJP(nctx, nctx->block) = cond;
+    nctx->block = cond;
+    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+        .inst = KXN_0OP, .op = KXNOP_SWVAL,
+            .dst = { .type = KXNOP_REG, .r = sw->reg },
+    }));
+    for (int i = 0; i < isz; ++i) {
+        cond = gen_kxn_block(nctx);
+        KXNJP_F(nctx, nctx->block) = cond;
+        nctx->block = cond;
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_SWICOND,
+                .dst = { .type = KXNOP_REG, .r = nctx->regno },
+                .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, i).ival },
+        }));
+        KXNJP_T(nctx, nctx->block) = kv_A(sw->ival_case_list, i).block;
+    }
+    if (sw->defblock >= 0) {
+        cond = sw->defblock;
+    } else {
+        cond = gen_kxn_block(nctx);
+    }
+    KXNJP_F(nctx, nctx->block) = cond;
+    nctx->block = cond;
+
+    KXNJP(nctx, nctx->block) = out;
+}
+
 static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalue)
 {
     if (!node) {
@@ -646,24 +680,26 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
 
     case KXOP_DECL: {
         KXN_RESET_REGNO_IF_POSSIBLE(nctx);
-        if (node->var_type == KX_INT_T && node->rhs->type == KXVL_INT) {
-            nativejit_ast(nctx, node->lhs, 1);
-            int a = nctx->regno;
-            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-                .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = node->var_type,
-                    .dst = { .type = KXNOP_MEM, .r = a },
-                    .op1 = { .type = KXNOP_IMM, .iv = node->rhs->value.i }
-            }));
-        } else {
-            nativejit_ast(nctx, node->rhs, 0);
-            int r = nctx->regno;
-            nativejit_ast(nctx, node->lhs, 1);
-            int a = nctx->regno;
-            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-                .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = node->var_type,
-                    .dst = { .type = KXNOP_MEM, .r = a },
-                    .op1 = { .type = KXNOP_REG, .r = r }
-            }));
+        if (node->rhs) {
+            if (node->var_type == KX_INT_T && node->rhs->type == KXVL_INT) {
+                nativejit_ast(nctx, node->lhs, 1);
+                int a = nctx->regno;
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = node->var_type,
+                        .dst = { .type = KXNOP_MEM, .r = a },
+                        .op1 = { .type = KXNOP_IMM, .iv = node->rhs->value.i }
+                }));
+            } else {
+                nativejit_ast(nctx, node->rhs, 0);
+                int r = nctx->regno;
+                nativejit_ast(nctx, node->lhs, 1);
+                int a = nctx->regno;
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = node->var_type,
+                        .dst = { .type = KXNOP_MEM, .r = a },
+                        .op1 = { .type = KXNOP_REG, .r = r }
+                }));
+            }
         }
         break;
     }
@@ -1127,7 +1163,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
 
     case KXST_BREAK: {
         int len = kv_size(nctx->break_list);
-        if (len < 0) {
+        if (len <= 0) {
             kx_yyerror_line("No available block to break", node->file, node->line);
             break;
         }
@@ -1164,7 +1200,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
     }
     case KXST_CONTINUE: {
         int len = kv_size(nctx->continue_list);
-        if (len < 0) {
+        if (len <= 0) {
             kx_yyerror_line("No available block to continue", node->file, node->line);
             break;
         }
@@ -1276,11 +1312,70 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
     }
     case KXST_SWITCH: {  /* lhs: cond: rhs: block */
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
-        break;
+        kv_push(kx_switch_t, nctx->switch_list, KXSWITCH());
+        kx_switch_t *sw = &kv_last_by(nctx->switch_list, 1);
+        kv_init(sw->ival_case_list);
+        kv_init(sw->expr_case_list);
+        sw->defblock = -1;
+
+        int swstmt = gen_kxn_block(nctx);
+        int out = gen_kxn_block(nctx);
+        kv_push(kx_label_t, nctx->break_list, KXBLOCK(out));
+        KXN_RESET_REGNO_IF_POSSIBLE(nctx);
+        KXNJP(nctx, nctx->block) = swstmt;
+        nctx->block = swstmt;
+
+        nativejit_ast(nctx, node->lhs, 0);
+        sw->reg = nctx->regno;
+        sw->var_type = node->lhs->var_type;
+        nativejit_ast(nctx, node->rhs, 0);
+        KXNJP(nctx, nctx->block) = out;
+
+        nctx->block = swstmt;
+        nativejit_gen_casejmp(nctx, sw, out);
+
+        nctx->block = out;
+        kv_destroy(sw->expr_case_list);
+        kv_destroy(sw->ival_case_list);
+        kv_remove_last(nctx->switch_list);
+       break;
     }
     case KXST_CASE: {  /* lhs: cond */
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        int clen = kv_size(KXNBLK(nctx)->code);
+        int stmt;
+        if (clen == 0) {
+            stmt = nctx->block;
+        } else {
+            stmt = gen_kxn_block(nctx);
+            KXNJP(nctx, nctx->block) = stmt;
+            nctx->block = stmt;
+        }
+        kx_switch_t *sw = &kv_last_by(nctx->switch_list, 1);
+        if (node->optional == KXCS_DEFAULT) {
+            sw->defblock = stmt;
+        } else if (node->lhs) {
+            kx_object_t *lhs = node->lhs;
+            if (lhs->var_type != sw->var_type) {
+                kx_yyerror_line("switch-case label type mismatch", node->file, node->line);
+                break;
+            }
+            switch (lhs->type) {
+            case KXVL_INT:
+                kv_push(kx_ival_case_t, sw->ival_case_list, KXCASE_IVAL(lhs->value.i, stmt));
+                break;
+            case KXOP_VAR:
+                if (lhs->lhs && lhs->lhs->type == KXVL_INT) {
+                    kv_push(kx_ival_case_t, sw->ival_case_list, KXCASE_IVAL(lhs->lhs->value.i, stmt));
+                    break;
+                }
+                /* fall through */
+            default:
+                kv_push(kx_expr_case_t, sw->expr_case_list, KXCASE_EXPR(lhs, stmt));
+                break;
+            }
+        } else {
+            kx_yyerror_line("invalid switch-case label", node->file, node->line);
+        }
         break;
     }
     case KXST_WHILE: {    /* lhs: cond: rhs: block */
@@ -1642,5 +1737,6 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *ar
     kv_destroy(nctx.continue_list);
     kv_destroy(nctx.break_list);
     kv_destroy(nctx.catch_list);
+    kv_destroy(nctx.switch_list);
     return nf;
 }
