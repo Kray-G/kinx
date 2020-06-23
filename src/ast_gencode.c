@@ -1558,7 +1558,6 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             ana->block = stmt;
         }
         update_case_jmp(module, node, stmt);
-        gencode_ast_hook(ctx, node->rhs, ana, 0);
         break;
     }
     case KXST_WHILE:   {  /* lhs: cond: rhs: block */
