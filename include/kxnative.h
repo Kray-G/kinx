@@ -11,7 +11,8 @@ enum kxn_code_inst {
     KXN_LOAD,       /* load int value */
     KXN_LOADF,      /* load dbl value */
     KXN_LOADA,      /* load address */
-    KXN_LOADBIN,    /* load binary head address */
+    KXN_LOADBIN,    /* load binary address */
+    KXN_LOADOBJ,    /* load object address */
 
     KXN_BOP,        /* binary op:   dst = op1 OP op2 */
     KXN_UOP,        /* unary op:    dst = OP op1 */
@@ -76,6 +77,10 @@ enum kxn_bopecode_type {
     KXNOP_SWAP,
     KXNOP_BIDX,
     KXNOP_BIDXA,
+    KXNOP_OIDXI,
+    KXNOP_OIDXIA,
+    KXNOP_OIDXO,
+    KXNOP_OIDXOA,
 };
 
 enum kxn_uopecode_type {
