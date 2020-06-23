@@ -34,11 +34,12 @@
     *   Supported a JIT library for 64-bit integer and 64-bit floating point.
     *   Supported `libkinx.h` and a library file of `kx.lib` on Windows or `libkx.a` on Linux.
     *   Supported the option of `--version` to show the detail of the version.
+    *   Supported the option of `-c` for compiling only to check the syntax.
+    *   Supported the option of `-q` for quiet mode.
     *   Some bug fixes and improvement.
 
 * A current plan and development items in progress.
     *   Support to read/write from/to Clipboard.
-    *   Support the option of compiling only to check the syntax.
     *   Supporting a first version of Native Functions.
         *   Switch case.
     *   Full documenting by SpecTest.

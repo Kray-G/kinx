@@ -88,9 +88,11 @@ static void usage(void)
     printf("Usage: " PROGNAME " -[hdDuiv]\n");
     printf("Main options:\n");
     printf("    -h      Display this help.\n");
+    printf("    -c      Check the syntax only.\n");
     printf("    -d      Dump compiled code.\n");
     printf("    -D      Display AST.\n");
     printf("    -u      Use UTF8 in standard I/O without converting. (Windows only)\n");
+    printf("    -q      Quiet mode in compiling.\n");
     printf("    -i      Input source code from stdin.\n");
     printf("    -v, --version\n");
     printf("            Display the version number. --version shows also a detail.\n");
@@ -160,7 +162,7 @@ DllExport int do_main(int ac, char **av)
     char param[LONGNAME_MAX] = {0};
     char *execname = NULL;
     int opt;
-    while ((opt = getopt(ac, av, "vhdDui")) != -1) {
+    while ((opt = getopt(ac, av, "qcvhdDui")) != -1) {
         switch (opt) {
         case '-':
             get_long_option(optarg, lname, param);
@@ -184,6 +186,12 @@ DllExport int do_main(int ac, char **av)
                 }
                 break;
             }
+            break;
+        case 'q':
+            ctx->options.quiet = 1;
+            break;
+        case 'c':
+            ctx->options.syntax = 1;
             break;
         case 'd':
             ctx->options.dump = 1;
@@ -210,7 +218,7 @@ DllExport int do_main(int ac, char **av)
     }
 
 END_OF_OPT:
-    kx_lexinfo.quiet = 0;
+    kx_lexinfo.quiet = ctx->options.quiet;
     if (execname) {
         const char *execfile = kxlib_exec_file_exists(execname);
         if (!execfile) {
@@ -247,13 +255,16 @@ END_OF_OPT:
         goto CLEANUP;
     }
 
-    if (ctx->options.ast || ctx->options.dump) {
+    if (ctx->options.ast || ctx->options.dump || ctx->options.syntax) {
         if (ctx->options.ast) {
             start_display_ast(kx_ast_root);
         }
         if (ctx->options.dump) {
             ir_dump(ctx);
             // ir_dump_fixed_code(&fixcode);
+        }
+        if (ctx->options.syntax) {
+            return g_yyerror;
         }
         return 0;
     }
