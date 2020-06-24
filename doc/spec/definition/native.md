@@ -40,6 +40,12 @@ Especially, see below for examples of `Math` functions.
 
 * [Math functions](native/math.md)
 
+### Supported Switch-Case
+
+See below for examples of Switch-Case in native.
+
+* [Switch-Case in Native](native/switch_case.md)
+
 ## Examples
 
 ### Example 1. Fibonacci

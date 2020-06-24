@@ -27,6 +27,7 @@
     *   Supported some of string operations in native.
     *   Supported some of binary operations in native.
     *   Supported some of array operations in native.
+    *   Supported switch-case only with integer label in native.
     *   Kinx As A Library, see `examples/c/runkinx.c` for example.
     *   Supported underline by escape sequence.
     *   Supported __FILE__, __LINE__, __FUNC__.
@@ -40,8 +41,6 @@
 
 * A current plan and development items in progress.
     *   Support to read/write from/to Clipboard.
-    *   Supporting a first version of Native Functions.
-        *   Switch case.
     *   Full documenting by SpecTest.
 
 ## V0.9.2 (9th Preview Release)
