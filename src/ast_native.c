@@ -415,11 +415,119 @@ static int is_swap(kx_object_t *lhs, kx_object_t *rhs, int type)
     return 0;
 }
 
+static int case_ival_cond(const void *v1, const void *v2)
+{
+    return (*(kx_ival_case_t*)v1).ival - (*(kx_ival_case_t*)v2).ival;
+}
+
+static void nativejit_gen_casejmp_expr(kx_native_context_t *nctx, kx_switch_t *sw, int out, int esz)
+{
+    /* linear search */
+    int cond;
+    for (int i = 0; i < esz; ++i) {
+        cond = gen_kxn_block(nctx);
+        KXNJP_F(nctx, nctx->block) = cond;
+        nctx->block = cond;
+        nctx->regno = sw->reg;
+        nativejit_ast(nctx, kv_A(sw->expr_case_list, i).expr, 0);
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_SWICOND,
+                .dst = { .type = KXNOP_REG, .r = sw->reg },
+                .op1 = { .type = KXNOP_REG, .r = nctx->regno },
+        }));
+        KXNJP_T(nctx, nctx->block) = kv_A(sw->expr_case_list, i).block;
+    }
+}
+
+static void nativejit_gen_casejmp_linear(kx_native_context_t *nctx, kx_switch_t *sw, int out, int isz)
+{
+    /* linear search */
+    int cond;
+    for (int i = 0; i < isz; ++i) {
+        cond = gen_kxn_block(nctx);
+        KXNJP_F(nctx, nctx->block) = cond;
+        nctx->block = cond;
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_SWICOND,
+                .dst = { .type = KXNOP_REG, .r = sw->reg },
+                .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, i).ival },
+        }));
+        KXNJP_T(nctx, nctx->block) = kv_A(sw->ival_case_list, i).block;
+    }
+}
+
+static void nativejit_gen_casejmp_bsearch(kx_native_context_t *nctx, kx_switch_t *sw, int s, int e, int def)
+{
+    int cond;
+    if (s == e) {
+        cond = gen_kxn_block(nctx);
+        KXNJP_F(nctx, nctx->block) = cond;
+        nctx->block = cond;
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_SWICOND,
+                .dst = { .type = KXNOP_REG, .r = sw->reg },
+                .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, s).ival },
+        }));
+        KXNJP_T(nctx, nctx->block) = kv_A(sw->ival_case_list, s).block;
+        KXNJP_F(nctx, nctx->block) = def;
+        return;
+    }
+    if (s == (e-1)) {
+        cond = gen_kxn_block(nctx);
+        KXNJP_F(nctx, nctx->block) = cond;
+        nctx->block = cond;
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_SWICOND,
+                .dst = { .type = KXNOP_REG, .r = sw->reg },
+                .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, s).ival },
+        }));
+        KXNJP_T(nctx, nctx->block) = kv_A(sw->ival_case_list, s).block;
+
+        cond = gen_kxn_block(nctx);
+        KXNJP_F(nctx, nctx->block) = cond;
+        nctx->block = cond;
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_SWICOND,
+                .dst = { .type = KXNOP_REG, .r = sw->reg },
+                .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, e).ival },
+        }));
+        KXNJP_T(nctx, nctx->block) = kv_A(sw->ival_case_list, e).block;
+        KXNJP_F(nctx, nctx->block) = def;
+        return;
+    }
+    int m = s + (e - s) / 2;
+    cond = gen_kxn_block(nctx);
+    KXNJP_F(nctx, nctx->block) = cond;
+    nctx->block = cond;
+    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+        .inst = KXN_UOP, .op = KXNOP_SWICOND,
+            .dst = { .type = KXNOP_REG, .r = sw->reg },
+            .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, m).ival },
+    }));
+    KXNJP_T(nctx, nctx->block) = kv_A(sw->ival_case_list, m).block;
+
+    cond = gen_kxn_block(nctx);
+    KXNJP(nctx, nctx->block) = cond;
+    nctx->block = cond;
+    kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+        .inst = KXN_UOP, .op = KXNOP_SWILT,
+            .dst = { .type = KXNOP_REG, .r = sw->reg },
+            .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, m).ival },
+    }));
+
+    int c1 = gen_kxn_block(nctx);
+    nctx->block = c1;
+    nativejit_gen_casejmp_bsearch(nctx, sw, s, m - 1, def);
+    int c2 = gen_kxn_block(nctx);
+    nctx->block = c2;
+    nativejit_gen_casejmp_bsearch(nctx, sw, m + 1, e, def);
+
+    KXNJP_F(nctx, cond) = c2;
+    KXNJP_T(nctx, cond) = c1;
+}
+
 static void nativejit_gen_casejmp(kx_native_context_t *nctx, kx_switch_t *sw, int out)
 {
-    int isz = kv_size(sw->ival_case_list);
-
-    /* linear search */
     int cond = gen_kxn_block(nctx);
     KXNJP(nctx, nctx->block) = cond;
     nctx->block = cond;
@@ -427,24 +535,34 @@ static void nativejit_gen_casejmp(kx_native_context_t *nctx, kx_switch_t *sw, in
         .inst = KXN_0OP, .op = KXNOP_SWVAL,
             .dst = { .type = KXNOP_REG, .r = sw->reg },
     }));
-    for (int i = 0; i < isz; ++i) {
+
+    int esz = kv_size(sw->expr_case_list);
+    if (esz > 0 || sw->defblock < 0) {
         cond = gen_kxn_block(nctx);
-        KXNJP_F(nctx, nctx->block) = cond;
-        nctx->block = cond;
-        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-            .inst = KXN_UOP, .op = KXNOP_SWICOND,
-                .dst = { .type = KXNOP_REG, .r = nctx->regno },
-                .op1 = { .type = KXNOP_IMM, .iv = kv_A(sw->ival_case_list, i).ival },
-        }));
-        KXNJP_T(nctx, nctx->block) = kv_A(sw->ival_case_list, i).block;
-    }
-    if (sw->defblock >= 0) {
-        cond = sw->defblock;
     } else {
-        cond = gen_kxn_block(nctx);
+        cond = sw->defblock;
+    }
+
+    int isz = kv_size(sw->ival_case_list);
+    if (isz <= 4) {
+        nativejit_gen_casejmp_linear(nctx, sw, out, isz);
+    } else {
+        kv_sort(kx_ival_case_t, sw->ival_case_list, case_ival_cond);
+        nativejit_gen_casejmp_bsearch(nctx, sw, 0, isz - 1, cond);
     }
     KXNJP_F(nctx, nctx->block) = cond;
     nctx->block = cond;
+
+    if (esz > 0) {
+        nativejit_gen_casejmp_expr(nctx, sw, out, esz);
+        if (sw->defblock < 0) {
+            cond = gen_kxn_block(nctx);
+        } else {
+            cond = sw->defblock;
+        }
+        KXNJP_F(nctx, nctx->block) = cond;
+        nctx->block = cond;
+    }
 
     KXNJP(nctx, nctx->block) = out;
 }
