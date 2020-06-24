@@ -71,7 +71,7 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 ##### Block
 
 *   [block](statement/block.md)
-*   [namespace](statement/namespace.md) - *not documented yet*
+*   [namespace](statement/namespace.md)
 
 ##### Branch
 
