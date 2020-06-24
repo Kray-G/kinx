@@ -253,6 +253,12 @@ static void natir_display_uop(kxn_code_t *code)
         printf(", ");
         natir_display_op(&(code->op1));
         break;
+    case KXNOP_SWILT:
+        printf("%-23s ", "swilt");
+        natir_display_op(&(code->dst));
+        printf(", ");
+        natir_display_op(&(code->op1));
+        break;
     }
 }
 
