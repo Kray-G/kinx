@@ -5900,7 +5900,7 @@ int kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2
     int len = kv_size(v1->value.ov->ary);
     if (cur->value1.i < len) {
         kx_val_t *v = &kv_A(v1->value.ov->ary, cur->value1.i);
-        if (vp->has_pos) {
+        if (v2->has_pos) {
             if (vp->type == KX_STR_T || vp->type == KX_CSTR_T) {
                 if (vp->type == KX_CSTR_T) {
                     kstr_t *s = allocate_str(ctx);
@@ -5910,22 +5910,22 @@ int kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2
                 }
                 char *pv = ks_string(vp->value.sv);
                 if (v->type == KX_INT_T) {
-                    pv[vp->pos] = v->value.iv;
+                    pv[v2->pos] = v->value.iv;
                 } else if (v->type == KX_CSTR_T) {
-                    pv[vp->pos] = v->value.pv[0];
+                    pv[v2->pos] = v->value.pv[0];
                 } else if (v->type == KX_STR_T) {
-                    pv[vp->pos] = ks_string(v->value.sv)[0];
+                    pv[v2->pos] = ks_string(v->value.sv)[0];
                 } else {
                     exc = KXN_UNSUPPORTED_OPERATOR;
                 }
             } else if (vp->type == KX_BIN_T) {
                 uint8_t *bin = &kv_A(vp->value.bn->bin, 0);
                 if (v->type == KX_INT_T) {
-                    bin[vp->pos] = (v->value.iv) & 0xFF;
+                    bin[v2->pos] = (v->value.iv) & 0xFF;
                 } else if (v->type == KX_CSTR_T) {
-                    bin[vp->pos] = v->value.pv[0];
+                    bin[v2->pos] = v->value.pv[0];
                 } else if (v->type == KX_STR_T) {
-                    bin[vp->pos] = ks_string(v->value.sv)[0];
+                    bin[v2->pos] = ks_string(v->value.sv)[0];
                 } else {
                     exc = KXN_UNSUPPORTED_OPERATOR;
                 }

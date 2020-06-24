@@ -93,6 +93,7 @@ enum kxn_uopecode_type {
     KXNOP_DEC,
     KXNOP_SWVAL,
     KXNOP_SWICOND,
+    KXNOP_SWILT,
     KXNOP_TYPEOF,
     KXNOP_SETE,
     KXNOP_SETEC,
@@ -117,6 +118,7 @@ typedef struct kxn_code_ {
     int ret_type;
     int var_type;
     sljump_t *jmp;
+    sljump_t *tf;
     kxn_operand_t dst, op1, op2;
 } kxn_code_t;
 kvec_init_t(kxn_code_t);
