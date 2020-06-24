@@ -217,8 +217,8 @@ libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
 	ar rcs libkx.a fileutil.o
 
-kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-jsonpic.o $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-jsonpic.o
+kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-json.o $(PICOBJS)
+	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-json.o
 
 kxstring.so: src/extlib/kxstring.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
@@ -300,6 +300,9 @@ libonig.so:
 	cp -f src/.libs/libonig.so.5.0.0 ../../../;
 	ln -s libonig.so.5.0.0 libonig.so.5; \
 	ln -s libonig.so.5 libonig.so;
+
+kc-json.o: src/extlib/kc-json/kc-json.c
+	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 sqlite3.o: src/extlib/sqlite/sqlite3.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
