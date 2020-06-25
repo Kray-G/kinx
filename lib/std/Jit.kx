@@ -49,7 +49,7 @@ const Jit;
     Jit.ArgType.FP_FP_UW = (6 << 4) | (6 << 8) | (2 << 12);
     Jit.ArgType.FP_FP_FP = (6 << 4) | (6 << 8) | (6 << 12);
 
-    _class Code(c_) {
+    _class JitCode(c_) {
         public dump() {
             return c_.dumpCode();
         }
@@ -74,6 +74,18 @@ const Jit;
             }
             c_.setConstByLabel(i_, label);
         }
+        public setValue(value) {
+            if (!c_.fixed) {
+                throw RuntimeException("Setting a const value should be after generated a code");
+            }
+            if (value.isInteger) {
+                c_.setConstInt(i_, value);
+            } else if (value.isDouble) {
+                c_.setConstDbl(i_, value);
+            } else {
+                throw RuntimeException("Unsupported type of constant value");
+            }
+        }
     }
 
     _class Compiler() {
@@ -82,6 +94,9 @@ const Jit;
         var chk_, inst_, label_ = 0, jump_ = 0, const_ = 0;
         private isMEM(v) {
             return v[2] == 'm'[0] || v[2] == 'l'[0];
+        }
+        private isImmFP(v) {
+            return v[1].isDouble && v[0] == 0x40 && v[2] == 'c'[0];
         }
         private isFP(...a) {
             for (var i = 0, l = a.length(); i < l; ++i) {
@@ -144,7 +159,11 @@ const Jit;
         public makeConst(reg, init) {
             checkRegister(reg);
             checkRegister(init);
-            inst_.push(_function() { c_.makeConst(reg, init ?? 0); });
+            if (isFP(reg)) {
+                inst_.push(_function() { c_.makeConstDbl(reg, init ?? 0); });
+            } else {
+                inst_.push(_function() { c_.makeConst(reg, init ?? 0); });
+            }
             return new ConstTarget(c_, const_++);
         }
         public localp(dst, offset) {
@@ -243,6 +262,8 @@ const Jit;
             if (isFP(dst)) {
                 if (isMEM(op1) || isFP(op1)) {
                     operate1("fmov", dst, op1);
+                } else if (isImmFP(op1)) {
+                    operate1("fmovimm", dst, op1);
                 } else {
                     operate1("sw2f", dst, op1);
                 }
@@ -460,7 +481,7 @@ const Jit;
             });
             c_.fix();
             c_.fixed = true;
-            return new Code(c_);
+            return new JitCode(c_);
         }
     }
 

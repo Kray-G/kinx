@@ -73,6 +73,7 @@ static inline int is_dbl(int n, int args, kx_context_t *ctx)
 }
 #define KX_IS_INT(n) is_int(n, args, ctx)
 #define KX_IS_DBL(n) is_dbl(n, args, ctx)
+#define KX_CONV_TEMPV(jtx) ((jtx)->local + (3 * 8))
 
 #define KX_GET_JIT_CTX(r, obj) \
 r = NULL; \
@@ -98,6 +99,19 @@ if (obj) { \
     } \
 } \
 /**/
+#define KX_GET_OPX_DBL(opx, op, i) { \
+    kx_val_t *v = NULL;\
+    KEX_GET_ARRAY_ITEM(v, op, i); \
+    if (!v) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid Opcode"); \
+    } \
+    if (v->type == KX_DBL_T) { \
+        opx = v->value.dv; \
+    } else if (v->type == KX_INT_T) { \
+        opx = (double)v->value.iv; \
+    } \
+} \
+/**/
 #define KX_GET_OP(args, ctx, obj, jtx, op1, op2, i) { \
     kx_obj_t *op = get_arg_obj(i, args, ctx); \
     if (!op) { \
@@ -105,6 +119,14 @@ if (obj) { \
     } \
     KX_GET_OPX_INT(op1, op, 0); \
     KX_GET_OPX_INT(op2, op, 1); \
+} \
+/**/
+#define KX_GET_OP_IMMDBL(args, ctx, obj, jtx, op2, i) { \
+    kx_obj_t *op = get_arg_obj(i, args, ctx); \
+    if (!op) { \
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid Opcode"); \
+    } \
+    KX_GET_OPX_DBL(op2, op, 1); \
 } \
 /**/
 #define KX_GET_LOCAL(obj, local) { \
@@ -421,12 +443,12 @@ int Jit_enter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     sljit_emit_enter(jtx->C, 0,
-        KX_ARGTYPE_SW_SW_SW,    /* argument type                */
-        jtx->r,                 /* scratch  : temporary R0-R*   */
-        jtx->s,                 /* saved    : safety    S0-S*   */
-        jtx->fr,                /* fscratch : temporary FR0-FR* */
-        jtx->fs,                /* fsaved   : safety    FS0-FS* */
-        jtx->local + (3 * 8)    /* local    :                   */
+        KX_ARGTYPE_SW_SW_SW,    /* argument type                                    */
+        jtx->r,                 /* scratch  : temporary R0-R*                       */
+        jtx->s,                 /* saved    : safety    S0-S*                       */
+        jtx->fr,                /* fscratch : temporary FR0-FR*                     */
+        jtx->fs,                /* fsaved   : safety    FS0-FS*                     */
+        jtx->local + (4 * 8)    /* local    : additionals, 0-2:saved, 3:conversion  */
     );
     for (int i = 0; i < jtx->fs; ++i) {
         if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= i) {
@@ -547,6 +569,47 @@ int Jit_setConstByLabel(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
+int Jit_setConstInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+
+    int targetid = get_arg_int(2, args, ctx);
+    int64_t value = get_arg_int(3, args, ctx);
+    if (targetid >= kv_size(jtx->consts)) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid target or label to set target");
+    }
+
+    slconst_t *cvalx = kv_A(jtx->consts, targetid);
+	sljit_set_const(sljit_get_const_addr(cvalx), value, sljit_get_executable_offset(jtx->C));
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int Jit_setConstDbl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+
+    int targetid = get_arg_int(2, args, ctx);
+    double value = get_arg_dbl(3, args, ctx);
+    if (targetid >= kv_size(jtx->consts)) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid target or label to set target");
+    }
+
+    slconst_t *cvalx = kv_A(jtx->consts, targetid);
+    union { uint64_t i; double d; } conv = { .d = value };
+	sljit_set_const(sljit_get_const_addr(cvalx), conv.i, sljit_get_executable_offset(jtx->C));
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 int Jit_makeConst(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_jit_context_t *jtx = NULL;
@@ -566,6 +629,27 @@ int Jit_makeConst(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Jit_makeConstDbl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+
+    int dst1, dst1w;
+    KX_GET_OP(args, ctx, obj, jtx, dst1, dst1w, 2);
+    int64_t initvalue = get_arg_int(3, args, ctx);
+
+    slconst_t *cvalue = sljit_emit_const(jtx->C, SLJIT_R0, 0, initvalue);
+    sljit_emit_op1(jtx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), KX_CONV_TEMPV(jtx), SLJIT_R0, 0);
+    sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, dst1, dst1w, SLJIT_MEM1(SLJIT_SP), KX_CONV_TEMPV(jtx));
+    int i = kv_size(jtx->consts);
+    kv_push(slconst_t*, jtx->consts, cvalue);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, i);
+    return 0;
+}
+
 int Jit_getLocalAddress(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_jit_context_t *jtx = NULL;
@@ -576,7 +660,7 @@ int Jit_getLocalAddress(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     KX_GET_OP(args, ctx, obj, jtx, src1, src1w, 2);
     int64_t offset = get_arg_int(3, args, ctx);
 
-    sljit_get_local_base(jtx->C, src1, src1w, offset);
+    sljit_get_local_base(jtx->C, src1, src1w, offset * 8);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -890,6 +974,30 @@ KX_JIT_FOP1(Jit_sw_2_f64, SLJIT_CONV_F64_FROM_SW);
 KX_JIT_FOP1(Jit_fneg, SLJIT_NEG_F64);
 KX_JIT_FOP1(Jit_fabs, SLJIT_ABS_F64);
 
+int Jit_fmovimm(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args != 3) {
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
+    }
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+    int dst1, dst1w;
+    KX_GET_OP(args, ctx, obj, jtx, dst1, dst1w, 2);
+    double value;
+    KX_GET_OP_IMMDBL(args, ctx, obj, jtx, value, 3);
+    union { uint64_t i; double d; } conv = { .d = value };
+    sljit_emit_op1(jtx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), KX_CONV_TEMPV(jtx), SLJIT_IMM, conv.i);
+    sljit_emit_fop1(jtx->C, SLJIT_MOV_F64, dst1, dst1w, SLJIT_MEM1(SLJIT_SP), KX_CONV_TEMPV(jtx));
+    if (jtx->C->error != SLJIT_SUCCESS) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT");
+    }
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+/**/
+
 /* fop2 */
 KX_JIT_FOP2(Jit_fadd, SLJIT_ADD_F64);
 KX_JIT_FOP2(Jit_fsub, SLJIT_SUB_F64);
@@ -915,7 +1023,10 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("setLabel", obj, Jit_setLabel);
     KEX_SET_METHOD("label", obj, Jit_label);
     KEX_SET_METHOD("setConstByLabel", obj, Jit_setConstByLabel);
+    KEX_SET_METHOD("setConstInt", obj, Jit_setConstInt);
+    KEX_SET_METHOD("setConstDbl", obj, Jit_setConstDbl);
     KEX_SET_METHOD("makeConst", obj, Jit_makeConst);
+    KEX_SET_METHOD("makeConstDbl", obj, Jit_makeConstDbl);
     KEX_SET_METHOD("getLocalAddress", obj, Jit_getLocalAddress);
     KEX_SET_METHOD("getLocalAddressBy", obj, Jit_getLocalAddressBy);
 
@@ -977,6 +1088,7 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 
     /* fop1 */
     KEX_SET_METHOD("fmov", obj, Jit_fmov);
+    KEX_SET_METHOD("fmovimm", obj, Jit_fmovimm);
     KEX_SET_METHOD("f2sw", obj, Jit_f64_2_sw);
     KEX_SET_METHOD("sw2f", obj, Jit_sw_2_f64);
     KEX_SET_METHOD("fneg", obj, Jit_fneg);
