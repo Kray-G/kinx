@@ -16,23 +16,38 @@ native fib(n) {
 
 It is very fast but there are some limitations.
 
-*   Currently you can use the type of integer and double only.
-*   All variables are defined as a type. Available type is `int`, `dbl`, `str`, or `native`.
+*   All variables are defined as a type. Available type is `int`, `dbl`, `str`, `bin`, `obj`, `ary`, or `native`.
     *   If type information is omitted, the type would be followings.
         *   On argument, it become automatically `int`.
         *   Without initializer on declaration, it become automatically `int`.
         *   With initializer on declaration, it is decided by the result of right hand side.
-            *   When it can not be decided, it occurs a compile error.
-    *   `native` function's return type is shown like `native<int>`.
-    *   Even in this case, you can omit `<int>` like just `native` and automatically make it `int`.
-    *   `str` is only supported for adding 2 strings and multiplying string by integer.
-*   Integer value is not automatically promoted to big integer, it will just overflow instead.
-*   Math functions like `Math.pow(2, 10)` or `2.pow(10)` are supported.
-*   Can not call a script function. Only can call a native function.
-*   `switch-case` is not supported.
-*   Can access to the lexical scope and variables, but only for an integer value, a double value, and a native function.
-*   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
-*   Support 64bit only. Libraries are supporting x64, ARM, MIPS, but sorry I can not test it except x64 Windows or Linux.
+            *   When it can not be decided, a compile error will occur.
+    *   For `int`
+        *   Integer value is **NOT** automatically promoted to a big integer, it will just overflow instead.
+        *   Math functions like `Math.pow(2, 10)` or `2.pow(10)` are supported.
+    *   For `dbl`
+        *   Math functions like `Math.pow(2.0, 10.0)` or `2.0.pow(10.0)` are supported.
+    *   For `str`
+        *   `str` is only supported for adding 2 strings and multiplying string by integer.
+    *   For `bin`
+        *   It is supported as an array of byte.
+    *   For `obj` and `ary`
+        *   `obj` and `ary` is the same.
+        *   It is currently just supported as an array of integer.
+    *   For `native`.
+        *   `native` function's return type is shown like `native<int>`.
+        *   Even in this case, you can omit `<int>` like just `native` and automatically make it `int`.
+*   For function call.
+    *   Can not call a script function. Only can call a native function.
+*   For statement and expression.
+    *   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
+    *   Switch-Case is supported, but the case label should be an integer value or expression.
+    *   The lexical scope and variables are available, but the type must be clarified.
+        *   If you omit the type, it will assume the integer.
+        *   If the type is mismatched, runtime exception will occur.
+*   Supported platform.
+    *   Supporting 64bit only.
+    *   Libraries are supporting x64, ARM, MIPS, but it is not tested except x64 Windows or Linux.
 
 ### Math Functions
 
@@ -42,6 +57,8 @@ Especially, see below for examples of `Math` functions.
 
 ### Supported Switch-Case
 
+Switch-Case is now supported in native function.
+But the case label should be an integer type.
 See below for examples of Switch-Case in native.
 
 * [Switch-Case in Native](native/switch_case.md)
