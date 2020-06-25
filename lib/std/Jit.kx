@@ -268,7 +268,7 @@ const Jit;
                     operate1("sw2f", dst, op1);
                 }
             } else if (isMEM(dst)) {
-                if (isFP(op1)) {
+                if (isFP(op1) || isImmFP(op1)) {
                     operate1("fmov", dst, op1);
                 } else {
                     operate1("mov", dst, op1);
@@ -276,6 +276,9 @@ const Jit;
             } else {
                 if (isFP(op1)) {
                     operate1("f2sw", dst, op1);
+                } else if (isImmFP(op1)) {
+                    op1[1] = Integer.parseInt(op1[1]);
+                    operate1("mov", dst, op1);
                 } else {
                     operate1("mov", dst, op1);
                 }
