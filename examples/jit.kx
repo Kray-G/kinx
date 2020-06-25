@@ -74,7 +74,7 @@ function jit_003() {
 function jit_004() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R0, Jit.IMM(100));
+        c.mov(Jit.R0, Jit.IMM(100.0));
         var const1 = c.makeConst(Jit.R1);
         c.ijmp(Jit.R1);
         c.ret(Jit.R0);
@@ -292,14 +292,14 @@ function jit_fib_fp() {
     }
 }
 
-jit_001();
-jit_002();
-jit_003();
+# jit_001();
+# jit_002();
+# jit_003();
 jit_004();
-jit_005();
-jit_006();
-jit_007();
-jit_008();
-jit_009();
-jit_fib();
-jit_fib_fp();
+# jit_005();
+# jit_006();
+# jit_007();
+# jit_008();
+# jit_009();
+# jit_fib();
+# jit_fib_fp();
