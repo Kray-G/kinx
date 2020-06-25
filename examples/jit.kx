@@ -79,15 +79,16 @@ function jit_004() {
         c.ijmp(Jit.R1);
         c.ret(Jit.R0);
         var l1 = c.label();
-        c.mov(Jit.R1, Jit.IMM(102));
-        c.ret(Jit.R1);
+        var const2 = c.makeConst(Jit.FR0);
+        c.ret(Jit.FR0);
 
     var code = c.generate();
     const1.setLabel(l1);        # Setting a const value should be after generated a code.
+    const2.setValue(10.2);
     code.dump();
 
-    var r = code.run();
-    System.println(r);
+    var r = code.frun();
+    System.println("%x" % r);
 }
 
 function jit_005() {
@@ -265,21 +266,15 @@ function jit_fib_fp() {
     # Fibonacci with floating point.
     var c = new Jit.Compiler();
     var entry1 = c.enter(Jit.ArgType.FP);
-        c.mov(Jit.FR0, Jit.IMM(3));
-        c.mov(Jit.FR1, Jit.IMM(10));
-        c.div(Jit.FR0, Jit.FR0, Jit.FR1);
+        c.mov(Jit.FR0, Jit.IMM(0.3));
         var jump0 = c.ge(Jit.FS0, Jit.FR0);
         c.ret(Jit.FS0);
         var l1 = c.label();
-        c.mov(Jit.FR0, Jit.IMM(2));
-        c.mov(Jit.FR1, Jit.IMM(10));
-        c.div(Jit.FR0, Jit.FR0, Jit.FR1);
+        c.mov(Jit.FR0, Jit.IMM(0.2));
         c.sub(Jit.FR0, Jit.FS0, Jit.FR0);
         c.call(entry1);
         c.mov(Jit.FS1, Jit.FR0);
-        c.mov(Jit.FR0, Jit.IMM(1));
-        c.mov(Jit.FR1, Jit.IMM(10));
-        c.div(Jit.FR0, Jit.FR0, Jit.FR1);
+        c.mov(Jit.FR0, Jit.IMM(0.1));
         c.sub(Jit.FR0, Jit.FS0, Jit.FR0);
         c.call(entry1);
         c.add(Jit.FR0, Jit.FR0, Jit.FS1);
