@@ -73,7 +73,7 @@ static inline int is_dbl(int n, int args, kx_context_t *ctx)
 }
 #define KX_IS_INT(n) is_int(n, args, ctx)
 #define KX_IS_DBL(n) is_dbl(n, args, ctx)
-#define KX_CONV_TEMPV(jtx) ((jtx)->local + (3 * 8))
+#define KX_CONV_TEMPV(jtx) ((jtx)->local + (((jtx)->fs) * 8))
 
 #define KX_GET_JIT_CTX(r, obj) \
 r = NULL; \
@@ -443,12 +443,12 @@ int Jit_enter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     sljit_emit_enter(jtx->C, 0,
-        KX_ARGTYPE_SW_SW_SW,    /* argument type                                    */
-        jtx->r,                 /* scratch  : temporary R0-R*                       */
-        jtx->s,                 /* saved    : safety    S0-S*                       */
-        jtx->fr,                /* fscratch : temporary FR0-FR*                     */
-        jtx->fs,                /* fsaved   : safety    FS0-FS*                     */
-        jtx->local + (4 * 8)    /* local    : additionals, 0-2:saved, 3:conversion  */
+        KX_ARGTYPE_SW_SW_SW,            /* argument type                                    */
+        jtx->r,                         /* scratch  : temporary R0-R*                       */
+        jtx->s,                         /* saved    : safety    S0-S*                       */
+        jtx->fr,                        /* fscratch : temporary FR0-FR*                     */
+        jtx->fs,                        /* fsaved   : safety    FS0-FS*                     */
+        jtx->local + ((jtx->fs+1) * 8)  /* local    : additionals, 0-:saved, fs:conversion  */
     );
     for (int i = 0; i < jtx->fs; ++i) {
         if (SLJIT_NUMBER_OF_SAVED_FLOAT_REGISTERS <= i) {
