@@ -408,6 +408,9 @@ const Jit;
             if (isNotFP(op1, op2)) {
                 operateCmp("eq", op1, op2);
             } else {
+                if (isImmFP(op2)) {
+                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
+                }
                 operateCmp("feq", op1, op2);
             }
             return new JumpTarget(c_, repl_, jump_++);
@@ -416,6 +419,9 @@ const Jit;
             if (isNotFP(op1, op2)) {
                 operateCmp("neq", op1, op2);
             } else {
+                if (isImmFP(op2)) {
+                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
+                }
                 operateCmp("fneq", op1, op2);
             }
             return new JumpTarget(c_, repl_, jump_++);
@@ -424,6 +430,9 @@ const Jit;
             if (isNotFP(op1, op2)) {
                 operateCmp("lt", op1, op2);
             } else {
+                if (isImmFP(op2)) {
+                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
+                }
                 operateCmp("flt", op1, op2);
             }
             return new JumpTarget(c_, repl_, jump_++);
@@ -432,6 +441,9 @@ const Jit;
             if (isNotFP(op1, op2)) {
                 operateCmp("le", op1, op2);
             } else {
+                if (isImmFP(op2)) {
+                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
+                }
                 operateCmp("fle", op1, op2);
             }
             return new JumpTarget(c_, repl_, jump_++);
@@ -440,6 +452,9 @@ const Jit;
             if (isNotFP(op1)) {
                 operateCmp("gt", op1, op2);
             } else {
+                if (isImmFP(op2)) {
+                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
+                }
                 operateCmp("fgt", op1, op2);
             }
             return new JumpTarget(c_, repl_, jump_++);
@@ -448,6 +463,9 @@ const Jit;
             if (isNotFP(op1)) {
                 operateCmp("ge", op1, op2);
             } else {
+                if (isImmFP(op2)) {
+                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
+                }
                 operateCmp("fge", op1, op2);
             }
             return new JumpTarget(c_, repl_, jump_++);
