@@ -33,7 +33,7 @@
     *   Supported switch-case only with integer label in native.
     *   Kinx As A Library, see `examples/c/runkinx.c` for example.
     *   Supported underline by escape sequence.
-    *   Supported __FILE__, __LINE__, __FUNC__.
+    *   Supported `__FILE__`, `__LINE__`, `__FUNC__`.
     *   Supported Environment Variable via `$env` variable.
     *   Supported a JIT library for 64-bit integer and 64-bit floating point.
     *   Supported `libkinx.h` and a library file of `kx.lib` on Windows or `libkx.a` on Linux.
