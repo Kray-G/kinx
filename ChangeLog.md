@@ -15,10 +15,13 @@
 
 ## V1.0.0 (Planned)
 
+    *   Support to read/write from/to Clipboard.
+    *   Get Environment Variables list via `$env` variable.
     *   User selectable installation.
     *   Documentation & SpecTest complete.
+    *   Full documenting by SpecTest.
 
-## V1.0.0-beta.1 (Current Development)
+## V0.10.0 (10th Preview Release)
 
 *   Updated
     *   Changed disassembler for x64.
@@ -31,17 +34,13 @@
     *   Kinx As A Library, see `examples/c/runkinx.c` for example.
     *   Supported underline by escape sequence.
     *   Supported __FILE__, __LINE__, __FUNC__.
-    *   Supported Environment Variable.
+    *   Supported Environment Variable via `$env` variable.
     *   Supported a JIT library for 64-bit integer and 64-bit floating point.
     *   Supported `libkinx.h` and a library file of `kx.lib` on Windows or `libkx.a` on Linux.
     *   Supported the option of `--version` to show the detail of the version.
     *   Supported the option of `-c` for compiling only to check the syntax.
     *   Supported the option of `-q` for quiet mode.
     *   Some bug fixes and improvement.
-
-* A current plan and development items in progress.
-    *   Support to read/write from/to Clipboard.
-    *   Full documenting by SpecTest.
 
 ## V0.9.2 (9th Preview Release)
 
