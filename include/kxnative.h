@@ -162,6 +162,7 @@ typedef struct kx_switch_ {
 } kx_switch_t;
 kvec_init_t(kx_switch_t);
 
+#define KNX_MAX_REG (64)
 typedef struct kx_native_context_ {
     struct sljit_compiler *C;
     const char *func_name;
@@ -178,6 +179,7 @@ typedef struct kx_native_context_ {
     uint8_t *args;
     int in_trycount;
     int in_finally;
+    int reg_holder[KNX_MAX_REG];
     kx_finally_vec_t *finallies;
     kvec_t(kxn_block_t) block_list;
     kvec_t(kx_label_t) continue_list;
