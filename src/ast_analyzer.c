@@ -782,7 +782,6 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
         make_cast(node, node->lhs, node->rhs, actx->in_native);
-        node->var_type = KX_INT_T;
         actx->lvalue = lvalue;
         break;
     }
