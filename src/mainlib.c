@@ -17,10 +17,10 @@
 #define VER_MAJ 0
 #endif
 #ifndef VER_MIN
-#define VER_MIN 9
+#define VER_MIN 10
 #endif
 #ifndef VER_PAT
-#define VER_PAT 2
+#define VER_PAT 0
 #endif
 #ifndef VER_SUFFIX
 #define VER_SUFFIX ""
