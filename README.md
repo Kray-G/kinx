@@ -118,7 +118,7 @@ Here is current available options.
 |          Option           |                              Description                              |
 | ------------------------- | --------------------------------------------------------------------- |
 | `-h`                      | Display help.                                                         |
-| `-v`                      | Display version number.                                               |
+| `-v`, `--version`         | Display version number.                                               |
 | `-d`                      | Dump compiled code.                                                   |
 | `-D`                      | Display AST.                                                          |
 | `-i`                      | Input source code from stdin.                                         |
@@ -208,7 +208,7 @@ sys     0m0.016s
 How nice it is around 10x faster.
 
 But you have to know the limitations with native function.
-See [Quick Reference Guide](doc/QuickReference.md) for details.
+See [Native Functions](doc/spec/definition/native.md) for details.
 
 ### REPL
 
@@ -255,13 +255,6 @@ var YourLibrary = _import("yourlibrary");
 
 For `new` operator, `new A` is just alias of `A.create`.
 See [Class Design](doc/HowClassWorks.md) for how class works.
-
-## Support Objects
-
-Currently many functionalities are too lack, I would like to add objects and methods as soon as possible.
-Many functionalities added in the future will be created by above strategy.
-
-For current supported objects, see [here](doc/Reference/_Index.md).
 
 ## TODO
 
