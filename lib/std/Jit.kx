@@ -11,6 +11,7 @@ const Jit;
     Jit.VAR = _function(n) { return Jit.MEM1(Jit.SP, n * 8, 'l'[0]); };
 
     Jit.ArgType.SW =
+    Jit.ArgType.SW_SW =
     Jit.ArgType.SW_SW_SW = (1 << 4) | (1 << 8) | (1 << 12);
     Jit.ArgType.SW_SW_UW = (1 << 4) | (1 << 8) | (2 << 12);
     Jit.ArgType.SW_SW_FP = (1 << 4) | (1 << 8) | (6 << 12);
@@ -24,6 +25,7 @@ const Jit;
     Jit.ArgType.SW_FP_FP = (1 << 4) | (6 << 8) | (6 << 12);
 
     Jit.ArgType.UW =
+    Jit.ArgType.UW_SW =
     Jit.ArgType.UW_SW_SW = (2 << 4) | (1 << 8) | (1 << 12);
     Jit.ArgType.UW_SW_UW = (2 << 4) | (1 << 8) | (2 << 12);
     Jit.ArgType.UW_SW_FP = (2 << 4) | (1 << 8) | (6 << 12);
@@ -37,6 +39,7 @@ const Jit;
     Jit.ArgType.UW_FP_FP = (2 << 4) | (6 << 8) | (6 << 12);
 
     Jit.ArgType.FP =
+    Jit.ArgType.FP_SW =
     Jit.ArgType.FP_SW_SW = (6 << 4) | (1 << 8) | (1 << 12);
     Jit.ArgType.FP_SW_UW = (6 << 4) | (1 << 8) | (2 << 12);
     Jit.ArgType.FP_SW_FP = (6 << 4) | (1 << 8) | (6 << 12);
