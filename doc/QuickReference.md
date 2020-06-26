@@ -20,12 +20,12 @@ hello, world.
 
 Kinx can execute the script without compiling.
 
-### Import Library
+### using Library
 
-You can import standard or your own library with `import` directive.
+You can use a standard or your own library with `using` directive.
 
 ```javascript
-import LibraryName;
+using Process;
 ```
 
 ### Comment
@@ -69,6 +69,8 @@ As using CheckProperty, you can check the type of a variable.
 | Array     | `isArray`, `isObject`       |         [1,a,["aaa"]]         | Array of any data.                                                       |
 | Object    | `isObject`                  |        { a: 1, b: x }         | Key-value data structure like JSON.                                      |
 | Function  | `isFunction`                | function(){},<br/>&() => expr | Function object like function, lambda, or native function.               |
+
+You will also see that `isDefined` returns true when the values is not null.
 
 Note that the Array is a part of Object.
 One Object can have both array data and key-value structure.
@@ -420,21 +422,8 @@ sys     0m0.016s
 
 After replacing `function` by `native`, it was shortened to 60 ms.
 
-But there are limitations below.
-
-*   Currently you can use the type of integer and double only.
-*   All variables are defined as a type. Available type is `int`, `dbl`, or `native`.
-    *   If type information is omitted, the type become automatically `int`.
-    *   `native` function's return type is shown like `native<int>`.
-    *   Even in this case, you can omit `<int>` like just `native` and automatically make it `int`. 
-*   Integer value is not automatically promoted to big integer, just overfow it.
-*   Can not call a script function. Only can call a native function.
-*   `switch-case` is not supported.
-*   Can access to the lexical scope and variables, but only for an integer value, a double value, and a native function.
-*   Exceptions with `try-catch-finally` is supported, but a stack trace is not available.
-*   Support 64bit only. Libraries are supporting x64, ARM, MIPS, but sorry I can not test it except x64 Windows or Linux.
-
-I will challenge to remove those, but the performance may be a little slower in some case.
+But there are limitations.
+Please see the [Native Functions](spec/definition/native.md) for more details.
 
 ##### Closure
 
