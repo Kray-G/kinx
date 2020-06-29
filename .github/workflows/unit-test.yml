@@ -17,22 +17,32 @@ jobs:
             const { compare, pull_request } = context.payload;
 
             let base, head;
-            switch (context.eventName) {
-              case 'push':
-                [, base, head] = compare.match(/\/compare\/([0-9a-f]+)\.\.\.([0-9a-f]+)$/);
-                break;
-              case 'pull_request':
-                base = pull_request.base.sha;
-                head = pull_request.head.sha;
-                break;
-            }
+            try {
+              switch (context.eventName) {
+                case 'push':
+                  if (compare.match(/\/compare\/v[0-9]+\.[0-9]+\.[0-9]+$/)) {
+                    // test it always when pushing a tag.
+                    return ['doc/spec/statement/declaration.md'];
+                  }
+                  [, base, head] = compare.match(/\/compare\/([0-9a-f]+)\.\.\.([0-9a-f]+)$/);
+                  break;
+                case 'pull_request':
+                  base = pull_request.base.sha;
+                  head = pull_request.head.sha;
+                  break;
+              }
 
-            if (base && head) {
-              const { owner, repo } = context.repo;
-              const diffs = await github.repos.compareCommits({ owner, repo, base, head });
-              return diffs.data.files.map(file => file.filename);
+              if (base && head) {
+                const { owner, repo } = context.repo;
+                const diffs = await github.repos.compareCommits({ owner, repo, base, head });
+                return diffs.data.files.map(file => file.filename);
+              }
+              return [];
             }
-            return [];
+            catch (e) {
+              console.log(context);
+              throw e;
+            }
 
       - name: read .spectest files
         id: linked_files

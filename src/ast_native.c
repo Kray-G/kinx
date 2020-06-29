@@ -475,12 +475,14 @@ static void nativejit_gen_casejmp_expr(kx_native_context_t *nctx, kx_switch_t *s
         nctx->block = cond;
         nctx->regno = sw->reg;
         nativejit_ast(nctx, kv_A(sw->expr_case_list, i).expr, 0);
+        int r = nctx->regno;
         kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
             .inst = KXN_UOP, .op = KXNOP_SWICOND,
                 .dst = { .type = KXNOP_REG, .r = sw->reg },
-                .op1 = { .type = KXNOP_REG, .r = nctx->regno },
+                .op1 = { .type = KXNOP_REG, .r = r },
         }));
         KXNJP_T(nctx, nctx->block) = kv_A(sw->expr_case_list, i).block;
+        release_register(nctx, r);
     }
 }
 
@@ -1823,10 +1825,6 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         nctx->block = gen_kxn_block(nctx);
         nativejit_ast(nctx, node->rhs, 0);
         do_native_finally_all(nctx);
-        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-            .inst = KXN_RET, .var_type = node->var_type,
-                .dst = { .type = KXNOP_IMM, .iv = 0 },
-        }));
         kx_free(nctx->finallies);
         nctx->finallies = finallies;
         break;
