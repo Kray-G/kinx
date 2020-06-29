@@ -43,7 +43,7 @@ typedef struct kx_thread_pack_ {
     pthread_t r;
     volatile int is_running;
     const char *code;
-    int value;
+    int64_t value;
 } kx_thread_pack_t;
 
 kx_exc_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *wht)
@@ -579,7 +579,7 @@ static void set_object_value(kx_context_t *ctx, kx_val_t *retval, kx_obj_t *obj)
     retval->value.sv = s;
 }
 
-int run_ctx(kx_context_t *ctx, kx_context_t *parent, int ac, char **av)
+int64_t run_ctx(kx_context_t *ctx, kx_context_t *parent, int ac, char **av)
 {
     kv_expand_if(kx_val_t, ctx->stack, KEX_DEFAULT_STACK);
     kx_obj_t *obj = allocate_obj(ctx);
@@ -590,7 +590,7 @@ int run_ctx(kx_context_t *ctx, kx_context_t *parent, int ac, char **av)
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-    int r = ir_exec(ctx);
+    int64_t r = ir_exec(ctx);
     if (parent) {
         kx_val_t *rv = &(ctx->retval);
         switch (rv->type) {
@@ -683,7 +683,7 @@ int System_threadIsRunning(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
 
 int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    int ret = 0;
+    int64_t ret = 0;
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     if (obj) {
         kx_val_t *val = NULL;

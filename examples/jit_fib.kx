@@ -1,0 +1,20 @@
+using Jit;
+
+var c = new Jit.Compiler();
+var entry1 = c.enter();
+    var jump0 = c.ge(Jit.S0, Jit.IMM(3));
+    c.ret(Jit.S0);
+    var l1 = c.label();
+    c.sub(Jit.R0, Jit.S0, Jit.IMM(2));
+    c.call(entry1);
+    c.mov(Jit.S1, Jit.R0);
+    c.sub(Jit.R0, Jit.S0, Jit.IMM(1));
+    c.call(entry1);
+    c.add(Jit.R0, Jit.R0, Jit.S1);
+    c.ret(Jit.R0);
+
+jump0.setLabel(l1);
+
+var i = Integer.parseInt($$[1]);
+var code = c.generate();
+System.println("fib(%2d) = %d" % i % code.run(i));

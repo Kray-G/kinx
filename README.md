@@ -22,8 +22,9 @@ Now **Native Thread without GIL** has been supported as an **Isolate**.
 *   **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
 *   **Object-Oriented**. Of cource you can do the object-oriented programming.
 *   C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
-*   **Native function** by JIT compiling supported with some limitations. Very fast.
 *   **Dynamic typing**, but you can also specify the type.
+*   **Native function** by JIT compiling supported with some limitations. Very fast.
+*   Support **JIT Library** as an **abstracted assembler library**. You can use JIT directly in your program.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
 *   **Isolate** object to control native threads without Global Interpreter Lock.
 *   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, etc.
@@ -68,6 +69,9 @@ Sharing the definition of **C Style Syntax**, it is below.
 *   **Block** is a scope between `{` and `}`
 *   Mostly **freedom** style of indent.
 *   **Fall through** in switch case.
+    *   There are pros and cons anyway.
+    *   But a C programmer will feel it to continue to the next when there is no `break`.
+    *   I will wait for any proposals about this anytime.
 *   etc.
 
 For example that is C, C++, Java, JavaScript, C#, and so on.
@@ -89,6 +93,8 @@ To build, see below.
 ```
 $ make.cmd
 ```
+
+Note that on Windows, compiling `ir_exec.c` takes long time around 40 minutes, so please wait for it. It is no problem on Linux because it is around 2 or 3 minutes.
 
 #### Linux
 
