@@ -464,4 +464,5 @@ void natir_display_function(kx_native_context_t *nctx)
             addr += natir_display_jmp(block, i, addr);
         }
     }
+    printf("%8x:   %-23s 0\n", addr, "ret");
 }
