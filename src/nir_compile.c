@@ -750,9 +750,7 @@ static int natir_compile_uop(kx_native_context_t *nctx, kxn_block_t *block, kxn_
                     natir_compile_arg(nctx, code, SLJIT_R0);
                     do_skip = 1;
                 } else {
-printf("%d\n", __LINE__);
                     KXN_MOV(is_last, code->dst, SLJIT_R0, 0);
-printf("%d\n", __LINE__);
                 }
             }
         } else {
