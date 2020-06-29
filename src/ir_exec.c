@@ -293,7 +293,7 @@ static const char *kx_opname[] = {
     "KX_OPEND"
 };
 
-static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
+static int64_t ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
 {
     kxp_def();
     KX_EXEC_SETUP(fixcode);
@@ -547,11 +547,11 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     KX_CASE_ERROR_END();
     KX_CASE_END();
 
-    int ri = 0;
+    int64_t ri = 0;
     KEX_GET_STACK_TOP(rv);
     switch (rv->type) {
     case KX_INT_T: ri = rv->value.iv; break;
-    case KX_DBL_T: ri = (int)rv->value.dv; break;
+    case KX_DBL_T: ri = (int64_t)rv->value.dv; break;
     case KX_BIG_T: ri = -1; break;
     }
     ctx->retval = *rv;
@@ -563,7 +563,7 @@ static int ir_exec_impl(kvec_pt(kx_code_t) *fixcode, kx_context_t *ctxp)
     return ri;
 }
 
-int ir_exec(kx_context_t *ctx)
+int64_t ir_exec(kx_context_t *ctx)
 {
     kvec_pt(kx_code_t) *fixcode = &(ctx->fixcode);
     kx_code_t halt = (kx_code_t){ .op = KX_HALT };
