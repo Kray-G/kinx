@@ -33,8 +33,12 @@ extern sljit_sw native_get_var_obj(sljit_sw *args);
 #define SWITCH_R SLJIT_S3
 #define KX_REG1 SLJIT_S4
 #define KX_REG2 SLJIT_S5
-#if SLJIT_NUMBER_OF_REGISTERS == 14
+#define KX_SCRATCH_REGMAX (6)
+#if SLJIT_NUMBER_OF_REGISTERS == 13
+#define KX_SAVED_REGMAX (7)
 #define KX_REG3 SLJIT_S6
+#else
+#define KX_SAVED_REGMAX (6)
 #endif
 #define ARGB SLJIT_MEM1(SLJIT_SP)
 #define ARG(n) ((2 + (n) + nctx->local_vars) * KXN_WDSZ)
@@ -52,14 +56,15 @@ extern sljit_sw native_get_var_obj(sljit_sw *args);
 #define KXN_I(opx) \
     SLJIT_IMM, (opx).iv \
 /**/
-#if SLJIT_NUMBER_OF_REGISTERS == 14
+#if SLJIT_NUMBER_OF_REGISTERS == 13
 #define KXN_R(opx) \
     ((opx).r == 1 ? KX_REG1 : (opx).r == 2 ? KX_REG2 : (opx).r == 3 ? KX_REG3 : (SLJIT_MEM1(SLJIT_SP))), \
     (((opx).r == 1 || (opx).r == 2 || (opx).r == 3) ? 0 : (nctx->regtemp_base + ((opx).r * KXN_WDSZ))) \
 /**/
 #else
 #define KXN_R(opx) \
-    ((opx).r == 1 ? KX_REG1 : (opx).r == 2 ? KX_REG2 : (SLJIT_MEM1(SLJIT_SP))), (((opx).r == 1 || (opx).r == 2) ? 0 : (nctx->regtemp_base + ((opx).r * KXN_WDSZ))) \
+    ((opx).r == 1 ? KX_REG1 : (opx).r == 2 ? KX_REG2 : (SLJIT_MEM1(SLJIT_SP))), \
+    (((opx).r == 1 || (opx).r == 2) ? 0 : (nctx->regtemp_base + ((opx).r * KXN_WDSZ))) \
 /**/
 #endif
 #define KXN_RN(opx) \
@@ -69,7 +74,7 @@ extern sljit_sw native_get_var_obj(sljit_sw *args);
     (SLJIT_MEM1(SLJIT_SP)), (nctx->regtemp_base + ((opx).r * KXN_WDSZ)) \
 /**/
 #define KXN_MOV(is_last, dst, t, v) \
-    if (!is_last) sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(dst), t, v); \
+    if (!is_last) { sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(dst), t, v); } \
 /**/
 #define KXN_MOVF(dst, t, v) \
     sljit_emit_fop1(nctx->C, SLJIT_MOV_F64, KXN_FR(dst), t, v); \
@@ -745,7 +750,9 @@ static int natir_compile_uop(kx_native_context_t *nctx, kxn_block_t *block, kxn_
                     natir_compile_arg(nctx, code, SLJIT_R0);
                     do_skip = 1;
                 } else {
+printf("%d\n", __LINE__);
                     KXN_MOV(is_last, code->dst, SLJIT_R0, 0);
+printf("%d\n", __LINE__);
                 }
             }
         } else {
@@ -1127,9 +1134,9 @@ static void natir_compile_jmp(kx_native_context_t *nctx, kxn_block_t *block, int
 void natir_compile_function(kx_native_context_t *nctx)
 {
     sljit_emit_enter(nctx->C, 0, SLJIT_ARG1(SW) | SLJIT_ARG2(SW) | SLJIT_ARG3(SW),
-        /*scratch*/     6,  /* currently R0 to R5 */
-        /*saved*/       6,  /* currently S0 to S5 */
-        /*fscratch*/    5,  /* currently FR0 to FR4 */
+        /*scratch*/     KX_SCRATCH_REGMAX,                      /* currently R0 to R5 */
+        /*saved*/       KX_SAVED_REGMAX,                        /* currently S0 to S5/S6 */
+        /*fscratch*/    5,                                      /* currently FR0 to FR4 */
         /*fsaved*/      0,
         /*local*/       (nctx->local_vars * KXN_WDSZ) +         /* Local Variables */
                         KXN_WDSZ +                              /* CallArgsLength */
