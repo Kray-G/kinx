@@ -301,7 +301,7 @@ Array.toJsonString = (_function() {
             if (e.isArray) {
                 outputArray(e, useIndent, output, level);
             } else if (e.isObject) {
-                outputObject(e, useIndent, output, level-1);
+                outputObject(e, useIndent, output, level);
             } else {
                 outputElement(e, useIndent, output, level);
             }
