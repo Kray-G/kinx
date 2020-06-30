@@ -25,6 +25,32 @@ static int throw_too_deep(int args, kx_context_t *ctx)
     return KX_THROW_EXCEPTION;
 }
 
+int Array_empty(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        if (kv_size(obj->ary) > 0) {
+            KX_ADJST_STACK();
+            push_i(ctx->stack, 0);
+            return 0;
+        }
+
+        for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
+            if (kh_exist(obj->prop, k)) {
+                KX_ADJST_STACK();
+                push_i(ctx->stack, 0);
+                return 0;
+            }
+        }
+
+        KX_ADJST_STACK();
+        push_i(ctx->stack, 1);
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
 int Array_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -493,6 +519,7 @@ int Array_subArray(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
+    { "empty", Array_empty },
     { "length", Array_length },
     { "keySet", Array_keySet },
     { "push", Array_push },
