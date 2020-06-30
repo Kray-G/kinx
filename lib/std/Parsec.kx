@@ -1,0 +1,203 @@
+
+ParsecUtil.makeResult = function(status, prev, cur, position) {
+    var value;
+    if (cur.isUndefined || (cur.isObject && cur.empty())) {
+        value = prev;
+    } else if (prev.isUndefined) {
+        value = cur;
+    } else if (prev.isArray) {
+        if (cur.isArray) {
+            value = [...prev, ...cur];
+        } else {
+            value = [...prev, cur];
+        }
+    } else {
+        if (cur.isArray) {
+            value = [prev, ...cur];
+        } else {
+            value = [prev, cur];
+        }
+    }
+    return {
+        status: status,
+        value: value,
+        position: position,
+    };
+};
+
+ParsecUtil.appendResult = function(result, parsed) {
+    if (parsed.value.isDefined) {
+        if (parsed.value.isArray) {
+            result += parsed.value;
+        } else {
+            result.push(parsed.value);
+        }
+    }
+    return result;
+};
+
+class ParsecParser(func) {
+
+    public parse(target, position, prev) {
+        if (func.isFunction) {
+            return func(target, position ?? 0, prev);
+        }
+        return ParsecUtil.makeResult(false, prev, null, position);
+    }
+
+    public ()(target, position, prev) {
+        return parse(target, position, prev);
+    }
+
+    # Chaining methods.
+    public or(parser) {
+        return new ParsecParser(function(target, position, prev) {
+            var parsed = parse(target, position, prev);
+            if (parsed.status) {
+                return parsed;
+            }
+            return parser.parse(target, position, prev);
+        });
+    }
+
+    public then(parser) {
+        return new ParsecParser(function(target, position, prev) {
+            var parsed = parse(target, position, prev);
+            if (!parsed.status) {
+                return parsed;
+            }
+            return parser.parse(target, parsed.position, prev);
+        });
+    }
+
+    public skip(parser) {
+        return new ParsecParser(function(target, position, prev) {
+            var parsed = parse(target, position, prev);
+            if (!parsed.status) {
+                return parsed;
+            }
+            var alt = parser.parse(target, parsed.position, null);
+            if (alt.status) {
+                parsed.position = alt.position;
+                return parsed;
+            }
+            return ParsecUtil.makeResult(false, null, prev, position);
+        });
+    }
+
+    public many() {
+        return new ParsecParser(function(target, position, prev) {
+            var result = [];
+            while (true) {
+                var parsed = parse(target, position, prev);
+                if (parsed.status) {
+                    result.push(parsed.value);
+                    position = parsed.position;
+                } else {
+                    break;
+                }
+            }
+            return ParsecUtil.makeResult(true, null, result, position);
+        });
+    }
+
+    public map(f) {
+        return new ParsecParser(function(target, position, prev) {
+            var parsed = parse(target, position, prev);
+            if (!parsed.status) {
+                return parsed;
+            }
+            return ParsecUtil.makeResult(true, null, f(parsed.value), parsed.position);
+        });
+    }
+
+}
+
+class Parsec {
+
+    private initialize() {
+        @whitespace = @regex(/\s+/);
+        @optWhitespace = @regex(/\s*/);
+    }
+
+    # Factors.
+    public token(str) {
+        var len = str.length();
+        return new ParsecParser(function(target, position, prev) {
+            if (target.subString(position, len) == str) {
+                return ParsecUtil.makeResult(true, prev, str, position + len);
+            }
+            return ParsecUtil.makeResult(false, prev, null, position);
+        });
+    }
+
+    public oneOf(chars, inverse) {
+        inverse ??= false;
+        var dict = {};
+        for (var i = 0, l = chars.length(); i < l; ++i) {
+            var ch = *chars[i];
+            dict[ch] = ch;
+        }
+        return new ParsecParser(function(target, position, prev) {
+            var ch = target.subString(position, 1);
+            var isMatch = inverse ? dict[ch].isUndefined : dict[ch].isDefined;
+            if (isMatch) {
+                return ParsecUtil.makeResult(true, prev, ch, position + 1);
+            }
+            return ParsecUtil.makeResult(false, prev, null, position);
+        });
+    }
+
+    public regex(re) {
+        re = new Regex('^(?:' + re.pattern + ')');
+        return new ParsecParser(function(target, position, prev) {
+            re.reset(target.subString(position));
+            if (re.find()) {
+                var result = re.group[0].string;
+                position += result.length();
+                return ParsecUtil.makeResult(true, prev, result, position);
+            }
+            return ParsecUtil.makeResult(false, prev, null, position);
+        });
+    }
+
+    # Top Level methods.
+    public lazy(f) {
+        var parser = null;
+        return new ParsecParser(function(target, position, prev) {
+            if (!parser.isFunction) {
+                parser = f();
+            }
+            return parser.parse(target, position, prev);
+        });
+    }
+
+    public choice(...parsers) {
+        return new ParsecParser(function(target, position, prev) {
+            for (var i = 0; i < parsers.length(); ++i) {
+                var parsed = parsers[i].parse(target, position, prev);
+                if (parsed.status) {
+                    return parsed;
+                }
+            }
+            return ParsecUtil.makeResult(false, prev, null, position);
+        });
+    }
+
+    public seq(...parsers) {
+        return new ParsecParser(function(target, position, prev) {
+            var result = [];
+            for (var i = 0; i < parsers.length(); ++i) {
+                var parsed = parsers[i].parse(target, position, prev);
+                if (parsed.status) {
+                    result = ParsecUtil.appendResult(result, parsed);
+                    position = parsed.position;
+                } else {
+                    return parsed;
+                }
+            }
+            return ParsecUtil.makeResult(true, null, result, position);
+        });
+    }
+
+}
