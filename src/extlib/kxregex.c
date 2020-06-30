@@ -125,7 +125,7 @@ int Regex_find_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
     }
     int len = strlen((char*)str);
     int index = r->start;
-    if (index < 0 || len <= index) {
+    if (index < 0 || len < index) {
         r->start = 0;
         KX_ADJST_STACK();
         if (ret == KX_REGEX_RET_OBJ) {
