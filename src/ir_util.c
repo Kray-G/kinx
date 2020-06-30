@@ -306,20 +306,16 @@ void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *obj)
     kx_val_t *sp = NULL;
     KEX_GET_PROP(sp, obj, "_type");
     if (sp) {
-        if (sp->type == KX_CSTR_T) {
-            printf("%s: ", sp->value.pv);
-        } else if (sp->type == KX_STR_T) {
-            printf("%s: ", ks_string(sp->value.sv));
-        }        
+        char *buf = conv_utf82acp_alloc(sp->type == KX_CSTR_T ? sp->value.pv : ks_string(sp->value.sv));
+        printf("%s: ", buf);
+        conv_free(buf);
     }
     sp = NULL;
     KEX_GET_PROP(sp, obj, "_what");
     if (sp) {
-        if (sp->type == KX_CSTR_T) {
-            printf("%s", sp->value.pv);
-        } else if (sp->type == KX_STR_T) {
-            printf("%s", ks_string(sp->value.sv));
-        }        
+        char *buf = conv_utf82acp_alloc(sp->type == KX_CSTR_T ? sp->value.pv : ks_string(sp->value.sv));
+        printf("%s", buf);
+        conv_free(buf);
     }
     if (ctx->options.exception_detail_info) {
         sp = NULL;
