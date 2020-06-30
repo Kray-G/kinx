@@ -1,0 +1,63 @@
+using Parsec;
+
+var $ = new Parsec();
+
+var expression;
+var number = $.regex(/[1-9][0-9]*|[0-9]/).skip($.optWhitespace).map(function(r) { return Integer.parseInt(r); });
+var addsub = $.oneOf('+-').skip($.optWhitespace);
+var muldiv = $.oneOf('*/%').skip($.optWhitespace);
+var lbr = $.token('(').skip($.optWhitespace);
+var rbr = $.token(')').skip($.optWhitespace);
+
+var parenthesis = $.lazy(function() {
+    return $.seq(lbr, expression, rbr).map(function(value) {
+        return value[1];
+    });
+});
+
+var factor = $.choice(number, parenthesis);
+var term = $.seq(factor, $.seq(muldiv, factor).many()).map(function(value) {
+    var expr = value[0];
+    for (var i = 1, l = value.length(); i < l; ++i) {
+        expr = { lhs: expr, op: value[i][0], rhs: value[i][1] };
+    }
+    return expr;
+});
+expression = $.seq(term, $.seq(addsub, term).many()).map(function(value) {
+    var expr = value[0];
+    for (var i = 1, l = value.length(); i < l; ++i) {
+        expr = { lhs: expr, op: value[i][0], rhs: value[i][1] };
+    }
+    return expr;
+});
+
+var eval = function(ast) {
+    var lhs = ast.lhs.isObject ? eval(ast.lhs) : ast.lhs;
+    var rhs = ast.rhs.isObject ? eval(ast.rhs) : ast.rhs;
+    var r = 0;
+    switch (ast.op) {
+    case '+':
+        r = lhs + rhs;
+        break;
+    case '-':
+        r = lhs - rhs;
+        break;
+    case '*':
+        r = lhs * rhs;
+        break;
+    case '/':
+        r = lhs / rhs;
+        break;
+    case '%':
+        r = lhs % rhs;
+        break;
+    default:
+        throw RuntimeException('Invalid operator');
+    }
+    return r;
+};
+
+var ast = $.optWhitespace.then(expression).parse('(( 123 ) * 2  * 4  + 3 * ( 12 + 10 )) % 100');
+System.println(ast.toJsonString(true));
+System.println(eval(ast.value));
+
