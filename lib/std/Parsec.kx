@@ -1,5 +1,5 @@
 
-ParsecUtil.makeResult = function(status, prev, cur, position) {
+ParsecUtil.makeResult = _function(status, prev, cur, position) {
     var value;
     if (cur.isUndefined || (cur.isObject && cur.empty())) {
         value = prev;
@@ -25,7 +25,7 @@ ParsecUtil.makeResult = function(status, prev, cur, position) {
     };
 };
 
-ParsecUtil.appendResult = function(result, parsed) {
+ParsecUtil.appendResult = _function(result, parsed) {
     if (parsed.value.isDefined) {
         if (parsed.value.isArray) {
             result += parsed.value;
@@ -36,7 +36,7 @@ ParsecUtil.appendResult = function(result, parsed) {
     return result;
 };
 
-class ParsecParser(func) {
+_class ParsecParser(func) {
 
     public parse(target, position, prev) {
         if (func.isFunction) {
@@ -51,7 +51,7 @@ class ParsecParser(func) {
 
     # Chaining methods.
     public or(parser) {
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             var parsed = parse(target, position, prev);
             if (parsed.status) {
                 return parsed;
@@ -61,7 +61,7 @@ class ParsecParser(func) {
     }
 
     public then(parser) {
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             var parsed = parse(target, position, prev);
             if (!parsed.status) {
                 return parsed;
@@ -71,7 +71,7 @@ class ParsecParser(func) {
     }
 
     public skip(parser) {
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             var parsed = parse(target, position, prev);
             if (!parsed.status) {
                 return parsed;
@@ -86,7 +86,7 @@ class ParsecParser(func) {
     }
 
     public many() {
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             var result = [];
             while (true) {
                 var parsed = parse(target, position, prev);
@@ -102,7 +102,7 @@ class ParsecParser(func) {
     }
 
     public map(f) {
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             var parsed = parse(target, position, prev);
             if (!parsed.status) {
                 return parsed;
@@ -113,7 +113,7 @@ class ParsecParser(func) {
 
 }
 
-class Parsec {
+_class Parsec {
 
     private initialize() {
         @whitespace = @regex(/\s+/);
@@ -123,7 +123,7 @@ class Parsec {
     # Factors.
     public token(str) {
         var len = str.length();
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             if (target.subString(position, len) == str) {
                 return ParsecUtil.makeResult(true, prev, str, position + len);
             }
@@ -138,7 +138,7 @@ class Parsec {
             var ch = *chars[i];
             dict[ch] = ch;
         }
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             var ch = target.subString(position, 1);
             var isMatch = inverse ? dict[ch].isUndefined : dict[ch].isDefined;
             if (isMatch) {
@@ -150,7 +150,7 @@ class Parsec {
 
     public regex(re) {
         re = new Regex('^(?:' + re.pattern + ')');
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             re.reset(target.subString(position));
             if (re.find()) {
                 var result = re.group[0].string;
@@ -164,7 +164,7 @@ class Parsec {
     # Top Level methods.
     public lazy(f) {
         var parser = null;
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             if (!parser.isFunction) {
                 parser = f();
             }
@@ -173,7 +173,7 @@ class Parsec {
     }
 
     public choice(...parsers) {
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             for (var i = 0; i < parsers.length(); ++i) {
                 var parsed = parsers[i].parse(target, position, prev);
                 if (parsed.status) {
@@ -185,7 +185,7 @@ class Parsec {
     }
 
     public seq(...parsers) {
-        return new ParsecParser(function(target, position, prev) {
+        return new ParsecParser(_function(target, position, prev) {
             var result = [];
             for (var i = 0; i < parsers.length(); ++i) {
                 var parsed = parsers[i].parse(target, position, prev);
