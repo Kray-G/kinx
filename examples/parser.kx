@@ -1,6 +1,6 @@
 using Parsek;
 
-var $ = new Parsec();
+var $ = new Parsek();
 var ignore = $.optWhitespace;
 var lexeme = &(p) => p.skip(ignore);
 
@@ -8,23 +8,23 @@ var expression;
 var number = lexeme($.regex(/[1-9][0-9]*|[0-9]/)).map(Integer.parseInt);
 var addsub = lexeme($.oneOf('+-'));
 var muldiv = lexeme($.oneOf('*/%'));
-var lbr = lexeme($.token('('));
-var rbr = lexeme($.token(')'));
+var lbr = lexeme($.string('('));
+var rbr = lexeme($.string(')'));
 
 var parenthesis = $.lazy(&() => $.seq(lbr, expression, rbr).map(&(value) => value[1]));
 
 var factor = $.alt(number, parenthesis);
-var term = $.seq(factor, $.seq(muldiv, factor).many()).map(&(value) => {
-    var expr = value[0];
-    for (var i = 1, l = value.length(); i < l; ++i) {
-        expr = { lhs: expr, op: value[i][0], rhs: value[i][1] };
+var term = $.seqMap(factor, $.seq(muldiv, factor).many(), &(first, rest) => {
+    var expr = first;
+    for (var i = 0, l = rest.length(); i < l; ++i) {
+        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
     }
     return expr;
 });
-expression = $.seq(term, $.seq(addsub, term).many()).map(&(value) => {
-    var expr = value[0];
-    for (var i = 1, l = value.length(); i < l; ++i) {
-        expr = { lhs: expr, op: value[i][0], rhs: value[i][1] };
+expression = $.seqMap(term, $.seq(addsub, term).many(), &(first, rest) => {
+    var expr = first;
+    for (var i = 0, l = rest.length(); i < l; ++i) {
+        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
     }
     return expr;
 });
