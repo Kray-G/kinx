@@ -103,6 +103,8 @@ default: \
             } \
         } \
         caller = cur; \
+        kv_remove_last((ctx)->stack); \
+        push_fnc(KX_FNC_T, (ctx)->stack, fn); \
         int args = cur->count + ctx->spread_additional; \
         push_i((ctx)->stack, args); \
         ctx->spread_additional = 0; \
