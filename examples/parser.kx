@@ -1,4 +1,4 @@
-using Parsec;
+using Parsek;
 
 var $ = new Parsec();
 var ignore = $.optWhitespace;
@@ -13,7 +13,7 @@ var rbr = lexeme($.token(')'));
 
 var parenthesis = $.lazy(&() => $.seq(lbr, expression, rbr).map(&(value) => value[1]));
 
-var factor = $.choice(number, parenthesis);
+var factor = $.alt(number, parenthesis);
 var term = $.seq(factor, $.seq(muldiv, factor).many()).map(&(value) => {
     var expr = value[0];
     for (var i = 1, l = value.length(); i < l; ++i) {
@@ -55,7 +55,6 @@ var eval = function(ast) {
     return r;
 };
 
-var result = ignore.then(expression).parse('(( 123 ) * 2  * 4  - 3 * ( 12 + 10 )) % 100');
+var result = ignore.then(expression.skip($.eof)).parse('(( 123 ) * 2  * 4  - 3 * ( 12 + 10 )) % 100');
 System.println(result.toJsonString(true));
 System.println(eval(result.value));
-
