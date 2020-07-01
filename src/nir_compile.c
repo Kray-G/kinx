@@ -734,6 +734,7 @@ static int natir_compile_uop(kx_native_context_t *nctx, kxn_block_t *block, kxn_
     case KXNOP_TOBIG:
         break;
     case KXNOP_MOV:
+        // REG <= REG
         // REG <= MEM
         // MEM <= IMM
         // MEM <= REG
@@ -742,7 +743,9 @@ static int natir_compile_uop(kx_native_context_t *nctx, kxn_block_t *block, kxn_
             if (code->var_type == KX_DBL_T) {
                 sljit_emit_op1(nctx->C, SLJIT_MOV_F64, KXN_R(code->dst), SLJIT_MEM1(SLJIT_R0), 0);
             } else {
-                sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_R0), 0);
+                if (code->op1.type == KXNOP_MEM) {
+                    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_R0), 0);
+                }
                 if (is_next_ret) {
                     sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_R0, 0);
                     do_skip = 1;
@@ -750,7 +753,11 @@ static int natir_compile_uop(kx_native_context_t *nctx, kxn_block_t *block, kxn_
                     natir_compile_arg(nctx, code, SLJIT_R0);
                     do_skip = 1;
                 } else {
-                    KXN_MOV(is_last, code->dst, SLJIT_R0, 0);
+                    if (code->op1.type == KXNOP_REG) {
+                        sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_R0, 0);
+                    } else {
+                        KXN_MOV(is_last, code->dst, SLJIT_R0, 0);
+                    }
                 }
             }
         } else {

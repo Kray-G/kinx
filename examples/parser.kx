@@ -1,0 +1,60 @@
+using Parsek;
+
+var $ = new Parsek();
+var ignore = $.optWhitespace;
+var lexeme = &(p) => p.skip(ignore);
+
+var expression;
+var number = lexeme($.regex(/[1-9][0-9]*|[0-9]/)).map(Integer.parseInt);
+var addsub = lexeme($.oneOf('+-'));
+var muldiv = lexeme($.oneOf('*/%'));
+var lbr = lexeme($.string('('));
+var rbr = lexeme($.string(')'));
+
+var parenthesis = $.lazy(&() => $.seq(lbr, expression, rbr).map(&(value) => value[1]));
+
+var factor = $.alt(number, parenthesis);
+var term = $.seqMap(factor, $.seq(muldiv, factor).many(), &(first, rest) => {
+    var expr = first;
+    for (var i = 0, l = rest.length(); i < l; ++i) {
+        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
+    }
+    return expr;
+});
+expression = $.seqMap(term, $.seq(addsub, term).many(), &(first, rest) => {
+    var expr = first;
+    for (var i = 0, l = rest.length(); i < l; ++i) {
+        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
+    }
+    return expr;
+});
+
+var eval = function(ast) {
+    var lhs = ast.lhs.isObject ? eval(ast.lhs) : ast.lhs;
+    var rhs = ast.rhs.isObject ? eval(ast.rhs) : ast.rhs;
+    var r = 0;
+    switch (ast.op) {
+    case '+':
+        r = lhs + rhs;
+        break;
+    case '-':
+        r = lhs - rhs;
+        break;
+    case '*':
+        r = lhs * rhs;
+        break;
+    case '/':
+        r = lhs / rhs;
+        break;
+    case '%':
+        r = lhs % rhs;
+        break;
+    default:
+        throw RuntimeException('Invalid operator');
+    }
+    return r;
+};
+
+var result = ignore.then(expression.skip($.eof)).parse('(( 123 ) * 2  * 4  - 3 * ( 12 + 10 )) % 100');
+System.println(result.toJsonString(true));
+System.println(eval(result.value));
