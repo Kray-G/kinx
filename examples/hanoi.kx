@@ -1,0 +1,10 @@
+function movedisk(n, a, b) {
+    if (n > 1) movedisk(n - 1, a, 6 - a - b);
+    System.println("Move the disk %d from %d to %d." % n % a % b);
+    if (n > 1) movedisk(n - 1, 6 - a - b, b);
+}
+
+const N = 4;
+System.println("The steps to move %d disks from the tower 1 to the tower 2 is"
+               " %u steps." % N % ((1 << N) - 1));
+movedisk(N, 1, 2);
