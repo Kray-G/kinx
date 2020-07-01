@@ -852,11 +852,18 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
     }
 
-    case KXOP_TER:
+    case KXOP_TER: {
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
         analyze_ast(ctx, node->ex, actx);
+        int rt = node->rhs->var_type;
+        int et = node->ex->var_type;
+        if (actx->in_native && rt != et) {
+            kx_yyerror_line("The type mismatch at ternary expression in native function", node->file, node->line);
+        }
+        node->var_type = rt;
         break;
+    }
 
     case KXST_BREAK:
     case KXST_CONTINUE:
