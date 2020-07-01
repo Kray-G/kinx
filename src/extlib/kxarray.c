@@ -75,6 +75,16 @@ static int is_hidden_key(const char *key)
     return strstr(key, ":hidden") == (key + pos);
 }
 
+static int compare_string(const void *a, const void *b)
+{
+    kx_val_t *v1 = (kx_val_t *)a;
+    kx_val_t *v2 = (kx_val_t *)b;
+    if (v1->type == KX_STR_T && v2->type == KX_STR_T) {
+        return strcmp(ks_string(v1->value.sv), ks_string(v2->value.sv));
+    }
+    return 0;
+}
+
 int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -106,6 +116,7 @@ int Array_keySet(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 }
             }
         }
+        qsort(&kv_head(ary->ary), kv_size(ary->ary), sizeof(kx_val_t), compare_string);
         KX_ADJST_STACK();
         push_obj(ctx->stack, ary);
         return 0;
