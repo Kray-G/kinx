@@ -1331,6 +1331,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         int ex1 = gen_kxn_block(nctx);
         int ex2 = gen_kxn_block(nctx);
         int out = gen_kxn_block(nctx);
+        int dst = get_register(nctx);
 
         KXNJP(nctx, nctx->block) = cond;
         nctx->block = cond;
@@ -1340,12 +1341,27 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
 
         nctx->block = ex1;
         nativejit_ast(nctx, node->rhs, 0);
+        int r1 = nctx->regno;
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = node->var_type,
+                .dst = { .type = KXNOP_REG, .r = dst },
+                .op1 = { .type = KXNOP_REG, .r = r1 }
+        }));
+        release_register(nctx, r1);
         KXNJP(nctx, nctx->block) = out;
 
         nctx->block = ex2;
         nativejit_ast(nctx, node->ex, 0);
+        int r2 = nctx->regno;
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = node->var_type,
+                .dst = { .type = KXNOP_REG, .r = dst },
+                .op1 = { .type = KXNOP_REG, .r = r2 }
+        }));
+        release_register(nctx, r2);
         KXNJP(nctx, nctx->block) = out;
 
+        nctx->regno = dst;
         nctx->block = out;
         break;
     }
