@@ -116,8 +116,21 @@ _class ParsecParser(func) {
 _class Parsec {
 
     private initialize() {
+        @letter = @regex(/[a-zA-Z]/);
+        @letters = @regex(/[a-zA-Z]*/);
+        @digit = @regex(/[0-9]/);
+        @digits = @regex(/[0-9]*/);
         @whitespace = @regex(/\s+/);
         @optWhitespace = @regex(/\s*/);
+        @eof = new ParsecParser(_function(target, position, prev) {
+            return ParsecUtil.makeResult(target.length() == position, null, prev, position);
+        });
+        @any = new ParsecParser(_function(target, position, prev) {
+            return ParsecUtil.makeResult(true, prev, *target[position], position+1);
+        });
+        @all = new ParsecParser(_function(target, position, prev) {
+            return ParsecUtil.makeResult(true, prev, target.subString(position), target.length());
+        });
     }
 
     # Factors.
@@ -172,7 +185,7 @@ _class Parsec {
         });
     }
 
-    public choice(...parsers) {
+    public alt(...parsers) {
         return new ParsecParser(_function(target, position, prev) {
             for (var i = 0; i < parsers.length(); ++i) {
                 var parsed = parsers[i].parse(target, position, prev);
