@@ -1,0 +1,391 @@
+
+ParsekUtil.makeResult = _function(status, value, position) {
+    return {
+        status: status,
+        value: value,
+        position: position,
+    };
+};
+
+ParsekUtil.appendResult = _function(result, parsed) {
+    if (parsed.value.isDefined) {
+        if (parsed.value.isArray) {
+            result += parsed.value;
+        } else {
+            result.push(parsed.value);
+        }
+    }
+    return result;
+};
+
+ParsekUtil.makeDescription = _function(expected, description) {
+    expected ??= [];
+    if (description.isArray) {
+        if (description.length() == 1) {
+            expected.push("'%{description}' would be acceptable");
+        } else if (description.length() == 2) {
+            var desc = description.join("' or '");
+            expected.push("'%{desc}' would be acceptable");
+        } else {
+            var last = description.pop();
+            var desc = description.join("', '");
+            expected.push("Any of '%{desc}', or '%{last}' would be acceptable");
+        }
+    } else {
+        expected.push(description);
+    }
+    return expected;
+};
+
+_class ParsekParser(func) {
+
+    public parse(target, position) {
+        if (func.isFunction) {
+            return func(target, position ?? 0);
+        }
+        return ParsekUtil.makeResult(false, null, position);
+    }
+
+    public ()(target, position) {
+        return parse(target, position);;
+    }
+
+    # Methods to be chained.
+    public desc(description) {
+        return new ParsekParser(_function(target, position) {
+            var parsed = parse(target, position);;
+            if (!parsed.status) {
+                parsed.expected = ParsekUtil.makeDescription(parsed.expected, description);
+            }
+            return parsed;
+        });
+    }
+
+    public or(parser) {
+        return new ParsekParser(_function(target, position) {
+            var parsed = parse(target, position);;
+            if (parsed.status) {
+                return parsed;
+            }
+            return parser.parse(target, position);;
+        });
+    }
+
+    public then(parser) {
+        return new ParsekParser(_function(target, position) {
+            var parsed = parse(target, position);;
+            if (!parsed.status) {
+                return parsed;
+            }
+            return parser.parse(target, parsed.position);;
+        });
+    }
+
+    public skip(parser) {
+        return new ParsekParser(_function(target, position) {
+            var parsed = parse(target, position);;
+            if (!parsed.status) {
+                return parsed;
+            }
+            var alt = parser.parse(target, parsed.position);;
+            if (!alt.status) {
+                return alt;
+            }
+            parsed.position = alt.position;
+            return parsed;
+        });
+    }
+
+    public many() {
+        return new ParsekParser(_function(target, position) {
+            var result = [];
+            while (true) {
+                var parsed = parse(target, position);;
+                if (parsed.status) {
+                    result.push(parsed.value);
+                    position = parsed.position;
+                } else {
+                    break;
+                }
+            }
+            return ParsekUtil.makeResult(true, result, position);
+        });
+    }
+
+    public times(min, max) {
+        if (max.isUndefined) {
+            max = min;
+        }
+        return new ParsekParser(_function(target, position) {
+            var result = [];
+            for (var i = 0; i < max; ++i) {
+                var parsed = parse(target, position);;
+                if (parsed.status) {
+                    result.push(parsed.value);
+                    position = parsed.position;
+                } else if (min <= i) {
+                    return ParsekUtil.makeResult(true, result, position);
+                } else {
+                    return ParsekUtil.makeResult(false, null, position);
+                }
+            }
+            return ParsekUtil.makeResult(true, result, position);
+        });
+    }
+
+    public sepBy(separator) {
+        return new ParsekParser(_function(target, position) {
+            var prevpos = position;
+            var result = [];
+            while (true) {
+                var parsed = parse(target, position);;
+                if (parsed.status) {
+                    result.push(parsed.value);
+                    position = parsed.position;
+                    parsed = separator.parse(target, position);;
+                    if (!parsed.status) {
+                        break;
+                    }
+                    prevpos = position;
+                    position = parsed.position;
+                } else {
+                    return ParsekUtil.makeResult(true, result, prevpos);
+                }
+            }
+            return ParsekUtil.makeResult(true, result, position);
+        });
+    }
+
+    public sepBy1(separator) {
+        return new ParsekParser(_function(target, position) {
+            var parsed;
+            var prevpos = position;
+            var result = [];
+            while (true) {
+                parsed = parse(target, position);;
+                if (parsed.status) {
+                    result.push(parsed.value);
+                    position = parsed.position;
+                    parsed = separator.parse(target, position);;
+                    if (!parsed.status) {
+                        break;
+                    }
+                    prevpos = position;
+                    position = parsed.position;
+                } else {
+                    if (result.length() > 0) {
+                        return ParsekUtil.makeResult(true, result, prevpos);
+                    }
+                    return parsed;
+                }
+            }
+            if (result.length() > 0) {
+                return ParsekUtil.makeResult(true, result, position);
+            }
+            return parsed;
+        });
+    }
+
+    public map(f) {
+        return new ParsekParser(_function(target, position) {
+            var parsed = parse(target, position);;
+            if (!parsed.status) {
+                return parsed;
+            }
+            return ParsekUtil.makeResult(true, f(parsed.value), parsed.position);
+        });
+    }
+
+    public chain(f) {
+        return new ParsekParser(_function(target, position) {
+            var parsed = parse(target, position);;
+            if (!parsed.status) {
+                return parsed;
+            }
+            var newParser = f(parsed.value);
+            return newParser.parse(target, parsed.position);
+        });
+    }
+
+}
+
+_class Parsek {
+
+    private initialize() {
+        @eof = new ParsekParser(_function(target, position) {
+            return ParsekUtil.makeResult(target.length() == position, null, position);
+        });
+        @any = new ParsekParser(_function(target, position) {
+            return ParsekUtil.makeResult(true, *target[position], position+1);
+        });
+        @all = new ParsekParser(_function(target, position) {
+            return ParsekUtil.makeResult(true, target.subString(position), target.length());
+        });
+        @index = new ParsekParser(_function(target, position) {
+            var lf = 1, column = 0;
+            for (var i = 0; i < position; ++i) {
+                if (target[i] == '\n'[0]) {
+                    ++lf;
+                    column = 1;
+                } else {
+                    ++column;
+                }
+            }
+            return ParsekUtil.makeResult(true, { offset: position, line: lf, column: column }, position);
+        });
+        @letter = @regex(/[a-zA-Z]/);
+        @letters = @regex(/[a-zA-Z]*/);
+        @digit = @regex(/[0-9]/);
+        @digits = @regex(/[0-9]*/);
+        @whitespace = @regex(/\s+/);
+        @optWhitespace = @regex(/\s*/);
+        @cr = @string('\r');
+        @lf = @string('\n');
+        @crlf = @string('\r\n');
+        @newline = @alt(@crlf, @lf, @cr).desc("newline");
+        @end = @alt(@newline, @eof);
+    }
+
+    # Factors.
+    public string(str) {
+        var len = str.length();
+        return new ParsekParser(_function(target, position) {
+            if (target.subString(position, len) == str) {
+                return ParsekUtil.makeResult(true, str, position + len);
+            }
+            return ParsekUtil.makeResult(false, null, position);
+        });
+    }
+
+    public regex(re, groupIndex) {
+        groupIndex ??= 0;
+        re = new Regex('^(?:' + re.pattern + ')');
+        return new ParsekParser(_function(target, position) {
+            re.reset(target.subString(position));
+            if (re.find()) {
+                var result = re.group[groupIndex].string;
+                position += result.length();
+                return ParsekUtil.makeResult(true, result, position);
+            }
+            return ParsekUtil.makeResult(false, null, position);
+        });
+    }
+
+    public succeed(result) {
+        return new ParsekParser(_function(target, position) {
+            return ParsekUtil.makeResult(true, result, position);
+        });
+    }
+
+    public fail(message) {
+        return new ParsekParser(_function(target, position) {
+            var r = ParsekUtil.makeResult(false, null, position);
+            r.expected = [message];
+            return r;
+        });
+    }
+
+    public oneOf(chars, inverse) {
+        inverse ??= false;
+        var dict = {};
+        for (var i = 0, l = chars.length(); i < l; ++i) {
+            var ch = *chars[i];
+            dict[ch] = ch;
+        }
+        return new ParsekParser(_function(target, position) {
+            var ch = target.subString(position, 1);
+            var isMatch = inverse ? dict[ch].isUndefined : dict[ch].isDefined;
+            if (isMatch) {
+                return ParsekUtil.makeResult(true, ch, position + 1);
+            }
+            return ParsekUtil.makeResult(false, null, position);
+        });
+    }
+
+    public sepBy(content, separator) {
+        return content.sepBy(separator);
+    }
+
+    public sepBy1(content, separator) {
+        return content.sepBy1(separator);
+    }
+
+    # Top Level methods.
+    public lazy(description, f) {
+        if (description.isFunction && f.isUndefined) {
+            f = description;
+            description = null;
+        }
+        var parser = null;
+        return new ParsekParser(_function(target, position) {
+            if (!parser.isFunction) {
+                parser = f();
+            }
+            var parsed = parser.parse(target, position);;
+            if (description.isDefined && !parsed.status) {
+                parsed.expected = ParsekUtil.makeDescription(parsed.expected, description);
+            }
+            return parsed;
+        });
+    }
+
+    public alt(...parsers) {
+        return new ParsekParser(_function(target, position) {
+            for (var i = 0; i < parsers.length(); ++i) {
+                var parsed = parsers[i].parse(target, position);;
+                if (parsed.status) {
+                    return parsed;
+                }
+            }
+            return ParsekUtil.makeResult(false, null, position);
+        });
+    }
+
+    public takeWhile(predicate) {
+        return new ParsekParser(_function(target, position) {
+            var start = position;
+            while (predicate(*target[position])) {
+                ++position;
+            }
+            return ParsekUtil.makeResult(true, target.subString(start, position-start), position);
+        });
+    }
+
+    public seq(...parsers) {
+        return new ParsekParser(_function(target, position) {
+            var result = [];
+            for (var i = 0; i < parsers.length(); ++i) {
+                var parsed = parsers[i].parse(target, position);;
+                if (parsed.status) {
+                    if (parsed.value.isDefined) {
+                        result.push(parsed.value);
+                    }
+                    position = parsed.position;
+                } else {
+                    return parsed;
+                }
+            }
+            return ParsekUtil.makeResult(true, result, position);
+        });
+    }
+
+    public seqMap(...parsers) {
+        var f = parsers.pop();
+        return new ParsekParser(_function(target, position) {
+            var result = [];
+            for (var i = 0; i < parsers.length(); ++i) {
+                var parsed = parsers[i].parse(target, position);
+                if (parsed.status) {
+                    if (parsed.value.isDefined) {
+                        result.push(parsed.value);
+                    }
+                    position = parsed.position;
+                } else {
+                    return parsed;
+                }
+            }
+            return ParsekUtil.makeResult(true, f(...result), position);
+        });
+    }
+
+}
