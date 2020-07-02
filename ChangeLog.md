@@ -15,11 +15,19 @@
 
 ## V1.0.0 (Planned)
 
+*   Planned
     *   Support to read/write from/to Clipboard.
     *   Get Environment Variables list via `$env` variable.
+    *   Support Array of Double in native.
+    *   Support Big Integer in native.
     *   User selectable installation.
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
+
+## V0.11.0 (Current development version)
+
+*   Updated
+    *   Supported a Parser Combinator Library named as `Parsek`.
 
 ## V0.10.0 (10th Preview Release)
 
