@@ -1,0 +1,32 @@
+using Parsek;
+
+var $E = new Parsek();
+var $D = new Parsek({ disablePackratParsing: true });
+var tmr = new SystemTimer();
+
+# rule:
+#     S <- A
+#     A <- P "+" A / P "-" A / P
+#     P <- "(" A ")" / "1"
+# input:
+#     (((((((((((((1)))))))))))))
+
+function generateParser($) {
+    var S, A, P;
+    S = $.lazy(&() => A);
+    A = $.lazy(&() => $.alt($.seq(P, $.string('+'), A), $.seq(P, $.string('-'), A), P));
+    P = $.alt($.seq($.string('('), A, $.string(')')), $.string('1'));
+    return S;
+}
+
+function test($) {
+    for (var i = 0; i <= 10; ++i) {
+        tmr.restart();
+        var r = generateParser($).parseAll(('(' * i) + '1' + (')' * i));
+        var elapsed = tmr.elapsed();
+        System.println(["%8.5f" % elapsed, r]);
+    }
+}
+
+test($E);
+test($D);

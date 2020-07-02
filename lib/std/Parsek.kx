@@ -37,13 +37,26 @@ ParsekUtil.makeDescription = _function(expected, description) {
     return expected;
 };
 
-_class ParsekParser(func) {
-
+_class ParsekParser($, defName, func) {
     public parse(target, position) {
-        if (func.isFunction) {
-            return func(target, position ?? 0);
+        if (!func.isFunction) {
+            return ParsekUtil.makeResult(false, null, position);
         }
-        return ParsekUtil.makeResult(false, null, position);
+        var result = $.memo.getEntry(position, defName);
+        if (result) {
+            return result;
+        }
+        result = func(target, position ?? 0);
+        if (result.status) {
+            $.memo.setEntry(position, defName, result);
+        }
+        return result;
+    }
+
+    public parseAll(target, position) {
+        var parsed = @skip($.eof).parse(target, position);
+        $.memo.clear();
+        return parsed;
     }
 
     public ()(target, position) {
@@ -52,7 +65,7 @@ _class ParsekParser(func) {
 
     # Methods to be chained.
     public desc(description) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
             if (!parsed.status) {
                 parsed.expected = ParsekUtil.makeDescription(parsed.expected, description);
@@ -62,7 +75,7 @@ _class ParsekParser(func) {
     }
 
     public or(parser) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
             if (parsed.status) {
                 return parsed;
@@ -72,7 +85,7 @@ _class ParsekParser(func) {
     }
 
     public then(parser) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
             if (!parsed.status) {
                 return parsed;
@@ -82,7 +95,7 @@ _class ParsekParser(func) {
     }
 
     public skip(parser) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
             if (!parsed.status) {
                 return parsed;
@@ -97,7 +110,7 @@ _class ParsekParser(func) {
     }
 
     public many() {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var result = [];
             while (true) {
                 var parsed = parse(target, position);;
@@ -112,11 +125,31 @@ _class ParsekParser(func) {
         });
     }
 
+    public many1() {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
+            var parsed;
+            var result = [];
+            while (true) {
+                parsed = parse(target, position);;
+                if (parsed.status) {
+                    result.push(parsed.value);
+                    position = parsed.position;
+                } else {
+                    break;
+                }
+            }
+            if (result.length() > 0) {
+                return ParsekUtil.makeResult(true, result, position);
+            }
+            return parsed;
+        });
+    }
+
     public times(min, max) {
         if (max.isUndefined) {
             max = min;
         }
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var result = [];
             for (var i = 0; i < max; ++i) {
                 var parsed = parse(target, position);;
@@ -134,7 +167,7 @@ _class ParsekParser(func) {
     }
 
     public sepBy(separator) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var prevpos = position;
             var result = [];
             while (true) {
@@ -157,7 +190,7 @@ _class ParsekParser(func) {
     }
 
     public sepBy1(separator) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed;
             var prevpos = position;
             var result = [];
@@ -187,7 +220,7 @@ _class ParsekParser(func) {
     }
 
     public map(f) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
             if (!parsed.status) {
                 return parsed;
@@ -197,7 +230,7 @@ _class ParsekParser(func) {
     }
 
     public chain(f) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
             if (!parsed.status) {
                 return parsed;
@@ -209,19 +242,66 @@ _class ParsekParser(func) {
 
 }
 
-_class Parsek {
+_class ParsekMemo(disabled_) {
+    var entries_ = {};
+
+    public clear() {
+        entries_ = {};
+    }
+
+    private searchEntry(position, defName) {
+        var list = entries_[defName];
+        if (!list.isObject) {
+            return -1;
+        }
+        for (var i = 0, l = list.length(); i < l; ++i) {
+            if (list[i].position == position) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public setEntry(position, defName, result) {
+        return if (disabled_);
+        if (position < result.position && defName.isDefined) {
+            entries_[defName] = {} if (entries_[defName].isUndefined);
+            var index = searchEntry(position, defName);
+            if (index >= 0) {
+                entries_[defName][index].result = result;
+            } else {
+                entries_[defName].push({ position: position, result: result });
+            }
+        }
+    }
+
+    public getEntry(position, defName) {
+        return if (disabled_);
+        if (defName.isDefined) {
+            var index = searchEntry(position, defName);
+            if (index >= 0) {
+                return entries_[defName][index].result;
+            }
+        }
+    }
+}
+
+_class Parsek(opts) {
+
+    var $ = this;
 
     private initialize() {
-        @eof = new ParsekParser(_function(target, position) {
+        $.memo = new ParsekMemo(opts.disablePackratParsing);
+        @eof = new ParsekParser($, __FUNC__, _function(target, position) {
             return ParsekUtil.makeResult(target.length() == position, null, position);
         });
-        @any = new ParsekParser(_function(target, position) {
+        @any = new ParsekParser($, __FUNC__, _function(target, position) {
             return ParsekUtil.makeResult(true, *target[position], position+1);
         });
-        @all = new ParsekParser(_function(target, position) {
+        @all = new ParsekParser($, __FUNC__, _function(target, position) {
             return ParsekUtil.makeResult(true, target.subString(position), target.length());
         });
-        @index = new ParsekParser(_function(target, position) {
+        @index = new ParsekParser($, __FUNC__, _function(target, position) {
             var lf = 1, column = 0;
             for (var i = 0; i < position; ++i) {
                 if (target[i] == '\n'[0]) {
@@ -249,7 +329,7 @@ _class Parsek {
     # Factors.
     public string(str) {
         var len = str.length();
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             if (target.subString(position, len) == str) {
                 return ParsekUtil.makeResult(true, str, position + len);
             }
@@ -260,7 +340,7 @@ _class Parsek {
     public regex(re, groupIndex) {
         groupIndex ??= 0;
         re = new Regex('^(?:' + re.pattern + ')');
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             re.reset(target.subString(position));
             if (re.find()) {
                 var result = re.group[groupIndex].string;
@@ -272,13 +352,13 @@ _class Parsek {
     }
 
     public succeed(result) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             return ParsekUtil.makeResult(true, result, position);
         });
     }
 
     public fail(message) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var r = ParsekUtil.makeResult(false, null, position);
             r.expected = [message];
             return r;
@@ -292,7 +372,7 @@ _class Parsek {
             var ch = *chars[i];
             dict[ch] = ch;
         }
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var ch = target.subString(position, 1);
             var isMatch = inverse ? dict[ch].isUndefined : dict[ch].isDefined;
             if (isMatch) {
@@ -317,7 +397,7 @@ _class Parsek {
             description = null;
         }
         var parser = null;
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             if (!parser.isFunction) {
                 parser = f();
             }
@@ -330,7 +410,7 @@ _class Parsek {
     }
 
     public alt(...parsers) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             for (var i = 0; i < parsers.length(); ++i) {
                 var parsed = parsers[i].parse(target, position);;
                 if (parsed.status) {
@@ -342,7 +422,7 @@ _class Parsek {
     }
 
     public takeWhile(predicate) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var start = position;
             while (predicate(*target[position])) {
                 ++position;
@@ -352,7 +432,7 @@ _class Parsek {
     }
 
     public seq(...parsers) {
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var result = [];
             for (var i = 0; i < parsers.length(); ++i) {
                 var parsed = parsers[i].parse(target, position);;
@@ -371,7 +451,7 @@ _class Parsek {
 
     public seqMap(...parsers) {
         var f = parsers.pop();
-        return new ParsekParser(_function(target, position) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
             var result = [];
             for (var i = 0; i < parsers.length(); ++i) {
                 var parsed = parsers[i].parse(target, position);
