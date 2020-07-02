@@ -86,6 +86,33 @@ _class ParsekParser($, defName, func) {
         });
     }
 
+    public /(parser) {
+        return or(parser);
+    }
+
+    public and(parser) {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
+            var parsed = parse(target, position);;
+            if (!parsed.status) {
+                return parsed;
+            }
+            var next = parser.parse(target, parsed.position);
+            if (!next.status) {
+                return next;
+            }
+            if (parsed.value.isArray) {
+                next.value = [...parsed.value, next.value];
+            } else {
+                next.value = [parsed.value, next.value];
+            }
+            return next;
+        });
+    }
+
+    public +(parser) {
+        return and(parser);
+    }
+
     public then(parser) {
         return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
