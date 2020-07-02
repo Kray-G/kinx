@@ -27,7 +27,7 @@ Now **Native Thread without GIL** has been supported as an **Isolate**.
 *   Support **JIT Library** as an **abstracted assembler library**. You can use JIT directly in your program.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
 *   **Isolate** object to control native threads without Global Interpreter Lock.
-*   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, etc.
+*   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, **Parser Combinator**, etc.
 *   **[REPL](doc/utility/repl.md)** is provided by default.
 *   Useful Testing System named as **[SpecTest](doc/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
 
