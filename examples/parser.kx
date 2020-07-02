@@ -55,6 +55,6 @@ var eval = function(ast) {
     return r;
 };
 
-var result = ignore.then(expression.skip($.eof)).parse('(( 123 ) * 2  * 4  - 3 * ( 12 + 10 )) % 100');
+var result = ignore.then(expression).parseAll('(( 123 ) * 2  * 4  - 3 * ( 12 + 10 )) % 100');
 System.println(result.toJsonString(true));
 System.println(eval(result.value));
