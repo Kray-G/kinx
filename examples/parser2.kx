@@ -13,6 +13,8 @@ System.println($.letter.times(2, 3).desc('a letter, 2 or 3 times').parseAll("aaa
 System.println($.letter.times(2, 3).desc('a letter, 2 or 3 times').skip($.eof).parseAll("aaaa"));
 
 System.println(($.seq($.succeed(1), $.all, $.succeed(2))).parseAll("aaa"));
+System.println(($.succeed(1).and($.all).and($.succeed(2))).parseAll("aaa"));
+System.println(($.succeed(1) + $.all + $.succeed(2)).parseAll("aaa"));
 System.println($.sepBy1($.oneOf("abc"), $.string('|')).parseAll('a|b'));
 System.println($.sepBy1($.lazy(['x', 'b', 'c'], &() => $.oneOf("xbc")), $.string('|')).parseAll('a|b'));
 
