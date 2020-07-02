@@ -100,7 +100,7 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 #### Object Definitions
 
 *   [Function](definition/function.md)
-*   [Class](definition/class.md) - *not documented yet*
+*   [Class](definition/class.md)
 *   [Module](definition/module.md) - *not documented yet*
 *   [Native](definition/native.md)
 
@@ -172,6 +172,8 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Xml](lib/basic/xml.md) - *not documented yet*
 *   [Zip](lib/basic/zip.md) - *not documented yet*
 *   [SQLite](lib/basic/sqlite.md) - *not documented yet*
+*   [JIT](lib/basic/jit.md) - *not documented yet*
+*   [Parsek](lib/basic/parsek.md) - *not documented yet*
 
 ##### Network Objects
 
