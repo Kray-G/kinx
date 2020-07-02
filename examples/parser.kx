@@ -11,17 +11,19 @@ var muldiv = lexeme($.oneOf('*/%'));
 var lbr = lexeme($.string('('));
 var rbr = lexeme($.string(')'));
 
-var parenthesis = $.lazy(&() => $.seq(lbr, expression, rbr).map(&(value) => value[1]));
+# (lbr + expression + rbr) means $seq(lbr, expression, rbr)
+var parenthesis = $.lazy(&() => (lbr + expression + rbr).map(&(value) => value[1]));
 
-var factor = $.alt(number, parenthesis);
-var term = $.seqMap(factor, $.seq(muldiv, factor).many(), &(first, rest) => {
+# number / parenthesis means $.alt(number, parenthesis)
+var factor = number / parenthesis;
+var term = $.seqMap(factor, (muldiv + factor).many(), &(first, rest) => {
     var expr = first;
     for (var i = 0, l = rest.length(); i < l; ++i) {
         expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
     }
     return expr;
 });
-expression = $.seqMap(term, $.seq(addsub, term).many(), &(first, rest) => {
+expression = $.seqMap(term, (addsub + term).many(), &(first, rest) => {
     var expr = first;
     for (var i = 0, l = rest.length(); i < l; ++i) {
         expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
