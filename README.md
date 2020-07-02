@@ -121,20 +121,22 @@ $ ./kinx [options] [<script-file>]
 
 Here is current available options.
 
-|          Option           |                              Description                              |
-| ------------------------- | --------------------------------------------------------------------- |
-| `-h`                      | Display help.                                                         |
-| `-v`, `--version`         | Display version number.                                               |
-| `-d`                      | Dump compiled code.                                                   |
-| `-D`                      | Display AST.                                                          |
-| `-i`                      | Input source code from stdin.                                         |
-|                           |                                                                       |
-| `--with-native`           | Dump compiled code of a native function. Use with `-d`.               |
-| `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.     |
-| `--case-threshold`        | Specify the max interval between case's integer value. 16 by default. |
-|                           |                                                                       |
-| `--exec:repl`             | Run the **Repl**.                                                     |
-| `--exec:spectest`         | Run the **SpecTest**.                                                 |
+|          Option           |                                     Description                                     |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `-h`                      | Display help.                                                                       |
+| `-v`, `--version`         | Display version number.                                                             |
+| `-d`                      | Dump compiled code.                                                                 |
+| `-D`                      | Display AST.                                                                        |
+| `-i`                      | Input source code from stdin.                                                       |
+| `-c`                      | Check the syntax only without any executions.                                       |
+| `-q`                      | Do quiet mode without displaying warning & error, and exit code 0 means successful. |
+|                           |                                                                                     |
+| `--with-native`           | Dump compiled code of a native function. Use with `-d`.                             |
+| `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.                   |
+| `--case-threshold`        | Specify the max interval between case's integer value. 16 by default.               |
+|                           |                                                                                     |
+| `--exec:repl`             | Run the **Repl**.                                                                   |
+| `--exec:spectest`         | Run the **SpecTest**.                                                               |
 
 ## Examples
 
