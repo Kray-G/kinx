@@ -27,7 +27,7 @@ Now **Native Thread without GIL** has been supported as an **Isolate**.
 *   Support **JIT Library** as an **abstracted assembler library**. You can use JIT directly in your program.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
 *   **Isolate** object to control native threads without Global Interpreter Lock.
-*   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, etc.
+*   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, **Parser Combinator**, etc.
 *   **[REPL](doc/utility/repl.md)** is provided by default.
 *   Useful Testing System named as **[SpecTest](doc/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
 
@@ -121,20 +121,22 @@ $ ./kinx [options] [<script-file>]
 
 Here is current available options.
 
-|          Option           |                              Description                              |
-| ------------------------- | --------------------------------------------------------------------- |
-| `-h`                      | Display help.                                                         |
-| `-v`, `--version`         | Display version number.                                               |
-| `-d`                      | Dump compiled code.                                                   |
-| `-D`                      | Display AST.                                                          |
-| `-i`                      | Input source code from stdin.                                         |
-|                           |                                                                       |
-| `--with-native`           | Dump compiled code of a native function. Use with `-d`.               |
-| `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.     |
-| `--case-threshold`        | Specify the max interval between case's integer value. 16 by default. |
-|                           |                                                                       |
-| `--exec:repl`             | Run the **Repl**.                                                     |
-| `--exec:spectest`         | Run the **SpecTest**.                                                 |
+|          Option           |                                     Description                                     |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `-h`                      | Display help.                                                                       |
+| `-v`, `--version`         | Display version number.                                                             |
+| `-d`                      | Dump compiled code.                                                                 |
+| `-D`                      | Display AST.                                                                        |
+| `-i`                      | Input source code from stdin.                                                       |
+| `-c`                      | Check the syntax only without any executions.                                       |
+| `-q`                      | Do quiet mode without displaying warning & error, and exit code 0 means successful. |
+|                           |                                                                                     |
+| `--with-native`           | Dump compiled code of a native function. Use with `-d`.                             |
+| `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.                   |
+| `--case-threshold`        | Specify the max interval between case's integer value. 16 by default.               |
+|                           |                                                                                     |
+| `--exec:repl`             | Run the **Repl**.                                                                   |
+| `--exec:spectest`         | Run the **SpecTest**.                                                               |
 
 ## Examples
 
