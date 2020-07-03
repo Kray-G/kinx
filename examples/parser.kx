@@ -1,3 +1,4 @@
+using Jit;
 using Parsek;
 
 var $ = new Parsek();
@@ -16,14 +17,9 @@ var parenthesis = $.lazy(&() => (lbr + expression + rbr).map(&(value) => value[1
 
 # number / parenthesis means $.alt(number, parenthesis)
 var factor = number / parenthesis;
-var term = $.seqMap(factor, (muldiv + factor).many(), &(first, rest) => {
-    var expr = first;
-    for (var i = 0, l = rest.length(); i < l; ++i) {
-        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
-    }
-    return expr;
-});
-expression = $.seqMap(term, (addsub + term).many(), &(first, rest) => {
+
+# (muldiv + factor).*() means $seq((muldiv, factor).many()
+var term = $.seqMap(factor, (muldiv + factor).*(), &(first, rest) => {
     var expr = first;
     for (var i = 0, l = rest.length(); i < l; ++i) {
         expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
@@ -31,32 +27,131 @@ expression = $.seqMap(term, (addsub + term).many(), &(first, rest) => {
     return expr;
 });
 
-var eval = function(ast) {
-    var lhs = ast.lhs.isObject ? eval(ast.lhs) : ast.lhs;
-    var rhs = ast.rhs.isObject ? eval(ast.rhs) : ast.rhs;
-    var r = 0;
-    switch (ast.op) {
-    case '+':
-        r = lhs + rhs;
-        break;
-    case '-':
-        r = lhs - rhs;
-        break;
-    case '*':
-        r = lhs * rhs;
-        break;
-    case '/':
-        r = lhs / rhs;
-        break;
-    case '%':
-        r = lhs % rhs;
-        break;
-    default:
-        throw RuntimeException('Invalid operator');
+# (addsub + term).*() means $seq((addsub, term).many()
+expression = $.seqMap(term, (addsub + term).*(), &(first, rest) => {
+    var expr = first;
+    for (var i = 0, l = rest.length(); i < l; ++i) {
+        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
     }
-    return r;
-};
+    return expr;
+});
+
+class Interpreter {
+    public eval(ast) {
+        var lhs = ast.lhs.isObject ? eval(ast.lhs) : ast.lhs;
+        var rhs = ast.rhs.isObject ? eval(ast.rhs) : ast.rhs;
+        var r = 0;
+        switch (ast.op) {
+        case '+':
+            r = lhs + rhs;
+            break;
+        case '-':
+            r = lhs - rhs;
+            break;
+        case '*':
+            r = lhs * rhs;
+            break;
+        case '/':
+            r = lhs / rhs;
+            break;
+        case '%':
+            r = lhs % rhs;
+            break;
+        default:
+            throw RuntimeException('Invalid operator');
+        }
+        return r;
+    }
+}
+
+class Compiler {
+    var regs_, regsLen_;
+    private initialize() {
+        regs_ = [
+            # Jit.R0 and Jit.R1 is used as a work register when it is division.
+            { reg: Jit.R2, used: false },
+            { reg: Jit.R3, used: false },
+            { reg: Jit.R4, used: false },
+            { reg: Jit.R5, used: false },
+            { reg: Jit.S0, used: false },
+            { reg: Jit.S1, used: false },
+            { reg: Jit.S2, used: false },
+            { reg: Jit.S3, used: false },
+            { reg: Jit.S4, used: false },
+            { reg: Jit.S5, used: false },
+        ];
+        regsLen_ = regs_.length();
+    }
+    private getReg() {
+        for (var i = 0; i < regsLen_; ++i) {
+            if (!regs_[i].used) {
+                regs_[i].used = true;
+                return i;
+            }
+        }
+        throw RuntimeException("Not enough register");
+    }
+    private releaseReg(i) {
+        regs_[i].used = false;
+    }
+    private compileLeaf(c, leaf) {
+        var r = getReg();
+        c.mov(regs_[r].reg, Jit.IMM(leaf));
+        return r;
+    }
+    private compileNode(c, ast) {
+        var rl = ast.lhs.isObject ? compileNode(c, ast.lhs) : compileLeaf(c, ast.lhs);
+        var rr = ast.rhs.isObject ? compileNode(c, ast.rhs) : compileLeaf(c, ast.rhs);
+        var r = getReg();
+        switch (ast.op) {
+        case '+':
+            c.add(regs_[r].reg, regs_[rl].reg, regs_[rr].reg);
+            break;
+        case '-':
+            c.sub(regs_[r].reg, regs_[rl].reg, regs_[rr].reg);
+            break;
+        case '*':
+            c.mul(regs_[r].reg, regs_[rl].reg, regs_[rr].reg);
+            break;
+        case '/':
+            c.mov(Jit.R0, regs_[rl].reg);
+            c.mov(Jit.R1, regs_[rr].reg);
+            c.sdiv();
+            c.mov(regs_[r].reg, Jit.R0);
+            break;
+        case '%':
+            c.mov(Jit.R0, regs_[rl].reg);
+            c.mov(Jit.R1, regs_[rr].reg);
+            c.sdivmod();
+            c.mov(regs_[r].reg, Jit.R1);
+            break;
+        default:
+            throw RuntimeException('Invalid operator');
+        }
+        releaseReg(rl);
+        releaseReg(rr);
+        return r;
+    }
+    public compile(ast) {
+        var c = new Jit.Compiler();
+        c.enter();
+        var r = compileNode(c, ast);
+        c.ret(regs_[r].reg);
+        return c.generate();
+    }
+    public run(ast) {
+        var code = compile(ast);
+        return code.run();
+    }
+}
 
 var result = ignore.then(expression).parseAll('(( 123 ) * 2  * 4  - 3 * ( 12 + 10 )) % 100');
 System.println(result.toJsonString(true));
-System.println(eval(result.value));
+
+# Interpret the code.
+System.println(new Interpreter().eval(result.value));
+
+# Compile the code and run it on the fly.
+var code = new Compiler().compile(result.value);
+code.dump();
+System.println(code.run());
