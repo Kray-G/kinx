@@ -28,6 +28,7 @@
 
 *   Updated
     *   Supported a Parser Combinator Library named as `Parsek`.
+    *   Some bug fixes and improvement.
 
 ## V0.10.0 (10th Preview Release)
 
