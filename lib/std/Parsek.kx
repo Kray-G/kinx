@@ -86,10 +86,6 @@ _class ParsekParser($, defName, func) {
         });
     }
 
-    public /(parser) {
-        return or(parser);
-    }
-
     public and(parser) {
         return new ParsekParser($, __FUNC__, _function(target, position) {
             var parsed = parse(target, position);;
@@ -107,10 +103,6 @@ _class ParsekParser($, defName, func) {
             }
             return next;
         });
-    }
-
-    public +(parser) {
-        return and(parser);
     }
 
     public then(parser) {
@@ -267,6 +259,22 @@ _class ParsekParser($, defName, func) {
             var newParser = f(parsed.value);
             return newParser.parse(target, parsed.position);
         });
+    }
+
+    # Special alternative operator.
+    public /(parser) {
+        return or(parser);
+    }
+
+    public +(parser) {
+        if (parser.isUndefined) {
+            return many1();
+        }
+        return and(parser);
+    }
+
+    public *() {
+        return many();
     }
 
 }
