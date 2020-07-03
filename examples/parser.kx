@@ -36,7 +36,11 @@ expression = $.seqMap(term, (addsub + term).*(), &(first, rest) => {
     return expr;
 });
 
-class Interpreter {
+class Interpreter(opts_) {
+    private sequence(r, op, lhs, rhs) {
+        return if (!opts_.enableSequence);
+        System.println("%d %s %d -> %d" % lhs % op % rhs % r);
+    }
     public eval(ast) {
         var lhs = ast.lhs.isObject ? eval(ast.lhs) : ast.lhs;
         var rhs = ast.rhs.isObject ? eval(ast.rhs) : ast.rhs;
@@ -60,27 +64,48 @@ class Interpreter {
         default:
             throw RuntimeException('Invalid operator');
         }
+        sequence(r, ast.op, lhs, rhs);
         return r;
     }
 }
 
-class Compiler {
+class Compiler(opts_) {
     var regs_, regsLen_;
+    enum { MOV, BOP, DIVMOD, RET }
     private initialize() {
         regs_ = [
             # Jit.R0 and Jit.R1 is used as a work register when it is division.
-            { reg: Jit.R2, used: false },
-            { reg: Jit.R3, used: false },
-            { reg: Jit.R4, used: false },
-            { reg: Jit.R5, used: false },
-            { reg: Jit.S0, used: false },
-            { reg: Jit.S1, used: false },
-            { reg: Jit.S2, used: false },
-            { reg: Jit.S3, used: false },
-            { reg: Jit.S4, used: false },
-            { reg: Jit.S5, used: false },
+            { reg: Jit.R2, used: false, name: "R2" },
+            { reg: Jit.R3, used: false, name: "R3" },
+            { reg: Jit.R4, used: false, name: "R4" },
+            { reg: Jit.R5, used: false, name: "R5" },
+            { reg: Jit.S0, used: false, name: "S0" },
+            { reg: Jit.S1, used: false, name: "S1" },
+            { reg: Jit.S2, used: false, name: "S2" },
+            { reg: Jit.S3, used: false, name: "S3" },
+            { reg: Jit.S4, used: false, name: "S4" },
+            { reg: Jit.S5, used: false, name: "S5" },
         ];
         regsLen_ = regs_.length();
+    }
+    private listing(type, op, dst, op1, op2) {
+        return if (!opts_.enableListing);
+        switch (type) {
+        case MOV:
+            System.println("%s <- %s" % dst % op1);
+            break;
+        case BOP:
+            System.println("%s <- %s %s %s" % dst % op1 % op % op2);
+            break;
+        case DIVMOD:
+            System.println("R0 <- %s" % op1);
+            System.println("R1 <- %s" % op2);
+            System.println("%s <- R0 %s R1" % dst % op);
+            break;
+        case RET:
+            System.println("ret %s" % dst);
+            break;
+        }
     }
     private getReg() {
         for (var i = 0; i < regsLen_; ++i) {
@@ -97,6 +122,7 @@ class Compiler {
     private compileLeaf(c, leaf) {
         var r = getReg();
         c.mov(regs_[r].reg, Jit.IMM(leaf));
+        listing(MOV, null, regs_[r].name, leaf);
         return r;
     }
     private compileNode(c, ast) {
@@ -106,24 +132,29 @@ class Compiler {
         switch (ast.op) {
         case '+':
             c.add(regs_[r].reg, regs_[rl].reg, regs_[rr].reg);
+            listing(BOP, ast.op, regs_[r].name, regs_[rl].name, regs_[rr].name);
             break;
         case '-':
             c.sub(regs_[r].reg, regs_[rl].reg, regs_[rr].reg);
+            listing(BOP, ast.op, regs_[r].name, regs_[rl].name, regs_[rr].name);
             break;
         case '*':
             c.mul(regs_[r].reg, regs_[rl].reg, regs_[rr].reg);
+            listing(BOP, ast.op, regs_[r].name, regs_[rl].name, regs_[rr].name);
             break;
         case '/':
             c.mov(Jit.R0, regs_[rl].reg);
             c.mov(Jit.R1, regs_[rr].reg);
             c.sdiv();
             c.mov(regs_[r].reg, Jit.R0);
+            listing(DIVMOD, ast.op, regs_[r].name, regs_[rl].name, regs_[rr].name);
             break;
         case '%':
             c.mov(Jit.R0, regs_[rl].reg);
             c.mov(Jit.R1, regs_[rr].reg);
             c.sdivmod();
             c.mov(regs_[r].reg, Jit.R1);
+            listing(DIVMOD, ast.op, regs_[r].name, regs_[rl].name, regs_[rr].name);
             break;
         default:
             throw RuntimeException('Invalid operator');
@@ -137,6 +168,7 @@ class Compiler {
         c.enter();
         var r = compileNode(c, ast);
         c.ret(regs_[r].reg);
+        listing(RET, null, regs_[r].name);
         return c.generate();
     }
     public run(ast) {
@@ -152,14 +184,19 @@ if (!result.status) {
 }
 
 # Display AST.
+System.println("\n# Display AST.");
 var ast = result.value;
 System.println(ast.toJsonString(true));
 
 # Interpret the code.
-System.println(new Interpreter().eval(ast));
+System.println("\n# Interpret the code.");
+System.println(new Interpreter({ enableSequence: true }).eval(ast));
 
 # Compile the code and run it on the fly.
-var code = new Compiler().compile(ast);
+System.println("\n# Compile the code.");
+var code = new Compiler({ enableListing: true }).compile(ast);
+System.println("\n# Dump the actual machine code.");
 code.dump();
+System.println("\n# Run the code on the fly.");
 System.println(code.run());
 return 0;
