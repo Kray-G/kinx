@@ -146,12 +146,20 @@ class Compiler {
 }
 
 var result = ignore.then(expression).parseAll('(( 123 ) * 2  * 4  - 3 * ( 12 + 10 )) % 100');
-System.println(result.toJsonString(true));
+if (!result.status) {
+    System.println("Parse error.");
+    return 1;
+}
+
+# Display AST.
+var ast = result.value;
+System.println(ast.toJsonString(true));
 
 # Interpret the code.
-System.println(new Interpreter().eval(result.value));
+System.println(new Interpreter().eval(ast));
 
 # Compile the code and run it on the fly.
-var code = new Compiler().compile(result.value);
+var code = new Compiler().compile(ast);
 code.dump();
 System.println(code.run());
+return 0;
