@@ -1,6 +1,14 @@
 using Jit;
 using Parsek;
 
+function makeAST(first, rest) {
+    var expr = first;
+    for (var i = 0, l = rest.length(); i < l; ++i) {
+        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
+    }
+    return expr;
+}
+
 var $ = new Parsek();
 var ignore = $.optWhitespace;
 var lexeme = &(p) => p.skip(ignore);
@@ -19,22 +27,10 @@ var parenthesis = $.lazy(&() => (lbr + expression + rbr).map(&(value) => value[1
 var factor = number / parenthesis;
 
 # (muldiv + factor).*() means $seq((muldiv, factor).many()
-var term = $.seqMap(factor, (muldiv + factor).*(), &(first, rest) => {
-    var expr = first;
-    for (var i = 0, l = rest.length(); i < l; ++i) {
-        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
-    }
-    return expr;
-});
+var term = $.seqMap(factor, (muldiv + factor).*(), makeAST);
 
 # (addsub + term).*() means $seq((addsub, term).many()
-expression = $.seqMap(term, (addsub + term).*(), &(first, rest) => {
-    var expr = first;
-    for (var i = 0, l = rest.length(); i < l; ++i) {
-        expr = { lhs: expr, op: rest[i][0], rhs: rest[i][1] };
-    }
-    return expr;
-});
+expression = $.seqMap(term, (addsub + term).*(), makeAST);
 
 class Interpreter(opts_) {
     private sequence(r, op, lhs, rhs) {
