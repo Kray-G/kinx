@@ -818,6 +818,7 @@ Argument
     : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_var_type_object($1, $3, $4); }
     | '[' ArrayItemList ']' { $$ = kx_gen_ary_var_object($2, KX_LARY_T); }
+    | '{' ArrayItemList '}' { $$ = kx_gen_ary_var_object($2, KX_LOBJ_T); }
     | DOTS3 VarName { $$ = kx_gen_var_object($2, KX_SPR_T); }
     ;
 
