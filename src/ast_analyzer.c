@@ -21,6 +21,7 @@ typedef struct kxana_context_ {
     int in_native;
     int class_id;
     int arg_index;
+    int anon_arg;
     kx_object_t *class_node;
     kx_object_t *func;
     kx_object_t *switch_stmt;
@@ -249,6 +250,42 @@ static void add_const(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *dec
     }
 }
 
+static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
+{
+    #define KX_ANON_CASE(c, i) \
+    case c: \
+        node->var_type = KX_UNKNOWN_T; \
+        node->lexical = 0; \
+        node->index = (i)-1; \
+        if (actx->anon_arg < (i)) actx->anon_arg = (i); \
+        return 1; \
+    /**/
+    const char *name = node->value.s;
+    if (name && name[0] == '_') {
+        if (name[1] == 0) {
+            node->var_type = KX_UNKNOWN_T;
+            node->lexical = 0;
+            node->index = actx->anon_arg++;
+            return 1;
+        }
+        if (name[2] == 0) {
+            switch (name[1]) {
+            KX_ANON_CASE('1', 1);
+            KX_ANON_CASE('2', 2);
+            KX_ANON_CASE('3', 3);
+            KX_ANON_CASE('4', 4);
+            KX_ANON_CASE('5', 5);
+            KX_ANON_CASE('6', 6);
+            KX_ANON_CASE('7', 7);
+            KX_ANON_CASE('8', 8);
+            KX_ANON_CASE('9', 9);
+            }
+        }
+    }
+    #undef KX_ANON_CASE
+    return 0;
+}
+
 static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *actx)
 {
     if (!node) {
@@ -301,6 +338,9 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
                 node->lhs = kx_gen_str_object(const_str(ctx, NULL));
                 node->var_type = KX_UND_T;
             }
+            break;
+        }
+        if (is_anon_var(actx, node)) {
             break;
         }
         int enumv = 0;
@@ -1042,7 +1082,18 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         if (node->ex) {
             analyze_ast(ctx, node->ex, actx);
         }
+
+        int anon_arg = actx->anon_arg;
+        actx->anon_arg = 0;
         analyze_ast(ctx, node->rhs, actx);
+        if (node->count_args < actx->anon_arg) {
+            node->count_args = actx->anon_arg;
+        }
+        if (node->local_vars < node->count_args) {
+            node->local_vars = node->count_args;
+        }
+        actx->anon_arg = anon_arg;
+
         actx->func = func;
         node->symbols = kv_last(actx->symbols);
         kv_remove_last(actx->symbols);
@@ -1108,7 +1159,18 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             node->count_args = 0;
         }
         actx->decl = decl;
+
+        int anon_arg = actx->anon_arg;
+        actx->anon_arg = 0;
         analyze_ast(ctx, node->rhs, actx);
+        if (node->count_args < actx->anon_arg) {
+            node->count_args = actx->anon_arg;
+        }
+        if (node->local_vars < node->count_args) {
+            node->local_vars = node->count_args;
+        }
+        actx->anon_arg = anon_arg;
+
         actx->func = func;
         node->symbols = kv_last(actx->symbols);
         kv_remove_last(actx->symbols);
