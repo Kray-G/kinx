@@ -101,6 +101,8 @@
 %type<obj> Regex
 %type<strval> RegexString
 %type<obj> ArrayItemList
+%type<obj> ArrayItemListCore
+%type<obj> CommaList
 %type<obj> AssignExpressionList
 %type<obj> AssignExpressionObjList
 %type<obj> KeyValueList
@@ -261,7 +263,7 @@ ForStatement
 
 ForInVariable
     : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | '[' ArrayItemList Comma_Opt ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
+    | '[' ArrayItemList ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
     ;
 
 TryCatchStatement
@@ -363,7 +365,7 @@ ObjectSpecialSyntax
     | ObjectSpecialSyntax '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | ObjectSpecialSyntax '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | ObjectSpecialSyntax '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
-    | ObjectSpecialSyntax PostCallBack { $$ = kx_gen_bexpr_object(KXST_EXPR, $1, $2); }
+    | ObjectSpecialSyntax PostCallBack { $$ = kx_gen_bexpr_object(KXOP_CBBLOCK, $1, $2); }
     ;
 
 TernaryExpression
@@ -473,7 +475,7 @@ PostfixExpression
     | PostfixExpression '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | PostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
-    | PostfixExpression PostCallBack { $$ = kx_gen_bexpr_object(KXST_EXPR, $1, $2); }
+    | PostfixExpression PostCallBack { $$ = kx_gen_bexpr_object(KXOP_CBBLOCK, $1, $2); }
     ;
 
 PostCallBack
@@ -579,12 +581,12 @@ PropertyName
 
 Array
     : '[' ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, NULL); }
-    | '[' ArrayItemList Comma_Opt ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
+    | '[' ArrayItemList ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
     ;
 
 Binary
     : '<' '>' { $$ = kx_gen_uexpr_object(KXOP_MKBIN, NULL); }
-    | '<' BinStart ArrayItemList Comma_Opt BINEND { $$ = kx_gen_uexpr_object(KXOP_MKBIN, $3); }
+    | '<' BinStart ArrayItemList BINEND { $$ = kx_gen_uexpr_object(KXOP_MKBIN, $3); }
     ;
 
 BinStart
@@ -601,10 +603,21 @@ Comma_Opt
     ;
 
 ArrayItemList
+    : ArrayItemListCore { $$ = kx_gen_adjust_array($1); }
+    | CommaList ArrayItemListCore { $$ = kx_gen_adjust_array(kx_gen_bexpr_object(KXST_EXPRLIST, $1, $2)); }
+    ;
+
+CommaList
+    : ',' { $$ = kx_gen_var_object(NULL, KX_UND_T); }
+    | CommaList ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
+    ;
+
+ArrayItemListCore
     : AssignExpression
     | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
-    | ArrayItemList ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
-    | ArrayItemList ',' DOTS3 AssignRightHandSide { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
+    | ArrayItemListCore ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
+    | ArrayItemListCore ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | ArrayItemListCore ',' DOTS3 AssignRightHandSide { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
     ;
 
 AssignExpressionList
@@ -719,7 +732,7 @@ DeclAssignExpression
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
     | VarName '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
     | VarName ':' TypeName ReturnType_Opt '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
-    | '[' ArrayItemList Comma_Opt ']' '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(KXOP_MKARY, $2), $6); }
+    | '[' ArrayItemList ']' '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(KXOP_MKARY, $2), $5); }
     ;
 
 FunctionDeclStatement
@@ -804,6 +817,7 @@ ArgumentList
 Argument
     : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_var_type_object($1, $3, $4); }
+    | '[' ArrayItemList ']' { $$ = kx_gen_ary_var_object($2, KX_LARY_T); }
     | DOTS3 VarName { $$ = kx_gen_var_object($2, KX_SPR_T); }
     ;
 

@@ -38,14 +38,21 @@ void kx_make_native_mode(void)
     sg_native = 1;
 }
 
-kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+static const char *kx_gen_name(const char *base, int counter)
+{
+    char buf[128] = {0};
+    sprintf(buf, "%s%d", base, counter);
+    return const_str(g_parse_ctx, buf);
+}
+
+kx_object_t *kx_gen_obj_core(int type, int optional, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int var_type)
 {
     kx_object_t *obj = kx_obj_alloc();
     obj->lhs = lhs;
     obj->rhs = rhs;
     obj->ex = ex;
     obj->type = type;
-    obj->var_type = KX_UNKNOWN_T;
+    obj->var_type = var_type;
     obj->ret_type = KX_UNKNOWN_T;
     obj->optional = optional;
     obj->file = const_str(g_parse_ctx, kx_lexinfo.file);
@@ -53,16 +60,40 @@ kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *r
     return obj;
 }
 
+kx_object_t *kx_gen_obj(int type, int optional, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+{
+    return kx_gen_obj_core(type, optional, lhs, rhs, ex, KX_UNKNOWN_T);
+}
+
 kx_object_t *kx_gen_special_object(int type)
 {
     return kx_gen_obj(type, 0, NULL, NULL, NULL);
 }
 
+kx_object_t *kx_gen_adjust_array(kx_object_t *node)
+{
+    if (node && node->var_type == KX_UND_T) {
+        return NULL;
+    }
+    if (node && node->rhs && node->rhs->var_type == KX_UND_T) {
+        return node->lhs;
+    }
+    return node;
+}
+
+kx_object_t *kx_gen_ary_var_object(kx_object_t *node, int var_type)
+{
+    return kx_gen_obj_core(KXOP_VAR, 0, node, NULL, NULL, var_type);
+}
+
 kx_object_t *kx_gen_var_object(const char *name, int var_type)
 {
-    kx_object_t *obj = kx_gen_obj(KXOP_VAR, 0, NULL, NULL, NULL);
+    static int counter = 0;
+    if (!name) {
+        name = kx_gen_name("_var", counter++);
+    }
+    kx_object_t *obj = kx_gen_obj_core(KXOP_VAR, 0, NULL, NULL, NULL, var_type);
     obj->value.s = name;
-    obj->var_type = var_type;
     return obj;
 }
 
@@ -323,7 +354,7 @@ kx_object_t *kx_gen_regex_object(const char *pattern, int eq)
 
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
-    if (type == KXST_EXPR) {
+    if (type == KXOP_CBBLOCK) {
         if (lhs) {
             if (lhs->type == KXOP_CALL) {
                 kx_object_t *args = lhs->rhs;
@@ -410,13 +441,6 @@ kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block,
     kx_object_t *decl = kx_gen_bassign_object(KXOP_DECL, kx_gen_var_object(name, KX_UNKNOWN_T), NULL);
     kx_object_t *obj = kx_gen_obj(type, 0, decl, block, ex);
     return obj;
-}
-
-const char *kx_gen_name(const char *base, int counter)
-{
-    char buf[128] = {0};
-    sprintf(buf, "%s%d", base, counter);
-    return const_str(g_parse_ctx, buf);
 }
 
 kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
