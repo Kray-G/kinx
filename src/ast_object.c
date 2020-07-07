@@ -323,6 +323,17 @@ kx_object_t *kx_gen_regex_object(const char *pattern, int eq)
 
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
+    if (type == KXST_EXPR) {
+        if (lhs) {
+            if (lhs->type == KXOP_CALL) {
+                kx_object_t *args = lhs->rhs;
+                lhs->rhs = kx_gen_bexpr_object(KXST_EXPRLIST, rhs, lhs->rhs);
+            } else {
+                lhs = kx_gen_bexpr_object(KXOP_CALL, lhs, rhs);
+            }
+        }
+        return lhs;
+    }
     if (type == KXOP_IDX && lhs && lhs->rhs) {
         kx_object_t *create = lhs->rhs;
         if (create->type == KXVL_STR && !strcmp(create->value.s, "create")) {
