@@ -68,6 +68,10 @@ static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node,
 
 DECL_VAR:
     if (actx->decl || actx->lvalue) {
+        if (node->lhs && node->lhs->type == KXVL_NULL) {
+            // This variable is not used because it is a lvalue parameter like the 2nd of [a,,b].
+            return NULL;
+        }
         kxana_symbol_t* table = &(kv_last(actx->symbols));
         kxana_symbol_t sym = {0};
         sym.name = const_str(ctx, name);
