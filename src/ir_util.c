@@ -5870,6 +5870,26 @@ void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
     }
 }
 
+int kx_try_getobjv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+{
+    int exc = 0;
+    assert(v2->type == KX_LVAL_T);
+    kx_val_t *vp = v2->value.lv;
+    if (v1->type != KX_OBJ_T) {
+        return KXN_UNSUPPORTED_OPERATOR;
+    }
+
+    kx_val_t *val = NULL;
+    KEX_GET_PROP(val, v1->value.ov, cur->value1.s);
+    if (!val) {
+        vp->type = KX_UND_T;
+    } else {
+        *vp = *val; /* structure copy. */
+    }
+
+    return exc;
+}
+
 int kx_try_getaryv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
 {
     int exc = 0;

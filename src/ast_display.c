@@ -76,6 +76,9 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
 
     case KXOP_VAR:
+        if (node->lhs) {
+            printf("optimized - ");
+        }
         if (node->var_type == KX_UNKNOWN_T) {
             if (node->lexical_refs) {
                 printf("%c(var:%s) [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index, node->lexical_refs);
