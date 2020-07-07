@@ -167,6 +167,7 @@ enum opecode {
     KXOP_CAST,
     KXOP_ENUM,
     KXOP_SPREAD,
+    KXOP_CBBLOCK,
 
     /* ternary expression */
     KXOP_TER,
