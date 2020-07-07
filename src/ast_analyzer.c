@@ -335,10 +335,10 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
 
     case KXOP_VAR: {
-        if (node->var_type == KX_LARY_T && actx->func && node->lhs) {
+        if ((node->var_type == KX_LARY_T || node->var_type == KX_LOBJ_T) && actx->func && node->lhs) {
             const char *name = const_str(ctx, tempname());
             kx_object_t *tempvar = kx_gen_var_object(name, KX_UNKNOWN_T);
-            kx_object_t *assign = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(KXOP_MKARY, node->lhs), tempvar);
+            kx_object_t *assign = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(node->var_type == KX_LARY_T ? KXOP_MKARY : KXOP_MKOBJ, node->lhs), tempvar);
             actx->func->rhs = actx->func->rhs ? kx_gen_bexpr_object(KXST_STMTLIST, assign, actx->func->rhs) : assign;
             node->lhs = tempvar;
             node->value.s = name;
