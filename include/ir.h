@@ -98,6 +98,7 @@ enum irop {
     KX_DUPARY,
     KX_SWAP,
     KX_SWAPX,
+    KX_GETOBJV,
     KX_GETARYV,
     KX_GETARYA,
     KX_APPLYV,
@@ -457,6 +458,7 @@ enum irexec {
     KX_ARY_T,       /* used only with typeof */
     KX_DEF_T,       /* used only with typeof */
     KX_LARY_T,      /* l-value array argument */
+    KX_LOBJ_T,      /* l-value object argument */
 };
 
 typedef struct kx_val_ {
