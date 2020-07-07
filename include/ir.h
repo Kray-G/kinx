@@ -456,6 +456,7 @@ enum irexec {
     KX_COR_T,       /* coroutine start */
     KX_ARY_T,       /* used only with typeof */
     KX_DEF_T,       /* used only with typeof */
+    KX_LARY_T,      /* l-value array argument */
 };
 
 typedef struct kx_val_ {
