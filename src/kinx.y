@@ -733,6 +733,7 @@ DeclAssignExpression
     | VarName '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
     | VarName ':' TypeName ReturnType_Opt '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
     | '[' ArrayItemList ']' '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(KXOP_MKARY, $2), $5); }
+    | '{' ArrayItemList '}' '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(KXOP_MKOBJ, $2), $5); }
     ;
 
 FunctionDeclStatement

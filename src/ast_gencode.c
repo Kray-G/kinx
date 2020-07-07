@@ -387,7 +387,7 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
         kx_yyerror_line("Cannot use a spread/rest operator for object", node->file, node->line);
     } else {
         if (node->type == KXOP_VAR && node->var_type == KX_UND_T) {
-            kx_yyerror_line("Cannot use a spread/rest operator for object", node->file, node->line);
+            kx_yyerror_line("Cannot skip the lvalue parameter for object", node->file, node->line);
         } else {
             gencode_ast_hook(ctx, node, ana, 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETOBJV, .value1.s = node->value.s }));\
