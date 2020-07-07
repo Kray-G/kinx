@@ -143,7 +143,7 @@ but the description is included in this section because its feature is near a li
 *   [Double](lib/primitive/double.md) - *not documented yet*
 *   [String](lib/primitive/string.md) - *not documented yet*
 *   [Binary](lib/primitive/binary.md) - *not documented yet*
-*   [Array](lib/primitive/array.md) - *not documented yet*
+*   [Array](lib/primitive/array.md)
 
 #### Functions
 
