@@ -21,6 +21,7 @@ typedef struct kxana_context_ {
     int in_native;
     int class_id;
     int arg_index;
+    int anon_arg;
     kx_object_t *class_node;
     kx_object_t *func;
     kx_object_t *switch_stmt;
@@ -29,13 +30,18 @@ typedef struct kxana_context_ {
 } kxana_context_t;
 static const kxana_symbol_t kx_empty_symbols = {0};
 
-static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node, const char *name, kxana_context_t *actx)
+static const char *tempname(void)
 {
     static char temp[256] = {0};
+    static int tempid = 0;
+    sprintf(temp, "_temp%d", tempid++);
+    return temp;
+}
+
+static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node, const char *name, kxana_context_t *actx)
+{
     if (!name) {
-        static int tempid = 0;
-        sprintf(temp, "_temp%d", tempid);
-        name = temp;
+        name = tempname();
     }
     int stack = kv_size(actx->symbols);
     for (int i = 1; i <= stack; ++i) {
@@ -62,6 +68,10 @@ static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node,
 
 DECL_VAR:
     if (actx->decl || actx->lvalue) {
+        if (node->lhs && node->lhs->type == KXVL_NULL) {
+            // This variable is not used because it is a lvalue parameter like the 2nd of [a,,b].
+            return NULL;
+        }
         kxana_symbol_t* table = &(kv_last(actx->symbols));
         kxana_symbol_t sym = {0};
         sym.name = const_str(ctx, name);
@@ -249,6 +259,42 @@ static void add_const(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *dec
     }
 }
 
+static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
+{
+    #define KX_ANON_CASE(c, i) \
+    case c: \
+        node->var_type = KX_UNKNOWN_T; \
+        node->lexical = 0; \
+        node->index = (i)-1; \
+        if (actx->anon_arg < (i)) actx->anon_arg = (i); \
+        return 1; \
+    /**/
+    const char *name = node->value.s;
+    if (name && name[0] == '_') {
+        if (name[1] == 0) {
+            node->var_type = KX_UNKNOWN_T;
+            node->lexical = 0;
+            node->index = actx->anon_arg++;
+            return 1;
+        }
+        if (name[2] == 0) {
+            switch (name[1]) {
+            KX_ANON_CASE('1', 1);
+            KX_ANON_CASE('2', 2);
+            KX_ANON_CASE('3', 3);
+            KX_ANON_CASE('4', 4);
+            KX_ANON_CASE('5', 5);
+            KX_ANON_CASE('6', 6);
+            KX_ANON_CASE('7', 7);
+            KX_ANON_CASE('8', 8);
+            KX_ANON_CASE('9', 9);
+            }
+        }
+    }
+    #undef KX_ANON_CASE
+    return 0;
+}
+
 static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *actx)
 {
     if (!node) {
@@ -289,31 +335,47 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
 
     case KXOP_VAR: {
-        if (!strcmp(node->value.s, "__FUNC__")) {
-            if (actx->func) {
-                if (actx->class_node) {
-                    node->lhs = kx_gen_str_object(const_str2(ctx, actx->class_node->value.s, actx->func->value.s));
+        if ((node->var_type == KX_LARY_T || node->var_type == KX_LOBJ_T) && actx->func && node->lhs) {
+            const char *name = const_str(ctx, tempname());
+            kx_object_t *tempvar = kx_gen_var_object(name, KX_UNKNOWN_T);
+            kx_object_t *assign = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(node->var_type == KX_LARY_T ? KXOP_MKARY : KXOP_MKOBJ, node->lhs), tempvar);
+            actx->func->rhs = actx->func->rhs ? kx_gen_bexpr_object(KXST_STMTLIST, assign, actx->func->rhs) : assign;
+            node->lhs = tempvar;
+            node->value.s = name;
+            node->var_type = KX_UNKNOWN_T;
+        } else {
+            if (!strcmp(node->value.s, "__FUNC__")) {
+                if (actx->func) {
+                    if (actx->class_node) {
+                        node->lhs = kx_gen_str_object(const_str2(ctx, actx->class_node->value.s, actx->func->value.s));
+                    } else {
+                        node->lhs = kx_gen_str_object(const_str(ctx, actx->func->value.s));
+                    }
+                    node->var_type = KX_CSTR_T;
                 } else {
-                    node->lhs = kx_gen_str_object(const_str(ctx, actx->func->value.s));
+                    node->lhs = kx_gen_str_object(const_str(ctx, NULL));
+                    node->var_type = KX_UND_T;
                 }
-                node->var_type = KX_CSTR_T;
-            } else {
-                node->lhs = kx_gen_str_object(const_str(ctx, NULL));
-                node->var_type = KX_UND_T;
+                break;
             }
-            break;
+            if (is_anon_var(actx, node)) {
+                break;
+            }
+            int enumv = 0;
+            int is_enum_value = lookup_enum_value(actx, node->value.s, &enumv);
+            if (is_enum_value) {
+                node->lhs = kx_gen_int_object(enumv);
+                node->var_type = KX_INT_T;
+                analyze_ast(ctx, node->lhs, actx);    // expanding const value.
+                break;
+            }
         }
-        int enumv = 0;
-        int is_enum_value = lookup_enum_value(actx, node->value.s, &enumv);
-        if (is_enum_value) {
-            node->lhs = kx_gen_int_object(enumv);
-            node->var_type = KX_INT_T;
-            analyze_ast(ctx, node->lhs, actx);    // expanding const value.
-            break;
+        if (node->var_type == KX_UND_T && !node->lhs) {
+            node->lhs = kx_gen_special_object(KXVL_NULL);
         }
         kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
         if (!sym) {
-            if (!actx->decl && !actx->lvalue) {
+            if (!node->lhs && !actx->decl && !actx->lvalue) {
                 kx_yyerror_line_fmt("Symbol(%s) is not found", node->file, node->line, node->value.s);
             }
             break;
@@ -1042,7 +1104,18 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         if (node->ex) {
             analyze_ast(ctx, node->ex, actx);
         }
+
+        int anon_arg = actx->anon_arg;
+        actx->anon_arg = 0;
         analyze_ast(ctx, node->rhs, actx);
+        if (node->count_args < actx->anon_arg) {
+            node->count_args = actx->anon_arg;
+        }
+        if (node->local_vars < node->count_args) {
+            node->local_vars = node->count_args;
+        }
+        actx->anon_arg = anon_arg;
+
         actx->func = func;
         node->symbols = kv_last(actx->symbols);
         kv_remove_last(actx->symbols);
@@ -1108,7 +1181,18 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             node->count_args = 0;
         }
         actx->decl = decl;
+
+        int anon_arg = actx->anon_arg;
+        actx->anon_arg = 0;
         analyze_ast(ctx, node->rhs, actx);
+        if (node->count_args < actx->anon_arg) {
+            node->count_args = actx->anon_arg;
+        }
+        if (node->local_vars < node->count_args) {
+            node->local_vars = node->count_args;
+        }
+        actx->anon_arg = anon_arg;
+
         actx->func = func;
         node->symbols = kv_last(actx->symbols);
         kv_remove_last(actx->symbols);
