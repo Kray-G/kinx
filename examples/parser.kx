@@ -21,7 +21,7 @@ var lbr = lexeme($.string('('));
 var rbr = lexeme($.string(')'));
 
 # (lbr + expression + rbr) means $seq(lbr, expression, rbr)
-var parenthesis = $.lazy(&() => (lbr + expression + rbr).map(&(value) => value[1]));
+var parenthesis = $.lazy { => (lbr + expression + rbr).map { => _1[1] } };
 
 # number / parenthesis means $.alt(number, parenthesis)
 var factor = number / parenthesis;

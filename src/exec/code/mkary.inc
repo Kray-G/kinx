@@ -135,6 +135,16 @@
 } \
 /**/
 
+#define KX_GETOBJV_CODE() \
+{ \
+    KEX_POP_STACK_TOP(v2); \
+    KEX_GET_STACK_TOP(v1); \
+    int exc = kx_try_getobjv(ctx, cur, v1, v2); \
+    KX_EXCEPTION_CHECK("SystemException", exc); \
+    cur = cur->next; \
+} \
+/**/
+
 #define KX_GETARYV_CODE() \
 { \
     KEX_POP_STACK_TOP(v2); \
