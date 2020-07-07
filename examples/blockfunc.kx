@@ -1,0 +1,60 @@
+var c = 100;
+function f(...args) {
+    var callback = args.pop();
+    return callback(...args);
+}
+
+# This is a normal style.
+var r = f(2, 10) { &(a, b) => a + b } + c;
+System.println(r);
+
+# Do not have to put the parameter list.
+var r = f(2, 10) { => _1 * _2 } + c;
+System.println(r);
+
+# Can put a statement after a parameter list.
+var r = f(3, 10) { &(a, b) return a + b; };
+System.println(r);
+
+# ':' is available for distinguishing parameters and a statement list.
+var r = f(4, 10) { &(a, b): return a + b; };
+System.println(r);
+
+# Can put a statement list directly without a parameter list.
+var r = f(5, 10) { return _1 * _2; };
+System.println(r);
+
+# No sense, but it is okay without statements.
+var r = f(6, 10) { &(a, b) };
+System.println(r.isUndefined);
+
+# This means nothing to do, it can be used for ignoring callback, etc.
+var r = f(7, 10) {};
+System.println(r.isUndefined);
+
+# Arguments can be accessed via special placeholders from _1 to _9.
+var r = f(8, 10) { return _1 + _2; };
+System.println(r);
+
+# `_` is assigned to a placeholder according to the order of appearance.
+var r = f(9, 10) { return _ + _; }; # same as `_1 + _2`
+System.println(r);
+
+# This is an example of multiple statements and assignment to the argument placeholder.
+var r = f(9, 10, 11) {
+    _4 = 10;    # A value can be assigned.
+    return _1 + _2 + _3 + _4;
+};
+System.println(r);
+
+# This is an example of map().
+var r = [1, 2, 3].map() { => _1 * 2 };
+System.println(r);
+
+# The parenthesis can be omitted when the arguments is a callback function only and it is given by a block.
+var r = [4, 5, 6].map { => _1 * 2 };
+System.println(r);
+
+# This is another example of omitting a parenthesis.
+var r = (1..10).sort { => _2 <=> _1 };
+System.println(r);
