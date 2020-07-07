@@ -363,8 +363,10 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         gencode_ast_hook(ctx, node->lhs, ana, 1);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYA, .value1.i = index }));\
     } else {
-        gencode_ast_hook(ctx, node, ana, 1);
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYV, .value1.i = index }));\
+        if (!(node->type == KXOP_VAR && node->var_type == KX_UND_T)) {
+            gencode_ast_hook(ctx, node, ana, 1);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYV, .value1.i = index }));\
+        }
     }
     return index + 1;
 }
