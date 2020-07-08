@@ -24,7 +24,33 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.11.0 (Current development version)
+## V0.12.0 (Current development version)
+
+*   Updated
+    *   Supported a numbered parameter of a function argument.
+        *   It is available from `_1` to `_9`, and `_1` is the first argument.
+        *   `_` is also available and it is assigned the variable according to the order of appearance.
+            *   `(&() => _ + _)` is same as `(&() => _1 + _2)`
+    *   Supported a callback block syntax when a callback function is the last argument parameter.
+        *   For example, `f(2, 10) { &(a, b) return a + b; }` means `f(2, 10, &(a, b) => { return a + b; })`.
+        *   For another example, you can pass a block to `.map` like `[4, 5, 6].map { => _1 * 2 }`.
+        *   See [this example](example/../examples/blockfunc.kx) to check the supported syntax.
+    *   Supported the syntax to skip a parameter to ignore assignment like `[a,,c] = [1,2,3]`.
+    *   Supported the syntax of array assignement with a function argument.
+        *   A function argument example is `function func([a, b]) { /* ... */ }`.
+    *   Supported the syntax to get the value of an object property like `var {xxx} = { xxx: 100 }`.
+        *   In this case it assigns `100` to the variable of `xxx` which is same name as a property name.
+        *   This syntax can be used only as a declaration or a function argument.
+        *   A function argument example is `function func({ xxx, yyy }) { /* ... */ }`.
+    *   Improved `.each` for Object. The callback will receive `[key, value]` pair as array.
+        ```
+        { x: 100, y: 200, z: 300 }.each { &([key, value])
+            System.println([key, value]);
+        };
+        ```
+    *   Some bug fixes and improvement.
+
+## V0.11.0 (11th Preview Release)
 
 *   Updated
     *   Supported a Parser Combinator Library named as `Parsek`.
