@@ -24,10 +24,22 @@ Array.stringify = _function(ary, quote) {
 
 Array.each = _function(ary, callback) {
     var len = ary.length();
-    for (var i = 0; i < len; ++i) {
-        var r = callback(ary[i], i);
-        if (r.isDefined && !r) {
-            break;
+    if (len > 0) {
+        for (var i = 0; i < len; ++i) {
+            var r = callback(ary[i], i);
+            if (r.isDefined && !r) {
+                break;
+            }
+        }
+    } else {
+        var keys = ary.keySet();
+        len = keys.length();
+        for (var i = 0; i < len; ++i) {
+            var key = keys[i];
+            var r = callback([key, ary[key]], i);
+            if (r.isDefined && !r) {
+                break;
+            }
         }
     }
 };
