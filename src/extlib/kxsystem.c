@@ -430,6 +430,64 @@ int JSON_parse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value to parse");
 }
 
+int System_getPlatform(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kstr_t *sv = allocate_str(ctx);
+    #ifdef _WIN32
+
+    #if defined(_M_X64) || defined(__x86_64__)
+    ks_append(sv, "X86_64-WIN");
+    #elif (defined(_M_ARM) && _M_ARM >= 7 && defined(_M_ARMT)) || defined(__thumb2__)
+    ks_append(sv, "ARM_THUMB2-WIN");
+    #elif (defined(_M_ARM) && _M_ARM >= 7)
+    ks_append(sv, "ARM_V7-WIN");
+    #elif defined(_ARM_)
+    ks_append(sv, "ARM_V5-WIN");
+    #elif defined(_M_ARM64) || defined(__aarch64__)
+    ks_append(sv, "ARM_64-WIN");
+    #else
+    ks_append(sv, "X86_32-WIN");
+    #endif
+
+    #else
+
+    #if defined(__i386__) || defined(__i386)
+    ks_append(sv, "X86_32");
+    #elif defined(__x86_64__)
+    ks_append(sv, "X86_64");
+    #elif defined(__arm__) || defined(__ARM__)
+    #ifdef __thumb2__
+    ks_append(sv, "ARM_THUMB2");
+    #elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__)
+    ks_append(sv, "ARM_V7");
+    #else
+    ks_append(sv, "ARM_V5");
+    #endif
+    #elif defined (__aarch64__)
+    ks_append(sv, "ARM_64");
+    #elif defined(__ppc64__) || defined(__powerpc64__) || defined(_ARCH_PPC64) || (defined(_POWER) && defined(__64BIT__))
+    ks_append(sv, "PPC_64");
+    #elif defined(__ppc__) || defined(__powerpc__) || defined(_ARCH_PPC) || defined(_ARCH_PWR) || defined(_ARCH_PWR2) || defined(_POWER)
+    ks_append(sv, "PPC_32");
+    #elif defined(__mips__) && !defined(_LP64)
+    ks_append(sv, "MIPS_32");
+    #elif defined(__mips64)
+    ks_append(sv, "MIPS_64");
+    #elif defined(__sparc__) || defined(__sparc)
+    ks_append(sv, "SPARC_32");
+    #elif defined(__tilegx__)
+    ks_append(sv, "TILEGX");
+    #else
+    ks_append(sv, "UNSUPPORTED");
+    #endif
+
+    #endif
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 int System_setTrueFalse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     int tf = get_arg_int(1, args, ctx);
@@ -1619,6 +1677,7 @@ int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
+    { "getPlatform", System_getPlatform },
     { "_globalExceptionMap", System_globalExceptionMap },
     { "_setTrueFalse", System_setTrueFalse },
     { "_printStack", System_printStack },
