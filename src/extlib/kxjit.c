@@ -5,6 +5,9 @@
 #include <kinx.h>
 #include <kxthread.h>
 #include <jit.h>
+#ifndef _WIN32
+#include <sys/mman.h>
+#endif
 
 KX_DECL_MEM_ALLOCATORS();
 
