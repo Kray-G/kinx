@@ -2,6 +2,7 @@ const Jit;
 (_function() {
     var JitCompiler = _import("kxjit");
     Jit = JitCompiler.setup();
+    Jit.dump = JitCompiler.dumpBinary;
 
     Jit.MEM = 0x80;
     Jit.MEM0 = _function(offset) { return [Jit.MEM, offset ?? 0, 'm'[0]]; };
@@ -55,6 +56,9 @@ const Jit;
     _class JitCode(c_) {
         public dump() {
             return c_.dumpCode();
+        }
+        public getBinary() {
+            return c_.getBinary();
         }
         public run(a, b, c) {
             return c_.runCode(a, b, c);
