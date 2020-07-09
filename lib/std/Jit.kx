@@ -53,6 +53,15 @@ const Jit;
     Jit.ArgType.FP_FP_UW = (6 << 4) | (6 << 8) | (2 << 12);
     Jit.ArgType.FP_FP_FP = (6 << 4) | (6 << 8) | (6 << 12);
 
+    class JitCodeRunner(bin_, argTypes_) {
+        public run(a, b, c) {
+            return JitCompiler.runBinary(bin_, argTypes_ ?? Jit.ArgType.SW, a, b, c);
+        }
+        public frun(a, b, c) {
+            return JitCompiler.frunBinary(bin_, argTypes_ ?? Jit.ArgType.SW, a, b, c);
+        }
+    }
+
     _class JitCode(c_) {
         public dump() {
             return c_.dumpCode();
@@ -514,5 +523,6 @@ const Jit;
     }
 
     Jit.Compiler = Compiler;
+    Jit.Runner = JitCodeRunner;
 
 })();
