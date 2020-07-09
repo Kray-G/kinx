@@ -924,6 +924,44 @@ int Jit_dump(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Jit_dump_bin(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_bin_t *bin = get_arg_bin(1, args, ctx);
+
+    if (!bin) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "No avaliable code in JIT");
+    }
+    int len = kv_size(bin->bin);
+    disasm64(bin->bin.a, len);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int Jit_getBinary(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+
+    if (!jtx->code) {
+        jtx->code = sljit_generate_code(jtx->C);
+        jtx->len = jtx->C->executable_size;
+    }
+    if (!jtx->code) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "No avaliable code in JIT");
+    }
+
+    kx_bin_t *dst = allocate_bin(ctx);
+    kv_resize(uint8_t, dst->bin, jtx->len);
+    kv_shrinkto(dst->bin, jtx->len);
+    memcpy(dst->bin.a, jtx->code, jtx->len);
+    KX_ADJST_STACK();
+    push_bin(ctx->stack, dst);
+    return 0;
+}
+
 /* cmp */
 KX_JIT_CMP(Jit_eq, SLJIT_EQUAL);
 KX_JIT_CMP(Jit_neq, SLJIT_NOT_EQUAL);
@@ -1040,6 +1078,7 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("ijump", obj, Jit_ijump);
     KEX_SET_METHOD("fix", obj, Jit_fix);
     KEX_SET_METHOD("dumpCode", obj, Jit_dump);
+    KEX_SET_METHOD("getBinary", obj, Jit_getBinary);
     KEX_SET_METHOD("runCode", obj, Jit_run);
     KEX_SET_METHOD("runCodeDouble", obj, Jit_frun);
 
@@ -1174,6 +1213,7 @@ int Jit_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 static kx_bltin_def_t kx_bltin_info[] = {
     { "create", Jit_jitCreateCompiler },
     { "setup", Jit_setup },
+    { "dumpBinary", Jit_dump_bin },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
