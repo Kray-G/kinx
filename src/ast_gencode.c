@@ -829,6 +829,50 @@ static int gencode_spread_vars(kx_context_t *ctx, kx_object_t *node, kx_analyze_
     return index + 1;
 }
 
+static void set_ret(kx_context_t *ctx, kx_module_t *module, kx_object_t *node, kx_object_t *lhs, kx_analyze_t *ana)
+{
+RET_AGAIN:
+    switch (lhs->type) {
+    case KXVL_INT:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETI, .value1 = { .i = lhs->value.i } }));
+        break;
+    case KXVL_DBL:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETD, .value1 = { .d = lhs->value.d } }));
+        break;
+    case KXVL_STR:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETS, .value1 = { .s = alloc_string(ctx, lhs->value.s) } }));
+        break;
+    case KXVL_BIG:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETB,
+            .value1 = { .i = lhs->optional },
+            .value2 = { .s = alloc_string(ctx, lhs->value.s) } }));
+        break;
+    case KXVL_NULL:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET_NULL }));
+        break;
+    case KXVL_TRUE:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETI, .value1 = { .i = 1 } }));
+        break;
+    case KXVL_FALSE:
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETI, .value1 = { .i = 0 } }));
+        break;
+    case KXOP_VAR:
+        if (lhs->lhs) {
+            lhs = lhs->lhs;
+            goto RET_AGAIN;
+        }
+        kv_push(kx_code_t, get_block(module, ana->block)->code,
+            ((kx_code_t){ FILELINE(ana), .op = lhs->lexical == 0 ? KX_RETVL0 : (lhs->lexical == 1 ? KX_RETVL1 : KX_RETV),
+            .value1 = { .idx = lhs->lexical },
+            .value2 = { .idx = lhs->index } }));
+        break;
+    default:
+        gencode_ast_hook(ctx, lhs, ana, 0);
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
+        break;
+    }
+}
+
 #define KX_CANNOT_BE_LVALUE(node, info) if (lvalue) { \
     kx_yyerror_line(info " can not be lvalue", node->file, node->line); \
 } \
@@ -1836,40 +1880,8 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
                 gencode_ast_hook(ctx, lhs, ana, 0);
                 do_finally_all(ctx, ana, 1);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
-            } else switch (lhs->type) {
-            case KXVL_INT:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETI, .value1 = { .i = lhs->value.i } }));
-                break;
-            case KXVL_DBL:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETD, .value1 = { .d = lhs->value.d } }));
-                break;
-            case KXVL_STR:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETS, .value1 = { .s = alloc_string(ctx, lhs->value.s) } }));
-                break;
-            case KXVL_BIG:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETB,
-                    .value1 = { .i = lhs->optional },
-                    .value2 = { .s = alloc_string(ctx, lhs->value.s) } }));
-                break;
-            case KXVL_NULL:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET_NULL }));
-                break;
-            case KXVL_TRUE:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETI, .value1 = { .i = 1 } }));
-                break;
-            case KXVL_FALSE:
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RETI, .value1 = { .i = 0 } }));
-                break;
-            case KXOP_VAR:
-                kv_push(kx_code_t, get_block(module, ana->block)->code,
-                    ((kx_code_t){ FILELINE(ana), .op = lhs->lexical == 0 ? KX_RETVL0 : (lhs->lexical == 1 ? KX_RETVL1 : KX_RETV),
-                    .value1 = { .idx = lhs->lexical },
-                    .value2 = { .idx = lhs->index } }));
-                break;
-            default:
-                gencode_ast_hook(ctx, lhs, ana, 0);
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_RET }));
-                break;
+            } else {
+                set_ret(ctx, module, node, lhs, ana);
             }
         } else if (code_size(module, ana) > 0) {
             switch (last_op(ana)) {
