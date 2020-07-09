@@ -195,4 +195,10 @@ System.println("\n# Dump the actual machine code.");
 code.dump();
 System.println("\n# Run the code on the fly.");
 System.println(code.run());
+
+var bin = code.getBinary();
+System.println(bin);
+Jit.dump(bin);
+var runner = new Jit.Runner(bin);
+System.println(runner.run());
 return 0;
