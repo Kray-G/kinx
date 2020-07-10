@@ -23,7 +23,7 @@ function bubblesort(n, a) {
     }
 }
 
-demo(20, &(a) => {
-    bubblesort(a.length(), a);
-    return a;
-});
+demo(20) {
+    bubblesort(_1.length(), _1);
+    return _1;
+};
