@@ -73,6 +73,7 @@ System.setSignalHookFunction(_function() {
 # Some Other Utilities.
 
 $exepath = System.exepath();
+System.PLATFORM = System.getPlatform();
 
 System.try = _function(f) {
     try {
