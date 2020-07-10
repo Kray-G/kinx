@@ -5,7 +5,7 @@ db.createTable("mytable", [
     "id INTEGER PRIMARY KEY AUTOINCREMENT",
     "name TEXT NOT NULL"
 ]);
-db.transaction(&{
+db.transaction {
     for (var i = 0; i < 20; ++i) {
         db.insert({
             into: "mytable",
@@ -13,7 +13,7 @@ db.transaction(&{
             bind: ["name(%{i})"],
         });
     }
-});
+};
 db.delete({
     from: "mytable",
     where: "id = ?",
@@ -54,23 +54,23 @@ db.queryAll({
     from: "mytable",
     where: "(id > ? AND id < ?) OR id = ?",
     bind: [2, 8, 10]
-}, &(c, i) => {
+}) { &(c, i)
     System.println("%2d => " % i, c.toJsonString());
     if (i == 2) return false;
-});
+};
 
 System.println("");
 System.println("Before dropping table.");
-db.getTableList().each(&(name) => {
+db.getTableList().each { &(name)
     # Always exists.
     System.println("  - ", name, " => ", db.tableExists(name) ? "exists" : "NOT exists");
-});
+};
 
 # it might fail when some of statements are remaining
 db.dropTable("mytable");
 
 System.println("After dropping table.");
-db.getTableList().each(&(name) => {
+db.getTableList().each { &(name)
     # Always exists.
     System.println("  - ", name, " => ", db.tableExists(name) ? "exists" : "NOT exists");
-});
+};

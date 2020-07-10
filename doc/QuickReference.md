@@ -324,6 +324,25 @@ System.println(a[-1]);      // 3
 
 Note that the methods for array will be described at another document, but it is under construction now.
 
+##### Lvalue Style
+
+Array can be used as an lvalue style.
+
+```javascript
+[a, b] = [1, 2];    // a = 1, b = 2;
+var [a, b] = [1, 2];    // a = 1, b = 2;
+```
+
+You can skip unnecessary element with the following style.
+
+```javascript
+var ary = [1, 2, 3, 4, 5, 6, 7, 8];
+[a,,,,b] = ary;         // a = 1, b = 5;
+System.println([a, b]); // => [1, 5]
+```
+
+This style is available also for function argument definition.
+
 #### Object
 
 Object is the value having a property as string.
@@ -425,6 +444,58 @@ After replacing `function` by `native`, it was shortened to 60 ms.
 But there are limitations.
 Please see the [Native Functions](spec/definition/native.md) for more details.
 
+##### Numbered Parameters
+
+`function` can use a numbered parameter from `_1` to `_9` without declarations.
+See the example below.
+
+```javascript
+function fib() {
+    if (_1 < 3) return _1;
+    return fib(_1-2) + fib(_1-1);
+}
+
+System.println("fib(34) = ", fib(34));  // => fib(34) = 9227465
+```
+
+It can be used also with `native`.
+
+```javascript
+native fib() {
+    if (_1 < 3) return _1;
+    return fib(_1-2) + fib(_1-1);
+}
+
+System.println("fib(34) = ", fib(34));  // => fib(34) = 9227465
+```
+
+##### Argument as Array/Object Style
+
+You can also use an array or an object style in an argument definition.
+See examples below.
+
+This is an array style.
+
+```javascript
+function add([a, b]) {
+    return a + b;
+}
+
+var ary = [100, 200, 300];
+System.println(add(ary));  // => 300
+```
+
+This is an object style.
+
+```javascript
+function add({ a, b }) {
+    return a + b;
+}
+
+var obj = { a: 100, b: 200, c: 300 };
+System.println(add(obj));  // => 300
+```
+
 ##### Closure
 
 A function has a lexical scope, so you can also use it as a closure.
@@ -473,6 +544,136 @@ mul = 20
 div = 5
 ```
 
+###### Numbered Parameters
+
+You can use `_1` to `_9` also with lambda.
+
+```javascript
+function calc(x, y, func) {
+    return func(x, y);
+}
+
+System.println("add = " + calc(10, 2, &() => _1 + _2));  // This is also okay.
+System.println("sub = " + calc(10, 2, &() => _1 - _2));
+System.println("mul = " + calc(10, 2, &() => _1 * _2));
+System.println("div = " + calc(10, 2, &() => _1 / _2));
+```
+
+###### Lightweight Syntax
+
+You can use a bracket for lambda, and you can omit an argument list then.
+
+```javascript
+function calc(x, y, func) {
+    return func(x, y);
+}
+
+System.println("add = " + calc(10, 2, { &(a, b) => a + b }));   // Okay with `{' and '}`.
+System.println("sub = " + calc(10, 2, { &(a, b) => a - b }));
+System.println("mul = " + calc(10, 2, { &(a, b) => a * b }));
+System.println("div = " + calc(10, 2, { &(a, b) => a / b }));
+System.println("add = " + calc(10, 2, { &() => _1 + _2 } ));
+System.println("sub = " + calc(10, 2, { &() => _1 - _2 } ));
+System.println("mul = " + calc(10, 2, { &() => _1 * _2 } ));
+System.println("div = " + calc(10, 2, { &() => _1 / _2 } ));
+
+System.println("add = " + calc(10, 2, { => _1 + _2 }));  // This is also okay.
+System.println("sub = " + calc(10, 2, { => _1 - _2 }));
+System.println("mul = " + calc(10, 2, { => _1 * _2 }));
+System.println("div = " + calc(10, 2, { => _1 / _2 }));
+```
+
+```
+add = 12
+sub = 8
+mul = 20
+div = 5
+add = 12
+sub = 8
+mul = 20
+div = 5
+add = 12
+sub = 8
+mul = 20
+div = 5
+```
+
+###### Function Block with Function Call
+
+If the last argument of function call is a function object, you can put it outside the function argument list.
+But note that it must be a bracket style.
+See the example below.
+You can see the bracket style function object is outside an argument list of `calc()`.
+
+```javascript
+function calc(x, y, func) {
+    return func(x, y);
+}
+
+// The callback function can be put outside an arugument list.
+System.println("add = " + calc(10, 2) { &(a, b) => a + b });
+System.println("sub = " + calc(10, 2) { &(a, b) => a - b });
+System.println("mul = " + calc(10, 2) { &(a, b) => a * b });
+System.println("div = " + calc(10, 2) { &(a, b) => a / b });
+System.println("add = " + calc(10, 2) { &() => _1 + _2 });
+System.println("sub = " + calc(10, 2) { &() => _1 - _2 });
+System.println("mul = " + calc(10, 2) { &() => _1 * _2 });
+System.println("div = " + calc(10, 2) { &() => _1 / _2 });
+
+System.println("add = " + calc(10, 2) { => _1 + _2 });
+System.println("sub = " + calc(10, 2) { => _1 - _2 });
+System.println("mul = " + calc(10, 2) { => _1 * _2 });
+System.println("div = " + calc(10, 2) { => _1 / _2 });
+```
+
+```
+add = 12
+sub = 8
+mul = 20
+div = 5
+add = 12
+sub = 8
+mul = 20
+div = 5
+add = 12
+sub = 8
+mul = 20
+div = 5
+```
+
+You can put the block as a callback function with the above outside style.
+
+```javascript
+var r = [1, 2, 3].map() {
+    return _1 * 2;
+};
+System.println(r);  // => [2, 4, 6]
+```
+
+If you want to use a argument list, you can also put it with `&(...)` style in the head of block.
+And also if you distinguish a parameter list and a statemnt list clearly, you can put ':' after a parameter list.
+
+```javascript
+var r = [1, 2, 3].map() { &(a):   // `:` is available, but it is not necessary.
+    return a * 2;
+};
+System.println(r);  // => [2, 4, 6]
+```
+
+If there is only one arguement and it is a function object, then you can also omit the parenthesis.
+
+```javascript
+var r = [1, 2, 3].map { &(a)
+    return a * 2;
+};
+System.println(r);  // => [2, 4, 6]
+
+r = (1..10).sort { => _2 <=> _1 };
+System.println(r);  // => [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+```
+
+This is very lightweight style to use it convenient.
+
 ##### Fiber
 
 Now Fiber is supported.
@@ -481,11 +682,11 @@ The function is suspended and return some value by `yield`.
 Here is the simple example below.
 
 ```javascript
-var fiber = new Fiber(function() {
+var fiber = new Fiber {             // This is same as `new Fiber(function() { ... })` 
     System.println("fiber 1");
     yield;
     System.println("fiber 2");
-});
+};
 
 System.println("main 1");
 fiber.resume();
@@ -494,7 +695,7 @@ fiber.resume();
 System.println("main 3");
 ```
 
-The result is:
+The result is here.
 
 ```
 main 1
@@ -508,7 +709,7 @@ See example below, `yield` will return the value and received some value from `r
 The return value from `resume` is an array of arguments.
 
 ```javascript
-var fiber = new Fiber(function(a1, ...a2) {
+var fiber = new Fiber { &(a1, ...a2)
     System.println("Fiber 1");
     System.println("    a1 = %d, a2 = [%s]" % a1 % a2.join(', '));
     [b1, ...b2] = yield 1;
@@ -518,7 +719,7 @@ var fiber = new Fiber(function(a1, ...a2) {
     System.println("Fiber 3");
     System.println("    c1 = %d, c2 = [%s]" % c1 % c2.join(', '));
     return a1 + b1 + c1;
-});
+};
 
 System.println("try[1] = ", fiber.resume(100, 200, 300));
 System.println("try[2] = ", fiber.resume(200, 300, 400));
@@ -548,13 +749,13 @@ Another sample of Fiber.
 This is calculating fibonacci number.
 
 ```javascript
-var fib = new Fiber(function() {
+var fib = new Fiber {
     var a = 0, b = 1;
     while (true) {
         yield b;
         [a, b] = [b, a + b];
     }
-});
+};
 
 var r = 35.times().map(&(i) => fib.resume());
 r.each(&(v, i) => System.println("fibonacci[%2d] = %7d" % i % v));
@@ -946,6 +1147,19 @@ var a, b, c;            // not initialized yet, all variables are undefined.
 var a, b = 10, c = 100; // b and c is initialized, but a is undefined.
 ```
 
+You can use an array lvalue style in declaration.
+
+```javascript
+var [a, b] = [10, 20];
+```
+
+You can also use an object lvalue style in declaration.
+
+```javascript
+var obj = { xxx: 100, yyy: 200 };
+var { yyy } = obj;  // yyy = 200
+```
+
 #### Block Statement
 
 Block statement is a scope between `{` and `}`
@@ -1052,7 +1266,9 @@ do {
 
 #### `for` Statement
 
-`for` statement has 3 parts of conditions as:
+##### Normal for
+
+Normal `for` statement has 3 parts of conditions as:
 
 *   An initializing part ... do it only 1 time before starting a loop.
 *   A condition part ... do it every loop and check if making the loop ended.
@@ -1077,6 +1293,67 @@ This is same as `while (1) {}` of infinite loop.
 for ( ; ; ) {
     /* infinite loop */
 }
+```
+
+##### for-in
+
+`for-in` statement has 2 elements like this.
+`var` is available to use it for a scope but it is okay not to use it.
+
+```javascript
+for (var e in collection) {
+    /* loop */
+}
+```
+
+The following objects can be used at the `collection` part.
+
+* Range object.
+* Array object.
+* Key-Value object.
+
+```javascript
+for (var e in 2..10) {
+    System.println(e);  // Listing from 2 to 10.
+}
+```
+
+As a `e` part, you can also use an array style.
+But the working of `for-in` is different by the `collection` part.
+If the `collection` part is an array, the first element was used and iterate the array.
+If the `collection` part is an object, the key and the value is assigned to the first and the second element.
+
+See examples below.
+
+```javascript
+for ([i, j] in [1, 2, 3]) {
+    System.println([i, j]);
+}
+```
+
+Here is the result.
+Note that the result is **NOT** `[1, 2]` and `[3, null]`, against your expected.
+
+```
+[1, null]
+[2, null]
+[3, null]
+```
+
+If it is an object, see below.
+
+```javascript
+var obj = { a: 10, b: 100 };
+for ([key, value] in obj) {
+    System.println("key: %{key} => value: %{value}");
+}
+```
+
+Here is the result.
+
+```
+key: a => value: 10
+key: b => value: 100
 ```
 
 #### `switch-case` Statement

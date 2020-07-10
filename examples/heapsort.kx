@@ -34,9 +34,9 @@ function heapsort(n, a) {
     }
 }
 
-demo(20, &(a) => {
+demo(20) { &(a)
     a = [0, ...a];
     heapsort(a.length() - 1, a);
     a.shift();
     return a;
-});
+};
