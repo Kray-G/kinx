@@ -559,6 +559,17 @@ System.println("mul = " + calc(10, 2, &() => _1 * _2));
 System.println("div = " + calc(10, 2, &() => _1 / _2));
 ```
 
+Just `_` is also available. This is especially numbered according to the order of appearance.
+See the example below.
+
+```javascript
+function calc(x, y, func) {
+    return func(x, y);
+}
+
+System.println("add = " + calc(10, 2, &() => _ + _));   // This means _1 + _2.
+```
+
 ###### Lightweight Syntax
 
 You can use a bracket for lambda, and you can omit an argument list then.
