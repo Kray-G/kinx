@@ -19,7 +19,7 @@ function inssort(n, a) {
     }
 }
 
-demo(20, &(a) => {
-    inssort(a.length(), a);
-    return a;
-});
+demo(20) {
+    inssort(_1.length(), _1);
+    return _1;
+};
