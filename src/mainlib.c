@@ -17,7 +17,7 @@
 #define VER_MAJ 0
 #endif
 #ifndef VER_MIN
-#define VER_MIN 11
+#define VER_MIN 12
 #endif
 #ifndef VER_PAT
 #define VER_PAT 0
