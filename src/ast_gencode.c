@@ -2034,6 +2034,13 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         if (n > KXN_MAX_FUNC_ARGS) {
             kx_yyerror_line("Too many native function arguments", node->file, node->line);
         }
+        if (n < node->count_args) {
+            kx_code_t *code = &kv_last(get_block(module, ana->block)->code);
+            for (int i = n; i < node->count_args; ++i) {
+                code->value2.n.arg_types[i] = KX_INT_T;
+            }
+            n = node->count_args;
+        }
         kxn_func_t nf = start_nativejit_ast(ctx, node, kv_last(get_block(module, ana->block)->code).value2.n.arg_types, n);
         kv_last(get_block(module, ana->block)->code).value2.n.func = nf.func;
         kv_last(get_block(module, ana->block)->code).value2.n.args = node->count_args;
