@@ -125,7 +125,8 @@
 %type<obj> ArgumentList_Opts
 %type<obj> ArgumentList
 %type<obj> Argument
-%type<obj> PostCallBack
+%type<obj> SimpleFuncCallFactorOrBlock
+%type<obj> SimpleFuncCallFactor
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
 %type<obj> CallArgument
@@ -365,7 +366,7 @@ ObjectSpecialSyntax
     | ObjectSpecialSyntax '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | ObjectSpecialSyntax '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | ObjectSpecialSyntax '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
-    | ObjectSpecialSyntax PostCallBack { $$ = kx_gen_bexpr_object(KXOP_CBBLOCK, $1, $2); }
+    | ObjectSpecialSyntax SimpleFuncCallFactor { $$ = kx_gen_bexpr_object(KXOP_CBBLOCK, $1, $2); }
     ;
 
 TernaryExpression
@@ -475,18 +476,21 @@ PostfixExpression
     | PostfixExpression '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
     | PostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     | PostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
-    | PostfixExpression PostCallBack { $$ = kx_gen_bexpr_object(KXOP_CBBLOCK, $1, $2); }
+    | PostfixExpression SimpleFuncCallFactorOrBlock { $$ = kx_gen_bexpr_object(KXOP_CBBLOCK, $1, $2); }
     ;
 
-PostCallBack
+SimpleFuncCallFactorOrBlock
     : BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, NULL, $1, NULL); }
-    | '{' DARROW TernaryExpression '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, NULL, kx_gen_stmt_object(KXST_RET, $3, NULL, NULL), NULL); }
+    | SimpleFuncCallFactor
+    ;
+
+SimpleFuncCallFactor
+    : '{' DARROW TernaryExpression '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, NULL, kx_gen_stmt_object(KXST_RET, $3, NULL, NULL), NULL); }
     | '{' '&' '(' ArgumentList_Opts ')' DARROW TernaryExpression '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $4, kx_gen_stmt_object(KXST_RET, $7, NULL, NULL), NULL); }
     | '{' '&' '(' ArgumentList_Opts ')' '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $4, NULL, NULL); }
     | '{' '&' '(' ArgumentList_Opts ')' ':' '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $4, NULL, NULL); }
     | '{' '&' '(' ArgumentList_Opts ')' StatementList '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $4, $6, NULL); }
     | '{' '&' '(' ArgumentList_Opts ')' ':' StatementList '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $4, $7, NULL); }
-    | '{' '|' ArgumentList_Opts '|' StatementList '}' { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, NULL, $3, $5, NULL); }
     ;
 
 PostIncDec
@@ -506,6 +510,7 @@ Factor
     | Array
     | Binary
     | Object
+    | SimpleFuncCallFactor
     | Regex
     | '.' PropertyName { $$ = $2; }
     | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }

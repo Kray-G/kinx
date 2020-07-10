@@ -1,0 +1,13 @@
+using Jit;
+
+var code
+    = System.PLATFORM == "X86_64-WIN" ? <0x48, 0x89, 0xc8, 0xc3>    // mov rax, rcx | ret
+    : System.PLATFORM == "X86_64"     ? <0x48, 0x89, 0xf8, 0xc3>    // mov rax, rdi | ret
+    : null;
+if (!code.isBinary) {
+    throw RuntimeException("Unsupported platform: " + System.PLATFORM);
+}
+
+Jit.dump(code);
+var runner = new Jit.Runner(code);
+System.println(runner.run(100));
