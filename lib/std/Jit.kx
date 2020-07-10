@@ -2,6 +2,7 @@ const Jit;
 (_function() {
     var JitCompiler = _import("kxjit");
     Jit = JitCompiler.setup();
+    Jit.dump = JitCompiler.dumpBinary;
 
     Jit.MEM = 0x80;
     Jit.MEM0 = _function(offset) { return [Jit.MEM, offset ?? 0, 'm'[0]]; };
@@ -52,9 +53,21 @@ const Jit;
     Jit.ArgType.FP_FP_UW = (6 << 4) | (6 << 8) | (2 << 12);
     Jit.ArgType.FP_FP_FP = (6 << 4) | (6 << 8) | (6 << 12);
 
+    class JitCodeRunner(bin_, argTypes_) {
+        public run(a, b, c) {
+            return JitCompiler.runBinary(bin_, argTypes_ ?? Jit.ArgType.SW, a, b, c);
+        }
+        public frun(a, b, c) {
+            return JitCompiler.frunBinary(bin_, argTypes_ ?? Jit.ArgType.SW, a, b, c);
+        }
+    }
+
     _class JitCode(c_) {
         public dump() {
             return c_.dumpCode();
+        }
+        public getBinary() {
+            return c_.getBinary();
         }
         public run(a, b, c) {
             return c_.runCode(a, b, c);
@@ -510,5 +523,6 @@ const Jit;
     }
 
     Jit.Compiler = Compiler;
+    Jit.Runner = JitCodeRunner;
 
 })();

@@ -37,7 +37,7 @@ function mergesort(a, first, last) {
     }
 }
 
-demo(20, &(a) => {
-    mergesort(a, 0, a.length() - 1);
-    return a;
-});
+demo(20) {
+    mergesort(_1, 0, _1.length() - 1);
+    return _1;
+};
