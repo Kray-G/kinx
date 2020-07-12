@@ -13,7 +13,6 @@ Looks like JavaScript, feels like Ruby, and it is the script language fitting in
 Ruby is a major scripting language. Also Python is.
 But both syntax of them are **NOT** familier with C programmers.
 This is a script language for people who want C-like syntax.
-Now **Native Thread without GIL** has been supported as an **Isolate**.
 
 ### Features
 
@@ -26,7 +25,7 @@ Now **Native Thread without GIL** has been supported as an **Isolate**.
 *   **Native function** by JIT compiling supported with some limitations. Very fast.
 *   Support **JIT Library** as an **abstracted assembler library**. You can use JIT directly in your program.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
-*   **Isolate** object to control native threads without Global Interpreter Lock.
+*   **Isolate** object to control native threads **without GIL** (Global Interpreter Lock).
 *   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SQLite3**, **Regular Expression**, **Parser Combinator**, etc.
 *   **[REPL](doc/utility/repl.md)** is provided by default.
 *   Useful Testing System named as **[SpecTest](doc/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
