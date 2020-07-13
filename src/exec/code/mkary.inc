@@ -90,7 +90,7 @@
     } \
     kx_val_t v1v = *(v1->value.lv); \
     kx_val_t v2v = *(v2->value.lv); \
-    if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
+    if (v1->has_pos && v2->has_pos && (v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
         if (v1v.type == KX_CSTR_T && (v2v.type != KX_CSTR_T || (v1v.value.pv != v2v.value.pv))) { \
             THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
         } \
@@ -120,7 +120,7 @@
     } \
     kx_val_t v1v = *(v1->value.lv); \
     kx_val_t v2v = *(v2->value.lv); \
-    if ((v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
+    if (v1->has_pos && v2->has_pos && (v1v.type == KX_STR_T || v1v.type == KX_CSTR_T) && (v2v.type == KX_STR_T || v2v.type == KX_CSTR_T)) { \
         if (v1v.type == KX_CSTR_T && (v2v.type != KX_CSTR_T || (v1v.value.pv != v2v.value.pv))) { \
             THROW_SYSTEM_EXCEPTION("SystemException", "Invalid swappable type"); \
         } \
