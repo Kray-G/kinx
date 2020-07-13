@@ -14,6 +14,8 @@
 #define KX_WIN_NAMED_MUTEX
 #include <windows.h>
 #pragma comment(lib, "advapi32.lib")
+_CRTIMP extern char **_environ;
+#define ENVP (_environ)
 #else
 #if defined(linux)
 #define KX_POSIX_SEM
@@ -26,6 +28,8 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #endif
+extern char **environ;
+#define ENVP (environ)
 #endif
 
 KX_DECL_MEM_ALLOCATORS();
@@ -1598,6 +1602,32 @@ int System_exepath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int System_getenvall(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = allocate_obj(ctx);
+
+    char **p = ENVP;
+    if (p) {
+        for (int i = 0; p[i] != NULL; ++i) {
+            char *buf = conv_acp2utf8_alloc(p[i]);
+            char *sep = strchr(buf, '=');
+            if (sep) {
+                int keylen = sep - buf;
+                kstr_t *sv = allocate_str(ctx);
+                ks_append_n(sv, buf, keylen);
+                KEX_SET_PROP_CSTR(obj, ks_string(sv), (buf + ((keylen)+1)));
+            } else {
+                KEX_SET_PROP_CSTR(obj, buf, "");
+            }
+            conv_free(buf);
+        }
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 int System_getenv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *name = get_arg_str(1, args, ctx);
@@ -1717,6 +1747,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "setupRange", System_setupRange },
     { "isUtf8Bytes", System_isUtf8Bytes },
     { "exepath", System_exepath },
+    { "getenvall", System_getenvall },
     { "getenv", System_getenv },
     { "setenv", System_setenv },
     { "callCFunction", System_callCFunction },
