@@ -26,7 +26,17 @@ String.split = _function(str, cond) {
 String.each = _function(str, callback) {
     var len = str.length();
     for (var i = 0; i < len; ++i) {
-        var r = callback(*str[i], i);
+        var r, c = str[i];
+        var l = System.isUtf8Bytes(c);
+        if (l > 1) {
+            var s = *c;
+            while (--l) {
+                s += *str[++i];
+            }
+            r = callback(s, i);
+        } else {
+            r = callback(*c, i);
+        }
         if (r.isDefined && !r) {
             break;
         }
