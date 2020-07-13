@@ -1,0 +1,15 @@
+var s = "abcdef";
+s.each { => System.println(_1) };
+System.println("");
+
+s = "aあbいcうdえeおf";
+s.each { => System.println(_1) };
+System.println("");
+
+s = "あbいcうdえeおfか";
+s.each { => System.println(_1) };
+System.println("");
+
+# If you want to loop for each byte, do the following.
+<...s>.each { => System.println(_1) };
+System.println("");
