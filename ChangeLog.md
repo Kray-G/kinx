@@ -17,14 +17,19 @@
 
 *   Planned
     *   Support to read/write from/to Clipboard.
-    *   Get Environment Variables list via `$env` variable.
     *   Support Array of Double in native.
     *   Support Big Integer in native.
     *   User selectable installation.
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.12.0 (Current development version)
+## V0.13.0 (Current development version)
+
+*   Updated
+    *   Supported a `$env` variable without a property to get all environment variables.
+    *   Improved `String#each` to iterate a character according to UTF-8.
+
+## V0.12.0 (12th Preview Release)
 
 *   Updated
     *   Supported a numbered parameter of a function argument.

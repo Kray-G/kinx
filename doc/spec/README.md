@@ -167,7 +167,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Enumerable](lib/basic/enumerable.md)
 *   [Range](lib/basic/range.md)
 *   [DateTime](lib/basic/datetime.md) - *not documented yet*
-*   [Process](lib/basic/process.md) - *not documented yet*
+*   [Process](lib/basic/process.md)
 *   [JSON](lib/basic/json.md) - *not documented yet*
 *   [Xml](lib/basic/xml.md) - *not documented yet*
 *   [Zip](lib/basic/zip.md) - *not documented yet*
