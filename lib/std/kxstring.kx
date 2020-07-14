@@ -115,3 +115,17 @@ String.Buffer = (_function() {
     }
     return StringBuffer;
 })();
+
+String.escapeHtml = (_function() {
+    var repl = {
+        "&": "&amp;",
+        '"': "&quot;",
+        "<": "&lt;",
+        ">": "&gt;",
+    };
+    return _function(str) {
+        return str.replace(/[&"<>]/, function(c) {
+            return repl[c];
+        });
+    };
+})();
