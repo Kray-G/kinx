@@ -22,6 +22,7 @@ typedef struct kxana_context_ {
     int class_id;
     int arg_index;
     int anon_arg;
+    kx_object_t *parent;
     kx_object_t *class_node;
     kx_object_t *func;
     kx_object_t *switch_stmt;
@@ -301,6 +302,8 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         return;
     }
 
+    kx_object_t *parent = actx->parent;
+    actx->parent = node;
     node->lvalue = actx->decl || actx->lvalue;
     switch (node->type) {
     case KXVL_UNKNOWN:
@@ -343,6 +346,19 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             node->lhs = tempvar;
             node->value.s = name;
             node->var_type = KX_UNKNOWN_T;
+        } else if (node && node->type == KXOP_VAR && !strcmp(node->value.s, KX_ENV_VAR)) {
+            if (actx->lvalue) {
+                kx_yyerror_line("$env can not be lvalue", node->file, node->line);
+            } else {
+                node->lhs = kx_gen_bexpr_object(KXOP_CALL,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("getenvall")),
+                    node->rhs
+                );
+                analyze_ast(ctx, node->lhs, actx);
+                node->rhs = NULL;
+                node->type = KXST_EXPRLIST;
+            }
+            break;
         } else {
             if (!strcmp(node->value.s, "__FUNC__")) {
                 if (actx->func) {
@@ -684,7 +700,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
     case KXOP_IDX:
         if (!actx->lvalue) {
-            if (node->lhs && node->lhs->type == KXOP_VAR && !strcmp(node->lhs->value.s, KX_ENV_VAR)) {
+            if (parent && parent->type != KXOP_CALL && node->lhs && node->lhs->type == KXOP_VAR && !strcmp(node->lhs->value.s, KX_ENV_VAR)) {
                 node->lhs = kx_gen_bexpr_object(KXOP_CALL,
                     kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("getenv")),
                     node->rhs
@@ -1206,6 +1222,8 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
     default:
         break;
     }
+
+    actx->parent = parent;
 }
 
 void start_analyze_ast(kx_context_t *ctx, kx_object_t *node)
