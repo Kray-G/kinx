@@ -412,6 +412,10 @@ const Jit;
             checkRegister(dst);
             inst_.push(_function() { c_.ijump(dst); });
         }
+        public icall(dst) {
+            checkRegister(dst);
+            inst_.push(_function() { c_.icall(dst); });
+        }
         private operateCmp(intf, op1, op2) {
             checkRegister(op1);
             checkRegister(op2);
