@@ -686,6 +686,9 @@ static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_
 
     while (p) {
         if (p->lhs) {
+            if (p->lhs->type == KXOP_VAR && p->lhs->lhs) {
+                p->lhs = p->lhs->lhs;
+            };
             if (p->lhs->type == KXVL_INT) {
                 kv_push(kx_object_t*, caseinfo.sorted_int_cases, p);
             } else {
