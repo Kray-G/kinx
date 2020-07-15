@@ -408,14 +408,26 @@ _class Parsek(opts) {
         inverse ??= false;
         var dict = {};
         for (var i = 0, l = chars.length(); i < l; ++i) {
-            var ch = *chars[i];
-            dict[ch] = ch;
+            var c = chars[i];
+            var l = System.isUtf8Bytes(c);
+            if (l > 1) {
+                var s = *c;
+                while (--l) {
+                    s += *chars[++i];
+                }
+                dict[s] = s;
+            } else {
+                var ch = *c;
+                dict[ch] = ch;
+            }
         }
         return new Parsek.ParsekParser($, __FUNC__, _function(target, position) {
-            var ch = target.subString(position, 1);
+            var c = target[position];
+            var l = System.isUtf8Bytes(c);
+            var ch = target.subString(position, l);
             var isMatch = inverse ? dict[ch].isUndefined : dict[ch].isDefined;
             if (isMatch) {
-                return Parsek.makeResult(true, ch, position + 1);
+                return Parsek.makeResult(true, ch, position + l);
             }
             return Parsek.makeResult(false, null, position);
         });
