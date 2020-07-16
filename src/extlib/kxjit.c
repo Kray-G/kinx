@@ -1153,7 +1153,7 @@ sljit_sw Jit_putc(sljit_sw a, sljit_sw b, sljit_sw c)
 
 sljit_sw Jit_putn(sljit_sw a, sljit_sw b, sljit_sw c)
 {
-    return printf("%d", (char)(a & 0xff));
+    return printf("%"PRId64, a);
 }
 
 int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -1320,8 +1320,10 @@ int Jit_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_PUSH_ARRAY_INT(r, 0);
     KEX_SET_PROP_OBJ(obj, "SP", r);
 
-    KEX_SET_PROP_INT(obj, "putc", SLJIT_FUNC_OFFSET(Jit_putc));
-    KEX_SET_PROP_INT(obj, "putn", SLJIT_FUNC_OFFSET(Jit_putn));
+    r = allocate_obj(ctx);
+    KEX_SET_PROP_INT(r, "putc", SLJIT_FUNC_OFFSET(Jit_putc));
+    KEX_SET_PROP_INT(r, "putn", SLJIT_FUNC_OFFSET(Jit_putn));
+    KEX_SET_PROP_OBJ(obj, "Clib", r);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
