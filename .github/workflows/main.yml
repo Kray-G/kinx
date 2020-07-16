@@ -21,6 +21,8 @@ jobs:
 
           mkdir -p $tag/bin
           cp /usr/bin/kinx $tag/bin/kinx
+          cp /usr/bin/kxrepl $tag/bin/kxrepl
+          cp /usr/bin/kxtest $tag/bin/kxtest
           cp -r /usr/bin/kinxlib $tag/lib
           tar zcvf linux-amd64.tar.gz $tag/
       - name: upload archive
@@ -41,7 +43,7 @@ jobs:
           make.cmd
       - name: package
         shell: pwsh
-        run: Compress-Archive -Path kinx.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
+        run: Compress-Archive -Path kinx.exe,kxrepl.exe,kxtest.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
