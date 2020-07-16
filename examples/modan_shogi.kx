@@ -1,0 +1,329 @@
+using Parsek;
+using Jit;
+
+enum {
+    label = 0,
+    mov,
+    add,
+    sub,
+    mul,
+    div,
+    mod,
+    push,
+    pop,
+    putc,
+    putn,
+    jump_if,
+    jump_ifp,
+}
+
+var opname = [
+    "label",
+    "mov",
+    "add",
+    "sub",
+    "mul",
+    "div",
+    "mod",
+    "push",
+    "pop",
+    "putc",
+    "putn",
+    "jump_if",
+    "jump_ifp",
+];
+
+class Converter {
+    var map_ = [
+        { '▲': 0, '△': 1, '☗': 0, '☖': 1 },
+        { '１': 1, '２': 2, '３': 3, '４': 4, '５': 5, '６': 6, '７': 7, '８': 8, '９': 9, '同': 0 },
+        { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '　': 0 },
+        { 'と': mov, '歩': add, '金': sub, '銀': mul, '桂': div, '香': mod,
+          '龍': push, '馬': pop, '玉': putc, '王': putn, '飛': jump_if, '角': jump_ifp },
+    ];
+    var prev_;
+    public convert(stmt) {
+        # System.println(stmt);
+        var r = stmt.map { => map_[_2][_1] };
+        if (r[1] == 0) r[1] = prev_[1];
+        if (r[2] == 0) r[2] = prev_[2];
+        prev_ = r;
+        return {
+            r1: r[1],
+            r2: r[2],
+            op: r[3],
+        };
+    }
+}
+
+var conv = new Converter();
+var $ = new Parsek();
+var ignore = $.oneOf("上右左直 \r\n\t").many();
+var lexeme = &(p) => p.skip(ignore);
+
+#   [PLAYER][COL][ROW][PIECE]
+#   (例：▲２四銀)
+var player = $.oneOf('▲△☗☖');
+var col = $.oneOf('１２３４５６７８９同');
+var row = $.oneOf('一二三四五六七八九　');
+var piece = $.oneOf('歩香桂銀金玉王飛角龍馬と');
+var addc = $.oneOf("上右左直");
+var number = $.regex(/[1-9][0-9]*|[0-9]/).map(Integer.parseInt);
+var labelp = lexeme($.seq($.string('*'), number)).map { => { op: label, address: _1[1] } };
+
+var stmt = lexeme($.seq(player, col, row, piece)).map { => conv.convert(_1) };
+var program = $.alt(stmt, labelp).many();
+
+# PIECE     別名        COL ROW 意味
+# と        mov         X   Y   X = Y
+# 歩        add         X   Y   X += Y
+# 金        sub         X   Y   X -= Y
+# 銀        mul         X   Y   X *= Y
+# 桂        div         X   Y   X /= Y
+# 香        mod         X   Y   X %= Y
+# 龍        push        X   _   Xをプッシュ
+# 馬        pop         X   _   Xをポップ
+# 玉        putc        X   _   文字コードXの文字を出力
+# 王        putn        X   _   Xを数値として出力
+# 飛        jump_if     X   Y   Xが非0なら，ラベルY番にジャンプ
+# 角        jump_ifp    X   Y   Xが0以上なら，ラベルY番にジャンプ
+
+class Interpreter(opts_) {
+    private setJumpAddress(code) {
+        var address = [];
+        for (var i = 0, l = code.length(); i < l; ++i) {
+            if (code[i].op == label) {
+                address[code[i].address] = i;
+            }
+        }
+        return address;
+    }
+    public eval(code) {
+        var stack = [];
+        var reg = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        var address = setJumpAddress(code);
+        for (var i = 0, l = code.length(); i < l; ++i) {
+            var { op, r1, r2 } = code[i];
+            # System.println([opname[op], r1, r2]);
+            switch (op) {
+            case label: # nop
+                break;
+            case mov:
+                reg[r1] = reg[r2];
+                break;
+            case add:
+                reg[r1] += reg[r2];
+                break;
+            case sub:
+                reg[r1] -= reg[r2];
+                break;
+            case mul:
+                reg[r1] *= reg[r2];
+                break;
+            case div:
+                reg[r1] /= reg[r2];
+                break;
+            case mod:
+                reg[r1] %= reg[r2];
+                break;
+            case push:
+                stack.push(reg[r1]);
+                break;
+            case pop:
+                reg[r1] = stack.pop();
+                break;
+            case putc:
+                if (!opts_.disableDisplay) {
+                    System.print(*Integer.parseInt(reg[r1]));
+                }
+                break;
+            case putn:
+                if (!opts_.disableDisplay) {
+                    System.print(reg[r1]);
+                }
+                break;
+            case jump_if:
+                if (reg[r1]) {
+                    i = address[reg[r2]];
+                }
+                break;
+            case jump_ifp:
+                # System.println("check = ", reg[r1]);
+                if (reg[r1] >= 0) {
+                    i = address[reg[r2]];
+                }
+                break;
+            }
+        }
+    }
+}
+
+class Compiler(opts_) {
+    private setJumpAddress(code, c) {
+        var address = [], max = 0;
+        for (var i = 0, l = code.length(); i < l; ++i) {
+            if (code[i].op == label) {
+                address[i] = c.makeConst(Jit.VAR(code[i].address));
+                max = code[i].address if (max < code[i].address);
+            }
+        }
+        return [address, max];
+    }
+    public compile(code) {
+        var c = new Jit.Compiler();
+        c.enter();
+
+        var jt;
+        var labelTarget = [];
+        var jumpTarget = [];
+        var [address, max] = setJumpAddress(code, c);
+        var reg = [-1, Jit.VAR(max+1), Jit.VAR(max+2), Jit.VAR(max+3), Jit.VAR(max+4), Jit.S0, Jit.S1, Jit.S2, Jit.S3, Jit.S4];
+        for (var i = 1, l = reg.length(); i < l; ++i) {
+            c.mov(reg[i], Jit.IMM(i));
+        }
+        c.mov(Jit.S5, Jit.IMM(max+5));
+        c.mov(Jit.VAR(max+1005), Jit.IMM(0));
+        for (var i = 0, l = code.length(); i < l; ++i) {
+            var { op, r1, r2 } = code[i];
+            # System.println([opname[op], r1, r2]);
+            switch (op) {
+            case label:
+                labelTarget[i] = c.label();
+                break;
+            case mov:
+                c.mov(reg[r1], reg[r2]);
+                break;
+            case add:
+                c.add(reg[r1], reg[r1], reg[r2]);
+                break;
+            case sub:
+                c.sub(reg[r1], reg[r1], reg[r2]);
+                break;
+            case mul:
+                c.mul(reg[r1], reg[r1], reg[r2]);
+                break;
+            case div:
+                c.mov(Jit.R0, reg[r1]);
+                c.mov(Jit.R1, reg[r2]);
+                c.div();
+                c.mov(reg[r1], Jit.R0);
+                break;
+            case mod:
+                c.mov(Jit.R0, reg[r1]);
+                c.mov(Jit.R1, reg[r2]);
+                c.divmod();
+                c.mov(reg[r1], Jit.R1);
+                break;
+            case push:
+                c.mov(Jit.R1, Jit.S5);
+                c.localp(Jit.R0, Jit.R1);
+                c.mov(Jit.MEM1(Jit.R0), reg[r1]);
+                c.add(Jit.S5, Jit.S5, Jit.IMM(1));
+                break;
+            case pop:
+                c.sub(Jit.S5, Jit.S5, Jit.IMM(1));
+                c.mov(Jit.R1, Jit.S5);
+                c.localp(Jit.R0, Jit.R1);
+                c.mov(reg[r1], Jit.MEM1(Jit.R0));
+                break;
+            case putc:
+                if (!opts_.disableDisplay) {
+                    c.mov(Jit.R0, reg[r1]);
+                    c.icall(Jit.IMM(Jit.Clib.putc));
+                }
+                break;
+            case putn:
+                if (!opts_.disableDisplay) {
+                    c.mov(Jit.R0, reg[r1]);
+                    c.icall(Jit.IMM(Jit.Clib.putn));
+                }
+                break;
+            case jump_if:
+                jt = c.eq(reg[r1], Jit.IMM(0));
+                c.mov(Jit.R1, reg[r2]);
+                c.localp(Jit.R0, Jit.R1);
+                c.mov(Jit.R0, Jit.MEM1(Jit.R0));
+                c.ijmp(Jit.R0);
+                jt.setLabel(c.label());
+                break;
+            case jump_ifp:
+                jt = c.slt(reg[r1], Jit.IMM(0));
+                c.mov(Jit.R1, reg[r2]);
+                c.localp(Jit.R0, Jit.R1);
+                c.mov(Jit.R0, Jit.MEM1(Jit.R0));
+                c.ijmp(Jit.R0);
+                jt.setLabel(c.label());
+                break;
+            }
+        }
+
+        c.ret(Jit.R0);
+        var code = c.generate();
+        address.each {
+            if (_1) _1.setLabel(labelTarget[_2]);
+        };
+        return code;
+    }
+}
+
+var kifu =
+# # fib(1000)
+# %{
+#     ▲９九金 △８七金 ▲６四歩 △５五歩 ▲６六銀 △６五銀 ▲７七金 △７六金 *1 ▲７二角 △７一歩 ▲８四王 △５八玉 ▲８八龍 △８九歩 ▲９二馬 △１一飛 *2
+# };
+
+# # fib(10000)
+# %{
+#     ▲９九金 △８七金 ▲６四歩 △６六銀 ▲６六銀 △７七金 ▲７六金 △５五歩 *1 ▲７二角 △７一歩 ▲８四王 △５八玉 ▲８八龍 △８九歩 ▲９二馬 △１一飛 *2
+# };
+
+# Hello, world!
+%{
+    ▲９八銀 △９二玉 ▲６四歩 △６六銀 ▲６一歩 △同　玉
+    ▲６七歩 △６一玉 ▲６八玉 △６三歩 ▲６九玉 △７七銀
+    ▲７五金 △７一玉 ▲４八銀 △４二玉 ▲９六と △９八歩
+    ▲同　玉 △６七玉 ▲９五金 △９一玉 ▲６三金 △同　玉
+    ▲６八金 △６二玉 ▲４一歩 △４三玉 ▲５五歩 △５三玉
+};
+
+# # Hello, world! (strict)
+# %{
+#     ▲２六歩    △６二銀    ▲６六歩    △７一銀    ▲５六歩    △６二金
+#     ▲６八金    △６四歩    ▲６九金    △６三金    ▲６八玉    △５二玉
+#     ▲５九金右  △６二金    ▲５八金直  △６三金    ▲５七金    △６二金
+#     ▲５九金    △６五歩    ▲６七金    △６三金    ▲５八金    △５一金
+#     ▲５九金    △５四歩    ▲５五歩    △５三玉    ▲５七玉    △４二銀
+#     ▲６八玉    △５二金    ▲５八金    △５一金    ▲５七金上  △５二金
+#     ▲５八金    △５一金    ▲５七金上  △５二金    ▲５八金    △３一銀
+#     ▲５七玉    △４二玉    ▲５四歩    △同　金    ▲５五歩    △５一金
+#     ▲５四歩    △４一金    ▲５六玉    △５一金    ▲６五玉    △５七歩
+#     ▲３六歩    △３二玉    ▲５九金    △６一金    ▲６九金    △５一金
+#     ▲５七金    △６二金    ▲５六玉    △６三金    ▲５八金上  △７四金
+#     ▲５五玉    △４四歩    ▲３四金    △同　歩    ▲５九金    △３五金
+#     ▲４八金    △３六金    ▲６七金    △２六金    ▲３八金    △３六金
+#     ▲４八金    △３三玉    ▲５七金上  △２六金    ▲４六金    △２五金
+#     ▲４五金    △同　歩    ▲３五歩    △同　金    ▲５七金    △４三金
+#     ▲５六金    △４二玉
+# };
+var t, tmr = new SystemTimer();
+
+tmr.restart();
+var r = ignore.then(program).parseAll(kifu);
+# System.println(r.value);
+t.parse = tmr.elapsed();
+
+var interp = new Interpreter();
+tmr.restart();
+interp.eval(r.value);
+t.interpret.total = tmr.elapsed();
+
+var compiler = new Compiler();
+tmr.restart();
+var code = compiler.compile(r.value);
+t.jit.compile = tmr.elapsed();
+tmr.restart();
+code.run();
+t.jit.execute = tmr.elapsed();
+t.jit.total = t.jit.compile + t.jit.execute;
+
+System.println("Result = ", t.toJsonString(true));
