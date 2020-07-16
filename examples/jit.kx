@@ -95,7 +95,7 @@ function jit_004_2() {
     var c = new Jit.Compiler();
     c.enter();
         c.mov(Jit.R0, Jit.IMM('a'[0]));
-        c.icall(Jit.IMM(Jit.putc));
+        c.icall(Jit.IMM(Jit.Clib.putc));
         c.ret(Jit.R0);
 
     var code = c.generate();
@@ -109,7 +109,7 @@ function jit_004_3() {
     var c = new Jit.Compiler();
     c.enter();
         c.mov(Jit.R0, Jit.IMM('a'[0]));
-        c.icall(Jit.IMM(Jit.putn));
+        c.icall(Jit.IMM(Jit.Clib.putn));
         c.ret(Jit.R0);
 
     var code = c.generate();
