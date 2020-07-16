@@ -16,6 +16,8 @@
 ## V1.0.0 (Planned)
 
 *   Planned
+    *   Support an iconv library.
+    *   Support libssh2 library.
     *   Support to read/write from/to Clipboard.
     *   Support Array of Double in native.
     *   Support Big Integer in native.
