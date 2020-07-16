@@ -166,7 +166,7 @@ RCFILE = \
 .SUFFIXES :
 .SUFFIXES : .c .obj
 
-all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES)
+all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES) main_kxcmd
 
 lib: $(SOFILES)
 
@@ -185,6 +185,11 @@ clean:
 
 kinx: src/main.c include/libkinx.h libkinx.dll $(RCFILE)
 	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map src/main.c src/fileutil.obj $(RCFILE)
+
+main_kxcmd: src/main_kxcmd.c include/libkinx.h libkinx.dll $(RCFILE)
+	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map src/main_kxcmd.c src/fileutil.obj $(RCFILE)
+	copy /y main_kxcmd.exe kxrepl.exe
+	copy /y main_kxcmd.exe kxtest.exe
 
 libkinx.dll: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
 	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM)
