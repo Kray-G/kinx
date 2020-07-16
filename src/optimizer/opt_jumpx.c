@@ -9,7 +9,7 @@ void opt_code_remove_jmp(kvec_pt(kx_code_t) *fixcode, int start)
     int len = kv_size(*fixcode);
     for (int i = start; i < len; ++i) {
         kx_code_t *code = kv_A(*fixcode, i);
-        if (code->op == KX_JMP) {
+        if (code->op == KX_JMP && code->value2.i == 0) {
             if (code->addr == (i+1)) {
                 code->op = KX_NOP;
             } else {
