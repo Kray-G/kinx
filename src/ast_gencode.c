@@ -686,6 +686,9 @@ static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_
 
     while (p) {
         if (p->lhs) {
+            if (p->lhs->type == KXOP_VAR && p->lhs->lhs) {
+                p->lhs = p->lhs->lhs;
+            };
             if (p->lhs->type == KXVL_INT) {
                 kv_push(kx_object_t*, caseinfo.sorted_int_cases, p);
             } else {
@@ -734,7 +737,7 @@ static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_
             kv_push(int, caseinfo.default_case->case_src_pos, code_size(module, ana));
             kv_push(int, caseinfo.default_case->case_src_block, ana->block);
         }
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1 = { .i = 0 } }));
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1.i = 0, .value2.i = 0 }));
 
         if (intcase_len < 4) {
             gen_seq_search_block(ctx, ana, &caseinfo, intcase_len);

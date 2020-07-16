@@ -2,7 +2,9 @@
 #define KX_MUL_II(v1, val) { \
     int64_t v1val = (v1)->value.iv; \
     int64_t v2val = (val); \
-    if ((v1val > 0 && v2val > 0) || (v1val < 0 && v2val < 0)) { \
+    if (v1val == 0 || v2val == 0) { \
+        (v1)->value.iv = 0; \
+    } else if ((v1val > 0 && v2val > 0) || (v1val < 0 && v2val < 0)) { \
         if (v1val > (INT64_MAX)/v2val) { \
             BigZ b2 = BzFromInteger(v2val); \
             BigZ bi = BzFromInteger(v1val); \
