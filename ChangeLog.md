@@ -30,6 +30,10 @@
 *   Updated
     *   Supported a `$env` variable without a property to get all environment variables.
     *   Improved `String#each` to iterate a character according to UTF-8.
+    *   Supported `String.escapeHtml`.
+    *   Supported utf8 in `Parsek#oneOf`.
+    *   Added a CLI support of kinx content.
+    *   Some bug fixes and improvement.
 
 ## V0.12.0 (12th Preview Release)
 
