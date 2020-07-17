@@ -25,7 +25,14 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.13.0 (Current development version)
+## V0.14.0 (Current development version)
+
+*   Updated
+    *   Improved `String#split` to support UTF-8.
+    *   Supported `Parsek#noneOf`.
+    *   Some bug fixes and improvement.
+
+## V0.13.0 (13th Preview Release)
 
 *   Updated
     *   Supported a `$env` variable without a property to get all environment variables.
