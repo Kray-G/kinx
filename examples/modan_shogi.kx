@@ -58,7 +58,7 @@ class Converter {
 
 var conv = new Converter();
 var $ = new Parsek();
-var ignore = $.oneOf("上右左直 \r\n\t").many();
+var ignore = $.noneOf("*▲△☗☖").many();
 var lexeme = &(p) => p.skip(ignore);
 
 #   [PLAYER][COL][ROW][PIECE]
@@ -309,7 +309,7 @@ var t, tmr = new SystemTimer();
 
 tmr.restart();
 var r = ignore.then(program).parseAll(kifu);
-# System.println(r.value);
+# System.println(r);
 t.parse = tmr.elapsed();
 
 var interp = new Interpreter();
