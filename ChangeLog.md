@@ -25,16 +25,12 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.14.0 (Current development version)
+## V0.13.1 (13th Preview Release)
 
 *   Updated
     *   Improved `String#split` to support UTF-8.
     *   Supported `Parsek#noneOf`.
-    *   Some bug fixes and improvement.
-
-## V0.13.0 (13th Preview Release)
-
-*   Updated
+    *   Added a script name into an argument list with `--exec` option.
     *   Supported a `$env` variable without a property to get all environment variables.
     *   Improved `String#each` to iterate a character according to UTF-8.
     *   Supported `String.escapeHtml`.
