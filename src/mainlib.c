@@ -302,6 +302,9 @@ END_OF_OPT:
     ctx->frmv->prv = ctx->frmv; /* avoid the error at the end */
     kv_expand_if(kx_val_t, ctx->stack, KEX_DEFAULT_STACK);
     kx_obj_t *obj = allocate_obj(ctx);
+    if (execname) {
+        KEX_PUSH_ARRAY_CSTR(obj, execname);
+    }
     for (int i = optind; i < ac; ++i) {
         KEX_PUSH_ARRAY_CSTR(obj, av[i]);
     }
