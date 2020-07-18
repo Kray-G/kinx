@@ -20,7 +20,7 @@
 #define VER_MIN 13
 #endif
 #ifndef VER_PAT
-#define VER_PAT 0
+#define VER_PAT 1
 #endif
 #ifndef VER_SUFFIX
 #define VER_SUFFIX ""
