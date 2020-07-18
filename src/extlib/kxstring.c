@@ -222,9 +222,13 @@ int String_splitByString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
         if (cond[0] == 0) {
             const char *p = str;
             while (*p) {
-                char buf[2] = {*p, 0};
+                int b = g_utf8bytes[*p & 0xff];
+                char buf[8] = {0};
+                for (int i = 0; *p && i < b; ++i) {
+                    buf[i] = *p;
+                    ++p;
+                }
                 KEX_PUSH_ARRAY_STR(res, buf);
-                ++p;
             }
         } else {
             kstr_t *sv = allocate_str(ctx);
