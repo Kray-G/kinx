@@ -25,11 +25,22 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.13.0 (Current development version)
+## V0.14.0 (Current development version)
+
+*   Updated
+    *   Improved `String#split` to support UTF-8.
+    *   Supported `Parsek#noneOf`.
+    *   Some bug fixes and improvement.
+
+## V0.13.0 (13th Preview Release)
 
 *   Updated
     *   Supported a `$env` variable without a property to get all environment variables.
     *   Improved `String#each` to iterate a character according to UTF-8.
+    *   Supported `String.escapeHtml`.
+    *   Supported utf8 in `Parsek#oneOf`.
+    *   Added a CLI support of kinx content.
+    *   Some bug fixes and improvement.
 
 ## V0.12.0 (12th Preview Release)
 
