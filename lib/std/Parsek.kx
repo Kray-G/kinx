@@ -422,15 +422,21 @@ _class Parsek(opts) {
             }
         }
         return new Parsek.ParsekParser($, __FUNC__, _function(target, position) {
-            var c = target[position];
-            var l = System.isUtf8Bytes(c);
-            var ch = target.subString(position, l);
-            var isMatch = inverse ? dict[ch].isUndefined : dict[ch].isDefined;
-            if (isMatch) {
-                return Parsek.makeResult(true, ch, position + l);
+            if (position < target.length()) {
+                var c = target[position];
+                var l = System.isUtf8Bytes(c);
+                var ch = target.subString(position, l);
+                var isMatch = inverse ? dict[ch].isUndefined : dict[ch].isDefined;
+                if (isMatch) {
+                    return Parsek.makeResult(true, ch, position + l);
+                }
             }
             return Parsek.makeResult(false, null, position);
         });
+    }
+
+    public noneOf(chars) {
+        return oneOf(chars, true);
     }
 
     public sepBy(content, separator) {
