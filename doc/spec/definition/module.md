@@ -9,10 +9,14 @@ Module is used to extend a class functionality. This is usually used for the com
 The module definition is basically below.
 
 ```javascript
+<<<<<<< HEAD
 module M { 
     /* ... Defines a public method
         to extend a host class which this is mixined into. */
 }
+=======
+module M { /* ... */ }
+>>>>>>> added SpecTest.
 ```
 
 ### Mixin
