@@ -248,7 +248,7 @@ void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_frm_t *frmv, kx_co
     KEX_GET_PROP(trace, v->value.ov, "_trace");
     if (!trace || trace->type != KX_OBJ_T) {
         kx_obj_t *obj = allocate_obj(ctx);
-        if (!frmv->is_internal) {
+        if (!cur->is_internal) {
             KEX_PUSH_ARRAY_CSTR(obj, cur->file);
             KEX_PUSH_ARRAY_CSTR(obj, cur->func);
             KEX_PUSH_ARRAY_INT(obj, cur->line);
