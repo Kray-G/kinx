@@ -27,6 +27,97 @@ System.println(doit(&{
 }));
 ```
 
+## Function block syntax
+
+### Block style
+
+This is not same as a block object above. A lambda can be wrapped with `{` and `}`, and it is the base of some simple syntax.
+For example, the above `doit` function can be written as below.
+
+```javascript
+var doit = { &(block) => block() };
+```
+
+#### Omit the argument list
+
+As combining with the block style and a numbered parameter, you can remove an argument list itself.
+For example, you can write the `doit` function as below.
+
+```javascript
+var doit = { => _1() };
+```
+
+#### No arrow style
+
+When the block style without an arrow of `=>` operator, it can be just like a block statement with argument list inside block.
+
+```javascript
+var add = { &(a, b):
+    return a + b;
+};
+System.println(add(1, 2));  // => 3
+```
+
+The ':' in the above example can be omitted. You can just use it as a separator if you want it.
+
+```javascript
+var add = { &(a, b)
+    return a + b;
+};
+System.println(add(1, 2));  // => 3
+```
+
+If you want to omit an argument list in the normal statement, you have to use it as a block object.
+
+```javascript
+var add = &{
+    return _1 + _2;
+};
+System.println(add(1, 2));  // => 3
+```
+
+### The last argument in function call
+
+If the last argument in function call is a function object, that can be placed outside the argument list with a block style.
+For example, the 4 styles below are absolutely same.
+
+```javascript
+callFunction(&(a, b) => a + b);
+
+callFunction(&(a, b) => {
+    return a + b;
+});
+
+callFunction() { &(a, b) => a + b };
+
+callFunction() { &(a, b)
+    return a + b;
+};
+```
+
+In this case, you can omit an argument list itself without a block object style.
+It means you do not have to use `&` before a block when it is the argument written outside the argument list.
+
+```javascript
+function callFunction(f) {
+    System.println(f(1, 2));    // => 3
+}
+callFunction() {
+    return _1 + _2;
+};
+```
+
+And you can also omit the parenthesis of function call when there is no argument list except the outside argument.
+
+```javascript
+function callFunction(f) {
+    System.println(f(1, 2));    // => 3
+}
+callFunction {
+    return _1 + _2;
+};
+```
+
 ## Examples
 
 ### Example 1. Fibonacci
@@ -310,4 +401,95 @@ Stack Trace Information:
         at <main-block>(test.kx:27)
 b = 102
 c = 999
+```
+
+### Example 11. Block style (1)
+
+#### Code
+
+```javascript
+function calc(x, y, func) {
+    return func(x, y);
+}
+
+// The callback function can be put outside an arugument list.
+System.println("add = " + calc(10, 2) { &(a, b) => a + b });
+System.println("sub = " + calc(10, 2) { &(a, b) => a - b });
+System.println("mul = " + calc(10, 2) { &(a, b) => a * b });
+System.println("div = " + calc(10, 2) { &(a, b) => a / b });
+System.println("add = " + calc(10, 2) { &() => _1 + _2 });
+System.println("sub = " + calc(10, 2) { &() => _1 - _2 });
+System.println("mul = " + calc(10, 2) { &() => _1 * _2 });
+System.println("div = " + calc(10, 2) { &() => _1 / _2 });
+
+System.println("add = " + calc(10, 2) { => _1 + _2 });
+System.println("sub = " + calc(10, 2) { => _1 - _2 });
+System.println("mul = " + calc(10, 2) { => _1 * _2 });
+System.println("div = " + calc(10, 2) { => _1 / _2 });
+```
+
+#### Result
+
+```
+add = 12
+sub = 8
+mul = 20
+div = 5
+add = 12
+sub = 8
+mul = 20
+div = 5
+add = 12
+sub = 8
+mul = 20
+div = 5
+```
+
+### Example 12. Block style (2)
+
+#### Code
+
+```javascript
+var r = [1, 2, 3].map() {
+    return _1 * 2;
+};
+System.println(r);  // => [2, 4, 6]
+```
+
+#### Result
+
+```
+[2, 4, 6]
+```
+
+### Example 13. Block style (3)
+
+#### Code
+
+```javascript
+var r = [1, 2, 3].map {
+    return _1 * 2;
+};
+System.println(r);  // => [2, 4, 6]
+```
+
+#### Result
+
+```
+[2, 4, 6]
+```
+
+### Example 14. Block style (4)
+
+#### Code
+
+```javascript
+r = (1..10).sort { => _2 <=> _1 };
+System.println(r);  // => [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+```
+
+#### Result
+
+```
+[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 ```

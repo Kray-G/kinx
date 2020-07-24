@@ -106,8 +106,8 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
 #### Special Objects
 
-*   [Lambda](definition/lambda.md) - *not documented yet*
-*   [Closure](definition/closure.md) - *not documented yet*
+*   [Lambda](definition/lambda.md)
+*   [Closure](definition/closure.md)
 *   [Fiber](definition/fiber.md) - *not documented yet*
 
 ### Type Check
