@@ -15,5 +15,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: make
       run: make
+<<<<<<< HEAD
+=======
     - name: make distcheck
       run: make distcheck
+>>>>>>> 952799d... Update c-cpp.yml
