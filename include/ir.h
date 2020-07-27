@@ -596,6 +596,7 @@ kvec_init_t(kx_regex_t);
 typedef struct kx_options_ {
     int quiet:1;
     int syntax:1;
+    int dot:1;
     int dump:1;
     int ast:1;
     int src_stdin:1;
