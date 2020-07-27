@@ -124,7 +124,7 @@ String.escapeHtml = (_function() {
         ">": "&gt;",
     };
     return _function(str) {
-        return str.replace(/[&"<>]/, function(c) {
+        return str.replace(/[&"<>]/, _function(c) {
             return repl[c];
         });
     };
