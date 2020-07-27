@@ -38,6 +38,26 @@ void kx_make_native_mode(void)
     sg_native = 1;
 }
 
+static const char *kx_gen_name_with_loc(const char *base, int counter)
+{
+    char buf[128] = { '_', '_', 0 };
+    int i = 2;
+    const char *p =  strrchr(kx_lexinfo.file, '\\');
+    if (!p) {
+        p = kx_lexinfo.file;
+    } else {
+        ++p;
+    }
+    for ( ; i < 128; ++i) {
+        if (*p == '.' || *p == '\0') {
+            break;
+        }
+        buf[i] = *p++;
+    }
+    sprintf(buf+i, "_%d_%s%d", kx_lexinfo.line, base, counter);
+    return const_str(g_parse_ctx, buf);
+}
+
 static const char *kx_gen_name(const char *base, int counter)
 {
     char buf[128] = {0};
@@ -521,7 +541,11 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
 
     const char *pname = name;
     if (!name) {
-        name = (type == KXST_COROUTINE) ? kx_gen_name("__coroutine", counter++) : kx_gen_name("__anonymous_func", counter++);
+        if (type == KXST_COROUTINE) {
+            name = kx_gen_name("__coroutine", counter++);
+        } else {
+            name = kx_gen_name_with_loc("__anonymous_func", counter++);
+        }
     }
     kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
     if (type == KXST_NATIVE) {
