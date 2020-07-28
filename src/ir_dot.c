@@ -9,16 +9,16 @@ case KX_##CMD:\
     printf("%s", #cmd);\
     break;\
 case KX_##CMD##I:\
-    printf("%s %"PRId64, #cmd "i", code->value1.i);\
+    printf("%si %"PRId64, #cmd, code->value1.i);\
     break;\
 case KX_##CMD##D:\
-    printf("%s %f", #cmd "d", code->value1.d);\
+    printf("%sd %f", #cmd, code->value1.d);\
     break;\
 case KX_##CMD##S:\
-    printf("%s \\\"%s\\\"", #cmd "s", kx_sanitize(code->value1.s));\
+    printf("%ss \\\"%s\\\"", #cmd, kx_sanitize(code->value1.s));\
     break;\
 case KX_##CMD##V:\
-    printf("%s %s", #cmd "v", gen_varloc(code));\
+    printf("%sv %s", #cmd, gen_varloc(code));\
     break;\
 /**/
 
@@ -27,53 +27,143 @@ case KX_##CMD:\
     printf("%s", #cmd);\
     break;\
 case KX_##CMD##I:\
-    printf("%s %"PRId64, #cmd, code->value1.i);\
+    printf("%si %"PRId64, #cmd, code->value1.i);\
     break;\
 case KX_##CMD##D:\
-    printf("%s %f", #cmd, code->value1.d);\
+    printf("%sd %f", #cmd, code->value1.d);\
     break;\
 case KX_##CMD##S:\
-    printf("%s \\\"%s\\\"", #cmd, kx_sanitize(code->value1.s));\
+    printf("%ss \\\"%s\\\"", #cmd, kx_sanitize(code->value1.s));\
     break;\
 case KX_##CMD##V:\
-    printf("%s %s", #cmd, gen_varloc(code));\
+    printf("%sv %s", #cmd, gen_varloc(code));\
     break;\
 case KX_##CMD##_V0I:\
-    printf("%s $0(%"PRId64"), %"PRId64, #cmd, code->value1.i, code->value2.i);\
+    printf("%s_v0i $0(%"PRId64"), %"PRId64, #cmd, code->value1.i, code->value2.i);\
     break;\
 /**/
 
-#define KX_IROP_COMP(CMD, cmd)\
+#define KX_IROP_COMP(CMD, next, cmd, alt) \
 case KX_##CMD:\
-    printf("$S[-1] %s $S[-2]", #cmd);\
+    if (next && next->op == KX_JNZ) { \
+        printf("if $S[-1] %s $S[-2] %s %"PRId64, #cmd, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if $S[-1] %s $S[-2] %s %"PRId64, #alt, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("$S[-1] %s $S[-2]", #cmd); \
+    } \
     break;\
 case KX_##CMD##I:\
-    printf("$S[-1] %s %"PRId64, #cmd, code->value1.i);\
+    if (next && next->op == KX_JNZ) { \
+        printf("if $S[-1] %s %"PRId64" %s %"PRId64, #cmd, code->value1.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if $S[-1] %s %"PRId64" %s %"PRId64, #alt, code->value1.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("$S[-1] %s %"PRId64, #cmd, code->value1.i); \
+    } \
     break;\
 case KX_##CMD##D:\
-    printf("$S[-1]%s %f", #cmd, code->value1.d);\
+    if (next && next->op == KX_JNZ) { \
+        printf("if $S[-1] %s %f %s %"PRId64, #cmd, code->value1.d, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if $S[-1] %s %f %s %"PRId64, #alt, code->value1.d, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("$S[-1] %s %f", #cmd, code->value1.d); \
+    } \
     break;\
 case KX_##CMD##S:\
-    printf("$S[-1] %s \\\"%s\\\"", #cmd, kx_sanitize(code->value1.s));\
+    if (next && next->op == KX_JNZ) { \
+        printf("if $S[-1] %s \\\"%s\\\" %s %"PRId64, #cmd, kx_sanitize(code->value1.s), next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if $S[-1] %s \\\"%s\\\" %s %"PRId64, #alt, kx_sanitize(code->value1.s), next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("$S[-1] %s \\\"%s\\\"", #cmd, kx_sanitize(code->value1.s)); \
+    } \
     break;\
 case KX_##CMD##V:\
-    printf("$S[-1] %s %s", #cmd, gen_varloc(code));\
+    if (next && next->op == KX_JNZ) { \
+        printf("if $S[-1] %s %s %s %"PRId64, #cmd, gen_varloc(code), next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if $S[-1] %s %s %s %"PRId64, #alt, gen_varloc(code), next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("$S[-1] %s %s", #cmd, gen_varloc(code)); \
+    } \
     break;\
 case KX_##CMD##_V0V0:\
-    printf("$0(%"PRId64") %s $0(%"PRId64")", code->value1.i, #cmd, code->value2.i);\
+    if (next && next->op == KX_JNZ) { \
+        printf("if $0(%"PRId64") %s $0(%"PRId64") %s %"PRId64, code->value1.i, #cmd, code->value2.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if $0(%"PRId64") %s $0(%"PRId64") %s %"PRId64, code->value1.i, #alt, code->value2.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("$0(%"PRId64") %s $0(%"PRId64")", code->value1.i, #cmd, code->value2.i); \
+    } \
     break;\
 case KX_##CMD##_V0I:\
-    printf("$0(%"PRId64") %s %"PRId64, code->value1.i, #cmd, code->value2.i);\
+    if (next && next->op == KX_JNZ) { \
+        printf("if $0(%"PRId64") %s %"PRId64" %s %"PRId64, code->value1.i, #cmd, code->value2.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if $0(%"PRId64") %s %"PRId64" %s %"PRId64, code->value1.i, #alt, code->value2.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("$0(%"PRId64") %s %"PRId64, code->value1.i, #cmd, code->value2.i); \
+    } \
     break;\
 case KX_##CMD##_IV0:\
-    printf("%"PRId64" %s $0(%"PRId64")", code->value1.i, #cmd, code->value2.i);\
+    if (next && next->op == KX_JNZ) { \
+        printf("if %"PRId64" %s $0(%"PRId64") %s %"PRId64, code->value1.i, #cmd, code->value2.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else if (next && next->op == KX_JZ) { \
+        printf("if %"PRId64" %s $0(%"PRId64") %s %"PRId64, code->value1.i, #alt, code->value2.i, next->value2.i ? "gotox" : "goto", next->value1.i); \
+        add = 1; \
+    } else { \
+        printf("%"PRId64" %s $0(%"PRId64")", code->value1.i, #cmd, code->value2.i); \
+    } \
+    break;\
+/**/
+#define KX_IROP_COMP_ORG(CMD, cmd) \
+case KX_##CMD:\
+    printf("$S[-1] %s $S[-2]", #cmd); \
+    break;\
+case KX_##CMD##I:\
+    printf("$S[-1] %s %"PRId64, #cmd, code->value1.i); \
+    break;\
+case KX_##CMD##D:\
+    printf("$S[-1] %s %f", #cmd, code->value1.d); \
+    break;\
+case KX_##CMD##S:\
+    printf("$S[-1] %s \\\"%s\\\"", #cmd, kx_sanitize(code->value1.s)); \
+    break;\
+case KX_##CMD##V:\
+    printf("$S[-1] %s %s", #cmd, gen_varloc(code)); \
+    break;\
+case KX_##CMD##_V0V0:\
+    printf("$0(%"PRId64") %s $0(%"PRId64")", code->value1.i, #cmd, code->value2.i); \
+    break;\
+case KX_##CMD##_V0I:\
+    printf("$0(%"PRId64") %s %"PRId64, code->value1.i, #cmd, code->value2.i); \
+    break;\
+case KX_##CMD##_IV0:\
+    printf("%"PRId64" %s $0(%"PRId64")", code->value1.i, #cmd, code->value2.i); \
     break;\
 /**/
 
 static const char *gen_varloc(kx_code_t *code)
 {
     static char buf[256];
-    sprintf(buf, "$(%"PRId64",%"PRId64")", code->value1.i, code->value2.i);
+    sprintf(buf, "$%"PRId64"(%"PRId64")", code->value1.i, code->value2.i);
     return buf;
 }
 
@@ -136,15 +226,16 @@ static void print_dupary(kx_obj_t *obj)
     }
 }
 
-void ir_code_dot_one(int addr, kx_code_t *code)
+int ir_code_dot_one(kx_code_t *code, kx_code_t *next)
 {
     if (!code) {
-        return;
+        return 0;
     }
     if (code->op == KX_ENTER && code->value1.i == 0) {
-        return;
+        return 0;
     }
 
+    int add = 0;
     switch (code->op) {
     case KX_HALT:
         break;
@@ -414,13 +505,13 @@ void ir_code_dot_one(int addr, kx_code_t *code)
     KX_IROP(SHL,  shl);
     KX_IROP(SHR,  shr);
 
-    KX_IROP_COMP(EQEQ, ==);
-    KX_IROP_COMP(NEQ,  !=);
-    KX_IROP_COMP(LE,   \\<=);
-    KX_IROP_COMP(LT,   \\<);
-    KX_IROP_COMP(GE,   \\>=);
-    KX_IROP_COMP(GT,   \\>);
-    KX_IROP_COMP(LGE,  \\<=\\>);
+    KX_IROP_COMP(EQEQ, next, ==,   !=);
+    KX_IROP_COMP(NEQ,  next, !=,   ==);
+    KX_IROP_COMP(LE,   next, \\<=, \\>);
+    KX_IROP_COMP(LT,   next, \\<,  \\>=);
+    KX_IROP_COMP(GE,   next, \\>=, \\<);
+    KX_IROP_COMP(GT,   next, \\>,  \\<=);
+    KX_IROP_COMP_ORG(LGE,  \\<=\\>);
 
     case KX_REGEQ:
         printf("regeq");
@@ -445,11 +536,8 @@ void ir_code_dot_one(int addr, kx_code_t *code)
         printf("(((unknown)))");
         break;
     }
-}
 
-static void ir_code_dot(int blockadr, int i, kx_code_t *code)
-{
-    ir_code_dot_one(blockadr >= 0 ? (blockadr+i) : -1, code);
+    return add;
 }
 
 static void ir_block_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
@@ -459,7 +547,7 @@ static void ir_block_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
     }
 
     int len = kv_size(block->code);
-    int blockadr = (llen > 0 && block->index < llen) ? kv_A(*labels, block->index) : -1;
+    int lasti = len - 1;
     printf("\tL%d [label=\"{ \\.L%d ", block->index, block->index);
     for (int i = 0; i < len; ++i) {
         kx_code_t *code = &kv_A(block->code, i);
@@ -469,7 +557,8 @@ static void ir_block_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
             continue;
         }
         printf("| ");
-        ir_code_dot(blockadr, i, code);
+        kx_code_t *next = i < lasti ? &kv_A(block->code, i+1) : NULL;
+        i += ir_code_dot_one(code, next);
         printf(" ");
     }
     printf("}\"];\n");
@@ -566,25 +655,6 @@ static void ir_module_dot(int llen, kx_module_t *module, kvec_t(uint32_t) *label
             ir_function_dot(llen, module, labels, func);
         }
     }
-}
-
-static void ir_native_dot(kx_context_t *ctx)
-{
-    // for (khint_t k = 0; k < kh_end(ctx->nfuncs); ++k) {
-    //     if (kh_exist(ctx->nfuncs, k)) {
-    //         kxn_func_t nf = kh_value(ctx->nfuncs, k);
-    //         if (nf.func) {
-    //             unsigned char *f = (unsigned char *)nf.func;
-    //             printf("\n");
-    //             printf(KXFT_FUNCTION_INDENT "%s: (native-base:0x%08"PRIx64")\n", nf.name, (uint64_t)f);
-    //             if (ctx->options.with_native) {
-    //                 native_dot(f, nf.exec_size);
-    //             } else {
-    //                 printf("    (omitted ... specify --with-native for dump of native code)\n");
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 void ir_dot(kx_context_t *ctx)
