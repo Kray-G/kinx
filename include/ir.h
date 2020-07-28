@@ -662,6 +662,7 @@ typedef struct kx_libobjs_ {
     kx_obj_t *exception_map;
     kx_obj_t *signalhook_map;
     kx_fnc_t *range_create;
+    kx_fnc_t *throw_exception;
     kx_fnc_t *global_method_missing;
 } kx_libobjs_t;
 
