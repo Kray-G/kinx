@@ -10,7 +10,7 @@ extern int eval_file(const char *file, kx_context_t *ctx);
 extern void print_value(kx_val_t *v, int recursive);
 extern void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv);
 extern void print_uncaught_exception(kx_context_t *ctx, kx_obj_t *val);
-extern void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, const char *typ, const char *wht);
+extern void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, const char *typ, const char *wht, int usetrace);
 extern void update_exception_object(kx_context_t *ctx, kx_exc_t *e);
 extern kx_fnc_t *search_string_function(kx_context_t *ctx, const char *method, kx_val_t *host, int count, void *jumptable[]);
 extern kx_fnc_t *search_binary_function(kx_context_t *ctx, const char *method, kx_val_t *host);
@@ -23,8 +23,8 @@ extern kx_obj_t *import_library(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cu
 extern int check_typeof(kx_val_t *v1, int type);
 extern int get_bin_item(kx_val_t *v);
 
-extern kx_exc_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *wht);
-extern kx_exc_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *fmt, ...);
+extern kx_code_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *wht);
+extern kx_code_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *fmt, ...);
 
 extern kx_code_t *kx_call_optimization(kx_context_t *ctx, kx_code_t *cur, kx_code_t *jp);
 extern void kx_set_regex(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur);
