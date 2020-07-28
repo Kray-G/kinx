@@ -596,6 +596,7 @@ kvec_init_t(kx_regex_t);
 typedef struct kx_options_ {
     int quiet:1;
     int syntax:1;
+    int dot:1;
     int dump:1;
     int ast:1;
     int src_stdin:1;
@@ -661,6 +662,7 @@ typedef struct kx_libobjs_ {
     kx_obj_t *exception_map;
     kx_obj_t *signalhook_map;
     kx_fnc_t *range_create;
+    kx_fnc_t *throw_exception;
     kx_fnc_t *global_method_missing;
 } kx_libobjs_t;
 
