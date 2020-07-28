@@ -96,6 +96,7 @@ static void usage(void)
     printf("    -i      Input source code from stdin.\n");
     printf("    -v, --version\n");
     printf("            Display the version number. --version shows also a detail.\n");
+    printf("    --dot   Display the dump by .dot format.\n");
     printf("    --exec:spectest\n");
     printf("            Run SpecTest based on .spectest file under the current directory.\n");
     printf("    --exec:repl\n");
@@ -169,6 +170,8 @@ DllExport int do_main(int ac, char **av)
             if (!strcmp(lname, "version")) {
                 version(1);
                 goto CLEANUP;
+            } else if (!strcmp(lname, "dot")) {
+                ctx->options.dot = 1;
             } else if (!strcmp(lname, "native-call-max-depth")) {
                 ctx->options.max_call_depth = param[0] ? strtol(param, NULL, 0) : 1024;
             } else if (!strcmp(lname, "with-native")) {
@@ -255,13 +258,16 @@ END_OF_OPT:
         goto CLEANUP;
     }
 
-    if (ctx->options.ast || ctx->options.dump || ctx->options.syntax) {
+    if (ctx->options.ast || ctx->options.dump || ctx->options.dot || ctx->options.syntax) {
         if (ctx->options.ast) {
             start_display_ast(kx_ast_root);
         }
         if (ctx->options.dump) {
             ir_dump(ctx);
             // ir_dump_fixed_code(&fixcode);
+        }
+        if (ctx->options.dot) {
+            ir_dot(ctx);
         }
         if (ctx->options.syntax) {
             return g_yyerror;
