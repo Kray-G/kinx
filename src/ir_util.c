@@ -46,19 +46,19 @@ typedef struct kx_thread_pack_ {
     int64_t value;
 } kx_thread_pack_t;
 
-kx_exc_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *wht)
+kx_code_t *throw_system_exception(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *wht)
 {
-    make_exception_object(&((ctx)->excval), ctx, frmv, cur, typ, wht);
-    if (kv_size(ctx->exception) == 0) {
-        print_uncaught_exception(ctx, (ctx)->excval.value.ov);
-        return NULL;
-    }
-    kx_exc_t *e = &kv_pop(ctx->exception);
-    kv_shrinkto(ctx->stack, e->sp);
-    return e;
+    kx_fnc_t *f = ctx->objs.throw_exception;
+    make_exception_object(&(ctx->excval), ctx, frmv, cur, typ, wht, 0);
+    push_obj(ctx->stack, ctx->excval.value.ov);
+    push_fnc(KX_FNC_T, ctx->stack, f)
+    push_i(ctx->stack, 1);
+    ctx->spread_additional = 0;
+    push_adr(ctx->stack, cur->next);
+    return f->jp;
 }
 
-kx_exc_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *fmt, ...)
+kx_code_t *throw_system_exception_fmt(kx_context_t *ctx, kx_code_t *cur, kx_frm_t *frmv, const char *typ, const char *fmt, ...)
 {
     char wht[512] = {0};
     va_list ap;
@@ -203,7 +203,7 @@ void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv)
     printf("print_stack done.\n"); fflush(stdout);
 }
 
-void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, const char *typ, const char *wht)
+void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, const char *typ, const char *wht, int usetrace)
 {
     if (!typ) {
         *v = kv_pop(ctx->stack);
@@ -244,16 +244,18 @@ void make_exception_object(kx_val_t *v, kx_context_t *ctx, kx_frm_t *frmv, kx_co
         v->type = KX_OBJ_T;
         v->value.ov = obj;
     }
-    kx_val_t *trace = NULL;
-    KEX_GET_PROP(trace, v->value.ov, "_trace");
-    if (!trace || trace->type != KX_OBJ_T) {
-        kx_obj_t *obj = allocate_obj(ctx);
-        if (!frmv->is_internal) {
-            KEX_PUSH_ARRAY_CSTR(obj, cur->file);
-            KEX_PUSH_ARRAY_CSTR(obj, cur->func);
-            KEX_PUSH_ARRAY_INT(obj, cur->line);
+    if (usetrace) {
+        kx_val_t *trace = NULL;
+        KEX_GET_PROP(trace, v->value.ov, "_trace");
+        if (!trace || trace->type != KX_OBJ_T) {
+            kx_obj_t *obj = allocate_obj(ctx);
+            if (!cur->is_internal && !frmv->is_internal) {
+                KEX_PUSH_ARRAY_CSTR(obj, cur->file);
+                KEX_PUSH_ARRAY_CSTR(obj, cur->func);
+                KEX_PUSH_ARRAY_INT(obj, cur->line);
+            }
+            KEX_SET_PROP_OBJ(v->value.ov, "_trace", obj);
         }
-        KEX_SET_PROP_OBJ(v->value.ov, "_trace", obj);
     }
 }
 

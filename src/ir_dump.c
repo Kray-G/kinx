@@ -77,7 +77,7 @@ case KX_##CMD##_IV0:\
 static const char *gen_varloc(kx_code_t *code)
 {
     static char buf[256];
-    sprintf(buf, "$(%"PRId64",%"PRId64")", code->value1.i, code->value2.i);
+    sprintf(buf, "$%"PRId64"(%"PRId64")", code->value1.i, code->value2.i);
     return buf;
 }
 

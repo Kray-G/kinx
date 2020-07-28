@@ -200,6 +200,7 @@ typedef struct kx_native_context_ {
 #define KXNJP_F(nctx,blk) (kv_A(nctx->block_list, blk).tf[0])
 #define KXNJP_T(nctx,blk) (kv_A(nctx->block_list, blk).tf[1])
 
+extern void natir_display_dot(kx_native_context_t *nctx);
 extern void natir_display_function(kx_native_context_t *nctx);
 extern void natir_compile_function(kx_native_context_t *nctx);
 
