@@ -1,16 +1,28 @@
-System.defineException = (_function() {
-    var excmap = System._globalExceptionMap();
-    return _function(type) {
-        if (excmap[type]) {
-            return excmap[type];
+
+ (_function() {
+    var excmap_ = System._globalExceptionMap();
+
+    System.defineException = _function(type) {
+        if (excmap_[type]) {
+            return excmap_[type];
         }
         _class ExceptionClassTemplate(what) {
             @_type = type;
             @_what = what;
         }
-        excmap[type] = ExceptionClassTemplate;
+        excmap_[type] = ExceptionClassTemplate;
         return ExceptionClassTemplate;
     };
+
+    System._throwExceptionHook(_function(obj) {
+        var type = obj._type;
+        var what = obj._what;
+        var excClass = System.defineException(type);
+        if (!excClass.create.isFunction) {
+            throw SystemException("Unknow exception type: " + type + "('" + what + "')");
+        }
+        throw new excClass(what);
+    });
 })();
 
 RuntimeExceptionClass = System.defineException('RuntimeException');
