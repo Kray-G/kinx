@@ -1929,8 +1929,13 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *ar
     };
     set_native_function_info(ctx, node, nctx.func_name, nf);
 
-    if (nctx.C->error == SLJIT_ERR_COMPILED && ctx->options.dump) {
-        natir_display_function(&nctx);
+    if (nctx.C->error == SLJIT_ERR_COMPILED) {
+        if (ctx->options.dump) {
+            natir_display_function(&nctx);
+        }
+        if (ctx->options.dot) {
+            natir_display_dot(&nctx);
+        }
     }
 
 	sljit_free_compiler(nctx.C);

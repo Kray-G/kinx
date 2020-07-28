@@ -25,6 +25,7 @@ OBJS = \
     getopt.o \
     global.o \
     ir_dump.o \
+    ir_dot.o \
     ir_exec.o \
     ir_fix.o \
     ir_util.o \
@@ -34,6 +35,7 @@ OBJS = \
     jit_util.o \
     nir_compile.o \
     nir_dump.o \
+    nir_dot.o \
     kstr.o \
     lexer.o \
     fileutil.o \
