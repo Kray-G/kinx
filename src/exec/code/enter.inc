@@ -22,6 +22,7 @@
         frm->id = kv_size((ctx)->stack) - 1; \
         frm->prv = frmv; \
         frm->caller = caller; \
+        frm->is_internal = 1; \
         frmv = frm; \
         THROW_SYSTEM_EXCEPTION("FiberException", "Fiber has been already dead"); \
     } \
