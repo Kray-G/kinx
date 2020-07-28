@@ -749,6 +749,19 @@ static int System_globalExceptionMap(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     return 0;
 }
 
+static int System_throwExceptionHook(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_val_t *val = &kv_last_by(ctx->stack, 1);
+    if (val->type != KX_FNC_T) {
+        KX_ADJST_STACK();
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function object");
+    }
+    ctx->objs.throw_exception = val->value.fn;
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 /*
     Unary operator*
         ex) var a = 97;
@@ -1709,6 +1722,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "getPlatform", System_getPlatform },
     { "_globalExceptionMap", System_globalExceptionMap },
+    { "_throwExceptionHook", System_throwExceptionHook },
     { "_setTrueFalse", System_setTrueFalse },
     { "_printStack", System_printStack },
     { "makeSuper", System_makeSuper },
