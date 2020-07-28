@@ -101,14 +101,14 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
 *   [Function](definition/function.md)
 *   [Class](definition/class.md)
-*   [Module](definition/module.md) - *not documented yet*
+*   [Module](definition/module.md)
 *   [Native](definition/native.md)
 
 #### Special Objects
 
-*   [Lambda](definition/lambda.md) - *not documented yet*
-*   [Closure](definition/closure.md) - *not documented yet*
-*   [Fiber](definition/fiber.md) - *not documented yet*
+*   [Lambda](definition/lambda.md)
+*   [Closure](definition/closure.md)
+*   [Fiber](definition/fiber.md)
 
 ### Type Check
 

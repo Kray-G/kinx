@@ -16,6 +16,7 @@ OBJS = \
     src/getopt.obj \
     src/global.obj \
     src/ir_dump.obj \
+    src/ir_dot.obj \
     src/ir_exec.obj \
     src/ir_fix.obj \
     src/ir_util.obj \
@@ -25,6 +26,7 @@ OBJS = \
     src/jit_util.obj \
     src/nir_compile.obj \
     src/nir_dump.obj \
+    src/nir_dot.obj \
     src/kstr.obj \
     src/lexer.obj \
     src/fileutil.obj \
