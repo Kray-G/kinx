@@ -130,6 +130,7 @@ Here is current available options.
 | `-c`                      | Check the syntax only without any executions.                                       |
 | `-q`                      | Do quiet mode without displaying warning & error, and exit code 0 means successful. |
 |                           |                                                                                     |
+| `--dot`                   | Display the dump by .dot format.                                                    |
 | `--with-native`           | Dump compiled code of a native function. Use with `-d`.                             |
 | `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.                   |
 | `--case-threshold`        | Specify the max interval between case's integer value. 16 by default.               |
@@ -232,6 +233,28 @@ Have fun with it!
 
 <p align="center"><img src="doc/utility/repl.gif" width="90%" /></p>
 
+### Output with Dot
+
+Kinx accepts `--dot` option for outputting by .dot format as below.
+
+```
+digraph fib {
+        node [fontname="Courier_New",fontsize=10,style="setlinewidth(0.1)",shape=record];
+        edge [fontname="Courier_New",fontsize=10,style="setlinewidth(0.1)"];
+        label="fib"
+        labelloc="t"
+        L2020 [label="{ \.L2020 | enter 19, vars(1), args(1) }"];
+        L2021 [label="{ \.L2021 | if $0(0) \>= 3 goto \.L2023 }"];
+        L2022 [label="{ \.L2022 | ret $0(0) }"];
+        L2023 [label="{ \.L2023 | sub_v0i $0(0), 2 | call $1(57), 1 | sub_v0i $0(0), 1 | call $1(57), 1 | add | ret }"];
+        L2020:s -> L2021:n;
+        L2021:s -> L2023:n;
+        L2021:s -> L2022:n;
+}
+```
+
+<p align="center"><img src="doc/fibkx.png" /></p>
+
 ### Extending Functionalities
 
 You can add the functionalities easily.
@@ -288,38 +311,6 @@ OpenSSL version is 3.0.0, which is not released officially but means the license
 
 Namespace is now available.
 See the example of [examples/namespacex.kx](examples/namespacex.kx)
-
-### Module
-
-`module` keyword will create a module to add some methods to a class instance additionally.
-To add methods, use `mixin` keyword in a class.
-This mechanism is useful for adding same methods to various classes.
-This means that the functionality itself can be separated from classes.
-
-See example below.
-the `this` in the `Printable` module means the instance of the class used `mixin`,
-which means the instance of the `Value` class by the example.
-
-```javascript
-module Printable {
-    public print() {
-        System.print(@value);
-    }
-    public println() {
-        System.println(@value);
-    }
-}
-
-class Value(v) {
-    mixin Printable;
-    private initialize() {
-        @value = v;
-    }
-}
-
-var v = new Value(100);
-v.println();    // 100
-```
 
 ### Type Property
 
