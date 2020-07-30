@@ -40,7 +40,7 @@ https://github.com/curl/curl
 3. Make it.
     ```
     $ mkdir dist
-    $ LDFLAGS="-Wl,-rpath,'\$\$ORIGIN'" ./configure --prefix=`pwd`/dist --with-zlib=/home/kazuya/github/minizip/dist/install/zlib --with-ssl=/home/kazuya/github/openssl/dist
+    $ LDFLAGS="-Wl,-rpath,'\$\$ORIGIN'" ./configure --prefix=`pwd`/dist --with-zlib=$(minizip)/dist/install/zlib --with-ssl=$(openssl)/dist
     $ make
     $ make install
     ```
