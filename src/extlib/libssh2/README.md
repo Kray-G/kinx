@@ -43,6 +43,24 @@ This repository has `libssh2.lib` and `libssh2.dll`, which is built by Visual St
     ```
     $ autoreconf -fi
     ```
+    > When OpenSSL is the version 3.0 alpha, please patch this for `src/openssl.c`.
+    ```
+    diff --git a/src/openssl.c b/src/openssl.c
+    index 65a6c17..8f40b18 100644
+    --- a/src/openssl.c
+    +++ b/src/openssl.c
+    @@ -427,10 +427,10 @@ _libssh2_cipher_crypt(_libssh2_cipher_ctx * ctx,
+     #else
+         ret = EVP_Cipher(ctx, buf, block, blocksize);
+     #endif
+    -    if(ret == 1) {
+    +    if(0 < ret) {
+             memcpy(block, buf, blocksize);
+         }
+    -    return ret == 1 ? 0 : 1;
+    +    return 0 < ret ? 0 : 1;
+     }
+    ```
 
 3. Build it.
     ```
