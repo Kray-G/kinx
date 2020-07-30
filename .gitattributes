@@ -4,6 +4,7 @@
 
 # exclude files in directories below from github stats
 src/extlib/libcurl/**   linguist-vendored
+src/extlib/libssh2/**   linguist-vendored
 src/extlib/libxml2/**   linguist-vendored
 src/extlib/onig/**      linguist-vendored
 src/extlib/openssl/**   linguist-vendored
