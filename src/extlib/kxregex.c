@@ -15,17 +15,7 @@ typedef struct regex_pack_ {
     OnigRegion *region;
 } regex_pack_t;
 
-#define KX_REGEX_GET_RPACK(r, obj) \
-regex_pack_t *r = NULL; \
-if (obj) { \
-    kx_val_t *val = NULL; \
-    KEX_GET_PROP(val, obj, "_pack"); \
-    if (!val || val->type != KX_ANY_T) { \
-        KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid Regex object"); \
-    } \
-    r = (regex_pack_t *)(val->value.av->p); \
-} \
-/**/
+#define KX_REGEX_GET_RPACK(r, obj) KX_GET_RAW(regex_pack_t, "_pack", r, obj, "RegexException", "Invalid Regex object")
 
 void Regex_initialize(void)
 {
