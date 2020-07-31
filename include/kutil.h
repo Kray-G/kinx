@@ -121,4 +121,37 @@ typedef struct fileinfo_ {
     uint8_t is_err:1;
 } fileinfo_t;
 
+void kx_timer(systemtimer_t *v)
+{
+    #if defined(_WIN32) || defined(_WIN64)
+    QueryPerformanceFrequency(&(v->freq));
+    QueryPerformanceCounter(&(v->start));
+    #else
+    gettimeofday(&(v->s), NULL);
+    #endif
+}
+
+void kx_restart(systemtimer_t *v)
+{
+    #if defined(_WIN32) || defined(_WIN64)
+    QueryPerformanceCounter(&(v->start));
+    #else
+    gettimeofday(&(v->s), NULL);
+    #endif
+}
+
+double kx_elapsed(systemtimer_t *v)
+{
+    #if defined(_WIN32) || defined(_WIN64)
+    LARGE_INTEGER end;
+    QueryPerformanceCounter(&end);
+    double elapsed = (double)(end.QuadPart - (v->start).QuadPart) / (v->freq).QuadPart;
+    #else
+    struct timeval e;
+    gettimeofday(&e, NULL);
+    double elapsed = (e.tv_sec - (v->s).tv_sec) + (e.tv_usec - (v->s).tv_usec) * 1.0e-6;
+    #endif
+    return elapsed;
+}
+
 #endif /* KX_KUTIL_H */
