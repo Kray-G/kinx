@@ -17,13 +17,17 @@
 
 *   Planned
     *   Support an iconv library.
-    *   Support libssh2 library.
     *   Support to read/write from/to Clipboard.
     *   Support Array of Double in native.
     *   Support Big Integer in native.
     *   User selectable installation.
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
+
+## V0.14.0 (Current development)
+
+*   Planned
+    *   Support libssh2 library.
 
 ## V0.13.1 (13th Preview Release)
 

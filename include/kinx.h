@@ -608,4 +608,19 @@ static int g_loaded = 0; \
 } \
 /**/
 
+#define KX_GET_RAW(rtype, name, r, obj, failex_type, failex_what) \
+rtype *r = NULL; \
+if (obj) { \
+    kx_val_t *val = NULL; \
+    KEX_GET_PROP(val, obj, name); \
+    if (!val || val->type != KX_ANY_T) { \
+        KX_THROW_BLTIN_EXCEPTION(failex_type, failex_what); \
+    } \
+    r = (rtype *)(val->value.av->p); \
+    if (!r) { \
+        KX_THROW_BLTIN_EXCEPTION(failex_type, failex_what); \
+    } \
+} \
+/**/
+
 #endif /* KX_KINX_H */
