@@ -93,7 +93,7 @@ typedef struct kx_curl_info_ {
 
 static void net_initialize(void)
 {
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl_global_init(CURL_GLOBAL_DEFAULT & ~CURL_GLOBAL_WIN32);
 }
 
 static void net_finalize(void)
