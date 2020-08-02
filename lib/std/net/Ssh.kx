@@ -9,10 +9,11 @@ var Ssh = (_function() {
 
         public setPrompt(prompt) {
             if (prompt.isRegex) {
-                return ssh_.setPrompt(prompt.pattern);
+                ssh_.setPrompt(prompt.pattern);
             } else {
-                return ssh_.setPrompt(prompt);
+                ssh_.setPrompt(prompt);
             }
+            return this;
         }
 
         public getFingerprint() {
@@ -21,6 +22,11 @@ var Ssh = (_function() {
 
         public getUserAuthList() {
             return ssh_.getUserAuthList();
+        }
+
+        public sendKeepAlive() {
+            ssh_.sendKeepAlive();
+            return this;
         }
 
         public open(f) {
@@ -39,23 +45,27 @@ var Ssh = (_function() {
         }
 
         public login(user, pass) {
-            return ssh_.login(user, pass);
+            ssh_.login(user, pass);
+            return this;
         }
 
         public logout() {
             ssh_.logout();
+            return this;
         }
 
         public print(...a) {
             a.each {
                 ssh_.send(_1);
             };
+            return this;
         }
 
         public println(...a) {
             a.each {
                 ssh_.send(_1 + '\n');
             };
+            return this;
         }
 
         public waitfor(pattern) {
