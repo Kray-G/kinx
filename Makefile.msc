@@ -118,6 +118,7 @@ SOFILES = \
     kxfile.dll \
     kxmath.dll \
     kxregex.dll \
+    kxssh.dll \
     kxsqlite.dll \
     kxnet.dll \
     kxxml.dll \
@@ -168,7 +169,7 @@ RCFILE = \
 .SUFFIXES :
 .SUFFIXES : .c .obj
 
-all: timex kinx zlib.dll libxml2.dll libssl-3.dll libcrypto-3.dll $(SOFILES) main_kxcmd
+all: timex kinx zlib.dll libxml2.dll libssh2.dll libssl-3.dll libcrypto-3.dll $(SOFILES) main_kxcmd
 
 lib: $(SOFILES)
 
@@ -194,7 +195,7 @@ main_kxcmd: src/main_kxcmd.c include/libkinx.h libkinx.dll $(RCFILE)
 	copy /y main_kxcmd.exe kxtest.exe
 
 libkinx.dll: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
-	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM)
+	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM) ws2_32.lib
 	lib.exe /OUT:kx.lib src\fileutil.obj
 
 kinx.res: kinx.rc
@@ -230,6 +231,9 @@ kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
 
+kxssh.dll: src/extlib/kxssh.c $(PICOBJS) onig.dll
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxssh.c $(PICOBJS) onig.lib src/extlib/libssh2/x64/vs2017/libssh2.lib ws2_32.lib
+
 kxsqlite.dll: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 
@@ -251,6 +255,9 @@ zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
 
 libxml2.dll:
 	copy /y src\extlib\libxml2\x64\vs2017\libxml2.dll libxml2.dll
+
+libssh2.dll:
+	copy /y src\extlib\libssh2\x64\vs2017\libssh2.dll libssh2.dll
 
 libssl-3.dll:
 	copy /y src\extlib\openssl\x64\vs2017\libssl-3.dll libssl-3.dll
