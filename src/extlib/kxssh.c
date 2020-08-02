@@ -38,9 +38,10 @@ typedef struct kxssh_ {
     int auth_pw;
     struct sockaddr_in sin;
     const char *fingerprint;
-    char *userauthlist;
-    char *prvkey;
-    char *pubkey;
+    uint8_t fpbin[20];
+    const char *userauthlist;
+    const char *prvkey;
+    const char *pubkey;
     LIBSSH2_SESSION *session;
     LIBSSH2_CHANNEL *channel;
     LIBSSH2_KNOWNHOSTS* knownhost;
@@ -487,6 +488,11 @@ int Ssh_open(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_THROW_BLTIN_EXCEPTION("SshException", "Failure establishing SSH session");
     }
     p->fingerprint = libssh2_hostkey_hash(p->session, LIBSSH2_HOSTKEY_HASH_SHA1);
+    if (p->fingerprint) {
+        for (int i = 0; i < 20; ++i) {
+            p->fpbin[i] = (uint8_t)p->fingerprint[i];
+        }
+    }
     libssh2_keepalive_config(p->session, 0, 2);
 
     KX_ADJST_STACK();
@@ -534,6 +540,7 @@ int Ssh_login(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (rc < 0 && !p->userauthlist) {
         KX_THROW_SSH_EXCEPTION(p);
     }
+    p->userauthlist = kx_const_str(ctx, p->userauthlist);
     p->auth_pw = 0;
     if (strstr(p->userauthlist, "password") != NULL) {
         p->auth_pw |= 1;
@@ -840,6 +847,67 @@ int Ssh_setPrompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Ssh_setPublicKey(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_SSH_GET_INFO(p, obj);
+
+    const char *str = get_arg_str(2, args, ctx);
+    if (str) {
+        p->pubkey = kx_const_str(ctx, str);
+    } else {
+        KX_THROW_BLTIN_EXCEPTION("SshException", "Invalid filename type");
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Ssh_setPrivateKey(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_SSH_GET_INFO(p, obj);
+
+    const char *str = get_arg_str(2, args, ctx);
+    if (str) {
+        p->prvkey = kx_const_str(ctx, str);
+    } else {
+        KX_THROW_BLTIN_EXCEPTION("SshException", "Invalid filename type");
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Ssh_getFingerprint(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_SSH_GET_INFO(p, obj);
+
+    kx_bin_t *bin = allocate_bin(ctx);
+    kv_resize(uint8_t, bin->bin, 20);
+    kv_shrinkto(bin->bin, 20);
+    for (int i = 0; i < 20; ++i) {
+        kv_A(bin->bin, i) = p->fpbin[i];
+    }
+
+    KX_ADJST_STACK();
+    push_bin(ctx->stack, bin);
+    return 0;
+}
+
+int Ssh_getUserAuthList(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_SSH_GET_INFO(p, obj);
+
+    KX_ADJST_STACK();
+    push_s(ctx->stack, p->userauthlist ? p->userauthlist : "");
+    return 0;
+}
+
 int Ssh_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = allocate_obj(ctx);
@@ -855,6 +923,10 @@ int Ssh_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_METHOD("readLine", obj, Ssh_readLine);
     KEX_SET_METHOD("waitfor", obj, Ssh_waitfor);
     KEX_SET_METHOD("setPrompt", obj, Ssh_setPrompt);
+    KEX_SET_METHOD("setPublicKey", obj, Ssh_setPublicKey);
+    KEX_SET_METHOD("setPrivateKey", obj, Ssh_setPrivateKey);
+    KEX_SET_METHOD("getFingerprint", obj, Ssh_getFingerprint);
+    KEX_SET_METHOD("getUserAuthList", obj, Ssh_getUserAuthList);
     KEX_SET_METHOD("sendKeepAlive", obj, Ssh_sendKeepAlive);
 
     KX_ADJST_STACK();
