@@ -454,6 +454,18 @@ int Ssh_open(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_SSH_GET_INFO(p, obj);
 
+    const char *ipaddr = get_arg_str(2, args, ctx);
+    if (!ipaddr) {
+        KX_THROW_BLTIN_EXCEPTION("SshException", "Needs ip address to connect");
+    }
+    p->hostaddr = inet_addr(ipaddr);
+    const char *port = get_arg_str(3, args, ctx);
+    if (port) {
+        p->port = strtol(port, NULL, 0);
+    } else {
+        p->port = 22;
+    }
+
     if (!connect_with_timeout(p)) {
         KX_THROW_BLTIN_EXCEPTION("SshException", "Failed to connect");
     }
@@ -819,6 +831,8 @@ int Ssh_setPrompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const char *str = get_arg_str(2, args, ctx);
     if (str) {
         kx_reg_compile_find(p, str);
+    } else {
+        KX_THROW_BLTIN_EXCEPTION("SshException", "Invalid prompt type");
     }
 
     KX_ADJST_STACK();
