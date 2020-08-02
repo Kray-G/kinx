@@ -1,0 +1,67 @@
+
+namespace Net {
+
+var Ssh = (_function() {
+    var SshBase = _import('kxssh');
+
+    _class Ssh(ip_) {
+        var ssh_ = new SshBase();
+
+        public setPrompt(prompt) {
+            if (prompt.isRegex) {
+                return ssh_.setPrompt(prompt.pattern);
+            } else {
+                return ssh_.setPrompt(prompt);
+            }
+        }
+
+        public open(f) {
+            ssh_.open(ip_);
+            if (f.isFunction) {
+                try {
+                    f(this);
+                } finally {
+                    ssh_.close();
+                }
+            }
+        }
+
+        public close() {
+            ssh_.close();
+        }
+
+        public login(user, pass) {
+            return ssh_.login(user, pass);
+        }
+
+        public logout() {
+            ssh_.logout();
+        }
+
+        public print(...a) {
+            a.each {
+                ssh_.send(_1);
+            };
+        }
+
+        public println(...a) {
+            a.each {
+                ssh_.send(_1 + '\n');
+            };
+        }
+
+        public waitfor(pattern) {
+            if (pattern.isString) {
+                return ssh_.waitfor(pattern);
+            } else if (pattern.isRegex) {
+                return ssh_.waitfor(pattern.pattern);
+            }
+            return ssh_.waitfor();
+        }
+    }
+
+    return Ssh;
+})();
+
+} // namespace Net
+
