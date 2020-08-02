@@ -1,0 +1,15 @@
+using net.Ssh;
+
+var [, user, pass] = $$;
+
+var ssh = new Net.Ssh("127.0.0.1");
+ssh.open { &(con):
+    con.login(user, pass);
+
+    con.println("ls");
+    var mes = con.waitfor();
+    System.println(mes);
+
+    con.logout();
+};
+
