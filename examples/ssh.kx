@@ -1,0 +1,18 @@
+using net.Ssh;
+
+var [, user, pass] = $$;
+
+var ssh = new Net.Ssh("127.0.0.1");
+ssh.open { &(con):
+    System.println("Fingerprint: ", con.getFingerprint());
+
+    con.login(user, pass);
+    System.println("UserAuthList: ", con.getUserAuthList());
+
+    con.println("ls -lha");
+    var mes = con.waitfor();
+    System.println(mes);
+
+    con.logout();
+};
+
