@@ -157,6 +157,15 @@ DllExport int do_main(int ac, char **av)
         return 1;
     }
 
+    #if defined(_WIN32) || defined(_WIN64)
+    WSADATA wsadata;
+    int err = WSAStartup(MAKEWORD(2, 0), &wsadata);
+    if (err != 0) {
+        fprintf(stderr, "WSAStartup failed with error: %d\n", err);
+        return;
+    }
+    #endif
+
     kx_context_t *ctx = make_context();
     g_main_thread = ctx;
     char lname[LONGNAME_MAX] = {0};
@@ -329,6 +338,10 @@ CLEANUP:
     free_nodes();
     pthread_mutex_destroy(&g_mutex);
     alloc_finalize();
+
+    #if defined(_WIN32) || defined(_WIN64)
+    WSACleanup();
+    #endif
     return r;
 }
 
