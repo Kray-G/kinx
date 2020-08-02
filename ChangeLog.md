@@ -26,8 +26,8 @@
 
 ## V0.14.0 (Current development)
 
-*   Planned
-    *   Support libssh2 library.
+*   Updated
+    *   Supported SSH & libssh2 library.
 
 ## V0.13.1 (13th Preview Release)
 
