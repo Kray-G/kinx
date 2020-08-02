@@ -129,6 +129,7 @@ SOFILES = \
     kxsqlite.so \
     kxnet.so \
     kxxml.so \
+    kxssh.so \
     kxjit.so \
     kxprocess.so
 PICOBJS = \
@@ -196,6 +197,7 @@ install:
 	cp -f kxstring.so /usr/bin/kinxlib/
 	cp -f kxsystem.so /usr/bin/kinxlib/
 	cp -f kxxml.so /usr/bin/kinxlib/
+	cp -f kxssh.so /usr/bin/kinxlib/
 	cp -f kxjit.so /usr/bin/kinxlib/
 	cp -f kxprocess.so /usr/bin/kinxlib/
 	cp -f libcrypto.so.3 /usr/bin/kinxlib/
@@ -257,10 +259,13 @@ kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o -pthread
 
 kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so.3 libcrypto.so.3
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libcurl/x64/gcc/libcurl.a src/extlib/openssl/x64/gcc/libssl.a src/extlib/openssl/x64/gcc/libcrypto.a src/extlib/zip/x64/gcc/libminizip.a -pthread -ldl -L. -lz
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libcurl/x64/gcc/libcurl.a src/extlib/zip/x64/gcc/libminizip.a -pthread -ldl -Wl,-rpath,'$$ORIGIN' -L. -lz -lcrypto -lssl
 
 kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libxml2/include/libxml2 src/extlib/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+
+kxssh.so: src/extlib/kxssh.c $(PICOBJS) libssl.so.3 libcrypto.so.3
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libssh2/x64/gcc/libssh2.a -Wl,-rpath,'$$ORIGIN' -L. -lonig -pthread -lcrypto
 
 kxprocess.so: src/extlib/kxprocess.c $(PICOBJS)
 	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
