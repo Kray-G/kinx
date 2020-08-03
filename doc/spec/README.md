@@ -160,6 +160,7 @@ Basic objects are the list of components usually used in many products.
 The functionality is very simple but powerful, so a lot of developpers will use those naturally.
 
 *   [System](lib/basic/system.md) - *not documented yet*
+*   [System](lib/basic/iconv.md)
 *   [Math](lib/basic/math.md) - *not documented yet*
 *   [File](lib/basic/file.md) - *not documented yet*
 *   [Directory](lib/basic/directory.md) - *not documented yet*
