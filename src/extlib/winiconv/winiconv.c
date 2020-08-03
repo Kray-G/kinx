@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <kxiconv.h>
 
 #ifdef __GNUC__
 #define UNUSED __attribute__((unused))
