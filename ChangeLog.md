@@ -16,7 +16,6 @@
 ## V1.0.0 (Planned)
 
 *   Planned
-    *   Support an iconv library.
     *   Support to read/write from/to Clipboard.
     *   Support Array of Double in native.
     *   Support Big Integer in native.
@@ -28,6 +27,9 @@
 
 *   Updated
     *   Supported SSH & libssh2 library.
+    *   Supported an iconv library.
+    *   Supported `"\uXXXX"` as Unicode Code Point in a string literal.
+    *   Some bug fixes and improvement.
 
 ## V0.13.1 (13th Preview Release)
 
