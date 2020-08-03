@@ -92,3 +92,24 @@ Binary.[] = _function(bin, obj) {
     }
     throw RuntimeException('Invalid index for Binary');
 };
+
+Binary.== = _function(bin, rhs) {
+    if (!rhs.isBinary) {
+        return false;
+    }
+    var bl = bin.length();
+    var rl = rhs.length();
+    if (bl != rl) {
+        return false;
+    }
+    for (var i = 0; i < bl; ++i) {
+        if (bin[i] != rhs[i]) {
+            return false;
+        }
+    }
+    return true;
+};
+
+Binary.!= = _function(bin, rhs) {
+    return !(bin == rhs);
+};
