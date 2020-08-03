@@ -4,6 +4,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 
+#define GLIB_COMPILATION 1
 #ifndef WINICONV_CONST
 # ifdef ICONV_CONST
 #  define WINICONV_CONST ICONV_CONST
