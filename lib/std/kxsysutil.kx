@@ -122,3 +122,25 @@ Clib.setFunction = _function(name, kc, addr) {
 };
 
 Clib.loadSharedLibrary =  System.loadSharedLibrary;
+
+# ICONV
+
+_class _Iconv(tocode, fromcode) {
+    var bin_ = false;
+    private initialize() {
+        if (tocode.from && fromcode.isUndefined) {
+            fromcode = tocode.from;
+            tocode = tocode.to;
+        }
+    }
+    public binmode(tf) {
+        bin_ = tf ?? true;
+        return this;
+    }
+    public convert(input) {
+        if (bin_) {
+            return System.iconvConvertBin(tocode, fromcode, input);
+        }
+        return System.iconvConvertStr(tocode, fromcode, input);
+    }
+}

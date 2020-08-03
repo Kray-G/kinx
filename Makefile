@@ -225,38 +225,38 @@ main_kxcmd: src/main_kxcmd.c libkinx.so
 	cp -f main_kxcmd kxtest
 
 libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
 	ar rcs libkx.a fileutil.o
 
 kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-json.o $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)  kc-json.o
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o
 
 kxstring.so: src/extlib/kxstring.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxbinary.so: src/extlib/kxbinary.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxinteger.so: src/extlib/kxinteger.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxdouble.so: src/extlib/kxdouble.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxarray.so: src/extlib/kxarray.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxfile.so: src/extlib/kxfile.c $(PICOBJS) libz.so
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
 kxmath.so: src/extlib/kxmath.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -lm
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -lm
 
 kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN' -L. -lonig
 
 kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o -pthread
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o -pthread
 
 kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so.3 libcrypto.so.3
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libcurl/x64/gcc/libcurl.a src/extlib/zip/x64/gcc/libminizip.a -pthread -ldl -Wl,-rpath,'$$ORIGIN' -L. -lz -lcrypto -lssl
@@ -268,10 +268,10 @@ kxssh.so: src/extlib/kxssh.c $(PICOBJS) libssl.so.3 libcrypto.so.3
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libssh2/x64/gcc/libssh2.a -Wl,-rpath,'$$ORIGIN' -L. -lonig -pthread -lcrypto
 
 kxprocess.so: src/extlib/kxprocess.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxjit.so: src/extlib/kxjit.c $(PICOBJS)
-	./timex $(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(DISASM) ir_aotcore.o
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(DISASM) ir_aotcore.o
 
 libz.so: libz.so.1
 	ln -s libz.so.1 libz.so
