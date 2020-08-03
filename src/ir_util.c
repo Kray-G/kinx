@@ -1570,6 +1570,13 @@ kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cu
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_EQEQ_OP_NAME); \
         if (fn) { \
@@ -1606,6 +1613,13 @@ kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cu
         double bd = BzToDouble(val); \
         (v1)->value.iv = fabs(dv - bd) < DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -1647,6 +1661,13 @@ kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cu
         double dval = val; \
         (v1)->value.iv = fabs(dv - dval) < DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -1693,6 +1714,13 @@ kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cu
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_EQEQ_OP_NAME); \
         if (fn) { \
@@ -1730,6 +1758,13 @@ kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_code_t *cu
     } \
     case KX_STR_T: { \
         KX_EQEQ_EQEQ_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_EQEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -1835,6 +1870,13 @@ kx_fnc_t *kx_try_eqeq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_NEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_NEQ_OP_NAME); \
         if (fn) { \
@@ -1871,6 +1913,13 @@ kx_fnc_t *kx_try_eqeq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         double bd = BzToDouble(val); \
         (v1)->value.iv = fabs(dv - bd) >= DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_NEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -1912,6 +1961,13 @@ kx_fnc_t *kx_try_eqeq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         double dval = val; \
         (v1)->value.iv = fabs(dv - dval) >= DBL_EPSILON; \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_NEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -1965,6 +2021,13 @@ kx_fnc_t *kx_try_eqeq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_NEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_NEQ_OP_NAME); \
         if (fn) { \
@@ -2002,6 +2065,13 @@ kx_fnc_t *kx_try_eqeq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_STR_T: { \
         KX_NEQ_NEQ_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_NEQ_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2107,6 +2177,13 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LGE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LGE_OP_NAME); \
         if (fn) { \
@@ -2142,6 +2219,13 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         double bd = BzToDouble(val); \
         (v1)->value.iv = ((fabs(dv - bd) < DBL_EPSILON) ? 0 : ((dv < bd) ? -1 : 1)); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LGE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2183,6 +2267,13 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         double dval = val; \
         (v1)->value.iv = ((fabs(dv - dval) < DBL_EPSILON) ? 0 : ((dv < dval) ? -1 : 1)); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LGE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2242,6 +2333,13 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LGE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LGE_OP_NAME); \
         if (fn) { \
@@ -2279,6 +2377,13 @@ kx_fnc_t *kx_try_neq_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_STR_T: { \
         KX_LGE_LGE_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LGE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2364,6 +2469,13 @@ kx_fnc_t *kx_try_lge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LE_OP_NAME); \
         if (fn) { \
@@ -2401,6 +2513,13 @@ kx_fnc_t *kx_try_lge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LE_OP_NAME); \
         if (fn) { \
@@ -2432,6 +2551,13 @@ kx_fnc_t *kx_try_lge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     case KX_DBL_T: { \
         (v1)->value.iv = (v1)->value.dv <= (val); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2485,6 +2611,13 @@ kx_fnc_t *kx_try_lge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LE_OP_NAME); \
         if (fn) { \
@@ -2512,6 +2645,13 @@ kx_fnc_t *kx_try_lge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_DBL_T: { \
         KX_LE_LE_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2597,6 +2737,13 @@ kx_fnc_t *kx_try_le_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LT_OP_NAME); \
         if (fn) { \
@@ -2634,6 +2781,13 @@ kx_fnc_t *kx_try_le_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LT_OP_NAME); \
         if (fn) { \
@@ -2665,6 +2819,13 @@ kx_fnc_t *kx_try_le_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     case KX_DBL_T: { \
         (v1)->value.iv = (v1)->value.dv < (val); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2718,6 +2879,13 @@ kx_fnc_t *kx_try_le_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_LT_OP_NAME); \
         if (fn) { \
@@ -2745,6 +2913,13 @@ kx_fnc_t *kx_try_le_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     } \
     case KX_DBL_T: { \
         KX_LT_LT_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_LT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2830,6 +3005,13 @@ kx_fnc_t *kx_try_lt_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_GE_OP_NAME); \
         if (fn) { \
@@ -2867,6 +3049,13 @@ kx_fnc_t *kx_try_lt_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_GE_OP_NAME); \
         if (fn) { \
@@ -2898,6 +3087,13 @@ kx_fnc_t *kx_try_lt_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     case KX_DBL_T: { \
         (v1)->value.iv = (v1)->value.dv >= (val); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -2951,6 +3147,13 @@ kx_fnc_t *kx_try_lt_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_GE_OP_NAME); \
         if (fn) { \
@@ -2978,6 +3181,13 @@ kx_fnc_t *kx_try_lt_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     } \
     case KX_DBL_T: { \
         KX_GE_GE_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GE_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -3063,6 +3273,13 @@ kx_fnc_t *kx_try_ge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_GT_OP_NAME); \
         if (fn) { \
@@ -3100,6 +3317,13 @@ kx_fnc_t *kx_try_ge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_GT_OP_NAME); \
         if (fn) { \
@@ -3131,6 +3355,13 @@ kx_fnc_t *kx_try_ge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     case KX_DBL_T: { \
         (v1)->value.iv = (v1)->value.dv > (val); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -3184,6 +3415,13 @@ kx_fnc_t *kx_try_ge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_GT_OP_NAME); \
         if (fn) { \
@@ -3211,6 +3449,13 @@ kx_fnc_t *kx_try_ge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     } \
     case KX_DBL_T: { \
         KX_GT_GT_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_GT_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -3375,6 +3620,13 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         ks_appendf((v1)->value.sv, "%"PRId64, val); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         kstr_t *out = kx_format(v1); \
         if (out) { \
@@ -3435,6 +3687,13 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
         BzFreeString(buf); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         kstr_t *out = kx_format(v1); \
         if (out) { \
@@ -3488,6 +3747,13 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
     } \
     case KX_STR_T: { \
         ks_appendf((v1)->value.sv, "%g", val); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -3552,6 +3818,13 @@ int kx_try_add_v2obj(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
     } \
     case KX_STR_T: { \
         ks_append((v1)->value.sv, val); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_ADD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -3732,6 +4005,13 @@ kx_fnc_t *kx_try_add_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.dv -= (val); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SUB_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_SUB_OP_NAME); \
         if (fn) { \
@@ -3769,6 +4049,13 @@ kx_fnc_t *kx_try_add_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.dv -= BzToDouble(val); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SUB_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_SUB_OP_NAME); \
         if (fn) { \
@@ -3799,6 +4086,13 @@ kx_fnc_t *kx_try_add_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_DBL_T: { \
         (v1)->value.dv -= (val); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SUB_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -3837,6 +4131,13 @@ kx_fnc_t *kx_try_add_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_DBL_T: { \
         KX_SUB_SUB_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SUB_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -3941,6 +4242,13 @@ kx_fnc_t *kx_try_sub_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MUL_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_MUL_OP_NAME); \
         if (fn) { \
@@ -3976,6 +4284,13 @@ kx_fnc_t *kx_try_sub_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_DBL_T: { \
         (v1)->value.dv *= BzToDouble(val); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MUL_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -4033,6 +4348,13 @@ kx_fnc_t *kx_try_sub_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MUL_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_MUL_OP_NAME); \
         if (fn) { \
@@ -4073,6 +4395,13 @@ kx_fnc_t *kx_try_sub_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         } \
         (v1)->value.sv = s; \
         (v1)->type = KX_STR_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MUL_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -4116,6 +4445,13 @@ kx_fnc_t *kx_try_sub_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_STR_T: { \
         KX_MUL_MUL_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MUL_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -4249,6 +4585,13 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T : { \
         fn = kx_get_object_operator_function(ctx, v1, KX_DIV_OP_NAME); \
         if (fn) { \
@@ -4323,6 +4666,13 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T : { \
         fn = kx_get_object_operator_function(ctx, v1, KX_DIV_OP_NAME); \
         if (fn) { \
@@ -4378,6 +4728,13 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         ks_trim_right_char(s, '/'); \
         ks_appendf(s, "/%g", val); \
         (v1)->value.sv = s; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T : { \
@@ -4453,6 +4810,13 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.sv = s; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T : { \
         fn = kx_get_object_operator_function(ctx, v1, KX_DIV_OP_NAME); \
         if (fn) { \
@@ -4493,6 +4857,13 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_STR_T: { \
         KX_DIV_DIV_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_DIV_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -4595,6 +4966,13 @@ kx_fnc_t *kx_try_div_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.ov = obj; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MOD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         kx_obj_t *obj = (v1)->value.ov; \
         kx_val_t *v = NULL; \
@@ -4665,6 +5043,13 @@ kx_fnc_t *kx_try_div_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.ov = obj; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MOD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         kx_obj_t *obj = (v1)->value.ov; \
         kx_val_t *v = NULL; \
@@ -4720,6 +5105,13 @@ kx_fnc_t *kx_try_div_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         (v1)->value.ov = obj; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MOD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         kx_obj_t *obj = (v1)->value.ov; \
         kx_val_t *v = NULL; \
@@ -4750,6 +5142,13 @@ kx_fnc_t *kx_try_div_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         KEX_PUSH_ARRAY_CSTR(obj, val); \
         (v1)->type = KX_OBJ_T; \
         (v1)->value.ov = obj; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MOD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -4798,6 +5197,13 @@ kx_fnc_t *kx_try_div_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_STR_T: { \
         KX_MOD_MOD_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_MOD_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -4893,6 +5299,13 @@ kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         } \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SHL_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T : { \
         fn = kx_get_object_operator_function(ctx, v1, KX_SHL_OP_NAME); \
         if (fn) { \
@@ -4932,6 +5345,13 @@ kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
     } \
     case KX_DBL_T: { \
         KX_SHL_SHL_I(v1, (int64_t)v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SHL_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -5006,6 +5426,13 @@ kx_fnc_t *kx_try_shl_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         } \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SHR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T : { \
         fn = kx_get_object_operator_function(ctx, v1, KX_SHR_OP_NAME); \
         if (fn) { \
@@ -5045,6 +5472,13 @@ kx_fnc_t *kx_try_shl_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_DBL_T: { \
         KX_SHR_SHR_I(v1, (int64_t)v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_SHR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -5119,6 +5553,13 @@ kx_fnc_t *kx_try_shr_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_AND_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_AND_OP_NAME); \
         if (fn) { \
@@ -5158,6 +5599,13 @@ kx_fnc_t *kx_try_shr_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_AND_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_AND_OP_NAME); \
         if (fn) { \
@@ -5191,6 +5639,13 @@ kx_fnc_t *kx_try_shr_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     case KX_DBL_T: { \
         (v1)->value.iv = (int64_t)((v1)->value.dv) & (int64_t)(val); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_AND_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -5232,6 +5687,13 @@ kx_fnc_t *kx_try_shr_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_DBL_T: { \
         KX_AND_AND_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_AND_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -5309,6 +5771,13 @@ kx_fnc_t *kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_OR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_OR_OP_NAME); \
         if (fn) { \
@@ -5348,6 +5817,13 @@ kx_fnc_t *kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_OR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_OR_OP_NAME); \
         if (fn) { \
@@ -5381,6 +5857,13 @@ kx_fnc_t *kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     case KX_DBL_T: { \
         (v1)->value.iv = (int64_t)((v1)->value.dv) | (int64_t)(val); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_OR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -5423,6 +5906,13 @@ kx_fnc_t *kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_DBL_T: { \
         KX_OR_OR_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_OR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -5500,6 +5990,13 @@ kx_fnc_t *kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         (v1)->type = KX_INT_T; \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_XOR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_XOR_OP_NAME); \
         if (fn) { \
@@ -5539,6 +6036,13 @@ kx_fnc_t *kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         KX_BIGINT_CHKINT(v1); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_XOR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
     case KX_OBJ_T: { \
         fn = kx_get_object_operator_function(ctx, v1, KX_XOR_OP_NAME); \
         if (fn) { \
@@ -5572,6 +6076,13 @@ kx_fnc_t *kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     case KX_DBL_T: { \
         (v1)->value.iv = (int64_t)((v1)->value.dv) ^ (int64_t)(val); \
         (v1)->type = KX_INT_T; \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_XOR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
@@ -5614,6 +6125,13 @@ kx_fnc_t *kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     } \
     case KX_DBL_T: { \
         KX_XOR_XOR_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_XOR_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
         break; \
     } \
     case KX_OBJ_T: { \
