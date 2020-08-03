@@ -8,6 +8,30 @@ static inline const char *east_asian_width_code(int64_t c);
 #define utf8_length(c) (utf8bytes[c & 0xff])
 #define is_utf8_trail(c) (0x80 <= (c) && (c) <= 0xbf)
 
+static inline unsigned char *codepoint2utf8(unsigned char buf[], unsigned int cp) 
+{
+    if (cp < 0x80) {
+        buf[0] = cp;
+        buf[1] = '\0';
+    } else if (cp < 0x800) {
+        buf[0] = cp >> 6 | 0xc0;
+        buf[1] = (cp & 0x3f) | 0x80;
+        buf[2] = '\0';
+    } else if (cp < 0xd800 || (0xdfff < cp && cp < 0x10000)) {
+        buf[0] = cp >> 12 | 0xe0;
+        buf[1] = (cp >> 6 & 0x3f) | 0x80;
+        buf[2] = (cp & 0x3f) | 0x80;
+        buf[3] = '\0';
+    } else if (cp < 0x10ffff) {
+        buf[0] = cp >> 18 | 0xf0;
+        buf[1] = (cp >> 12 & 0x3f) | 0x80;
+        buf[2] = (cp >> 6 & 0x3f) | 0x80;
+        buf[3] = (cp & 0x3f) | 0x80;
+        buf[4] = '\0';
+    }
+    return buf;
+}
+
 static inline unsigned int utf82codepoint(const unsigned char *str, unsigned int len, unsigned int *cur)
 {
     unsigned int pos = cur ? *cur : 0;
