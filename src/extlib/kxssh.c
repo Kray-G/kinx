@@ -887,7 +887,7 @@ int Ssh_getFingerprint(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     KX_SSH_GET_INFO(p, obj);
 
     kx_bin_t *bin = allocate_bin(ctx);
-    kv_resize(uint8_t, bin->bin, 20);
+    kv_resize_if(uint8_t, bin->bin, 20);
     kv_shrinkto(bin->bin, 20);
     for (int i = 0; i < 20; ++i) {
         kv_A(bin->bin, i) = p->fpbin[i];
