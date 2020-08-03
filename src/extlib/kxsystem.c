@@ -1719,7 +1719,7 @@ int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function address");
 }
 
-char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *input, int inputlen, int *outlenp)
+char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *input, int inputlen, int *inleftp, int *outlenp)
 {
     size_t inleft, outleft;
     int64_t converted = 0;
@@ -1766,13 +1766,16 @@ char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *inp
     iconv(cd, NULL, NULL, &outbuf, &outleft);
     iconv_close(cd);
     memset(outbuf, 0, 4);
+    if (inleftp) {
+        *inleftp = inleft;
+    }
     if (outlenp) {
         *outlenp = outbuf - output;
     }
     return output;
 }
 
-int System_iconvstr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static int System_iconv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, int bin)
 {
     const char *tocode = get_arg_str(1, args, ctx);
     if (!tocode) {
@@ -1784,72 +1787,57 @@ int System_iconvstr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     char *output;
-    int outlen = 0;
+    int outlen = 0, inleft = 0;
     kx_val_t val = kv_last_by(ctx->stack, 3);
     switch (val.type) {
     case KX_CSTR_T:
-        output = kx_convert_iconv(tocode, fromcode, val.value.pv, strlen(val.value.pv), &outlen);
+        output = kx_convert_iconv(tocode, fromcode, val.value.pv, strlen(val.value.pv), &inleft, &outlen);
         break;
     case KX_STR_T:
-        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), ks_length(val.value.sv), &outlen);
+        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), ks_length(val.value.sv), &inleft, &outlen);
         break;
     case KX_BIN_T:
-        output = kx_convert_iconv(tocode, fromcode, &kv_head(val.value.bn->bin), kv_size(val.value.bn->bin), &outlen);
+        output = kx_convert_iconv(tocode, fromcode, &kv_head(val.value.bn->bin), kv_size(val.value.bn->bin), &inleft, &outlen);
         break;
     }
-    if (!output || outlen == 0) {
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Converting failed");
+    if (!output || inleft != 0) {
+        if (errno == EILSEQ) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "An invalid multibyte sequence has been encountered in the input");
+        } else if (errno != 0) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", strerror(errno));
+        } else {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Converting failed");
+        }
     }
 
+    if (bin) {
+        kx_bin_t *bn = allocate_bin(ctx);
+        kv_resize_if(uint8_t, bn->bin, outlen);
+        kv_shrinkto(bn->bin, outlen);
+        for (int i = 0; i < outlen; ++i) {
+            kv_A(bn->bin, i) = output[i];
+        }
+        kx_free(output);
+        KX_ADJST_STACK();
+        push_bin(ctx->stack, bn);
+        return 0;
+    }
     kstr_t *sv = allocate_str(ctx);
     ks_append(sv, output);
     kx_free(output);
-
     KX_ADJST_STACK();
     push_sv(ctx->stack, sv);
     return 0;
 }
 
+int System_iconvstr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return System_iconv(args, frmv, lexv, ctx, 0);
+}
+
 int System_iconvbin(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    const char *tocode = get_arg_str(1, args, ctx);
-    if (!tocode) {
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "No the encoding name after converting");
-    }
-    const char *fromcode = get_arg_str(2, args, ctx);
-    if (!fromcode) {
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "No the encoding name before converting");
-    }
-
-    char *output;
-    int outlen = 0;
-    kx_val_t val = kv_last_by(ctx->stack, 3);
-    switch (val.type) {
-    case KX_CSTR_T:
-        output = kx_convert_iconv(tocode, fromcode, val.value.pv, strlen(val.value.pv), &outlen);
-        break;
-    case KX_STR_T:
-        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), ks_length(val.value.sv), &outlen);
-        break;
-    case KX_BIN_T:
-        output = kx_convert_iconv(tocode, fromcode, &kv_head(val.value.bn->bin), kv_size(val.value.bn->bin), &outlen);
-        break;
-    }
-    if (!output || outlen == 0) {
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Converting failed");
-    }
-
-    kx_bin_t *bn = allocate_bin(ctx);
-    kv_resize_if(uint8_t, bn->bin, outlen);
-    kv_shrinkto(bn->bin, outlen);
-    for (int i = 0; i < outlen; ++i) {
-        kv_A(bn->bin, i) = output[i];
-    }
-    kx_free(output);
-
-    KX_ADJST_STACK();
-    push_bin(ctx->stack, bn);
-    return 0;
+    return System_iconv(args, frmv, lexv, ctx, 1);
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
