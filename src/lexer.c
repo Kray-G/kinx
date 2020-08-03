@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <parser.h>
 #include <kxalloc.h>
+#include <kxutf8.h>
 
 #define POSMAX ((KX_BUF_MAX)-128)
 static char kx_strbuf[KX_BUF_MAX] = {0};
@@ -335,6 +336,49 @@ static int kx_lex_make_string(char quote)
                     kx_yywarning("Invalid character in string literal");
                     move_next = 0;
                 }
+                break;
+            }
+            case 'u': {
+                kx_lex_next(kx_lexinfo);
+                int c1 = kx_lexinfo.ch;
+                if (!is_hex_number(c1)) {
+                    kx_yywarning("Invalid unicode point in string literal");
+                    move_next = 0;
+                    break;
+                }
+                kx_lex_next(kx_lexinfo);
+                int c2 = kx_lexinfo.ch;
+                if (!is_hex_number(c2)) {
+                    kx_yywarning("Invalid unicode point in string literal");
+                    move_next = 0;
+                    break;
+                }
+                kx_lex_next(kx_lexinfo);
+                int c3 = kx_lexinfo.ch;
+                if (!is_hex_number(c3)) {
+                    kx_yywarning("Invalid unicode point in string literal");
+                    move_next = 0;
+                    break;
+                }
+                kx_lex_next(kx_lexinfo);
+                int c4 = kx_lexinfo.ch;
+                if (!is_hex_number(c4)) {
+                    kx_yywarning("Invalid unicode point in string literal");
+                    move_next = 0;
+                    break;
+                }
+                char buf[] = { c1, c2, c3, c4, 0 };
+                unsigned int cp = strtol(buf, NULL, 16);
+                unsigned char code[8] = {0};
+                codepoint2utf8(code, cp);
+                unsigned char p = 0;
+                for (unsigned char *c = code; *c != 0; ++c) {
+                    if (p > 0) {
+                        kx_strbuf[pos++] = p;
+                    }
+                    p = *c;
+                }
+                kx_lexinfo.ch = p;
                 break;
             }
             default:
