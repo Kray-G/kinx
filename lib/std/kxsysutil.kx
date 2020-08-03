@@ -134,7 +134,7 @@ _class _Iconv(tocode, fromcode) {
         }
     }
     public binmode(tf) {
-        bin_ = tf;
+        bin_ = tf ?? true;
         return this;
     }
     public convert(input) {
