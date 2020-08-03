@@ -1719,7 +1719,7 @@ int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function address");
 }
 
-char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *input, int *outlenp)
+char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *input, int inputlen, int *outlenp)
 {
     size_t inleft, outleft;
     int64_t converted = 0;
@@ -1731,7 +1731,7 @@ char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *inp
     if ((cd = iconv_open(tocode, fromcode)) == (iconv_t)-1) {
         return NULL;
     }
-    inleft = strlen(input);
+    inleft = inputlen;
     inbuf = input;
     outlen = inleft * 2 + 8;
     if (!(output = kx_calloc(outlen + 4, sizeof(char)))) {  /* additional 4 bytes means null termination */
@@ -1788,13 +1788,13 @@ int System_iconvstr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_val_t val = kv_last_by(ctx->stack, 3);
     switch (val.type) {
     case KX_CSTR_T:
-        output = kx_convert_iconv(tocode, fromcode, val.value.pv, &outlen);
+        output = kx_convert_iconv(tocode, fromcode, val.value.pv, strlen(val.value.pv), &outlen);
         break;
     case KX_STR_T:
-        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), ks_length(val.value.sv), &outlen);
         break;
     case KX_BIN_T:
-        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        output = kx_convert_iconv(tocode, fromcode, &kv_head(val.value.bn->bin), kv_size(val.value.bn->bin), &outlen);
         break;
     }
     if (!output || outlen == 0) {
@@ -1826,13 +1826,13 @@ int System_iconvbin(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_val_t val = kv_last_by(ctx->stack, 3);
     switch (val.type) {
     case KX_CSTR_T:
-        output = kx_convert_iconv(tocode, fromcode, val.value.pv, &outlen);
+        output = kx_convert_iconv(tocode, fromcode, val.value.pv, strlen(val.value.pv), &outlen);
         break;
     case KX_STR_T:
-        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), ks_length(val.value.sv), &outlen);
         break;
     case KX_BIN_T:
-        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        output = kx_convert_iconv(tocode, fromcode, &kv_head(val.value.bn->bin), kv_size(val.value.bn->bin), &outlen);
         break;
     }
     if (!output || outlen == 0) {
