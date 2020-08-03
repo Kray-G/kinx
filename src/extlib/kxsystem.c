@@ -8,6 +8,7 @@
 #include <kutil.h>
 #include <kxutf8.h>
 #include <kxthread.h>
+#include <kxiconv.h>
 #include "kc-json/kc-json.h"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -823,7 +824,7 @@ static int System_convType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     }
     case KX_OBJ_T: {
         kstr_t *out = kx_format(&val);
-        if (!out) {   
+        if (!out) {
             kx_obj_t *obj = val.value.ov;
             if (kv_size(obj->ary) > 0) {
                 kstr_t *sv = allocate_str(ctx);
@@ -1718,6 +1719,139 @@ int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function address");
 }
 
+char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *input, int *outlenp)
+{
+    size_t inleft, outleft;
+    int64_t converted = 0;
+    char *output, *outbuf, *temp;
+    const char *inbuf;
+    size_t outlen;
+    iconv_t cd;
+
+    if ((cd = iconv_open(tocode, fromcode)) == (iconv_t)-1) {
+        return NULL;
+    }
+    inleft = strlen(input);
+    inbuf = input;
+    outlen = inleft * 2 + 8;
+    if (!(output = kx_calloc(outlen + 4, sizeof(char)))) {  /* additional 4 bytes means null termination */
+        iconv_close(cd);
+        return NULL;
+    }
+
+    do {
+        errno = 0;
+        outbuf = output + converted;
+        outleft = outlen - converted;
+        converted = iconv(cd, (char **)&inbuf, &inleft, &outbuf, &outleft);
+        if ((iconv_t)converted != (iconv_t)-1 || errno == EINVAL) {
+            break;
+        }
+        if (errno != E2BIG) {
+            iconv_close(cd);
+            kx_free(output);
+            return NULL;
+        }
+        converted = outbuf - output;
+        outlen += inleft * 2 + 8;
+        if (!(temp = kx_realloc(output, outlen + 4))) {
+            iconv_close(cd);
+            kx_free(output);
+            return NULL;
+        }
+        output = temp;
+        outbuf = output + converted;
+    } while (1);
+
+    iconv(cd, NULL, NULL, &outbuf, &outleft);
+    iconv_close(cd);
+    memset(outbuf, 0, 4);
+    if (outlenp) {
+        *outlenp = outbuf - output;
+    }
+    return output;
+}
+
+int System_iconvstr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *tocode = get_arg_str(1, args, ctx);
+    if (!tocode) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No the encoding name after converting");
+    }
+    const char *fromcode = get_arg_str(2, args, ctx);
+    if (!fromcode) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No the encoding name before converting");
+    }
+
+    char *output;
+    int outlen = 0;
+    kx_val_t val = kv_last_by(ctx->stack, 3);
+    switch (val.type) {
+    case KX_CSTR_T:
+        output = kx_convert_iconv(tocode, fromcode, val.value.pv, &outlen);
+        break;
+    case KX_STR_T:
+        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        break;
+    case KX_BIN_T:
+        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        break;
+    }
+    if (!output || outlen == 0) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Converting failed");
+    }
+
+    kstr_t *sv = allocate_str(ctx);
+    ks_append(sv, output);
+    kx_free(output);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
+int System_iconvbin(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *tocode = get_arg_str(1, args, ctx);
+    if (!tocode) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No the encoding name after converting");
+    }
+    const char *fromcode = get_arg_str(2, args, ctx);
+    if (!fromcode) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "No the encoding name before converting");
+    }
+
+    char *output;
+    int outlen = 0;
+    kx_val_t val = kv_last_by(ctx->stack, 3);
+    switch (val.type) {
+    case KX_CSTR_T:
+        output = kx_convert_iconv(tocode, fromcode, val.value.pv, &outlen);
+        break;
+    case KX_STR_T:
+        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        break;
+    case KX_BIN_T:
+        output = kx_convert_iconv(tocode, fromcode, ks_string(val.value.sv), &outlen);
+        break;
+    }
+    if (!output || outlen == 0) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Converting failed");
+    }
+
+    kx_bin_t *bn = allocate_bin(ctx);
+    kv_resize_if(uint8_t, bn->bin, outlen);
+    kv_shrinkto(bn->bin, outlen);
+    for (int i = 0; i < outlen; ++i) {
+        kv_A(bn->bin, i) = output[i];
+    }
+    kx_free(output);
+
+    KX_ADJST_STACK();
+    push_bin(ctx->stack, bn);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "getPlatform", System_getPlatform },
@@ -1765,6 +1899,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "getenv", System_getenv },
     { "setenv", System_setenv },
     { "callCFunction", System_callCFunction },
+    { "iconvConvertStr", System_iconvstr },
+    { "iconvConvertBin", System_iconvbin },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
