@@ -1744,7 +1744,7 @@ char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *inp
         outbuf = output + converted;
         outleft = outlen - converted;
         converted = iconv(cd, (char **)&inbuf, &inleft, &outbuf, &outleft);
-        if ((iconv_t)converted != (iconv_t)-1 || errno == EINVAL) {
+        if ((iconv_t)converted != (iconv_t)-1 || errno == EINVAL || (errno == EILSEQ && inleft == 0)) {
             break;
         }
         if (errno != E2BIG) {
