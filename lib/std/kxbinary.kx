@@ -109,3 +109,7 @@ Binary.== = _function(bin, rhs) {
     }
     return true;
 };
+
+Binary.!= = _function(bin, rhs) {
+    return !(bin == rhs);
+};
