@@ -28,7 +28,7 @@
 *   Updated
     *   Supported SSH & libssh2 library.
     *   Supported an iconv library.
-    *   Supported `"\uXXXX"` as Unicode Code Point in a string literal.
+    *   Supported `"\uXXXX"` and `"\u{CodePoint}"` as Unicode Code Point in a string literal.
     *   Some bug fixes and improvement.
 
 ## V0.13.1 (13th Preview Release)
