@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <parser.h>
 #include <kxalloc.h>
+#include <kxutf8.h>
 
 #define POSMAX ((KX_BUF_MAX)-128)
 static char kx_strbuf[KX_BUF_MAX] = {0};
@@ -249,6 +250,61 @@ static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_
 
 #define is_oct_number(c) ('0' <= (c) && (c) <= '7')
 #define is_hex_number(c) (('0' <= (c) && (c) <= '9') || ('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z'))
+#define KX_LEXER_4BYTE_READ(cp) \
+uint64_t cp; { \
+    kx_lex_next(kx_lexinfo); \
+    int c1 = kx_lexinfo.ch; \
+    if (c1 == '{') { \
+        int error = 0; \
+        char buf[16] = {0}; \
+        kx_lex_next(kx_lexinfo); \
+        for (int i = 0; i < 16 && kx_lexinfo.ch != '}'; ++i) { \
+            c1 = kx_lexinfo.ch; \
+            if (!is_hex_number(c1)) { \
+                kx_yywarning("Invalid unicode point in string literal"); \
+                move_next = 0; \
+                error = 1; \
+                break; \
+            } \
+            buf[i] = c1; \
+            kx_lex_next(kx_lexinfo); \
+        } \
+        if (error) { \
+            break; \
+        } \
+        cp = strtol(buf, NULL, 16); \
+    } else { \
+        if (!is_hex_number(c1)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        kx_lex_next(kx_lexinfo); \
+        int c2 = kx_lexinfo.ch; \
+        if (!is_hex_number(c2)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        kx_lex_next(kx_lexinfo); \
+        int c3 = kx_lexinfo.ch; \
+        if (!is_hex_number(c3)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        kx_lex_next(kx_lexinfo); \
+        int c4 = kx_lexinfo.ch; \
+        if (!is_hex_number(c4)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        char buf[] = { c1, c2, c3, c4, 0 }; \
+        cp = strtol(buf, NULL, 16); \
+    } \
+} \
+/**/
 
 static int kx_lex_make_string(char quote)
 {
@@ -335,6 +391,41 @@ static int kx_lex_make_string(char quote)
                     kx_yywarning("Invalid character in string literal");
                     move_next = 0;
                 }
+                break;
+            }
+            case 'u': {
+                KX_LEXER_4BYTE_READ(cp1);
+                if (0xD800 <= cp1 && cp1 <= 0xDBFF) {
+                    kx_lex_next(kx_lexinfo); \
+                    if (kx_lexinfo.ch != '\\') {
+                        kx_yywarning("Invalid surrogate pair in string literal");
+                        move_next = 0;
+                        break;
+                    }
+                    kx_lex_next(kx_lexinfo); \
+                    if (kx_lexinfo.ch != 'u') {
+                        kx_yywarning("Invalid surrogate pair in string literal");
+                        move_next = 0;
+                        break;
+                    }
+                    KX_LEXER_4BYTE_READ(cp2);
+                    if (cp2 < 0xDC00 || 0xDFFF < cp2) {
+                        kx_yywarning("Invalid surrogate pair in string literal");
+                        move_next = 0;
+                        break;
+                    }
+                    cp1 = surrogatepair2codepoint(cp1, cp2);
+                }
+                unsigned char code[16] = {0};
+                codepoint2utf8(code, cp1);
+                unsigned char p = 0;
+                for (unsigned char *c = code; *c != 0; ++c) {
+                    if (p > 0) {
+                        kx_strbuf[pos++] = p;
+                    }
+                    p = *c;
+                }
+                kx_lexinfo.ch = p;
                 break;
             }
             default:
