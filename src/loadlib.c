@@ -144,8 +144,16 @@ const char *kxlib_exec_file_exists(const char *file)
     if (file_exists(checkfile)) {
         return checkfile;
     }
+    checkfile = make_path_with_ext(get_exe_path(), "lib"PATH_DELIM"exec"PATH_DELIM"3rdparty", file, ".kx");
+    if (file_exists(checkfile)) {
+        return checkfile;
+    }
     #if !defined(KCC_WINDOWS)
     checkfile = make_path_with_ext("/usr/bin", "kinxlib/exec", file, ".kx");
+    if (file_exists(checkfile)) {
+        return checkfile;
+    }
+    checkfile = make_path_with_ext("/usr/bin", "kinxlib/exec/3rdparty", file, ".kx");
     if (file_exists(checkfile)) {
         return checkfile;
     }
