@@ -208,6 +208,7 @@ install:
 	cp -f libz.so.1.2.11 /usr/bin/kinxlib/
 	ln -sf /usr/bin/kinxlib/libz.so.1 /usr/bin/kinxlib/libz.so
 	ln -sf /usr/bin/kinxlib/libz.so.1.2.11 /usr/bin/kinxlib/libz.so.1
+	rm -f /usr/bin/kinxlib/exec/3rdparty/.gitignore
 
 timex:
 	$(CC) $(CFLAGS) -o timex timex.c
