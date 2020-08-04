@@ -224,6 +224,7 @@ const char *kx_gen_typestr_object(int t)
     case KX_UND_T:  return "null";
     case KX_INT_T:  return "int";
     case KX_BIG_T:  return "big";
+    case KX_NUM_T:  return "num";
     case KX_DBL_T:  return "dbl";
     case KX_STR_T:  return "str";
     case KX_BIN_T:  return "bin";
@@ -240,6 +241,7 @@ const char *kx_gen_typeofstr_object(int t)
     case KX_UND_T:  return "isUndefined";
     case KX_INT_T:  return "isInteger";
     case KX_BIG_T:  return "isBigInteger";
+    case KX_NUM_T:  return "isNumber";
     case KX_DBL_T:  return "isDouble";
     case KX_STR_T:  return "isString";
     case KX_BIN_T:  return "isBinary";
