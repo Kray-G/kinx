@@ -158,6 +158,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "isDefined") == 0)      { kx_yylval.intval = KX_DEF_T; return TYPEOF; }
         if (strcmp(val, "isInteger") == 0)      { kx_yylval.intval = KX_INT_T; return TYPEOF; }
         if (strcmp(val, "isBigInteger") == 0)   { kx_yylval.intval = KX_BIG_T; return TYPEOF; }
+        if (strcmp(val, "isNumber") == 0)       { kx_yylval.intval = KX_NUM_T; return TYPEOF; }
         if (strcmp(val, "isString") == 0)       { kx_yylval.intval = KX_STR_T; return TYPEOF; }
         if (strcmp(val, "isDouble") == 0)       { kx_yylval.intval = KX_DBL_T; return TYPEOF; }
         if (strcmp(val, "isBinary") == 0)       { kx_yylval.intval = KX_BIN_T; return TYPEOF; }

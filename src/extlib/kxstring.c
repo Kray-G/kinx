@@ -201,7 +201,7 @@ int String_endsWith(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         int pos = strlen(str) - strlen(chk);
         if (pos < 0) {
             KX_ADJST_STACK();
-            push_i(ctx->stack, -1);
+            push_i(ctx->stack, 0);
             return 0;
         }
         KX_ADJST_STACK();
@@ -752,6 +752,51 @@ int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int String_toUpperLower(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, int (*f)(int))
+{
+    const char *str = get_arg_str(1, args, ctx);
+    if (!str) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value");
+    }
+
+    int len = strlen(str);
+    int s, e;
+    if (args > 2) {
+        s = get_arg_int(2, args, ctx);
+        e = get_arg_int(3, args, ctx);
+    } else if (args > 1) {
+        s = 0;
+        e = get_arg_int(2, args, ctx);
+    } else {
+        s = 0;
+        e = len;
+    }
+    if (s < 0) s = 0;
+    if (e > len) e = len;
+    char *p = kx_calloc(e - s + 1, sizeof(char));
+    for (int i = s; i < e; ++i) {
+        p[i - s] = f(str[i]);
+    }
+
+    kstr_t *sv = allocate_str(ctx);
+    ks_append(sv, p);
+    kx_free(p);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
+int String_toUpper(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return String_toUpperLower(args, frmv, lexv, ctx, &toupper);
+}
+
+int String_toLower(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    return String_toUpperLower(args, frmv, lexv, ctx, &tolower);
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", String_length },
     { "utf8Length", String_utf8Length },
@@ -781,6 +826,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "splitUtf8Object", String_splitUtf8Object },
     { "eastAsianWidth", String_eastAsianWidth },
     { "eastAsianWidthType", String_eastAsianWidthType },
+    { "toUpper", String_toUpper },
+    { "toLower", String_toLower },
     { "next", String_next },
 };
 
