@@ -254,34 +254,55 @@ static int kx_lex_start_inner_expression(kstr_t *s, char quote, int pos, int is_
 uint64_t cp; { \
     kx_lex_next(kx_lexinfo); \
     int c1 = kx_lexinfo.ch; \
-    if (!is_hex_number(c1)) { \
-        kx_yywarning("Invalid unicode point in string literal"); \
-        move_next = 0; \
-        break; \
+    if (c1 == '{') { \
+        int error = 0; \
+        char buf[16] = {0}; \
+        kx_lex_next(kx_lexinfo); \
+        for (int i = 0; i < 16 && kx_lexinfo.ch != '}'; ++i) { \
+            c1 = kx_lexinfo.ch; \
+            if (!is_hex_number(c1)) { \
+                kx_yywarning("Invalid unicode point in string literal"); \
+                move_next = 0; \
+                error = 1; \
+                break; \
+            } \
+            buf[i] = c1; \
+            kx_lex_next(kx_lexinfo); \
+        } \
+        if (error) { \
+            break; \
+        } \
+        cp = strtol(buf, NULL, 16); \
+    } else { \
+        if (!is_hex_number(c1)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        kx_lex_next(kx_lexinfo); \
+        int c2 = kx_lexinfo.ch; \
+        if (!is_hex_number(c2)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        kx_lex_next(kx_lexinfo); \
+        int c3 = kx_lexinfo.ch; \
+        if (!is_hex_number(c3)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        kx_lex_next(kx_lexinfo); \
+        int c4 = kx_lexinfo.ch; \
+        if (!is_hex_number(c4)) { \
+            kx_yywarning("Invalid unicode point in string literal"); \
+            move_next = 0; \
+            break; \
+        } \
+        char buf[] = { c1, c2, c3, c4, 0 }; \
+        cp = strtol(buf, NULL, 16); \
     } \
-    kx_lex_next(kx_lexinfo); \
-    int c2 = kx_lexinfo.ch; \
-    if (!is_hex_number(c2)) { \
-        kx_yywarning("Invalid unicode point in string literal"); \
-        move_next = 0; \
-        break; \
-    } \
-    kx_lex_next(kx_lexinfo); \
-    int c3 = kx_lexinfo.ch; \
-    if (!is_hex_number(c3)) { \
-        kx_yywarning("Invalid unicode point in string literal"); \
-        move_next = 0; \
-        break; \
-    } \
-    kx_lex_next(kx_lexinfo); \
-    int c4 = kx_lexinfo.ch; \
-    if (!is_hex_number(c4)) { \
-        kx_yywarning("Invalid unicode point in string literal"); \
-        move_next = 0; \
-        break; \
-    } \
-    char buf[] = { c1, c2, c3, c4, 0 }; \
-    cp = strtol(buf, NULL, 16); \
 } \
 /**/
 
