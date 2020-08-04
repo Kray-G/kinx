@@ -33,7 +33,8 @@ You can also input a binary and output a binary.
 ```javascript
 var converter = new Iconv({ to: "UTF8", from: "CP932" });
 var sjis = <0x82, 0x60, 0x82, 0x61, 0x82, 0x62, 0x82, 0x63, 0x82, 0x64, 0x82, 0x65>;
-var val = converter.binmode().convert(sjis);
+converter.binmode();
+var val = converter.convert(sjis);
 System.println(val);    // => <0xef, 0xbc, 0xa1, 0xef, 0xbc, 0xa2, 0xef, 0xbc, 0xa3, 0xef, 0xbc, 0xa4, 0xef, 0xbc, 0xa5, 0xef, 0xbc, 0xa6>
 System.println(*val);   // => ＡＢＣＤＥＦ
 ```
@@ -65,7 +66,8 @@ System.println(<...val>);
 var converter = new Iconv({ to: "UTF8", from: "CP932" });
 // Unary asterisk will convert a binary to a string.
 var sjis = *<0x82, 0x60, 0x82, 0x61, 0x82, 0x62, 0x82, 0x63, 0x82, 0x64, 0x82, 0x65>;
-var val = converter.binmode().convert(sjis);
+converter.binmode();
+var val = converter.convert(sjis);
 System.println(val);
 ```
 
@@ -100,7 +102,8 @@ System.println(<...val>);
 var converter = new Iconv({ to: "UTF8", from: "CP932" });
 // Unary asterisk will convert a binary to a string.
 var sjis = <0x82, 0x60, 0x82, 0x61, 0x82, 0x62, 0x82, 0x63, 0x82, 0x64, 0x82, 0x65>;
-var val = converter.binmode().convert(sjis);
+converter.binmode();
+var val = converter.convert(sjis);
 System.println(val);
 ```
 

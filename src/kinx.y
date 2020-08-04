@@ -120,6 +120,7 @@
 %type<obj> ClassDeclStatement
 %type<obj> ModuleDeclStatement
 %type<obj> Inherit_Opt
+%type<obj> InheritFactor
 %type<obj> ClassArgumentList_Opts
 %type<obj> ClassCallArgumentList_Opts
 %type<obj> ArgumentList_Opts
@@ -263,7 +264,7 @@ ForStatement
     ;
 
 ForInVariable
-    : NAME { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | '[' ArrayItemList ']' { $$ = kx_gen_uexpr_object(KXOP_MKARY, $2); }
     ;
 
@@ -794,7 +795,7 @@ ModuleDeclStatement
 
 Inherit_Opt
     : { $$ = NULL; }
-    | ':' Factor ClassCallArgumentList_Opts
+    | ':' InheritFactor ClassCallArgumentList_Opts
         {
             $$ = kx_gen_bexpr_object(KXST_STMTLIST,
                 kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this", KX_UNKNOWN_T),
@@ -803,6 +804,13 @@ Inherit_Opt
                     kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_UNKNOWN_T), kx_gen_str_object("makeSuper")), kx_gen_var_object("this", KX_UNKNOWN_T)))
             );
         }
+    ;
+
+InheritFactor
+    : Factor
+    | InheritFactor '[' AssignExpression ']' { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | InheritFactor '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | InheritFactor '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
     ;
 
 ClassArgumentList_Opts
