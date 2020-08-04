@@ -260,6 +260,28 @@ int Array_printStackTrace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     return 0;
 }
 
+int Array_remove(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        const char *name = get_arg_str(2, args, ctx);
+        if (!name) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a property name");
+        }
+        khash_t(prop) *p = obj->prop;
+        khint_t k = kh_get(prop, p, name);
+        if (k != kh_end(p)) {
+            kh_del(prop, p, k);
+        }
+
+        KX_ADJST_STACK();
+        push_obj(ctx->stack, obj);
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
 int Array_push(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -529,10 +551,30 @@ int Array_subArray(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return throw_invalid_object(args, ctx);
 }
 
+int Array_hasOwnProperty(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        const char *name = get_arg_str(2, args, ctx);
+        if (!name) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a property name");
+        }
+        kx_val_t *prop = NULL;
+        KEX_GET_PROP(prop, obj, name);
+
+        KX_ADJST_STACK();
+        push_i(ctx->stack, prop ? 1 : 0);
+        return 0;
+    }
+
+    return throw_invalid_object(args, ctx);
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "empty", Array_empty },
     { "length", Array_length },
     { "keySet", Array_keySet },
+    { "remove", Array_remove },
     { "push", Array_push },
     { "pop", Array_pop },
     { "shift", Array_shift },
@@ -543,6 +585,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "reverse", Array_reverse },
     { "flatten", Array_flatten },
     { "subArray", Array_subArray },
+    { "hasOwnProperty", Array_hasOwnProperty },
     { "printStackTrace", Array_printStackTrace },
 };
 
