@@ -1273,6 +1273,7 @@ int check_typeof(kx_val_t *v1, int type)
     case KX_DEF_T:  return v1->type != KX_UND_T;
     case KX_INT_T:  return v1->type == KX_INT_T || v1->type == KX_BIG_T;
     case KX_BIG_T:  return v1->type == KX_BIG_T;
+    case KX_NUM_T:  return v1->type == KX_INT_T || v1->type == KX_DBL_T || v1->type == KX_BIG_T;
     case KX_DBL_T:  return v1->type == KX_DBL_T;
     case KX_CSTR_T: return v1->type == KX_CSTR_T || v1->type == KX_STR_T;
     case KX_STR_T:  return v1->type == KX_CSTR_T || v1->type == KX_STR_T;
@@ -6300,7 +6301,7 @@ int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2
         } else if (v2->type == KX_BIN_T) {
             int len = kv_size(v2->value.bn->bin);
             for (int i = 0; i < len; ++i) {
-                int64_t val = (int64_t)kv_A(v2->value.bn->bin, i);
+                int64_t val = ((int64_t)kv_A(v2->value.bn->bin, i)) & 0xff;
                 kv_push(kx_val_t, v1->value.ov->ary, ((kx_val_t){ .type = KX_INT_T, .value.iv = val }));
             }
         } else if (v2->type == KX_CSTR_T) {

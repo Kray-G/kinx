@@ -453,6 +453,7 @@ enum irexec {
     KX_NFNC_T,
     KX_ADDR_T,
     KX_ANY_T,
+    KX_NUM_T,       /* isInteger || isDouble || isBigInteger */
     KX_SPR_T,       /* spread-specified varable */
     KX_COR_T,       /* coroutine start */
     KX_ARY_T,       /* used only with typeof */
