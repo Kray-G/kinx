@@ -1,11 +1,15 @@
 
-namespace Net {
+_namespace Net {
 
-var Ssh = (_function() {
+Net.Ssh = (_function() {
     var SshBase = _import('kxssh');
 
     _class Ssh(ip_) {
         var ssh_ = new SshBase();
+
+        public setTimeout(msec) {
+            ssh_.setTimeout(msec);
+        }
 
         public setPrompt(prompt) {
             if (prompt.isRegex) {
@@ -81,5 +85,5 @@ var Ssh = (_function() {
     return Ssh;
 })();
 
-} // namespace Net
+} // _namespace Net
 

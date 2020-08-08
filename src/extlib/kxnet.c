@@ -1,19 +1,17 @@
+#if defined(_WIN32) || defined(_WIN64)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 #include <dbg.h>
 #include <ctype.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
+#include <kxnet.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
-#if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib, "wldap32.lib" )
-#pragma comment(lib, "crypt32.lib" )
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "normaliz.lib")
-#endif
-
-#define CURL_STATICLIB 
+#define CURL_STATICLIB
 #include "libcurl/include/curl/curl.h"
 
 static size_t Net_headerCallback(void *ptr, size_t size, size_t nmemb, void *userp);
@@ -398,6 +396,7 @@ static void dump_detail(const char *text, kstr_t *sd, unsigned char *ptr, size_t
         ks_append(sd, "\n");
     }
 }
+
 static void try_append_data_in_text(kstr_t *sd, char *data, size_t size)
 {
     char buf[128] = {0};
@@ -511,8 +510,393 @@ int Net_createCurlHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     return 0;
 }
 
+/* Socket */
+
+#define KX_NET_BACKLOG 5
+#define KX_NET_R  0
+#define KX_NET_W  1
+#define KX_NET_RW 2
+#define KX_NET_READABLE(x) (((x) & 0x01) == 0x01)
+#define KX_NET_WRITABLE(x) (((x) & 0x02) == 0x02)
+#define KX_GET_NETINFO(r, obj) KX_GET_RAW(kx_netinfo_t, "_socket", r, obj, "SocketException", "Invalid Socket object")
+
+typedef struct kx_netinfo_ {
+    int soc;
+    struct addrinfo *ai;
+} kx_netinfo_t;
+
+static int select_socket(kx_netinfo_t *p, int direction, int msec)
+{
+    int r = -1;
+    switch (direction) {
+    case KX_NET_R: {
+        fd_set fdr;
+        FD_ZERO(&fdr);
+        FD_SET(p->soc, &fdr);
+        struct timeval tv = {0};
+        tv.tv_sec = (unsigned int)msec / 1000;
+        tv.tv_usec = (unsigned int)(msec % 1000) * 1000;
+        r = select(p->soc + 1, &fdr, NULL, NULL, &tv);
+        if (r > 0) {
+            if (FD_ISSET(p->soc, &fdr)) {
+                r = 0x01;
+            }
+        }
+        break;
+    }
+    case KX_NET_W: {
+        fd_set fdw;
+        FD_ZERO(&fdw);
+        FD_SET(p->soc, &fdw);
+        struct timeval tv = {0};
+        tv.tv_sec = (unsigned int)msec / 1000;
+        tv.tv_usec = (unsigned int)(msec % 1000) * 1000;
+        r = select(p->soc + 1, NULL, &fdw, NULL, &tv);
+        if (r > 0) {
+            if (FD_ISSET(p->soc, &fdw)) {
+                r = 0x02;
+            }
+        }
+        break;
+    }
+    case KX_NET_RW: {
+        fd_set fdr;
+        fd_set fdw;
+        FD_ZERO(&fdr);
+        FD_SET(p->soc, &fdr);
+        FD_ZERO(&fdw);
+        FD_SET(p->soc, &fdw);
+        struct timeval tv = {0};
+        tv.tv_sec = (unsigned int)msec / 1000;
+        tv.tv_usec = (unsigned int)(msec % 1000) * 1000;
+        r = select(p->soc + 1, &fdr, &fdw, NULL, &tv);
+        if (r > 0) {
+            r = 0x00;
+            if (FD_ISSET(p->soc, &fdr)) {
+                r = 0x01;
+            }
+            if (FD_ISSET(p->soc, &fdw)) {
+                r |= 0x02;
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return r;
+}
+
+static void free_netinfo(void *obj)
+{
+    kx_netinfo_t *p = (kx_netinfo_t *)obj;
+    if (p->ai) {
+        freeaddrinfo(p->ai);
+    }
+    if (p->soc >= 0) {
+        closesocket(p->soc);
+    }
+    kx_free(p);
+}
+
+int Soket_bind(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    if (!p->ai || p->soc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Invalid Socket object");
+    }
+
+    if (bind(p->soc, p->ai->ai_addr, p->ai->ai_addrlen) < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Soket_listen(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    if (!p->ai || p->soc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Invalid Socket object");
+    }
+
+    if (listen(p->soc, KX_NET_BACKLOG) < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+
+    #if defined(_WIN32) || defined(_WIN64)
+    unsigned long block = 1;
+    if (ioctlsocket(p->soc, FIONBIO, &block) == SOCKET_ERROR) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Failed to ioctlsocket");
+    }
+    #else
+    if (fcntl(p->soc, F_SETFL, O_NONBLOCK) < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+    #endif
+    freeaddrinfo(p->ai);
+    p->ai = NULL;
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Soket_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    if (p->soc >= 0) {
+        closesocket(p->soc);
+        p->soc = -1;
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Soket_select(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    int d = get_arg_int(2, args, ctx);
+    int m = get_arg_int(3, args, ctx);
+    int r = select_socket(p, d, m);
+    if (r < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int Soket_recv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    kstr_t *sv = allocate_str(ctx);
+    char buf[2048] = {0};
+    int n = recv(p->soc, buf, 2047, 0);
+    if (n > 0) {
+        ks_append(sv, buf);
+    }
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
+int Soket_send(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    if (p->soc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Invalid Socket object");
+    }
+
+    const char *sp = get_arg_str(2, args, ctx);
+    if (!sp) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "No message to send");
+    }
+    size_t len = strlen(sp);
+    while (len > 0) {
+        int res = send(p->soc, sp, len, 0);
+        if (res < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                KX_ADJST_STACK();
+                push_i(ctx->stack, res);
+                return 0;
+            } else {
+                KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+            }
+        }
+        len -= res;
+        sp += res;
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int Soket_accept(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    if (p->soc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Invalid Socket object");
+    }
+
+    struct sockaddr_storage sa;
+    socklen_t len = sizeof(sa);
+    int csoc = accept(p->soc, (struct sockaddr*)&sa, &len);
+    if (csoc < 0) {
+        #if defined(_WIN32) || defined(_WIN64)
+        int e = WSAGetLastError();
+        int err = e == WSAEWOULDBLOCK ? EAGAIN : e;
+        #else
+        int err = errno;
+        #endif
+        kx_obj_t *cobj = allocate_obj(ctx);
+        KEX_SET_PROP_INT(cobj, "value", csoc);
+        KEX_SET_PROP_INT(cobj, "errno", (err == EWOULDBLOCK ? EAGAIN : err));
+        KX_ADJST_STACK();
+        push_obj(ctx->stack, cobj);
+        return 0;
+    }
+
+    #if defined(_WIN32) || defined(_WIN64)
+    unsigned long block = 1;
+    if (ioctlsocket(csoc, FIONBIO, &block) == SOCKET_ERROR) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Failed to ioctlsocket");
+    }
+    #else
+    if (fcntl(csoc, F_SETFL, O_NONBLOCK) < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+    #endif
+
+    kx_netinfo_t *cp = kx_calloc(1, sizeof(kx_netinfo_t));
+    cp->soc = csoc;
+    kx_any_t *info = allocate_any(ctx);
+    info->p = cp;
+    info->any_free = free_netinfo;
+
+    kx_obj_t *cobj = allocate_obj(ctx);
+    KEX_SET_PROP_ANY(cobj, "_socket", info);
+    KEX_SET_METHOD("close", cobj, Soket_close);
+    KEX_SET_METHOD("send", cobj, Soket_send);
+    KEX_SET_METHOD("recv", cobj, Soket_recv);
+    KEX_SET_METHOD("select", cobj, Soket_select);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, cobj);
+    return 0;
+}
+
+int Net_createTcpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *service = get_arg_str(1, args, ctx);
+
+    struct addrinfo hints = {0};
+    struct addrinfo *res = NULL;
+    struct addrinfo *ai;
+
+    hints.ai_family = AF_INET6;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_flags = AI_PASSIVE|AI_V4MAPPED;
+    int err = getaddrinfo(NULL, service, &hints, &res);
+    if (err != 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_gai_strerror(err));
+    }
+    ai = res;
+    int soc = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+    if (soc < 0) {
+        freeaddrinfo(ai);
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+    int on = 1;
+    if (setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, (const void *)&on, sizeof(on)) < 0) {
+        freeaddrinfo(ai);
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+    int disable = 0;
+    if (setsockopt(soc, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&disable, sizeof(disable)) < 0) {
+        freeaddrinfo(ai);
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+ 
+    kx_netinfo_t *p = kx_calloc(1, sizeof(kx_netinfo_t));
+    p->soc = soc;
+    p->ai = ai;
+    kx_any_t *info = allocate_any(ctx);
+    info->p = p;
+    info->any_free = free_netinfo;
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_ANY(obj, "_socket", info);
+    KEX_SET_METHOD("bind", obj, Soket_bind);
+    KEX_SET_METHOD("listen", obj, Soket_listen);
+    KEX_SET_METHOD("accept", obj, Soket_accept);
+    KEX_SET_METHOD("close", obj, Soket_close);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Net_createTcpClientSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *host = get_arg_str(1, args, ctx);
+    const char *service = get_arg_str(2, args, ctx);
+    int timeout = get_arg_int(3, args, ctx);
+
+    struct addrinfo hints = {0};
+    struct addrinfo *res = NULL;
+    struct addrinfo *ai;
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    int err = getaddrinfo(host, service, &hints, &res);
+    if (err != 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_gai_strerror(err));
+    }
+
+    int soc;
+    for (ai = res; ai; ai = ai->ai_next) {
+        soc = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+        if (soc < 0) {
+            KX_THROW_BLTIN_EXCEPTION("SocketException", kx_gai_strerror(err));
+        }
+        if (connect_with_timeout(soc, ai->ai_addr, ai->ai_addrlen, timeout) < 0) {
+            closesocket(soc);
+            soc = -1;
+            continue;
+        }
+        break;
+    }
+    if (soc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Connection failed");
+    }
+
+    kx_netinfo_t *p = kx_calloc(1, sizeof(kx_netinfo_t));
+    p->soc = soc;
+    p->ai = ai;
+    kx_any_t *info = allocate_any(ctx);
+    info->p = p;
+    info->any_free = free_netinfo;
+
+    kx_obj_t *cobj = allocate_obj(ctx);
+    KEX_SET_PROP_ANY(cobj, "_socket", info);
+    KEX_SET_METHOD("bind", cobj, Soket_bind);
+    KEX_SET_METHOD("close", cobj, Soket_close);
+    KEX_SET_METHOD("send", cobj, Soket_send);
+    KEX_SET_METHOD("recv", cobj, Soket_recv);
+    KEX_SET_METHOD("select", cobj, Soket_select);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, cobj);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "createCurlHandler", Net_createCurlHandler },
+    { "createTcpServerSocket", Net_createTcpServerSocket },
+    { "createTcpClientSocket", Net_createTcpClientSocket },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, net_initialize, net_finalize);

@@ -278,3 +278,4 @@ _namespace Net {
 }
 
 using net.http;
+using net.socket;
