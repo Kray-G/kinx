@@ -83,6 +83,7 @@ static inline void sockaddr_print(const char *msg, struct sockaddr *addrp, int a
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 
 static inline int connect_with_timeout(int soc, const struct sockaddr *name, int namelen, unsigned int msec)
 {
@@ -120,7 +121,7 @@ static inline int connect_with_timeout(int soc, const struct sockaddr *name, int
     int optval = 0;
     socklen_t optlen = (socklen_t)sizeof(optval);
     errno = 0;
-    result = getsockeopt(soc, SOL_SOCKET, SO_ERROR, (void *)&optval, &optlen);
+    result = getsockopt(soc, SOL_SOCKET, SO_ERROR, (void *)&optval, &optlen);
     if (result < 0 || optval != 0) {
         return -1;
     }
