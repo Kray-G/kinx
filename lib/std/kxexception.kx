@@ -42,3 +42,6 @@ StopIterationException = StopIterationExceptionClass.create;
 
 FiberExceptionClass = System.defineException('FiberException');
 FiberException = FiberExceptionClass.create;
+
+SocketExceptionClass = System.defineException('SocketException');
+SocketException = SocketExceptionClass.create;
