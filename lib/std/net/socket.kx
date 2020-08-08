@@ -62,7 +62,7 @@ _namespace Net {
         }
     }
 
-    class ServerSocket(mode_, port_) {
+    _class ServerSocket(mode_, port_) {
         var soc_;
         private initialize() {
             if (mode_ == Net.TCP) {
