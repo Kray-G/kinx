@@ -1,0 +1,104 @@
+
+_namespace Net {
+
+    Net.TCP = 1;
+    Net.UDP = 2;
+
+    enum {
+        EAGAIN = 11
+    }
+    enum {
+        SELECT_READ = 0,
+        SELECT_WRITE = 1,
+        SELECT_READ_WRITE = 2,
+    }
+
+    _class TcpSocket(con_) {
+        var timeout_;
+        private initialize() {
+            timeout_ = 100;
+        }
+        public setTimeout(msec) {
+            timeout_ = msec;
+        }
+        public isReadable(msec) {
+            return con_.select(SELECT_READ, msec ?? timeout_);
+        }
+        public isWritable(msec) {
+            return con_.select(SELECT_WRITE, msec ?? timeout_);
+        }
+        public send(opts) {
+            if (opts.isString) {
+                opts = { message: opts };
+            }
+            var r = con_.send(opts.message);
+            if (r < 0) {
+                if (isWritable(opts.timeout) > 0) {
+                    r = con_.send(opts.message);
+                }
+                if (r < 0) {
+                    throw SocketException("Cannot send message");
+                }
+            }
+        }
+        public recv(opts) {
+            if (isReadable(opts.timeout)) {
+                return con_.recv();
+            }
+        }
+        public close() {
+            return con_.close();
+        }
+    }
+
+    _class Socket() {
+        var timeout_;
+        private initialize() {
+            timeout_ = 100;
+        }
+        public connect(opts) {
+            var con = Net.createTcpClientSocket(opts.host, "" + opts.port, opts.timeout ?? timeout_);
+            return new TcpSocket(con);
+        }
+    }
+
+    class ServerSocket(mode_, port_) {
+        var soc_;
+        private initialize() {
+            if (mode_ == Net.TCP) {
+                soc_ = Net.createTcpServerSocket("" + port_);
+                soc_.Socket = TcpSocket;
+                @bind().listen();
+            } else if (mode_ == Net.UDP) {
+                soc_ = Net.createUdpServerSocket("" + port_);
+                # soc_.Socket = UdpSocket;
+            }
+        }
+        public bind() {
+            soc_.bind();
+            return this;
+        }
+        public listen() {
+            soc_.listen();
+            return this;
+        }
+        public accept() {
+            var con;
+            while (true) {
+                con = soc_.accept();
+                if (con.value >= 0) {
+                    break;
+                }
+                if (con.errno != EAGAIN) {
+                    throw SocketException(con.message ?? "Failed to accept");
+                }
+                System.sleep(100);
+            }
+            return new soc_.Socket(con);
+        }
+        public close() {
+            return soc_.close();
+        }
+    }
+
+} // _namespace Net
