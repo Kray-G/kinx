@@ -5,6 +5,7 @@
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
+#include <kxnet.h>
 #include <kutil.h>
 
 KX_DECL_MEM_ALLOCATORS();
@@ -36,7 +37,6 @@ typedef struct kxssh_ {
     int exitcode;
     int timeout;
     int auth_pw;
-    struct sockaddr_in sin;
     const char *fingerprint;
     uint8_t fpbin[20];
     const char *userauthlist;
@@ -258,99 +258,91 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
 }
 
 #if defined(_WIN32) || defined(_WIN64)
-static int connect_with_timeout(kxssh_t *p)
+static int ssh_connect(const char *host, const char *port, unsigned int timeout)
 {
-    p->sin.sin_family = AF_INET;
-    p->sin.sin_addr.s_addr = p->hostaddr;
-    p->sin.sin_port = htons(p->port);
-    if (p->sin.sin_addr.s_addr == INADDR_NONE) {
-        return 0;
+    struct addrinfo hints = {0};
+    struct addrinfo *res = NULL;
+    struct addrinfo *ai;
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    int err = getaddrinfo(host, port, &hints, &res);
+    if (err != 0) {
+        return -1;
     }
 
-    p->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (p->sock == INVALID_SOCKET) {
-        return 0;
+    int soc;
+    for (ai = res; ai; ai = ai->ai_next) {
+        soc = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+        if (soc < 0) {
+            return -1;
+        }
+        if (connect_with_timeout(soc, ai->ai_addr, ai->ai_addrlen, timeout) < 0) {
+            closesocket(soc);
+            soc = -1;
+            continue;
+        }
+        break;
     }
-    unsigned long block = 1;
-    if (ioctlsocket(p->sock, FIONBIO, &block) == SOCKET_ERROR) {
-        closesocket(p->sock);
-        return 0;
-    }
-
-    if (connect(p->sock, (struct sockaddr *)&(p->sin), sizeof(p->sin)) == SOCKET_ERROR) {
-        if (WSAGetLastError() != WSAEWOULDBLOCK) {
-            // connection failed
-            closesocket(p->sock);
-            return 0;
-        }
-
-        fd_set fdw, fde;
-        FD_ZERO(&fdw);
-        FD_SET(p->sock, &fdw);
-        FD_ZERO(&fde);
-        FD_SET(p->sock, &fde);
-        struct timeval tv = {0};
-        tv.tv_sec = (unsigned int)p->timeout / 1000;
-        tv.tv_usec = (unsigned int)(p->timeout % 1000) * 1000;
-        int ret = select(0, NULL, &fdw, &fde, &tv);
-        if (ret <= 0) {
-            closesocket(p->sock);
-            if (ret == 0) {
-                WSASetLastError(WSAETIMEDOUT);
-            }
-            return 0;
-        }
-        if (FD_ISSET(p->sock, &fde)) {
-            int err = 0;
-            int len = sizeof(err);
-            getsockopt(p->sock, SOL_SOCKET, SO_ERROR, (char *)&err, &len);
-            closesocket(p->sock);
-            WSASetLastError(err);
-            return 0;
-        }
+    if (soc < 0) {
+        closesocket(soc);
+        return -1;
     }
 
     // connection successful
-    block = 0;
-    if (ioctlsocket(p->sock, FIONBIO, &block) == SOCKET_ERROR) {
-        closesocket(p->sock);
-        return 0;
+    int block = 0;
+    if (ioctlsocket(soc, FIONBIO, &block) == SOCKET_ERROR) {
+        closesocket(soc);
+        return -1;
     }
 
-    return 1;
+    return soc;
 }
 #else
-static int connect_with_timeout(kxssh_t *p)
+static int ssh_connect(const char *host, const char *port, unsigned int timeout)
 {
-    p->sin.sin_family = AF_INET;
-    p->sin.sin_addr.s_addr = p->hostaddr;
-    p->sin.sin_port = htons(p->port);
-    if (p->sin.sin_addr.s_addr == INADDR_NONE) {
-        return 0;
+    struct addrinfo hints = {0};
+    struct addrinfo *res = NULL;
+    struct addrinfo *ai;
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    int err = getaddrinfo(host, port, &hints, &res);
+    if (err != 0) {
+        return -1;
     }
 
-    p->sock = socket(AF_INET, SOCK_STREAM, 0);
-    fcntl(p->sock, F_SETFL, O_NONBLOCK);
-
-    connect(p->sock, (struct sockaddr *)&(p->sin), sizeof(p->sin));
-
-    fd_set fdset;
-    FD_ZERO(&fdset);
-    FD_SET(p->sock, &fdset);
-    struct timeval tv = {0};
-    tv.tv_sec = (unsigned int)p->timeout / 1000;
-    tv.tv_usec = (unsigned int)(p->timeout % 1000) * 1000;
-    if (select(p->sock + 1, NULL, &fdset, NULL, &tv) == 1) {
-        int se;
-        socklen_t len = sizeof(se);
-        getsockopt(p->sock, SOL_SOCKET, SO_ERROR, &se, &len);
-        if (se == 0) {
-            return 1;
+    int soc;
+    for (ai = res; ai; ai = ai->ai_next) {
+        soc = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+        if (soc < 0) {
+            return -1;
         }
+        if (connect_with_timeout(soc, ai->ai_addr, ai->ai_addrlen, timeout) < 0) {
+            close(soc);
+            soc = -1;
+            continue;
+        }
+        break;
+    }
+    if (soc < 0) {
+        close(soc);
+        return -1;
     }
 
-    close(p->sock);
-    return 0;
+    // connection successful
+    int flags = fcntl(soc, F_GETFL);
+    if (flags == -1) {
+        close(soc);
+        return -1;
+    }
+    int result = fcntl(soc, F_SETFL, flags);
+    if (result < -1) {
+        close(soc);
+        return -1;
+    }
+
+    return soc;
 }
 #endif
 
@@ -459,18 +451,17 @@ int Ssh_open(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!ipaddr) {
         KX_THROW_BLTIN_EXCEPTION("SshException", "Needs ip address to connect");
     }
-    p->hostaddr = inet_addr(ipaddr);
     const char *port = get_arg_str(3, args, ctx);
-    if (port) {
-        p->port = strtol(port, NULL, 0);
-    } else {
-        p->port = 22;
+    if (!port) {
+        port = "22";
     }
 
-    if (!connect_with_timeout(p)) {
+    if ((p->sock = ssh_connect(ipaddr, port, p->timeout)) < 0) {
         KX_THROW_BLTIN_EXCEPTION("SshException", "Failed to connect");
     }
 
+    p->hostaddr = inet_addr(ipaddr);
+    p->port = strtol(port, NULL, 0);
     p->session = libssh2_session_init_ex(kx_ssh_malloc, kx_ssh_free, kx_ssh_realloc, 0);
     libssh2_session_set_blocking(p->session, 0);
     libssh2_session_set_timeout(p->session, p->timeout);
@@ -830,6 +821,23 @@ int Ssh_waitfor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Ssh_setTimeout(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_SSH_GET_INFO(p, obj);
+
+    int timeout = get_arg_int(2, args, ctx);
+    if (timeout >= 0) {
+        p->timeout = timeout;
+    } else {
+        KX_THROW_BLTIN_EXCEPTION("SshException", "Invalid timout value");
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 int Ssh_setPrompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -922,6 +930,7 @@ int Ssh_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_METHOD("send", obj, Ssh_send);
     KEX_SET_METHOD("readLine", obj, Ssh_readLine);
     KEX_SET_METHOD("waitfor", obj, Ssh_waitfor);
+    KEX_SET_METHOD("setTimeout", obj, Ssh_setTimeout);
     KEX_SET_METHOD("setPrompt", obj, Ssh_setPrompt);
     KEX_SET_METHOD("setPublicKey", obj, Ssh_setPublicKey);
     KEX_SET_METHOD("setPrivateKey", obj, Ssh_setPrivateKey);
