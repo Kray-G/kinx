@@ -98,7 +98,7 @@ _namespace Net {
     }
 
     _class Socket() {
-        var timeout_;.println
+        var timeout_;
         private initialize() {
             timeout_ = 100;
         }
