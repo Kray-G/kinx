@@ -85,12 +85,25 @@ _namespace Net {
             return con_.select(SELECT_WRITE, msec ?? timeout_);
         }
         public sendto(opts) {
-            return con_.sendto(opts.message);
+            if (opts.isString) {
+                opts = { message: opts };
+            }
+            var r = con_.sendto(opts.message);
+            if (r < 0) {
+                if (isWritable(opts.timeout) > 0) {
+                    r = con_.send(opts.message);
+                }
+                if (r < 0) {
+                    throw SocketException("Cannot send message");
+                }
+            }
         }
-        public recvfrom() {
-            var r = con_.recvfrom();
-            host_ = new AddressPort({ address: r.address, port: r.port });
-            return r.message;
+        public recvfrom(opts) {
+            if (isReadable(opts.timeout)) {
+                var r = con_.recvfrom();
+                host_ = new AddressPort({ address: r.address, port: r.port });
+                return r.message;
+            }
         }
         public close() {
             return con_.close();
@@ -104,11 +117,9 @@ _namespace Net {
         }
         public connect(opts) {
             if (opts.udp) {
-System.println("UDP");
                 var con = Net.createUdpClientSocket(opts.host, "" + opts.port, opts.timeout ?? timeout_);
                 return new UdpSocket(con);
             }
-System.println("TCP");
             var con = Net.createTcpClientSocket(opts.host, "" + opts.port, opts.timeout ?? timeout_);
             return new TcpSocket(con);
         }
