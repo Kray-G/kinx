@@ -731,6 +731,76 @@ int Soket_send(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Soket_recvfrom(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    if (p->soc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Invalid Socket object");
+    }
+
+    struct sockaddr_storage sa = {0};
+    char buf[2048] = {0};
+
+    int len = sizeof(sa);
+    int rc = recvfrom(p->soc, buf, 2047, 0, (struct sockaddr*)&sa, &len);
+    if (rc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Failed to recvfrom");
+    }
+
+    char hoststr[NI_MAXHOST] = {0};
+    char portstr[NI_MAXSERV] = {0};
+    rc = getnameinfo((struct sockaddr *)&sa, len, hoststr, sizeof(hoststr), portstr, sizeof(portstr), NI_NUMERICHOST | NI_NUMERICSERV);
+    if (rc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Failed to get a client address and port");
+    }
+
+    kx_obj_t *cobj = allocate_obj(ctx);
+    KEX_SET_PROP_CSTR(cobj, "message", buf);
+    KEX_SET_PROP_CSTR(cobj, "address", hoststr);
+    KEX_SET_PROP_CSTR(cobj, "port", portstr);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, cobj);
+    return 0;
+}
+
+int Soket_sendto(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_NETINFO(p, obj)
+
+    if (p->soc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Invalid Socket object");
+    }
+
+    const char *sp = get_arg_str(2, args, ctx);
+    if (!sp) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "No message to send");
+    }
+    size_t len = strlen(sp);
+    while (len > 0) {
+        int res = sendto(p->soc, sp, len, 0, p->ai->ai_addr, p->ai->ai_addrlen);
+        if (res < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                KX_ADJST_STACK();
+                push_i(ctx->stack, res);
+                return 0;
+            } else {
+                KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+            }
+        }
+        if (res != len) {
+            KX_THROW_BLTIN_EXCEPTION("SocketException", "Failed to sendto");
+        }
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 int Soket_accept(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -740,7 +810,7 @@ int Soket_accept(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_THROW_BLTIN_EXCEPTION("SocketException", "Invalid Socket object");
     }
 
-    struct sockaddr_storage sa;
+    struct sockaddr_storage sa = {0};
     socklen_t len = sizeof(sa);
     int csoc = accept(p->soc, (struct sockaddr*)&sa, &len);
     if (csoc < 0) {
@@ -775,8 +845,17 @@ int Soket_accept(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     info->p = cp;
     info->any_free = free_netinfo;
 
+    char hoststr[NI_MAXHOST] = {0};
+    char portstr[NI_MAXSERV] = {0};
+    int rc = getnameinfo((struct sockaddr *)&sa, len, hoststr, sizeof(hoststr), portstr, sizeof(portstr), NI_NUMERICHOST | NI_NUMERICSERV);
+    if (rc < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", "Failed to get a client address and port");
+    }
+
     kx_obj_t *cobj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(cobj, "_socket", info);
+    KEX_SET_PROP_CSTR(cobj, "address", hoststr);
+    KEX_SET_PROP_CSTR(cobj, "port", portstr);
     KEX_SET_METHOD("close", cobj, Soket_close);
     KEX_SET_METHOD("send", cobj, Soket_send);
     KEX_SET_METHOD("recv", cobj, Soket_recv);
@@ -793,7 +872,6 @@ int Net_createTcpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
 
     struct addrinfo hints = {0};
     struct addrinfo *res = NULL;
-    struct addrinfo *ai;
 
     hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
@@ -803,26 +881,25 @@ int Net_createTcpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     if (err != 0) {
         KX_THROW_BLTIN_EXCEPTION("SocketException", kx_gai_strerror(err));
     }
-    ai = res;
-    int soc = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+    int soc = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (soc < 0) {
-        freeaddrinfo(ai);
+        freeaddrinfo(res);
         KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
     }
     int on = 1;
     if (setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, (const void *)&on, sizeof(on)) < 0) {
-        freeaddrinfo(ai);
+        freeaddrinfo(res);
         KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
     }
-    int disable = 0;
-    if (setsockopt(soc, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&disable, sizeof(disable)) < 0) {
-        freeaddrinfo(ai);
+    on = 0;
+    if (setsockopt(soc, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&on, sizeof(on)) < 0) {
+        freeaddrinfo(res);
         KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
     }
  
     kx_netinfo_t *p = kx_calloc(1, sizeof(kx_netinfo_t));
     p->soc = soc;
-    p->ai = ai;
+    p->ai = res;
     kx_any_t *info = allocate_any(ctx);
     info->p = p;
     info->any_free = free_netinfo;
@@ -893,10 +970,104 @@ int Net_createTcpClientSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     return 0;
 }
 
+int Net_createUdpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *service = get_arg_str(1, args, ctx);
+
+    struct addrinfo hints = {0};
+    struct addrinfo *res = NULL;
+
+    hints.ai_family = AF_INET6;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
+    hints.ai_flags = AI_PASSIVE|AI_V4MAPPED;
+    int err = getaddrinfo(NULL, service, &hints, &res);
+    if (err != 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_gai_strerror(err));
+    }
+    int soc = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (soc < 0) {
+        freeaddrinfo(res);
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+    int on = 1;
+    if (setsockopt(soc, SOL_SOCKET, SO_REUSEADDR, (const void *)&on, sizeof(on)) < 0) {
+        freeaddrinfo(res);
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+    on = 0;
+    if (setsockopt(soc, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&on, sizeof(on)) < 0) {
+        freeaddrinfo(res);
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+ 
+    kx_netinfo_t *p = kx_calloc(1, sizeof(kx_netinfo_t));
+    p->soc = soc;
+    p->ai = res;
+    kx_any_t *info = allocate_any(ctx);
+    info->p = p;
+    info->any_free = free_netinfo;
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_ANY(obj, "_socket", info);
+    KEX_SET_METHOD("bind", obj, Soket_bind);
+    KEX_SET_METHOD("close", obj, Soket_close);
+    KEX_SET_METHOD("sendto", obj, Soket_sendto);
+    KEX_SET_METHOD("recvfrom", obj, Soket_recvfrom);
+    KEX_SET_METHOD("select", obj, Soket_select);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Net_createUdpClientSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *host = get_arg_str(1, args, ctx);
+    const char *service = get_arg_str(2, args, ctx);
+    int timeout = get_arg_int(3, args, ctx);
+
+    struct addrinfo hints = {0};
+    struct addrinfo *res = NULL;
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_DGRAM;
+    int err = getaddrinfo(host, service, &hints, &res);
+    if (err != 0) {
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_gai_strerror(err));
+    }
+    int soc = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (soc < 0) {
+        freeaddrinfo(res);
+        KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
+    }
+
+    kx_netinfo_t *p = kx_calloc(1, sizeof(kx_netinfo_t));
+    p->soc = soc;
+    p->ai = res;
+    kx_any_t *info = allocate_any(ctx);
+    info->p = p;
+    info->any_free = free_netinfo;
+
+    kx_obj_t *cobj = allocate_obj(ctx);
+    KEX_SET_PROP_ANY(cobj, "_socket", info);
+    KEX_SET_METHOD("bind", cobj, Soket_bind);
+    KEX_SET_METHOD("close", cobj, Soket_close);
+    KEX_SET_METHOD("sendto", cobj, Soket_sendto);
+    KEX_SET_METHOD("recvfrom", cobj, Soket_recvfrom);
+    KEX_SET_METHOD("select", cobj, Soket_select);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, cobj);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "createCurlHandler", Net_createCurlHandler },
     { "createTcpServerSocket", Net_createTcpServerSocket },
     { "createTcpClientSocket", Net_createTcpClientSocket },
+    { "createUdpServerSocket", Net_createUdpServerSocket },
+    { "createUdpClientSocket", Net_createUdpClientSocket },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, net_initialize, net_finalize);
