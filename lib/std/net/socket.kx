@@ -13,10 +13,25 @@ _namespace Net {
         SELECT_READ_WRITE = 2,
     }
 
+    _class AddressPort(con_) {
+        public address() {
+            return con_.address;
+        }
+        public port() {
+            return con_.port;
+        }
+        public toString() {
+            return con_.address + ":" + con_.port;
+        }
+    }
+
     _class TcpSocket(con_) {
         var timeout_;
         private initialize() {
             timeout_ = 100;
+        }
+        public host() {
+            return new AddressPort(con_);
         }
         public setTimeout(msec) {
             timeout_ = msec;
@@ -51,36 +66,72 @@ _namespace Net {
         }
     }
 
+    _class UdpSocket(con_) {
+        var timeout_;
+        var host_;
+        private initialize() {
+            timeout_ = 100;
+        }
+        public host() {
+            return host_;
+        }
+        public setTimeout(msec) {
+            timeout_ = msec;
+        }
+        public isReadable(msec) {
+            return con_.select(SELECT_READ, msec ?? timeout_);
+        }
+        public isWritable(msec) {
+            return con_.select(SELECT_WRITE, msec ?? timeout_);
+        }
+        public sendto(opts) {
+            if (opts.isString) {
+                opts = { message: opts };
+            }
+            var r = con_.sendto(opts.message);
+            if (r < 0) {
+                if (isWritable(opts.timeout) > 0) {
+                    r = con_.send(opts.message);
+                }
+                if (r < 0) {
+                    throw SocketException("Cannot send message");
+                }
+            }
+        }
+        public recvfrom(opts) {
+            if (isReadable(opts.timeout)) {
+                var r = con_.recvfrom();
+                host_ = new AddressPort({ address: r.address, port: r.port });
+                return r.message;
+            }
+        }
+        public close() {
+            return con_.close();
+        }
+    }
+
     _class Socket() {
         var timeout_;
         private initialize() {
             timeout_ = 100;
         }
         public connect(opts) {
+            if (opts.udp) {
+                var con = Net.createUdpClientSocket(opts.host, "" + opts.port, opts.timeout ?? timeout_);
+                return new UdpSocket(con);
+            }
             var con = Net.createTcpClientSocket(opts.host, "" + opts.port, opts.timeout ?? timeout_);
             return new TcpSocket(con);
         }
     }
 
-    class ServerSocket(mode_, port_) {
+    _class TcpServerSocket(port_) {
         var soc_;
         private initialize() {
-            if (mode_ == Net.TCP) {
-                soc_ = Net.createTcpServerSocket("" + port_);
-                soc_.Socket = TcpSocket;
-                @bind().listen();
-            } else if (mode_ == Net.UDP) {
-                soc_ = Net.createUdpServerSocket("" + port_);
-                # soc_.Socket = UdpSocket;
-            }
-        }
-        public bind() {
+            soc_ = Net.createTcpServerSocket("" + port_);
+            soc_.Socket = TcpSocket;
             soc_.bind();
-            return this;
-        }
-        public listen() {
             soc_.listen();
-            return this;
         }
         public accept() {
             var con;
@@ -99,6 +150,12 @@ _namespace Net {
         public close() {
             return soc_.close();
         }
+    }
+
+    _class UdpServerSocket(port_) {
+        var con_ = Net.createUdpServerSocket("" + port_);
+        con_.bind();
+        return new UdpSocket(con_);
     }
 
 } // _namespace Net
