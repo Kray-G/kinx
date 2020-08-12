@@ -791,9 +791,8 @@ int Soket_sendto(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
                 KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
             }
         }
-        if (res != len) {
-            KX_THROW_BLTIN_EXCEPTION("SocketException", "Failed to sendto");
-        }
+        len -= res;
+        sp += res;
     }
 
     KX_ADJST_STACK();
