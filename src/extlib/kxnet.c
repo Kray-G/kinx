@@ -599,7 +599,7 @@ static void free_netinfo(void *obj)
     kx_free(p);
 }
 
-int Soket_bind(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_bind(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -617,7 +617,7 @@ int Soket_bind(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_listen(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_listen(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -648,7 +648,7 @@ int Soket_listen(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -663,7 +663,7 @@ int Soket_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_select(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_select(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -680,7 +680,7 @@ int Soket_select(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_recv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_recv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -697,7 +697,7 @@ int Soket_recv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_send(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_send(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -731,7 +731,7 @@ int Soket_send(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_recvfrom(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_recvfrom(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -766,7 +766,7 @@ int Soket_recvfrom(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_sendto(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_sendto(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -800,7 +800,7 @@ int Soket_sendto(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int Soket_accept(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int Socket_accept(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_GET_NETINFO(p, obj)
@@ -855,10 +855,10 @@ int Soket_accept(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_PROP_ANY(cobj, "_socket", info);
     KEX_SET_PROP_CSTR(cobj, "address", hoststr);
     KEX_SET_PROP_CSTR(cobj, "port", portstr);
-    KEX_SET_METHOD("close", cobj, Soket_close);
-    KEX_SET_METHOD("send", cobj, Soket_send);
-    KEX_SET_METHOD("recv", cobj, Soket_recv);
-    KEX_SET_METHOD("select", cobj, Soket_select);
+    KEX_SET_METHOD("close", cobj, Socket_close);
+    KEX_SET_METHOD("send", cobj, Socket_send);
+    KEX_SET_METHOD("recv", cobj, Socket_recv);
+    KEX_SET_METHOD("select", cobj, Socket_select);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, cobj);
@@ -905,10 +905,10 @@ int Net_createTcpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
 
     kx_obj_t *obj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(obj, "_socket", info);
-    KEX_SET_METHOD("bind", obj, Soket_bind);
-    KEX_SET_METHOD("listen", obj, Soket_listen);
-    KEX_SET_METHOD("accept", obj, Soket_accept);
-    KEX_SET_METHOD("close", obj, Soket_close);
+    KEX_SET_METHOD("bind", obj, Socket_bind);
+    KEX_SET_METHOD("listen", obj, Socket_listen);
+    KEX_SET_METHOD("accept", obj, Socket_accept);
+    KEX_SET_METHOD("close", obj, Socket_close);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -958,11 +958,11 @@ int Net_createTcpClientSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
 
     kx_obj_t *cobj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(cobj, "_socket", info);
-    KEX_SET_METHOD("bind", cobj, Soket_bind);
-    KEX_SET_METHOD("close", cobj, Soket_close);
-    KEX_SET_METHOD("send", cobj, Soket_send);
-    KEX_SET_METHOD("recv", cobj, Soket_recv);
-    KEX_SET_METHOD("select", cobj, Soket_select);
+    KEX_SET_METHOD("bind", cobj, Socket_bind);
+    KEX_SET_METHOD("close", cobj, Socket_close);
+    KEX_SET_METHOD("send", cobj, Socket_send);
+    KEX_SET_METHOD("recv", cobj, Socket_recv);
+    KEX_SET_METHOD("select", cobj, Socket_select);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, cobj);
@@ -1009,11 +1009,11 @@ int Net_createUdpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
 
     kx_obj_t *obj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(obj, "_socket", info);
-    KEX_SET_METHOD("bind", obj, Soket_bind);
-    KEX_SET_METHOD("close", obj, Soket_close);
-    KEX_SET_METHOD("sendto", obj, Soket_sendto);
-    KEX_SET_METHOD("recvfrom", obj, Soket_recvfrom);
-    KEX_SET_METHOD("select", obj, Soket_select);
+    KEX_SET_METHOD("bind", obj, Socket_bind);
+    KEX_SET_METHOD("close", obj, Socket_close);
+    KEX_SET_METHOD("sendto", obj, Socket_sendto);
+    KEX_SET_METHOD("recvfrom", obj, Socket_recvfrom);
+    KEX_SET_METHOD("select", obj, Socket_select);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -1050,11 +1050,11 @@ int Net_createUdpClientSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
 
     kx_obj_t *cobj = allocate_obj(ctx);
     KEX_SET_PROP_ANY(cobj, "_socket", info);
-    KEX_SET_METHOD("bind", cobj, Soket_bind);
-    KEX_SET_METHOD("close", cobj, Soket_close);
-    KEX_SET_METHOD("sendto", cobj, Soket_sendto);
-    KEX_SET_METHOD("recvfrom", cobj, Soket_recvfrom);
-    KEX_SET_METHOD("select", cobj, Soket_select);
+    KEX_SET_METHOD("bind", cobj, Socket_bind);
+    KEX_SET_METHOD("close", cobj, Socket_close);
+    KEX_SET_METHOD("sendto", cobj, Socket_sendto);
+    KEX_SET_METHOD("recvfrom", cobj, Socket_recvfrom);
+    KEX_SET_METHOD("select", cobj, Socket_select);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, cobj);
