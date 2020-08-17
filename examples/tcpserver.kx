@@ -1,0 +1,22 @@
+
+const port = 10001;
+var serv = new Net.TcpServerSocket(port);
+while (true) {
+    var con = serv.accept();
+    var host = con.host();
+    System.println("Connected from " + host);
+    while (!con.isReadable()) {
+        System.println("Waiting...");
+        System.sleep(1000);
+    }
+    var msg = con.recv();
+    System.println("received " + msg + ", and waiting 1000 ms");
+    System.sleep(1000);
+    if (msg.trim() == "quit") {
+        break;
+    }
+
+    msg = "Thank you";
+    con.send(msg + '\n');
+    System.println("Sent '" + msg + "'.");
+}
