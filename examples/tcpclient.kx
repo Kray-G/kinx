@@ -1,0 +1,4 @@
+var soc = new Net.Socket();
+var con = soc.connect({ host: "192.168.10.111", port: 10001, timeout: 10000 });
+con.send($$[1] ?? "This is the message\n");
+System.println(con.recv({ timeout: 10000 }));
