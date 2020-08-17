@@ -319,8 +319,8 @@ do { \
                     do { i += sz; } while (i < 0); \
                     kx_val_t *val = &(kv_A(obj->ary, i)); \
                     push_value((ctx)->stack, *val); \
-                } else if (sz != 0) { \
-                    kx_val_t *val = &(kv_A(obj->ary, (cur->value1.i % sz))); \
+                } else if (cur->value1.i < sz) { \
+                    kx_val_t *val = &(kv_A(obj->ary, cur->value1.i)); \
                     push_value((ctx)->stack, *val); \
                 } else { \
                     push_undef((ctx)->stack); \
