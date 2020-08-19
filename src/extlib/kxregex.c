@@ -2,6 +2,7 @@
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
+#include <ctype.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
@@ -249,6 +250,52 @@ int Regex_splitOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+static void append_with_replace(regex_pack_t *r, kstr_t *sv, const char * str, int index, const char *newstr, int sn)
+{
+    #define KX_BUFSIZ (1020)
+    #define KX_IS_REPL_CH(c) ((isdigit(c) || (c) == '&' || (c) == '$'))
+    #define KX_APPEND_STR(sv, buf, p, c) \
+        buf[p++] = c; \
+        if (KX_BUFSIZ <= p) { \
+            buf[p] = 0; \
+            ks_append(sv, buf); \
+            p = 0; \
+        } \
+    /**/
+    char buf[KX_BUFSIZ+4] = {0};
+    int p = 0;
+    int nr = r->region->num_regs;
+    int last = sn - 1;
+    for (int i = 0; i < sn; ++i) {
+        if (i < last && newstr[i] == '$' && KX_IS_REPL_CH(newstr[i+1])) {
+            ++i;
+            if (newstr[i] == '$') {
+                KX_APPEND_STR(sv, buf, p, '$');
+            } else {
+                int n = (newstr[i] == '&') ? 0 : (newstr[i] - '0');
+                if (n < nr) {
+                    int b = index + r->region->beg[n];
+                    int e = index + r->region->end[n];
+                    for (int j = b; j < e; ++j) {
+                        KX_APPEND_STR(sv, buf, p, str[j]);
+                    }
+                } else {
+                    /* not appending any string */;
+                }
+            }
+        } else {
+            KX_APPEND_STR(sv, buf, p, newstr[i]);
+        }
+    }
+    #undef KX_APPEND_STR
+    #undef KX_IS_REPL_CH
+    #undef KX_BUFSIZ
+    if (p > 0) {
+        buf[p] = 0;
+        ks_append(sv, buf);
+    }
+}
+
 int Regex_replaceOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -258,6 +305,7 @@ int Regex_replaceOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
     const char *str = get_arg_str(2, args, ctx);
     const char *newstr = get_arg_str(3, args, ctx);
+    int sn = strlen(newstr);
     int index = 0;
     int len = strlen(str);
     const unsigned char *end = str + len;
@@ -274,11 +322,11 @@ int Regex_replaceOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         int found_end = r->region->end[0];
         if (found_start == found_end) {
             ks_append_n(sv, str + index, 1);
-            ks_append(sv, newstr);
+            append_with_replace(r, sv, str, index, newstr, sn);
             ++index;
         } else {
             ks_append_n(sv, str + index, found_start);
-            ks_append(sv, newstr);
+            append_with_replace(r, sv, str, index, newstr, sn);
             index += found_end;
         }
     }
