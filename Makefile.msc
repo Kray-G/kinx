@@ -124,6 +124,7 @@ SOFILES = \
     kxnet.dll \
     kxxml.dll \
     kxjit.dll \
+    kxpdf.dll \
     kxprocess.dll
 PICOBJS = \
     src/bign.obj \
@@ -250,6 +251,9 @@ kxxml.dll: src/extlib/kxxml.c $(PICOBJS)
 
 kxjit.dll: src/extlib/kxjit.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxjit.c $(PICOBJS) src/ir_aotcore.obj src/disasm-x64/libudis86/*.obj
+
+kxpdf.dll: src/extlib/kxpdf.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /I src/extlib/libharu/include /Fe$@ src/extlib/kxpdf.c $(PICOBJS) src/extlib/libharu/x64/vs2017/libhpdf.lib src/extlib/libharu/x64/vs2017/zlib_a.lib src/extlib/libharu/x64/vs2017/libpng.lib
 
 zlib.dll: src/extlib/zip/x64/vs2017/zlib.dll
 	copy /y src\extlib\zip\x64\vs2017\zlib.dll zlib.dll
