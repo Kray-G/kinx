@@ -10,6 +10,7 @@
             "defines": [
                 "UNICODE",
                 "_UNICODE",
+                "_WIN32",
                 "_WIN64"
             ],
             "windowsSdkVersion": "10.0.16299.0",
