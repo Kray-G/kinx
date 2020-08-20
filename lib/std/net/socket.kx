@@ -21,7 +21,7 @@ _namespace Net {
             return con_.port;
         }
         public toString() {
-            return con_.address + ":" + con_.port;
+            return "[%{con_.address}]:" + con_.port;
         }
     }
 

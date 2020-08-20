@@ -915,7 +915,7 @@ typedef struct kx_context_ {
     khint_t k = kh_put(prop, p, constn, &absent); \
     kx_val_t *val = &(kh_value(p, k)); \
     val->type = KX_DBL_T; \
-    val->value.iv = dval; \
+    val->value.dv = dval; \
 } \
 /**/
 #define KEX_SET_PROP_BIG(o, namep, bzval) { \
