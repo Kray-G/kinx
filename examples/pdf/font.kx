@@ -22,52 +22,52 @@ var pageTitle = "Font Demo";
 pdf = new Pdf();
 
 /* Add a new page object. */
-page = pdf.AddPage();
+page = pdf.addPage();
 
-var height = page.GetHeight();
-var width = page.GetWidth();
+var height = page.getHeight();
+var width = page.getWidth();
 
 /* Print the lines of the page. */
-page.SetLineWidth(1);
-page.Rectangle(50, 50, width - 100, height - 110);
-page.Stroke();
+page.setLineWidth(1);
+page.rectangle(50, 50, width - 100, height - 110);
+page.stroke();
 
 /* Print the title of the page (with positioning center). */
-var defFont = pdf.GetFont("Helvetica", null);
-page.SetFontAndSize(defFont, 24);
+var defFont = pdf.getFont("Helvetica", null);
+page.setFontAndSize(defFont, 24);
 
-var tw = page.TextWidth(pageTitle);
-page.BeginText();
-page.TextOut((width - tw) / 2, height - 50, pageTitle);
-page.EndText();
+var tw = page.textWidth(pageTitle);
+page.beginText();
+page.textOut((width - tw) / 2, height - 50, pageTitle);
+page.endText();
 
 /* output subtitle. */
-page.BeginText();
-page.SetFontAndSize(defFont, 16);
-page.TextOut(60, height - 80, "<Standerd Type1 fonts samples>");
-page.EndText();
+page.beginText();
+page.setFontAndSize(defFont, 16);
+page.textOut(60, height - 80, "<Standerd Type1 fonts samples>");
+page.endText();
 
-page.BeginText();
-page.MoveTextPos(60, height - 105);
+page.beginText();
+page.moveTextPos(60, height - 105);
 
 i = 0;
 while (fontList[i]) {
     var sampText = "abcdefgABCDEFG12345!#$%&+-@?";
-    var font = pdf.GetFont(fontList[i], null);
+    var font = pdf.getFont(fontList[i], null);
 
     /* print a label of text */
-    page.SetFontAndSize(defFont, 9);
-    page.ShowText(fontList[i]);
-    page.MoveTextPos(0, -18);
+    page.setFontAndSize(defFont, 9);
+    page.showText(fontList[i]);
+    page.moveTextPos(0, -18);
 
     /* print a sample text. */
-    page.SetFontAndSize(font, 20);
-    page.ShowText(sampText);
-    page.MoveTextPos(0, -20);
+    page.setFontAndSize(font, 20);
+    page.showText(sampText);
+    page.moveTextPos(0, -20);
 
     i++;
 }
 
-page.EndText();
+page.endText();
 
-pdf.SaveToFile("pdfdemo_font.pdf");
+pdf.saveToFile("pdfdemo_font.pdf");
