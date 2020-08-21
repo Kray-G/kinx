@@ -1,0 +1,73 @@
+using Pdf;
+
+var fontList = [
+    "Courier",
+    "Courier-Bold",
+    "Courier-Oblique",
+    "Courier-BoldOblique",
+    "Helvetica",
+    "Helvetica-Bold",
+    "Helvetica-Oblique",
+    "Helvetica-BoldOblique",
+    "Times-Roman",
+    "Times-Bold",
+    "Times-Italic",
+    "Times-BoldItalic",
+    "Symbol",
+    "ZapfDingbats",
+    null
+];
+
+var pageTitle = "Font Demo";
+pdf = new Pdf();
+
+/* Add a new page object. */
+page = pdf.addPage();
+
+var height = page.getHeight();
+var width = page.getWidth();
+
+/* Print the lines of the page. */
+page.setLineWidth(1);
+page.rectangle(50, 50, width - 100, height - 110);
+page.stroke();
+
+/* Print the title of the page (with positioning center). */
+var defFont = pdf.getFont("Helvetica", null);
+page.setFontAndSize(defFont, 24);
+
+var tw = page.textWidth(pageTitle);
+page.beginText();
+page.textOut((width - tw) / 2, height - 50, pageTitle);
+page.endText();
+
+/* output subtitle. */
+page.beginText();
+page.setFontAndSize(defFont, 16);
+page.textOut(60, height - 80, "<Standerd Type1 fonts samples>");
+page.endText();
+
+page.beginText();
+page.moveTextPos(60, height - 105);
+
+i = 0;
+while (fontList[i]) {
+    var sampText = "abcdefgABCDEFG12345!#$%&+-@?";
+    var font = pdf.getFont(fontList[i], null);
+
+    /* print a label of text */
+    page.setFontAndSize(defFont, 9);
+    page.showText(fontList[i]);
+    page.moveTextPos(0, -18);
+
+    /* print a sample text. */
+    page.setFontAndSize(font, 20);
+    page.showText(sampText);
+    page.moveTextPos(0, -20);
+
+    i++;
+}
+
+page.endText();
+
+pdf.saveToFile("pdfdemo_font.pdf");
