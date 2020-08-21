@@ -75,7 +75,7 @@ while (fsize < 60) {
     page.MoveTextPos(0, -5 - fsize);
 
     /* measure the number of characters which included in the page. */
-    var len = page.MeasureText(sampText, page.GetWidth() - 120, false, null);
+    var len = page.MeasureText(sampText, page.GetWidth() - 120, false);
     page.ShowText(sampText.subString(0, len));
 
     /* print the description. */
