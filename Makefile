@@ -129,6 +129,7 @@ SOFILES = \
     kxsqlite.so \
     kxnet.so \
     kxxml.so \
+    kxpdf.so \
     kxssh.so \
     kxjit.so \
     kxprocess.so
@@ -264,6 +265,9 @@ kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so.3 libcrypto.so.3
 
 kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libxml2/include/libxml2 src/extlib/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+
+kxpdf.so: src/extlib/kxpdf.c $(PICOBJS) src/extlib/libharu/x64/gcc/libhpdf.a src/extlib/libharu/x64/gcc/libpng.a libz.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libharu/include src/extlib/libharu/x64/gcc/libhpdf.a src/extlib/libharu/x64/gcc/libpng.a -Wl,-rpath,'$$ORIGIN' -lm -L. -lz
 
 kxssh.so: src/extlib/kxssh.c $(PICOBJS) libssl.so.3 libcrypto.so.3
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libssh2/x64/gcc/libssh2.a -Wl,-rpath,'$$ORIGIN' -L. -lonig -pthread -lcrypto
