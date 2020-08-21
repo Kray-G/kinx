@@ -10,12 +10,12 @@ var sampTexts = [
     "d",
     "e",
 ];
-var fontname = pdf.LoadTTFontFromFile("fonts/NotoSerifJP-Regular.ttf", true);
-var font = pdf.GetFont(fontname, "UTF-8");
+var fontname = pdf.loadTTFontFromFile("fonts/NotoSerifJP-Regular.ttf", true);
+var font = pdf.getFont(fontname, "UTF-8");
 
-var page = pdf.AddPage();
-page.SetFontAndSize(font, 10);
+var page = pdf.addPage();
+page.setFontAndSize(font, 10);
 sampTexts.each {
-    var width = page.TextWidth(_1);
+    var width = page.textWidth(_1);
     System.println("%s = %f" % _1 % width);
 };

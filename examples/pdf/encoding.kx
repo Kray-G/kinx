@@ -6,41 +6,41 @@ const CELL_WIDTH = 20;
 const CELL_HEIGHT = 20;
 const CELL_HEADER = 10;
 
-function draw_graph(page) {
+function drawGraph(page) {
     /* Draw 16 X 15 cells */
     /* Draw vertical lines. */
-    page.SetLineWidth(0.5);
+    page.setLineWidth(0.5);
     for (i = 0; i <= 17; i++) {
         var x = i * CELL_WIDTH + 40;
-        page.MoveTo(x, PAGE_HEIGHT - 60);
-        page.LineTo(x, 40);
-        page.Stroke();
+        page.moveTo(x, PAGE_HEIGHT - 60);
+        page.lineTo(x, 40);
+        page.stroke();
         if (i > 0 && i <= 16) {
-            page.BeginText();
-            page.MoveTextPos(x + 5, PAGE_HEIGHT - 75);
-            page.ShowText(("%X" % (i-1)).format());
-            page.EndText();
+            page.beginText();
+            page.moveTextPos(x + 5, PAGE_HEIGHT - 75);
+            page.showText(("%X" % (i-1)).format());
+            page.endText();
         }
     }
     /* Draw horizontal lines. */
     for (i = 0; i <= 15; i++) {
         var y = i * CELL_HEIGHT + 40;
-        page.MoveTo(40, y);
-        page.LineTo(PAGE_WIDTH - 40, y);
-        page.Stroke();
+        page.moveTo(40, y);
+        page.lineTo(PAGE_WIDTH - 40, y);
+        page.stroke();
         if (i < 14) {
-            page.BeginText();
-            page.MoveTextPos(45, y + 5);
-            page.ShowText(("%X" % (15-i)).format());
-            page.EndText();
+            page.beginText();
+            page.moveTextPos(45, y + 5);
+            page.showText(("%X" % (15-i)).format());
+            page.endText();
         }
     }
 }
 
 
-function draw_fonts(page) {
+function drawFonts(page) {
     var i, j;
-    page.BeginText();
+    page.beginText();
 
     /* Draw all character from 0x20 to 0xFF to the canvas. */
     for (i = 1; i < 17; i++) {
@@ -50,13 +50,13 @@ function draw_fonts(page) {
 
             var ch = (i - 1) * 16 + (j - 1);
             if (ch >= 32) {
-                var d = x - page.TextWidth(*ch) / 2;
-                page.TextOut(d, y, *ch);
+                var d = x - page.textWidth(*ch) / 2;
+                page.textOut(d, y, *ch);
             }
         }
     }
 
-    page.EndText();
+    page.endText();
 }
 
 
@@ -88,56 +88,56 @@ encodings = [
 var pdf = new Pdf();
 
 /* set compression mode */
-pdf.SetCompressionMode(PDF_COMP_ALL);
+pdf.setCompressionMode(PDF_COMP_ALL);
 
 /* Set page mode to use outlines. */
-pdf.SetPageMode(PDF_PAGE_MODE_USE_OUTLINE);
+pdf.setPageMode(PDF_PAGE_MODE_USE_OUTLINE);
 
 /* get default font */
-var font = pdf.GetFont("Helvetica", null);
+var font = pdf.getFont("Helvetica", null);
 
 /* load font object */
-var font_name = pdf.LoadTTFontFromFile("fonts/NotoSerifJP-Regular.ttf", true);
+var font_name = pdf.loadTTFontFromFile("fonts/NotoSerifJP-Regular.ttf", true);
 
 /* create outline root. */
-var root = pdf.CreateOutline(null, "Encoding list", null);
-root.SetOpened(true);
+var root = pdf.createOutline(null, "Encoding list", null);
+root.setOpened(true);
 
 var i = 0;
 while (encodings[i]) {
-    var page = pdf.AddPage();
+    var page = pdf.addPage();
 
-    page.SetWidth(PAGE_WIDTH);
-    page.SetHeight(PAGE_HEIGHT);
+    page.setWidth(PAGE_WIDTH);
+    page.setHeight(PAGE_HEIGHT);
 
-    var outline = pdf.CreateOutline(root, encodings[i], null);
-    var dst = page.CreateDestination();
-    dst.SetXYZ(0, page.GetHeight(), 1);
-    outline.SetDestination(dst);
+    var outline = pdf.createOutline(root, encodings[i], null);
+    var dst = page.createDestination();
+    dst.setXYZ(0, page.getHeight(), 1);
+    outline.setDestination(dst);
 
-    page.SetFontAndSize(font, 15);
-    draw_graph(page);
+    page.setFontAndSize(font, 15);
+    drawGraph(page);
 
-    page.BeginText();
-    page.SetFontAndSize(font, 20);
-    page.MoveTextPos(40, PAGE_HEIGHT - 50);
-    page.ShowText(encodings[i]);
-    page.ShowText(" Encoding");
-    page.EndText();
+    page.beginText();
+    page.setFontAndSize(font, 20);
+    page.moveTextPos(40, PAGE_HEIGHT - 50);
+    page.showText(encodings[i]);
+    page.showText(" Encoding");
+    page.endText();
 
     var font2;
     if (encodings[i] == "Symbol-Set")
-        font2 = pdf.GetFont("Symbol", null);
+        font2 = pdf.getFont("Symbol", null);
     else if (encodings[i] == "ZapfDingbats-Set")
-        font2 = pdf.GetFont("ZapfDingbats", null);
+        font2 = pdf.getFont("ZapfDingbats", null);
     else
-        font2 = pdf.GetFont(font_name, encodings[i]);
+        font2 = pdf.getFont(font_name, encodings[i]);
 
-    page.SetFontAndSize(font2, 14);
-    draw_fonts(page);
+    page.setFontAndSize(font2, 14);
+    drawFonts(page);
 
     i++;
 }
 
 /* save the document to a file */
-pdf.SaveToFile("pdfdemo_encoding.pdf");
+pdf.saveToFile("pdfdemo_encoding.pdf");
