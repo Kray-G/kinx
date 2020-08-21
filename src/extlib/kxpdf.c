@@ -153,6 +153,31 @@ int throw_exception(int args, kx_context_t *ctx, int error_no, int detail_no)
     KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
 }
 
+/* HPDF_Font_MeasureText */
+int kxpdf_HPDF_Font_MeasureText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Font font                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_UINT len                  */ int64_t v3 = get_arg_int(3, args, ctx); 
+    /* HPDF_REAL width                */ double v4 = get_arg_dbl(4, args, ctx);
+    /* HPDF_REAL font_size            */ double v5 = get_arg_dbl(5, args, ctx);
+    /* HPDF_REAL char_space           */ double v6 = get_arg_dbl(6, args, ctx);
+    /* HPDF_REAL word_space           */ double v7 = get_arg_dbl(7, args, ctx);
+    /* HPDF_BOOL wordwrap             */ int64_t v8 = get_arg_int(8, args, ctx);  
+    /* HPDF_REAL *real_width          */ /* not used */
+
+    sg_error = sg_detail = 0;
+    int r = HPDF_Font_MeasureText(v1, v2, v3, v4,v5, v6, v7, v8, NULL);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
 /* HPDF_Page_MeasureText */
 int kxpdf_HPDF_Page_MeasureText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
@@ -1206,8 +1231,8 @@ static kx_obj_t *kxpdf_append_method_HPDF_Font(kx_context_t *ctx, void *r)
     KEX_SET_METHOD("GetDescent", rv, kxpdf_HPDF_Font_GetDescent);
     KEX_SET_METHOD("GetXHeight", rv, kxpdf_HPDF_Font_GetXHeight);
     KEX_SET_METHOD("GetCapHeight", rv, kxpdf_HPDF_Font_GetCapHeight);
-    /* KEX_SET_METHOD("TextWidth", rv, kxpdf_HPDF_Font_TextWidth); */
-    /* KEX_SET_METHOD("MeasureText", rv, kxpdf_HPDF_Font_MeasureText); */
+    KEX_SET_METHOD("TextWidth", rv, kxpdf_HPDF_Font_TextWidth);
+    KEX_SET_METHOD("MeasureText", rv, kxpdf_HPDF_Font_MeasureText);
 
     return rv;
 }
@@ -3569,16 +3594,25 @@ int kxpdf_HPDF_Font_GetCapHeight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     return 0;
 }
 
-/*
+int kxpdf_HPDF_Font_TextWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "font", "HPDF_Font"], ["const HPDF_BYTE *", "text", "const HPDF_BYTE *"], ["unsigned int", "len", "HPDF_UINT"]],
-    "name": "HPDF_Font_TextWidth",
-    "rtype": {
-        "name": "HPDF_TextWidth",
-        "type": "HPDF_TextWidth"
+    /* HPDF_Font font                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_UINT len                  */ int64_t v3 = get_arg_int(3, args, ctx);
+
+    sg_error = sg_detail = 0;
+    HPDF_TextWidth r = HPDF_Font_TextWidth(v1, v2, v3);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_MAKE_TEXTWIDTH(rv, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
+    return 0;
 }
-*/
+
 /*
 {
     "args": [["void *", "font", "HPDF_Font"], ["const HPDF_BYTE *", "text", "const HPDF_BYTE *"], ["unsigned int", "len", "HPDF_UINT"], ["float", "width", "HPDF_REAL"], ["float", "font_size", "HPDF_REAL"], ["float", "char_space", "HPDF_REAL"], ["float", "word_space", "HPDF_REAL"], ["signed int", "wordwrap", "HPDF_BOOL"], ["HPDF_REAL *", "real_width", "HPDF_REAL *"]],
