@@ -1,0 +1,276 @@
+using Pdf;
+
+function showStripePattern(page, x, y) {
+    var iy = 0;
+    while (iy < 50) {
+        page.SetRGBStroke(0.0, 0.0, 0.5);
+        page.SetLineWidth(1);
+        page.MoveTo(x, y + iy);
+        page.LineTo(x + page.TextWidth("ABCabc123"), y + iy);
+        page.Stroke();
+        iy += 3;
+    }
+    page.SetLineWidth(2.5);
+}
+
+function showDescription(page, x, y, text) {
+    var fsize = page.GetCurrentFontSize();
+    var font = page.GetCurrentFont();
+    var c = page.GetRGBFill();
+
+    page.BeginText();
+    page.SetRGBFill(0, 0, 0);
+    page.SetTextRenderingMode(PDF_FILL);
+    page.SetFontAndSize(font, 10);
+    page.TextOut(x, y - 12, text);
+    page.EndText();
+
+    page.SetFontAndSize(font, fsize);
+    page.SetRGBFill(c.r, c.g, c.b);
+}
+
+
+var pdf = new Pdf();
+var page_title = "Text Demo";
+var sampText = "abcdefgABCDEFG123!#$%&+-@?";
+var sampText2 = "The quick brown fox jumps over the lazy dog.";
+
+/* set compression mode */
+pdf.SetCompressionMode(PDF_COMP_ALL);
+
+/* create default-font */
+var font = pdf.GetFont("Helvetica", null);
+
+/* add a new page object. */
+var page = pdf.AddPage();
+
+/* draw grid to the page */
+PdfUtil.printGrid(pdf, page);
+
+/* print the lines of the page.
+page.SetLineWidth(1);
+page.Rectangle(50, 50, page.GetWidth() - 100, page.GetHeight() - 110);
+page.Stroke();
+*/
+
+/* print the title of the page (with positioning center). */
+page.SetFontAndSize(font, 24);
+var tw = page.TextWidth(page_title);
+page.BeginText();
+page.TextOut((page.GetWidth() - tw) / 2, page.GetHeight() - 50, page_title);
+page.EndText();
+
+page.BeginText();
+page.MoveTextPos(60, page.GetHeight() - 60);
+
+/*
+    * font size
+    */
+var fsize = 8.0;
+while (fsize < 60) {
+    /* set style and size of font. */
+    page.SetFontAndSize(font, fsize);
+
+    /* set the position of the text. */
+    page.MoveTextPos(0, -5 - fsize);
+
+    /* measure the number of characters which included in the page. */
+    var len = page.MeasureText(sampText, page.GetWidth() - 120, false, null);
+    page.ShowText(sampText.subString(0, len));
+
+    /* print the description. */
+    page.MoveTextPos(0, -10);
+    page.SetFontAndSize(font, 8);
+    page.ShowText(("Fontsize=%.1f" % fsize).format());
+
+    fsize *= 1.5;
+}
+
+/*
+* font color
+*/
+page.SetFontAndSize(font, 8);
+page.MoveTextPos(0, -30);
+page.ShowText("Font color");
+
+page.SetFontAndSize(font, 18);
+page.MoveTextPos(0, -20);
+len = sampText.length();
+for (i = 0; i < len; i++) {
+    var r = i / len;
+    var g = 1 - (i / len);
+    var c = sampText[i];
+
+    page.SetRGBFill(r, g, 0.0);
+    page.ShowText(*c);
+}
+page.MoveTextPos(0, -25);
+
+for (i = 0; i < len; i++) {
+    var r = i / len;
+    var b = 1 - (i / len);
+    var c = sampText[i];
+
+    page.SetRGBFill(r, 0.0, b);
+    page.ShowText(*c);
+}
+page.MoveTextPos(0, -25);
+
+for (i = 0; i < len; i++) {
+    var b = i / len;
+    var g = 1 - (i / len);
+    var c = sampText[i];
+
+    page.SetRGBFill(0.0, g, b);
+    page.ShowText(*c);
+}
+
+page.EndText();
+
+var ypos = 450;
+
+/*
+* Font rendering mode
+*/
+page.SetFontAndSize(font, 32);
+page.SetRGBFill(0.5, 0.5, 0.0);
+page.SetLineWidth(1.5);
+
+/* PDF_FILL */
+showDescription(page,  60, ypos, "RenderingMode=PDF_FILL");
+page.SetTextRenderingMode(PDF_FILL);
+page.BeginText();
+page.TextOut(60, ypos, "ABCabc123");
+page.EndText();
+
+/* PDF_STROKE */
+showDescription(page, 60, ypos - 50, "RenderingMode=PDF_STROKE");
+page.SetTextRenderingMode(PDF_STROKE);
+page.BeginText();
+page.TextOut(60, ypos - 50, "ABCabc123");
+page.EndText();
+
+/* PDF_FILL_THEN_STROKE */
+showDescription(page, 60, ypos - 100, "RenderingMode=PDF_FILL_THEN_STROKE");
+page.SetTextRenderingMode(PDF_FILL_THEN_STROKE);
+page.BeginText();
+page.TextOut(60, ypos - 100, "ABCabc123");
+page.EndText();
+
+/* PDF_FILL_CLIPPING */
+showDescription(page, 60, ypos - 150, "RenderingMode=PDF_FILL_CLIPPING");
+page.GSave();
+page.SetTextRenderingMode(PDF_FILL_CLIPPING);
+page.BeginText();
+page.TextOut(60, ypos - 150, "ABCabc123");
+page.EndText();
+showStripePattern(page, 60, ypos - 150);
+page.GRestore();
+
+/* PDF_STROKE_CLIPPING */
+showDescription(page, 60, ypos - 200, "RenderingMode=PDF_STROKE_CLIPPING");
+page.GSave();
+page.SetTextRenderingMode(PDF_STROKE_CLIPPING);
+page.BeginText();
+page.TextOut(60, ypos - 200, "ABCabc123");
+page.EndText();
+showStripePattern(page, 60, ypos - 200);
+page.GRestore();
+
+/* PDF_FILL_STROKE_CLIPPING */
+showDescription(page, 60, ypos - 250, "RenderingMode=PDF_FILL_STROKE_CLIPPING");
+page.GSave();
+page.SetTextRenderingMode(PDF_FILL_STROKE_CLIPPING);
+page.BeginText();
+page.TextOut(60, ypos - 250, "ABCabc123");
+page.EndText();
+showStripePattern(page, 60, ypos - 250);
+page.GRestore();
+
+/* Reset text attributes */
+page.SetTextRenderingMode(PDF_FILL);
+page.SetRGBFill(0, 0, 0);
+page.SetFontAndSize(font, 30);
+
+
+/*
+* Rotating text
+*/
+var angle1 = 30;                   /* A rotation of 30 degrees. */
+var rad1 = angle1 / 180 * 3.141592; /* Calcurate the radian value. */
+
+showDescription(page, 320, ypos - 60, "Rotating text");
+page.BeginText();
+page.SetTextMatrix(Math.cos(rad1), Math.sin(rad1), -Math.sin(rad1), Math.cos(rad1), 330, ypos - 60);
+page.ShowText("ABCabc123");
+page.EndText();
+
+
+/*
+* Skewing text.
+*/
+showDescription(page, 320, ypos - 120, "Skewing text");
+page.BeginText();
+
+var angle1 = 10;
+var angle2 = 20;
+var rad1 = angle1 / 180 * 3.141592;
+var rad2 = angle2 / 180 * 3.141592;
+
+page.SetTextMatrix(1, Math.tan(rad1), Math.tan(rad2), 1, 320, ypos - 120);
+page.ShowText("ABCabc123");
+page.EndText();
+
+
+/*
+* scaling text (X direction)
+*/
+showDescription(page, 320, ypos - 175, "Scaling text (X direction)");
+page.BeginText();
+page.SetTextMatrix(1.5, 0, 0, 1, 320, ypos - 175);
+page.ShowText("ABCabc12");
+page.EndText();
+
+
+/*
+* scaling text (Y direction)
+*/
+showDescription(page, 320, ypos - 250, "Scaling text (Y direction)");
+page.BeginText();
+page.SetTextMatrix(1, 0, 0, 2, 320, ypos - 250);
+page.ShowText("ABCabc123");
+page.EndText();
+
+
+/*
+* char spacing, word spacing
+*/
+
+showDescription(page, 60, 140, "char-spacing 0");
+showDescription(page, 60, 100, "char-spacing 1.5");
+showDescription(page, 60, 60, "char-spacing 1.5, word-spacing 2.5");
+
+page.SetFontAndSize(font, 20);
+page.SetRGBFill(0.1, 0.3, 0.1);
+
+/* char-spacing 0 */
+page.BeginText();
+page.TextOut(60, 140, sampText2);
+page.EndText();
+
+/* char-spacing 1.5 */
+page.SetCharSpace(1.5);
+
+page.BeginText();
+page.TextOut(60, 100, sampText2);
+page.EndText();
+
+/* char-spacing 1.5, word-spacing 3.5 */
+page.SetWordSpace(2.5);
+
+page.BeginText();
+page.TextOut(60, 60, sampText2);
+page.EndText();
+
+/* save the document to a file */
+pdf.SaveToFile("pdfdemo_text.pdf");

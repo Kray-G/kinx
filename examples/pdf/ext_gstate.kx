@@ -1,0 +1,152 @@
+using Pdf;
+
+function drawCircles(page, description, x, y) {
+    page.SetLineWidth(1.0);
+    page.SetRGBStroke(0.0, 0.0, 0.0);
+    page.SetRGBFill(1.0, 0.0, 0.0);
+    page.Circle(x + 40, y + 40, 40);
+    page.ClosePathFillStroke();
+    page.SetRGBFill(0.0, 1.0, 0.0);
+    page.Circle(x + 100, y + 40, 40);
+    page.ClosePathFillStroke();
+    page.SetRGBFill(0.0, 0.0, 1.0);
+    page.Circle(x + 70, y + 74.64, 40);
+    page.ClosePathFillStroke();
+
+    page.SetRGBFill(0.0, 0.0, 0.0);
+    page.BeginText();
+    page.TextOut(x + 0.0, y + 130.0, description);
+    page.EndText();
+}
+
+
+const PAGE_WIDTH = 600;
+const PAGE_HEIGHT = 900;
+
+pdf = new Pdf();
+
+var hfont = pdf.GetFont("Helvetica-Bold", null);
+
+/* add a new page object. */
+page = pdf.AddPage();
+
+page.SetFontAndSize(hfont, 10);
+
+page.SetHeight(PAGE_HEIGHT);
+page.SetWidth(PAGE_WIDTH);
+
+/* normal */
+page.GSave();
+drawCircles(page, "normal", 40.0, PAGE_HEIGHT - 170);
+page.GRestore();
+
+/* transparency (0.8) */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetAlphaFill(0.8);
+gstate.SetAlphaStroke(0.8);
+page.SetExtGState(gstate);
+drawCircles(page, "alpha fill = 0.8", 230.0, PAGE_HEIGHT - 170);
+page.GRestore();
+
+/* transparency (0.4) */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetAlphaFill(0.4);
+page.SetExtGState(gstate);
+drawCircles(page, "alpha fill = 0.4", 420.0, PAGE_HEIGHT - 170);
+page.GRestore();
+
+/* blend-mode=PDF_BM_MULTIPLY */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_MULTIPLY);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_MULTIPLY", 40.0, PAGE_HEIGHT - 340);
+page.GRestore();
+
+/* blend-mode=PDF_BM_SCREEN */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_SCREEN);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_SCREEN", 230.0, PAGE_HEIGHT - 340);
+page.GRestore();
+
+/* blend-mode=PDF_BM_OVERLAY */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_OVERLAY);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_OVERLAY", 420.0, PAGE_HEIGHT - 340);
+page.GRestore();
+
+/* blend-mode=PDF_BM_DARKEN */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_DARKEN);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_DARKEN", 40.0, PAGE_HEIGHT - 510);
+page.GRestore();
+
+/* blend-mode=PDF_BM_LIGHTEN */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_LIGHTEN);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_LIGHTEN", 230.0, PAGE_HEIGHT - 510);
+page.GRestore();
+
+/* blend-mode=PDF_BM_COLOR_DODGE */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_COLOR_DODGE);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_COLOR_DODGE", 420.0, PAGE_HEIGHT - 510);
+page.GRestore();
+
+
+/* blend-mode=PDF_BM_COLOR_BUM */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_COLOR_BUM);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_COLOR_BUM", 40.0, PAGE_HEIGHT - 680);
+page.GRestore();
+
+/* blend-mode=PDF_BM_HARD_LIGHT */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_HARD_LIGHT);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_HARD_LIGHT", 230.0, PAGE_HEIGHT - 680);
+page.GRestore();
+
+/* blend-mode=PDF_BM_SOFT_LIGHT */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_SOFT_LIGHT);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_SOFT_LIGHT", 420.0, PAGE_HEIGHT - 680);
+page.GRestore();
+
+/* blend-mode=PDF_BM_DIFFERENCE */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_DIFFERENCE);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_DIFFERENCE", 40.0, PAGE_HEIGHT - 850);
+page.GRestore();
+
+
+/* blend-mode=PDF_BM_EXCLUSHON */
+page.GSave();
+gstate = pdf.CreateExtGState();
+gstate.SetBlendMode(PDF_BM_EXCLUSHON);
+page.SetExtGState(gstate);
+drawCircles(page, "PDF_BM_EXCLUSHON", 230.0, PAGE_HEIGHT - 850);
+page.GRestore();
+
+
+/* save the document to a file */
+pdf.SaveToFile("pdfdemo_ext_gstate.pdf");
