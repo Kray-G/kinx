@@ -1,0 +1,388 @@
+var PdfLibrary = _import("kxpdf");
+var Pdf = new PdfLibrary();
+var PdfUtil = {
+    printGrid: _function(pdf, page) {
+        var height = page.GetHeight();
+        var width = page.GetWidth();
+        var font = pdf.GetFont("Helvetica", null);
+        var x, y;
+
+        page.SetFontAndSize(font, 5);
+        page.SetGrayFill(0.5);
+        page.SetGrayStroke(0.8);
+
+        /* Draw horizontal lines */
+        y = 0;
+        while (y < height) {
+            if (y % 10 == 0)
+                page.SetLineWidth(0.5);
+            else {
+                if (page.GetLineWidth() != 0.25)
+                    page.SetLineWidth(0.25);
+            }
+            page.MoveTo(0, y);
+            page.LineTo(width, y);
+            page.Stroke();
+            if (y % 10 == 0 && y > 0) {
+                page.SetGrayStroke(0.5);
+                page.MoveTo(0, y);
+                page.LineTo(5, y);
+                page.Stroke();
+                page.SetGrayStroke(0.8);
+            }
+            y += 5;
+        }
+
+        /* Draw virtical lines */
+        x = 0;
+        while (x < width) {
+            if (x % 10 == 0)
+                page.SetLineWidth(0.5);
+            else {
+                if (page.GetLineWidth() != 0.25)
+                    page.SetLineWidth(0.25);
+            }
+            page.MoveTo(x, 0);
+            page.LineTo(x, height);
+            page.Stroke();
+            if (x % 50 == 0 && x > 0) {
+                page.SetGrayStroke(0.5);
+                page.MoveTo(x, 0);
+                page.LineTo(x, 5);
+                page.Stroke();
+                page.MoveTo(x, height);
+                page.LineTo(x, height - 5);
+                page.Stroke();
+                page.SetGrayStroke(0.8);
+            }
+            x += 5;
+        }
+
+        /* Draw horizontal text */
+        y = 0;
+        while (y < height) {
+            if (y % 10 == 0 && y > 0) {
+                page.BeginText();
+                page.MoveTextPos(5, y - 2);
+                page.ShowText("" + y);
+                page.EndText();
+            }
+            y += 5;
+        }
+
+        /* Draw virtical text */
+        x = 0;
+        while (x < width) {
+            if (x % 50 == 0 && x > 0) {
+                page.BeginText();
+                page.MoveTextPos(x, 5);
+                page.ShowText(""+x);
+                page.EndText();
+                page.BeginText();
+                page.MoveTextPos(x, height - 10);
+                page.ShowText(""+x);
+                page.EndText();
+            }
+            x += 5;
+        }
+        page.SetGrayFill(0);
+        page.SetGrayStroke(0);
+    }
+};
+
+/* from HaruPdf header of hpdf_consts.h */
+
+/* defalt page-size */
+const PDF_DEF_PAGE_WIDTH  = 595.276;
+const PDF_DEF_PAGE_HEIGHT = 841.89;
+
+/*---------------------------------------------------------------------------*/
+/*----- compression mode ----------------------------------------------------*/
+
+const PDF_COMP_NONE     = 0x00;
+const PDF_COMP_TEXT     = 0x01;
+const PDF_COMP_IMAGE    = 0x02;
+const PDF_COMP_METADATA = 0x04;
+const PDF_COMP_ALL      = 0x0F;
+const PDF_COMP_MASK     = 0xFF;
+
+/* from HaruPdf header of hpdf_types.h */
+
+/*---------------------------------------------------------------------------*/
+/*------ The line cap style -------------------------------------------------*/
+
+enum {
+    PDF_BUTT_END = 0,
+    PDF_ROUND_END,
+    PDF_PROJECTING_SCUARE_END,
+    PDF_LINECAP_EOF
+}
+
+/*----------------------------------------------------------------------------*/
+/*------ The line join style -------------------------------------------------*/
+
+enum {
+    PDF_MITER_JOIN = 0,
+    PDF_ROUND_JOIN,
+    PDF_BEVEL_JOIN,
+    PDF_LINEJOIN_EOF
+}
+
+/*----------------------------------------------------------------------------*/
+/*------ The text rendering mode ---------------------------------------------*/
+
+enum {
+    PDF_FILL = 0,
+    PDF_STROKE,
+    PDF_FILL_THEN_STROKE,
+    PDF_INVISIBLE,
+    PDF_FILL_CLIPPING,
+    PDF_STROKE_CLIPPING,
+    PDF_FILL_STROKE_CLIPPING,
+    PDF_CLIPPING,
+    PDF_RENDERING_MODE_EOF
+}
+
+enum {
+    PDF_WMODE_HORIZONTAL = 0,
+    PDF_WMODE_VERTICAL,
+    PDF_WMODE_EOF
+}
+
+enum {
+    PDF_PAGE_LAYOUT_SINGLE = 0,
+    PDF_PAGE_LAYOUT_ONE_COLUMN,
+    PDF_PAGE_LAYOUT_TWO_COLUMN_LEFT,
+    PDF_PAGE_LAYOUT_TWO_COLUMN_RIGHT,
+    PDF_PAGE_LAYOUT_TWO_PAGE_LEFT,
+    PDF_PAGE_LAYOUT_TWO_PAGE_RIGHT,
+    PDF_PAGE_LAYOUT_EOF
+}
+
+enum {
+    PDF_PAGE_MODE_USE_NONE = 0,
+    PDF_PAGE_MODE_USE_OUTLINE,
+    PDF_PAGE_MODE_USE_THUMBS,
+    PDF_PAGE_MODE_FULL_SCREEN,
+    PDF_PAGE_MODE_EOF
+}
+
+enum {
+    PDF_PAGE_NUM_STYLE_DECIMAL = 0,
+    PDF_PAGE_NUM_STYLE_UPPER_ROMAN,
+    PDF_PAGE_NUM_STYLE_LOWER_ROMAN,
+    PDF_PAGE_NUM_STYLE_UPPER_LETTERS,
+    PDF_PAGE_NUM_STYLE_LOWER_LETTERS,
+    PDF_PAGE_NUM_STYLE_EOF
+}
+
+enum {
+    PDF_XYZ = 0,
+    PDF_FIT,
+    PDF_FIT_H,
+    PDF_FIT_V,
+    PDF_FIT_R,
+    PDF_FIT_B,
+    PDF_FIT_BH,
+    PDF_FIT_BV,
+    PDF_DST_EOF
+}
+
+enum {
+    PDF_ANNOT_TEXT_NOTES,
+    PDF_ANNOT_LINK,
+    PDF_ANNOT_SOUND,
+    PDF_ANNOT_FREE_TEXT,
+    PDF_ANNOT_STAMP,
+    PDF_ANNOT_SQUARE,
+    PDF_ANNOT_CIRCLE,
+    PDF_ANNOT_STRIKE_OUT,
+    PDF_ANNOT_HIGHTLIGHT,
+    PDF_ANNOT_UNDERLINE,
+    PDF_ANNOT_INK,
+    PDF_ANNOT_FILE_ATTACHMENT,
+    PDF_ANNOT_POPUP,
+    PDF_ANNOT_3D,
+    PDF_ANNOT_SQUIGGLY,
+	PDF_ANNOT_LINE,
+	PDF_ANNOT_PROJECTION,
+	PDF_ANNOT_WIDGET
+}
+
+enum {
+    PDF_ANNOT_INVISIBLE,
+    PDF_ANNOT_HIDDEN,
+    PDF_ANNOT_PRINT,
+    PDF_ANNOT_NOZOOM,
+    PDF_ANNOT_NOROTATE,
+    PDF_ANNOT_NOVIEW,
+    PDF_ANNOT_READONLY
+}
+
+enum {
+    PDF_ANNOT_NO_HIGHTLIGHT = 0,
+    PDF_ANNOT_INVERT_BOX,
+    PDF_ANNOT_INVERT_BORDER,
+    PDF_ANNOT_DOWN_APPEARANCE,
+    PDF_ANNOT_HIGHTLIGHT_MODE_EOF
+}
+
+enum {
+    PDF_ANNOT_ICON_COMMENT = 0,
+    PDF_ANNOT_ICON_KEY,
+    PDF_ANNOT_ICON_NOTE,
+    PDF_ANNOT_ICON_HELP,
+    PDF_ANNOT_ICON_NEW_PARAGRAPH,
+    PDF_ANNOT_ICON_PARAGRAPH,
+    PDF_ANNOT_ICON_INSERT,
+    PDF_ANNOT_ICON_EOF
+}
+
+enum {
+    PDF_ANNOT_INTENT_FREETEXTCALLOUT = 0,
+    PDF_ANNOT_INTENT_FREETEXTTYPEWRITER,
+    PDF_ANNOT_INTENT_LINEARROW,
+    PDF_ANNOT_INTENT_LINEDIMENSION,
+    PDF_ANNOT_INTENT_POLYGONCLOUD,
+    PDF_ANNOT_INTENT_POLYLINEDIMENSION,
+    PDF_ANNOT_INTENT_POLYGONDIMENSION
+}
+
+enum {
+    PDF_LINE_ANNOT_NONE = 0,
+    PDF_LINE_ANNOT_SQUARE,
+    PDF_LINE_ANNOT_CIRCLE,
+    PDF_LINE_ANNOT_DIAMOND,
+    PDF_LINE_ANNOT_OPENARROW,
+    PDF_LINE_ANNOT_CLOSEDARROW,
+    PDF_LINE_ANNOT_BUTT,
+    PDF_LINE_ANNOT_ROPENARROW,
+    PDF_LINE_ANNOT_RCLOSEDARROW,
+    PDF_LINE_ANNOT_SLASH
+}
+
+enum {
+    PDF_LINE_ANNOT_CAP_INLINE = 0,
+    PDF_LINE_ANNOT_CAP_TOP
+}
+
+enum {
+    PDF_STAMP_ANNOT_APPROVED = 0,
+    PDF_STAMP_ANNOT_EXPERIMENTAL,
+    PDF_STAMP_ANNOT_NOTAPPROVED,
+    PDF_STAMP_ANNOT_ASIS,
+    PDF_STAMP_ANNOT_EXPIRED,
+    PDF_STAMP_ANNOT_NOTFORPUBLICRELEASE,
+    PDF_STAMP_ANNOT_CONFIDENTIAL,
+    PDF_STAMP_ANNOT_FINAL,
+    PDF_STAMP_ANNOT_SOLD,
+    PDF_STAMP_ANNOT_DEPARTMENTAL,
+    PDF_STAMP_ANNOT_FORCOMMENT,
+    PDF_STAMP_ANNOT_TOPSECRET,
+    PDF_STAMP_ANNOT_DRAFT,
+    PDF_STAMP_ANNOT_FORPUBLICRELEASE
+}
+
+/*----------------------------------------------------------------------------*/
+/*------ border stype --------------------------------------------------------*/
+
+enum {
+    PDF_BS_SOLID,
+    PDF_BS_DASHED,
+    PDF_BS_BEVELED,
+    PDF_BS_INSET,
+    PDF_BS_UNDERLINED
+}
+
+/*----- blend modes ----------------------------------------------------------*/
+
+enum {
+    PDF_BM_NORMAL,
+    PDF_BM_MULTIPLY,
+    PDF_BM_SCREEN,
+    PDF_BM_OVERLAY,
+    PDF_BM_DARKEN,
+    PDF_BM_LIGHTEN,
+    PDF_BM_COLOR_DODGE,
+    PDF_BM_COLOR_BUM,
+    PDF_BM_HARD_LIGHT,
+    PDF_BM_SOFT_LIGHT,
+    PDF_BM_DIFFERENCE,
+    PDF_BM_EXCLUSHON,
+    PDF_BM_EOF
+}
+
+/*----- slide show -----------------------------------------------------------*/
+
+enum {
+    PDF_TS_WIPE_RIGHT = 0,
+    PDF_TS_WIPE_UP,
+    PDF_TS_WIPE_LEFT,
+    PDF_TS_WIPE_DOWN,
+    PDF_TS_BARN_DOORS_HORIZONTAL_OUT,
+    PDF_TS_BARN_DOORS_HORIZONTAL_IN,
+    PDF_TS_BARN_DOORS_VERTICAL_OUT,
+    PDF_TS_BARN_DOORS_VERTICAL_IN,
+    PDF_TS_BOX_OUT,
+    PDF_TS_BOX_IN,
+    PDF_TS_BLINDS_HORIZONTAL,
+    PDF_TS_BLINDS_VERTICAL,
+    PDF_TS_DISSOLVE,
+    PDF_TS_GLITTER_RIGHT,
+    PDF_TS_GLITTER_DOWN,
+    PDF_TS_GLITTER_TOP_LEFT_TO_BOTTOM_RIGHT,
+    PDF_TS_REPLACE,
+    PDF_TS_EOF
+}
+
+/*----------------------------------------------------------------------------*/
+
+enum {
+    PDF_PAGE_SIZE_LETTER = 0,
+    PDF_PAGE_SIZE_LEGAL,
+    PDF_PAGE_SIZE_A3,
+    PDF_PAGE_SIZE_A4,
+    PDF_PAGE_SIZE_A5,
+    PDF_PAGE_SIZE_B4,
+    PDF_PAGE_SIZE_B5,
+    PDF_PAGE_SIZE_EXECUTIVE,
+    PDF_PAGE_SIZE_US4x6,
+    PDF_PAGE_SIZE_US4x8,
+    PDF_PAGE_SIZE_US5x7,
+    PDF_PAGE_SIZE_COMM10,
+    PDF_PAGE_SIZE_EOF
+}
+
+enum {
+    PDF_PAGE_PORTRAIT = 0,
+    PDF_PAGE_LANDSCAPE
+}
+
+enum {
+    PDF_ENCODER_TYPE_SINGLE_BYTE,
+    PDF_ENCODER_TYPE_DOUBLE_BYTE,
+    PDF_ENCODER_TYPE_UNINITIALIZED,
+    PDF_ENCODER_UNKNOWN
+}
+
+enum {
+    PDF_BYTE_TYPE_SINGLE = 0,
+    PDF_BYTE_TYPE_LEAD,
+    PDF_BYTE_TYPE_TRIAL,
+    PDF_BYTE_TYPE_UNKNOWN
+}
+
+enum {
+    PDF_TALIGN_LEFT = 0,
+    PDF_TALIGN_RIGHT,
+    PDF_TALIGN_CENTER,
+    PDF_TALIGN_JUSTIFY
+}
+
+/*----------------------------------------------------------------------------*/
+
+/* Name Dictionary values -- see PDF reference section 7.7.4 */
+enum {
+    PDF_NAME_EMBEDDED_FILES = 0,    /* TODO the rest */
+    PDF_NAME_EOF
+}
