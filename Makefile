@@ -198,6 +198,7 @@ install:
 	cp -f kxstring.so /usr/bin/kinxlib/
 	cp -f kxsystem.so /usr/bin/kinxlib/
 	cp -f kxxml.so /usr/bin/kinxlib/
+	cp -f kxpdf.so /usr/bin/kinxlib/
 	cp -f kxssh.so /usr/bin/kinxlib/
 	cp -f kxjit.so /usr/bin/kinxlib/
 	cp -f kxprocess.so /usr/bin/kinxlib/
