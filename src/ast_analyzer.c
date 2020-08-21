@@ -28,6 +28,7 @@ typedef struct kxana_context_ {
     kx_object_t *switch_stmt;
     kvec_t(kxana_symbol_t) symbols;
     kvec_t(enum_map_t) enval;
+    kvec_pt(kx_object_t) *vars;
 } kxana_context_t;
 static const kxana_symbol_t kx_empty_symbols = {0};
 
@@ -459,6 +460,9 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
             } else {
                 ++(actx->arg_index);
             }
+        }
+        if (actx->vars) {
+            kv_push(kx_object_t*, (*(actx->vars)), node);
         }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
@@ -1123,13 +1127,30 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
 
         int anon_arg = actx->anon_arg;
         actx->anon_arg = 0;
+        kvec_pt(kx_object_t) *vars = actx->vars;
+        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         analyze_ast(ctx, node->rhs, actx);
+        int vdiff = actx->anon_arg - node->count_args;
+        if (vdiff > 0) {
+            int vlen = kv_size(*(actx->vars));
+            for (int i = 0; i < vlen; ++i) {
+                kx_object_t *n = kv_A(*(actx->vars), i);
+                if (n->lexical == 0) {
+                    n->index += vdiff;
+                    if (node->local_vars <= n->index) {
+                        node->local_vars = n->index + 1;
+                    }
+                }
+            }
+        }
         if (node->count_args < actx->anon_arg) {
             node->count_args = actx->anon_arg;
         }
         if (node->local_vars < node->count_args) {
             node->local_vars = node->count_args;
         }
+        kx_free(actx->vars);
+        actx->vars = vars;
         actx->anon_arg = anon_arg;
 
         actx->func = func;
@@ -1200,13 +1221,30 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
 
         int anon_arg = actx->anon_arg;
         actx->anon_arg = 0;
+        kvec_pt(kx_object_t) *vars = actx->vars;
+        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         analyze_ast(ctx, node->rhs, actx);
+        int vdiff = actx->anon_arg - node->count_args;
+        if (vdiff > 0) {
+            int vlen = kv_size(*(actx->vars));
+            for (int i = 0; i < vlen; ++i) {
+                kx_object_t *n = kv_A(*(actx->vars), i);
+                if (n->lexical == 0) {
+                    n->index += vdiff;
+                    if (node->local_vars <= n->index) {
+                        node->local_vars = n->index + 1;
+                    }
+                }
+            }
+        }
         if (node->count_args < actx->anon_arg) {
             node->count_args = actx->anon_arg;
         }
         if (node->local_vars < node->count_args) {
             node->local_vars = node->count_args;
         }
+        kx_free(actx->vars);
+        actx->vars = vars;
         actx->anon_arg = anon_arg;
 
         actx->func = func;
