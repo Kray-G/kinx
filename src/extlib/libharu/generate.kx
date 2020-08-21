@@ -85,6 +85,13 @@ var Type = {
     HPDF_TextWidth:             "HPDF_TextWidth",
     HPDF_Rect:                  "HPDF_Rect",
     HPDF_Box:                   "HPDF_Rect",
+    HPDF_RGBColor:              "HPDF_RGBColor",
+    HPDF_CMYKColor:             "HPDF_CMYKColor",
+    HPDF_TransMatrix:           "HPDF_TransMatrix",
+};
+
+var inputStringWIthByteArray = {
+    HPDF_Font_TextWidth: true,
 };
 
 var re = /HPDF_EXPORT\(([^\)]+)\)\r?\n\s*([^\s]+)\s*\(\s*(void|([^,\)]+)(,\s+[^,\)]+)*)\s*\);/;
@@ -96,6 +103,7 @@ re.reset(text);
 while (re.find()) {
     ++count;
     var rtype = re.group[1].string.trim().replace(/([^ ])\*$/, "$1 *");
+    var funcname = re.group[2].string;
     var args = re.group[3].string.trim();
     var unknown = false;
     var func = {
@@ -104,7 +112,7 @@ while (re.find()) {
                 name: rtype,
                 type: Type[rtype],
             },
-            name: re.group[2].string,
+            name: funcname,
             args: args == "void" ? null :
                     args.replace(/[\s]+/, " ")
                     .split(", ")
@@ -113,6 +121,9 @@ while (re.find()) {
                         ar.reset(e);
                         if (ar.find()) {
                             var atype = ar.group[1].string.trim().replace(/([^ ])\*$/, "$1 *");
+                            if (atype == "const HPDF_BYTE *") {
+                                if (inputStringWIthByteArray[funcname]) atype = "const char *";
+                            }
                             if (!Type[atype]) {
                                 unknownType[atype] = true;
                                 unknown = true;
@@ -128,11 +139,16 @@ while (re.find()) {
     funcs.push(func);
 }
 
+var predefinedFunction = {
+    HPDF_Font_MeasureText: true,
+    HPDF_Page_MeasureText: true,
+    HPDF_Page_TextRect: true,
+};
 var objectMain = [];
 var objectType = {};
 var noCreatorType = {};
 funcs.each { &(func):
-    if (func.unknown) {
+    if (func.unknown || predefinedFunction[func.data.name]) {
         func.skip = true;
     }
     var objType = func.data.args[0][2];
@@ -226,11 +242,65 @@ type vn = {0}; { \
     KEX_SET_PROP_INT(rv, #p3, r.p3); \
     KEX_SET_PROP_INT(rv, #p4, r.p4); \
 /**/
+#define KX_GET_RGBCOL(args, ctx, vn, n) \
+HPDF_RGBColor vn = {0}; { \
+    kx_obj_t *vobj = get_arg_obj(n, args, ctx); \
+    kx_val_t *r = NULL; \
+    kx_val_t *g = NULL; \
+    kx_val_t *b = NULL; \
+    KEX_GET_PROP(r, vobj, "r"); \
+    KEX_GET_PROP(g, vobj, "g"); \
+    KEX_GET_PROP(b, vobj, "b"); \
+    KX_GET_CORE_SET(args, ctx, vn, n, r, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, g, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, b, float); \
+} \
+/**/
+#define KX_MAKE_RGBCOL(rv, r) \
+    kx_obj_t *rv = allocate_obj(ctx); \
+    KEX_SET_PROP_DBL(rv, "r", r.r); \
+    KEX_SET_PROP_DBL(rv, "g", r.g); \
+    KEX_SET_PROP_DBL(rv, "b", r.b); \
+/**/
+#define KX_GET_TRNSMAT(args, ctx, vn, n) \
+HPDF_TransMatrix vn = {0}; { \
+    kx_obj_t *vobj = get_arg_obj(n, args, ctx); \
+    kx_val_t *a = NULL; \
+    kx_val_t *b = NULL; \
+    kx_val_t *c = NULL; \
+    kx_val_t *d = NULL; \
+    kx_val_t *x = NULL; \
+    kx_val_t *y = NULL; \
+    KEX_GET_PROP(a, vobj, "a"); \
+    KEX_GET_PROP(b, vobj, "b"); \
+    KEX_GET_PROP(c, vobj, "c"); \
+    KEX_GET_PROP(d, vobj, "d"); \
+    KEX_GET_PROP(x, vobj, "x"); \
+    KEX_GET_PROP(y, vobj, "y"); \
+    KX_GET_CORE_SET(args, ctx, vn, n, a, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, b, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, c, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, d, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, x, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, y, float); \
+} \
+/**/
+#define KX_MAKE_TRNSMAT(rv, r) \
+    kx_obj_t *rv = allocate_obj(ctx); \
+    KEX_SET_PROP_DBL(rv, "a", r.a); \
+    KEX_SET_PROP_DBL(rv, "b", r.b); \
+    KEX_SET_PROP_DBL(rv, "c", r.c); \
+    KEX_SET_PROP_DBL(rv, "d", r.d); \
+    KEX_SET_PROP_DBL(rv, "x", r.x); \
+    KEX_SET_PROP_DBL(rv, "y", r.y); \
+/**/
 
 #define KX_GET_TEXTWIDTH(args, ctx, vn, n) KX_GET_CORE4(args, ctx, vn, n, HPDF_TextWidth, numchars, numwords, width, numspace, int)
 #define KX_MAKE_TEXTWIDTH(rv, r) KX_MAKE_CORE4_INT(rv, r, numchars, numwords, width, numspace)
 #define KX_GET_RECT(args, ctx, vn, n) KX_GET_CORE4(args, ctx, vn, n, HPDF_Rect, left, bottom, right, top, float)
 #define KX_MAKE_RECT(rv, r) KX_MAKE_CORE4_DBL(rv, r, left, bottom, right, top)
+#define KX_GET_CMYKCOL(args, ctx, vn, n) KX_GET_CORE4(args, ctx, vn, n, HPDF_CMYKColor, c, m, y, k, float)
+#define KX_MAKE_CMYKCOL(rv, r) KX_MAKE_CORE4_DBL(rv, r, c, m, y, k)
 
 /* TODO: multi-thread unsafe */
 static int sg_error = 0;
@@ -241,6 +311,130 @@ void kxpdf_error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user
     sg_error = error_no;
     sg_detail = detail_no;
 }
+
+int throw_exception(int args, kx_context_t *ctx, int error_no, int detail_no)
+{
+    KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+}
+
+/* HPDF_Font_MeasureText */
+int kxpdf_HPDF_Font_MeasureText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Font font                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_UINT len                  */ /* not used */
+    /* HPDF_REAL width                */ double v3 = get_arg_dbl(4, args, ctx);
+    /* HPDF_REAL font_size            */ double v4 = get_arg_dbl(5, args, ctx);
+    /* HPDF_REAL char_space           */ double v5 = get_arg_dbl(6, args, ctx);
+    /* HPDF_REAL word_space           */ double v6 = get_arg_dbl(7, args, ctx);
+    /* HPDF_BOOL wordwrap             */ int64_t v7 = get_arg_int(8, args, ctx);
+    /* HPDF_REAL *real_width          */ /* not used */
+
+    sg_error = sg_detail = 0;
+    int r = HPDF_Font_MeasureText(v1, v2, strlen(v2), v3, v4, v5, v6, v7, NULL);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
+/* HPDF_Font_MeasureTextLen */
+int kxpdf_HPDF_Font_MeasureTextLen(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Font font                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_UINT len                  */ /* not used */
+    /* HPDF_REAL width                */ /* not used */
+    /* HPDF_REAL font_size            */ double v3 = get_arg_dbl(5, args, ctx);
+    /* HPDF_REAL char_space           */ double v4 = get_arg_dbl(6, args, ctx);
+    /* HPDF_REAL word_space           */ double v5 = get_arg_dbl(7, args, ctx);
+    /* HPDF_BOOL wordwrap             */ int64_t v6 = get_arg_int(8, args, ctx);
+    /* HPDF_REAL *real_width          */ /* not used */
+
+    sg_error = sg_detail = 0;
+    float real_width = 0.0;
+    int r = HPDF_Font_MeasureText(v1, v2, strlen(v2), 100.0/* dummy */, v3, v4, v5, v6, &real_width);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_d(ctx->stack, (double)real_width);
+    return 0;
+}
+
+/* HPDF_Page_MeasureText */
+int kxpdf_HPDF_Page_MeasureText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_REAL width                */ double v3 = get_arg_dbl(3, args, ctx);
+    /* HPDF_BOOL wordwrap             */ int64_t v4 = get_arg_int(4, args, ctx);
+    /* HPDF_REAL *real_width          */ /* not used */
+
+    sg_error = sg_detail = 0;
+    int r = HPDF_Page_MeasureText(v1, v2, v3, v4, NULL);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
+/* HPDF_Page_MeasureTextLen */
+int kxpdf_HPDF_Page_MeasureTextLen(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_REAL width                */ double v3 = get_arg_dbl(3, args, ctx);
+    /* HPDF_BOOL wordwrap             */ int64_t v4 = get_arg_int(4, args, ctx);
+    /* HPDF_REAL *real_width          */ /* not used */
+
+    sg_error = sg_detail = 0;
+    float real_width = 0.0;
+    int r = HPDF_Page_MeasureText(v1, v2, v3, v4, &real_width);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_d(ctx->stack, (double)real_width);
+    return 0;
+}
+
+/* HPDF_Page_TextRect */
+int kxpdf_HPDF_Page_TextRect(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_REAL left                 */ double v2 = get_arg_dbl(2, args, ctx);
+    /* HPDF_REAL top                  */ double v3 = get_arg_dbl(3, args, ctx);
+    /* HPDF_REAL right                */ double v4 = get_arg_dbl(4, args, ctx);
+    /* HPDF_REAL bottom               */ double v5 = get_arg_dbl(5, args, ctx);
+    /* const char *text               */ const char *v6 = get_arg_str(6, args, ctx);
+    /* HPDF_TextAlignment align       */ int64_t v7 = get_arg_int(7, args, ctx);
+    /* HPDF_UINT *len                 */ /* not used */
+
+    sg_error = sg_detail = 0;
+    int r = HPDF_Page_TextRect(v1, v2, v3, v4,v5, v6, v7, NULL);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
 });
 
 System.println("/* function prototype */");
@@ -253,6 +447,9 @@ var ArgCode = {
     "HPDF_Point":       "    /* %2$-30s */ KX_GET_POINT(args, ctx, v%1%, %1%);\n",
     "HPDF_TextWidth":   "    /* %2$-30s */ KX_GET_TEXTWIDTH(args, ctx, v%1%, %1%);\n",
     "HPDF_Rect":        "    /* %2$-30s */ KX_GET_RECT(args, ctx, v%1%, %1%);\n",
+    "HPDF_RGBColor":    "    /* %2$-30s */ KX_GET_RGBCOL(args, ctx, v%1%, %1%);\n",
+    "HPDF_CMYKColor":   "    /* %2$-30s */ KX_GET_CMYKCOL(args, ctx, v%1%, %1%);\n",
+    "HPDF_TransMatrix": "    /* %2$-30s */ KX_GET_TRNSMAT(args, ctx, v%1%, %1%);\n",
 
     "void *":           "    /* %2$-30s */ KX_GET_VOIDP(args, ctx, v%1%, %1%);\n",
     "const char *":     "    /* %2$-30s */ const char *v%1% = get_arg_str(%1%, args, ctx);\n",
@@ -277,6 +474,9 @@ var RetCode = {
     "HPDF_Point":       "    KX_MAKE_POINT(rv, r);\n    KX_ADJST_STACK();\n    push_obj(ctx->stack, rv);\n    return 0;",
     "HPDF_TextWidth":   "    KX_MAKE_TEXTWIDTH(rv, r);\n    KX_ADJST_STACK();\n    push_obj(ctx->stack, rv);\n    return 0;",
     "HPDF_Rect":        "    KX_MAKE_RECT(rv, r);\n    KX_ADJST_STACK();\n    push_obj(ctx->stack, rv);\n    return 0;",
+    "HPDF_RGBColor":    "    KX_MAKE_RGBCOL(rv, r);\n    KX_ADJST_STACK();\n    push_obj(ctx->stack, rv);\n    return 0;",
+    "HPDF_CMYKColor":   "    KX_MAKE_CMYKCOL(rv, r);\n    KX_ADJST_STACK();\n    push_obj(ctx->stack, rv);\n    return 0;",
+    "HPDF_TransMatrix": "    KX_MAKE_TRNSMAT(rv, r);\n    KX_ADJST_STACK();\n    push_obj(ctx->stack, rv);\n    return 0;",
 
     "void":             "    KX_ADJST_STACK();\n    push_i(ctx->stack, 0);\n    return 0;",
     "void *":           "    KX_ADJST_STACK();\n    push_obj(ctx->stack, rv);\n    return 0;",
@@ -301,6 +501,10 @@ var RetCode = {
 var AllocFree = {
     "HPDF_Doc": { alloc: "HPDF_New(kxpdf_error_handler, obj); HPDF_UseUTFEncodings(anyv->p);", free: "HPDF_Free" },
 };
+var AdditionalFuncs = {
+    "HPDF_Font": [ { name: "measureTextLen", base: "HPDF_Font_MeasureTextLen" } ],
+    "HPDF_Page": [ { name: "measureTextLen", base: "HPDF_Page_MeasureTextLen" } ],
+};
 
 var templateBody = %{
 int kxpdf_%1%(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -318,7 +522,8 @@ int kxpdf_%1%(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
 function genMethodDef(func, methods, objName) {
     var mname = func.data.name.replace(/^HPDF_(Page_|FreeTextAnnot_|Font_|Outline_|Destination_|Encoder_|3DAnnotExData_|3DView_|Image_|ExtGState_)?/, "");
-    if (func.skip) {
+    mname = mname.toLower(1);
+    if (func.skip && !predefinedFunction[func.data.name]) {
         methods.push(('    /* KEX_SET_METHOD("%1%", %2%, kxpdf_%3%); */' % mname % objName % func.data.name).format());
     } else {
         methods.push(('    KEX_SET_METHOD("%1%", %2%, kxpdf_%3%);' % mname % objName % func.data.name).format());
@@ -328,7 +533,7 @@ function genMethodDef(func, methods, objName) {
 var skip = 0;
 var output = 0;
 var ignore = 0;
-var throwcode = 'KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));';
+var throwcode = 'return throw_exception(args, ctx, sg_error, sg_detail);';
 function genFunc(func) {
     if (func.skip) {
         System.println("/*");
@@ -351,6 +556,12 @@ function genFunc(func) {
                 methods.push("    KX_MAKE_VOIDP(rv, r);");
                 if (ms.isArray) {
                     ms.each { => genMethodDef(_1, methods, "rv") };
+                }
+                if (AdditionalFuncs[rname].isArray) {
+                    var names = AdditionalFuncs[rname];
+                    names.each {
+                        methods.push(('    KEX_SET_METHOD("%1%", rv, kxpdf_%2%);' % _1.name % _1.base).format());
+                    };
                 }
                 System.println("static kx_obj_t *kxpdf_append_method_%1%(kx_context_t *ctx, void *r)\n{\n" % rname);
                 System.println(methods.join('\n'));

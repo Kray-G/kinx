@@ -1,0 +1,276 @@
+using Pdf;
+
+function showStripePattern(page, x, y) {
+    var iy = 0;
+    while (iy < 50) {
+        page.setRGBStroke(0.0, 0.0, 0.5);
+        page.setLineWidth(1);
+        page.moveTo(x, y + iy);
+        page.lineTo(x + page.textWidth("ABCabc123"), y + iy);
+        page.stroke();
+        iy += 3;
+    }
+    page.setLineWidth(2.5);
+}
+
+function showDescription(page, x, y, text) {
+    var fsize = page.getCurrentFontSize();
+    var font = page.getCurrentFont();
+    var c = page.getRGBFill();
+
+    page.beginText();
+    page.setRGBFill(0, 0, 0);
+    page.setTextRenderingMode(PDF_FILL);
+    page.setFontAndSize(font, 10);
+    page.textOut(x, y - 12, text);
+    page.endText();
+
+    page.setFontAndSize(font, fsize);
+    page.setRGBFill(c.r, c.g, c.b);
+}
+
+
+var pdf = new Pdf();
+var page_title = "Text Demo";
+var sampText = "abcdefgABCDEFG123!#$%&+-@?";
+var sampText2 = "The quick brown fox jumps over the lazy dog.";
+
+/* set compression mode */
+pdf.setCompressionMode(PDF_COMP_ALL);
+
+/* create default-font */
+var font = pdf.getFont("Helvetica", null);
+
+/* add a new page object. */
+var page = pdf.addPage();
+
+/* draw grid to the page */
+PdfUtil.printGrid(pdf, page);
+
+/* print the lines of the page.
+page.setLineWidth(1);
+page.Rectangle(50, 50, page.getWidth() - 100, page.getHeight() - 110);
+page.stroke();
+*/
+
+/* print the title of the page (with positioning center). */
+page.setFontAndSize(font, 24);
+var tw = page.textWidth(page_title);
+page.beginText();
+page.textOut((page.getWidth() - tw) / 2, page.getHeight() - 50, page_title);
+page.endText();
+
+page.beginText();
+page.moveTextPos(60, page.getHeight() - 60);
+
+/*
+    * font size
+    */
+var fsize = 8.0;
+while (fsize < 60) {
+    /* set style and size of font. */
+    page.setFontAndSize(font, fsize);
+
+    /* set the position of the text. */
+    page.moveTextPos(0, -5 - fsize);
+
+    /* measure the number of characters which included in the page. */
+    var len = page.measureText(sampText, page.getWidth() - 120, false);
+    page.showText(sampText.subString(0, len));
+
+    /* print the description. */
+    page.moveTextPos(0, -10);
+    page.setFontAndSize(font, 8);
+    page.showText(("Fontsize=%.1f" % fsize).format());
+
+    fsize *= 1.5;
+}
+
+/*
+* font color
+*/
+page.setFontAndSize(font, 8);
+page.moveTextPos(0, -30);
+page.showText("Font color");
+
+page.setFontAndSize(font, 18);
+page.moveTextPos(0, -20);
+len = sampText.length();
+for (i = 0; i < len; i++) {
+    var r = i / len;
+    var g = 1 - (i / len);
+    var c = sampText[i];
+
+    page.setRGBFill(r, g, 0.0);
+    page.showText(*c);
+}
+page.moveTextPos(0, -25);
+
+for (i = 0; i < len; i++) {
+    var r = i / len;
+    var b = 1 - (i / len);
+    var c = sampText[i];
+
+    page.setRGBFill(r, 0.0, b);
+    page.showText(*c);
+}
+page.moveTextPos(0, -25);
+
+for (i = 0; i < len; i++) {
+    var b = i / len;
+    var g = 1 - (i / len);
+    var c = sampText[i];
+
+    page.setRGBFill(0.0, g, b);
+    page.showText(*c);
+}
+
+page.endText();
+
+var ypos = 450;
+
+/*
+* Font rendering mode
+*/
+page.setFontAndSize(font, 32);
+page.setRGBFill(0.5, 0.5, 0.0);
+page.setLineWidth(1.5);
+
+/* PDF_FILL */
+showDescription(page,  60, ypos, "RenderingMode=PDF_FILL");
+page.setTextRenderingMode(PDF_FILL);
+page.beginText();
+page.textOut(60, ypos, "ABCabc123");
+page.endText();
+
+/* PDF_STROKE */
+showDescription(page, 60, ypos - 50, "RenderingMode=PDF_STROKE");
+page.setTextRenderingMode(PDF_STROKE);
+page.beginText();
+page.textOut(60, ypos - 50, "ABCabc123");
+page.endText();
+
+/* PDF_FILL_THEN_STROKE */
+showDescription(page, 60, ypos - 100, "RenderingMode=PDF_FILL_THEN_STROKE");
+page.setTextRenderingMode(PDF_FILL_THEN_STROKE);
+page.beginText();
+page.textOut(60, ypos - 100, "ABCabc123");
+page.endText();
+
+/* PDF_FILL_CLIPPING */
+showDescription(page, 60, ypos - 150, "RenderingMode=PDF_FILL_CLIPPING");
+page.gSave();
+page.setTextRenderingMode(PDF_FILL_CLIPPING);
+page.beginText();
+page.textOut(60, ypos - 150, "ABCabc123");
+page.endText();
+showStripePattern(page, 60, ypos - 150);
+page.gRestore();
+
+/* PDF_STROKE_CLIPPING */
+showDescription(page, 60, ypos - 200, "RenderingMode=PDF_STROKE_CLIPPING");
+page.gSave();
+page.setTextRenderingMode(PDF_STROKE_CLIPPING);
+page.beginText();
+page.textOut(60, ypos - 200, "ABCabc123");
+page.endText();
+showStripePattern(page, 60, ypos - 200);
+page.gRestore();
+
+/* PDF_FILL_STROKE_CLIPPING */
+showDescription(page, 60, ypos - 250, "RenderingMode=PDF_FILL_STROKE_CLIPPING");
+page.gSave();
+page.setTextRenderingMode(PDF_FILL_STROKE_CLIPPING);
+page.beginText();
+page.textOut(60, ypos - 250, "ABCabc123");
+page.endText();
+showStripePattern(page, 60, ypos - 250);
+page.gRestore();
+
+/* Reset text attributes */
+page.setTextRenderingMode(PDF_FILL);
+page.setRGBFill(0, 0, 0);
+page.setFontAndSize(font, 30);
+
+
+/*
+* Rotating text
+*/
+var angle1 = 30;                   /* A rotation of 30 degrees. */
+var rad1 = angle1 / 180 * 3.141592; /* Calcurate the radian value. */
+
+showDescription(page, 320, ypos - 60, "Rotating text");
+page.beginText();
+page.setTextMatrix(Math.cos(rad1), Math.sin(rad1), -Math.sin(rad1), Math.cos(rad1), 330, ypos - 60);
+page.showText("ABCabc123");
+page.endText();
+
+
+/*
+* Skewing text.
+*/
+showDescription(page, 320, ypos - 120, "Skewing text");
+page.beginText();
+
+var angle1 = 10;
+var angle2 = 20;
+var rad1 = angle1 / 180 * 3.141592;
+var rad2 = angle2 / 180 * 3.141592;
+
+page.setTextMatrix(1, Math.tan(rad1), Math.tan(rad2), 1, 320, ypos - 120);
+page.showText("ABCabc123");
+page.endText();
+
+
+/*
+* scaling text (X direction)
+*/
+showDescription(page, 320, ypos - 175, "Scaling text (X direction)");
+page.beginText();
+page.setTextMatrix(1.5, 0, 0, 1, 320, ypos - 175);
+page.showText("ABCabc12");
+page.endText();
+
+
+/*
+* scaling text (Y direction)
+*/
+showDescription(page, 320, ypos - 250, "Scaling text (Y direction)");
+page.beginText();
+page.setTextMatrix(1, 0, 0, 2, 320, ypos - 250);
+page.showText("ABCabc123");
+page.endText();
+
+
+/*
+* char spacing, word spacing
+*/
+
+showDescription(page, 60, 140, "char-spacing 0");
+showDescription(page, 60, 100, "char-spacing 1.5");
+showDescription(page, 60, 60, "char-spacing 1.5, word-spacing 2.5");
+
+page.setFontAndSize(font, 20);
+page.setRGBFill(0.1, 0.3, 0.1);
+
+/* char-spacing 0 */
+page.beginText();
+page.textOut(60, 140, sampText2);
+page.endText();
+
+/* char-spacing 1.5 */
+page.setCharSpace(1.5);
+
+page.beginText();
+page.textOut(60, 100, sampText2);
+page.endText();
+
+/* char-spacing 1.5, word-spacing 3.5 */
+page.setWordSpace(2.5);
+
+page.beginText();
+page.textOut(60, 60, sampText2);
+page.endText();
+
+/* save the document to a file */
+pdf.saveToFile("pdfdemo_text.pdf");

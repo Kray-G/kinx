@@ -4,7 +4,6 @@
 
 *   Planned, or remaining tasks.
     *   Support OpenCV library.
-    *   Support PDF library with libHaru.
     *   Support HTTP Server library with libhttp.
     *   The followings are planned but priority is low.
         *   Improvement with `KX_FASTENTER`.
@@ -30,6 +29,7 @@
     *   Supported an iconv library.
     *   Supported `"\uXXXX"` and `"\u{CodePoint}"` as Unicode Code Point in a string literal.
     *   Supported a TCP/UDP socket library.
+    *   Support PDF library with libHaru.
     *   Some bug fixes and improvement.
 
 ## V0.13.1 (13th Preview Release)
