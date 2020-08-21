@@ -287,7 +287,7 @@ enum {
 /*------ border stype --------------------------------------------------------*/
 
 enum {
-    PDF_BS_SOLID,
+    PDF_BS_SOLID = 0,
     PDF_BS_DASHED,
     PDF_BS_BEVELED,
     PDF_BS_INSET,
@@ -297,7 +297,7 @@ enum {
 /*----- blend modes ----------------------------------------------------------*/
 
 enum {
-    PDF_BM_NORMAL,
+    PDF_BM_NORMAL = 0,
     PDF_BM_MULTIPLY,
     PDF_BM_SCREEN,
     PDF_BM_OVERLAY,
