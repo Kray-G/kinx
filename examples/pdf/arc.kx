@@ -2,9 +2,9 @@ using Pdf;
 
 var pos;
 var pdf = new Pdf();
-var page = pdf.AddPage();
-page.SetHeight(220);
-page.SetWidth(200);
+var page = pdf.addPage();
+page.setHeight(220);
+page.setWidth(200);
 
 PdfUtil.printGrid(pdf, page);
 
@@ -17,50 +17,50 @@ PdfUtil.printGrid(pdf, page);
 */
 
 /* A */
-page.SetRGBFill(1.0, 0, 0);
-page.MoveTo(100, 100);
-page.LineTo(100, 180);
-page.Arc(100, 100, 80, 0, 360 * 0.45);
-pos = page.GetCurrentPos();
+page.setRGBFill(1.0, 0, 0);
+page.moveTo(100, 100);
+page.lineTo(100, 180);
+page.arc(100, 100, 80, 0, 360 * 0.45);
+pos = page.getCurrentPos();
 System.println(pos);
-page.LineTo(100, 100);
-page.Fill();
+page.lineTo(100, 100);
+page.fill();
 
 /* B */
-page.SetRGBFill(0, 0, 1.0);
-page.MoveTo(100, 100);
-page.LineTo(pos.x, pos.y);
-page.Arc(100, 100, 80, 360 * 0.45, 360 * 0.7);
-pos = page.GetCurrentPos();
+page.setRGBFill(0, 0, 1.0);
+page.moveTo(100, 100);
+page.lineTo(pos.x, pos.y);
+page.arc(100, 100, 80, 360 * 0.45, 360 * 0.7);
+pos = page.getCurrentPos();
 System.println(pos);
-page.LineTo(100, 100);
-page.Fill();
+page.lineTo(100, 100);
+page.fill();
 
 /* C */
-page.SetRGBFill(0, 1.0, 0);
-page.MoveTo(100, 100);
-page.LineTo(pos.x, pos.y);
-page.Arc(100, 100, 80, 360 * 0.7, 360 * 0.85);
-pos = page.GetCurrentPos();
+page.setRGBFill(0, 1.0, 0);
+page.moveTo(100, 100);
+page.lineTo(pos.x, pos.y);
+page.arc(100, 100, 80, 360 * 0.7, 360 * 0.85);
+pos = page.getCurrentPos();
 System.println(pos);
-page.LineTo(100, 100);
-page.Fill();
+page.lineTo(100, 100);
+page.fill();
 
 /* D */
-page.SetRGBFill(1.0, 1.0, 0);
-page.MoveTo(100, 100);
-page.LineTo(pos.x, pos.y);
-page.Arc(100, 100, 80, 360 * 0.85, 360);
-pos = page.GetCurrentPos();
+page.setRGBFill(1.0, 1.0, 0);
+page.moveTo(100, 100);
+page.lineTo(pos.x, pos.y);
+page.arc(100, 100, 80, 360 * 0.85, 360);
+pos = page.getCurrentPos();
 System.println(pos);
-page.LineTo(100, 100);
-page.Fill();
+page.lineTo(100, 100);
+page.fill();
 
 /* draw center circle */
-page.SetGrayStroke(0);
-page.SetGrayFill(1);
-page.Circle(100, 100, 30);
-page.Fill();
+page.setGrayStroke(0);
+page.setGrayFill(1);
+page.circle(100, 100, 30);
+page.fill();
 
 /* save the document to a file */
-pdf.SaveToFile("pdfdemo_arc.pdf");
+pdf.saveToFile("pdfdemo_arc.pdf");

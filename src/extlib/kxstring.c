@@ -773,10 +773,20 @@ int String_toUpperLower(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     }
     if (s < 0) s = 0;
     if (e > len) e = len;
-    char *p = kx_calloc(e - s + 1, sizeof(char));
-    for (int i = s; i < e; ++i) {
-        p[i - s] = f(str[i]);
+    char *p = kx_calloc(len + 2, sizeof(char));
+    int i = 0;
+    while (i < s) {
+        p[i] = str[i];
+        ++i;
+    } 
+    while (i < e) {
+        p[i] = f(str[i]);
+        ++i;
     }
+    while (i < len) {
+        p[i] = str[i];
+        ++i;
+    } 
 
     kstr_t *sv = allocate_str(ctx);
     ks_append(sv, p);
