@@ -2,33 +2,33 @@ var PdfLibrary = _import("kxpdf");
 var Pdf = new PdfLibrary();
 var PdfUtil = {
     printGrid: _function(pdf, page) {
-        var height = page.GetHeight();
-        var width = page.GetWidth();
-        var font = pdf.GetFont("Helvetica", null);
+        var height = page.getHeight();
+        var width = page.getWidth();
+        var font = pdf.getFont("Helvetica", null);
         var x, y;
 
-        page.SetFontAndSize(font, 5);
-        page.SetGrayFill(0.5);
-        page.SetGrayStroke(0.8);
+        page.setFontAndSize(font, 5);
+        page.setGrayFill(0.5);
+        page.setGrayStroke(0.8);
 
         /* Draw horizontal lines */
         y = 0;
         while (y < height) {
             if (y % 10 == 0)
-                page.SetLineWidth(0.5);
+                page.setLineWidth(0.5);
             else {
-                if (page.GetLineWidth() != 0.25)
-                    page.SetLineWidth(0.25);
+                if (page.getLineWidth() != 0.25)
+                    page.setLineWidth(0.25);
             }
-            page.MoveTo(0, y);
-            page.LineTo(width, y);
-            page.Stroke();
+            page.moveTo(0, y);
+            page.lineTo(width, y);
+            page.stroke();
             if (y % 10 == 0 && y > 0) {
-                page.SetGrayStroke(0.5);
-                page.MoveTo(0, y);
-                page.LineTo(5, y);
-                page.Stroke();
-                page.SetGrayStroke(0.8);
+                page.setGrayStroke(0.5);
+                page.moveTo(0, y);
+                page.lineTo(5, y);
+                page.stroke();
+                page.setGrayStroke(0.8);
             }
             y += 5;
         }
@@ -37,23 +37,23 @@ var PdfUtil = {
         x = 0;
         while (x < width) {
             if (x % 10 == 0)
-                page.SetLineWidth(0.5);
+                page.setLineWidth(0.5);
             else {
-                if (page.GetLineWidth() != 0.25)
-                    page.SetLineWidth(0.25);
+                if (page.getLineWidth() != 0.25)
+                    page.setLineWidth(0.25);
             }
-            page.MoveTo(x, 0);
-            page.LineTo(x, height);
-            page.Stroke();
+            page.moveTo(x, 0);
+            page.lineTo(x, height);
+            page.stroke();
             if (x % 50 == 0 && x > 0) {
-                page.SetGrayStroke(0.5);
-                page.MoveTo(x, 0);
-                page.LineTo(x, 5);
-                page.Stroke();
-                page.MoveTo(x, height);
-                page.LineTo(x, height - 5);
-                page.Stroke();
-                page.SetGrayStroke(0.8);
+                page.setGrayStroke(0.5);
+                page.moveTo(x, 0);
+                page.lineTo(x, 5);
+                page.stroke();
+                page.moveTo(x, height);
+                page.lineTo(x, height - 5);
+                page.stroke();
+                page.setGrayStroke(0.8);
             }
             x += 5;
         }
@@ -62,10 +62,10 @@ var PdfUtil = {
         y = 0;
         while (y < height) {
             if (y % 10 == 0 && y > 0) {
-                page.BeginText();
-                page.MoveTextPos(5, y - 2);
-                page.ShowText("" + y);
-                page.EndText();
+                page.beginText();
+                page.moveTextPos(5, y - 2);
+                page.showText("" + y);
+                page.endText();
             }
             y += 5;
         }
@@ -74,19 +74,19 @@ var PdfUtil = {
         x = 0;
         while (x < width) {
             if (x % 50 == 0 && x > 0) {
-                page.BeginText();
-                page.MoveTextPos(x, 5);
-                page.ShowText(""+x);
-                page.EndText();
-                page.BeginText();
-                page.MoveTextPos(x, height - 10);
-                page.ShowText(""+x);
-                page.EndText();
+                page.beginText();
+                page.moveTextPos(x, 5);
+                page.showText(""+x);
+                page.endText();
+                page.beginText();
+                page.moveTextPos(x, height - 10);
+                page.showText(""+x);
+                page.endText();
             }
             x += 5;
         }
-        page.SetGrayFill(0);
-        page.SetGrayStroke(0);
+        page.setGrayFill(0);
+        page.setGrayStroke(0);
     }
 };
 
