@@ -182,6 +182,7 @@ Network library is now very few, but it will be increased in future
 because now the networking library is needed by many developpers.
 
 *   [Http](lib/net/http.md) - *not documented yet*
+*   [SSH](lib/net/ssh.md) - *not documented yet*
 
 I provide Http library only, but it is based on libcurl.
 Therefore adding a library based on the same technology must be easy.
