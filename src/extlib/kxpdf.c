@@ -845,130 +845,130 @@ static kx_obj_t *kxpdf_append_method_HPDF_Page(kx_context_t *ctx, void *r)
 
     /* HPDF_Page */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("GetPageMMgr", rv, kxpdf_HPDF_GetPageMMgr);
-    KEX_SET_METHOD("SetWidth", rv, kxpdf_HPDF_Page_SetWidth);
-    KEX_SET_METHOD("SetHeight", rv, kxpdf_HPDF_Page_SetHeight);
-    KEX_SET_METHOD("SetSize", rv, kxpdf_HPDF_Page_SetSize);
-    KEX_SET_METHOD("SetRotate", rv, kxpdf_HPDF_Page_SetRotate);
-    KEX_SET_METHOD("SetZoom", rv, kxpdf_HPDF_Page_SetZoom);
-    KEX_SET_METHOD("CreateDestination", rv, kxpdf_HPDF_Page_CreateDestination);
-    KEX_SET_METHOD("Create3DAnnot", rv, kxpdf_HPDF_Page_Create3DAnnot);
-    KEX_SET_METHOD("CreateTextAnnot", rv, kxpdf_HPDF_Page_CreateTextAnnot);
-    KEX_SET_METHOD("CreateFreeTextAnnot", rv, kxpdf_HPDF_Page_CreateFreeTextAnnot);
-    KEX_SET_METHOD("CreateLineAnnot", rv, kxpdf_HPDF_Page_CreateLineAnnot);
-    KEX_SET_METHOD("CreateWidgetAnnot", rv, kxpdf_HPDF_Page_CreateWidgetAnnot);
-    KEX_SET_METHOD("CreateLinkAnnot", rv, kxpdf_HPDF_Page_CreateLinkAnnot);
-    KEX_SET_METHOD("CreateURILinkAnnot", rv, kxpdf_HPDF_Page_CreateURILinkAnnot);
-    KEX_SET_METHOD("CreateHighlightAnnot", rv, kxpdf_HPDF_Page_CreateHighlightAnnot);
-    KEX_SET_METHOD("CreateUnderlineAnnot", rv, kxpdf_HPDF_Page_CreateUnderlineAnnot);
-    KEX_SET_METHOD("CreateSquigglyAnnot", rv, kxpdf_HPDF_Page_CreateSquigglyAnnot);
-    KEX_SET_METHOD("CreateStrikeOutAnnot", rv, kxpdf_HPDF_Page_CreateStrikeOutAnnot);
-    KEX_SET_METHOD("CreatePopupAnnot", rv, kxpdf_HPDF_Page_CreatePopupAnnot);
-    /* KEX_SET_METHOD("CreateStampAnnot", rv, kxpdf_HPDF_Page_CreateStampAnnot); */
-    KEX_SET_METHOD("CreateProjectionAnnot", rv, kxpdf_HPDF_Page_CreateProjectionAnnot);
-    KEX_SET_METHOD("CreateSquareAnnot", rv, kxpdf_HPDF_Page_CreateSquareAnnot);
-    KEX_SET_METHOD("CreateCircleAnnot", rv, kxpdf_HPDF_Page_CreateCircleAnnot);
-    /* KEX_SET_METHOD("Create3DC3DMeasure", rv, kxpdf_HPDF_Page_Create3DC3DMeasure); */
-    /* KEX_SET_METHOD("CreatePD33DMeasure", rv, kxpdf_HPDF_Page_CreatePD33DMeasure); */
-    KEX_SET_METHOD("Create3DAnnotExData", rv, kxpdf_HPDF_Page_Create3DAnnotExData);
-    KEX_SET_METHOD("Create3DView", rv, kxpdf_HPDF_Page_Create3DView);
-    KEX_SET_METHOD("TextWidth", rv, kxpdf_HPDF_Page_TextWidth);
-    KEX_SET_METHOD("MeasureText", rv, kxpdf_HPDF_Page_MeasureText);
-    KEX_SET_METHOD("GetWidth", rv, kxpdf_HPDF_Page_GetWidth);
-    KEX_SET_METHOD("GetHeight", rv, kxpdf_HPDF_Page_GetHeight);
-    KEX_SET_METHOD("GetGMode", rv, kxpdf_HPDF_Page_GetGMode);
-    KEX_SET_METHOD("GetCurrentPos", rv, kxpdf_HPDF_Page_GetCurrentPos);
-    /* KEX_SET_METHOD("GetCurrentPos2", rv, kxpdf_HPDF_Page_GetCurrentPos2); */
-    KEX_SET_METHOD("GetCurrentTextPos", rv, kxpdf_HPDF_Page_GetCurrentTextPos);
-    /* KEX_SET_METHOD("GetCurrentTextPos2", rv, kxpdf_HPDF_Page_GetCurrentTextPos2); */
-    KEX_SET_METHOD("GetCurrentFont", rv, kxpdf_HPDF_Page_GetCurrentFont);
-    KEX_SET_METHOD("GetCurrentFontSize", rv, kxpdf_HPDF_Page_GetCurrentFontSize);
-    KEX_SET_METHOD("GetTransMatrix", rv, kxpdf_HPDF_Page_GetTransMatrix);
-    KEX_SET_METHOD("GetLineWidth", rv, kxpdf_HPDF_Page_GetLineWidth);
-    KEX_SET_METHOD("GetLineCap", rv, kxpdf_HPDF_Page_GetLineCap);
-    KEX_SET_METHOD("GetLineJoin", rv, kxpdf_HPDF_Page_GetLineJoin);
-    KEX_SET_METHOD("GetMiterLimit", rv, kxpdf_HPDF_Page_GetMiterLimit);
-    /* KEX_SET_METHOD("GetDash", rv, kxpdf_HPDF_Page_GetDash); */
-    KEX_SET_METHOD("GetFlat", rv, kxpdf_HPDF_Page_GetFlat);
-    KEX_SET_METHOD("GetCharSpace", rv, kxpdf_HPDF_Page_GetCharSpace);
-    KEX_SET_METHOD("GetWordSpace", rv, kxpdf_HPDF_Page_GetWordSpace);
-    KEX_SET_METHOD("GetHorizontalScalling", rv, kxpdf_HPDF_Page_GetHorizontalScalling);
-    KEX_SET_METHOD("GetTextLeading", rv, kxpdf_HPDF_Page_GetTextLeading);
-    KEX_SET_METHOD("GetTextRenderingMode", rv, kxpdf_HPDF_Page_GetTextRenderingMode);
-    KEX_SET_METHOD("GetTextRaise", rv, kxpdf_HPDF_Page_GetTextRaise);
-    KEX_SET_METHOD("GetTextRise", rv, kxpdf_HPDF_Page_GetTextRise);
-    KEX_SET_METHOD("GetRGBFill", rv, kxpdf_HPDF_Page_GetRGBFill);
-    KEX_SET_METHOD("GetRGBStroke", rv, kxpdf_HPDF_Page_GetRGBStroke);
-    KEX_SET_METHOD("GetCMYKFill", rv, kxpdf_HPDF_Page_GetCMYKFill);
-    KEX_SET_METHOD("GetCMYKStroke", rv, kxpdf_HPDF_Page_GetCMYKStroke);
-    KEX_SET_METHOD("GetGrayFill", rv, kxpdf_HPDF_Page_GetGrayFill);
-    KEX_SET_METHOD("GetGrayStroke", rv, kxpdf_HPDF_Page_GetGrayStroke);
-    KEX_SET_METHOD("GetStrokingColorSpace", rv, kxpdf_HPDF_Page_GetStrokingColorSpace);
-    KEX_SET_METHOD("GetFillingColorSpace", rv, kxpdf_HPDF_Page_GetFillingColorSpace);
-    KEX_SET_METHOD("GetTextMatrix", rv, kxpdf_HPDF_Page_GetTextMatrix);
-    KEX_SET_METHOD("GetGStateDepth", rv, kxpdf_HPDF_Page_GetGStateDepth);
-    KEX_SET_METHOD("SetLineWidth", rv, kxpdf_HPDF_Page_SetLineWidth);
-    KEX_SET_METHOD("SetLineCap", rv, kxpdf_HPDF_Page_SetLineCap);
-    KEX_SET_METHOD("SetLineJoin", rv, kxpdf_HPDF_Page_SetLineJoin);
-    KEX_SET_METHOD("SetMiterLimit", rv, kxpdf_HPDF_Page_SetMiterLimit);
-    /* KEX_SET_METHOD("SetDash", rv, kxpdf_HPDF_Page_SetDash); */
-    KEX_SET_METHOD("SetFlat", rv, kxpdf_HPDF_Page_SetFlat);
-    KEX_SET_METHOD("SetExtGState", rv, kxpdf_HPDF_Page_SetExtGState);
-    KEX_SET_METHOD("GSave", rv, kxpdf_HPDF_Page_GSave);
-    KEX_SET_METHOD("GRestore", rv, kxpdf_HPDF_Page_GRestore);
-    KEX_SET_METHOD("Concat", rv, kxpdf_HPDF_Page_Concat);
-    KEX_SET_METHOD("MoveTo", rv, kxpdf_HPDF_Page_MoveTo);
-    KEX_SET_METHOD("LineTo", rv, kxpdf_HPDF_Page_LineTo);
-    KEX_SET_METHOD("CurveTo", rv, kxpdf_HPDF_Page_CurveTo);
-    KEX_SET_METHOD("CurveTo2", rv, kxpdf_HPDF_Page_CurveTo2);
-    KEX_SET_METHOD("CurveTo3", rv, kxpdf_HPDF_Page_CurveTo3);
-    KEX_SET_METHOD("ClosePath", rv, kxpdf_HPDF_Page_ClosePath);
-    KEX_SET_METHOD("Rectangle", rv, kxpdf_HPDF_Page_Rectangle);
-    KEX_SET_METHOD("Stroke", rv, kxpdf_HPDF_Page_Stroke);
-    KEX_SET_METHOD("ClosePathStroke", rv, kxpdf_HPDF_Page_ClosePathStroke);
-    KEX_SET_METHOD("Fill", rv, kxpdf_HPDF_Page_Fill);
-    KEX_SET_METHOD("Eofill", rv, kxpdf_HPDF_Page_Eofill);
-    KEX_SET_METHOD("FillStroke", rv, kxpdf_HPDF_Page_FillStroke);
-    KEX_SET_METHOD("EofillStroke", rv, kxpdf_HPDF_Page_EofillStroke);
-    KEX_SET_METHOD("ClosePathFillStroke", rv, kxpdf_HPDF_Page_ClosePathFillStroke);
-    KEX_SET_METHOD("ClosePathEofillStroke", rv, kxpdf_HPDF_Page_ClosePathEofillStroke);
-    KEX_SET_METHOD("EndPath", rv, kxpdf_HPDF_Page_EndPath);
-    KEX_SET_METHOD("Clip", rv, kxpdf_HPDF_Page_Clip);
-    KEX_SET_METHOD("Eoclip", rv, kxpdf_HPDF_Page_Eoclip);
-    KEX_SET_METHOD("BeginText", rv, kxpdf_HPDF_Page_BeginText);
-    KEX_SET_METHOD("EndText", rv, kxpdf_HPDF_Page_EndText);
-    KEX_SET_METHOD("SetCharSpace", rv, kxpdf_HPDF_Page_SetCharSpace);
-    KEX_SET_METHOD("SetWordSpace", rv, kxpdf_HPDF_Page_SetWordSpace);
-    KEX_SET_METHOD("SetHorizontalScalling", rv, kxpdf_HPDF_Page_SetHorizontalScalling);
-    KEX_SET_METHOD("SetTextLeading", rv, kxpdf_HPDF_Page_SetTextLeading);
-    KEX_SET_METHOD("SetFontAndSize", rv, kxpdf_HPDF_Page_SetFontAndSize);
-    KEX_SET_METHOD("SetTextRenderingMode", rv, kxpdf_HPDF_Page_SetTextRenderingMode);
-    KEX_SET_METHOD("SetTextRise", rv, kxpdf_HPDF_Page_SetTextRise);
-    KEX_SET_METHOD("SetTextRaise", rv, kxpdf_HPDF_Page_SetTextRaise);
-    KEX_SET_METHOD("MoveTextPos", rv, kxpdf_HPDF_Page_MoveTextPos);
-    KEX_SET_METHOD("MoveTextPos2", rv, kxpdf_HPDF_Page_MoveTextPos2);
-    KEX_SET_METHOD("SetTextMatrix", rv, kxpdf_HPDF_Page_SetTextMatrix);
-    KEX_SET_METHOD("MoveToNextLine", rv, kxpdf_HPDF_Page_MoveToNextLine);
-    KEX_SET_METHOD("ShowText", rv, kxpdf_HPDF_Page_ShowText);
-    KEX_SET_METHOD("ShowTextNextLine", rv, kxpdf_HPDF_Page_ShowTextNextLine);
-    KEX_SET_METHOD("ShowTextNextLineEx", rv, kxpdf_HPDF_Page_ShowTextNextLineEx);
-    KEX_SET_METHOD("SetGrayFill", rv, kxpdf_HPDF_Page_SetGrayFill);
-    KEX_SET_METHOD("SetGrayStroke", rv, kxpdf_HPDF_Page_SetGrayStroke);
-    KEX_SET_METHOD("SetRGBFill", rv, kxpdf_HPDF_Page_SetRGBFill);
-    KEX_SET_METHOD("SetRGBStroke", rv, kxpdf_HPDF_Page_SetRGBStroke);
-    KEX_SET_METHOD("SetCMYKFill", rv, kxpdf_HPDF_Page_SetCMYKFill);
-    KEX_SET_METHOD("SetCMYKStroke", rv, kxpdf_HPDF_Page_SetCMYKStroke);
-    KEX_SET_METHOD("ExecuteXObject", rv, kxpdf_HPDF_Page_ExecuteXObject);
-    /* KEX_SET_METHOD("New_Content_Stream", rv, kxpdf_HPDF_Page_New_Content_Stream); */
-    KEX_SET_METHOD("Insert_Shared_Content_Stream", rv, kxpdf_HPDF_Page_Insert_Shared_Content_Stream);
-    KEX_SET_METHOD("DrawImage", rv, kxpdf_HPDF_Page_DrawImage);
-    KEX_SET_METHOD("Circle", rv, kxpdf_HPDF_Page_Circle);
-    KEX_SET_METHOD("Ellipse", rv, kxpdf_HPDF_Page_Ellipse);
-    KEX_SET_METHOD("Arc", rv, kxpdf_HPDF_Page_Arc);
-    KEX_SET_METHOD("TextOut", rv, kxpdf_HPDF_Page_TextOut);
-    KEX_SET_METHOD("TextRect", rv, kxpdf_HPDF_Page_TextRect);
-    KEX_SET_METHOD("SetSlideShow", rv, kxpdf_HPDF_Page_SetSlideShow);
-    KEX_SET_METHOD("MeasureTextLen", rv, kxpdf_HPDF_Page_MeasureTextLen);
+    KEX_SET_METHOD("getPageMMgr", rv, kxpdf_HPDF_GetPageMMgr);
+    KEX_SET_METHOD("setWidth", rv, kxpdf_HPDF_Page_SetWidth);
+    KEX_SET_METHOD("setHeight", rv, kxpdf_HPDF_Page_SetHeight);
+    KEX_SET_METHOD("setSize", rv, kxpdf_HPDF_Page_SetSize);
+    KEX_SET_METHOD("setRotate", rv, kxpdf_HPDF_Page_SetRotate);
+    KEX_SET_METHOD("setZoom", rv, kxpdf_HPDF_Page_SetZoom);
+    KEX_SET_METHOD("createDestination", rv, kxpdf_HPDF_Page_CreateDestination);
+    KEX_SET_METHOD("create3DAnnot", rv, kxpdf_HPDF_Page_Create3DAnnot);
+    KEX_SET_METHOD("createTextAnnot", rv, kxpdf_HPDF_Page_CreateTextAnnot);
+    KEX_SET_METHOD("createFreeTextAnnot", rv, kxpdf_HPDF_Page_CreateFreeTextAnnot);
+    KEX_SET_METHOD("createLineAnnot", rv, kxpdf_HPDF_Page_CreateLineAnnot);
+    KEX_SET_METHOD("createWidgetAnnot", rv, kxpdf_HPDF_Page_CreateWidgetAnnot);
+    KEX_SET_METHOD("createLinkAnnot", rv, kxpdf_HPDF_Page_CreateLinkAnnot);
+    KEX_SET_METHOD("createURILinkAnnot", rv, kxpdf_HPDF_Page_CreateURILinkAnnot);
+    KEX_SET_METHOD("createHighlightAnnot", rv, kxpdf_HPDF_Page_CreateHighlightAnnot);
+    KEX_SET_METHOD("createUnderlineAnnot", rv, kxpdf_HPDF_Page_CreateUnderlineAnnot);
+    KEX_SET_METHOD("createSquigglyAnnot", rv, kxpdf_HPDF_Page_CreateSquigglyAnnot);
+    KEX_SET_METHOD("createStrikeOutAnnot", rv, kxpdf_HPDF_Page_CreateStrikeOutAnnot);
+    KEX_SET_METHOD("createPopupAnnot", rv, kxpdf_HPDF_Page_CreatePopupAnnot);
+    /* KEX_SET_METHOD("createStampAnnot", rv, kxpdf_HPDF_Page_CreateStampAnnot); */
+    KEX_SET_METHOD("createProjectionAnnot", rv, kxpdf_HPDF_Page_CreateProjectionAnnot);
+    KEX_SET_METHOD("createSquareAnnot", rv, kxpdf_HPDF_Page_CreateSquareAnnot);
+    KEX_SET_METHOD("createCircleAnnot", rv, kxpdf_HPDF_Page_CreateCircleAnnot);
+    /* KEX_SET_METHOD("create3DC3DMeasure", rv, kxpdf_HPDF_Page_Create3DC3DMeasure); */
+    /* KEX_SET_METHOD("createPD33DMeasure", rv, kxpdf_HPDF_Page_CreatePD33DMeasure); */
+    KEX_SET_METHOD("create3DAnnotExData", rv, kxpdf_HPDF_Page_Create3DAnnotExData);
+    KEX_SET_METHOD("create3DView", rv, kxpdf_HPDF_Page_Create3DView);
+    KEX_SET_METHOD("textWidth", rv, kxpdf_HPDF_Page_TextWidth);
+    KEX_SET_METHOD("measureText", rv, kxpdf_HPDF_Page_MeasureText);
+    KEX_SET_METHOD("getWidth", rv, kxpdf_HPDF_Page_GetWidth);
+    KEX_SET_METHOD("getHeight", rv, kxpdf_HPDF_Page_GetHeight);
+    KEX_SET_METHOD("getGMode", rv, kxpdf_HPDF_Page_GetGMode);
+    KEX_SET_METHOD("getCurrentPos", rv, kxpdf_HPDF_Page_GetCurrentPos);
+    /* KEX_SET_METHOD("getCurrentPos2", rv, kxpdf_HPDF_Page_GetCurrentPos2); */
+    KEX_SET_METHOD("getCurrentTextPos", rv, kxpdf_HPDF_Page_GetCurrentTextPos);
+    /* KEX_SET_METHOD("getCurrentTextPos2", rv, kxpdf_HPDF_Page_GetCurrentTextPos2); */
+    KEX_SET_METHOD("getCurrentFont", rv, kxpdf_HPDF_Page_GetCurrentFont);
+    KEX_SET_METHOD("getCurrentFontSize", rv, kxpdf_HPDF_Page_GetCurrentFontSize);
+    KEX_SET_METHOD("getTransMatrix", rv, kxpdf_HPDF_Page_GetTransMatrix);
+    KEX_SET_METHOD("getLineWidth", rv, kxpdf_HPDF_Page_GetLineWidth);
+    KEX_SET_METHOD("getLineCap", rv, kxpdf_HPDF_Page_GetLineCap);
+    KEX_SET_METHOD("getLineJoin", rv, kxpdf_HPDF_Page_GetLineJoin);
+    KEX_SET_METHOD("getMiterLimit", rv, kxpdf_HPDF_Page_GetMiterLimit);
+    /* KEX_SET_METHOD("getDash", rv, kxpdf_HPDF_Page_GetDash); */
+    KEX_SET_METHOD("getFlat", rv, kxpdf_HPDF_Page_GetFlat);
+    KEX_SET_METHOD("getCharSpace", rv, kxpdf_HPDF_Page_GetCharSpace);
+    KEX_SET_METHOD("getWordSpace", rv, kxpdf_HPDF_Page_GetWordSpace);
+    KEX_SET_METHOD("getHorizontalScalling", rv, kxpdf_HPDF_Page_GetHorizontalScalling);
+    KEX_SET_METHOD("getTextLeading", rv, kxpdf_HPDF_Page_GetTextLeading);
+    KEX_SET_METHOD("getTextRenderingMode", rv, kxpdf_HPDF_Page_GetTextRenderingMode);
+    KEX_SET_METHOD("getTextRaise", rv, kxpdf_HPDF_Page_GetTextRaise);
+    KEX_SET_METHOD("getTextRise", rv, kxpdf_HPDF_Page_GetTextRise);
+    KEX_SET_METHOD("getRGBFill", rv, kxpdf_HPDF_Page_GetRGBFill);
+    KEX_SET_METHOD("getRGBStroke", rv, kxpdf_HPDF_Page_GetRGBStroke);
+    KEX_SET_METHOD("getCMYKFill", rv, kxpdf_HPDF_Page_GetCMYKFill);
+    KEX_SET_METHOD("getCMYKStroke", rv, kxpdf_HPDF_Page_GetCMYKStroke);
+    KEX_SET_METHOD("getGrayFill", rv, kxpdf_HPDF_Page_GetGrayFill);
+    KEX_SET_METHOD("getGrayStroke", rv, kxpdf_HPDF_Page_GetGrayStroke);
+    KEX_SET_METHOD("getStrokingColorSpace", rv, kxpdf_HPDF_Page_GetStrokingColorSpace);
+    KEX_SET_METHOD("getFillingColorSpace", rv, kxpdf_HPDF_Page_GetFillingColorSpace);
+    KEX_SET_METHOD("getTextMatrix", rv, kxpdf_HPDF_Page_GetTextMatrix);
+    KEX_SET_METHOD("getGStateDepth", rv, kxpdf_HPDF_Page_GetGStateDepth);
+    KEX_SET_METHOD("setLineWidth", rv, kxpdf_HPDF_Page_SetLineWidth);
+    KEX_SET_METHOD("setLineCap", rv, kxpdf_HPDF_Page_SetLineCap);
+    KEX_SET_METHOD("setLineJoin", rv, kxpdf_HPDF_Page_SetLineJoin);
+    KEX_SET_METHOD("setMiterLimit", rv, kxpdf_HPDF_Page_SetMiterLimit);
+    /* KEX_SET_METHOD("setDash", rv, kxpdf_HPDF_Page_SetDash); */
+    KEX_SET_METHOD("setFlat", rv, kxpdf_HPDF_Page_SetFlat);
+    KEX_SET_METHOD("setExtGState", rv, kxpdf_HPDF_Page_SetExtGState);
+    KEX_SET_METHOD("gSave", rv, kxpdf_HPDF_Page_GSave);
+    KEX_SET_METHOD("gRestore", rv, kxpdf_HPDF_Page_GRestore);
+    KEX_SET_METHOD("concat", rv, kxpdf_HPDF_Page_Concat);
+    KEX_SET_METHOD("moveTo", rv, kxpdf_HPDF_Page_MoveTo);
+    KEX_SET_METHOD("lineTo", rv, kxpdf_HPDF_Page_LineTo);
+    KEX_SET_METHOD("curveTo", rv, kxpdf_HPDF_Page_CurveTo);
+    KEX_SET_METHOD("curveTo2", rv, kxpdf_HPDF_Page_CurveTo2);
+    KEX_SET_METHOD("curveTo3", rv, kxpdf_HPDF_Page_CurveTo3);
+    KEX_SET_METHOD("closePath", rv, kxpdf_HPDF_Page_ClosePath);
+    KEX_SET_METHOD("rectangle", rv, kxpdf_HPDF_Page_Rectangle);
+    KEX_SET_METHOD("stroke", rv, kxpdf_HPDF_Page_Stroke);
+    KEX_SET_METHOD("closePathStroke", rv, kxpdf_HPDF_Page_ClosePathStroke);
+    KEX_SET_METHOD("fill", rv, kxpdf_HPDF_Page_Fill);
+    KEX_SET_METHOD("eofill", rv, kxpdf_HPDF_Page_Eofill);
+    KEX_SET_METHOD("fillStroke", rv, kxpdf_HPDF_Page_FillStroke);
+    KEX_SET_METHOD("eofillStroke", rv, kxpdf_HPDF_Page_EofillStroke);
+    KEX_SET_METHOD("closePathFillStroke", rv, kxpdf_HPDF_Page_ClosePathFillStroke);
+    KEX_SET_METHOD("closePathEofillStroke", rv, kxpdf_HPDF_Page_ClosePathEofillStroke);
+    KEX_SET_METHOD("endPath", rv, kxpdf_HPDF_Page_EndPath);
+    KEX_SET_METHOD("clip", rv, kxpdf_HPDF_Page_Clip);
+    KEX_SET_METHOD("eoclip", rv, kxpdf_HPDF_Page_Eoclip);
+    KEX_SET_METHOD("beginText", rv, kxpdf_HPDF_Page_BeginText);
+    KEX_SET_METHOD("endText", rv, kxpdf_HPDF_Page_EndText);
+    KEX_SET_METHOD("setCharSpace", rv, kxpdf_HPDF_Page_SetCharSpace);
+    KEX_SET_METHOD("setWordSpace", rv, kxpdf_HPDF_Page_SetWordSpace);
+    KEX_SET_METHOD("setHorizontalScalling", rv, kxpdf_HPDF_Page_SetHorizontalScalling);
+    KEX_SET_METHOD("setTextLeading", rv, kxpdf_HPDF_Page_SetTextLeading);
+    KEX_SET_METHOD("setFontAndSize", rv, kxpdf_HPDF_Page_SetFontAndSize);
+    KEX_SET_METHOD("setTextRenderingMode", rv, kxpdf_HPDF_Page_SetTextRenderingMode);
+    KEX_SET_METHOD("setTextRise", rv, kxpdf_HPDF_Page_SetTextRise);
+    KEX_SET_METHOD("setTextRaise", rv, kxpdf_HPDF_Page_SetTextRaise);
+    KEX_SET_METHOD("moveTextPos", rv, kxpdf_HPDF_Page_MoveTextPos);
+    KEX_SET_METHOD("moveTextPos2", rv, kxpdf_HPDF_Page_MoveTextPos2);
+    KEX_SET_METHOD("setTextMatrix", rv, kxpdf_HPDF_Page_SetTextMatrix);
+    KEX_SET_METHOD("moveToNextLine", rv, kxpdf_HPDF_Page_MoveToNextLine);
+    KEX_SET_METHOD("showText", rv, kxpdf_HPDF_Page_ShowText);
+    KEX_SET_METHOD("showTextNextLine", rv, kxpdf_HPDF_Page_ShowTextNextLine);
+    KEX_SET_METHOD("showTextNextLineEx", rv, kxpdf_HPDF_Page_ShowTextNextLineEx);
+    KEX_SET_METHOD("setGrayFill", rv, kxpdf_HPDF_Page_SetGrayFill);
+    KEX_SET_METHOD("setGrayStroke", rv, kxpdf_HPDF_Page_SetGrayStroke);
+    KEX_SET_METHOD("setRGBFill", rv, kxpdf_HPDF_Page_SetRGBFill);
+    KEX_SET_METHOD("setRGBStroke", rv, kxpdf_HPDF_Page_SetRGBStroke);
+    KEX_SET_METHOD("setCMYKFill", rv, kxpdf_HPDF_Page_SetCMYKFill);
+    KEX_SET_METHOD("setCMYKStroke", rv, kxpdf_HPDF_Page_SetCMYKStroke);
+    KEX_SET_METHOD("executeXObject", rv, kxpdf_HPDF_Page_ExecuteXObject);
+    /* KEX_SET_METHOD("new_Content_Stream", rv, kxpdf_HPDF_Page_New_Content_Stream); */
+    KEX_SET_METHOD("insert_Shared_Content_Stream", rv, kxpdf_HPDF_Page_Insert_Shared_Content_Stream);
+    KEX_SET_METHOD("drawImage", rv, kxpdf_HPDF_Page_DrawImage);
+    KEX_SET_METHOD("circle", rv, kxpdf_HPDF_Page_Circle);
+    KEX_SET_METHOD("ellipse", rv, kxpdf_HPDF_Page_Ellipse);
+    KEX_SET_METHOD("arc", rv, kxpdf_HPDF_Page_Arc);
+    KEX_SET_METHOD("textOut", rv, kxpdf_HPDF_Page_TextOut);
+    KEX_SET_METHOD("textRect", rv, kxpdf_HPDF_Page_TextRect);
+    KEX_SET_METHOD("setSlideShow", rv, kxpdf_HPDF_Page_SetSlideShow);
+    KEX_SET_METHOD("measureTextLen", rv, kxpdf_HPDF_Page_MeasureTextLen);
 
     return rv;
 }
@@ -995,7 +995,7 @@ static kx_obj_t *kxpdf_append_method_HPDF_MMgr(kx_context_t *ctx, void *r)
 
     /* HPDF_MMgr */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("Annot_Set3DView", rv, kxpdf_HPDF_Annot_Set3DView);
+    KEX_SET_METHOD("annot_Set3DView", rv, kxpdf_HPDF_Annot_Set3DView);
 
     return rv;
 }
@@ -1272,17 +1272,17 @@ static kx_obj_t *kxpdf_append_method_HPDF_Font(kx_context_t *ctx, void *r)
 
     /* HPDF_Font */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("GetFontName", rv, kxpdf_HPDF_Font_GetFontName);
-    KEX_SET_METHOD("GetEncodingName", rv, kxpdf_HPDF_Font_GetEncodingName);
-    KEX_SET_METHOD("GetUnicodeWidth", rv, kxpdf_HPDF_Font_GetUnicodeWidth);
-    KEX_SET_METHOD("GetBBox", rv, kxpdf_HPDF_Font_GetBBox);
-    KEX_SET_METHOD("GetAscent", rv, kxpdf_HPDF_Font_GetAscent);
-    KEX_SET_METHOD("GetDescent", rv, kxpdf_HPDF_Font_GetDescent);
-    KEX_SET_METHOD("GetXHeight", rv, kxpdf_HPDF_Font_GetXHeight);
-    KEX_SET_METHOD("GetCapHeight", rv, kxpdf_HPDF_Font_GetCapHeight);
-    KEX_SET_METHOD("TextWidth", rv, kxpdf_HPDF_Font_TextWidth);
-    KEX_SET_METHOD("MeasureText", rv, kxpdf_HPDF_Font_MeasureText);
-    KEX_SET_METHOD("MeasureTextLen", rv, kxpdf_HPDF_Font_MeasureTextLen);
+    KEX_SET_METHOD("getFontName", rv, kxpdf_HPDF_Font_GetFontName);
+    KEX_SET_METHOD("getEncodingName", rv, kxpdf_HPDF_Font_GetEncodingName);
+    KEX_SET_METHOD("getUnicodeWidth", rv, kxpdf_HPDF_Font_GetUnicodeWidth);
+    KEX_SET_METHOD("getBBox", rv, kxpdf_HPDF_Font_GetBBox);
+    KEX_SET_METHOD("getAscent", rv, kxpdf_HPDF_Font_GetAscent);
+    KEX_SET_METHOD("getDescent", rv, kxpdf_HPDF_Font_GetDescent);
+    KEX_SET_METHOD("getXHeight", rv, kxpdf_HPDF_Font_GetXHeight);
+    KEX_SET_METHOD("getCapHeight", rv, kxpdf_HPDF_Font_GetCapHeight);
+    KEX_SET_METHOD("textWidth", rv, kxpdf_HPDF_Font_TextWidth);
+    KEX_SET_METHOD("measureText", rv, kxpdf_HPDF_Font_MeasureText);
+    KEX_SET_METHOD("measureTextLen", rv, kxpdf_HPDF_Font_MeasureTextLen);
 
     return rv;
 }
@@ -1482,8 +1482,8 @@ static kx_obj_t *kxpdf_append_method_HPDF_Outline(kx_context_t *ctx, void *r)
 
     /* HPDF_Outline */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("SetOpened", rv, kxpdf_HPDF_Outline_SetOpened);
-    KEX_SET_METHOD("SetDestination", rv, kxpdf_HPDF_Outline_SetDestination);
+    KEX_SET_METHOD("setOpened", rv, kxpdf_HPDF_Outline_SetOpened);
+    KEX_SET_METHOD("setDestination", rv, kxpdf_HPDF_Outline_SetDestination);
 
     return rv;
 }
@@ -1546,14 +1546,14 @@ static kx_obj_t *kxpdf_append_method_HPDF_Destination(kx_context_t *ctx, void *r
 
     /* HPDF_Destination */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("SetXYZ", rv, kxpdf_HPDF_Destination_SetXYZ);
-    KEX_SET_METHOD("SetFit", rv, kxpdf_HPDF_Destination_SetFit);
-    KEX_SET_METHOD("SetFitH", rv, kxpdf_HPDF_Destination_SetFitH);
-    KEX_SET_METHOD("SetFitV", rv, kxpdf_HPDF_Destination_SetFitV);
-    KEX_SET_METHOD("SetFitR", rv, kxpdf_HPDF_Destination_SetFitR);
-    KEX_SET_METHOD("SetFitB", rv, kxpdf_HPDF_Destination_SetFitB);
-    KEX_SET_METHOD("SetFitBH", rv, kxpdf_HPDF_Destination_SetFitBH);
-    KEX_SET_METHOD("SetFitBV", rv, kxpdf_HPDF_Destination_SetFitBV);
+    KEX_SET_METHOD("setXYZ", rv, kxpdf_HPDF_Destination_SetXYZ);
+    KEX_SET_METHOD("setFit", rv, kxpdf_HPDF_Destination_SetFit);
+    KEX_SET_METHOD("setFitH", rv, kxpdf_HPDF_Destination_SetFitH);
+    KEX_SET_METHOD("setFitV", rv, kxpdf_HPDF_Destination_SetFitV);
+    KEX_SET_METHOD("setFitR", rv, kxpdf_HPDF_Destination_SetFitR);
+    KEX_SET_METHOD("setFitB", rv, kxpdf_HPDF_Destination_SetFitB);
+    KEX_SET_METHOD("setFitBH", rv, kxpdf_HPDF_Destination_SetFitBH);
+    KEX_SET_METHOD("setFitBV", rv, kxpdf_HPDF_Destination_SetFitBV);
 
     return rv;
 }
@@ -1718,10 +1718,10 @@ static kx_obj_t *kxpdf_append_method_HPDF_Encoder(kx_context_t *ctx, void *r)
 
     /* HPDF_Encoder */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("GetType", rv, kxpdf_HPDF_Encoder_GetType);
-    KEX_SET_METHOD("GetByteType", rv, kxpdf_HPDF_Encoder_GetByteType);
-    KEX_SET_METHOD("GetUnicode", rv, kxpdf_HPDF_Encoder_GetUnicode);
-    KEX_SET_METHOD("GetWritingMode", rv, kxpdf_HPDF_Encoder_GetWritingMode);
+    KEX_SET_METHOD("getType", rv, kxpdf_HPDF_Encoder_GetType);
+    KEX_SET_METHOD("getByteType", rv, kxpdf_HPDF_Encoder_GetByteType);
+    KEX_SET_METHOD("getUnicode", rv, kxpdf_HPDF_Encoder_GetUnicode);
+    KEX_SET_METHOD("getWritingMode", rv, kxpdf_HPDF_Encoder_GetWritingMode);
 
     return rv;
 }
@@ -1965,38 +1965,38 @@ static kx_obj_t *kxpdf_append_method_HPDF_Annotation(kx_context_t *ctx, void *r)
 
     /* HPDF_Annotation */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("LinkAnnot_SetHighlightMode", rv, kxpdf_HPDF_LinkAnnot_SetHighlightMode);
-    KEX_SET_METHOD("LinkAnnot_SetJavaScript", rv, kxpdf_HPDF_LinkAnnot_SetJavaScript);
-    KEX_SET_METHOD("LinkAnnot_SetBorderStyle", rv, kxpdf_HPDF_LinkAnnot_SetBorderStyle);
-    KEX_SET_METHOD("TextAnnot_SetIcon", rv, kxpdf_HPDF_TextAnnot_SetIcon);
-    KEX_SET_METHOD("TextAnnot_SetOpened", rv, kxpdf_HPDF_TextAnnot_SetOpened);
-    KEX_SET_METHOD("Annot_SetRGBColor", rv, kxpdf_HPDF_Annot_SetRGBColor);
-    KEX_SET_METHOD("Annot_SetCMYKColor", rv, kxpdf_HPDF_Annot_SetCMYKColor);
-    KEX_SET_METHOD("Annot_SetGrayColor", rv, kxpdf_HPDF_Annot_SetGrayColor);
-    KEX_SET_METHOD("Annot_SetNoColor", rv, kxpdf_HPDF_Annot_SetNoColor);
-    KEX_SET_METHOD("MarkupAnnot_SetTitle", rv, kxpdf_HPDF_MarkupAnnot_SetTitle);
-    KEX_SET_METHOD("MarkupAnnot_SetSubject", rv, kxpdf_HPDF_MarkupAnnot_SetSubject);
-    /* KEX_SET_METHOD("MarkupAnnot_SetCreationDate", rv, kxpdf_HPDF_MarkupAnnot_SetCreationDate); */
-    KEX_SET_METHOD("MarkupAnnot_SetTransparency", rv, kxpdf_HPDF_MarkupAnnot_SetTransparency);
-    KEX_SET_METHOD("MarkupAnnot_SetIntent", rv, kxpdf_HPDF_MarkupAnnot_SetIntent);
-    KEX_SET_METHOD("MarkupAnnot_SetPopup", rv, kxpdf_HPDF_MarkupAnnot_SetPopup);
-    KEX_SET_METHOD("MarkupAnnot_SetRectDiff", rv, kxpdf_HPDF_MarkupAnnot_SetRectDiff);
-    KEX_SET_METHOD("MarkupAnnot_SetCloudEffect", rv, kxpdf_HPDF_MarkupAnnot_SetCloudEffect);
-    KEX_SET_METHOD("MarkupAnnot_SetInteriorRGBColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorRGBColor);
-    KEX_SET_METHOD("MarkupAnnot_SetInteriorCMYKColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorCMYKColor);
-    KEX_SET_METHOD("MarkupAnnot_SetInteriorGrayColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorGrayColor);
-    KEX_SET_METHOD("MarkupAnnot_SetInteriorTransparent", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorTransparent);
-    KEX_SET_METHOD("TextMarkupAnnot_SetQuadPoints", rv, kxpdf_HPDF_TextMarkupAnnot_SetQuadPoints);
-    KEX_SET_METHOD("PopupAnnot_SetOpened", rv, kxpdf_HPDF_PopupAnnot_SetOpened);
-    KEX_SET_METHOD("SetLineEndingStyle", rv, kxpdf_HPDF_FreeTextAnnot_SetLineEndingStyle);
-    KEX_SET_METHOD("Set3PointCalloutLine", rv, kxpdf_HPDF_FreeTextAnnot_Set3PointCalloutLine);
-    KEX_SET_METHOD("Set2PointCalloutLine", rv, kxpdf_HPDF_FreeTextAnnot_Set2PointCalloutLine);
-    KEX_SET_METHOD("SetDefaultStyle", rv, kxpdf_HPDF_FreeTextAnnot_SetDefaultStyle);
-    KEX_SET_METHOD("LineAnnot_SetPosition", rv, kxpdf_HPDF_LineAnnot_SetPosition);
-    KEX_SET_METHOD("LineAnnot_SetLeader", rv, kxpdf_HPDF_LineAnnot_SetLeader);
-    /* KEX_SET_METHOD("LineAnnot_SetCaption", rv, kxpdf_HPDF_LineAnnot_SetCaption); */
-    KEX_SET_METHOD("Annotation_SetBorderStyle", rv, kxpdf_HPDF_Annotation_SetBorderStyle);
-    KEX_SET_METHOD("ProjectionAnnot_SetExData", rv, kxpdf_HPDF_ProjectionAnnot_SetExData);
+    KEX_SET_METHOD("linkAnnot_SetHighlightMode", rv, kxpdf_HPDF_LinkAnnot_SetHighlightMode);
+    KEX_SET_METHOD("linkAnnot_SetJavaScript", rv, kxpdf_HPDF_LinkAnnot_SetJavaScript);
+    KEX_SET_METHOD("linkAnnot_SetBorderStyle", rv, kxpdf_HPDF_LinkAnnot_SetBorderStyle);
+    KEX_SET_METHOD("textAnnot_SetIcon", rv, kxpdf_HPDF_TextAnnot_SetIcon);
+    KEX_SET_METHOD("textAnnot_SetOpened", rv, kxpdf_HPDF_TextAnnot_SetOpened);
+    KEX_SET_METHOD("annot_SetRGBColor", rv, kxpdf_HPDF_Annot_SetRGBColor);
+    KEX_SET_METHOD("annot_SetCMYKColor", rv, kxpdf_HPDF_Annot_SetCMYKColor);
+    KEX_SET_METHOD("annot_SetGrayColor", rv, kxpdf_HPDF_Annot_SetGrayColor);
+    KEX_SET_METHOD("annot_SetNoColor", rv, kxpdf_HPDF_Annot_SetNoColor);
+    KEX_SET_METHOD("markupAnnot_SetTitle", rv, kxpdf_HPDF_MarkupAnnot_SetTitle);
+    KEX_SET_METHOD("markupAnnot_SetSubject", rv, kxpdf_HPDF_MarkupAnnot_SetSubject);
+    /* KEX_SET_METHOD("markupAnnot_SetCreationDate", rv, kxpdf_HPDF_MarkupAnnot_SetCreationDate); */
+    KEX_SET_METHOD("markupAnnot_SetTransparency", rv, kxpdf_HPDF_MarkupAnnot_SetTransparency);
+    KEX_SET_METHOD("markupAnnot_SetIntent", rv, kxpdf_HPDF_MarkupAnnot_SetIntent);
+    KEX_SET_METHOD("markupAnnot_SetPopup", rv, kxpdf_HPDF_MarkupAnnot_SetPopup);
+    KEX_SET_METHOD("markupAnnot_SetRectDiff", rv, kxpdf_HPDF_MarkupAnnot_SetRectDiff);
+    KEX_SET_METHOD("markupAnnot_SetCloudEffect", rv, kxpdf_HPDF_MarkupAnnot_SetCloudEffect);
+    KEX_SET_METHOD("markupAnnot_SetInteriorRGBColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorRGBColor);
+    KEX_SET_METHOD("markupAnnot_SetInteriorCMYKColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorCMYKColor);
+    KEX_SET_METHOD("markupAnnot_SetInteriorGrayColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorGrayColor);
+    KEX_SET_METHOD("markupAnnot_SetInteriorTransparent", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorTransparent);
+    KEX_SET_METHOD("textMarkupAnnot_SetQuadPoints", rv, kxpdf_HPDF_TextMarkupAnnot_SetQuadPoints);
+    KEX_SET_METHOD("popupAnnot_SetOpened", rv, kxpdf_HPDF_PopupAnnot_SetOpened);
+    KEX_SET_METHOD("setLineEndingStyle", rv, kxpdf_HPDF_FreeTextAnnot_SetLineEndingStyle);
+    KEX_SET_METHOD("set3PointCalloutLine", rv, kxpdf_HPDF_FreeTextAnnot_Set3PointCalloutLine);
+    KEX_SET_METHOD("set2PointCalloutLine", rv, kxpdf_HPDF_FreeTextAnnot_Set2PointCalloutLine);
+    KEX_SET_METHOD("setDefaultStyle", rv, kxpdf_HPDF_FreeTextAnnot_SetDefaultStyle);
+    KEX_SET_METHOD("lineAnnot_SetPosition", rv, kxpdf_HPDF_LineAnnot_SetPosition);
+    KEX_SET_METHOD("lineAnnot_SetLeader", rv, kxpdf_HPDF_LineAnnot_SetLeader);
+    /* KEX_SET_METHOD("lineAnnot_SetCaption", rv, kxpdf_HPDF_LineAnnot_SetCaption); */
+    KEX_SET_METHOD("annotation_SetBorderStyle", rv, kxpdf_HPDF_Annotation_SetBorderStyle);
+    KEX_SET_METHOD("projectionAnnot_SetExData", rv, kxpdf_HPDF_ProjectionAnnot_SetExData);
 
     return rv;
 }
@@ -3004,7 +3004,7 @@ static kx_obj_t *kxpdf_append_method_HPDF_ExData(kx_context_t *ctx, void *r)
 
     /* HPDF_ExData */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("Set3DMeasurement", rv, kxpdf_HPDF_3DAnnotExData_Set3DMeasurement);
+    KEX_SET_METHOD("set3DMeasurement", rv, kxpdf_HPDF_3DAnnotExData_Set3DMeasurement);
 
     return rv;
 }
@@ -3047,7 +3047,7 @@ static kx_obj_t *kxpdf_append_method_HPDF_Dict(kx_context_t *ctx, void *r)
 
     /* HPDF_Dict */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("Add3DC3DMeasure", rv, kxpdf_HPDF_3DView_Add3DC3DMeasure);
+    KEX_SET_METHOD("add3DC3DMeasure", rv, kxpdf_HPDF_3DView_Add3DC3DMeasure);
 
     return rv;
 }
@@ -3103,15 +3103,15 @@ static kx_obj_t *kxpdf_append_method_HPDF_Image(kx_context_t *ctx, void *r)
 
     /* HPDF_Image */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("AddSMask", rv, kxpdf_HPDF_Image_AddSMask);
-    KEX_SET_METHOD("GetSize", rv, kxpdf_HPDF_Image_GetSize);
-    /* KEX_SET_METHOD("GetSize2", rv, kxpdf_HPDF_Image_GetSize2); */
-    KEX_SET_METHOD("GetWidth", rv, kxpdf_HPDF_Image_GetWidth);
-    KEX_SET_METHOD("GetHeight", rv, kxpdf_HPDF_Image_GetHeight);
-    KEX_SET_METHOD("GetBitsPerComponent", rv, kxpdf_HPDF_Image_GetBitsPerComponent);
-    KEX_SET_METHOD("GetColorSpace", rv, kxpdf_HPDF_Image_GetColorSpace);
-    KEX_SET_METHOD("SetColorMask", rv, kxpdf_HPDF_Image_SetColorMask);
-    KEX_SET_METHOD("SetMaskImage", rv, kxpdf_HPDF_Image_SetMaskImage);
+    KEX_SET_METHOD("addSMask", rv, kxpdf_HPDF_Image_AddSMask);
+    KEX_SET_METHOD("getSize", rv, kxpdf_HPDF_Image_GetSize);
+    /* KEX_SET_METHOD("getSize2", rv, kxpdf_HPDF_Image_GetSize2); */
+    KEX_SET_METHOD("getWidth", rv, kxpdf_HPDF_Image_GetWidth);
+    KEX_SET_METHOD("getHeight", rv, kxpdf_HPDF_Image_GetHeight);
+    KEX_SET_METHOD("getBitsPerComponent", rv, kxpdf_HPDF_Image_GetBitsPerComponent);
+    KEX_SET_METHOD("getColorSpace", rv, kxpdf_HPDF_Image_GetColorSpace);
+    KEX_SET_METHOD("setColorMask", rv, kxpdf_HPDF_Image_SetColorMask);
+    KEX_SET_METHOD("setMaskImage", rv, kxpdf_HPDF_Image_SetMaskImage);
 
     return rv;
 }
@@ -3704,9 +3704,9 @@ static kx_obj_t *kxpdf_append_method_HPDF_ExtGState(kx_context_t *ctx, void *r)
 
     /* HPDF_ExtGState */
     KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("SetAlphaStroke", rv, kxpdf_HPDF_ExtGState_SetAlphaStroke);
-    KEX_SET_METHOD("SetAlphaFill", rv, kxpdf_HPDF_ExtGState_SetAlphaFill);
-    KEX_SET_METHOD("SetBlendMode", rv, kxpdf_HPDF_ExtGState_SetBlendMode);
+    KEX_SET_METHOD("setAlphaStroke", rv, kxpdf_HPDF_ExtGState_SetAlphaStroke);
+    KEX_SET_METHOD("setAlphaFill", rv, kxpdf_HPDF_ExtGState_SetAlphaFill);
+    KEX_SET_METHOD("setBlendMode", rv, kxpdf_HPDF_ExtGState_SetBlendMode);
 
     return rv;
 }
@@ -5455,76 +5455,76 @@ int kxpdf_create_HPDF_Doc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 
     KEX_SET_PROP_ANY(obj, "_voidp", anyv);
 
-    /* KEX_SET_METHOD("SetErrorHandler", obj, kxpdf_HPDF_SetErrorHandler); */
-    KEX_SET_METHOD("Free", obj, kxpdf_HPDF_Free);
-    KEX_SET_METHOD("NewDoc", obj, kxpdf_HPDF_NewDoc);
-    KEX_SET_METHOD("FreeDoc", obj, kxpdf_HPDF_FreeDoc);
-    KEX_SET_METHOD("HasDoc", obj, kxpdf_HPDF_HasDoc);
-    KEX_SET_METHOD("FreeDocAll", obj, kxpdf_HPDF_FreeDocAll);
-    KEX_SET_METHOD("SaveToStream", obj, kxpdf_HPDF_SaveToStream);
-    /* KEX_SET_METHOD("GetContents", obj, kxpdf_HPDF_GetContents); */
-    KEX_SET_METHOD("GetStreamSize", obj, kxpdf_HPDF_GetStreamSize);
-    /* KEX_SET_METHOD("ReadFromStream", obj, kxpdf_HPDF_ReadFromStream); */
-    KEX_SET_METHOD("ResetStream", obj, kxpdf_HPDF_ResetStream);
-    KEX_SET_METHOD("SaveToFile", obj, kxpdf_HPDF_SaveToFile);
-    KEX_SET_METHOD("GetError", obj, kxpdf_HPDF_GetError);
-    KEX_SET_METHOD("GetErrorDetail", obj, kxpdf_HPDF_GetErrorDetail);
-    KEX_SET_METHOD("ResetError", obj, kxpdf_HPDF_ResetError);
-    KEX_SET_METHOD("SetPagesConfiguration", obj, kxpdf_HPDF_SetPagesConfiguration);
-    KEX_SET_METHOD("GetPageByIndex", obj, kxpdf_HPDF_GetPageByIndex);
-    KEX_SET_METHOD("GetPageLayout", obj, kxpdf_HPDF_GetPageLayout);
-    KEX_SET_METHOD("SetPageLayout", obj, kxpdf_HPDF_SetPageLayout);
-    KEX_SET_METHOD("GetPageMode", obj, kxpdf_HPDF_GetPageMode);
-    KEX_SET_METHOD("SetPageMode", obj, kxpdf_HPDF_SetPageMode);
-    KEX_SET_METHOD("GetViewerPreference", obj, kxpdf_HPDF_GetViewerPreference);
-    KEX_SET_METHOD("SetViewerPreference", obj, kxpdf_HPDF_SetViewerPreference);
-    KEX_SET_METHOD("SetOpenAction", obj, kxpdf_HPDF_SetOpenAction);
-    KEX_SET_METHOD("GetCurrentPage", obj, kxpdf_HPDF_GetCurrentPage);
-    KEX_SET_METHOD("AddPage", obj, kxpdf_HPDF_AddPage);
-    KEX_SET_METHOD("InsertPage", obj, kxpdf_HPDF_InsertPage);
-    KEX_SET_METHOD("GetFont", obj, kxpdf_HPDF_GetFont);
-    KEX_SET_METHOD("LoadType1FontFromFile", obj, kxpdf_HPDF_LoadType1FontFromFile);
-    KEX_SET_METHOD("GetTTFontDefFromFile", obj, kxpdf_HPDF_GetTTFontDefFromFile);
-    KEX_SET_METHOD("LoadTTFontFromFile", obj, kxpdf_HPDF_LoadTTFontFromFile);
-    KEX_SET_METHOD("LoadTTFontFromFile2", obj, kxpdf_HPDF_LoadTTFontFromFile2);
-    KEX_SET_METHOD("AddPageLabel", obj, kxpdf_HPDF_AddPageLabel);
-    KEX_SET_METHOD("UseJPFonts", obj, kxpdf_HPDF_UseJPFonts);
-    KEX_SET_METHOD("UseKRFonts", obj, kxpdf_HPDF_UseKRFonts);
-    KEX_SET_METHOD("UseCNSFonts", obj, kxpdf_HPDF_UseCNSFonts);
-    KEX_SET_METHOD("UseCNTFonts", obj, kxpdf_HPDF_UseCNTFonts);
-    KEX_SET_METHOD("CreateOutline", obj, kxpdf_HPDF_CreateOutline);
-    KEX_SET_METHOD("GetEncoder", obj, kxpdf_HPDF_GetEncoder);
-    KEX_SET_METHOD("GetCurrentEncoder", obj, kxpdf_HPDF_GetCurrentEncoder);
-    KEX_SET_METHOD("SetCurrentEncoder", obj, kxpdf_HPDF_SetCurrentEncoder);
-    KEX_SET_METHOD("UseJPEncodings", obj, kxpdf_HPDF_UseJPEncodings);
-    KEX_SET_METHOD("UseKREncodings", obj, kxpdf_HPDF_UseKREncodings);
-    KEX_SET_METHOD("UseCNSEncodings", obj, kxpdf_HPDF_UseCNSEncodings);
-    KEX_SET_METHOD("UseCNTEncodings", obj, kxpdf_HPDF_UseCNTEncodings);
-    KEX_SET_METHOD("UseUTFEncodings", obj, kxpdf_HPDF_UseUTFEncodings);
-    /* KEX_SET_METHOD("CreateXObjectFromImage", obj, kxpdf_HPDF_Page_CreateXObjectFromImage); */
-    KEX_SET_METHOD("CreateXObjectAsWhiteRect", obj, kxpdf_HPDF_Page_CreateXObjectAsWhiteRect);
-    KEX_SET_METHOD("CreateWidgetAnnot_WhiteOnlyWhilePrint", obj, kxpdf_HPDF_Page_CreateWidgetAnnot_WhiteOnlyWhilePrint);
-    /* KEX_SET_METHOD("LoadPngImageFromMem", obj, kxpdf_HPDF_LoadPngImageFromMem); */
-    KEX_SET_METHOD("LoadPngImageFromFile", obj, kxpdf_HPDF_LoadPngImageFromFile);
-    KEX_SET_METHOD("LoadPngImageFromFile2", obj, kxpdf_HPDF_LoadPngImageFromFile2);
-    KEX_SET_METHOD("LoadJpegImageFromFile", obj, kxpdf_HPDF_LoadJpegImageFromFile);
-    /* KEX_SET_METHOD("LoadJpegImageFromMem", obj, kxpdf_HPDF_LoadJpegImageFromMem); */
-    KEX_SET_METHOD("LoadU3DFromFile", obj, kxpdf_HPDF_LoadU3DFromFile);
-    /* KEX_SET_METHOD("LoadU3DFromMem", obj, kxpdf_HPDF_LoadU3DFromMem); */
-    /* KEX_SET_METHOD("LoadRaw1BitImageFromMem", obj, kxpdf_HPDF_Image_LoadRaw1BitImageFromMem); */
-    KEX_SET_METHOD("LoadRawImageFromFile", obj, kxpdf_HPDF_LoadRawImageFromFile);
-    /* KEX_SET_METHOD("LoadRawImageFromMem", obj, kxpdf_HPDF_LoadRawImageFromMem); */
-    KEX_SET_METHOD("SetInfoAttr", obj, kxpdf_HPDF_SetInfoAttr);
-    KEX_SET_METHOD("GetInfoAttr", obj, kxpdf_HPDF_GetInfoAttr);
-    /* KEX_SET_METHOD("SetInfoDateAttr", obj, kxpdf_HPDF_SetInfoDateAttr); */
-    KEX_SET_METHOD("SetPassword", obj, kxpdf_HPDF_SetPassword);
-    KEX_SET_METHOD("SetPermission", obj, kxpdf_HPDF_SetPermission);
-    KEX_SET_METHOD("SetEncryptionMode", obj, kxpdf_HPDF_SetEncryptionMode);
-    KEX_SET_METHOD("SetCompressionMode", obj, kxpdf_HPDF_SetCompressionMode);
-    KEX_SET_METHOD("AttachFile", obj, kxpdf_HPDF_AttachFile);
-    KEX_SET_METHOD("CreateExtGState", obj, kxpdf_HPDF_CreateExtGState);
-    KEX_SET_METHOD("ICC_LoadIccFromMem", obj, kxpdf_HPDF_ICC_LoadIccFromMem);
-    KEX_SET_METHOD("LoadIccProfileFromFile", obj, kxpdf_HPDF_LoadIccProfileFromFile);
+    /* KEX_SET_METHOD("setErrorHandler", obj, kxpdf_HPDF_SetErrorHandler); */
+    KEX_SET_METHOD("free", obj, kxpdf_HPDF_Free);
+    KEX_SET_METHOD("newDoc", obj, kxpdf_HPDF_NewDoc);
+    KEX_SET_METHOD("freeDoc", obj, kxpdf_HPDF_FreeDoc);
+    KEX_SET_METHOD("hasDoc", obj, kxpdf_HPDF_HasDoc);
+    KEX_SET_METHOD("freeDocAll", obj, kxpdf_HPDF_FreeDocAll);
+    KEX_SET_METHOD("saveToStream", obj, kxpdf_HPDF_SaveToStream);
+    /* KEX_SET_METHOD("getContents", obj, kxpdf_HPDF_GetContents); */
+    KEX_SET_METHOD("getStreamSize", obj, kxpdf_HPDF_GetStreamSize);
+    /* KEX_SET_METHOD("readFromStream", obj, kxpdf_HPDF_ReadFromStream); */
+    KEX_SET_METHOD("resetStream", obj, kxpdf_HPDF_ResetStream);
+    KEX_SET_METHOD("saveToFile", obj, kxpdf_HPDF_SaveToFile);
+    KEX_SET_METHOD("getError", obj, kxpdf_HPDF_GetError);
+    KEX_SET_METHOD("getErrorDetail", obj, kxpdf_HPDF_GetErrorDetail);
+    KEX_SET_METHOD("resetError", obj, kxpdf_HPDF_ResetError);
+    KEX_SET_METHOD("setPagesConfiguration", obj, kxpdf_HPDF_SetPagesConfiguration);
+    KEX_SET_METHOD("getPageByIndex", obj, kxpdf_HPDF_GetPageByIndex);
+    KEX_SET_METHOD("getPageLayout", obj, kxpdf_HPDF_GetPageLayout);
+    KEX_SET_METHOD("setPageLayout", obj, kxpdf_HPDF_SetPageLayout);
+    KEX_SET_METHOD("getPageMode", obj, kxpdf_HPDF_GetPageMode);
+    KEX_SET_METHOD("setPageMode", obj, kxpdf_HPDF_SetPageMode);
+    KEX_SET_METHOD("getViewerPreference", obj, kxpdf_HPDF_GetViewerPreference);
+    KEX_SET_METHOD("setViewerPreference", obj, kxpdf_HPDF_SetViewerPreference);
+    KEX_SET_METHOD("setOpenAction", obj, kxpdf_HPDF_SetOpenAction);
+    KEX_SET_METHOD("getCurrentPage", obj, kxpdf_HPDF_GetCurrentPage);
+    KEX_SET_METHOD("addPage", obj, kxpdf_HPDF_AddPage);
+    KEX_SET_METHOD("insertPage", obj, kxpdf_HPDF_InsertPage);
+    KEX_SET_METHOD("getFont", obj, kxpdf_HPDF_GetFont);
+    KEX_SET_METHOD("loadType1FontFromFile", obj, kxpdf_HPDF_LoadType1FontFromFile);
+    KEX_SET_METHOD("getTTFontDefFromFile", obj, kxpdf_HPDF_GetTTFontDefFromFile);
+    KEX_SET_METHOD("loadTTFontFromFile", obj, kxpdf_HPDF_LoadTTFontFromFile);
+    KEX_SET_METHOD("loadTTFontFromFile2", obj, kxpdf_HPDF_LoadTTFontFromFile2);
+    KEX_SET_METHOD("addPageLabel", obj, kxpdf_HPDF_AddPageLabel);
+    KEX_SET_METHOD("useJPFonts", obj, kxpdf_HPDF_UseJPFonts);
+    KEX_SET_METHOD("useKRFonts", obj, kxpdf_HPDF_UseKRFonts);
+    KEX_SET_METHOD("useCNSFonts", obj, kxpdf_HPDF_UseCNSFonts);
+    KEX_SET_METHOD("useCNTFonts", obj, kxpdf_HPDF_UseCNTFonts);
+    KEX_SET_METHOD("createOutline", obj, kxpdf_HPDF_CreateOutline);
+    KEX_SET_METHOD("getEncoder", obj, kxpdf_HPDF_GetEncoder);
+    KEX_SET_METHOD("getCurrentEncoder", obj, kxpdf_HPDF_GetCurrentEncoder);
+    KEX_SET_METHOD("setCurrentEncoder", obj, kxpdf_HPDF_SetCurrentEncoder);
+    KEX_SET_METHOD("useJPEncodings", obj, kxpdf_HPDF_UseJPEncodings);
+    KEX_SET_METHOD("useKREncodings", obj, kxpdf_HPDF_UseKREncodings);
+    KEX_SET_METHOD("useCNSEncodings", obj, kxpdf_HPDF_UseCNSEncodings);
+    KEX_SET_METHOD("useCNTEncodings", obj, kxpdf_HPDF_UseCNTEncodings);
+    KEX_SET_METHOD("useUTFEncodings", obj, kxpdf_HPDF_UseUTFEncodings);
+    /* KEX_SET_METHOD("createXObjectFromImage", obj, kxpdf_HPDF_Page_CreateXObjectFromImage); */
+    KEX_SET_METHOD("createXObjectAsWhiteRect", obj, kxpdf_HPDF_Page_CreateXObjectAsWhiteRect);
+    KEX_SET_METHOD("createWidgetAnnot_WhiteOnlyWhilePrint", obj, kxpdf_HPDF_Page_CreateWidgetAnnot_WhiteOnlyWhilePrint);
+    /* KEX_SET_METHOD("loadPngImageFromMem", obj, kxpdf_HPDF_LoadPngImageFromMem); */
+    KEX_SET_METHOD("loadPngImageFromFile", obj, kxpdf_HPDF_LoadPngImageFromFile);
+    KEX_SET_METHOD("loadPngImageFromFile2", obj, kxpdf_HPDF_LoadPngImageFromFile2);
+    KEX_SET_METHOD("loadJpegImageFromFile", obj, kxpdf_HPDF_LoadJpegImageFromFile);
+    /* KEX_SET_METHOD("loadJpegImageFromMem", obj, kxpdf_HPDF_LoadJpegImageFromMem); */
+    KEX_SET_METHOD("loadU3DFromFile", obj, kxpdf_HPDF_LoadU3DFromFile);
+    /* KEX_SET_METHOD("loadU3DFromMem", obj, kxpdf_HPDF_LoadU3DFromMem); */
+    /* KEX_SET_METHOD("loadRaw1BitImageFromMem", obj, kxpdf_HPDF_Image_LoadRaw1BitImageFromMem); */
+    KEX_SET_METHOD("loadRawImageFromFile", obj, kxpdf_HPDF_LoadRawImageFromFile);
+    /* KEX_SET_METHOD("loadRawImageFromMem", obj, kxpdf_HPDF_LoadRawImageFromMem); */
+    KEX_SET_METHOD("setInfoAttr", obj, kxpdf_HPDF_SetInfoAttr);
+    KEX_SET_METHOD("getInfoAttr", obj, kxpdf_HPDF_GetInfoAttr);
+    /* KEX_SET_METHOD("setInfoDateAttr", obj, kxpdf_HPDF_SetInfoDateAttr); */
+    KEX_SET_METHOD("setPassword", obj, kxpdf_HPDF_SetPassword);
+    KEX_SET_METHOD("setPermission", obj, kxpdf_HPDF_SetPermission);
+    KEX_SET_METHOD("setEncryptionMode", obj, kxpdf_HPDF_SetEncryptionMode);
+    KEX_SET_METHOD("setCompressionMode", obj, kxpdf_HPDF_SetCompressionMode);
+    KEX_SET_METHOD("attachFile", obj, kxpdf_HPDF_AttachFile);
+    KEX_SET_METHOD("createExtGState", obj, kxpdf_HPDF_CreateExtGState);
+    KEX_SET_METHOD("iCC_LoadIccFromMem", obj, kxpdf_HPDF_ICC_LoadIccFromMem);
+    KEX_SET_METHOD("loadIccProfileFromFile", obj, kxpdf_HPDF_LoadIccProfileFromFile);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -5536,7 +5536,7 @@ int kxpdf_create_HPDF_Error(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
 {
     kx_obj_t *obj = allocate_obj(ctx);
 
-    KEX_SET_METHOD("CheckError", obj, kxpdf_HPDF_CheckError);
+    KEX_SET_METHOD("checkError", obj, kxpdf_HPDF_CheckError);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -5548,8 +5548,8 @@ int kxpdf_create_HPDF_Error_Handler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
 {
     kx_obj_t *obj = allocate_obj(ctx);
 
-    /* KEX_SET_METHOD("NewEx", obj, kxpdf_HPDF_NewEx); */
-    /* KEX_SET_METHOD("New", obj, kxpdf_HPDF_New); */
+    /* KEX_SET_METHOD("newEx", obj, kxpdf_HPDF_NewEx); */
+    /* KEX_SET_METHOD("new", obj, kxpdf_HPDF_New); */
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
@@ -5561,7 +5561,7 @@ int kxpdf_create_Main(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 {
     kx_obj_t *obj = allocate_obj(ctx);
 
-    KEX_SET_METHOD("GetVersion", obj, kxpdf_HPDF_GetVersion);
+    KEX_SET_METHOD("getVersion", obj, kxpdf_HPDF_GetVersion);
     KEX_SET_METHOD("create3DMeasure", obj, kxpdf_create_HPDF_3DMeasure);
     KEX_SET_METHOD("create", obj, kxpdf_create_HPDF_Doc);
     KEX_SET_METHOD("createError", obj, kxpdf_create_HPDF_Error);

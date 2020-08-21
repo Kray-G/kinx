@@ -502,8 +502,8 @@ var AllocFree = {
     "HPDF_Doc": { alloc: "HPDF_New(kxpdf_error_handler, obj); HPDF_UseUTFEncodings(anyv->p);", free: "HPDF_Free" },
 };
 var AdditionalFuncs = {
-    "HPDF_Font": [ { name: "MeasureTextLen", base: "HPDF_Font_MeasureTextLen" } ],
-    "HPDF_Page": [ { name: "MeasureTextLen", base: "HPDF_Page_MeasureTextLen" } ],
+    "HPDF_Font": [ { name: "measureTextLen", base: "HPDF_Font_MeasureTextLen" } ],
+    "HPDF_Page": [ { name: "measureTextLen", base: "HPDF_Page_MeasureTextLen" } ],
 };
 
 var templateBody = %{
@@ -522,6 +522,7 @@ int kxpdf_%1%(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
 function genMethodDef(func, methods, objName) {
     var mname = func.data.name.replace(/^HPDF_(Page_|FreeTextAnnot_|Font_|Outline_|Destination_|Encoder_|3DAnnotExData_|3DView_|Image_|ExtGState_)?/, "");
+    mname = mname.toLower(1);
     if (func.skip && !predefinedFunction[func.data.name]) {
         methods.push(('    /* KEX_SET_METHOD("%1%", %2%, kxpdf_%3%); */' % mname % objName % func.data.name).format());
     } else {
