@@ -90,6 +90,10 @@ var Type = {
     HPDF_TransMatrix:           "HPDF_TransMatrix",
 };
 
+var inputStringWIthByteArray = {
+    HPDF_Font_TextWidth: true,
+};
+
 var re = /HPDF_EXPORT\(([^\)]+)\)\r?\n\s*([^\s]+)\s*\(\s*(void|([^,\)]+)(,\s+[^,\)]+)*)\s*\);/;
 var text = File.load("C:/git/hub/kinx/src/extlib/libharu/include/hpdf.h");
 var count = 0;
@@ -99,6 +103,7 @@ re.reset(text);
 while (re.find()) {
     ++count;
     var rtype = re.group[1].string.trim().replace(/([^ ])\*$/, "$1 *");
+    var funcname = re.group[2].string;
     var args = re.group[3].string.trim();
     var unknown = false;
     var func = {
@@ -107,7 +112,7 @@ while (re.find()) {
                 name: rtype,
                 type: Type[rtype],
             },
-            name: re.group[2].string,
+            name: funcname,
             args: args == "void" ? null :
                     args.replace(/[\s]+/, " ")
                     .split(", ")
@@ -116,6 +121,9 @@ while (re.find()) {
                         ar.reset(e);
                         if (ar.find()) {
                             var atype = ar.group[1].string.trim().replace(/([^ ])\*$/, "$1 *");
+                            if (atype == "const HPDF_BYTE *") {
+                                if (inputStringWIthByteArray[funcname]) atype = "const char *";
+                            }
                             if (!Type[atype]) {
                                 unknownType[atype] = true;
                                 unknown = true;
@@ -132,6 +140,7 @@ while (re.find()) {
 }
 
 var predefinedFunction = {
+    HPDF_Font_MeasureText: true,
     HPDF_Page_MeasureText: true,
     HPDF_Page_TextRect: true,
 };
@@ -306,6 +315,31 @@ void kxpdf_error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user
 int throw_exception(int args, kx_context_t *ctx, int error_no, int detail_no)
 {
     KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+}
+
+/* HPDF_Font_MeasureText */
+int kxpdf_HPDF_Font_MeasureText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Font font                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_UINT len                  */ int64_t v3 = get_arg_int(3, args, ctx); 
+    /* HPDF_REAL width                */ double v4 = get_arg_dbl(4, args, ctx);
+    /* HPDF_REAL font_size            */ double v5 = get_arg_dbl(5, args, ctx);
+    /* HPDF_REAL char_space           */ double v6 = get_arg_dbl(6, args, ctx);
+    /* HPDF_REAL word_space           */ double v7 = get_arg_dbl(7, args, ctx);
+    /* HPDF_BOOL wordwrap             */ int64_t v8 = get_arg_int(8, args, ctx);  
+    /* HPDF_REAL *real_width          */ /* not used */
+
+    sg_error = sg_detail = 0;
+    int r = HPDF_Font_MeasureText(v1, v2, v3, v4,v5, v6, v7, v8, NULL);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
 }
 
 /* HPDF_Page_MeasureText */
