@@ -5,109 +5,109 @@ var text = File.load("examples/pdf/sjis.txt");
 var pdf = new Pdf();
 
 /* configure pdf-document to be compressed. */
-pdf.SetCompressionMode(PDF_COMP_ALL);
+pdf.setCompressionMode(PDF_COMP_ALL);
 
 /* declaration for using Japanese font, encoding. */
-pdf.UseJPEncodings();
-pdf.UseJPFonts();
+pdf.useJPEncodings();
+pdf.useJPFonts();
 
 var detailFont = [
-    pdf.GetFont("MS-Mincho", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-Mincho,Bold", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-Mincho,Italic", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-Mincho,BoldItalic", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-PMincho", "90msp-RKSJ-H"),
-    pdf.GetFont("MS-PMincho,Bold", "90msp-RKSJ-H"),
-    pdf.GetFont("MS-PMincho,Italic", "90msp-RKSJ-H"),
-    pdf.GetFont("MS-PMincho,BoldItalic", "90msp-RKSJ-H"),
-    pdf.GetFont("MS-Gothic", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-Gothic,Bold", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-Gothic,Italic", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-Gothic,BoldItalic", "90ms-RKSJ-H"),
-    pdf.GetFont("MS-PGothic", "90msp-RKSJ-H"),
-    pdf.GetFont("MS-PGothic,Bold", "90msp-RKSJ-H"),
-    pdf.GetFont("MS-PGothic,Italic", "90msp-RKSJ-H"),
-    pdf.GetFont("MS-PGothic,BoldItalic", "90msp-RKSJ-H"),
+    pdf.getFont("MS-Mincho", "90ms-RKSJ-H"),
+    pdf.getFont("MS-Mincho,Bold", "90ms-RKSJ-H"),
+    pdf.getFont("MS-Mincho,Italic", "90ms-RKSJ-H"),
+    pdf.getFont("MS-Mincho,BoldItalic", "90ms-RKSJ-H"),
+    pdf.getFont("MS-PMincho", "90msp-RKSJ-H"),
+    pdf.getFont("MS-PMincho,Bold", "90msp-RKSJ-H"),
+    pdf.getFont("MS-PMincho,Italic", "90msp-RKSJ-H"),
+    pdf.getFont("MS-PMincho,BoldItalic", "90msp-RKSJ-H"),
+    pdf.getFont("MS-Gothic", "90ms-RKSJ-H"),
+    pdf.getFont("MS-Gothic,Bold", "90ms-RKSJ-H"),
+    pdf.getFont("MS-Gothic,Italic", "90ms-RKSJ-H"),
+    pdf.getFont("MS-Gothic,BoldItalic", "90ms-RKSJ-H"),
+    pdf.getFont("MS-PGothic", "90msp-RKSJ-H"),
+    pdf.getFont("MS-PGothic,Bold", "90msp-RKSJ-H"),
+    pdf.getFont("MS-PGothic,Italic", "90msp-RKSJ-H"),
+    pdf.getFont("MS-PGothic,BoldItalic", "90msp-RKSJ-H"),
 ];
 
 /* Set page mode to use outlines. */
-pdf.SetPageMode(PDF_PAGE_MODE_USE_OUTLINE);
+pdf.setPageMode(PDF_PAGE_MODE_USE_OUTLINE);
 
 /* create outline root. */
-root = pdf.CreateOutline(null, "JP font demo", null);
-root.SetOpened(true);
+root = pdf.createOutline(null, "JP font demo", null);
+root.setOpened(true);
 
 for (i = 0; i < detailFont.length(); i++) {
     /* add a new page object. */
-    page = pdf.AddPage();
+    page = pdf.addPage();
 
     /* create outline entry */
-    outline = pdf.CreateOutline(root, detailFont[i].GetFontName(), null);
-    dst = page.CreateDestination();
-    outline.SetDestination(dst);
+    outline = pdf.createOutline(root, detailFont[i].getFontName(), null);
+    dst = page.createDestination();
+    outline.setDestination(dst);
 
-    title_font = pdf.GetFont("Helvetica", null);
-    page.SetFontAndSize(title_font, 10);
+    title_font = pdf.getFont("Helvetica", null);
+    page.setFontAndSize(title_font, 10);
 
-    page.BeginText();
+    page.beginText();
 
     /* move the position of the text to top of the page. */
-    page.MoveTextPos(10, 190);
-    page.ShowText(detailFont[i].GetFontName());
+    page.moveTextPos(10, 190);
+    page.showText(detailFont[i].getFontName());
 
-    page.SetFontAndSize(detailFont[i], 15);
-    page.MoveTextPos(10, -20);
-    page.ShowText("abcdefghijklmnopqrstuvwxyz");
-    page.MoveTextPos(0, -20);
-    page.ShowText("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-    page.MoveTextPos(0, -20);
-    page.ShowText("1234567890");
-    page.MoveTextPos(0, -20);
+    page.setFontAndSize(detailFont[i], 15);
+    page.moveTextPos(10, -20);
+    page.showText("abcdefghijklmnopqrstuvwxyz");
+    page.moveTextPos(0, -20);
+    page.showText("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    page.moveTextPos(0, -20);
+    page.showText("1234567890");
+    page.moveTextPos(0, -20);
 
-    page.SetFontAndSize(detailFont[i], 10);
-    page.ShowText(text);
-    page.MoveTextPos(0, -18);
+    page.setFontAndSize(detailFont[i], 10);
+    page.showText(text);
+    page.moveTextPos(0, -18);
 
-    page.SetFontAndSize(detailFont[i], 16);
-    page.ShowText(text);
-    page.MoveTextPos(0, -27);
+    page.setFontAndSize(detailFont[i], 16);
+    page.showText(text);
+    page.moveTextPos(0, -27);
 
-    page.SetFontAndSize(detailFont[i], 23);
-    page.ShowText(text);
-    page.MoveTextPos(0, -36);
+    page.setFontAndSize(detailFont[i], 23);
+    page.showText(text);
+    page.moveTextPos(0, -36);
 
-    page.SetFontAndSize(detailFont[i], 30);
-    page.ShowText(text);
+    page.setFontAndSize(detailFont[i], 30);
+    page.showText(text);
 
-    p = page.GetCurrentTextPos();
+    p = page.getCurrentTextPos();
 
     /* finish to print text. */
-    page.EndText();
+    page.endText();
 
-    page.SetLineWidth(0.5);
+    page.setLineWidth(0.5);
 
     x_pos = 20;
     for (j = 0; j <= text.length() / 2; j++) {
-        page.MoveTo(x_pos, p.y - 10);
-        page.LineTo(x_pos, p.y - 12);
-        page.Stroke();
+        page.moveTo(x_pos, p.y - 10);
+        page.lineTo(x_pos, p.y - 12);
+        page.stroke();
         x_pos = x_pos + 30;
     }
 
-    page.SetWidth(p.x + 20);
-    page.SetHeight(PAGE_HEIGHT);
+    page.setWidth(p.x + 20);
+    page.setHeight(PAGE_HEIGHT);
 
-    page.MoveTo(10, PAGE_HEIGHT - 25);
-    page.LineTo(p.x + 10, PAGE_HEIGHT - 25);
-    page.Stroke();
+    page.moveTo(10, PAGE_HEIGHT - 25);
+    page.lineTo(p.x + 10, PAGE_HEIGHT - 25);
+    page.stroke();
 
-    page.MoveTo(10, PAGE_HEIGHT - 85);
-    page.LineTo(p.x + 10, PAGE_HEIGHT - 85);
-    page.Stroke();
+    page.moveTo(10, PAGE_HEIGHT - 85);
+    page.lineTo(p.x + 10, PAGE_HEIGHT - 85);
+    page.stroke();
 
-    page.MoveTo(10, p.y - 12);
-    page.LineTo(p.x + 10, p.y - 12);
-    page.Stroke();
+    page.moveTo(10, p.y - 12);
+    page.lineTo(p.x + 10, p.y - 12);
+    page.stroke();
 }
 
-pdf.SaveToFile("pdfdemo_jp.pdf");
+pdf.saveToFile("pdfdemo_jp.pdf");
