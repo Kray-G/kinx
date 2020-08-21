@@ -153,6 +153,11 @@ int throw_exception(int args, kx_context_t *ctx, int error_no, int detail_no)
     KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
 }
 
+void HPDF_Free_Hook(void *p)
+{
+    HPDF_Free(p);
+}
+
 /* HPDF_Font_MeasureText */
 int kxpdf_HPDF_Font_MeasureText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
@@ -5451,7 +5456,7 @@ int kxpdf_create_HPDF_Doc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 
     kx_any_t *anyv = allocate_any(ctx);
     anyv->p = HPDF_New(kxpdf_error_handler, obj); HPDF_UseUTFEncodings(anyv->p);;
-    anyv->any_free = HPDF_Free;
+    anyv->any_free = HPDF_Free_Hook;
 
     KEX_SET_PROP_ANY(obj, "_voidp", anyv);
 
