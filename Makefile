@@ -129,7 +129,10 @@ SOFILES = \
     kxsqlite.so \
     kxnet.so \
     kxxml.so \
+<<<<<<< HEAD
     kxpdf.so \
+=======
+>>>>>>> 5d0a79c67f199e0964cb70e492d7f289cd137b2d
     kxssh.so \
     kxjit.so \
     kxprocess.so
