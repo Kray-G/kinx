@@ -78,11 +78,65 @@ type vn = {0}; { \
     KEX_SET_PROP_INT(rv, #p3, r.p3); \
     KEX_SET_PROP_INT(rv, #p4, r.p4); \
 /**/
+#define KX_GET_RGBCOL(args, ctx, vn, n) \
+HPDF_RGBColor vn = {0}; { \
+    kx_obj_t *vobj = get_arg_obj(n, args, ctx); \
+    kx_val_t *r = NULL; \
+    kx_val_t *g = NULL; \
+    kx_val_t *b = NULL; \
+    KEX_GET_PROP(r, vobj, "r"); \
+    KEX_GET_PROP(g, vobj, "g"); \
+    KEX_GET_PROP(b, vobj, "b"); \
+    KX_GET_CORE_SET(args, ctx, vn, n, r, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, g, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, b, float); \
+} \
+/**/
+#define KX_MAKE_RGBCOL(rv, r) \
+    kx_obj_t *rv = allocate_obj(ctx); \
+    KEX_SET_PROP_DBL(rv, "r", r.r); \
+    KEX_SET_PROP_DBL(rv, "g", r.g); \
+    KEX_SET_PROP_DBL(rv, "b", r.b); \
+/**/
+#define KX_GET_TRNSMAT(args, ctx, vn, n) \
+HPDF_TransMatrix vn = {0}; { \
+    kx_obj_t *vobj = get_arg_obj(n, args, ctx); \
+    kx_val_t *a = NULL; \
+    kx_val_t *b = NULL; \
+    kx_val_t *c = NULL; \
+    kx_val_t *d = NULL; \
+    kx_val_t *x = NULL; \
+    kx_val_t *y = NULL; \
+    KEX_GET_PROP(a, vobj, "a"); \
+    KEX_GET_PROP(b, vobj, "b"); \
+    KEX_GET_PROP(c, vobj, "c"); \
+    KEX_GET_PROP(d, vobj, "d"); \
+    KEX_GET_PROP(x, vobj, "x"); \
+    KEX_GET_PROP(y, vobj, "y"); \
+    KX_GET_CORE_SET(args, ctx, vn, n, a, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, b, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, c, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, d, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, x, float); \
+    KX_GET_CORE_SET(args, ctx, vn, n, y, float); \
+} \
+/**/
+#define KX_MAKE_TRNSMAT(rv, r) \
+    kx_obj_t *rv = allocate_obj(ctx); \
+    KEX_SET_PROP_DBL(rv, "a", r.a); \
+    KEX_SET_PROP_DBL(rv, "b", r.b); \
+    KEX_SET_PROP_DBL(rv, "c", r.c); \
+    KEX_SET_PROP_DBL(rv, "d", r.d); \
+    KEX_SET_PROP_DBL(rv, "x", r.x); \
+    KEX_SET_PROP_DBL(rv, "y", r.y); \
+/**/
 
 #define KX_GET_TEXTWIDTH(args, ctx, vn, n) KX_GET_CORE4(args, ctx, vn, n, HPDF_TextWidth, numchars, numwords, width, numspace, int)
 #define KX_MAKE_TEXTWIDTH(rv, r) KX_MAKE_CORE4_INT(rv, r, numchars, numwords, width, numspace)
 #define KX_GET_RECT(args, ctx, vn, n) KX_GET_CORE4(args, ctx, vn, n, HPDF_Rect, left, bottom, right, top, float)
 #define KX_MAKE_RECT(rv, r) KX_MAKE_CORE4_DBL(rv, r, left, bottom, right, top)
+#define KX_GET_CMYKCOL(args, ctx, vn, n) KX_GET_CORE4(args, ctx, vn, n, HPDF_CMYKColor, c, m, y, k, float)
+#define KX_MAKE_CMYKCOL(rv, r) KX_MAKE_CORE4_DBL(rv, r, c, m, y, k)
 
 /* TODO: multi-thread unsafe */
 static int sg_error = 0;
@@ -93,6 +147,57 @@ void kxpdf_error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user
     sg_error = error_no;
     sg_detail = detail_no;
 }
+
+int throw_exception(int args, kx_context_t *ctx, int error_no, int detail_no)
+{
+    KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+}
+
+/* HPDF_Page_MeasureText */
+int kxpdf_HPDF_Page_MeasureText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const char *text               */ const char *v2 = get_arg_str(2, args, ctx);
+    /* HPDF_REAL width                */ double v3 = get_arg_dbl(3, args, ctx);
+    /* HPDF_BOOL wordwrap             */ int64_t v4 = get_arg_int(4, args, ctx);
+    /* HPDF_REAL *real_width          */ /* not used */
+
+    sg_error = sg_detail = 0;
+    int r = HPDF_Page_MeasureText(v1, v2, v3, v4, NULL);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
+/* HPDF_Page_TextRect */
+int kxpdf_HPDF_Page_TextRect(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_REAL left                 */ double v2 = get_arg_dbl(2, args, ctx);
+    /* HPDF_REAL top                  */ double v3 = get_arg_dbl(3, args, ctx);
+    /* HPDF_REAL right                */ double v4 = get_arg_dbl(4, args, ctx);
+    /* HPDF_REAL bottom               */ double v5 = get_arg_dbl(5, args, ctx);
+    /* const char *text               */ const char *v6 = get_arg_str(6, args, ctx);
+    /* HPDF_TextAlignment align       */ int64_t v7 = get_arg_int(7, args, ctx);
+    /* HPDF_UINT *len                 */ /* not used */
+
+    sg_error = sg_detail = 0;
+    int r = HPDF_Page_TextRect(v1, v2, v3, v4,v5, v6, v7, NULL);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
 
 /* function prototype */
 int kxpdf_HPDF_GetVersion(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
@@ -376,7 +481,7 @@ int kxpdf_HPDF_GetVersion(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     sg_error = sg_detail = 0;
     const char *r = HPDF_GetVersion();
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -424,7 +529,7 @@ int kxpdf_HPDF_Free(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     HPDF_Free(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -440,7 +545,7 @@ int kxpdf_HPDF_NewDoc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     uint32_t r = HPDF_NewDoc(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -456,7 +561,7 @@ int kxpdf_HPDF_FreeDoc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     HPDF_FreeDoc(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -472,7 +577,7 @@ int kxpdf_HPDF_HasDoc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     signed int r = HPDF_HasDoc(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -488,7 +593,7 @@ int kxpdf_HPDF_FreeDocAll(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     HPDF_FreeDocAll(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -504,7 +609,7 @@ int kxpdf_HPDF_SaveToStream(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_SaveToStream(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -530,7 +635,7 @@ int kxpdf_HPDF_GetStreamSize(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_GetStreamSize(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -556,7 +661,7 @@ int kxpdf_HPDF_ResetStream(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_ResetStream(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -573,7 +678,7 @@ int kxpdf_HPDF_SaveToFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     uint32_t r = HPDF_SaveToFile(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -589,7 +694,7 @@ int kxpdf_HPDF_GetError(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     uint32_t r = HPDF_GetError(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -605,7 +710,7 @@ int kxpdf_HPDF_GetErrorDetail(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_GetErrorDetail(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -621,7 +726,7 @@ int kxpdf_HPDF_ResetError(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     HPDF_ResetError(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -637,7 +742,7 @@ int kxpdf_HPDF_CheckError(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     uint32_t r = HPDF_CheckError(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -654,7 +759,7 @@ int kxpdf_HPDF_SetPagesConfiguration(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     uint32_t r = HPDF_SetPagesConfiguration(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -695,7 +800,7 @@ static kx_obj_t *kxpdf_append_method_HPDF_Page(kx_context_t *ctx, void *r)
     KEX_SET_METHOD("Create3DAnnotExData", rv, kxpdf_HPDF_Page_Create3DAnnotExData);
     KEX_SET_METHOD("Create3DView", rv, kxpdf_HPDF_Page_Create3DView);
     KEX_SET_METHOD("TextWidth", rv, kxpdf_HPDF_Page_TextWidth);
-    /* KEX_SET_METHOD("MeasureText", rv, kxpdf_HPDF_Page_MeasureText); */
+    KEX_SET_METHOD("MeasureText", rv, kxpdf_HPDF_Page_MeasureText);
     KEX_SET_METHOD("GetWidth", rv, kxpdf_HPDF_Page_GetWidth);
     KEX_SET_METHOD("GetHeight", rv, kxpdf_HPDF_Page_GetHeight);
     KEX_SET_METHOD("GetGMode", rv, kxpdf_HPDF_Page_GetGMode);
@@ -705,7 +810,7 @@ static kx_obj_t *kxpdf_append_method_HPDF_Page(kx_context_t *ctx, void *r)
     /* KEX_SET_METHOD("GetCurrentTextPos2", rv, kxpdf_HPDF_Page_GetCurrentTextPos2); */
     KEX_SET_METHOD("GetCurrentFont", rv, kxpdf_HPDF_Page_GetCurrentFont);
     KEX_SET_METHOD("GetCurrentFontSize", rv, kxpdf_HPDF_Page_GetCurrentFontSize);
-    /* KEX_SET_METHOD("GetTransMatrix", rv, kxpdf_HPDF_Page_GetTransMatrix); */
+    KEX_SET_METHOD("GetTransMatrix", rv, kxpdf_HPDF_Page_GetTransMatrix);
     KEX_SET_METHOD("GetLineWidth", rv, kxpdf_HPDF_Page_GetLineWidth);
     KEX_SET_METHOD("GetLineCap", rv, kxpdf_HPDF_Page_GetLineCap);
     KEX_SET_METHOD("GetLineJoin", rv, kxpdf_HPDF_Page_GetLineJoin);
@@ -719,15 +824,15 @@ static kx_obj_t *kxpdf_append_method_HPDF_Page(kx_context_t *ctx, void *r)
     KEX_SET_METHOD("GetTextRenderingMode", rv, kxpdf_HPDF_Page_GetTextRenderingMode);
     KEX_SET_METHOD("GetTextRaise", rv, kxpdf_HPDF_Page_GetTextRaise);
     KEX_SET_METHOD("GetTextRise", rv, kxpdf_HPDF_Page_GetTextRise);
-    /* KEX_SET_METHOD("GetRGBFill", rv, kxpdf_HPDF_Page_GetRGBFill); */
-    /* KEX_SET_METHOD("GetRGBStroke", rv, kxpdf_HPDF_Page_GetRGBStroke); */
-    /* KEX_SET_METHOD("GetCMYKFill", rv, kxpdf_HPDF_Page_GetCMYKFill); */
-    /* KEX_SET_METHOD("GetCMYKStroke", rv, kxpdf_HPDF_Page_GetCMYKStroke); */
+    KEX_SET_METHOD("GetRGBFill", rv, kxpdf_HPDF_Page_GetRGBFill);
+    KEX_SET_METHOD("GetRGBStroke", rv, kxpdf_HPDF_Page_GetRGBStroke);
+    KEX_SET_METHOD("GetCMYKFill", rv, kxpdf_HPDF_Page_GetCMYKFill);
+    KEX_SET_METHOD("GetCMYKStroke", rv, kxpdf_HPDF_Page_GetCMYKStroke);
     KEX_SET_METHOD("GetGrayFill", rv, kxpdf_HPDF_Page_GetGrayFill);
     KEX_SET_METHOD("GetGrayStroke", rv, kxpdf_HPDF_Page_GetGrayStroke);
     KEX_SET_METHOD("GetStrokingColorSpace", rv, kxpdf_HPDF_Page_GetStrokingColorSpace);
     KEX_SET_METHOD("GetFillingColorSpace", rv, kxpdf_HPDF_Page_GetFillingColorSpace);
-    /* KEX_SET_METHOD("GetTextMatrix", rv, kxpdf_HPDF_Page_GetTextMatrix); */
+    KEX_SET_METHOD("GetTextMatrix", rv, kxpdf_HPDF_Page_GetTextMatrix);
     KEX_SET_METHOD("GetGStateDepth", rv, kxpdf_HPDF_Page_GetGStateDepth);
     KEX_SET_METHOD("SetLineWidth", rv, kxpdf_HPDF_Page_SetLineWidth);
     KEX_SET_METHOD("SetLineCap", rv, kxpdf_HPDF_Page_SetLineCap);
@@ -788,7 +893,7 @@ static kx_obj_t *kxpdf_append_method_HPDF_Page(kx_context_t *ctx, void *r)
     KEX_SET_METHOD("Ellipse", rv, kxpdf_HPDF_Page_Ellipse);
     KEX_SET_METHOD("Arc", rv, kxpdf_HPDF_Page_Arc);
     KEX_SET_METHOD("TextOut", rv, kxpdf_HPDF_Page_TextOut);
-    /* KEX_SET_METHOD("TextRect", rv, kxpdf_HPDF_Page_TextRect); */
+    KEX_SET_METHOD("TextRect", rv, kxpdf_HPDF_Page_TextRect);
     KEX_SET_METHOD("SetSlideShow", rv, kxpdf_HPDF_Page_SetSlideShow);
 
     return rv;
@@ -803,7 +908,7 @@ int kxpdf_HPDF_GetPageByIndex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     void *r = HPDF_GetPageByIndex(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Page(ctx, r);
     KX_ADJST_STACK();
@@ -829,7 +934,7 @@ int kxpdf_HPDF_GetPageMMgr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     void *r = HPDF_GetPageMMgr(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_MMgr(ctx, r);
     KX_ADJST_STACK();
@@ -845,7 +950,7 @@ int kxpdf_HPDF_GetPageLayout(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     int r = HPDF_GetPageLayout(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -862,7 +967,7 @@ int kxpdf_HPDF_SetPageLayout(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_SetPageLayout(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -878,7 +983,7 @@ int kxpdf_HPDF_GetPageMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     int r = HPDF_GetPageMode(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -895,7 +1000,7 @@ int kxpdf_HPDF_SetPageMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_SetPageMode(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -911,7 +1016,7 @@ int kxpdf_HPDF_GetViewerPreference(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     unsigned int r = HPDF_GetViewerPreference(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -928,7 +1033,7 @@ int kxpdf_HPDF_SetViewerPreference(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_SetViewerPreference(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -945,7 +1050,7 @@ int kxpdf_HPDF_SetOpenAction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_SetOpenAction(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -961,7 +1066,7 @@ int kxpdf_HPDF_GetCurrentPage(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     void *r = HPDF_GetCurrentPage(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Page(ctx, r);
     KX_ADJST_STACK();
@@ -977,7 +1082,7 @@ int kxpdf_HPDF_AddPage(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     void *r = HPDF_AddPage(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Page(ctx, r);
     KX_ADJST_STACK();
@@ -994,7 +1099,7 @@ int kxpdf_HPDF_InsertPage(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     void *r = HPDF_InsertPage(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Page(ctx, r);
     KX_ADJST_STACK();
@@ -1011,7 +1116,7 @@ int kxpdf_HPDF_Page_SetWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_Page_SetWidth(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1028,7 +1133,7 @@ int kxpdf_HPDF_Page_SetHeight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_Page_SetHeight(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1046,7 +1151,7 @@ int kxpdf_HPDF_Page_SetSize(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_SetSize(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1063,7 +1168,7 @@ int kxpdf_HPDF_Page_SetRotate(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_Page_SetRotate(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1080,7 +1185,7 @@ int kxpdf_HPDF_Page_SetZoom(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_SetZoom(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1117,7 +1222,7 @@ int kxpdf_HPDF_GetFont(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     void *r = HPDF_GetFont(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Font(ctx, r);
     KX_ADJST_STACK();
@@ -1135,7 +1240,7 @@ int kxpdf_HPDF_LoadType1FontFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     const char *r = HPDF_LoadType1FontFromFile(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -1164,7 +1269,7 @@ int kxpdf_HPDF_GetTTFontDefFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     void *r = HPDF_GetTTFontDefFromFile(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_FontDef(ctx, r);
     KX_ADJST_STACK();
@@ -1182,7 +1287,7 @@ int kxpdf_HPDF_LoadTTFontFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     const char *r = HPDF_LoadTTFontFromFile(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -1203,7 +1308,7 @@ int kxpdf_HPDF_LoadTTFontFromFile2(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     const char *r = HPDF_LoadTTFontFromFile2(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -1225,7 +1330,7 @@ int kxpdf_HPDF_AddPageLabel(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_AddPageLabel(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1241,7 +1346,7 @@ int kxpdf_HPDF_UseJPFonts(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     uint32_t r = HPDF_UseJPFonts(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1257,7 +1362,7 @@ int kxpdf_HPDF_UseKRFonts(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     uint32_t r = HPDF_UseKRFonts(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1273,7 +1378,7 @@ int kxpdf_HPDF_UseCNSFonts(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_UseCNSFonts(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1289,7 +1394,7 @@ int kxpdf_HPDF_UseCNTFonts(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_UseCNTFonts(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1319,7 +1424,7 @@ int kxpdf_HPDF_CreateOutline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     void *r = HPDF_CreateOutline(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Outline(ctx, r);
     KX_ADJST_STACK();
@@ -1336,7 +1441,7 @@ int kxpdf_HPDF_Outline_SetOpened(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Outline_SetOpened(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1353,7 +1458,7 @@ int kxpdf_HPDF_Outline_SetDestination(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     uint32_t r = HPDF_Outline_SetDestination(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1386,7 +1491,7 @@ int kxpdf_HPDF_Page_CreateDestination(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     void *r = HPDF_Page_CreateDestination(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Destination(ctx, r);
     KX_ADJST_STACK();
@@ -1405,7 +1510,7 @@ int kxpdf_HPDF_Destination_SetXYZ(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Destination_SetXYZ(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1421,7 +1526,7 @@ int kxpdf_HPDF_Destination_SetFit(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Destination_SetFit(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1438,7 +1543,7 @@ int kxpdf_HPDF_Destination_SetFitH(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Destination_SetFitH(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1455,7 +1560,7 @@ int kxpdf_HPDF_Destination_SetFitV(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Destination_SetFitV(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1475,7 +1580,7 @@ int kxpdf_HPDF_Destination_SetFitR(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Destination_SetFitR(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1491,7 +1596,7 @@ int kxpdf_HPDF_Destination_SetFitB(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Destination_SetFitB(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1508,7 +1613,7 @@ int kxpdf_HPDF_Destination_SetFitBH(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     uint32_t r = HPDF_Destination_SetFitBH(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1525,7 +1630,7 @@ int kxpdf_HPDF_Destination_SetFitBV(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     uint32_t r = HPDF_Destination_SetFitBV(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1555,7 +1660,7 @@ int kxpdf_HPDF_GetEncoder(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     void *r = HPDF_GetEncoder(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Encoder(ctx, r);
     KX_ADJST_STACK();
@@ -1571,7 +1676,7 @@ int kxpdf_HPDF_GetCurrentEncoder(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     void *r = HPDF_GetCurrentEncoder(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Encoder(ctx, r);
     KX_ADJST_STACK();
@@ -1588,7 +1693,7 @@ int kxpdf_HPDF_SetCurrentEncoder(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_SetCurrentEncoder(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1604,7 +1709,7 @@ int kxpdf_HPDF_Encoder_GetType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     int r = HPDF_Encoder_GetType(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1622,7 +1727,7 @@ int kxpdf_HPDF_Encoder_GetByteType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     int r = HPDF_Encoder_GetByteType(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1639,7 +1744,7 @@ int kxpdf_HPDF_Encoder_GetUnicode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint16_t r = HPDF_Encoder_GetUnicode(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1655,7 +1760,7 @@ int kxpdf_HPDF_Encoder_GetWritingMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     int r = HPDF_Encoder_GetWritingMode(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1671,7 +1776,7 @@ int kxpdf_HPDF_UseJPEncodings(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_UseJPEncodings(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1687,7 +1792,7 @@ int kxpdf_HPDF_UseKREncodings(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_UseKREncodings(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1703,7 +1808,7 @@ int kxpdf_HPDF_UseCNSEncodings(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     uint32_t r = HPDF_UseCNSEncodings(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1719,7 +1824,7 @@ int kxpdf_HPDF_UseCNTEncodings(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     uint32_t r = HPDF_UseCNTEncodings(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1735,7 +1840,7 @@ int kxpdf_HPDF_UseUTFEncodings(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     uint32_t r = HPDF_UseUTFEncodings(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -1772,7 +1877,7 @@ int kxpdf_HPDF_Page_CreateXObjectAsWhiteRect(int args, kx_frm_t *frmv, kx_frm_t 
     void *r = HPDF_Page_CreateXObjectAsWhiteRect(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_XObject(ctx, r);
     KX_ADJST_STACK();
@@ -1790,8 +1895,8 @@ static kx_obj_t *kxpdf_append_method_HPDF_Annotation(kx_context_t *ctx, void *r)
     KEX_SET_METHOD("LinkAnnot_SetBorderStyle", rv, kxpdf_HPDF_LinkAnnot_SetBorderStyle);
     KEX_SET_METHOD("TextAnnot_SetIcon", rv, kxpdf_HPDF_TextAnnot_SetIcon);
     KEX_SET_METHOD("TextAnnot_SetOpened", rv, kxpdf_HPDF_TextAnnot_SetOpened);
-    /* KEX_SET_METHOD("Annot_SetRGBColor", rv, kxpdf_HPDF_Annot_SetRGBColor); */
-    /* KEX_SET_METHOD("Annot_SetCMYKColor", rv, kxpdf_HPDF_Annot_SetCMYKColor); */
+    KEX_SET_METHOD("Annot_SetRGBColor", rv, kxpdf_HPDF_Annot_SetRGBColor);
+    KEX_SET_METHOD("Annot_SetCMYKColor", rv, kxpdf_HPDF_Annot_SetCMYKColor);
     KEX_SET_METHOD("Annot_SetGrayColor", rv, kxpdf_HPDF_Annot_SetGrayColor);
     KEX_SET_METHOD("Annot_SetNoColor", rv, kxpdf_HPDF_Annot_SetNoColor);
     KEX_SET_METHOD("MarkupAnnot_SetTitle", rv, kxpdf_HPDF_MarkupAnnot_SetTitle);
@@ -1802,8 +1907,8 @@ static kx_obj_t *kxpdf_append_method_HPDF_Annotation(kx_context_t *ctx, void *r)
     KEX_SET_METHOD("MarkupAnnot_SetPopup", rv, kxpdf_HPDF_MarkupAnnot_SetPopup);
     KEX_SET_METHOD("MarkupAnnot_SetRectDiff", rv, kxpdf_HPDF_MarkupAnnot_SetRectDiff);
     KEX_SET_METHOD("MarkupAnnot_SetCloudEffect", rv, kxpdf_HPDF_MarkupAnnot_SetCloudEffect);
-    /* KEX_SET_METHOD("MarkupAnnot_SetInteriorRGBColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorRGBColor); */
-    /* KEX_SET_METHOD("MarkupAnnot_SetInteriorCMYKColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorCMYKColor); */
+    KEX_SET_METHOD("MarkupAnnot_SetInteriorRGBColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorRGBColor);
+    KEX_SET_METHOD("MarkupAnnot_SetInteriorCMYKColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorCMYKColor);
     KEX_SET_METHOD("MarkupAnnot_SetInteriorGrayColor", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorGrayColor);
     KEX_SET_METHOD("MarkupAnnot_SetInteriorTransparent", rv, kxpdf_HPDF_MarkupAnnot_SetInteriorTransparent);
     KEX_SET_METHOD("TextMarkupAnnot_SetQuadPoints", rv, kxpdf_HPDF_TextMarkupAnnot_SetQuadPoints);
@@ -1834,7 +1939,7 @@ int kxpdf_HPDF_Page_Create3DAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     void *r = HPDF_Page_Create3DAnnot(v1, v2, v3, v4, v5, v6);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1853,7 +1958,7 @@ int kxpdf_HPDF_Page_CreateTextAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     void *r = HPDF_Page_CreateTextAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1872,7 +1977,7 @@ int kxpdf_HPDF_Page_CreateFreeTextAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv
     void *r = HPDF_Page_CreateFreeTextAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1890,7 +1995,7 @@ int kxpdf_HPDF_Page_CreateLineAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     void *r = HPDF_Page_CreateLineAnnot(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1908,7 +2013,7 @@ int kxpdf_HPDF_Page_CreateWidgetAnnot_WhiteOnlyWhilePrint(int args, kx_frm_t *fr
     void *r = HPDF_Page_CreateWidgetAnnot_WhiteOnlyWhilePrint(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1925,7 +2030,7 @@ int kxpdf_HPDF_Page_CreateWidgetAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     void *r = HPDF_Page_CreateWidgetAnnot(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1943,7 +2048,7 @@ int kxpdf_HPDF_Page_CreateLinkAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     void *r = HPDF_Page_CreateLinkAnnot(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1961,7 +2066,7 @@ int kxpdf_HPDF_Page_CreateURILinkAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv,
     void *r = HPDF_Page_CreateURILinkAnnot(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1980,7 +2085,7 @@ int kxpdf_HPDF_Page_CreateHighlightAnnot(int args, kx_frm_t *frmv, kx_frm_t *lex
     void *r = HPDF_Page_CreateHighlightAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -1999,7 +2104,7 @@ int kxpdf_HPDF_Page_CreateUnderlineAnnot(int args, kx_frm_t *frmv, kx_frm_t *lex
     void *r = HPDF_Page_CreateUnderlineAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -2018,7 +2123,7 @@ int kxpdf_HPDF_Page_CreateSquigglyAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv
     void *r = HPDF_Page_CreateSquigglyAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -2037,7 +2142,7 @@ int kxpdf_HPDF_Page_CreateStrikeOutAnnot(int args, kx_frm_t *frmv, kx_frm_t *lex
     void *r = HPDF_Page_CreateStrikeOutAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -2055,7 +2160,7 @@ int kxpdf_HPDF_Page_CreatePopupAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     void *r = HPDF_Page_CreatePopupAnnot(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -2084,7 +2189,7 @@ int kxpdf_HPDF_Page_CreateProjectionAnnot(int args, kx_frm_t *frmv, kx_frm_t *le
     void *r = HPDF_Page_CreateProjectionAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -2103,7 +2208,7 @@ int kxpdf_HPDF_Page_CreateSquareAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     void *r = HPDF_Page_CreateSquareAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -2122,7 +2227,7 @@ int kxpdf_HPDF_Page_CreateCircleAnnot(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     void *r = HPDF_Page_CreateCircleAnnot(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Annotation(ctx, r);
     KX_ADJST_STACK();
@@ -2139,7 +2244,7 @@ int kxpdf_HPDF_LinkAnnot_SetHighlightMode(int args, kx_frm_t *frmv, kx_frm_t *le
     uint32_t r = HPDF_LinkAnnot_SetHighlightMode(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2156,7 +2261,7 @@ int kxpdf_HPDF_LinkAnnot_SetJavaScript(int args, kx_frm_t *frmv, kx_frm_t *lexv,
     uint32_t r = HPDF_LinkAnnot_SetJavaScript(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2175,7 +2280,7 @@ int kxpdf_HPDF_LinkAnnot_SetBorderStyle(int args, kx_frm_t *frmv, kx_frm_t *lexv
     uint32_t r = HPDF_LinkAnnot_SetBorderStyle(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2192,7 +2297,7 @@ int kxpdf_HPDF_TextAnnot_SetIcon(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_TextAnnot_SetIcon(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2209,7 +2314,7 @@ int kxpdf_HPDF_TextAnnot_SetOpened(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_TextAnnot_SetOpened(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2217,26 +2322,40 @@ int kxpdf_HPDF_TextAnnot_SetOpened(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     return 0;
 }
 
-/*
+int kxpdf_HPDF_Annot_SetRGBColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "annot", "HPDF_Annotation"], ["HPDF_RGBColor", "color", "HPDF_RGBColor"]],
-    "name": "HPDF_Annot_SetRGBColor",
-    "rtype": {
-        "name": "HPDF_STATUS",
-        "type": "uint32_t"
+    /* HPDF_Annotation annot          */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_RGBColor color            */ KX_GET_RGBCOL(args, ctx, v2, 2);
+
+    sg_error = sg_detail = 0;
+    uint32_t r = HPDF_Annot_SetRGBColor(v1, v2);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
 }
-*/
-/*
+
+int kxpdf_HPDF_Annot_SetCMYKColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "annot", "HPDF_Annotation"], ["HPDF_CMYKColor", "color", "HPDF_CMYKColor"]],
-    "name": "HPDF_Annot_SetCMYKColor",
-    "rtype": {
-        "name": "HPDF_STATUS",
-        "type": "uint32_t"
+    /* HPDF_Annotation annot          */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_CMYKColor color           */ KX_GET_CMYKCOL(args, ctx, v2, 2);
+
+    sg_error = sg_detail = 0;
+    uint32_t r = HPDF_Annot_SetCMYKColor(v1, v2);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
 }
-*/
+
 int kxpdf_HPDF_Annot_SetGrayColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     /* HPDF_Annotation annot          */ KX_GET_VOIDP(args, ctx, v1, 1);
@@ -2246,7 +2365,7 @@ int kxpdf_HPDF_Annot_SetGrayColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Annot_SetGrayColor(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2262,7 +2381,7 @@ int kxpdf_HPDF_Annot_SetNoColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     uint32_t r = HPDF_Annot_SetNoColor(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2279,7 +2398,7 @@ int kxpdf_HPDF_MarkupAnnot_SetTitle(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     uint32_t r = HPDF_MarkupAnnot_SetTitle(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2296,7 +2415,7 @@ int kxpdf_HPDF_MarkupAnnot_SetSubject(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     uint32_t r = HPDF_MarkupAnnot_SetSubject(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2323,7 +2442,7 @@ int kxpdf_HPDF_MarkupAnnot_SetTransparency(int args, kx_frm_t *frmv, kx_frm_t *l
     uint32_t r = HPDF_MarkupAnnot_SetTransparency(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2340,7 +2459,7 @@ int kxpdf_HPDF_MarkupAnnot_SetIntent(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     uint32_t r = HPDF_MarkupAnnot_SetIntent(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2357,7 +2476,7 @@ int kxpdf_HPDF_MarkupAnnot_SetPopup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     uint32_t r = HPDF_MarkupAnnot_SetPopup(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2374,7 +2493,7 @@ int kxpdf_HPDF_MarkupAnnot_SetRectDiff(int args, kx_frm_t *frmv, kx_frm_t *lexv,
     uint32_t r = HPDF_MarkupAnnot_SetRectDiff(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2391,7 +2510,7 @@ int kxpdf_HPDF_MarkupAnnot_SetCloudEffect(int args, kx_frm_t *frmv, kx_frm_t *le
     uint32_t r = HPDF_MarkupAnnot_SetCloudEffect(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2399,26 +2518,40 @@ int kxpdf_HPDF_MarkupAnnot_SetCloudEffect(int args, kx_frm_t *frmv, kx_frm_t *le
     return 0;
 }
 
-/*
+int kxpdf_HPDF_MarkupAnnot_SetInteriorRGBColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "annot", "HPDF_Annotation"], ["HPDF_RGBColor", "color", "HPDF_RGBColor"]],
-    "name": "HPDF_MarkupAnnot_SetInteriorRGBColor",
-    "rtype": {
-        "name": "HPDF_STATUS",
-        "type": "uint32_t"
+    /* HPDF_Annotation annot          */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_RGBColor color            */ KX_GET_RGBCOL(args, ctx, v2, 2);
+
+    sg_error = sg_detail = 0;
+    uint32_t r = HPDF_MarkupAnnot_SetInteriorRGBColor(v1, v2);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
 }
-*/
-/*
+
+int kxpdf_HPDF_MarkupAnnot_SetInteriorCMYKColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "annot", "HPDF_Annotation"], ["HPDF_CMYKColor", "color", "HPDF_CMYKColor"]],
-    "name": "HPDF_MarkupAnnot_SetInteriorCMYKColor",
-    "rtype": {
-        "name": "HPDF_STATUS",
-        "type": "uint32_t"
+    /* HPDF_Annotation annot          */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_CMYKColor color           */ KX_GET_CMYKCOL(args, ctx, v2, 2);
+
+    sg_error = sg_detail = 0;
+    uint32_t r = HPDF_MarkupAnnot_SetInteriorCMYKColor(v1, v2);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
 }
-*/
+
 int kxpdf_HPDF_MarkupAnnot_SetInteriorGrayColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     /* HPDF_Annotation annot          */ KX_GET_VOIDP(args, ctx, v1, 1);
@@ -2428,7 +2561,7 @@ int kxpdf_HPDF_MarkupAnnot_SetInteriorGrayColor(int args, kx_frm_t *frmv, kx_frm
     uint32_t r = HPDF_MarkupAnnot_SetInteriorGrayColor(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2444,7 +2577,7 @@ int kxpdf_HPDF_MarkupAnnot_SetInteriorTransparent(int args, kx_frm_t *frmv, kx_f
     uint32_t r = HPDF_MarkupAnnot_SetInteriorTransparent(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2464,7 +2597,7 @@ int kxpdf_HPDF_TextMarkupAnnot_SetQuadPoints(int args, kx_frm_t *frmv, kx_frm_t 
     uint32_t r = HPDF_TextMarkupAnnot_SetQuadPoints(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2483,7 +2616,7 @@ int kxpdf_HPDF_Annot_Set3DView(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     uint32_t r = HPDF_Annot_Set3DView(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2500,7 +2633,7 @@ int kxpdf_HPDF_PopupAnnot_SetOpened(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     uint32_t r = HPDF_PopupAnnot_SetOpened(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2518,7 +2651,7 @@ int kxpdf_HPDF_FreeTextAnnot_SetLineEndingStyle(int args, kx_frm_t *frmv, kx_frm
     uint32_t r = HPDF_FreeTextAnnot_SetLineEndingStyle(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2537,7 +2670,7 @@ int kxpdf_HPDF_FreeTextAnnot_Set3PointCalloutLine(int args, kx_frm_t *frmv, kx_f
     uint32_t r = HPDF_FreeTextAnnot_Set3PointCalloutLine(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2555,7 +2688,7 @@ int kxpdf_HPDF_FreeTextAnnot_Set2PointCalloutLine(int args, kx_frm_t *frmv, kx_f
     uint32_t r = HPDF_FreeTextAnnot_Set2PointCalloutLine(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2572,7 +2705,7 @@ int kxpdf_HPDF_FreeTextAnnot_SetDefaultStyle(int args, kx_frm_t *frmv, kx_frm_t 
     uint32_t r = HPDF_FreeTextAnnot_SetDefaultStyle(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2592,7 +2725,7 @@ int kxpdf_HPDF_LineAnnot_SetPosition(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     uint32_t r = HPDF_LineAnnot_SetPosition(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2611,7 +2744,7 @@ int kxpdf_HPDF_LineAnnot_SetLeader(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_LineAnnot_SetLeader(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2642,7 +2775,7 @@ int kxpdf_HPDF_Annotation_SetBorderStyle(int args, kx_frm_t *frmv, kx_frm_t *lex
     uint32_t r = HPDF_Annotation_SetBorderStyle(v1, v2, v3, v4, v5, v6);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2659,7 +2792,7 @@ int kxpdf_HPDF_ProjectionAnnot_SetExData(int args, kx_frm_t *frmv, kx_frm_t *lex
     uint32_t r = HPDF_ProjectionAnnot_SetExData(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2696,7 +2829,7 @@ int kxpdf_HPDF_3DMeasure_SetName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_3DMeasure_SetName(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2704,16 +2837,23 @@ int kxpdf_HPDF_3DMeasure_SetName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     return 0;
 }
 
-/*
+int kxpdf_HPDF_3DMeasure_SetColor(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "measure", "HPDF_3DMeasure"], ["HPDF_RGBColor", "color", "HPDF_RGBColor"]],
-    "name": "HPDF_3DMeasure_SetColor",
-    "rtype": {
-        "name": "HPDF_STATUS",
-        "type": "uint32_t"
+    /* HPDF_3DMeasure measure         */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_RGBColor color            */ KX_GET_RGBCOL(args, ctx, v2, 2);
+
+    sg_error = sg_detail = 0;
+    uint32_t r = HPDF_3DMeasure_SetColor(v1, v2);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
 }
-*/
+
 int kxpdf_HPDF_3DMeasure_SetTextSize(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     /* HPDF_3DMeasure measure         */ KX_GET_VOIDP(args, ctx, v1, 1);
@@ -2723,7 +2863,7 @@ int kxpdf_HPDF_3DMeasure_SetTextSize(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     uint32_t r = HPDF_3DMeasure_SetTextSize(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2741,7 +2881,7 @@ int kxpdf_HPDF_3DC3DMeasure_SetTextBoxSize(int args, kx_frm_t *frmv, kx_frm_t *l
     uint32_t r = HPDF_3DC3DMeasure_SetTextBoxSize(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2759,7 +2899,7 @@ int kxpdf_HPDF_3DC3DMeasure_SetText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     uint32_t r = HPDF_3DC3DMeasure_SetText(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2776,7 +2916,7 @@ int kxpdf_HPDF_3DC3DMeasure_SetProjectionAnotation(int args, kx_frm_t *frmv, kx_
     uint32_t r = HPDF_3DC3DMeasure_SetProjectionAnotation(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2802,7 +2942,7 @@ int kxpdf_HPDF_Page_Create3DAnnotExData(int args, kx_frm_t *frmv, kx_frm_t *lexv
     void *r = HPDF_Page_Create3DAnnotExData(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_ExData(ctx, r);
     KX_ADJST_STACK();
@@ -2819,7 +2959,7 @@ int kxpdf_HPDF_3DAnnotExData_Set3DMeasurement(int args, kx_frm_t *frmv, kx_frm_t
     uint32_t r = HPDF_3DAnnotExData_Set3DMeasurement(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2848,7 +2988,7 @@ int kxpdf_HPDF_Page_Create3DView(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     void *r = HPDF_Page_Create3DView(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Dict(ctx, r);
     KX_ADJST_STACK();
@@ -2865,7 +3005,7 @@ int kxpdf_HPDF_3DView_Add3DC3DMeasure(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     uint32_t r = HPDF_3DView_Add3DC3DMeasure(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -2910,7 +3050,7 @@ int kxpdf_HPDF_LoadPngImageFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     void *r = HPDF_LoadPngImageFromFile(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Image(ctx, r);
     KX_ADJST_STACK();
@@ -2927,7 +3067,7 @@ int kxpdf_HPDF_LoadPngImageFromFile2(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     void *r = HPDF_LoadPngImageFromFile2(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Image(ctx, r);
     KX_ADJST_STACK();
@@ -2944,7 +3084,7 @@ int kxpdf_HPDF_LoadJpegImageFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     void *r = HPDF_LoadJpegImageFromFile(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Image(ctx, r);
     KX_ADJST_STACK();
@@ -2971,7 +3111,7 @@ int kxpdf_HPDF_LoadU3DFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     void *r = HPDF_LoadU3DFromFile(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Image(ctx, r);
     KX_ADJST_STACK();
@@ -3011,7 +3151,7 @@ int kxpdf_HPDF_LoadRawImageFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     void *r = HPDF_LoadRawImageFromFile(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Image(ctx, r);
     KX_ADJST_STACK();
@@ -3038,7 +3178,7 @@ int kxpdf_HPDF_Image_AddSMask(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_Image_AddSMask(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3054,7 +3194,7 @@ int kxpdf_HPDF_Image_GetSize(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     HPDF_Point r = HPDF_Image_GetSize(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_MAKE_POINT(rv, r);
@@ -3081,7 +3221,7 @@ int kxpdf_HPDF_Image_GetWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     unsigned int r = HPDF_Image_GetWidth(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3097,7 +3237,7 @@ int kxpdf_HPDF_Image_GetHeight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     unsigned int r = HPDF_Image_GetHeight(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3113,7 +3253,7 @@ int kxpdf_HPDF_Image_GetBitsPerComponent(int args, kx_frm_t *frmv, kx_frm_t *lex
     unsigned int r = HPDF_Image_GetBitsPerComponent(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3129,7 +3269,7 @@ int kxpdf_HPDF_Image_GetColorSpace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     const char *r = HPDF_Image_GetColorSpace(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -3153,7 +3293,7 @@ int kxpdf_HPDF_Image_SetColorMask(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Image_SetColorMask(v1, v2, v3, v4, v5, v6, v7);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3170,7 +3310,7 @@ int kxpdf_HPDF_Image_SetMaskImage(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Image_SetMaskImage(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3188,7 +3328,7 @@ int kxpdf_HPDF_SetInfoAttr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_SetInfoAttr(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3205,7 +3345,7 @@ int kxpdf_HPDF_GetInfoAttr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     const char *r = HPDF_GetInfoAttr(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -3235,7 +3375,7 @@ int kxpdf_HPDF_SetPassword(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_SetPassword(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3252,7 +3392,7 @@ int kxpdf_HPDF_SetPermission(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_SetPermission(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3270,7 +3410,7 @@ int kxpdf_HPDF_SetEncryptionMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_SetEncryptionMode(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3287,7 +3427,7 @@ int kxpdf_HPDF_SetCompressionMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_SetCompressionMode(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3303,7 +3443,7 @@ int kxpdf_HPDF_Font_GetFontName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     const char *r = HPDF_Font_GetFontName(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -3321,7 +3461,7 @@ int kxpdf_HPDF_Font_GetEncodingName(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     const char *r = HPDF_Font_GetEncodingName(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     kstr_t *rv = allocate_str(ctx);
@@ -3340,7 +3480,7 @@ int kxpdf_HPDF_Font_GetUnicodeWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     int r = HPDF_Font_GetUnicodeWidth(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3356,7 +3496,7 @@ int kxpdf_HPDF_Font_GetBBox(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     HPDF_Rect r = HPDF_Font_GetBBox(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_MAKE_RECT(rv, r);
@@ -3373,7 +3513,7 @@ int kxpdf_HPDF_Font_GetAscent(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     int r = HPDF_Font_GetAscent(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3389,7 +3529,7 @@ int kxpdf_HPDF_Font_GetDescent(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     int r = HPDF_Font_GetDescent(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3405,7 +3545,7 @@ int kxpdf_HPDF_Font_GetXHeight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     unsigned int r = HPDF_Font_GetXHeight(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3421,7 +3561,7 @@ int kxpdf_HPDF_Font_GetCapHeight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     unsigned int r = HPDF_Font_GetCapHeight(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3467,7 +3607,7 @@ int kxpdf_HPDF_AttachFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     void *r = HPDF_AttachFile(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_EmbeddedFile(ctx, r);
     KX_ADJST_STACK();
@@ -3495,7 +3635,7 @@ int kxpdf_HPDF_CreateExtGState(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     void *r = HPDF_CreateExtGState(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_ExtGState(ctx, r);
     KX_ADJST_STACK();
@@ -3512,7 +3652,7 @@ int kxpdf_HPDF_ExtGState_SetAlphaStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv
     uint32_t r = HPDF_ExtGState_SetAlphaStroke(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3529,7 +3669,7 @@ int kxpdf_HPDF_ExtGState_SetAlphaFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     uint32_t r = HPDF_ExtGState_SetAlphaFill(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3546,7 +3686,7 @@ int kxpdf_HPDF_ExtGState_SetBlendMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     uint32_t r = HPDF_ExtGState_SetBlendMode(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3563,7 +3703,7 @@ int kxpdf_HPDF_Page_TextWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     float r = HPDF_Page_TextWidth(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3589,7 +3729,7 @@ int kxpdf_HPDF_Page_GetWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     float r = HPDF_Page_GetWidth(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3605,7 +3745,7 @@ int kxpdf_HPDF_Page_GetHeight(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     float r = HPDF_Page_GetHeight(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3621,7 +3761,7 @@ int kxpdf_HPDF_Page_GetGMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint16_t r = HPDF_Page_GetGMode(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3637,7 +3777,7 @@ int kxpdf_HPDF_Page_GetCurrentPos(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     HPDF_Point r = HPDF_Page_GetCurrentPos(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_MAKE_POINT(rv, r);
@@ -3664,7 +3804,7 @@ int kxpdf_HPDF_Page_GetCurrentTextPos(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     HPDF_Point r = HPDF_Page_GetCurrentTextPos(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_MAKE_POINT(rv, r);
@@ -3691,7 +3831,7 @@ int kxpdf_HPDF_Page_GetCurrentFont(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     void *r = HPDF_Page_GetCurrentFont(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_Font(ctx, r);
     KX_ADJST_STACK();
@@ -3707,7 +3847,7 @@ int kxpdf_HPDF_Page_GetCurrentFontSize(int args, kx_frm_t *frmv, kx_frm_t *lexv,
     float r = HPDF_Page_GetCurrentFontSize(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3715,16 +3855,23 @@ int kxpdf_HPDF_Page_GetCurrentFontSize(int args, kx_frm_t *frmv, kx_frm_t *lexv,
     return 0;
 }
 
-/*
+int kxpdf_HPDF_Page_GetTransMatrix(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "page", "HPDF_Page"]],
-    "name": "HPDF_Page_GetTransMatrix",
-    "rtype": {
-        "name": "HPDF_TransMatrix",
-        "type": null
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+
+    sg_error = sg_detail = 0;
+    HPDF_TransMatrix r = HPDF_Page_GetTransMatrix(v1);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_MAKE_TRNSMAT(rv, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
+    return 0;
 }
-*/
+
 int kxpdf_HPDF_Page_GetLineWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
@@ -3733,7 +3880,7 @@ int kxpdf_HPDF_Page_GetLineWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     float r = HPDF_Page_GetLineWidth(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3749,7 +3896,7 @@ int kxpdf_HPDF_Page_GetLineCap(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     int r = HPDF_Page_GetLineCap(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3765,7 +3912,7 @@ int kxpdf_HPDF_Page_GetLineJoin(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     int r = HPDF_Page_GetLineJoin(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3781,7 +3928,7 @@ int kxpdf_HPDF_Page_GetMiterLimit(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     float r = HPDF_Page_GetMiterLimit(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3807,7 +3954,7 @@ int kxpdf_HPDF_Page_GetFlat(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     float r = HPDF_Page_GetFlat(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3823,7 +3970,7 @@ int kxpdf_HPDF_Page_GetCharSpace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     float r = HPDF_Page_GetCharSpace(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3839,7 +3986,7 @@ int kxpdf_HPDF_Page_GetWordSpace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     float r = HPDF_Page_GetWordSpace(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3855,7 +4002,7 @@ int kxpdf_HPDF_Page_GetHorizontalScalling(int args, kx_frm_t *frmv, kx_frm_t *le
     float r = HPDF_Page_GetHorizontalScalling(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3871,7 +4018,7 @@ int kxpdf_HPDF_Page_GetTextLeading(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     float r = HPDF_Page_GetTextLeading(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3887,7 +4034,7 @@ int kxpdf_HPDF_Page_GetTextRenderingMode(int args, kx_frm_t *frmv, kx_frm_t *lex
     int r = HPDF_Page_GetTextRenderingMode(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3903,7 +4050,7 @@ int kxpdf_HPDF_Page_GetTextRaise(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     float r = HPDF_Page_GetTextRaise(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3919,7 +4066,7 @@ int kxpdf_HPDF_Page_GetTextRise(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     float r = HPDF_Page_GetTextRise(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3927,46 +4074,74 @@ int kxpdf_HPDF_Page_GetTextRise(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     return 0;
 }
 
-/*
+int kxpdf_HPDF_Page_GetRGBFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "page", "HPDF_Page"]],
-    "name": "HPDF_Page_GetRGBFill",
-    "rtype": {
-        "name": "HPDF_RGBColor",
-        "type": null
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+
+    sg_error = sg_detail = 0;
+    HPDF_RGBColor r = HPDF_Page_GetRGBFill(v1);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_MAKE_RGBCOL(rv, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
+    return 0;
 }
-*/
-/*
+
+int kxpdf_HPDF_Page_GetRGBStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "page", "HPDF_Page"]],
-    "name": "HPDF_Page_GetRGBStroke",
-    "rtype": {
-        "name": "HPDF_RGBColor",
-        "type": null
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+
+    sg_error = sg_detail = 0;
+    HPDF_RGBColor r = HPDF_Page_GetRGBStroke(v1);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_MAKE_RGBCOL(rv, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
+    return 0;
 }
-*/
-/*
+
+int kxpdf_HPDF_Page_GetCMYKFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "page", "HPDF_Page"]],
-    "name": "HPDF_Page_GetCMYKFill",
-    "rtype": {
-        "name": "HPDF_CMYKColor",
-        "type": null
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+
+    sg_error = sg_detail = 0;
+    HPDF_CMYKColor r = HPDF_Page_GetCMYKFill(v1);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_MAKE_CMYKCOL(rv, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
+    return 0;
 }
-*/
-/*
+
+int kxpdf_HPDF_Page_GetCMYKStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "page", "HPDF_Page"]],
-    "name": "HPDF_Page_GetCMYKStroke",
-    "rtype": {
-        "name": "HPDF_CMYKColor",
-        "type": null
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+
+    sg_error = sg_detail = 0;
+    HPDF_CMYKColor r = HPDF_Page_GetCMYKStroke(v1);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_MAKE_CMYKCOL(rv, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
+    return 0;
 }
-*/
+
 int kxpdf_HPDF_Page_GetGrayFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
@@ -3975,7 +4150,7 @@ int kxpdf_HPDF_Page_GetGrayFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     float r = HPDF_Page_GetGrayFill(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -3991,7 +4166,7 @@ int kxpdf_HPDF_Page_GetGrayStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     float r = HPDF_Page_GetGrayStroke(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4007,7 +4182,7 @@ int kxpdf_HPDF_Page_GetStrokingColorSpace(int args, kx_frm_t *frmv, kx_frm_t *le
     int r = HPDF_Page_GetStrokingColorSpace(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4023,7 +4198,7 @@ int kxpdf_HPDF_Page_GetFillingColorSpace(int args, kx_frm_t *frmv, kx_frm_t *lex
     int r = HPDF_Page_GetFillingColorSpace(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4031,16 +4206,23 @@ int kxpdf_HPDF_Page_GetFillingColorSpace(int args, kx_frm_t *frmv, kx_frm_t *lex
     return 0;
 }
 
-/*
+int kxpdf_HPDF_Page_GetTextMatrix(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    "args": [["void *", "page", "HPDF_Page"]],
-    "name": "HPDF_Page_GetTextMatrix",
-    "rtype": {
-        "name": "HPDF_TransMatrix",
-        "type": null
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+
+    sg_error = sg_detail = 0;
+    HPDF_TransMatrix r = HPDF_Page_GetTextMatrix(v1);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
+
+    KX_MAKE_TRNSMAT(rv, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
+    return 0;
 }
-*/
+
 int kxpdf_HPDF_Page_GetGStateDepth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
@@ -4049,7 +4231,7 @@ int kxpdf_HPDF_Page_GetGStateDepth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     unsigned int r = HPDF_Page_GetGStateDepth(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4066,7 +4248,7 @@ int kxpdf_HPDF_Page_SetLineWidth(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_SetLineWidth(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4083,7 +4265,7 @@ int kxpdf_HPDF_Page_SetLineCap(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     uint32_t r = HPDF_Page_SetLineCap(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4100,7 +4282,7 @@ int kxpdf_HPDF_Page_SetLineJoin(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     uint32_t r = HPDF_Page_SetLineJoin(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4117,7 +4299,7 @@ int kxpdf_HPDF_Page_SetMiterLimit(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Page_SetMiterLimit(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4144,7 +4326,7 @@ int kxpdf_HPDF_Page_SetFlat(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_SetFlat(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4161,7 +4343,7 @@ int kxpdf_HPDF_Page_SetExtGState(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_SetExtGState(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4177,7 +4359,7 @@ int kxpdf_HPDF_Page_GSave(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     uint32_t r = HPDF_Page_GSave(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4193,7 +4375,7 @@ int kxpdf_HPDF_Page_GRestore(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_Page_GRestore(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4215,7 +4397,7 @@ int kxpdf_HPDF_Page_Concat(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_Page_Concat(v1, v2, v3, v4, v5, v6, v7);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4233,7 +4415,7 @@ int kxpdf_HPDF_Page_MoveTo(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_Page_MoveTo(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4251,7 +4433,7 @@ int kxpdf_HPDF_Page_LineTo(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_Page_LineTo(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4273,7 +4455,7 @@ int kxpdf_HPDF_Page_CurveTo(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_CurveTo(v1, v2, v3, v4, v5, v6, v7);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4293,7 +4475,7 @@ int kxpdf_HPDF_Page_CurveTo2(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_Page_CurveTo2(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4313,7 +4495,7 @@ int kxpdf_HPDF_Page_CurveTo3(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_Page_CurveTo3(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4329,7 +4511,7 @@ int kxpdf_HPDF_Page_ClosePath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_Page_ClosePath(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4349,7 +4531,7 @@ int kxpdf_HPDF_Page_Rectangle(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_Page_Rectangle(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4365,7 +4547,7 @@ int kxpdf_HPDF_Page_Stroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_Page_Stroke(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4381,7 +4563,7 @@ int kxpdf_HPDF_Page_ClosePathStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
     uint32_t r = HPDF_Page_ClosePathStroke(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4397,7 +4579,7 @@ int kxpdf_HPDF_Page_Fill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     uint32_t r = HPDF_Page_Fill(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4413,7 +4595,7 @@ int kxpdf_HPDF_Page_Eofill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_Page_Eofill(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4429,7 +4611,7 @@ int kxpdf_HPDF_Page_FillStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     uint32_t r = HPDF_Page_FillStroke(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4445,7 +4627,7 @@ int kxpdf_HPDF_Page_EofillStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_EofillStroke(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4461,7 +4643,7 @@ int kxpdf_HPDF_Page_ClosePathFillStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv
     uint32_t r = HPDF_Page_ClosePathFillStroke(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4477,7 +4659,7 @@ int kxpdf_HPDF_Page_ClosePathEofillStroke(int args, kx_frm_t *frmv, kx_frm_t *le
     uint32_t r = HPDF_Page_ClosePathEofillStroke(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4493,7 +4675,7 @@ int kxpdf_HPDF_Page_EndPath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_EndPath(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4509,7 +4691,7 @@ int kxpdf_HPDF_Page_Clip(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     uint32_t r = HPDF_Page_Clip(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4525,7 +4707,7 @@ int kxpdf_HPDF_Page_Eoclip(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_Page_Eoclip(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4541,7 +4723,7 @@ int kxpdf_HPDF_Page_BeginText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_Page_BeginText(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4557,7 +4739,7 @@ int kxpdf_HPDF_Page_EndText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_EndText(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4574,7 +4756,7 @@ int kxpdf_HPDF_Page_SetCharSpace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_SetCharSpace(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4591,7 +4773,7 @@ int kxpdf_HPDF_Page_SetWordSpace(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_SetWordSpace(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4608,7 +4790,7 @@ int kxpdf_HPDF_Page_SetHorizontalScalling(int args, kx_frm_t *frmv, kx_frm_t *le
     uint32_t r = HPDF_Page_SetHorizontalScalling(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4625,7 +4807,7 @@ int kxpdf_HPDF_Page_SetTextLeading(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Page_SetTextLeading(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4643,7 +4825,7 @@ int kxpdf_HPDF_Page_SetFontAndSize(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Page_SetFontAndSize(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4660,7 +4842,7 @@ int kxpdf_HPDF_Page_SetTextRenderingMode(int args, kx_frm_t *frmv, kx_frm_t *lex
     uint32_t r = HPDF_Page_SetTextRenderingMode(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4677,7 +4859,7 @@ int kxpdf_HPDF_Page_SetTextRise(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     uint32_t r = HPDF_Page_SetTextRise(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4694,7 +4876,7 @@ int kxpdf_HPDF_Page_SetTextRaise(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_SetTextRaise(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4712,7 +4894,7 @@ int kxpdf_HPDF_Page_MoveTextPos(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     uint32_t r = HPDF_Page_MoveTextPos(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4730,7 +4912,7 @@ int kxpdf_HPDF_Page_MoveTextPos2(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_MoveTextPos2(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4752,7 +4934,7 @@ int kxpdf_HPDF_Page_SetTextMatrix(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Page_SetTextMatrix(v1, v2, v3, v4, v5, v6, v7);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4768,7 +4950,7 @@ int kxpdf_HPDF_Page_MoveToNextLine(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Page_MoveToNextLine(v1);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4785,7 +4967,7 @@ int kxpdf_HPDF_Page_ShowText(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     uint32_t r = HPDF_Page_ShowText(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4802,7 +4984,7 @@ int kxpdf_HPDF_Page_ShowTextNextLine(int args, kx_frm_t *frmv, kx_frm_t *lexv, k
     uint32_t r = HPDF_Page_ShowTextNextLine(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4821,7 +5003,7 @@ int kxpdf_HPDF_Page_ShowTextNextLineEx(int args, kx_frm_t *frmv, kx_frm_t *lexv,
     uint32_t r = HPDF_Page_ShowTextNextLineEx(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4838,7 +5020,7 @@ int kxpdf_HPDF_Page_SetGrayFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     uint32_t r = HPDF_Page_SetGrayFill(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4855,7 +5037,7 @@ int kxpdf_HPDF_Page_SetGrayStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Page_SetGrayStroke(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4874,7 +5056,7 @@ int kxpdf_HPDF_Page_SetRGBFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     uint32_t r = HPDF_Page_SetRGBFill(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4893,7 +5075,7 @@ int kxpdf_HPDF_Page_SetRGBStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_SetRGBStroke(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4913,7 +5095,7 @@ int kxpdf_HPDF_Page_SetCMYKFill(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     uint32_t r = HPDF_Page_SetCMYKFill(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4933,7 +5115,7 @@ int kxpdf_HPDF_Page_SetCMYKStroke(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     uint32_t r = HPDF_Page_SetCMYKStroke(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4950,7 +5132,7 @@ int kxpdf_HPDF_Page_ExecuteXObject(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_
     uint32_t r = HPDF_Page_ExecuteXObject(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4977,7 +5159,7 @@ int kxpdf_HPDF_Page_Insert_Shared_Content_Stream(int args, kx_frm_t *frmv, kx_fr
     uint32_t r = HPDF_Page_Insert_Shared_Content_Stream(v1, v2);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -4998,7 +5180,7 @@ int kxpdf_HPDF_Page_DrawImage(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     uint32_t r = HPDF_Page_DrawImage(v1, v2, v3, v4, v5, v6);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -5017,7 +5199,7 @@ int kxpdf_HPDF_Page_Circle(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     uint32_t r = HPDF_Page_Circle(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -5037,7 +5219,7 @@ int kxpdf_HPDF_Page_Ellipse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_Ellipse(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -5058,7 +5240,7 @@ int kxpdf_HPDF_Page_Arc(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     uint32_t r = HPDF_Page_Arc(v1, v2, v3, v4, v5, v6);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -5077,7 +5259,7 @@ int kxpdf_HPDF_Page_TextOut(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
     uint32_t r = HPDF_Page_TextOut(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -5106,7 +5288,7 @@ int kxpdf_HPDF_Page_SetSlideShow(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
     uint32_t r = HPDF_Page_SetSlideShow(v1, v2, v3, v4);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
@@ -5135,7 +5317,7 @@ int kxpdf_HPDF_ICC_LoadIccFromMem(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     void *r = HPDF_ICC_LoadIccFromMem(v1, v2, v3, v4, v5);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_OutputIntent(ctx, r);
     KX_ADJST_STACK();
@@ -5153,7 +5335,7 @@ int kxpdf_HPDF_LoadIccProfileFromFile(int args, kx_frm_t *frmv, kx_frm_t *lexv, 
     void *r = HPDF_LoadIccProfileFromFile(v1, v2, v3);
 
     if (sg_error != 0 || sg_detail != 0) {
-        KX_THROW_BLTIN_EXCEPTION("PdflibException", static_format("error code: %04X, (detail = %u)", sg_error, sg_detail));
+        return throw_exception(args, ctx, sg_error, sg_detail);
     }
     kx_obj_t *rv = kxpdf_append_method_HPDF_OutputIntent(ctx, r);
     KX_ADJST_STACK();
@@ -5167,7 +5349,7 @@ int kxpdf_create_HPDF_3DMeasure(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     kx_obj_t *obj = allocate_obj(ctx);
 
     KEX_SET_METHOD("3DMeasure_SetName", obj, kxpdf_HPDF_3DMeasure_SetName);
-    /* KEX_SET_METHOD("3DMeasure_SetColor", obj, kxpdf_HPDF_3DMeasure_SetColor); */
+    KEX_SET_METHOD("3DMeasure_SetColor", obj, kxpdf_HPDF_3DMeasure_SetColor);
     KEX_SET_METHOD("3DMeasure_SetTextSize", obj, kxpdf_HPDF_3DMeasure_SetTextSize);
     KEX_SET_METHOD("3DC3DMeasure_SetTextBoxSize", obj, kxpdf_HPDF_3DC3DMeasure_SetTextBoxSize);
     KEX_SET_METHOD("3DC3DMeasure_SetText", obj, kxpdf_HPDF_3DC3DMeasure_SetText);

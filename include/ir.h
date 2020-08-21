@@ -1004,9 +1004,9 @@ typedef struct kx_context_ {
 /**/
 #define KEX_GET_PROP(dst, o, namep) { \
     khash_t(prop) *p = (o)->prop; \
-    khint_t k = kh_get(prop, p, namep); \
-    if (k != kh_end(p)) { \
-        dst = &(kh_value(p, k)); \
+    khint_t kk = kh_get(prop, p, namep); \
+    if (kk != kh_end(p)) { \
+        dst = &(kh_value(p, kk)); \
     } \
 } \
 /**/
