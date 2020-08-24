@@ -1,4 +1,4 @@
-using Pdf;
+using PdfCore;
 
 const PAGE_HEIGHT = 210;
 var text = "アメンボ赤いなあいうえお。浮き藻に小エビもおよいでる。";

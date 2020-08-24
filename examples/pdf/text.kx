@@ -1,4 +1,4 @@
-using Pdf;
+using PdfCore;
 
 function showStripePattern(page, x, y) {
     var iy = 0;
