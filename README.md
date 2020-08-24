@@ -16,6 +16,8 @@ This is a script language for people who want C-like syntax.
 
 ### Features
 
+#### Language Basic Concept
+
 *   **Extendable**. Contributers are able to extend features easily for your own use.
 *   **Lightweight**. You can start using this without a lot of work.
 *   **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
@@ -23,18 +25,34 @@ This is a script language for people who want C-like syntax.
 *   C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
 *   **Dynamic typing**, but you can also specify the type.
 *   **Native function** by JIT compiling supported with some limitations. Very fast.
-*   Support **JIT Library** as an **abstracted assembler library**. You can use JIT directly in your program.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
 *   **Isolate** object to control native threads **without GIL** (Global Interpreter Lock).
-*   Including libraries of **Zip**, **Xml**, **libCurl(HTTP)**, **SSH**, **Iconv**, **SQLite3**, **Regular Expression**, **Parser Combinator**, **PDF**, etc.
+*   Including useful libraries as **All-In-One**. See details below.
 *   **[REPL](doc/utility/repl.md)** is provided by default.
 *   Useful Testing System named as **[SpecTest](doc/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
+
+#### Standard Libraries
 
 The script language is a platform as a glue between libraries.
 This means a language itself is not a main purpose, it should be just a backend or supporter due to use a library you want to use.
 
 Therefore another design goal for this language is to be extendable, lightweight, and easy to use for user's own purpose.
 Kinx will be able to be the best platform for any libraries which you want to use or your own library.
+
+Kinx is including useful libraries below in the standard package as **All-In-One**.
+
+* **Zip** ... Zip/Unzip with not only zip password but also AES password.
+* **Xml** ... Supporting XML as DOM structure.
+* **libCurl** ... Only HTTP has been already implemented.
+* **SSH** ... SSH login and you can execute commands.
+* **Iconv** ... Convrting between text encodings.
+* **SQLite3** ... Database class as a usuful library wapping SQLite3.
+* **Regular Expression** ... Regular expression is f cource supported.
+* **Parser Combinator** ... Exactly original implementation of Parser combinator like Parsec.
+* **PDF** ... PDF core library based on HaruPDF.
+* **JIT** ... JIT library for various prlatform an abstracted assembler library.
+
+Making libraries improvement and extension is one of the main purpose of this language.
 
 ### Language Details
 
