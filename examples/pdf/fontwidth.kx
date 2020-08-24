@@ -4,16 +4,21 @@ var pdf = new Pdf();
 
 var sampTexts = [
     "あいうえお",
+    "　",
     "a",
     "b",
     "c",
     "d",
     "e",
+    "i",
 ];
 var fontname = pdf.loadTTFontFromFile("fonts/NotoSerifJP-Regular.ttf", true);
 var font = pdf.getFont(fontname, "UTF-8");
 
 var page = pdf.addPage();
+page.setSize(PDF_PAGE_SIZE_A4, PDF_PAGE_PORTRAIT);
+System.println("Page size = [%.3f, %.3f]" % page.getWidth() % page.getHeight());
+
 page.setFontAndSize(font, 10);
 sampTexts.each {
     var width = page.textWidth(_1);
