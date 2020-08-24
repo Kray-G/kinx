@@ -8,10 +8,14 @@ var pdf = new Pdf();
 pdf.setCompressionMode(PDF_COMP_ALL);
 
 /* declaration for using Japanese font, encoding. */
-var detailFont = [];
-var fontname = pdf.loadTTFontFromFile("fonts/NotoSerifJP-Regular.ttf", true);
+var fontname, detailFont = [];
+fontname = pdf.loadTTFontFromFile("fonts/NotoSerifJP-Regular.ttf", true);
 detailFont.push(pdf.getFont(fontname, "UTF-8"));
-var fontname = pdf.loadTTFontFromFile("fonts/NotoSansJP-Regular.ttf", true);
+fontname = pdf.loadTTFontFromFile("fonts/NotoSerifJP-Bold.ttf", true);
+detailFont.push(pdf.getFont(fontname, "UTF-8"));
+fontname = pdf.loadTTFontFromFile("fonts/NotoSansJP-Regular.ttf", true);
+detailFont.push(pdf.getFont(fontname, "UTF-8"));
+fontname = pdf.loadTTFontFromFile("fonts/NotoSansJP-Bold.ttf", true);
 detailFont.push(pdf.getFont(fontname, "UTF-8"));
 pdf.setCurrentEncoder("UTF-8");
 
