@@ -162,7 +162,7 @@ DllExport int do_main(int ac, char **av)
     int err = WSAStartup(MAKEWORD(2, 0), &wsadata);
     if (err != 0) {
         fprintf(stderr, "WSAStartup failed with error: %d\n", err);
-        return;
+        return 1;
     }
     #endif
 
