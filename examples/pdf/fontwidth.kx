@@ -1,4 +1,4 @@
-using Pdf;
+using PdfCore;
 
 var pdf = new Pdf();
 
