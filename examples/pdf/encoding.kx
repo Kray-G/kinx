@@ -1,4 +1,4 @@
-using Pdf;
+using PdfCore;
 
 const PAGE_WIDTH = 420;
 const PAGE_HEIGHT = 400;

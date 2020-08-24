@@ -17,10 +17,10 @@
 #define VER_MAJ 0
 #endif
 #ifndef VER_MIN
-#define VER_MIN 13
+#define VER_MIN 14
 #endif
 #ifndef VER_PAT
-#define VER_PAT 1
+#define VER_PAT 0
 #endif
 #ifndef VER_SUFFIX
 #define VER_SUFFIX ""
@@ -162,7 +162,7 @@ DllExport int do_main(int ac, char **av)
     int err = WSAStartup(MAKEWORD(2, 0), &wsadata);
     if (err != 0) {
         fprintf(stderr, "WSAStartup failed with error: %d\n", err);
-        return;
+        return 1;
     }
     #endif
 

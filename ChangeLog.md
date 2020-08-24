@@ -22,7 +22,7 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.14.0 (Current development)
+## V0.14.0 (14th Preview Release)
 
 *   Updated
     *   Supported SSH & libssh2 library.
