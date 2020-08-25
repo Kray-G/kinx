@@ -3,12 +3,12 @@
 .spectest     text linguist-language=JSON linguist-detectable
 
 # exclude files in directories below from github stats
-src/extlib/libcurl/**   linguist-vendored
-src/extlib/libssh2/**   linguist-vendored
-src/extlib/libxml2/**   linguist-vendored
-src/extlib/onig/**      linguist-vendored
-src/extlib/openssl/**   linguist-vendored
-src/extlib/sqlite/**    linguist-vendored
-src/extlib/zip/**       linguist-vendored
+src/extlib/**/*.c       linguist-vendored
+src/extlib/**/*.cpp     linguist-vendored
+src/extlib/**/*.h       linguist-vendored
+src/extlib/**/*.py      linguist-vendored
+src/extlib/**/*.sh      linguist-vendored
+src/extlib/**/*.bat     linguist-vendored
+src/extlib/**/*.cmd     linguist-vendored
 src/extlib/*/README.md  -linguist-vendored
 src/extlib/*/x64/**     -linguist-vendored binary
