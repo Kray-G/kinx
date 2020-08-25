@@ -45,6 +45,7 @@ Kinx is including useful libraries below in the standard package as **All-In-One
 * **Xml** ... Supporting XML as DOM structure.
 * **libCurl** ... Only HTTP has been already implemented.
 * **SSH** ... SSH login and you can execute commands.
+* **Socket** ... Supporting a simple TCP/UDP socket.
 * **Iconv** ... Converting between text encodings.
 * **SQLite3** ... Database class as a usuful library wapping SQLite3.
 * **Regular Expression** ... Regular expression is f cource supported.
