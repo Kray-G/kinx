@@ -77,6 +77,18 @@ String.replace = _function(str, cond, newstr) {
     }
 };
 
+String.match = _function(str, regex) {
+    if (regex.isUndefined) {
+        return [""];
+    }
+    var results = [];
+    regex.reset(str);
+    while (regex.find()) {
+        results.push(regex.group[0].string);
+    }
+    return results;
+};
+
 String._addObject = _function(str, obj) {
     return str + obj.toString();
 };
