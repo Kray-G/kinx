@@ -20,6 +20,76 @@ namespace Typesetting {
     var hyphenate_ = new Hypher(Hypher.en).hyphenate;
     var hyphenPenalty_ = 100;
 
+    function loadFonts(pdf) {
+        if (System.PLATFORM == "X86_64-WIN") {
+            if (fontObjSerif_.isUndefined) {
+                fontObjSerifBase_.regular = {
+                    utf8: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\yumin.ttf", true), "UTF-8"),
+                    en: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\times.ttf", true), "UTF-8"),
+                };
+                fontObjSerifBase_.bold = {
+                    utf8: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\yumindb.ttf", true), "UTF-8"),
+                    en: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\timesbd.ttf", true), "UTF-8"),
+                };
+                fontObjSerifBase_.itaric = {
+                    utf8: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\yumin.ttf", true), "UTF-8"),
+                    en: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\timesi.ttf", true), "UTF-8"),
+                };
+                fontObjSerif_ = fontObjSerifBase_.regular;
+            }
+            if (fontObjSans_.isUndefined) {
+                fontObjSansBase_.regular = {
+                    utf8: pdf.getFont(pdf.loadTTFontFromFile2("C:\\Windows\\Fonts\\YuGothR.ttc", 0, true), "UTF-8"),
+                    en: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\arial.ttf", true), "UTF-8"),
+                };
+                fontObjSansBase_.bold = {
+                    utf8: pdf.getFont(pdf.loadTTFontFromFile2("C:\\Windows\\Fonts\\YuGothB.ttc", 0, true), "UTF-8"),
+                    en: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\arialbd.ttf", true), "UTF-8"),
+                };
+                fontObjSansBase_.itaric = {
+                    utf8: pdf.getFont(pdf.loadTTFontFromFile2("C:\\Windows\\Fonts\\YuGothR.ttc", 0, true), "UTF-8"),
+                    en: pdf.getFont(pdf.loadTTFontFromFile("C:\\Windows\\Fonts\\ariali.ttf", true), "UTF-8"),
+                };
+                fontObjSans_ = fontObjSansBase_.regular;
+            }
+        } else {
+            if (fontObjSerif_.isUndefined) {
+                var serifutf8 = pdf.getFont(pdf.loadTTFontFromFile("/usr/share/fonts/truetype/fonts-japanese-mincho.ttf", true), "UTF-8");
+                var serifsen = pdf.getFont(pdf.loadTTFontFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", true), "UTF-8");
+                fontObjSerifBase_.regular = {
+                    utf8: serifutf8,
+                    en: serifsen,
+                };
+                fontObjSerifBase_.bold = {
+                    utf8: serifutf8,
+                    en: pdf.getFont(pdf.loadTTFontFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", true), "UTF-8"),
+                };
+                fontObjSerifBase_.itaric = {
+                    utf8: serifutf8,
+                    en: serifsen,
+                };
+                fontObjSerif_ = fontObjSerifBase_.regular;
+            }
+            if (fontObjSans_.isUndefined) {
+                var sansutf8 = pdf.getFont(pdf.loadTTFontFromFile("/usr/share/fonts/truetype/fonts-japanese-gothic.ttf", true), "UTF-8");
+                var sansen = pdf.getFont(pdf.loadTTFontFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", true), "UTF-8");
+                fontObjSansBase_.regular = {
+                    utf8: sansutf8,
+                    en: sansen,
+                };
+                fontObjSansBase_.bold = {
+                    utf8: sansutf8,
+                    en: pdf.getFont(pdf.loadTTFontFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", true), "UTF-8"),
+                };
+                fontObjSansBase_.itaric = {
+                    utf8: sansutf8,
+                    en: sansen,
+                };
+                fontObjSans_ = fontObjSansBase_.regular;
+            }
+        }
+    }
+
     namespace Command {
 
         class NullCommand(context_) {
@@ -357,32 +427,7 @@ namespace Typesetting {
 
         private initialize() {
             pdf_ = new Pdf();
-            if (fontObjSerif_.isUndefined) {
-                fontObjSerif_.utf8 = pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\yumin.ttf", true), "UTF-8");
-                fontObjSerif_.en = pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\times.ttf", true), "UTF-8");
-                fontObjSerifBase_.regular = fontObjSerif_;
-                fontObjSerifBase_.bold = {
-                    utf8: pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\yumindb.ttf", true), "UTF-8"),
-                    en: pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\timesbd.ttf", true), "UTF-8"),
-                };
-                fontObjSerifBase_.itaric = {
-                    utf8: pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\yumin.ttf", true), "UTF-8"),
-                    en: pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\timesi.ttf", true), "UTF-8"),
-                };
-            }
-            if (fontObjSans_.isUndefined) {
-                fontObjSans_.utf8 = pdf_.getFont(pdf_.loadTTFontFromFile2("C:\\Windows\\Fonts\\YuGothR.ttc", 0, true), "UTF-8");
-                fontObjSans_.en = pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\arial.ttf", true), "UTF-8");
-                fontObjSansBase_.regular = fontObjSans_;
-                fontObjSansBase_.bold = {
-                    utf8: pdf_.getFont(pdf_.loadTTFontFromFile2("C:\\Windows\\Fonts\\YuGothB.ttc", 0, true), "UTF-8"),
-                    en: pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\arialbd.ttf", true), "UTF-8"),
-                };
-                fontObjSansBase_.itaric = {
-                    utf8: pdf_.getFont(pdf_.loadTTFontFromFile2("C:\\Windows\\Fonts\\YuGothR.ttc", 0, true), "UTF-8"),
-                    en: pdf_.getFont(pdf_.loadTTFontFromFile("C:\\Windows\\Fonts\\ariali.ttf", true), "UTF-8"),
-                };
-            }
+            loadFonts(pdf_);
             @setPageSize(pagesize, direction);
             @addPage();
             x_ = y_ = -1;
