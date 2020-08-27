@@ -101,3 +101,25 @@ Double.abs     = _function(x) { return Math.fabs(x); };
 Double.floor   = _function(x) { return Math.floor(x); };
 Double.fmod    = _function(x, y) { return Math.fmod(x, Double.parseDouble(y)); };
 Double.random  = _function(x) { return Math.random(); };
+
+Math.max = _function(...val) {
+    var len = val.length();
+    if (len > 0) {
+        var m = val[0];
+        for (var i = 1; i < len; ++i) {
+            m = val[i] if (m < val[i]);
+        }
+        return m;
+    }
+};
+
+Math.min = _function(...val) {
+    var len = val.length();
+    if (len > 0) {
+        var m = val[0];
+        for (var i = 1; i < len; ++i) {
+            m = val[i] if (m > val[i]);
+        }
+        return m;
+    }
+};
