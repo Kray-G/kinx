@@ -265,8 +265,44 @@ int kxpdf_HPDF_Page_TextRect(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     /* HPDF_UINT *len                 */ /* not used */
 
     sg_error = sg_detail = 0;
-    int r = HPDF_Page_TextRect(v1, v2, v3, v4,v5, v6, v7, NULL);
+    int r = HPDF_Page_TextRect(v1, v2, v3, v4, v5, v6, v7, NULL);
 
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
+/* HPDF_Page_SetDash */
+int kxpdf_HPDF_Page_SetDash(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* const HPDF_UINT16 *dash_ptn    */ kx_obj_t *v2 = get_arg_obj(2, args, ctx);
+    /* HPDF_UINT num_param            */ /* not used */
+    /* HPDF_UINT phase                */ int64_t v3 = get_arg_int(3, args, ctx);
+
+    int len = v2 ? kv_size(v2->ary) : 0;
+    HPDF_UINT16 *dash_pth = NULL;
+    if (len > 0) {
+        dash_pth = kx_calloc(len, sizeof(HPDF_UINT16));
+        for (int i = 0; i < len; ++i) {
+            kx_val_t *v = &kv_A(v2->ary, i);
+            if (v && v->type == KX_INT_T) {
+                dash_pth[i] = (HPDF_UINT16)v->value.iv;
+            } else if (v && v->type == KX_DBL_T) {
+                dash_pth[i] = (HPDF_UINT16)v->value.dv;
+            }
+        }
+    }
+    sg_error = sg_detail = 0;
+    int r = HPDF_Page_SetDash(v1, dash_pth, len, v3);
+
+    if (dash_pth) {
+        kx_free(dash_pth);
+    }
     if (sg_error != 0 || sg_detail != 0) {
         return throw_exception(args, ctx, sg_error, sg_detail);
     }
@@ -916,7 +952,7 @@ static kx_obj_t *kxpdf_append_method_HPDF_Page(kx_context_t *ctx, void *r)
     KEX_SET_METHOD("setLineCap", rv, kxpdf_HPDF_Page_SetLineCap);
     KEX_SET_METHOD("setLineJoin", rv, kxpdf_HPDF_Page_SetLineJoin);
     KEX_SET_METHOD("setMiterLimit", rv, kxpdf_HPDF_Page_SetMiterLimit);
-    /* KEX_SET_METHOD("setDash", rv, kxpdf_HPDF_Page_SetDash); */
+    KEX_SET_METHOD("setDash", rv, kxpdf_HPDF_Page_SetDash);
     KEX_SET_METHOD("setFlat", rv, kxpdf_HPDF_Page_SetFlat);
     KEX_SET_METHOD("setExtGState", rv, kxpdf_HPDF_Page_SetExtGState);
     KEX_SET_METHOD("gSave", rv, kxpdf_HPDF_Page_GSave);
