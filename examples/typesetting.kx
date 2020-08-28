@@ -11,6 +11,13 @@ var doc = new Typesetting.Document({
     fontSize: 10.0,
 });
 
+doc.title("This is Tiny Typesetting System");
+doc.abstract(%{
+    This document is an example of this tiny typesetting library.
+    If you want to know some information about this, please let me know that.
+    I will prepare some information about this as soon as possible.
+});
+
 doc.section("Section Number One");
 doc.subSection("Section Number One-One");
 
@@ -22,12 +29,14 @@ doc.paragraph(%{
     Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 });
 
-doc.set({ margin: { left: 85.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.3 }, fontType: "Sans" }) {
+doc.paragraph("次のパラグラフではフォントを Sans に変えてみます。");
+
+doc.set({ fontType: "Sans" }) {
 
     doc.subSection("Section Number One-Two");
 
     doc.paragraph(%{
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
         Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
         Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -38,22 +47,25 @@ doc.set({ margin: { left: 85.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.
     doc.paragraph(text);
 
     doc.paragraph(%{
-        Lorem Lorem Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
+        \bold{Bold (Lorem Lorem Lorem ipsum dolor sit amet)}, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
         Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
         Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
     });
 
     doc.paragraph("これでいいですか？良いですね？");
-    doc.paragraph("これでいいですか？良いですね？多分良いです。本当ですか？本当！本当に本当ですか？何でそんなに疑うんですか？");
+    doc.paragraph("これでいいですか？良いですね？多分良いです。本当ですか？本当ですよ。本当に本当ですか？何でそんなに疑うんですか？");
 
 };
 
+# doc.pageBreak();
+
 doc.section("Section Number Two");
 doc.subSection("Section Number Two-One");
+doc.subSubSection("Section Number Two-One-One");
 
 doc.paragraph(%{
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididunt ut labore et dolore magna aliqua.
     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
     Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -66,11 +78,24 @@ var text = "（同梱）しているサンプルソースを載せて（おき�
         "\\bold{こんな感じの XML DOM「エックス・エム・エル」パース}ができる例ということで参考になると思い。";
 doc.paragraph(text);
 
+doc.subSubSection("Section Number Two-One-Two");
+
 doc.paragraph(%{
-    Lorem Lorem Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
+    \tt{Monotype (Lorem Lorem Lorem ipsum dolor sit amet)}, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
     Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+});
+
+doc.paragraph(%{
+ConTeXt（この中のXは/ks/と読む）はTeX上に構成された
+文書生成システムである．
+最新版の「MkIV（マーク4）」はLuaTeXエンジンのみをサポートし，
+「MkII（マーク2）」はpdfTeXとXeTeXをサポートする．
+（XeTeX に対して「MkIII」が計画されていたが結局作られなかった．）
+「TeXマニア」を自称するなら，LaTeXばかりでなくConTeXtの
+動向もチェックすべきである．
+そして，猫叱るより猫を囲え．
 });
 
 doc.save("ts.pdf");

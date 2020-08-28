@@ -2,11 +2,11 @@
 namespace Typesetting {
 
     # Not place to the head.
-    var notHead_ = ",)]｝、〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～?!‼⁇⁈⁉・:;/。.";
+    var notHead_ = ",)]｝、，〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～?!‼⁇⁈⁉・:;/.．。";
     # Not place to the tail.
     var notTail_ = "([（｛〔〈《「『【〘〖〝‘“｟«";
     # Special glue size.
-    var noSpaceForNext_ = "、。";
+    var noSpaceForNext_ = "、。，．";
 
     var lbr_ = "（｛〔〈《「『【〘〖｟";
     var rbr_ = "）｝〕〉》」』】〙〗｠";
@@ -62,25 +62,25 @@ namespace Typesetting {
                     n2.stretch = (width * 3) / 6;
                     n2.shrink = 0;
                 }
-                var width = node.width;
-                var stretch = (width * 3) / 6;
-                var shrink = (width * 3) / 9;
-                nodes.push(Linebreak.Glue(width, stretch, shrink));
+                nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
                 return true;
             }
         }
         if (isLbrPrev && isLbr) {
             var n2 = nodes[-2];
-            if (n2.isGlue) {
+            if (n2.isGlue || n2.isPenalty) {
                 if (isSmallWord(node)) {
                     value.offset = 0;
                 } else {
                     value.offset = -(value.size / 2);
                     node.width = value.size / 2;
                 }
-                n2.width = 0;
-                n2.stretch = (value.size * 3) / 6;
-                n2.shrink = 0;
+                if (n2.isGlue) {
+                    n2.width = 0;
+                    n2.stretch = (value.size * 3) / 6;
+                    n2.shrink = 0;
+                }
+                nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
                 return true;
             }
         }
@@ -105,9 +105,7 @@ namespace Typesetting {
                         value.offset = -(value.size / 2);
                     }
                     node.width = value.size / 2;
-                    var width = node.width;
-                    var stretch = (width * 3) / 6;
-                    var shrink = (width * 3) / 9;
+                    nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                     return true;
                 }
             } else {
@@ -120,19 +118,14 @@ namespace Typesetting {
                 n2.width = node.width;
                 n2.stretch = (n2.width * 3) / 6;
                 n2.shrink = (n2.width * 3) / 9;
-                setupSpace(info, value);
-                nodes.push(Linebreak.Glue(0, space_.stretch, 0));
+                nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                 return true;
             }
         }
         if (isRbr) {
-            if (prevv.word == '。') {
-                var n2 = nodes[-2];
-                if (n2.isGlue) {
-                    n2.width = 0;
-                    n2.stretch = ((value.size / 2) * 3) / 6;
-                    n2.shrink = 0;
-                }
+            var n2 = nodes[-2];
+            if (n2.isGlue) {
+                nodes[-2] = Linebreak.Penalty(0, Linebreak.Infinity, 0);
             }
             value.offset = 0;
             node.width = value.size / 2;
@@ -172,7 +165,7 @@ namespace Typesetting {
                         if (nodes[-1].isGlue) {
                             nodes.pop();
                         }
-                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
+                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                         nodes.push(node);
                     } else if (notTail_.find(value.word) >= 0) {
                         var prev = words[i-1];
@@ -185,7 +178,7 @@ namespace Typesetting {
                             nodes.push(Linebreak.Glue(0, space_.stretch, 1));
                             nodes.push(node);
                         }
-                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
+                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                     }
 
                     if (nodes[-1].isBox && i != wlast) {

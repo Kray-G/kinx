@@ -122,4 +122,4 @@ class Hypher(language) {
 
 }
 
-
+Hypher.hyphenPenalty_ = 100;
