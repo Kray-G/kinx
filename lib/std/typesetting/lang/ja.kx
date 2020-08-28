@@ -1,0 +1,84 @@
+
+namespace Typesetting {
+
+    # Not place to the head.
+    var notHead_ = ",)]｝、〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～?!‼⁇⁈⁉・:;/。.";
+    # Not place to the tail.
+    var notTail_ = "([（｛〔〈《「『【〘〖〝‘“｟«";
+    # Special glue size.
+    var noSpaceForNext_ = "、。";
+
+    var space_ = {};
+
+    function setupSpace(info, value) {
+        if (space_.prevsize != value.size) {
+            space_.prevsize = value.size;
+            space_.width = info.measure.spaceWidth(value.font, value.size);
+            space_.stretch = (space_.width * 3) / 6;
+            space_.shrink = (space_.width * 3) / 9;
+        }
+    }
+
+    Typesetting.insertGlue.ja = _function(info, Linebreak, words, nodes) {
+        var wlast = words.length() - 1;
+        words.each { &(node, i):
+            nodes.push(node);
+            if (node.isBox) {
+                var next = words[i+1];
+                if (next.isBox) {
+                    var value = node.value;
+                    var nextv = next.value;
+                    var noSpaceForNext = noSpaceForNext_.find(value.word) >= 0;
+                    var notHead = notHead_.find(value.word) >= 0;
+                    var notTail = notTail_.find(value.word) >= 0;
+                    var l1 = System.isUtf8Bytes(value.word[0]);
+                    if (l1 > 1 && value.word.length() == l1) {
+                        var d = value.size - node.width;
+                        if (d > 0 && !noSpaceForNext) {
+                            value.offset = d / 2;
+                        }
+                        node.width = value.size;
+                    }
+                    if (notHead) {
+                        nodes.pop();
+                        if (nodes[-1].isGlue) {
+                            nodes.pop();
+                        }
+                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
+                        nodes.push(node);
+                    } else if (notTail) {
+                        var prev = words[i-1];
+                        if (prev.isBox && !prev.value.isUtf8) {
+                            nodes.pop();
+                            if (nodes[-1].isGlue) {
+                                nodes.pop();
+                            }
+                            setupSpace(info, value);
+                            nodes.push(Linebreak.Glue(0, space_.stretch, 1));
+                            nodes.push(node);
+                        }
+                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
+                    }
+
+                    if (nodes[-1].isBox && i != wlast) {
+                        var l2 = System.isUtf8Bytes(nextv.word[0]);
+                        if (l1 > 1 && noSpaceForNext) {
+                            node.width /= 2;
+                            var width = value.size / 2;
+                            var stretch = (width * 3) / 6;
+                            var shrink = (width * 3) / 9;
+                            nodes.push(Linebreak.Glue(width, stretch, shrink));
+                        } else if (l1 > 1 && l2 > 1) {
+                            setupSpace(info, value);
+                            nodes.push(Linebreak.Glue(0, space_.stretch, 0));
+                        } else {
+                            setupSpace(info, value);
+                            nodes.push(Linebreak.Glue(space_.width, space_.stretch, space_.shrink));
+                        }
+                    }
+                }
+            }
+        };
+    };
+
+} # namespace Typesetting
