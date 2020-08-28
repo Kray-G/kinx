@@ -272,7 +272,7 @@ namespace Typesetting {
     Linebreak.Infinity = 10000;
 
     Linebreak.Box = function(width, value) {
-        return {
+        var this = {
             isBox: true,
             width: width,
             value: value,
@@ -281,14 +281,15 @@ namespace Typesetting {
                 if (indent) {
                     System.print("    " * indent);
                 }
-                System.print("*Box { width: %{width} } ");
+                System.print("*Box { width: %{@width} } ");
                 System.println(value.toString());
             },
         };
+        return this;
     };
 
     Linebreak.Glue = function(width, stretch, shrink) {
-        return {
+        var this = {
             isGlue: true,
             width: width,
             stretch: stretch,
@@ -298,9 +299,10 @@ namespace Typesetting {
                 if (indent) {
                     System.print("    " * indent);
                 }
-                System.println("  *Glue { width: %{width}, stretch: %{stretch}, shrink: %{shrink} }");
+                System.println("  *Glue { width: %{@width}, stretch: %{@stretch}, shrink: %{@shrink} }");
             },
         };
+        return this;
     };
 
     Linebreak.Penalty = function(width, penalty, flagged) {

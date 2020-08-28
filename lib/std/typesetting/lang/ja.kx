@@ -8,6 +8,10 @@ namespace Typesetting {
     # Special glue size.
     var noSpaceForNext_ = "、。";
 
+    var lbr_ = "（｛〔〈《「『【〘〖｟";
+    var rbr_ = "）｝〕〉》」』】〙〗｠";
+    var nextNeedGlue_ = "？！";
+
     var space_ = {};
 
     function setupSpace(info, value) {
@@ -19,6 +23,127 @@ namespace Typesetting {
         }
     }
 
+    function isSmallWord(node) {
+        return node.width < (node.value.size / 2 + 1);
+    }
+
+    function specialCheck(info, Linebreak, nodes, i, prev, node, next) {
+        var value = node.value;
+
+        if (nextNeedGlue_.find(value.word) >= 0) {
+            if (nodes[-2].isGlue) {
+                nodes[-2] = Linebreak.Penalty(0, Linebreak.Infinity, 1);
+            }
+            node.width = value.size;
+            var width = node.width;
+            var stretch = (width * 3) / 6;
+            var shrink = (width * 3) / 9;
+            nodes.push(Linebreak.Glue(width, stretch, shrink));
+            return true;
+        }
+
+        var prevv = prev.value;
+        var nextv = next.value;
+        var isLbr = lbr_.find(value.word) >= 0;
+        var isLbrPrev = prevv ? lbr_.find(prevv.word) >= 0 : false;
+        var isRbr = rbr_.find(value.word) >= 0;
+        var isRbrPrev = prevv ? rbr_.find(prevv.word) >= 0 : false;
+        if (isRbrPrev && isLbr) {
+            var n2 = nodes[-2];
+            if (n2.isGlue) {
+                value.offset = 0;
+                var width = value.size / 2;
+                if (isSmallWord(node)) {
+                    n2.width = width;
+                    n2.stretch = (width * 3) / 6;
+                    n2.shrink = (width * 3) / 9;
+                } else {
+                    n2.width = 0;
+                    n2.stretch = (width * 3) / 6;
+                    n2.shrink = 0;
+                }
+                var width = node.width;
+                var stretch = (width * 3) / 6;
+                var shrink = (width * 3) / 9;
+                nodes.push(Linebreak.Glue(width, stretch, shrink));
+                return true;
+            }
+        }
+        if (isLbrPrev && isLbr) {
+            var n2 = nodes[-2];
+            if (n2.isGlue) {
+                if (isSmallWord(node)) {
+                    value.offset = 0;
+                } else {
+                    value.offset = -(value.size / 2);
+                    node.width = value.size / 2;
+                }
+                n2.width = 0;
+                n2.stretch = (value.size * 3) / 6;
+                n2.shrink = 0;
+                return true;
+            }
+        }
+        if (isRbrPrev && isRbr) {
+            var n2 = nodes[-2];
+            if (n2.isGlue) {
+                value.offset = 0;
+                if (!isSmallWord(node)) {
+                    node.width = value.size / 2;
+                }
+                n2.width = 0;
+                n2.stretch = (value.size * 3) / 6;
+                n2.shrink = 0;
+                return true;
+            }
+        }
+        if (isLbr) {
+            var n2 = nodes[-2];
+            if (!n2.isGlue) {
+                if (i == 0 && nodes.length() == 2 && nodes[0].isBox && nodes[0].value.word == '') {
+                    if (!isSmallWord(node)) {
+                        value.offset = -(value.size / 2);
+                    }
+                    node.width = value.size / 2;
+                    var width = node.width;
+                    var stretch = (width * 3) / 6;
+                    var shrink = (width * 3) / 9;
+                    return true;
+                }
+            } else {
+                if (!isSmallWord(node)) {
+                    value.offset = -(value.size / 2);
+                } else {
+                    value.offset = 0;
+                }
+                node.width = value.size / 2;
+                n2.width = node.width;
+                n2.stretch = (n2.width * 3) / 6;
+                n2.shrink = (n2.width * 3) / 9;
+                setupSpace(info, value);
+                nodes.push(Linebreak.Glue(0, space_.stretch, 0));
+                return true;
+            }
+        }
+        if (isRbr) {
+            if (prevv.word == '。') {
+                var n2 = nodes[-2];
+                if (n2.isGlue) {
+                    n2.width = 0;
+                    n2.stretch = ((value.size / 2) * 3) / 6;
+                    n2.shrink = 0;
+                }
+            }
+            value.offset = 0;
+            node.width = value.size / 2;
+            var width = node.width;
+            var stretch = (width * 3) / 6;
+            var shrink = (width * 3) / 9;
+            nodes.push(Linebreak.Glue(width, stretch, shrink));
+            return true;
+        }
+    }
+
     Typesetting.insertGlue.ja = _function(info, Linebreak, words, nodes) {
         var wlast = words.length() - 1;
         words.each { &(node, i):
@@ -26,11 +151,13 @@ namespace Typesetting {
             if (node.isBox) {
                 var next = words[i+1];
                 if (next.isBox) {
+                    if (specialCheck(info, Linebreak, nodes, i, words[i-1], node, next)) {
+                        return;
+                    }
+
                     var value = node.value;
                     var nextv = next.value;
                     var noSpaceForNext = noSpaceForNext_.find(value.word) >= 0;
-                    var notHead = notHead_.find(value.word) >= 0;
-                    var notTail = notTail_.find(value.word) >= 0;
                     var l1 = System.isUtf8Bytes(value.word[0]);
                     if (l1 > 1 && value.word.length() == l1) {
                         var d = value.size - node.width;
@@ -39,14 +166,15 @@ namespace Typesetting {
                         }
                         node.width = value.size;
                     }
-                    if (notHead) {
+
+                    if (notHead_.find(value.word) >= 0) {
                         nodes.pop();
                         if (nodes[-1].isGlue) {
                             nodes.pop();
                         }
                         nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
                         nodes.push(node);
-                    } else if (notTail) {
+                    } else if (notTail_.find(value.word) >= 0) {
                         var prev = words[i-1];
                         if (prev.isBox && !prev.value.isUtf8) {
                             nodes.pop();
