@@ -281,7 +281,7 @@ namespace Typesetting {
                 if (indent) {
                     System.print("    " * indent);
                 }
-                System.print("*Box ");
+                System.print("*Box { width: %{width} } ");
                 System.println(value.toString());
             },
         };
