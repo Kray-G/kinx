@@ -87,17 +87,6 @@ doc.paragraph(%{
     Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 });
 
-doc.paragraph(%{
-ConTeXt（この中のXは/ks/と読む）はTeX上に構成された
-文書生成システムである．
-最新版の「MkIV（マーク4）」はLuaTeXエンジンのみをサポートし，
-「MkII（マーク2）」はpdfTeXとXeTeXをサポートする．
-（XeTeX に対して「MkIII」が計画されていたが結局作られなかった．）
-「TeXマニア」を自称するなら，LaTeXばかりでなくConTeXtの
-動向もチェックすべきである．
-そして，猫叱るより猫を囲え．
-});
-
 doc.save("ts.pdf");
 
 System.println("done.");
