@@ -1,0 +1,32 @@
+namespace Typesetting {
+
+    class Measurement(pdf_, measure_) {
+        private initialize() {
+            if (pdf_.isUndefined) {
+                pdf_ = new Pdf();
+            }
+            if (measure_.isUndefined) {
+                measure_ = pdf_.addPage();
+            }
+        }
+        public resizePage(pagesize, direction) {
+            measure_.setSize(pagesize, direction);
+        }
+        public getPageSize() {
+            return { width: measure_.getWidth(), height: measure_.getHeight() };
+        }
+        public spaceWidth(fontObj, fontSize) {
+            measure_.setFontAndSize(fontObj, fontSize);
+            return measure_.textWidth('i');
+        }
+        public hyphenWidth(fontObj, fontSize) {
+            measure_.setFontAndSize(fontObj, fontSize);
+            return measure_.textWidth('-');
+        }
+        public textWidth(fontObj, fontSize, text) {
+            measure_.setFontAndSize(fontObj, fontSize);
+            return measure_.textWidth(text);
+        }
+    }
+
+} # namespace Typesetting

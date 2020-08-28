@@ -27,10 +27,11 @@ _namespace Xml {
     _class Writer(printer_, opts_) {
 
         @tab = opts_.tab || "\t";
+        var pretty_ = opts_.prettyPrint ?? true;
 
         private writeImpl(node, indent) {
             if (node.type == Xml.ELEMENT_NODE) {
-                printer_.print(@tab * indent);
+                printer_.print(@tab * indent) if (pretty_);
                 printer_.print("<%s" % node.tagName);
                 if (node.hasAttributes()) {
                     var attr = node.attributes();
@@ -44,22 +45,26 @@ _namespace Xml {
                         var value = child.value.trim();
                         printer_.print(">%s" % value);
                     } else {
-                        printer_.print(">\n");
+                        printer_.print(">");
+                        printer_.print("\n") if (pretty_);
                         while (child) {
                             writeImpl(child, indent + 1);
                             child = child.nextSibling();
                         }
-                        printer_.print(@tab * indent);
+                        printer_.print(@tab * indent) if (pretty_);
                     }
-                    printer_.print("</%s>\n" % node.tagName);
+                    printer_.print("</%s>" % node.tagName);
+                    printer_.print("\n") if (pretty_);
                 } else {
-                    printer_.print(" />\n");
+                    printer_.print(" />");
+                    printer_.print("\n") if (pretty_);
                 }
             } else if (node.type == Xml.TEXT_NODE) {
                 var value = node.value.trim();
                 if (value) {
-                    printer_.print(@tab * indent);
-                    printer_.print("%s\n" % value);
+                    printer_.print(@tab * indent) if (pretty_);
+                    printer_.print("%s" % value);
+                    printer_.print("\n") if (pretty_);
                 }
             }
         }

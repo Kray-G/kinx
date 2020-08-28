@@ -1,0 +1,392 @@
+using PdfCore;
+using typesetting.LineBreak;
+using typesetting.Measurement;
+using typesetting.PdfWriter;
+using typesetting.ParagraphParser;
+using typesetting.lang;
+
+namespace Typesetting {
+
+    var Linebreak = Typesetting.Linebreak;
+    var hyphenPenalty_ = Hypher.hyphenPenalty_;
+    var Word = Typesetting.Word;
+
+    class Document(options_) {
+        var info_, context_, opts_;
+        var fontObjSerif_, fontObjSans_, fontObjSerifBase_, fontObjSansBase_;
+        var pendings_ = [];
+
+        private initialize() {
+            var pagesize = options_.pagesize ?? PDF_PAGE_SIZE_A4;
+            var direction = options_.direction ?? PDF_PAGE_PORTRAIT;
+            var fontSize = options_.fontSize ?? 10.0;
+            var writer = new Typesetting.PdfWriter(pagesize, direction);
+            [fontObjSerif_, fontObjSans_, fontObjSerifBase_, fontObjSansBase_] = writer.getFontObjBase();
+            var measure = new Typesetting.Measurement(writer.getPdf(), writer.getPage());
+            info_ = {
+                measure: measure,
+                writer: writer,
+                base: {
+                    pagesize: pagesize,
+                    direction: direction,
+                    columns: options_.columns ?? 1,
+                    indentSize: 10.0,
+                    margin: options_.margin ?? { left: 56.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.3 },
+                    fontSize: [
+                        fontSize,
+                        fontSize * 1.6,
+                        fontSize * 1.4,
+                        fontSize * 1.2,
+                        fontSize * 1.1,
+                    ],
+                    title: {
+                        fontSize: 24,
+                        lineFeedWidth: 40,
+                    },
+                    abstract: {
+                        fontSize: 10,
+                        lineFeedWidth: 24.5,
+                        paragraphFeedWidth: 24.5,
+                        widthRatio: 0.85,
+                        title: "Abstract",
+                    },
+                    paragraphFeedWidthRatio: [
+                        2.5,
+                        1.8,
+                        1.8,
+                        1.8,
+                        1.8,
+                    ],
+                    lineFeedWidthRatio: [
+                        1.75,
+                        1.2,
+                        1.2,
+                        1.3,
+                        1.5,
+                    ],
+                },
+            };
+            writer.setMargin(info_.base.margin);
+            var pageSize = measure.getPageSize();
+            context_ = {
+                commands: [],
+                sectionNumber: [],
+                page: {
+                    width: pageSize.width,
+                    height: pageSize.height,
+                    paragraphFeedWidth: fontSize * info_.base.paragraphFeedWidthRatio[0],
+                    lineFeedWidthRatio: info_.base.lineFeedWidthRatio[0],
+                },
+                font: {
+                    fontObj: fontObjSerif_,
+                    fontObjBase: fontObjSerifBase_,
+                    fontSize: fontSize,
+                },
+            };
+            info_.paragraphParser = new Typesetting.ParagraphParser(context_, info_);
+        }
+
+        public justifiyLines(lines) {
+            var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+            var llast = lines.length() - 1;
+            if (llast >= 0) {
+                lines[-1].lineFeedWidth = context_.page.paragraphFeedWidth; 
+            }
+            lines.each { &(line, li):
+                var lineFeedWidth = 0;
+                var x1 = 0.0;
+                var spaces = 0;
+                var expected = line.width;
+                var alen = line.nodes.length();
+                var alast = alen - 1;
+                line.nodes.each { &(n, i):
+                    var value = n.value;
+                    var word = value ? value.word : '';
+                    if (n.isBox && word != '') {
+                        var lfs = lineFeedWidthRatio * value.size;
+                        if (lineFeedWidth < lfs) {
+                            lineFeedWidth = lfs;
+                        }
+                        x1 += n.width;
+                    } else if (n.isBox && word == '') {
+                        # indent.
+                        x1 += n.width;
+                    } else if (n.isGlue && i != alast) {
+                        x1 += n.width;
+                        ++spaces;
+                    } else if (n.isGlue) {
+                        # end of line.
+                        ;
+                    } else if (n.isPenalty && n.penalty == hyphenPenalty_ && i == alast) {
+                        x1 += n.width;
+                    }
+                };
+                if (li > 0) {
+                    lines[li-1].lineFeedWidth = lineFeedWidth;
+                }
+                var diff = spaces > 0 ? ((x1 - expected) / spaces) : 0;
+                x1 = 0.0;
+                line.nodes.each(function(n, i) {
+                    var d = li == llast ? 0 : diff;
+                    var value = n.value;
+                    var word = value ? value.word : '';
+                    if (n.isBox && word != '') {
+                        value.x = x1;
+                        x1 += n.width;
+                    } else if (n.isBox && word == '') {
+                        x1 += n.width;
+                    } else if (n.isGlue && i != alast) {
+                        n.width -= d;
+                        x1 += n.width;
+                    } else if (n.isGlue) {
+                        n.width = 0.0;
+                    } else if (n.isPenalty && n.penalty == hyphenPenalty_ && i == alast) {
+                        value.x = x1;
+                        n.value.word = "-";
+                        x1 += n.width;
+                    } else {
+                        n.width = 0.0;
+                    }
+                });
+            };
+        }
+
+        public write(lines) {
+            var writer = info_.writer;
+            lines.each { &(line, i):
+                line.nodes.each { &(n):
+                    writer.write(n);
+                };
+                writer.lineBreak(line.lineFeedWidth);
+            };
+        }
+
+        private makeOption(opts, text) {
+            if (text.isUndefined && opts.isString) {
+                text = opts;
+                opts = null;
+            }
+            if (opts_ && !opts.isObject) {
+                opts = opts_;
+            }
+            return [opts, text];
+        }
+
+        private makeMargin(opts) {
+            var margin = info_.base.margin.clone();
+            if (opts.margin.left) {
+                margin.left = opts.margin.left;
+            }
+            if (opts.margin.right) {
+                margin.right = opts.margin.right;
+            }
+            return margin;
+        }
+
+        public columnBreak() {
+            info_.writer.columnBreak();
+        }
+
+        public pageBreak() {
+            info_.writer.pageBreak();
+        }
+
+        private writeCenter(opts, text, fontObj, fontSize, lineFeedWidth) {
+            var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, text);
+            var writer = info_.writer;
+            var pageWidth = writer.getPage().getWidth();
+            var margin = makeMargin(opts);
+            var x = (pageWidth - margin.left - margin.right - textWidth) / 2 + margin.left;
+            var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+            writer.setX(x);
+            writer.write(n);
+            writer.lineBreak(lineFeedWidth);
+            writer.setYHead();
+            context_.prevSection = false;
+        }
+
+        private paragraphBase(opts, text, useIndent) {
+            [opts, text] = makeOption(opts, text);
+
+            var margin = makeMargin(opts);
+            info_.writer.setMargin(margin);
+            var marginSize = info_.writer.makeMarginSize();
+            var areaWidth = marginSize.width;
+            var wordSet = info_.paragraphParser.parse(text);
+            var words = wordSet.flatten();
+            var nodes = !useIndent ? [] : [
+                Linebreak.Box(info_.base.indentSize, new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '')),
+            ];
+            Typesetting.insertGlue.ja(info_, Linebreak, words, nodes);
+            if (nodes[-1].isGlue) {
+                nodes.pop();
+            }
+            nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
+            nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 1));
+            # nodes.each { => _1.display() };
+            var breaks = new Linebreak(nodes, [areaWidth], { tolerance: 1 }).parse();
+            if (breaks.length() == 0) {
+                breaks = new Linebreak(nodes, [areaWidth], { tolerance: 2 }).parse();
+                if (breaks.length() == 0) {
+                    breaks = new Linebreak(nodes, [areaWidth], { tolerance: 3 }).parse();
+                }
+            }
+
+            var lines = [];
+            var lineStart = 0;
+            for (var i = 1, blen = breaks.length(); i < blen; ++i) {
+                var point = breaks[i].position;
+                var r = breaks[i].ratio;
+                for (var j = lineStart, nlen = nodes.length(); j < nlen; ++j) {
+                    # After a line break, we skip any nodes unless they are boxes or forced breaks.
+                    if (nodes[j].isBox || (nodes[j].isPenalty && nodes[j].penalty == -Linebreak.Infinity)) {
+                        lineStart = j;
+                        break;
+                    }
+                }
+                lines.push({
+                    ratio: r,
+                    nodes: nodes.subArray(lineStart, point + 1 - lineStart),
+                    position: point,
+                    width: areaWidth,
+                    lineFeedWidth: 0,
+                });
+                lineStart = point;
+            }
+            justifiyLines(lines);
+            write(lines);
+            context_.prevSection = false;
+        }
+
+        private sectionBase(level, opts, text) {
+            [opts, text] = makeOption(opts, text);
+
+            var sectionNumber = context_.sectionNumber[level] ?? 0;
+            var numText = [];
+            if (context_.check) {
+                for (var i = 1, l = context_.sectionNumber.length(); i < l; ++i) {
+                    if (i <= level) {
+                        numText.push(context_.sectionNumber[i]);
+                    }
+                }
+            } else {
+                context_.sectionNumber[level] = ++sectionNumber;
+                var newNumbers = [];
+                for (var i = 1, l = context_.sectionNumber.length(); i < l; ++i) {
+                    if (i <= level) {
+                        newNumbers[i] = context_.sectionNumber[i];
+                        numText.push(newNumbers[i]);
+                    } else {
+                        newNumbers[i] = 0;
+                    }
+                }
+                context_.sectionNumber = newNumbers;
+            }
+            text = numText.join('.') + " " + text;
+            var font = context_.font;
+            context_.font = {
+                fontObj: context_.font.fontObjBase.bold,
+                fontSize: opts.fontSize ?? info_.base.fontSize[level],
+            };
+
+            var paragraphFeedWidth = context_.page.paragraphFeedWidth;
+            context_.page.paragraphFeedWidth = context_.font.fontSize * info_.base.paragraphFeedWidthRatio[level];
+            if (!context_.prevSection) {
+                info_.writer.setMarginAbove(context_.page.paragraphFeedWidth / 2);
+            }
+            paragraphBase(opts, text, false);
+            context_.page.paragraphFeedWidth = paragraphFeedWidth;
+            context_.font = font;
+            context_.prevSection = true;
+        }
+
+        private tryPendingWork() {
+            var writer = info_.writer;
+            var page1 = writer.getPageNumber();
+            var prev = context_.prevSection;
+            context_.check = true;
+            writer.saveCurretParameters();
+            pendings_.each { => _1() };
+            var page2 = writer.getPageNumber();
+            writer.restoreCurretParameters();
+            context_.check = false;
+            if (page1 != page2) {
+                writer.pageBreak();
+            }
+            context_.prevSection = prev;
+            pendings_.each { => _1() };
+            pendings_ = [];
+        }
+
+        public paragraph(opts, text) {
+            tryPendingWork();
+            paragraphBase(opts, text, true);
+        }
+
+        public title(opts, text) {
+            [opts, text] = makeOption(opts, text);
+            writeCenter(opts, text, context_.font.fontObj, info_.base.title.fontSize, info_.base.title.lineFeedWidth);
+        }
+
+        public abstract(opts, text) {
+            [opts, text] = makeOption(opts, text);
+            var fontObj = context_.font.fontObj;
+            context_.font.fontObj = context_.font.fontObjBase.bold;
+            writeCenter(opts, info_.base.abstract.title, context_.font.fontObj, info_.base.abstract.fontSize, info_.base.abstract.lineFeedWidth);
+            context_.font.fontObj = fontObj;
+            var writer = info_.writer;
+            var pageWidth = writer.getPage().getWidth();
+            var margin = makeMargin(opts);
+            var width = (pageWidth - margin.left - margin.right) * info_.base.abstract.widthRatio;
+            var marginWidth = (pageWidth - width) / 2;
+            @set({ margin: { left: marginWidth, right: marginWidth } }) {
+                paragraphBase(opts_, text, true);
+            };
+            writer.addY(info_.base.abstract.paragraphFeedWidth);
+            context_.prevSection = true;
+        }
+
+        public section(opts, text) {
+            pendings_.push(&() => {
+                sectionBase(1, opts, text);
+            });
+        }
+
+        public subSection(opts, text) {
+            pendings_.push(&() => {
+                sectionBase(2, opts, text);
+            });
+        }
+
+        public subSubSection(opts, text) {
+            pendings_.push(&() => {
+                sectionBase(3, opts, text);
+            });
+        }
+
+        public set(opts, func) {
+            var fontObj = context_.font.fontObj;
+            var fontObjBase = context_.font.fontObjBase;
+            switch (opts.fontType) {
+            case "Serif":
+                context_.font.fontObj = fontObjSerif_;
+                context_.font.fontObjBase = fontObjSerifBase_;
+                break;
+            case "Sans":
+                context_.font.fontObj = fontObjSans_;
+                context_.font.fontObjBase = fontObjSansBase_;
+                break;
+            }
+            opts_ = opts;
+            func();
+            opts_ = null;
+            context_.font.fontObjBase = fontObjBase;
+            context_.font.fontObj = fontObj;
+        }
+
+        public save(file) {
+            info_.writer.save(file);
+        }
+    }
+
+} # namespace Typesetting
