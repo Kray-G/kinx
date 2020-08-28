@@ -223,7 +223,7 @@ namespace Typesetting {
             }
             nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
             nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 1));
-            nodes.each { => _1.display() };
+            # nodes.each { => _1.display() };
             var breaks = new Linebreak(nodes, [areaWidth], { tolerance: 1 }).parse();
             if (breaks.length() == 0) {
                 breaks = new Linebreak(nodes, [areaWidth], { tolerance: 2 }).parse();
