@@ -1,0 +1,196 @@
+
+LinkedListNode.id = 0;
+class LinkedListNode(data) {
+    private initialize() {
+        @id = ++LinkedListNode.id;
+        @prev = null;
+        @next = null;
+        @data = data;
+    }
+
+    public ==(rhs) {
+        return @id == rhs.id;
+    }
+
+    public !=(rhs) {
+        return @id != rhs.id;
+    }
+
+    public toString() {
+        return @data.toString();
+    }
+}
+
+class LinkedList {
+
+    private initialize() {
+        @head = null;
+        @tail = null;
+        @listSize = 0;
+    }
+
+    public isLinked(node) {
+        return !((node && node.prev.isUndefined && node.next.isUndefined && @tail != node && @head != node) || @isEmpty());
+    }
+
+    public size() {
+        return @listSize;
+    }
+
+    public isEmpty() {
+        return @listSize == 0;
+    }
+
+    public first() {
+        return @head;
+    }
+
+    public last() {
+        return @last;
+    }
+
+    public toString() {
+        return @toArray().toString();
+    }
+
+    public toArray() {
+        var node = @head, result = [];
+        while (node.isDefined) {
+            result.push(node);
+            node = node.next;
+        }
+        return result;
+    }
+
+    public forEach(fun) {
+        var node = @head;
+        while (node.isDefined) {
+            fun(node);
+            node = node.next;
+        }
+    }
+
+    public contains(n) {
+        var node = @head;
+        if (!@isLinked(n)) {
+            return false;
+        }
+        while (node.isDefined) {
+            if (node == n) {
+                return true;
+            }
+            node = node.next;
+        }
+        return false;
+    }
+
+    public at(i) {
+        var node = @head, index = 0;
+
+        if (i >= @listLength || i < 0) {
+            return null;
+        }
+
+        while (node.isDefined) {
+            if (i == index) {
+                return node;
+            }
+            node = node.next;
+            index += 1;
+        }
+        return null;
+    }
+
+    public insertAfter(node, newNode) {
+        if (!@isLinked(node)) {
+            return this;
+        }
+        newNode.prev = node;
+        newNode.next = node.next;
+        if (node.next.isUndefined) {
+            @tail = newNode;
+        } else {
+            node.next.prev = newNode;
+        }
+        node.next = newNode;
+        @listSize += 1;
+        return this;
+    }
+
+    public insertBefore(node, newNode) {
+        if (!@isLinked(node)) {
+            return this;
+        }
+        newNode.prev = node.prev;
+        newNode.next = node;
+        if (node.prev.isUndefined) {
+            @head = newNode;
+        } else {
+            node.prev.next = newNode;
+        }
+        node.prev = newNode;
+        @listSize += 1;
+        return this;
+    }
+
+    public push(node) {
+        if (@head.isUndefined) {
+            @unshift(node);
+        } else {
+            @insertAfter(@tail, node);
+        }
+        return this;
+    }
+
+    public unshift(node) {
+        if (@head.isUndefined) {
+            @head = node;
+            @tail = node;
+            node.prev = null;
+            node.next = null;
+            @listSize += 1;
+        } else {
+            @insertBefore(@head, node);
+        }
+        return this;
+    }
+
+    public remove(node) {
+        if (!@isLinked(node)) {
+            return this;
+        }
+        if (node.prev.isUndefined) {
+            @head = node.next;
+        } else {
+            node.prev.next = node.next;
+        }
+        if (node.next.isUndefined) {
+            @tail = node.prev;
+        } else {
+            node.next.prev = node.prev;
+        }
+        @listSize -= 1;
+        return this;
+    }
+
+    public pop() {
+        var node = @tail;
+        @tail.prev.next = null;
+        @tail = @tail.prev;
+        @listSize -= 1;
+        node.prev = null;
+        node.next = null;
+        return node;
+    }
+
+    public shift() {
+        var node = @head;
+        @head.next.prev = null;
+        @head = @head.next;
+        @listSize -= 1;
+        node.prev = null;
+        node.next = null;
+        return node;
+    }
+
+}
