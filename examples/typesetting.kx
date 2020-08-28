@@ -7,15 +7,14 @@ var doc = new Typesetting.Document({
     pagesize: PDF_PAGE_SIZE_A4,
     direction: PDF_PAGE_PORTRAIT,
     columns: 1,
-    margin: [
-        { left: 56.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.3 },  # left page.
-        { left: 56.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.3 },  # right page.
-    ],
+    margin: { left: 56.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.3 },
     fontSize: 10.0,
 });
 
-doc.paragraph({
-}, %{
+doc.section("Section Number One");
+doc.subSection("Section Number One-One");
+
+doc.paragraph(%{
     This is the first section and example.
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -23,17 +22,50 @@ doc.paragraph({
     Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 });
 
-doc.paragraph({
-}, %{
+doc.set({ margin: { left: 85.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.3 }, }) {
+
+    doc.subSection("Section Number One-Two");
+
+    doc.paragraph(%{
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
+        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    });
+
+    var text = "同梱しているサンプルソースを載せておきます。説明していない \\pack{Xml.Writer} とかありますが、"
+            "\\bold{こんな感じの XML DOM（エックス・エム・エル）パース}ができる例ということで参考になると思い。あと、ABCマート。";
+    doc.paragraph(text);
+
+    doc.paragraph(%{
+        Lorem Lorem Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
+        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    });
+
+};
+
+doc.section("Section Number Two");
+doc.subSection("Section Number Two-One");
+
+doc.paragraph(%{
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
     Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 });
 
-var text = "同梱しているサンプルソースを載せて\\{おきます\\}。説明していない \\pack{Xml.Writer} とかありますが、"
-           "\\bold{こんな感じの \\bigger{\\bigger{\\bigger{XML DOM}}} パース}ができる例ということで、参考になると思い。あと、ABCマート。";
-doc.paragraph({}, text);
+var text = "同梱しているサンプルソースを載せておきます。説明していない \\pack{Xml.Writer} とかありますが、"
+        "\\bold{こんな感じの XML DOM（エックス・エム・エル）パース}ができる例ということで参考になると思い。あと、ABCマート。";
+doc.paragraph(text);
+
+doc.paragraph(%{
+    Lorem Lorem Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididuntincididuntincididuntincididunt ut labore et dolore magna aliqua.
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+});
 
 doc.save("ts.pdf");
 
