@@ -1,0 +1,131 @@
+using Parsek;
+using typesetting.Hypher;
+using typesetting.Command;
+using typesetting.WordSet;
+
+namespace Typesetting {
+
+    var Linebreak = Typesetting.Linebreak;
+    var hyphenate_ = new Hypher(Hypher.en).hyphenate;
+    var hyphenPenalty_ = Hypher.hyphenPenalty_;
+    var Word = Typesetting.Word;
+    var WordSet = Typesetting.WordSet;
+
+    class ParagraphParser(context_, info_) {
+        var $ = new Parsek();
+        var measure_ = info_.measure;
+        var paragraph_;
+        var word_ = $.regex(/([^\s\\\{\}])+|\\\{|\\\}/).map { &(word):
+            if (word == "\\{" || word == "\\}") {
+                return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, *word[1]);
+            }
+            var hyphenWidth = measure_.hyphenWidth(context_.font.fontObj.en, context_.font.fontSize);
+            var words = [];
+            var len = word.length();
+            for (var i = 0; i < len; ) {
+                var c = word[i];
+                var l = System.isUtf8Bytes(c);
+                if (l > 1) {
+                    words.push(word.subString(i, l));
+                    i += l;
+                } else {
+                    var s = i;
+                    do {
+                        ++i;
+                        c = word[i];
+                        if (!(('0'[0] <= c && c <= '9'[0]) || ('a'[0] <= c && c <= 'z'[0]) || ('A'[0] <= c && c <= 'Z'[0]))) {
+                            if (word[i+1] == ' '[0]) {
+                                break;
+                            }
+                        }
+                        l = System.isUtf8Bytes(c);
+                    } while (i < len && l == 1);
+                    var hyphenated = [];
+                    var wlen = i - s;
+                    var text = word.subString(s, wlen);
+                    if (wlen > 6 && text =~ /^[a-zA-Z]+$/) {
+                        hyphenated = hyphenate_(text);
+                        if (hyphenated.length() > 1) {
+                            var len = hyphenated.length();
+                            hyphenated.each { &(part, i):
+                                var partobj = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, part);
+                                words.push(Linebreak.Box(partobj.width, partobj));
+                                if (i != len - 1) {
+                                    words.push(Linebreak.Penalty(hyphenWidth, hyphenPenalty_, 1));
+                                }
+                            };
+                        } else {
+                            words.push(text);
+                        }
+                    } else {
+                        words.push(text);
+                    }
+                }
+            }
+            if (words.length() == 1) {
+                return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, words[0]);
+            }
+            return new WordSet(info_).addWord(words.map {
+                if (_1.isBox || _1.isGlue || _1.isPenalty) {
+                    return _1;
+                }
+                return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, _1);
+            });
+        };
+
+        var commandPrefix_ = $.regex(/\\([_0-9a-zA-Z]+)/).map {
+            var name = _1.subString(1).toUpper(0, 1);
+            if (Typesetting.Command[name]) {
+                context_.commands.push(new Typesetting.Command[name](context_));
+            } else {
+                # TODO: Warning.
+                context_.commands.push(new Typesetting.Command.NullCommand(context_));
+            }
+        };
+        var commandLbr_ = $.string('{').map {
+            var command = context_.commands[-1];
+            command.start();
+        };
+        var commandRbr_ = $.string('}').map {
+            var command = context_.commands.pop();
+            command.end();
+        };
+        var command_ = $.lazy { => (commandPrefix_ + commandLbr_ + paragraph_ + commandRbr_).map { 
+            return @parseEach(_1[2]);
+        } };
+        paragraph_ = ($.optWhitespace.then(command_ / word_)).many().map { &(elem)
+            return elem;
+        };
+
+        public wrapLineBreak(words) {
+            return words;
+        }
+
+        public parseEach(word) {
+            if (word.isString) {
+                return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, word);
+            }
+            if (word.isArray) {
+                var words = new WordSet(info_);
+                word.each {
+                    words.addWord(parseEach(_1));
+                };
+                return words;
+            }
+            if (word.isWordSet || word.isWord) {
+                return word;
+            }
+            throw RuntimeException("Invalid word");
+        }
+
+        public parse(text) {
+            var r = paragraph_.parseAll(text.trim());
+            if (!r.status) {
+                System.println("Failed");
+                return;
+            }
+            return new WordSet(info_).addWord(r.value);
+        }
+    }
+
+} # namespace Typesetting
