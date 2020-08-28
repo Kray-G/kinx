@@ -51,6 +51,7 @@ Kinx is including useful libraries below in the standard package as **All-In-One
 * **Regular Expression** ... Regular expression is f cource supported.
 * **Parser Combinator** ... Exactly original implementation of Parser Combinator named as `Parsek` like `Parsec`.
 * **PDF** ... PDF core library based on HaruPDF.
+* **Typesetting** ... Simple and Tiny Typesetting library by PDF core library. (W.I.P.)
 * **JIT** ... JIT library for various platforms by an abstracted assembler library.
 
 Making libraries improvement and extension is one of the main purpose of this language.
