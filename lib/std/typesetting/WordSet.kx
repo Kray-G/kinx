@@ -1,0 +1,119 @@
+namespace Typesetting {
+
+    var Linebreak = Typesetting.Linebreak;
+
+    class Word(info_) {
+        @isWord = true;
+        var measure_ = info_.measure;
+        private initialize() {
+            @word = '';
+            @offset = 0.0;
+            @space = 0.0;
+            @addSpace = 0.0;
+        }
+        public setWord(fontObj, fontSize, word) {
+            @word = word;
+            @isUtf8 = System.isUtf8Bytes(word[0]) > 1;
+            @font = @isUtf8 ? fontObj.utf8 : fontObj.en;
+            @size = fontSize;
+            @width = measure_.textWidth(@font, fontSize, word);
+            @space = measure_.spaceWidth(@font, fontSize);
+            return this;
+        }
+        public fontObj() {
+            return @font;
+        }
+        public fontSize() {
+            return @size ?? 0.0;
+        }
+        public textWidth() {
+            return @width ?? 0.0;
+        }
+        public spaceWidth() {
+            return @space + @addSpace;
+        }
+        public additionalSpace(width) {
+            @addSpace = width;
+        }
+        public toString() {
+            return "{'%{@word}',%{@font.getFontName()},%{@size}, offset:%{@offset}}";
+        }
+        public display(indent) {
+            indent ??= 0;
+            if (indent) {
+                System.print("    " * indent);
+            }
+            System.println(@toString());
+        }
+    }
+
+    # WordSet is a set of Word with space, or WordSet itself recursively.
+    class WordSet(info_) {
+        @isWordSet = true;
+        private initialize() {
+            @words = [];
+        }
+        public addWord(wordObj) {
+            if (wordObj.isArray) {
+                @words += wordObj;
+            } else {
+                @words.push(wordObj);
+            }
+            return this;
+        }
+        public fontObj() {
+            return @words.length() > 0 ? @words[-1].fontObj() : null;
+        }
+        public fontSize() {
+            return @words.length() > 0 ? @words[-1].fontSize() : 0.0;
+        }
+        public textWidth() {
+            var sum = 0.0;
+            var words = @words;
+            var len = words.length();
+            var last = len - 1;
+            for (var i = 0; i < len; ++i) {
+                sum += words[i].textWidth();
+                if (i != last) {
+                    sum += words[i].spaceWidth();
+                }
+            }
+            return sum;
+        }
+        public additionalSpace(width) {
+            if (@words.length() > 0) {
+                @words[-1].additionalSpace(width);
+            }
+        }
+        public spaceWidth() {
+            return @words.length() > 0 ? @words[-1].spaceWidth() : 0.0;
+        }
+        public toString() {
+            return @words.map { => _1.toString() }.toString();
+        }
+        public display(indent) {
+            indent ??= 0;
+            if (indent) {
+                System.print("    " * indent);
+            }
+            System.println("WordSet");
+            @words.each { &(word):
+                word.display(indent + 1);
+            };
+        }
+        public flatten() {
+            var result = [];
+            @words.each { &(word):
+                if (word.isWordSet) {
+                    result += word.flatten();
+                } else if (word.isWord) {
+                    result.push(Linebreak.Box(word.width, word));
+                } else {
+                    result.push(word);
+                }
+            };
+            return result;
+        }
+    }
+
+} # namespace Typesetting
