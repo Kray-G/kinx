@@ -1,0 +1,269 @@
+namespace Typesetting {
+
+    var fontObjSerif_, fontObjSans_;
+    var fontObjSerifBase_ = {
+        regular: null,
+        bold: null,
+        itaric: null,
+    };
+    var fontObjSansBase_ = {
+        regular: null,
+        bold: null,
+        itaric: null,
+    };
+
+    function loadFonts(pdf) {
+        var mono = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Monospace-Normal.ttf", true), "UTF-8");
+        if (fontObjSerif_.isUndefined) {
+            var regular = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-R.ttc", 1, true), "UTF-8");
+            var bold = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-B.ttc", 1, true), "UTF-8");
+            fontObjSerifBase_.regular = {
+                utf8: regular,
+                en: regular,
+            };
+            fontObjSerifBase_.bold = {
+                utf8: bold,
+                en: bold,
+            };
+            fontObjSerifBase_.monotype = {
+                utf8: mono,
+                en: mono,
+            };
+            fontObjSerif_ = fontObjSerifBase_.regular;
+        }
+        if (fontObjSans_.isUndefined) {
+            var regular = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Regular.ttf", true), "UTF-8");
+            var bold = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Bold.ttf", true), "UTF-8");
+            fontObjSansBase_.regular = {
+                utf8: regular,
+                en: regular,
+            };
+            fontObjSansBase_.bold = {
+                utf8: bold,
+                en: bold,
+            };
+            fontObjSansBase_.monotype = {
+                utf8: mono,
+                en: mono,
+            };
+            fontObjSans_ = fontObjSansBase_.regular;
+        }
+    }
+
+    class PdfWriter(pagesize, direction) {
+        var pdf_, page_, margin_, cols_, curCol_;
+        var pagesize_, direction_;
+        var width_, height_, ascent_;
+        var x_, y_, pageNumber_;
+        var yhead_;
+        var saved_, check_;
+
+        private initialize() {
+            pageNumber_ = 0;
+            pdf_ = new Pdf();
+            loadFonts(pdf_);
+            @setPageSize(pagesize, direction);
+            cols_ = 1;
+            curCol_ = 0;
+            @addPage();
+            x_ = y_ = -1;
+        }
+
+        public getPdf() {
+            return pdf_;
+        }
+
+        public getPage() {
+            return page_;
+        }
+
+        public getFontObjBase() {
+            return [ fontObjSerif_, fontObjSans_, fontObjSerifBase_, fontObjSansBase_ ];
+        }
+
+        public setX(x) {
+            x_ = x;
+        }
+
+        public setYHead() {
+            yhead_ = y_;
+        }
+
+        public addY(y) {
+            y_ -= y;
+        }
+
+        public setPageSize(pagesize, direction) {
+            pagesize_ = pagesize;
+            direction_ = direction;
+        }
+
+        public setMargin(margin) {
+            margin_ = margin;
+        }
+
+        public setColumn(cols) {
+            cols_ = cols;
+            yhead_ = y_;
+        }
+
+        public makeMarginSize() {
+            if (!page_) {
+                if (!@addPage()) {
+                    return;
+                }
+            }
+            var pageWidth = page_.getWidth();
+            var width = (pageWidth - margin_.left - margin_.right - (margin_.alley * (cols_ - 1))) / cols_;
+            var left = margin_.left + (curCol_ * width) + (margin_.alley * curCol_);
+            var margin = {
+                width: width,
+                left: left,
+                right: pageWidth - left - width,
+                top: margin_.top,
+                bottom: margin_.bottom,
+            };
+            return margin;
+        }
+
+        public addPage() {
+            if (check_) {
+                ++pageNumber_;
+                return false;
+            }
+            if (pageNumber_ > 0) {
+                System.print("[%{pageNumber_}]");
+            }
+            page_ = pdf_.addPage();
+            page_.setSize(pagesize_, direction_);
+            width_ = page_.getWidth();
+            height_ = page_.getHeight();
+            yhead_ = -1;
+            ++pageNumber_;
+            return true;
+        }
+
+        public getPageNumber() {
+            return pageNumber_;
+        }
+
+        public saveCurretParameters() {
+            saved_.page = page_;
+            saved_.curCol = curCol_;
+            saved_.x = x_;
+            saved_.y = y_;
+            saved_.ascent = ascent_;
+            saved_.yhead = yhead_;
+            saved_.width = width_;
+            saved_.height = height_;
+            saved_.pageNumber = pageNumber_;
+            check_ = true;
+        }
+
+        public restoreCurretParameters() {
+            page_ = saved_.page;
+            curCol_ = saved_.curCol;
+            x_ = saved_.x;
+            y_ = saved_.y;
+            ascent_ = saved_.ascent;
+            yhead_ = saved_.yhead;
+            width_ = saved_.width;
+            height_ = saved_.height;
+            pageNumber_ = saved_.pageNumber;
+            check_ = false;
+        }
+
+        public columnBreak() {
+            x_ = -1;
+            y_ = -1;
+            if (cols_ > 0) {            
+                curCol_ = (curCol_ + 1) % cols_;
+            }
+            if (curCol_ == 0) {
+                page_ = null;
+            }
+        }
+
+        public pageBreak() {
+            x_ = -1;
+            y_ = -1;
+            curCol_ = 0;
+            page_ = null;
+        }
+
+        public lineBreak(lineFeedWidth) {
+            x_ = -1;
+            y_ -= lineFeedWidth;
+            var margin = makeMarginSize();
+            if (!margin) {
+                return false;
+            }
+            var bottomMin = margin.bottom + lineFeedWidth;
+            if (y_ < bottomMin) {
+                y_ = -1;
+                if (cols_ > 0) {            
+                    curCol_ = (curCol_ + 1) % cols_;
+                }
+                if (curCol_ == 0) {
+                    page_ = null;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public setMarginAbove(marginWidth) {
+            if (page_ && y_ >= 0) {
+                lineBreak(marginWidth);
+            }
+        }
+
+        private setupWrite(value) {
+            if (page_.isUndefined) {
+                if (!@addPage()) {
+                    return false;
+                }
+            }
+            var font = value.font;
+            var fontSize = value.size;
+            ascent_ = (font.getAscent() / 1000) * fontSize;
+            var margin = makeMarginSize();
+            var leftMin = margin.left;
+            var topMin = yhead_ > 0 ? yhead_ : height_ - margin.top - ascent_;
+            if (x_ < 0) {
+                x_ = leftMin;
+            }
+            if (y_ < 0) {
+                y_ = topMin;
+            }
+            page_.setFontAndSize(font, fontSize);
+            return true;
+        }
+
+        public write(node) {
+            var width = node.width;
+            var value = node.value;
+            if (width > 0 && node.isBox) {
+                if (!setupWrite(value)) {
+                    return false;
+                }
+            }
+            if (value && !check_) {
+                page_.beginText();
+                page_.moveTextPos(x_ + value.offset, y_);
+                page_.showText(value.word);
+                page_.endText();
+            }
+            x_ += width;
+            return true;
+        }
+
+        public save(file) {
+            if (pageNumber_ > 0) {
+                System.println("[%{pageNumber_}]");
+            }
+            pdf_.saveToFile(file);
+        }
+    }
+
+} # namespace Typesetting

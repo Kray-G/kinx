@@ -616,6 +616,47 @@ static int XML_node_attributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
     return 0;
 }
 
+static int XML_node_getAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_XML_GET_NODE(node, obj);
+    const char *name = get_arg_str(2, args, ctx);
+    if (!name) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to set attribute because of no name");
+    }
+
+    kstr_t *sv = allocate_str(ctx);
+    const char *value = xmlGetProp(node->p, name);
+    if (value) {
+        ks_append(sv, value);
+    }
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
+static int XML_node_getAttributeNS(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_XML_GET_NODE(node, obj);
+    const char *name = get_arg_str(2, args, ctx);
+    const char *ns = get_arg_str(3, args, ctx);
+    if (!name) {
+        KX_THROW_BLTIN_EXCEPTION("XmlException", "Failed to set attribute because of no name");
+    }
+
+    kstr_t *sv = allocate_str(ctx);
+    const char *value = xmlGetNsProp(node->p, name, ns);
+    if (value) {
+        ks_append(sv, value);
+    }
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 static int XML_node_setAttribute(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -807,6 +848,8 @@ static kx_obj_t *create_node(kx_context_t *ctx, kx_xml_t *xml, xmlNodePtr cur)
     }
 
     KEX_SET_METHOD("attributes", obj, XML_node_attributes);
+    KEX_SET_METHOD("getAttribute", obj, XML_node_getAttribute);
+    KEX_SET_METHOD("getAttributeNS", obj, XML_node_getAttributeNS);
     KEX_SET_METHOD("setAttribute", obj, XML_node_setAttribute);
     KEX_SET_METHOD("setAttributeNS", obj, XML_node_setAttributeNS);
     KEX_SET_METHOD("removeAttribute", obj, XML_node_removeAttribute);
