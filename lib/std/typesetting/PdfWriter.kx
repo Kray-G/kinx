@@ -1,6 +1,6 @@
 namespace Typesetting {
 
-    var fontObjSerif_, fontObjSans_;
+    var fontObjSerif_, fontObjSans_, fontObjMonotype_;
     var fontObjSerifBase_ = {
         regular: null,
         bold: null,
@@ -11,9 +11,12 @@ namespace Typesetting {
         bold: null,
         itaric: null,
     };
+    var fontObjMonotypeBase_ = {
+        regular: null,
+        bold: null,
+    };
 
     function loadFonts(pdf) {
-        var mono = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Monospace-Normal.ttf", true), "UTF-8");
         if (fontObjSerif_.isUndefined) {
             var regular = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-R.ttc", 1, true), "UTF-8");
             var bold = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-B.ttc", 1, true), "UTF-8");
@@ -24,10 +27,6 @@ namespace Typesetting {
             fontObjSerifBase_.bold = {
                 utf8: bold,
                 en: bold,
-            };
-            fontObjSerifBase_.monotype = {
-                utf8: mono,
-                en: mono,
             };
             fontObjSerif_ = fontObjSerifBase_.regular;
         }
@@ -42,11 +41,19 @@ namespace Typesetting {
                 utf8: bold,
                 en: bold,
             };
-            fontObjSansBase_.monotype = {
+            fontObjSans_ = fontObjSansBase_.regular;
+        }
+        if (fontObjMonotype_.isUndefined) {
+            var mono = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Monospace-Normal.ttf", true), "UTF-8");
+            fontObjMonotypeBase_.regular = {
                 utf8: mono,
                 en: mono,
             };
-            fontObjSans_ = fontObjSansBase_.regular;
+            fontObjMonotypeBase_.bold = {
+                utf8: mono,
+                en: mono,
+            };
+            fontObjMonotype_ = fontObjMonotypeBase_.regular;
         }
     }
 
@@ -55,7 +62,7 @@ namespace Typesetting {
         var pagesize_, direction_;
         var width_, height_, ascent_;
         var x_, y_, pageNumber_;
-        var yhead_;
+        var yhead_, isTopOfPage_;
         var saved_, check_;
 
         private initialize() {
@@ -78,7 +85,7 @@ namespace Typesetting {
         }
 
         public getFontObjBase() {
-            return [ fontObjSerif_, fontObjSans_, fontObjSerifBase_, fontObjSansBase_ ];
+            return [ fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_ ];
         }
 
         public setX(x) {
@@ -87,10 +94,12 @@ namespace Typesetting {
 
         public setYHead() {
             yhead_ = y_;
+            isTopOfPage_ = true;
         }
 
-        public addY(y) {
+        public addY(y, isTop) {
             y_ -= y;
+            isTopOfPage_ = isTop;
         }
 
         public setPageSize(pagesize, direction) {
@@ -105,6 +114,7 @@ namespace Typesetting {
         public setColumn(cols) {
             cols_ = cols;
             yhead_ = y_;
+            isTopOfPage_ = true;
         }
 
         public makeMarginSize() {
@@ -139,38 +149,13 @@ namespace Typesetting {
             width_ = page_.getWidth();
             height_ = page_.getHeight();
             yhead_ = -1;
+            isTopOfPage_ = true;
             ++pageNumber_;
             return true;
         }
 
         public getPageNumber() {
             return pageNumber_;
-        }
-
-        public saveCurretParameters() {
-            saved_.page = page_;
-            saved_.curCol = curCol_;
-            saved_.x = x_;
-            saved_.y = y_;
-            saved_.ascent = ascent_;
-            saved_.yhead = yhead_;
-            saved_.width = width_;
-            saved_.height = height_;
-            saved_.pageNumber = pageNumber_;
-            check_ = true;
-        }
-
-        public restoreCurretParameters() {
-            page_ = saved_.page;
-            curCol_ = saved_.curCol;
-            x_ = saved_.x;
-            y_ = saved_.y;
-            ascent_ = saved_.ascent;
-            yhead_ = saved_.yhead;
-            width_ = saved_.width;
-            height_ = saved_.height;
-            pageNumber_ = saved_.pageNumber;
-            check_ = false;
         }
 
         public columnBreak() {
@@ -191,6 +176,26 @@ namespace Typesetting {
             page_ = null;
         }
 
+        public isTopOfPage() {
+            return isTopOfPage_;
+        }
+
+        public checkPageBreak(totalLineFeeds) {
+            var margin = makeMarginSize();
+            if (!margin) {
+                return false;
+            }
+            y = y_ - totalLineFeeds;
+            var bottomMin = margin.bottom;
+            if (y < bottomMin) {
+                var col = (curCol_ + 1) % cols_;
+                if (col == 0) {
+                    @pageBreak();
+                }
+            }
+            return false;
+        }
+
         public lineBreak(lineFeedWidth) {
             x_ = -1;
             y_ -= lineFeedWidth;
@@ -206,9 +211,11 @@ namespace Typesetting {
                 }
                 if (curCol_ == 0) {
                     page_ = null;
+                    isTopOfPage_ = true;
                     return false;
                 }
             }
+            isTopOfPage_ = false;
             return true;
         }
 
@@ -229,7 +236,7 @@ namespace Typesetting {
             ascent_ = (font.getAscent() / 1000) * fontSize;
             var margin = makeMarginSize();
             var leftMin = margin.left;
-            var topMin = yhead_ > 0 ? yhead_ : height_ - margin.top - ascent_;
+            var topMin = yhead_ > 0 ? yhead_ : (height_ - margin.top - ascent_);
             if (x_ < 0) {
                 x_ = leftMin;
             }

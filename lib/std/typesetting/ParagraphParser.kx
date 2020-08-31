@@ -84,11 +84,15 @@ namespace Typesetting {
         };
         var commandLbr_ = $.string('{').map {
             var command = context_.commands[-1];
-            command.start();
+            if (command.start.isFunction) {
+                command.start();
+            }
         };
         var commandRbr_ = $.string('}').map {
             var command = context_.commands.pop();
-            command.end();
+            if (command.end.isFunction) {
+                command.end();
+            }
         };
         var command_ = $.lazy { => (commandPrefix_ + commandLbr_ + paragraph_ + commandRbr_).map { 
             return @parseEach(_1[2]);
