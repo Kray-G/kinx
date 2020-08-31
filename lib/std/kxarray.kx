@@ -22,6 +22,21 @@ Array.stringify = _function(ary, quote) {
     return ret;
 };
 
+Array.sum = _function(ary, callback) {
+    var sum = 0;
+    var len = ary.length();
+    if (callback.isFunction) {
+        for (var i = 0; i < len; ++i) {
+            sum += callback(ary[i], i);
+        }
+    } else {
+        for (var i = 0; i < len; ++i) {
+            sum += ary[i];
+        }
+    }
+    return sum;
+};
+
 Array.each = _function(ary, callback) {
     var len = ary.length();
     if (len > 0) {
