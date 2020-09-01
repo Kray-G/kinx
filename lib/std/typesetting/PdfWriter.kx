@@ -57,7 +57,7 @@ namespace Typesetting {
         }
     }
 
-    class PdfWriter(pagesize, direction) {
+    class PdfWriter(pagesize, direction, options_) {
         var pdf_, page_, margin_, cols_, curCol_;
         var pagesize_, direction_;
         var width_, height_, ascent_;
@@ -72,6 +72,7 @@ namespace Typesetting {
             @setPageSize(pagesize, direction);
             cols_ = 1;
             curCol_ = 0;
+            @page = [];
             @addPage();
             x_ = y_ = -1;
         }
@@ -112,9 +113,11 @@ namespace Typesetting {
         }
 
         public setColumn(cols) {
-            cols_ = cols;
-            yhead_ = y_;
-            isTopOfPage_ = true;
+            if (cols != cols_) {
+                cols_ = cols;
+                yhead_ = y_;
+                isTopOfPage_ = true;
+            }
         }
 
         public makeMarginSize() {
@@ -150,6 +153,7 @@ namespace Typesetting {
             height_ = page_.getHeight();
             yhead_ = -1;
             isTopOfPage_ = true;
+            @page.push(page_);
             ++pageNumber_;
             return true;
         }
@@ -170,10 +174,12 @@ namespace Typesetting {
         }
 
         public pageBreak() {
-            x_ = -1;
-            y_ = -1;
-            curCol_ = 0;
-            page_ = null;
+            if (page_) {
+                x_ = -1;
+                y_ = -1;
+                curCol_ = 0;
+                page_ = null;
+            }
         }
 
         public isTopOfPage() {
@@ -257,7 +263,7 @@ namespace Typesetting {
             }
             if (value && !check_) {
                 page_.beginText();
-                page_.moveTextPos(x_ + value.offset, y_);
+                page_.moveTextPos(x_ + value.offsetX, y_ + value.offsetY);
                 page_.showText(value.word);
                 page_.endText();
             }

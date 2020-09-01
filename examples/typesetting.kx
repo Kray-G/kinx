@@ -1,15 +1,7 @@
 using Typesetting;
+using typesetting.style.JArticleA4;
 
-# System.println("style = ", doc.elem.style);
-
-# var file = "examples/typesetting.xml";
-var doc = new Typesetting.Document({
-    pagesize: PDF_PAGE_SIZE_A4,
-    direction: PDF_PAGE_PORTRAIT,
-    columns: 1,
-    margin: { left: 56.7, right: 56.7, bottom: 56.7, top: 68.0, alley: 28.3 },
-    fontSize: 10.0,
-});
+var doc = new Typesetting.Document(Typesetting.Style.JArticleA4);
 
 doc.title("This is Tiny Typesetting System");
 doc.abstract(%{
@@ -21,12 +13,17 @@ doc.abstract(%{
 doc.section("Section Number One");
 doc.subSection("Section Number One-One");
 
+doc.define("SILE", %!S\lower[height=0.5ex]{I}L\hspace[width=-.2em]\raise[height=0.6ex]{\font[size=0.8em]{E}}!);
+doc.define("TeX", %!T\hspace[width=-0.132em]\lower[height=0.171em]{E}\hspace[width=-0.084em]X!);
+doc.define("LaTeX", %!L\hspace[width=-0.3em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
+
 doc.paragraph(%{
     This is the first section and example.
+    \TeX \LaTeX
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est \SILE laborum.
 });
 
 doc.paragraph("次のパラグラフではフォントを Sans に変えてみます。");
