@@ -1,0 +1,55 @@
+
+namespace Typesetting {
+namespace Style {
+
+    class JArticleA4 {
+        var fontSize = 10.0;
+        @style = {
+            "pagesize":                 PDF_PAGE_SIZE_A4,
+            "direction":                PDF_PAGE_PORTRAIT,
+            "columns":                  2,
+            "indentSize":               fontSize,
+            "margin": {
+                "left":                 56.7,
+                "right":                56.7,
+                "bottom":               56.7,
+                "top":                  68.0,
+                "alley":                28.3,
+            },
+            "fontSize": [
+                fontSize,
+                fontSize * 1.6,
+                fontSize * 1.4,
+                fontSize * 1.2,
+                fontSize * 1.1,
+            ],
+            "title": {
+                "fontSize":             24,
+                "lineFeedWidth":        40,
+            },
+            "abstract": {
+                "fontSize":             10,
+                "lineFeedWidth":        24.5,
+                "paragraphFeedWidth":   24.5,
+                "widthRatio":           0.85,
+                "title": "Abstract",
+            },
+            "lineFeedWidthRatio": [
+                1.75,
+                1.2,
+                1.2,
+                1.3,
+                1.5,
+            ],
+            "paragraphSkipWidthRatio": [
+                2.4,
+                1.4,
+                1.3,
+                1.2,
+                1.2,
+            ],
+        };
+    }
+
+} # namespace Style
+} # namespace Typesetting

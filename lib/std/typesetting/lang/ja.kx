@@ -32,7 +32,7 @@ namespace Typesetting {
 
         if (nextNeedGlue_.find(value.word) >= 0) {
             if (nodes[-2].isGlue) {
-                nodes[-2] = Linebreak.Penalty(0, Linebreak.Infinity, 1);
+                nodes[-2] = Linebreak.Penalty(0, Linebreak.Infinity, 0);
             }
             node.width = value.size;
             var width = node.width;
@@ -51,7 +51,7 @@ namespace Typesetting {
         if (isRbrPrev && isLbr) {
             var n2 = nodes[-2];
             if (n2.isGlue) {
-                value.offset = 0;
+                value.offsetX = 0;
                 var width = value.size / 2;
                 if (isSmallWord(node)) {
                     n2.width = width;
@@ -62,7 +62,7 @@ namespace Typesetting {
                     n2.stretch = (width * 3) / 6;
                     n2.shrink = 0;
                 }
-                nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
+                nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                 return true;
             }
         }
@@ -70,30 +70,26 @@ namespace Typesetting {
             var n2 = nodes[-2];
             if (n2.isGlue || n2.isPenalty) {
                 if (isSmallWord(node)) {
-                    value.offset = 0;
+                    value.offsetX = 0;
                 } else {
-                    value.offset = -(value.size / 2);
+                    value.offsetX = -(value.size / 2);
                     node.width = value.size / 2;
                 }
                 if (n2.isGlue) {
-                    n2.width = 0;
-                    n2.stretch = (value.size * 3) / 6;
-                    n2.shrink = 0;
+                    nodes[-2] = Linebreak.Penalty(0, Linebreak.Infinity, 0);
                 }
-                nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 1));
+                nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                 return true;
             }
         }
         if (isRbrPrev && isRbr) {
             var n2 = nodes[-2];
             if (n2.isGlue) {
-                value.offset = 0;
+                value.offsetX = 0;
                 if (!isSmallWord(node)) {
                     node.width = value.size / 2;
                 }
-                n2.width = 0;
-                n2.stretch = (value.size * 3) / 6;
-                n2.shrink = 0;
+                nodes[-2] = Linebreak.Penalty(0, Linebreak.Infinity, 0);
                 return true;
             }
         }
@@ -102,7 +98,7 @@ namespace Typesetting {
             if (!n2.isGlue) {
                 if (i == 0 && nodes.length() == 2 && nodes[0].isBox && nodes[0].value.word == '') {
                     if (!isSmallWord(node)) {
-                        value.offset = -(value.size / 2);
+                        value.offsetX = -(value.size / 2);
                     }
                     node.width = value.size / 2;
                     nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
@@ -110,9 +106,9 @@ namespace Typesetting {
                 }
             } else {
                 if (!isSmallWord(node)) {
-                    value.offset = -(value.size / 2);
+                    value.offsetX = -(value.size / 2);
                 } else {
-                    value.offset = 0;
+                    value.offsetX = 0;
                 }
                 node.width = value.size / 2;
                 n2.width = node.width;
@@ -127,7 +123,7 @@ namespace Typesetting {
             if (n2.isGlue) {
                 nodes[-2] = Linebreak.Penalty(0, Linebreak.Infinity, 0);
             }
-            value.offset = 0;
+            value.offsetX = 0;
             node.width = value.size / 2;
             var width = node.width;
             var stretch = (width * 3) / 6;
@@ -141,7 +137,7 @@ namespace Typesetting {
         var wlast = words.length() - 1;
         words.each { &(node, i):
             nodes.push(node);
-            if (node.isBox) {
+            if (node.isBox && node.value.word != '') {
                 var next = words[i+1];
                 if (next.isBox) {
                     if (specialCheck(info, Linebreak, nodes, i, words[i-1], node, next)) {
@@ -155,7 +151,7 @@ namespace Typesetting {
                     if (l1 > 1 && value.word.length() == l1) {
                         var d = value.size - node.width;
                         if (d > 0 && !noSpaceForNext) {
-                            value.offset = d / 2;
+                            value.offsetX = d / 2;
                         }
                         node.width = value.size;
                     }
@@ -192,9 +188,9 @@ namespace Typesetting {
                         } else if (l1 > 1 && l2 > 1) {
                             setupSpace(info, value);
                             nodes.push(Linebreak.Glue(0, space_.stretch, 0));
-                        } else {
+                        } else if (l1 == 1 && l2 > 1) {
                             setupSpace(info, value);
-                            nodes.push(Linebreak.Glue(space_.width, space_.stretch, space_.shrink));
+                            nodes.push(Linebreak.Glue(0, space_.stretch, 0));
                         }
                     }
                 }
