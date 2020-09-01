@@ -381,7 +381,7 @@ _class Parsek(opts) {
         re = new Regex('^(?:' + re.pattern + ')');
         return new Parsek.ParsekParser($, __FUNC__, _function(target, position) {
             re.reset(target.subString(position));
-            if (re.find()) {
+            if (re.find() && re.group[0].begin == 0) {
                 position += re.group[0].string.length();
                 if (groupIndex.isArray) {
                     var results = [];
