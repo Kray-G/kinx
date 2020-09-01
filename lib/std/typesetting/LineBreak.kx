@@ -281,7 +281,7 @@ namespace Typesetting {
                 if (indent) {
                     System.print("    " * indent);
                 }
-                System.println("'%{value.word}' - Box, width:%{@width}");
+                System.println("'%{value.word}' - Box, width:%{@width}, offset(%{value.offsetX??0},%{value.offsetY??0})");
             },
         };
         return this;

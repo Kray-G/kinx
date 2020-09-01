@@ -106,13 +106,17 @@ namespace Typesetting {
             } else {
                 params = {};
             }
-            context_.commands.push(command);
+            context_.commands.push({
+                command: command,
+                name: name,
+            });
             if (command.start.isFunction) {
                 command.start(params);
             }
         };
         var parCommandEnd_ = $.string('}').map {
-            var command = context_.commands.pop();
+            var c = context_.commands.pop();
+            var command = c.command;
             if (command.end.isFunction) {
                 command.end();
             }
