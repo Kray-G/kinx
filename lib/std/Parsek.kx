@@ -382,8 +382,15 @@ _class Parsek(opts) {
         return new Parsek.ParsekParser($, __FUNC__, _function(target, position) {
             re.reset(target.subString(position));
             if (re.find()) {
+                position += re.group[0].string.length();
+                if (groupIndex.isArray) {
+                    var results = [];
+                    for (var i = 0, l = groupIndex.length(); i < l; ++i) {
+                        results.push(re.group[groupIndex[i]].string);
+                    }
+                    return Parsek.makeResult(true, results, position);
+                }
                 var result = re.group[groupIndex].string;
-                position += result.length();
                 return Parsek.makeResult(true, result, position);
             }
             return Parsek.makeResult(false, null, position);
