@@ -41,7 +41,7 @@ namespace Typesetting {
                 page: {
                     width: pageSize.width,
                     height: pageSize.height,
-                    paragraphSkipWith: info_.base.paragraphSkipWidthRatio[0] * fontSize,
+                    paragraphSkipWidth: info_.base.paragraphSkipWidthRatio[0] * fontSize,
                     lineFeedWidthRatio: info_.base.lineFeedWidthRatio[0],
                 },
                 font: {
@@ -66,13 +66,16 @@ namespace Typesetting {
             };
             info_.paragraphParser = new Typesetting.ParagraphParser(context_, info_);
             info_.context = context_;
+
+            @define("TeX", %!T\hspace[width=-0.132em]\lower[height=0.171em]{E}\hspace[width=-0.084em]X!);
+            @define("LaTeX", %!L\hspace[width=-0.3em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
         }
 
         public justifyLines(lines) {
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
             var llast = lines.length() - 1;
             if (llast >= 0) {
-                lines[-1].lineFeedWidth = context_.page.paragraphSkipWith; 
+                lines[-1].lineFeedWidth = context_.page.paragraphSkipWidth; 
             }
             lines.each { &(line, li):
                 var lineFeedWidth = 0;
@@ -147,7 +150,7 @@ namespace Typesetting {
             };
         }
 
-        private makeOption(opts, text) {
+        private makeOption(opts, text, replaceText) {
             if (text.isUndefined && opts.isString) {
                 text = opts;
                 opts = null;
@@ -155,9 +158,11 @@ namespace Typesetting {
             if (opts_ && !opts.isObject) {
                 opts = opts_;
             }
-            defs_.each {
-                text = text.replace(_1.regex, _1.value);
-            };
+            if (replaceText.isUndefined || replaceText) {
+                defs_.each {
+                    text = text.replace(_1.regex, _1.value);
+                };
+            }
             return [opts, text];
         }
 
@@ -212,7 +217,7 @@ namespace Typesetting {
         }
 
         private paragraphBase(opts, text, settings) {
-            [opts, text] = makeOption(opts, text);
+            [opts, text] = makeOption(opts, text, false);
 
             var fontObj = context_.font.fontObj;
             var fontSize = context_.font.fontSize;
@@ -221,6 +226,7 @@ namespace Typesetting {
             var marginSize = info_.writer.makeMarginSize();
             var areaWidth = marginSize.width;
             var wordSet = info_.paragraphParser.parse(text);
+# wordSet.display();
             var words = wordSet.flatten();
             var nodes = context_.noIndent ? [] : [
                 Linebreak.Box(info_.base.indentSize, new Word(info_).setWord(fontObj, fontSize, '')),
@@ -241,7 +247,7 @@ namespace Typesetting {
             }
             nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
             nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 1));
-nodes.each { => _1.display() };
+# nodes.each { => _1.display() };
             var breaks;
             for (var i = 1; i < 10; ++i) {
                 breaks = new Linebreak(nodes, [areaWidth], { tolerance: i }).parse();
@@ -312,7 +318,7 @@ nodes.each { => _1.display() };
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
             context_.page.lineFeedWidthRatio = info_.base.lineFeedWidthRatio[level];
             var paragraphSkipWidth = context_.page.paragraphSkipWidth;
-            context_.page.paragraphSkipWidth = context_.font.fontSize * context_.page.lineFeedWidthRatio;
+            context_.page.paragraphSkipWidth = context_.font.fontSize * info_.base.paragraphSkipWidthRatio[level];
             if (!info_.writer.isTopOfPage()) {
                 var marginSize = info_.base.paragraphSkipWidthRatio[level] * context_.font.fontSize;
                 info_.writer.setMarginAbove(marginSize / 2);
@@ -356,10 +362,41 @@ nodes.each { => _1.display() };
                 var lines = paragraphBase(opts, text);
                 write(lines);
             };
-            writer.addY(info_.base.abstract.paragraphFeedWidth, true);
+            writer.addY(info_.base.abstract.paragraphSkipWidth, true);
+        }
+
+        public itemize(opts, items) {
+            if (items.isUndefined) {
+                items = opts;
+                opts = null;
+            }
+            var bullet = "\u2022";
+            var writer = info_.writer;
+            var textWidth = info_.measure.textWidth(context_.font.fontObj.utf8, context_.font.fontSize, bullet);
+            var n = Linebreak.Box(textWidth, new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, bullet));
+            var margin = makeMargin(opts);
+            var x = margin.left + (info_.base.itemize.margin - textWidth) / 2;
+            var indent = context_.noIndent;
+            context_.noIndent = true;
+            var paragraphSkipWidth = context_.page.paragraphSkipWidth;
+            context_.page.paragraphSkipWidth = info_.base.itemize.paragraphSkipWidth;
+            @set({ margin: { left: margin.left + info_.base.itemize.margin } }) {
+                items.each {
+                    writer.setX(x);
+                    writer.write(n);
+                    writer.setX(margin.left + info_.base.itemize.margin);
+                    [opts, text] = makeOption(opts, _1);
+                    var lines = paragraphBase(opts, _1);
+                    write(lines);
+                };
+            };
+            writer.addY(context_.page.paragraphSkipWidth - context_.page.lineFeedWidth, false);
+            context_.page.paragraphSkipWidth = paragraphSkipWidth;
+            context_.noIndent = indent;
         }
 
         public paragraph(opts, text) {
+            [opts, text] = makeOption(opts, text);
             var lines = paragraphBase(opts, text);
             pendings_.push({
                 isParagraph: true,
@@ -439,7 +476,7 @@ nodes.each { => _1.display() };
             var tlast = texts.length() - 1;
             var lineFeedWidthBase = fontSize * 1.3;
             texts.each { &(line, i):
-                var lineFeedWidth = i == tlast ? (lineFeedWidthBase + context_.page.paragraphSkipWith) : lineFeedWidthBase;
+                var lineFeedWidth = i == tlast ? (lineFeedWidthBase + context_.page.paragraphSkipWidth) : lineFeedWidthBase;
                 writeLine(opts, line, context_.font.fontObj, fontSize, lineFeedWidth);
             };
 
