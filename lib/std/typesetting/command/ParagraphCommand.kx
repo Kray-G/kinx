@@ -1,8 +1,8 @@
 namespace Typesetting {
 
-    namespace Command {
+    namespace ParagraphCommand {
 
-        class NullCommand(context_) {
+        class Pack(info_, context_) {
             public start() {
                 ;
             }
@@ -11,16 +11,7 @@ namespace Typesetting {
             }
         }
 
-        class Pack(context_) {
-            public start() {
-                ;
-            }
-            public end() {
-                ;
-            }
-        }
-
-        class Smaller(context_) {
+        class Smaller(info_, context_) {
             var fontSize_;
             public start() {
                 fontSize_ = context_.font.fontSize;
@@ -31,7 +22,7 @@ namespace Typesetting {
             }
         }
 
-        class Bigger(context_) {
+        class Bigger(info_, context_) {
             var fontSize_;
             public start() {
                 fontSize_ = context_.font.fontSize;
@@ -42,7 +33,18 @@ namespace Typesetting {
             }
         }
 
-        class Bold(context_) {
+        class Font(info_, context_) {
+            var fontSize_;
+            public start(params) {
+                fontSize_ = context_.font.fontSize;
+                context_.font.fontSize = Typesetting.Util.getPt(context_, params.size);
+            }
+            public end() {
+                context_.font.fontSize = fontSize_;
+            }
+        }
+
+        class Bold(info_, context_) {
             var fontObj_;
             public start() {
                 fontObj_ = context_.font.fontObj;
@@ -53,7 +55,7 @@ namespace Typesetting {
             }
         }
 
-        class Monotype(context_) {
+        class Monotype(info_, context_) {
             var fontObj_, fontObjBase_;
             public start() {
                 fontObj_ = context_.font.fontObj;
@@ -67,6 +69,28 @@ namespace Typesetting {
             }
         }
 
-    } # namespace Command
+        class Lower(info_, context_) {
+            var y_;
+            public start(params) {
+                y_ = context_.offsetY;
+                context_.offsetY = -Typesetting.Util.getPt(context_, params.height);
+            }
+            public end() {
+                context_.offsetY = y_;
+            }
+        }
+
+        class Raise(info_, context_) {
+            var y_;
+            public start(params) {
+                y_ = context_.offsetY;
+                context_.offsetY = Typesetting.Util.getPt(context_, params.height);
+            }
+            public end() {
+                context_.offsetY = y_;
+            }
+        }
+
+    } # namespace ParagraphCommand
 
 } # namespace Typesetting

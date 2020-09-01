@@ -1,0 +1,35 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class NullCommand(info_, context_) {
+            public start() {
+                ;
+            }
+            public exec() {
+                ;
+            }
+            public end() {
+                ;
+            }
+        }
+
+        class Glue(info_, context_) {
+            public exec(params) {
+                var width = Typesetting.Util.getPt(context_, params.width);
+                var stretch = Typesetting.Util.getPt(context_, params.stretch);
+                var shrink = Typesetting.Util.getPt(context_, params.shrink);
+                return Typesetting.Linebreak.Glue(width, stretch, shrink);
+            }
+        }
+
+        class Hspace(info_, context_) {
+            public exec(params) {
+                var width = Typesetting.Util.getPt(context_, params.width);
+                return Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ''));
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting
