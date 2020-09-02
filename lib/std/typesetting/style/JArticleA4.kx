@@ -23,6 +23,8 @@ namespace Style {
                 fontSize * 1.2,
                 fontSize * 1.1,
             ],
+            "widowPenalty":             1,
+            "orphanPenalty":            1,
             "title": {
                 "fontSize":             24,
                 "lineFeedWidth":        40,
@@ -35,11 +37,15 @@ namespace Style {
                 "title": "Abstract",
             },
             "itemize": {
-                "fontSize":             fontSize,
-                "lineFeedWidth":        fontSize * 1.4,
-                "paragraphSkipWidth":   fontSize * 1.4,
-                "margin":               20.0,
-                "title": "Abstract",
+                "fontSize":             [fontSize, fontSize-1, fontSize-1, fontSize-1],
+                "lineFeedWidthRatio":   [1.4, 1.4, 1.4, 1.4],
+                "paragraphSkipWidth":   [fontSize * 1.8, fontSize * 1.8, fontSize * 1.8, fontSize * 1.8],
+                "margin":               [20.0, 20.0, 20.0, 20.0],
+                "labelsep":             [4.62343, 4.62343, 4.62343, 4.62343],
+                "itemLabels": {
+                    'item':             ['\u2022', '\u25E6', '-', '*' ],
+                    'enum':             ['1.', '(a)', 'i.', 'A.' ],
+                }
             },
             "lineFeedWidthRatio": [
                 1.75,
