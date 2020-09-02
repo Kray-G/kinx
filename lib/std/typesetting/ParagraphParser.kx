@@ -17,8 +17,8 @@ namespace Typesetting {
         var $ = new Parsek();
         var measure_ = info_.measure;
         var paragraph_;
-        var word_ = $.regex(/([^\s\\\{\}])+|\\\{|\\\}/).map { &(word):
-            if (word == "\\{" || word == "\\}") {
+        var word_ = $.regex(/([^\s\\\{\}])+|\\\{|\\\}|\\\\/).map { &(word):
+            if (word == "\\{" || word == "\\}" || word == "\\\\") {
                 return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, *word[1]);
             }
             var hyphenWidth = measure_.hyphenWidth(context_.font.fontObj.en, context_.font.fontSize);
