@@ -163,18 +163,20 @@ namespace Typesetting {
         }
 
         public columnBreak() {
-            x_ = -1;
-            y_ = -1;
-            if (cols_ > 0) {            
-                curCol_ = (curCol_ + 1) % cols_;
-            }
-            if (curCol_ == 0) {
-                page_ = null;
+            if (y_ >= 0) {
+                x_ = -1;
+                y_ = -1;
+                if (cols_ > 0) {            
+                    curCol_ = (curCol_ + 1) % cols_;
+                }
+                if (curCol_ == 0) {
+                    page_ = null;
+                }
             }
         }
 
         public pageBreak() {
-            if (page_) {
+            if (page_.isDefined) {
                 x_ = -1;
                 y_ = -1;
                 curCol_ = 0;
@@ -186,7 +188,15 @@ namespace Typesetting {
             return isTopOfPage_;
         }
 
-        public checkPageBreak(totalLineFeeds) {
+        public getPositionBase() {
+            var margin = makeMarginSize();
+            return { x: x_, y: y_, bottom: margin.bottom };
+        }
+
+        public isColumnBreakPoint(totalLineFeeds) {
+            if (totalLineFeeds == 0) {
+                return false;
+            }
             var margin = makeMarginSize();
             if (!margin) {
                 return false;
@@ -194,12 +204,15 @@ namespace Typesetting {
             y = y_ - totalLineFeeds;
             var bottomMin = margin.bottom;
             if (y < bottomMin) {
-                var col = (curCol_ + 1) % cols_;
-                if (col == 0) {
-                    @pageBreak();
-                }
+                return true;
             }
             return false;
+        }
+
+        public checkColumnBreak(totalLineFeeds) {
+            if (isColumnBreakPoint(totalLineFeeds)) {
+                @columnBreak();
+            }
         }
 
         public lineBreak(lineFeedWidth) {
@@ -218,11 +231,11 @@ namespace Typesetting {
                 if (curCol_ == 0) {
                     page_ = null;
                     isTopOfPage_ = true;
-                    return false;
                 }
+                return true;
             }
             isTopOfPage_ = false;
-            return true;
+            return false;
         }
 
         public setMarginAbove(marginWidth) {
@@ -266,6 +279,11 @@ namespace Typesetting {
                 page_.moveTextPos(x_ + value.offsetX, y_ + value.offsetY);
                 page_.showText(value.word);
                 page_.endText();
+
+                # page_.setRGBFill(0, 0, 0);
+                # page_.moveTo(x_ + value.offsetX, y_ + value.offsetY);
+                # page_.lineTo(x_ + value.offsetX + width, y_ + value.offsetY);
+                # page_.fill();
             }
             x_ += width;
             return true;
