@@ -58,12 +58,13 @@ namespace Typesetting {
     }
 
     class PdfWriter(pagesize, direction, options_) {
-        var pdf_, page_, margin_, cols_, curCol_;
+        var pdf_, page_, margin_, pageMargin_;
+        var cols_, curCol_, isColMoved_;
         var pagesize_, direction_;
         var width_, height_, ascent_;
         var x_, y_, pageNumber_;
         var yhead_, isTopOfPage_;
-        var saved_, check_;
+        var lastLineFeedWidth_;
 
         private initialize() {
             pageNumber_ = 0;
@@ -89,6 +90,10 @@ namespace Typesetting {
             return [ fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_ ];
         }
 
+        public isColumnMoved() {
+            return isColMoved_;
+        }
+
         public setX(x) {
             x_ = x;
         }
@@ -112,6 +117,11 @@ namespace Typesetting {
             margin_ = margin;
         }
 
+        public setPageMargin(margin) {
+            pageMargin_ = margin;
+            margin_ = margin;
+        }
+
         public setColumn(cols) {
             if (cols != cols_) {
                 cols_ = cols;
@@ -127,12 +137,15 @@ namespace Typesetting {
                 }
             }
             var pageWidth = page_.getWidth();
-            var width = (pageWidth - margin_.left - margin_.right - (margin_.alley * (cols_ - 1))) / cols_;
-            var left = margin_.left + (curCol_ * width) + (margin_.alley * curCol_);
+            var width = (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
+            var ldiff = margin_.left - pageMargin_.left;
+            var rdiff = margin_.right - pageMargin_.right;
+            var pleft = pageMargin_.left + ((width + margin_.alley) * curCol_);
+            var left = margin_.left + ((width + margin_.alley) * curCol_);
             var margin = {
-                width: width,
+                width: width - ldiff - rdiff,
                 left: left,
-                right: pageWidth - left - width,
+                right: pageWidth - pleft - width,
                 top: margin_.top,
                 bottom: margin_.bottom,
             };
@@ -140,10 +153,6 @@ namespace Typesetting {
         }
 
         public addPage() {
-            if (check_) {
-                ++pageNumber_;
-                return false;
-            }
             if (pageNumber_ > 0) {
                 System.print("[%{pageNumber_}]");
             }
@@ -164,6 +173,7 @@ namespace Typesetting {
 
         public columnBreak() {
             if (y_ >= 0) {
+                isColMoved_ = true;
                 x_ = -1;
                 y_ = -1;
                 if (cols_ > 0) {            
@@ -172,6 +182,8 @@ namespace Typesetting {
                 if (curCol_ == 0) {
                     page_ = null;
                 }
+            } else {
+                isColMoved_ = false;
             }
         }
 
@@ -216,6 +228,7 @@ namespace Typesetting {
         }
 
         public lineBreak(lineFeedWidth) {
+            lastLineFeedWidth_ = lineFeedWidth;
             x_ = -1;
             y_ -= lineFeedWidth;
             var margin = makeMarginSize();
@@ -223,7 +236,9 @@ namespace Typesetting {
                 return false;
             }
             var bottomMin = margin.bottom + lineFeedWidth;
+            isColMoved_ = false;
             if (y_ < bottomMin) {
+                isColMoved_ = true;
                 y_ = -1;
                 if (cols_ > 0) {            
                     curCol_ = (curCol_ + 1) % cols_;
@@ -244,42 +259,45 @@ namespace Typesetting {
             }
         }
 
-        private setupWrite(value) {
+        private setupWrite(value, width, isBox, x) {
             if (page_.isUndefined) {
                 if (!@addPage()) {
                     return false;
                 }
             }
-            var font = value.font;
-            var fontSize = value.size;
-            ascent_ = (font.getAscent() / 1000) * fontSize;
+
             var margin = makeMarginSize();
-            var leftMin = margin.left;
-            var topMin = yhead_ > 0 ? yhead_ : (height_ - margin.top - ascent_);
-            if (x_ < 0) {
-                x_ = leftMin;
+            if (isBox) {
+                var font = value.font;
+                var fontSize = value.size;
+                ascent_ = (font.getAscent() / 1000) * fontSize;
+                var topMin = yhead_ > 0 ? yhead_ : (height_ - margin.top - ascent_);
+                if (y_ < 0) {
+                    y_ = topMin;
+                    x_ = -1;
+                }
+                page_.setFontAndSize(font, fontSize);
             }
-            if (y_ < 0) {
-                y_ = topMin;
+            if (x.isDefined) {
+                x_ = x;
+            } else if (x_ < 0) {
+                x_ = margin.left;
             }
-            page_.setFontAndSize(font, fontSize);
             return true;
         }
 
-        public write(node) {
+        public write(node, x) {
             var width = node.width;
             var value = node.value;
-            if (width > 0 && node.isBox) {
-                if (!setupWrite(value)) {
-                    return false;
-                }
+            if (!setupWrite(value, width, node.isBox, x)) {
+                return false;
             }
-            if (value && !check_) {
+
+            if (value) {
                 page_.beginText();
                 page_.moveTextPos(x_ + value.offsetX, y_ + value.offsetY);
                 page_.showText(value.word);
                 page_.endText();
-
                 # page_.setRGBFill(0, 0, 0);
                 # page_.moveTo(x_ + value.offsetX, y_ + value.offsetY);
                 # page_.lineTo(x_ + value.offsetX + width, y_ + value.offsetY);
@@ -287,6 +305,27 @@ namespace Typesetting {
             }
             x_ += width;
             return true;
+        }
+
+        public imageCenter(path) {
+            var image = pdf_.loadPngImageFromFile(path);
+            var width = image.getWidth();
+            var height = image.getHeight();
+            var margin = makeMarginSize();
+            var left, ratio;
+            if (margin.width < width) {
+                ratio = margin.width / width;
+                left = margin.left;
+            } else {
+                ratio = 1.0;
+                left = margin.left + (margin.width - width) / 2;
+            }
+            height = height * ratio;
+            var lineFeedWidth = (lastLineFeedWidth_ + ascent_) / 2;
+            var offsetY = lineFeedWidth - height;
+            y_ += offsetY;
+            page_.drawImage(image, left, y_, width * ratio, height);
+            lineBreak(lineFeedWidth - ascent_);
         }
 
         public save(file) {
