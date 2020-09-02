@@ -39,5 +39,24 @@ namespace Util {
         return value;
     };
 
+    var romanKey_    = ["","c","cc","ccc","cd","d","dc","dcc","dccc","cm","","x","xx","xxx","xl","l","lx","lxx","lxxx","xc","","i","ii","iii","iv","v","vi","vii","viii","ix"];
+    var romanKeyCap_ = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM","","X","XX","XXX","XL","L","LX","LXX","LXXX","XC","","I","II","III","IV","V","VI","VII","VIII","IX"];
+
+    Typesetting.Util.romanize = function(num) {
+        var digits = (""+num).split(""), roman = "", i = 3;
+        while (i--) {
+            roman = (romanKey_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
+        }
+        return ("M" * Integer.parseInt(digits.join(""))) + roman;
+    };
+
+    Typesetting.Util.romanizeCap = function(num) {
+        var digits = (""+num).split(""), roman = "", i = 3;
+        while (i--) {
+            roman = (romanKeyCap_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
+        }
+        return ("M" * Integer.parseInt(digits.join(""))) + roman;
+    };
+
 } # namespace Util
 } # namespace Typesetting

@@ -142,11 +142,35 @@ namespace Typesetting {
 
         public write(lines) {
             var writer = info_.writer;
+            var pos = writer.getPositionBase();
+            var y = pos.y;
+            var y1 = pos.y;
+            var bottom = pos.bottom;
+            var ll = lines.length();
+            var widowCheck = ll - info_.base.widowPenalty;
+            var doColumnBreak;
+            if (y > 0) {
+                for (var i = 0; i < widowCheck; ++i) {
+                    y -= lines[i].lineFeedWidth;
+                }
+                for (var i = widowCheck; i < ll; ++i) {
+                    y -= lines[i].lineFeedWidth;
+                    if (y < bottom) {
+                        doColumnBreak = true;
+                        break;
+                    }
+                }
+            }
+            --widowCheck;
             lines.each { &(line, i):
-                line.nodes.each { &(n):
-                    writer.write(n);
-                };
-                writer.lineBreak(line.lineFeedWidth);
+                if (doColumnBreak && widowCheck == i) {
+                    writer.columnBreak();
+                }
+                line.nodes.each { => writer.write(_1) };
+                var colBreaked = writer.lineBreak(line.lineFeedWidth);
+                if (colBreaked) {
+                    doColumnBreak = false;
+                }
             };
         }
 
@@ -336,7 +360,7 @@ namespace Typesetting {
         private flushParagraph() {
             var writer = info_.writer;
             var totalLineFeeds = pendings_.sum({ => _1.lineFeedWidth ?? 0 });
-            writer.checkPageBreak(totalLineFeeds);
+            writer.checkColumnBreak(totalLineFeeds);
             pendings_.each { => _1.func() };
             pendings_ = [];
         }
@@ -365,42 +389,142 @@ namespace Typesetting {
             writer.addY(info_.base.abstract.paragraphSkipWidth, true);
         }
 
+        private itemizeItem(opts, items, level, itemType, itemMarginBase, itemMargin, writer, margin, left, itemx) {
+            var bullet = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '-');
+            var textWidth = info_.measure.textWidth(context_.font.fontObj.utf8, context_.font.fontSize, bullet);
+            var x = left + itemMargin - info_.base.itemize.labelsep[level] - textWidth;
+            var n = Linebreak.Box(textWidth, new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, bullet));
+            var itemlist = items.items;
+            var ll = itemlist.length();
+            for (var i = 0; i < ll; ++i) {
+                var item = itemlist[i];
+                if (item.items.isArray) {
+                    item.level = level + 1;
+                    @itemize({ margin: margin, itemMarginBase: itemMarginBase + itemMargin }, item);
+                } else if (item.isString) {
+                    writer.setX(x);
+                    writer.write(n);
+                    writer.setX(itemx);
+                    var lines = paragraphBase({ margin: { left: itemx } }, item || "((none))");
+                    write(lines);
+                }
+            }
+
+            if (level == 0) {
+                writer.addY(context_.page.paragraphSkipWidth, false);
+            }
+        }
+
+        private itemizeEnum(opts, items, level, itemType, counterInit, itemMarginBase, itemMargin, writer, margin, left, itemx) {
+            var numberFormat = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '1. ');
+            var format, counter, getCounter;
+            if (numberFormat.find('1') >= 0) {
+                counter = 1;
+                format = '1';
+                getCounter = function() { return counter + 1; };
+            } else if (numberFormat.find('a') >= 0) {
+                counter = 'a';
+                format = 'a';
+                getCounter = function() { return counter.next(); };
+            } else if (numberFormat.find('i') >= 0) {
+                var counterBase = 1;
+                counter = Typesetting.Util.romanize(1);
+                format = 'i';
+                getCounter = function() { return Typesetting.Util.romanize(++counterBase); };
+            } else if (numberFormat.find('I') >= 0) {
+                var counterBase = 1;
+                counter = Typesetting.Util.romanizeCap(1);
+                format = 'i';
+                getCounter = function() { return Typesetting.Util.romanizeCap(++counterBase); };
+            } else if (numberFormat.find('A') >= 0) {
+                counter = 'A';
+                format = 'A';
+                getCounter = function() { return counter.next(); };
+            }
+            while (--counterInit) {
+                counter = getCounter();
+            }
+            var itemlist = items.items;
+            var ll = itemlist.length();
+            for (var i = 0; i < ll; ++i) {
+                var item = itemlist[i];
+                if (item.items.isArray) {
+                    item.level = level + 1;
+                    @itemize({ margin: margin, itemMarginBase: itemMarginBase + itemMargin }, item);
+                } else if (item.isString) {
+                    var number = numberFormat.replace(format, ""+counter);
+                    var textWidth = info_.measure.textWidth(context_.font.fontObj.utf8, context_.font.fontSize, number);
+                    var n = Linebreak.Box(textWidth, new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, number));
+                    var x = left + itemMargin - info_.base.itemize.labelsep[level] - textWidth;
+                    writer.setX(x);
+                    writer.write(n);
+                    writer.setX(itemx);
+                    var lines = paragraphBase({ margin: { left: itemx } }, item || "((none))");
+                    write(lines);
+                    counter = getCounter();
+                }
+            }
+
+            if (level == 0) {
+                writer.addY(context_.page.paragraphSkipWidth, false);
+            }
+        }
+
         public itemize(opts, items) {
             if (items.isUndefined) {
                 items = opts;
                 opts = null;
             }
-            var bullet = "\u2022";
-            var writer = info_.writer;
-            var textWidth = info_.measure.textWidth(context_.font.fontObj.utf8, context_.font.fontSize, bullet);
-            var n = Linebreak.Box(textWidth, new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, bullet));
-            var margin = makeMargin(opts);
-            var x = margin.left + (info_.base.itemize.margin - textWidth) / 2;
+            var level = items.level ?? 0;
+            var itemType = items.labelType ?? 'item';
+            var fontSize = context_.font.fontSize;
+            context_.font.fontSize = info_.base.itemize.fontSize[level];
             var indent = context_.noIndent;
             context_.noIndent = true;
             var paragraphSkipWidth = context_.page.paragraphSkipWidth;
-            context_.page.paragraphSkipWidth = info_.base.itemize.paragraphSkipWidth;
-            @set({ margin: { left: margin.left + info_.base.itemize.margin } }) {
-                items.each {
-                    writer.setX(x);
-                    writer.write(n);
-                    writer.setX(margin.left + info_.base.itemize.margin);
-                    [opts, text] = makeOption(opts, _1);
-                    var lines = paragraphBase(opts, _1);
-                    write(lines);
-                };
-            };
-            writer.addY(context_.page.paragraphSkipWidth - context_.page.lineFeedWidth, false);
+            context_.page.paragraphSkipWidth = info_.base.itemize.paragraphSkipWidth[level];
+            var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+            context_.page.lineFeedWidthRatio = info_.base.itemize.lineFeedWidthRatio[level];
+            var itemMargin = info_.base.itemize.margin[level];
+            var itemMarginBase = opts.itemMarginBase ?? 0;
+            var margin = opts.margin ?? makeMargin(opts);
+            var left = margin.left + itemMarginBase;
+            if (itemType == "item") {
+                itemizeItem(opts, items, level, itemType,
+                    itemMarginBase,
+                    itemMargin,
+                    info_.writer,
+                    margin,
+                    left,
+                    left + itemMargin);
+            } else if (itemType == "enum") {
+                itemizeEnum(opts, items, level, itemType, items.counter || 1,
+                    itemMarginBase,
+                    itemMargin,
+                    info_.writer,
+                    margin,
+                    left,
+                    left + itemMargin);
+            }
+
+            context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
+            context_.font.fontSize = fontSize;
             context_.noIndent = indent;
         }
 
         public paragraph(opts, text) {
             [opts, text] = makeOption(opts, text);
             var lines = paragraphBase(opts, text);
+            var lineFeedWidth = 0;
+            var ll = lines.length();
+            var op = info_.base.orphanPenalty + 1;
+            for (var i = 0, l = (op < ll ? op : ll); i < l; ++i) {
+                lineFeedWidth += lines[i].lineFeedWidth;
+            }
             pendings_.push({
                 isParagraph: true,
-                lineFeedWidth: lines[0].lineFeedWidth,
+                lineFeedWidth: lineFeedWidth,
                 func: &() => {
                     write(lines);
                 },
