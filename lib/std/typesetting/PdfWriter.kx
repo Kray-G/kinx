@@ -57,14 +57,15 @@ namespace Typesetting {
         }
     }
 
-    class PdfWriter(pagesize, direction, options_) {
+    class PdfWriter(pagesize, direction, info_) {
         var pdf_, page_, margin_, pageMargin_;
         var cols_, curCol_, isColMoved_;
         var pagesize_, direction_;
         var width_, height_, ascent_;
         var x_, y_, pageNumber_;
-        var yhead_, isTopOfPage_;
+        var ytop_, ybottom_, isTopOfPage_;
         var lastLineFeedWidth_;
+        var footnotes_ = [], nobreak_;
 
         private initialize() {
             pageNumber_ = 0;
@@ -73,7 +74,7 @@ namespace Typesetting {
             @setPageSize(pagesize, direction);
             cols_ = 1;
             curCol_ = 0;
-            @page = [];
+            @pages = [];
             @addPage();
             x_ = y_ = -1;
         }
@@ -94,12 +95,16 @@ namespace Typesetting {
             return isColMoved_;
         }
 
+        public getLastLineFeedWidth() {
+            return lastLineFeedWidth_;
+        }
+
         public setX(x) {
             x_ = x;
         }
 
         public setYHead() {
-            yhead_ = y_;
+            ytop_ = y_;
             isTopOfPage_ = true;
         }
 
@@ -125,24 +130,32 @@ namespace Typesetting {
         public setColumn(cols) {
             if (cols != cols_) {
                 cols_ = cols;
-                yhead_ = y_;
+                ytop_ = y_;
                 isTopOfPage_ = true;
             }
         }
 
-        public makeMarginSize() {
+        private getPageWidth(pageWidth) {
+            return (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
+        }
+
+        public makeMarginSize(page) {
+            if (page.isUndefined) {
+                page = page_;
+            }
             if (!page_) {
                 if (!@addPage()) {
                     return;
                 }
             }
             var pageWidth = page_.getWidth();
-            var width = (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
+            var width = getPageWidth(pageWidth);
             var ldiff = margin_.left - pageMargin_.left;
             var rdiff = margin_.right - pageMargin_.right;
             var pleft = pageMargin_.left + ((width + margin_.alley) * curCol_);
             var left = margin_.left + ((width + margin_.alley) * curCol_);
             var margin = {
+                columnWidth: width,
                 width: width - ldiff - rdiff,
                 left: left,
                 right: pageWidth - pleft - width,
@@ -152,19 +165,84 @@ namespace Typesetting {
             return margin;
         }
 
+        private writeFootnote(page, node, x, y) {
+            var width = node.width;
+            var value = node.value;
+            if (value) {
+                var font = value.font;
+                var fontSize = value.size;
+                page.setFontAndSize(font, fontSize);
+                page.beginText();
+                page.moveTextPos(x + value.offsetX, y + value.offsetY);
+                page.showText(value.word);
+                page.endText();
+            }
+# System.println([x, width]);
+            return x + width;
+        }
+
+        private flushFootnotes() {
+            if (footnotes_.length() > 0) {
+                var margin = info_.base.footnote.margin;
+                var labelsep = info_.base.footnote.labelsep;
+                var fontObj = info_.context.font.fontObj;
+                var fontSize = info_.base.footnote.fontSize * info_.base.footnote.numberSizeRatio;
+                var measure = info_.measure;
+                var page = @pages[-1];
+                var width = getPageWidth(page.getWidth());
+                page.gSave();
+                page.setLineWidth(0.3);
+                page.setRGBFill(0, 0, 0);
+                page.moveTo(pageMargin_.left, ybottom_);
+                page.lineTo(pageMargin_.left + width * 0.7, ybottom_);
+                page.stroke();
+                page.gRestore();
+                var ypos = ybottom_ - 10.0;
+                for (var f = 0, fl = footnotes_.length(); f < fl; ++f) {
+                    var footnote = footnotes_[f];
+                    var n = "" + footnote.number;
+                    var nwidth = measure.textWidth(fontObj.utf8, fontSize, n);
+                    var xpos = pageMargin_.left + margin - labelsep - nwidth;
+                    page.setFontAndSize(fontObj.utf8, fontSize);
+                    page.beginText();
+                    page.moveTextPos(xpos, ypos + 2);
+                    page.showText(n);
+                    page.endText();
+                    xpos = pageMargin_.left + margin;
+                    var lines = footnote.lines;
+                    for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                        var line = lines[i];
+                        line.nodes.each { &(node):
+                            xpos = writeFootnote(page, node, xpos, ypos);
+                        };
+                        ypos -= line.lineFeedWidth;
+                    }
+                };
+                footnotes_ = [];
+            }
+        }
+
         public addPage() {
             if (pageNumber_ > 0) {
                 System.print("[%{pageNumber_}]");
             }
+            flushFootnotes();
             page_ = pdf_.addPage();
             page_.setSize(pagesize_, direction_);
             width_ = page_.getWidth();
             height_ = page_.getHeight();
-            yhead_ = -1;
+            ytop_ = -1;
+            ybottom_ = -1;
             isTopOfPage_ = true;
-            @page.push(page_);
+            @pages.push(page_);
             ++pageNumber_;
+            context_.footnoteCounter = 0;
             return true;
+        }
+
+        public addFootnote(footnote) {
+            footnotes_.push(footnote);
+            ybottom_ = (ybottom_ > 0 ? ybottom_ : margin_.bottom) + footnote.lineFeedWidth;
         }
 
         public getPageNumber() {
@@ -206,7 +284,7 @@ namespace Typesetting {
         }
 
         public isColumnBreakPoint(totalLineFeeds) {
-            if (totalLineFeeds == 0) {
+            if (y_ < 0 || totalLineFeeds == 0) {
                 return false;
             }
             var margin = makeMarginSize();
@@ -214,7 +292,7 @@ namespace Typesetting {
                 return false;
             }
             y = y_ - totalLineFeeds;
-            var bottomMin = margin.bottom;
+            var bottomMin = ybottom_ > 0 ? ybottom_ : margin.bottom;
             if (y < bottomMin) {
                 return true;
             }
@@ -228,6 +306,9 @@ namespace Typesetting {
         }
 
         public lineBreak(lineFeedWidth) {
+            if (y_ < 0) {
+                return false;
+            }
             lastLineFeedWidth_ = lineFeedWidth;
             x_ = -1;
             y_ -= lineFeedWidth;
@@ -235,7 +316,7 @@ namespace Typesetting {
             if (!margin) {
                 return false;
             }
-            var bottomMin = margin.bottom + lineFeedWidth;
+            var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + lineFeedWidth;
             isColMoved_ = false;
             if (y_ < bottomMin) {
                 isColMoved_ = true;
@@ -271,7 +352,7 @@ namespace Typesetting {
                 var font = value.font;
                 var fontSize = value.size;
                 ascent_ = (font.getAscent() / 1000) * fontSize;
-                var topMin = yhead_ > 0 ? yhead_ : (height_ - margin.top - ascent_);
+                var topMin = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
                 if (y_ < 0) {
                     y_ = topMin;
                     x_ = -1;

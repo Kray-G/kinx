@@ -11,68 +11,117 @@ namespace Typesetting {
     var hyphenPenalty_ = Hypher.hyphenPenalty_;
     var Word = Typesetting.Word;
 
-    class Document(options_) {
-        var info_, context_, opts_;
-        var fontObjSerifBase_, fontObjSansBase_;
-        var fontObjSerif_, fontObjSans_;
-        var fontObjMonotype_, fontObjMonotypeBase_;
-        var pendings_ = [];
-        var defs_ = {};
+    class DocumentUtil(info_, context_, doc_) {
 
-        private initialize() {
-            if (options_.create.isFunction) {
-                options_ = new options_().style;
-            }
-            var pagesize = options_.pagesize ?? PDF_PAGE_SIZE_A4;
-            var direction = options_.direction ?? PDF_PAGE_PORTRAIT;
-            var fontSize = options_.fontSize[0] ?? 10.0;
-            var writer = new Typesetting.PdfWriter(pagesize, direction, options_.writer);
-            [fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_] = writer.getFontObjBase();
-            var measure = new Typesetting.Measurement(writer.getPdf(), writer.getPage());
-            info_.base = options_.clone();
-            info_.measure = measure;
-            info_.writer = writer;
-            writer.setPageMargin(info_.base.margin);
-            var pageSize = measure.getPageSize();
-            context_ = {
-                commands: [],
-                sectionNumber: [],
-                imageCounter: [1, 0],
-                noIndent: false,
-                page: {
-                    width: pageSize.width,
-                    height: pageSize.height,
-                    paragraphSkipWidth: info_.base.paragraphSkipWidthRatio[0] * fontSize,
-                    lineFeedWidthRatio: info_.base.lineFeedWidthRatio[0],
-                },
-                font: {
-                    fontObj: fontObjSerif_,
-                    fontObjBase: fontObjSerifBase_,
-                    fontSize: fontSize,
-                },
-                fontSet: {
-                    serif: {
-                        fontObj: fontObjSerif_,
-                        fontObjBase: fontObjSerifBase_,
-                    },
-                    sans: {
-                        fontObj: fontObjSans_,
-                        fontObjBase: fontObjSansBase_,
-                    },
-                    monotype: {
-                        fontObj: fontObjMonotype_,
-                        fontObjBase: fontObjMonotypeBase_,
-                    },
-                },
-            };
-            info_.paragraphParser = new Typesetting.ParagraphParser(context_, info_);
-            info_.context = context_;
+        var defs_ = [];
+        var opts_;
 
-            @define("TeX", %!T\hspace[width=-0.152em]\lower[height=0.171em]{E}\hspace[width=-0.084em]X!);
-            @define("LaTeX", %!L\hspace[width=-0.3em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
+        public add(name, value) {
+            defs_.unshift({
+                regex: new Regex("\\\\" + name + "\\b"),
+                value: value,
+            });
         }
 
-        public justifyLines(lines) {
+        public setOpts(opts) {
+            opts_ = opts;
+        }
+
+        public makeOption(opts, text, replaceText) {
+            if (text.isUndefined && opts.isString) {
+                text = opts;
+                opts = null;
+            }
+            if (opts_ && !opts.isObject) {
+                opts = opts_;
+            }
+            if (text && (replaceText.isUndefined || replaceText)) {
+                defs_.each {
+                    text = text.replace(_1.regex, _1.value);
+                };
+            }
+            return [opts, text];
+        }
+
+        public makeMargin(opts) {
+            var margin = info_.base.margin.clone();
+            if (opts.margin.left) {
+                margin.left = opts.margin.left;
+            }
+            if (opts.margin.right) {
+                margin.right = opts.margin.right;
+            }
+            return margin;
+        }
+
+        public write(lines) {
+            if (lines.length() == 0) {
+                return;
+            }
+            var writer = info_.writer;
+            var pos = writer.getPositionBase();
+            var y = pos.y;
+            var y1 = pos.y;
+            var bottom = pos.bottom;
+            var ll = lines.length();
+            var widowCheck = ll - info_.base.widowPenalty;
+            var doColumnBreak;
+            if (y > 0) {
+                for (var i = 0; i < widowCheck; ++i) {
+                    y -= lines[i].lineFeedWidth;
+                }
+                for (var i = widowCheck; i < ll; ++i) {
+                    y -= lines[i].lineFeedWidth;
+                    if (y < bottom) {
+                        doColumnBreak = true;
+                        break;
+                    }
+                }
+            }
+            --widowCheck;
+            var lastLineFeedWidth = writer.getLastLineFeedWidth();
+            if (lastLineFeedWidth < lines[0].height) {
+                writer.addY(lines[0].height - lastLineFeedWidth);
+            }
+            for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                var line = lines[i];
+                if (doColumnBreak && widowCheck == i) {
+                    writer.columnBreak();
+                }
+                line.nodes.each { => writer.write(_1) };
+                var colBreaked = writer.lineBreak(line.lineFeedWidth);
+                if (colBreaked) {
+                    doColumnBreak = false;
+                }
+            }
+        }
+
+        public writeCenter(opts, text, fontObj, fontSize, lineFeedWidth) {
+            var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, text);
+            var writer = info_.writer;
+            var margin = writer.makeMarginSize();
+            var x = (margin.width - textWidth) / 2 + margin.left;
+            var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+            writer.write(n, x);
+            writer.lineBreak(lineFeedWidth);
+            writer.setYHead();
+        }
+
+        public writeLine(opts, text, fontObj, fontSize, lineFeedWidth) {
+            var writer = info_.writer;
+            var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, text);
+            var margin = writer.makeMarginSize();
+            var x = margin.left;
+            var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+            writer.write(n, x);
+            writer.lineBreak(lineFeedWidth);
+        }
+
+    }
+
+    class Paragraph(info_, context_, doc_, util_) {
+
+        private setLineInfo(lines) {
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
             var llast = lines.length() - 1;
             if (llast >= 0) {
@@ -80,6 +129,36 @@ namespace Typesetting {
             }
             lines.each { &(line, li):
                 var lineFeedWidth = 0;
+                var maxHeight = 0;
+                line.nodes.each { &(n, i):
+                    var value = n.value;
+                    var word = value ? value.word : '';
+                    if (n.isBox && word != '') {
+                        var lfs = lineFeedWidthRatio * value.size;
+                        if (lineFeedWidth < lfs) {
+                            lineFeedWidth = lfs;
+                        }
+                    }
+                    var value = n.value;
+                    if (value.isWord) {
+                        var fontSize = value.fontSize();
+                        var fontObj = value.fontObj();
+                        var height = info_.measure.getAscent(fontObj, fontSize);
+                        if (maxHeight < height) {
+                            maxHeight = height;
+                        }
+                    }
+                };
+                if (li > 0) {
+                    lines[li-1].lineFeedWidth = lineFeedWidth;
+                }
+                line.height = maxHeight;
+            };
+        }
+
+        private justifyLines(lines) {
+            var llast = lines.length() - 1;
+            lines.each { &(line, li):
                 var x1 = 0.0;
                 var spaces = 0;
                 var expected = line.width;
@@ -89,10 +168,6 @@ namespace Typesetting {
                     var value = n.value;
                     var word = value ? value.word : '';
                     if (n.isBox && word != '') {
-                        var lfs = lineFeedWidthRatio * value.size;
-                        if (lineFeedWidth < lfs) {
-                            lineFeedWidth = lfs;
-                        }
                         x1 += n.width;
                     } else if (n.isBox && word == '') {
                         # indent.
@@ -109,9 +184,6 @@ namespace Typesetting {
                         x1 += n.width;
                     }
                 };
-                if (li > 0) {
-                    lines[li-1].lineFeedWidth = lineFeedWidth;
-                }
                 var diff = spaces > 0 ? ((x1 - expected) / spaces) : 0;
                 x1 = 0.0;
                 line.nodes.each(function(n, i) {
@@ -141,117 +213,7 @@ namespace Typesetting {
             };
         }
 
-        public write(lines) {
-            if (lines.length() == 0) {
-                return;
-            }
-            var writer = info_.writer;
-            var pos = writer.getPositionBase();
-            var y = pos.y;
-            var y1 = pos.y;
-            var bottom = pos.bottom;
-            var ll = lines.length();
-            var widowCheck = ll - info_.base.widowPenalty;
-            var doColumnBreak;
-            if (y > 0) {
-                for (var i = 0; i < widowCheck; ++i) {
-                    y -= lines[i].lineFeedWidth;
-                }
-                for (var i = widowCheck; i < ll; ++i) {
-                    y -= lines[i].lineFeedWidth;
-                    if (y < bottom) {
-                        doColumnBreak = true;
-                        break;
-                    }
-                }
-            }
-            --widowCheck;
-            lines.each { &(line, i):
-                if (doColumnBreak && widowCheck == i) {
-                    writer.columnBreak();
-                }
-                line.nodes.each { => writer.write(_1) };
-                var colBreaked = writer.lineBreak(line.lineFeedWidth);
-                if (colBreaked) {
-                    doColumnBreak = false;
-                }
-            };
-        }
-
-        private makeOption(opts, text, replaceText) {
-            if (text.isUndefined && opts.isString) {
-                text = opts;
-                opts = null;
-            }
-            if (opts_ && !opts.isObject) {
-                opts = opts_;
-            }
-            if (text && (replaceText.isUndefined || replaceText)) {
-                defs_.each {
-                    text = text.replace(_1.regex, _1.value);
-                };
-            }
-            return [opts, text];
-        }
-
-        private makeMargin(opts) {
-            var margin = info_.base.margin.clone();
-            if (opts.margin.left) {
-                margin.left = opts.margin.left;
-            }
-            if (opts.margin.right) {
-                margin.right = opts.margin.right;
-            }
-            return margin;
-        }
-
-        public columnBreak() {
-            info_.writer.columnBreak();
-        }
-
-        public pageBreak() {
-            info_.writer.pageBreak();
-        }
-
-        public define(name, value) {
-            defs_.unshift({
-                regex: new Regex("\\\\" + name + "\\b"),
-                value: value,
-            });
-        }
-
-        private writeCenter(opts, text, fontObj, fontSize, lineFeedWidth) {
-            var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, text);
-            var writer = info_.writer;
-            var margin = writer.makeMarginSize();
-            var x = (margin.width - textWidth) / 2 + margin.left;
-            var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
-            writer.write(n, x);
-            writer.lineBreak(lineFeedWidth);
-            writer.setYHead();
-        }
-
-        private writeLine(opts, text, fontObj, fontSize, lineFeedWidth) {
-            var writer = info_.writer;
-            var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, text);
-            var margin = writer.makeMarginSize();
-            var x = margin.left;
-            var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
-            writer.write(n, x);
-            writer.lineBreak(lineFeedWidth);
-        }
-
-        private paragraphBase(opts, text, settings) {
-            [opts, text] = makeOption(opts, text, false);
-
-            var fontObj = context_.font.fontObj;
-            var fontSize = context_.font.fontSize;
-            var margin = makeMargin(opts);
-            info_.writer.setMargin(margin);
-            var marginSize = info_.writer.makeMarginSize();
-            var areaWidth = marginSize.width;
-            var wordSet = info_.paragraphParser.parse(text);
-# wordSet.display();
+        private processWordSet(opts, wordSet, fontObj, fontSize, areaWidth, settings) {
             var words = wordSet.flatten();
             var nodes = [];
             if (!context_.noIndent) {
@@ -314,11 +276,11 @@ namespace Typesetting {
                         lineFeedWidth: 0,
                     });
                 }
-                # TODO: warning.
+                # # TODO: warning.
                 System.println("Warning: no lines...; ", lines.length());
-                System.println("----");
-                System.println(text);
-                System.println("----");
+                # System.println("----");
+                # System.println(text);
+                # System.println("----");
             } else {
                 var lineStart = 0;
                 for (var i = 1, blen = breaks.length(); i < blen; ++i) {
@@ -344,13 +306,60 @@ namespace Typesetting {
             if (opts.label.isBox) {
                 lines[0].nodes.unshift(opts.label);
             }
+            setLineInfo(lines);
             justifyLines(lines);
             return lines;
         }
 
-        private sectionBase(level, opts, text) {
-            [opts, text] = makeOption(opts, text);
+        public exec(opts, text, settings) {
+            [opts, text] = util_.makeOption(opts, text, false);
 
+            var wordSet = info_.paragraphParser.parse(text);
+            if (context_.footnotes.length() > 0) {
+                var margin = util_.makeMargin({ margin: { left: margin.left + info_.base.footnote.left } });
+                info_.writer.setMargin(margin);
+                var marginSize = info_.writer.makeMarginSize();
+                var fontSize = info_.base.footnote.fontSize;
+                var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+                context_.page.lineFeedWidthRatio = info_.base.footnote.lineFeedWidthRatio;
+                var paragraphSkipWidth = context_.page.paragraphSkipWidth;
+                context_.page.paragraphSkipWidth = info_.base.footnote.lineFeedWidthRatio * fontSize;
+                var indent = context_.noIndent;
+                context_.noIndent = true;
+                context_.footnotes.each { &(wordSet):
+                    var number = wordSet.footnoteNumber;
+                    var lines = processWordSet({}, wordSet, context_.font.fontObj, fontSize, marginSize.width, settings);
+                    var lineFeedWidth = lines.reduce { &(r, e) => r + e.lineFeedWidth };
+                    info_.writer.addFootnote({
+                        number: number,
+                        lines: lines,
+                        lineFeedWidth: lineFeedWidth,
+                    });
+                };
+                context_.noIndent = indent;
+                context_.page.paragraphSkipWidth = paragraphSkipWidth;
+                context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
+                context_.footnotes = [];
+            }
+
+            var margin = util_.makeMargin(opts);
+            info_.writer.setMargin(margin);
+            var marginSize = info_.writer.makeMarginSize();
+            return processWordSet(opts, wordSet, context_.font.fontObj, context_.font.fontSize, marginSize.width, settings);
+        }
+
+    }
+
+    class Section(info_, context_, doc_, util_, paragraph_) {
+
+        public getHeight(level) {
+            var lineFeedWidth = info_.base.fontSize[level] * info_.base.lineFeedWidthRatio[level];
+            var paragraphSkipWidth = context_.font.fontSize * context_.page.lineFeedWidthRatio;
+            var marginSize = info_.base.paragraphSkipWidthRatio[level] * context_.font.fontSize;
+            return lineFeedWidth + paragraphSkipWidth + marginSize / 2;
+        }
+
+        private makeSectionNumber(level) {
             var sectionNumber = context_.sectionNumber[level] ?? 0;
             var numText = [];
             if (context_.check) {
@@ -372,6 +381,14 @@ namespace Typesetting {
                 }
                 context_.sectionNumber = newNumbers;
             }
+            
+            return numText;
+        }
+
+        public exec(level, opts, text) {
+            [opts, text] = util_.makeOption(opts, text);
+
+            var numText = makeSectionNumber(level);
             var sectionNumberText = numText.join('.');
             var font = context_.font;
             context_.font = {
@@ -389,45 +406,17 @@ namespace Typesetting {
             }
             var indent = context_.noIndent;
             context_.noIndent = true;
-            var lines = paragraphBase(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
-            write(lines);
+            var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
+            util_.write(lines);
             context_.noIndent = indent;
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
             context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
             context_.font = font;
         }
 
-        private flushParagraph() {
-            var writer = info_.writer;
-            var totalLineFeeds = pendings_.sum({ => _1.lineFeedWidth ?? 0 });
-            writer.checkColumnBreak(totalLineFeeds);
-            pendings_.each { => _1.func() };
-            pendings_ = [];
-        }
+    }
 
-        public title(opts, text) {
-            [opts, text] = makeOption(opts, text);
-            info_.writer.setColumn(1);
-            writeCenter(opts, text, context_.font.fontObj, info_.base.title.fontSize, info_.base.title.lineFeedWidth);
-        }
-
-        public abstract(opts, text) {
-            [opts, text] = makeOption(opts, text);
-            var fontObj = context_.font.fontObj;
-            context_.font.fontObj = context_.font.fontObjBase.bold;
-            writeCenter(opts, info_.base.abstract.title, context_.font.fontObj, info_.base.abstract.fontSize, info_.base.abstract.lineFeedWidth);
-            context_.font.fontObj = fontObj;
-            var writer = info_.writer;
-            var pageWidth = writer.getPage().getWidth();
-            var margin = makeMargin(opts);
-            var width = (pageWidth - margin.left - margin.right) * info_.base.abstract.widthRatio;
-            var marginWidth = (pageWidth - width) / 2;
-            @set({ margin: { left: marginWidth, right: marginWidth } }) {
-                var lines = paragraphBase(opts, text);
-                write(lines);
-            };
-            writer.addY(info_.base.abstract.paragraphSkipWidth, true);
-        }
+    class Itemize(info_, context_, doc_, util_, paragraph_) {
 
         private itemizeItem(opts, items, level, itemType, itemMarginBase, itemMargin, writer, margin) {
             var bullet = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '-');
@@ -442,11 +431,11 @@ namespace Typesetting {
                 var item = itemlist[i];
                 if (item.items.isArray) {
                     item.level = level + 1;
-                    @itemize({ margin: margin, itemMarginBase: itemx }, item);
+                    @exec({ margin: margin, itemMarginBase: itemx }, item);
                 } else if (item.isString) {
-                    [opts, item] = makeOption(opts, item);
-                    var lines = paragraphBase({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
-                    write(lines);
+                    [opts, item] = util_.makeOption(opts, item);
+                    var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
+                    util_.write(lines);
                 }
             }
 
@@ -491,16 +480,16 @@ namespace Typesetting {
                 var item = itemlist[i];
                 if (item.items.isArray) {
                     item.level = level + 1;
-                    @itemize({ margin: margin, itemMarginBase: itemx }, item);
+                    @exec({ margin: margin, itemMarginBase: itemx }, item);
                 } else if (item.isString) {
                     var number = numberFormat.replace(format, ""+counter);
                     var textWidth = info_.measure.textWidth(context_.font.fontObj.utf8, context_.font.fontSize, number);
                     var label = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, number);
                     label.offsetX = -info_.base.itemize.labelsep[level] - textWidth;
                     var n = Linebreak.Box(0, label);
-                    [opts, item] = makeOption(opts, item);
-                    var lines = paragraphBase({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
-                    write(lines);
+                    [opts, item] = util_.makeOption(opts, item);
+                    var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
+                    util_.write(lines);
                     counter = getCounter();
                 }
             }
@@ -527,7 +516,7 @@ namespace Typesetting {
             context_.page.lineFeedWidthRatio = info_.base.itemize.lineFeedWidthRatio[level];
             var itemMargin = info_.base.itemize.margin[level];
             var itemMarginBase = opts.itemMarginBase ?? 0;
-            var margin = makeMargin(opts);
+            var margin = util_.makeMargin(opts);
             if (itemType == "item") {
                 itemizeItem(opts, items, level, itemType,
                     itemMarginBase,
@@ -548,9 +537,191 @@ namespace Typesetting {
             context_.noIndent = indent;
         }
 
+        public exec(opts, items) {
+            itemizeImpl(opts, items);
+        }
+
+    }
+
+    class Document(options_) {
+        var info_, context_;
+        var fontObjSerifBase_, fontObjSansBase_;
+        var fontObjSerif_, fontObjSans_;
+        var fontObjMonotype_, fontObjMonotypeBase_;
+        var pendings_ = [];
+        var core_ = {};
+
+        private initialize() {
+            if (options_.create.isFunction) {
+                options_ = new options_().style;
+            }
+            info_.base = options_.clone();
+            var pagesize = options_.pagesize ?? PDF_PAGE_SIZE_A4;
+            var direction = options_.direction ?? PDF_PAGE_PORTRAIT;
+            var fontSize = options_.fontSize[0] ?? 10.0;
+            var writer = new Typesetting.PdfWriter(pagesize, direction, info_);
+            [fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_] = writer.getFontObjBase();
+            var measure = new Typesetting.Measurement(writer.getPdf(), writer.getPage());
+            info_.measure = measure;
+            info_.writer = writer;
+            writer.setPageMargin(info_.base.margin);
+            var pageSize = measure.getPageSize();
+            context_ = {
+                noIndent: false,
+                commands: [],
+                sectionNumber: [],
+                imageCounter: [info_.base.sectionLevel, 0],
+                footnotes: [],
+                footnoteCounter: 0,
+                page: {
+                    width: pageSize.width,
+                    height: pageSize.height,
+                    paragraphSkipWidth: info_.base.paragraphSkipWidthRatio[0] * fontSize,
+                    lineFeedWidthRatio: info_.base.lineFeedWidthRatio[0],
+                },
+                font: {
+                    fontObj: fontObjSerif_,
+                    fontObjBase: fontObjSerifBase_,
+                    fontSize: fontSize,
+                    footnoteSize: info_.base.footnoteSize,
+                },
+                fontSet: {
+                    serif: {
+                        fontObj: fontObjSerif_,
+                        fontObjBase: fontObjSerifBase_,
+                    },
+                    sans: {
+                        fontObj: fontObjSans_,
+                        fontObjBase: fontObjSansBase_,
+                    },
+                    monotype: {
+                        fontObj: fontObjMonotype_,
+                        fontObjBase: fontObjMonotypeBase_,
+                    },
+                },
+            };
+            info_.paragraphParser = new Typesetting.ParagraphParser(context_, info_);
+            info_.context = context_;
+
+            core_.util = new DocumentUtil(info_, context_, this);
+            core_.paragraph = new Paragraph(info_, context_, this, core_.util);
+            core_.section = new Section(info_, context_, this, core_.util, core_.paragraph);
+            core_.itemize = new Itemize(info_, context_, this, core_.util, core_.paragraph);
+
+            @define("TeX", %!T\hspace[width=-0.152em]\lower[height=0.171em]{E}\hspace[width=-0.084em]X!);
+            @define("LaTeX", %!L\hspace[width=-0.3em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
+        }
+
+        public columnBreak() {
+            info_.writer.columnBreak();
+        }
+
+        public pageBreak() {
+            info_.writer.pageBreak();
+        }
+
+        public define(name, value) {
+            core_.util.add(name, value);
+        }
+
+        private flushParagraph() {
+            var writer = info_.writer;
+            var totalLineFeeds = pendings_.sum({ => _1.lineFeedWidth ?? 0 });
+            writer.checkColumnBreak(totalLineFeeds);
+            pendings_.each { => _1.func() };
+            pendings_ = [];
+        }
+
+        public title(opts, text) {
+            [opts, text] = core_.util.makeOption(opts, text);
+            info_.writer.setColumn(1);
+            core_.util.writeCenter(opts, text, context_.font.fontObj, info_.base.title.fontSize, info_.base.title.lineFeedWidth);
+        }
+
+        public abstract(opts, text) {
+            [opts, text] = core_.util.makeOption(opts, text);
+            var fontObj = context_.font.fontObj;
+            context_.font.fontObj = context_.font.fontObjBase.bold;
+            core_.util.writeCenter(opts, info_.base.abstract.title, context_.font.fontObj, info_.base.abstract.fontSize, info_.base.abstract.lineFeedWidth);
+            context_.font.fontObj = fontObj;
+            var writer = info_.writer;
+            var pageWidth = writer.getPage().getWidth();
+            var margin = core_.util.makeMargin(opts);
+            var width = (pageWidth - margin.left - margin.right) * info_.base.abstract.widthRatio;
+            var marginWidth = (pageWidth - width) / 2;
+            @set({ margin: { left: marginWidth, right: marginWidth } }) {
+                var lines = core_.paragraph.exec(opts, text);
+                core_.util.write(lines);
+            };
+            writer.addY(info_.base.abstract.paragraphSkipWidth, true);
+        }
+
+        public chapter(opts, text) {
+            if (info_.base.sectionLevel <= 1) {
+                throw RuntimeException("This style do not support a chapter");
+            }
+            info_.writer.setColumn(1);
+            pendings_.push({
+                lineFeedWidth: core_.section.getHeight(1),
+                func: &() => {
+                    core_.section.exec(1, opts, text);
+                },
+            });
+        }
+
+        public section(opts, text) {
+            info_.writer.setColumn(info_.base.columns);
+            pendings_.push({
+                isSection: true,
+                lineFeedWidth: core_.section.getHeight(1),
+                func: &() => {
+                    core_.section.exec(info_.base.sectionLevel, opts, text);
+                },
+            });
+        }
+
+        public subSection(opts, text) {
+            pendings_.push({
+                isSection: true,
+                lineFeedWidth: core_.section.getHeight(2),
+                func: &() => {
+                    core_.section.exec(info_.base.sectionLevel + 1, opts, text);
+                },
+            });
+        }
+
+        public subSubSection(opts, text) {
+            pendings_.push({
+                isSection: true,
+                lineFeedWidth: core_.section.getHeight(3),
+                func: &() => {
+                    core_.section.exec(info_.base.sectionLevel + 2, opts, text);
+                },
+            });
+        }
+
+        public paragraph(opts, text) {
+            [opts, text] = core_.util.makeOption(opts, text);
+            var lines = core_.paragraph.exec(opts, text);
+            var lineFeedWidth = 0;
+            var ll = lines.length();
+            var op = info_.base.orphanPenalty + 1;
+            for (var i = 0, l = (op < ll ? op : ll); i < l; ++i) {
+                lineFeedWidth += lines[i].lineFeedWidth;
+            }
+            pendings_.push({
+                isParagraph: true,
+                lineFeedWidth: lineFeedWidth,
+                func: &() => {
+                    core_.util.write(lines);
+                },
+            });
+            flushParagraph();
+        }
+
         public itemize(opts, items) {
             flushParagraph();
-            itemizeImpl(opts, items);
+            core_.itemize.exec(opts, items);
         }
 
         public image(opts) {
@@ -567,69 +738,11 @@ namespace Typesetting {
             }
             lt.push("" + num);
             var caption = info_.base.image.label + ' ' + lt.join('.') + ' ' + opts.caption;
-            writeCenter({}, caption, context_.font.fontObj, fontSize, lineFeedWidth);
+            core_.util.writeCenter({}, caption, context_.font.fontObj, fontSize, lineFeedWidth);
             info_.writer.lineBreak(lineFeedWidth);
         }
 
-        public paragraph(opts, text) {
-            [opts, text] = makeOption(opts, text);
-            var lines = paragraphBase(opts, text);
-            var lineFeedWidth = 0;
-            var ll = lines.length();
-            var op = info_.base.orphanPenalty + 1;
-            for (var i = 0, l = (op < ll ? op : ll); i < l; ++i) {
-                lineFeedWidth += lines[i].lineFeedWidth;
-            }
-            pendings_.push({
-                isParagraph: true,
-                lineFeedWidth: lineFeedWidth,
-                func: &() => {
-                    write(lines);
-                },
-            });
-            flushParagraph();
-        }
-
-        private getSectionHeight(level) {
-            var lineFeedWidth = info_.base.fontSize[level] * info_.base.lineFeedWidthRatio[level];
-            var paragraphSkipWidth = context_.font.fontSize * context_.page.lineFeedWidthRatio;
-            var marginSize = info_.base.paragraphSkipWidthRatio[level] * context_.font.fontSize;
-            return lineFeedWidth + paragraphSkipWidth + marginSize / 2;
-        }
-
-        public section(opts, text) {
-            info_.writer.setColumn(info_.base.columns);
-            pendings_.push({
-                isSection: true,
-                lineFeedWidth: getSectionHeight(1),
-                func: &() => {
-                    sectionBase(1, opts, text);
-                },
-            });
-        }
-
-        public subSection(opts, text) {
-            pendings_.push({
-                isSection: true,
-                lineFeedWidth: getSectionHeight(2),
-                func: &() => {
-                    context_.imageCounter = [1, 0];
-                    sectionBase(2, opts, text);
-                },
-            });
-        }
-
-        public subSubSection(opts, text) {
-            pendings_.push({
-                isSection: true,
-                lineFeedWidth: getSectionHeight(3),
-                func: &() => {
-                    sectionBase(3, opts, text);
-                },
-            });
-        }
-
-        public fontType(type) {
+        private fontType(type) {
             switch (type) {
             case "Serif":
                 context_.font.fontObj = fontObjSerif_;
@@ -649,12 +762,12 @@ namespace Typesetting {
         public code(opts, text) {
             flushParagraph();
 
-            [opts, text] = makeOption(opts, text);
+            [opts, text] = core_.util.makeOption(opts, text);
             var fontObj = context_.font.fontObj;
             var fontObjBase = context_.font.fontObjBase;
             fontType("Monotype");
 
-            var margin = makeMargin(opts);
+            var margin = core_.util.makeMargin(opts);
             var fontSize = context_.font.fontSize;
             opts.margin.left = margin.left + fontSize;
             var texts = text.split(/\r?\n/);
@@ -662,7 +775,7 @@ namespace Typesetting {
             var lineFeedWidthBase = fontSize * 1.3;
             texts.each { &(line, i):
                 var lineFeedWidth = i == tlast ? (lineFeedWidthBase + context_.page.paragraphSkipWidth) : lineFeedWidthBase;
-                writeLine(opts, line, context_.font.fontObj, fontSize, lineFeedWidth);
+                core_.util.writeLine(opts, line, context_.font.fontObj, fontSize, lineFeedWidth);
             };
 
             context_.font.fontObjBase = fontObjBase;
@@ -673,9 +786,9 @@ namespace Typesetting {
             var fontObj = context_.font.fontObj;
             var fontObjBase = context_.font.fontObjBase;
             fontType(opts.fontType);
-            opts_ = opts;
+            core_.util.setOpts(opts);
             func();
-            opts_ = null;
+            core_.util.setOpts(null);
             context_.font.fontObjBase = fontObjBase;
             context_.font.fontObj = fontObj;
         }

@@ -137,44 +137,52 @@ namespace Typesetting {
         var wlast = words.length() - 1;
         words.each { &(node, i):
             nodes.push(node);
-            if (node.isBox && node.value.word != '') {
+            var value = node.value;
+            if (node.isBox && !node.value.noGlue && node.value.word != '') {
                 var next = words[i+1];
                 if (next.isBox) {
                     if (specialCheck(info, Linebreak, nodes, i, words[i-1], node, next)) {
                         return;
                     }
+                }
 
-                    var value = node.value;
-                    var nextv = next.value;
-                    var noSpaceForNext = noSpaceForNext_.find(value.word) >= 0;
-                    var l1 = System.isUtf8Bytes(value.word[0]);
-                    if (l1 > 1 && value.word.length() == l1) {
-                        var d = value.size - node.width;
-                        if (d > 0 && !noSpaceForNext) {
-                            value.offsetX = d / 2;
-                        }
-                        node.width = value.size;
+                if (notHead_.find(value.word) >= 0) {
+                    nodes.pop();
+                    if (nodes[-1].isGlue) {
+                        nodes.pop();
                     }
-
-                    if (notHead_.find(value.word) >= 0) {
+                    nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                    nodes.push(node);
+                } else if (notTail_.find(value.word) >= 0) {
+                    var prev = words[i-1];
+                    if (prev.isBox && !prev.value.isUtf8) {
                         nodes.pop();
                         if (nodes[-1].isGlue) {
                             nodes.pop();
                         }
-                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                        setupSpace(info, value);
+                        nodes.push(Linebreak.Glue(0, space_.stretch, 1));
                         nodes.push(node);
-                    } else if (notTail_.find(value.word) >= 0) {
-                        var prev = words[i-1];
-                        if (prev.isBox && !prev.value.isUtf8) {
-                            nodes.pop();
-                            if (nodes[-1].isGlue) {
-                                nodes.pop();
+                    }
+                    nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                }
+
+                if (next.isBox) {
+                    if (specialCheck(info, Linebreak, nodes, i, words[i-1], node, next)) {
+                        return;
+                    }
+
+                    var nextv = next.value;
+                    var noSpaceForNext = noSpaceForNext_.find(value.word) >= 0;
+                    var l1 = System.isUtf8Bytes(value.word[0]);
+                    if (value.offsetX == 0 && value.offsetY == 0) {
+                        if (l1 > 1 && value.word.length() == l1) {
+                            var d = value.size - node.width;
+                            if (d > 0 && !noSpaceForNext) {
+                                value.offsetX = d / 2;
                             }
-                            setupSpace(info, value);
-                            nodes.push(Linebreak.Glue(0, space_.stretch, 1));
-                            nodes.push(node);
+                            node.width = value.size;
                         }
-                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                     }
 
                     if (nodes[-1].isBox && i != wlast) {
