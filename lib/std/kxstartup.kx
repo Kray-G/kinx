@@ -34,6 +34,7 @@ var Xml, Net;
     using kxfile;
     using kxgetopt;
     Zip.create = File._zipCreate;
+    Duktape.create = System.createDuktape;
     JSON.parse = System.parseJson;
     JSON.stringify = Array.toJsonString;
     Boolean = _BooleanClass;
