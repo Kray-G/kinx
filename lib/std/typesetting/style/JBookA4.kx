@@ -2,13 +2,13 @@
 namespace Typesetting {
 namespace Style {
 
-    class JArticleA4 {
+    class JBookA4 {
         var fontSize = 10.0;
         @style = {
             "pagesize":                 PDF_PAGE_SIZE_A4,
             "direction":                PDF_PAGE_PORTRAIT,
             "columns":                  1,
-            "sectionLevel":             1,
+            "sectionLevel":             2,
             "indentSize":               fontSize,
             "margin": {
                 "left":                 56.7,
@@ -17,14 +17,7 @@ namespace Style {
                 "top":                  68.0,
                 "alley":                20.3,
             },
-            "footnote": {
-                "left":                 20.0,
-                "numberSizeRatio":      0.7,
-                "fontSize":             fontSize * 0.8,
-                "lineFeedWidthRatio":   1.4,
-                "margin":               14.0,
-                "labelsep":             2.8,
-            },
+            "footnoteSize":             fontSize * 0.5,
             "fontSize": [
                 fontSize,
                 fontSize * 1.6,
@@ -44,6 +37,10 @@ namespace Style {
                 "paragraphSkipWidth":   24.5,
                 "widthRatio":           0.85,
                 "title": "Abstract",
+            },
+            "chapter": {
+                "label":                "Chapter",
+                "fontSize":             32,
             },
             "image": {
                 "label":                "Fig",
@@ -67,7 +64,7 @@ namespace Style {
                 1.5,
             ],
             "paragraphSkipWidthRatio": [
-                2.2,
+                2.4,
                 1.4,
                 1.4,
                 1.6,

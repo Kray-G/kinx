@@ -91,6 +91,27 @@ namespace Typesetting {
             }
         }
 
+        class Footnote(info_, context_) {
+            var fontSize_;
+            public start(params) {
+                fontSize_ = context_.font.fontSize;
+                context_.font.fontSize = info_.base.footnote.fontSize;
+            }
+            public end() {
+                context_.font.fontSize = fontSize_;
+            }
+            public translate(value) {
+                context_.footnotes.push(value);
+                value.footnoteNumber = ++context_.footnoteCounter;
+                var y = context_.offsetY;
+                context_.offsetY = Typesetting.Util.getPt(context_, "0.65em");
+                var numberSize = fontSize_ * info_.base.footnote.numberSizeRatio;
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, numberSize, '' + context_.footnoteCounter);
+                context_.offsetY = y;
+                return w;
+            }
+        }
+
     } # namespace ParagraphCommand
 
 } # namespace Typesetting
