@@ -17,7 +17,14 @@ namespace Style {
                 "top":                  68.0,
                 "alley":                20.3,
             },
-            "footnoteSize":             fontSize * 0.5,
+            "footnote": {
+                "left":                 20.0,
+                "numberSizeRatio":      0.7,
+                "fontSize":             fontSize * 0.8,
+                "lineFeedWidthRatio":   1.4,
+                "margin":               14.0,
+                "labelsep":             2.8,
+            },
             "fontSize": [
                 fontSize,
                 fontSize * 1.6,

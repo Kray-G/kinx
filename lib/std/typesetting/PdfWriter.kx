@@ -189,7 +189,8 @@ namespace Typesetting {
                 var fontSize = info_.base.footnote.fontSize * info_.base.footnote.numberSizeRatio;
                 var measure = info_.measure;
                 var page = @pages[-1];
-                var width = getPageWidth(page.getWidth());
+                # Currently supported the footnote is always in 1 column.
+                var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
                 page.gSave();
                 page.setLineWidth(0.3);
                 page.setRGBFill(0, 0, 0);
