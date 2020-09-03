@@ -1840,6 +1840,65 @@ int System_iconvbin(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return System_iconv(args, frmv, lexv, ctx, 1);
 }
 
+#include "duktape/duktape.h"
+#define KX_DUKTAPE_GET_PACK(r, obj) KX_GET_RAW(duk_context, "_pack", r, obj, "SystemException", "Invalid Duktape object")
+
+static int Duktape_evalString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_DUKTAPE_GET_PACK(duk, obj);
+    const char *source = get_arg_str(2, args, ctx);
+    if (!source) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid source code");
+    }
+    duk_push_string(duk, source);
+    if (duk_peval(duk) != 0) {
+        const char *msg = duk_safe_to_string(duk, -1);
+        const char *err = static_format("Duktape eval failed: %s\n", msg);
+        duk_pop(duk);
+        KX_THROW_BLTIN_EXCEPTION("SystemException", err);
+    }
+
+    const char *result = duk_safe_to_string(duk, -1);
+    kstr_t *sv = allocate_str(ctx);
+    if (result) {
+        ks_append(sv, result);
+    }
+    duk_pop(duk);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
+static void *create_duktape_context(void)
+{
+    duk_context *ctx = duk_create_heap_default();
+    return ctx;
+}
+
+static void free_duktape_context(void *p)
+{
+    duk_destroy_heap((duk_context *)p);
+}
+
+int System_createDuktape(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "isDuktape", 1);
+    kx_any_t *r = allocate_any(ctx);
+    r->p = create_duktape_context();
+    if (!r->p) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Cannot allocate duktape context");
+    }
+    r->any_free = free_duktape_context;
+    KEX_SET_PROP_ANY(obj, "_pack", r);
+    KEX_SET_METHOD("eval", obj, Duktape_evalString);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "getPlatform", System_getPlatform },
@@ -1889,6 +1948,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "callCFunction", System_callCFunction },
     { "iconvConvertStr", System_iconvstr },
     { "iconvConvertBin", System_iconvbin },
+    { "createDuktape", System_createDuktape }
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);

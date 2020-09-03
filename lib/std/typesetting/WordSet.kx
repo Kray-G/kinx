@@ -2,8 +2,34 @@ namespace Typesetting {
 
     var Linebreak = Typesetting.Linebreak;
 
+    class NullWord(info_) {
+        @isNullWord = true;
+        var measure_ = info_.measure;
+        private initialize() {
+        }
+        public setWord(fontObj, fontSize, word) {
+            return this;
+        }
+        public fontObj() {
+        }
+        public fontSize() {
+        }
+        public textWidth() {
+        }
+        public spaceWidth() {
+        }
+        public additionalSpace(width) {
+        }
+        public toString() {
+            return "{NullWord}";
+        }
+        public display(indent) {
+        }
+    }
+
     class Word(info_) {
         @isWord = true;
+        var context_ = info_.context;
         var measure_ = info_.measure;
         private initialize() {
             @word = '';
@@ -11,13 +37,15 @@ namespace Typesetting {
             @space = 0.0;
             @addSpace = 0.0;
         }
-        public setWord(fontObj, fontSize, word) {
+        public setWord(fontObj, fontSize, word, width) {
             @word = word;
             @isUtf8 = System.isUtf8Bytes(word[0]) > 1;
             @font = @isUtf8 ? fontObj.utf8 : fontObj.en;
             @size = fontSize;
-            @width = measure_.textWidth(@font, fontSize, word);
+            @width = width ?? measure_.textWidth(@font, fontSize, word);
             @space = measure_.spaceWidth(@font, fontSize);
+            @offsetX = context_.offsetX;
+            @offsetY = context_.offsetY;
             return this;
         }
         public fontObj() {
@@ -36,7 +64,7 @@ namespace Typesetting {
             @addSpace = width;
         }
         public toString() {
-            return "{'%{@word}',%{@font.getFontName()},%{@size}, offset:%{@offset}}";
+            return "{'%{@word}',%{@font.getFontName()},%{@size}, offset:[%{@offsetX},%{@offsetY}]}";
         }
         public display(indent) {
             indent ??= 0;
@@ -108,7 +136,7 @@ namespace Typesetting {
                     result += word.flatten();
                 } else if (word.isWord) {
                     result.push(Linebreak.Box(word.width, word));
-                } else {
+                } else if (!word.isNullWord) {
                     result.push(word);
                 }
             };
