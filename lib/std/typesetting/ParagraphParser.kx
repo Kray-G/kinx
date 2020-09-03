@@ -77,19 +77,23 @@ namespace Typesetting {
         var commandNames = Typesetting.Command.keySet()
             .filter { => Typesetting.Command[_1].create.isFunction }
             .join('|');
-        var command_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})(?:\[([^\]]+)\])?!), [1, 2]).map {
+        var command_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})(?:\[([^\]]+)\])?(?:\{(\\\{|[^\}]+)\})?!), [1, 2, 3]).map {
             var name = _1[0].toUpper(0, 1);
             var params, pbase = _1[1];
             if (pbase.length() > 0) {
-                params = {};
-                pbase.split(",")
-                    .map { => _1.split('=') }
-                    .reduce(&(r, e) => (r[e[0].trim()] = e[1].trim()), params);
+                if (pbase.find('=') >= 0) {
+                    params = {};
+                    pbase.split(",")
+                        .map { => _1.split('=') }
+                        .reduce(&(r, e) => (r[e[0].trim()] = e[1].trim()), params);
+                } else {
+                    params = pbase;
+                }
             } else {
                 params = {};
             }
             var command = new Typesetting.Command[name](info_, context_);
-            return command.exec(params);
+            return command.exec(params, _1[2]);
         };
         commandNames = Typesetting.ParagraphCommand.keySet()
             .filter { => Typesetting.ParagraphCommand[_1].create.isFunction }
@@ -121,9 +125,28 @@ namespace Typesetting {
                 command.end();
             }
         };
-        var parCommand_ = $.lazy { => (parCommandStart_ + paragraph_ + parCommandEnd_).map { 
+        var paragraphMap_ = $.lazy { => paragraph_ }.map {
+            var value = @parseEach(_1);
+            if (context_.commands.length() > 0) {
+                var c = context_.commands[-1];
+                var command = c.command;
+                if (command.translate.isFunction) {
+                    value = command.translate(value);
+                }
+            }
+            return value;
+        };
+        var parCommand_ = (parCommandStart_ + paragraphMap_ + parCommandEnd_).map {
             return @parseEach(_1[1]);
-        } };
+        };
+        var unknownCommand_ = ($.regex(/\\[a-zA-Z][0-9a-zA-Z]*/) + $.index).map {
+            var name = _1[0];
+            var index = _1[1];
+            throw RuntimeException('Unknown command (%{name}) at the line ' + index.line);
+        };
+        var urlLink_ = ($.regex(/(https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)/)).map {
+            return @parseEach(_1);
+        };
         var optWhitespace_ = $.optWhitespace.map {
             if (_1 == "") {
                 return;
@@ -133,7 +156,7 @@ namespace Typesetting {
             var shrink = (width * 3) / 9;
             return Linebreak.Glue(width, stretch, shrink);
         };
-        paragraph_ = (optWhitespace_ + (parCommand_ / command_ / word_)).many().map { &(elem)
+        paragraph_ = (optWhitespace_ + (parCommand_ / command_ / unknownCommand_ / urlLink_ / word_)).many().map { &(elem)
             var words = new WordSet(info_);
             elem.each {
                 if (_1[0]) {

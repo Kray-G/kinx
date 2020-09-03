@@ -1,13 +1,16 @@
 namespace Typesetting {
 namespace Util {
 
+    var re_ = /^([-+]?([0-9]+)?(?:\.[0-9]+)?)(em|ex|in|cm|mm|pt|pc|px)?$/;
+
     Typesetting.Util.getPt = function(context_, sizeString) {
-        sizeString ??= "";
         var value, unit;
-        if (g = (sizeString =~ /^([-+]?([0-9]+)?(?:\.[0-9]+)?)(em|ex|in|cm|mm|pt|pc|px)?$/)) {
-            unit = g[3].string;
-            value = g[1].string;
-            if (g[1].string == "") {
+        sizeString ??= "";
+        re_.reset(sizeString);
+        if (re_.matches()) {
+            unit = re_.group[3].string;
+            value = re_.group[1].string;
+            if (re_.group[1].string == "") {
                 value = "0" + value;
             }
         }
