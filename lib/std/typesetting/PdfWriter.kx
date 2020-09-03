@@ -1,6 +1,6 @@
 namespace Typesetting {
 
-    var fontObjSerif_, fontObjSans_;
+    var fontObjSerif_, fontObjSans_, fontObjMonotype_;
     var fontObjSerifBase_ = {
         regular: null,
         bold: null,
@@ -11,9 +11,12 @@ namespace Typesetting {
         bold: null,
         itaric: null,
     };
+    var fontObjMonotypeBase_ = {
+        regular: null,
+        bold: null,
+    };
 
     function loadFonts(pdf) {
-        var mono = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Monospace-Normal.ttf", true), "UTF-8");
         if (fontObjSerif_.isUndefined) {
             var regular = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-R.ttc", 1, true), "UTF-8");
             var bold = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-B.ttc", 1, true), "UTF-8");
@@ -24,10 +27,6 @@ namespace Typesetting {
             fontObjSerifBase_.bold = {
                 utf8: bold,
                 en: bold,
-            };
-            fontObjSerifBase_.monotype = {
-                utf8: mono,
-                en: mono,
             };
             fontObjSerif_ = fontObjSerifBase_.regular;
         }
@@ -42,21 +41,31 @@ namespace Typesetting {
                 utf8: bold,
                 en: bold,
             };
-            fontObjSansBase_.monotype = {
+            fontObjSans_ = fontObjSansBase_.regular;
+        }
+        if (fontObjMonotype_.isUndefined) {
+            var mono = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Monospace-Normal.ttf", true), "UTF-8");
+            fontObjMonotypeBase_.regular = {
                 utf8: mono,
                 en: mono,
             };
-            fontObjSans_ = fontObjSansBase_.regular;
+            fontObjMonotypeBase_.bold = {
+                utf8: mono,
+                en: mono,
+            };
+            fontObjMonotype_ = fontObjMonotypeBase_.regular;
         }
     }
 
-    class PdfWriter(pagesize, direction) {
-        var pdf_, page_, margin_, cols_, curCol_;
+    class PdfWriter(pagesize, direction, info_) {
+        var pdf_, page_, margin_, pageMargin_;
+        var cols_, curCol_, isColMoved_;
         var pagesize_, direction_;
         var width_, height_, ascent_;
         var x_, y_, pageNumber_;
-        var yhead_;
-        var saved_, check_;
+        var ytop_, ybottom_, isTopOfPage_;
+        var lastLineFeedWidth_;
+        var footnotes_ = [], nobreak_;
 
         private initialize() {
             pageNumber_ = 0;
@@ -65,6 +74,7 @@ namespace Typesetting {
             @setPageSize(pagesize, direction);
             cols_ = 1;
             curCol_ = 0;
+            @pages = [];
             @addPage();
             x_ = y_ = -1;
         }
@@ -78,7 +88,15 @@ namespace Typesetting {
         }
 
         public getFontObjBase() {
-            return [ fontObjSerif_, fontObjSans_, fontObjSerifBase_, fontObjSansBase_ ];
+            return [ fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_ ];
+        }
+
+        public isColumnMoved() {
+            return isColMoved_;
+        }
+
+        public getLastLineFeedWidth() {
+            return lastLineFeedWidth_;
         }
 
         public setX(x) {
@@ -86,11 +104,13 @@ namespace Typesetting {
         }
 
         public setYHead() {
-            yhead_ = y_;
+            ytop_ = y_;
+            isTopOfPage_ = true;
         }
 
-        public addY(y) {
+        public addY(y, isTop) {
             y_ -= y;
+            isTopOfPage_ = isTop;
         }
 
         public setPageSize(pagesize, direction) {
@@ -102,114 +122,217 @@ namespace Typesetting {
             margin_ = margin;
         }
 
-        public setColumn(cols) {
-            cols_ = cols;
-            yhead_ = y_;
+        public setPageMargin(margin) {
+            pageMargin_ = margin;
+            margin_ = margin;
         }
 
-        public makeMarginSize() {
+        public setColumn(cols) {
+            if (cols != cols_) {
+                cols_ = cols;
+                ytop_ = y_;
+                isTopOfPage_ = true;
+            }
+        }
+
+        private getPageWidth(pageWidth) {
+            return (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
+        }
+
+        public makeMarginSize(page) {
+            if (page.isUndefined) {
+                page = page_;
+            }
             if (!page_) {
                 if (!@addPage()) {
                     return;
                 }
             }
             var pageWidth = page_.getWidth();
-            var width = (pageWidth - margin_.left - margin_.right - (margin_.alley * (cols_ - 1))) / cols_;
-            var left = margin_.left + (curCol_ * width) + (margin_.alley * curCol_);
+            var width = getPageWidth(pageWidth);
+            var ldiff = margin_.left - pageMargin_.left;
+            var rdiff = margin_.right - pageMargin_.right;
+            var pleft = pageMargin_.left + ((width + margin_.alley) * curCol_);
+            var left = margin_.left + ((width + margin_.alley) * curCol_);
             var margin = {
-                width: width,
+                columnWidth: width,
+                width: width - ldiff - rdiff,
                 left: left,
-                right: pageWidth - left - width,
+                right: pageWidth - pleft - width,
                 top: margin_.top,
                 bottom: margin_.bottom,
             };
             return margin;
         }
 
-        public addPage() {
-            if (check_) {
-                ++pageNumber_;
-                return false;
+        private writeFootnote(page, node, x, y) {
+            var width = node.width;
+            var value = node.value;
+            if (value) {
+                var font = value.font;
+                var fontSize = value.size;
+                page.setFontAndSize(font, fontSize);
+                page.beginText();
+                page.moveTextPos(x + value.offsetX, y + value.offsetY);
+                page.showText(value.word);
+                page.endText();
             }
+# System.println([x, width]);
+            return x + width;
+        }
+
+        private flushFootnotes() {
+            if (footnotes_.length() > 0) {
+                var margin = info_.base.footnote.margin;
+                var labelsep = info_.base.footnote.labelsep;
+                var fontObj = info_.context.font.fontObj;
+                var fontSize = info_.base.footnote.fontSize * info_.base.footnote.numberSizeRatio;
+                var measure = info_.measure;
+                var page = @pages[-1];
+                # Currently supported the footnote is always in 1 column.
+                var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
+                page.gSave();
+                page.setLineWidth(0.3);
+                page.setRGBFill(0, 0, 0);
+                page.moveTo(pageMargin_.left, ybottom_);
+                page.lineTo(pageMargin_.left + width * 0.7, ybottom_);
+                page.stroke();
+                page.gRestore();
+                var ypos = ybottom_ - 10.0;
+                for (var f = 0, fl = footnotes_.length(); f < fl; ++f) {
+                    var footnote = footnotes_[f];
+                    var n = "" + footnote.number;
+                    var nwidth = measure.textWidth(fontObj.utf8, fontSize, n);
+                    var xpos = pageMargin_.left + margin - labelsep - nwidth;
+                    page.setFontAndSize(fontObj.utf8, fontSize);
+                    page.beginText();
+                    page.moveTextPos(xpos, ypos + 2);
+                    page.showText(n);
+                    page.endText();
+                    xpos = pageMargin_.left + margin;
+                    var lines = footnote.lines;
+                    for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                        var line = lines[i];
+                        line.nodes.each { &(node):
+                            xpos = writeFootnote(page, node, xpos, ypos);
+                        };
+                        ypos -= line.lineFeedWidth;
+                    }
+                };
+                footnotes_ = [];
+            }
+        }
+
+        public addPage() {
             if (pageNumber_ > 0) {
                 System.print("[%{pageNumber_}]");
             }
+            flushFootnotes();
             page_ = pdf_.addPage();
             page_.setSize(pagesize_, direction_);
             width_ = page_.getWidth();
             height_ = page_.getHeight();
-            yhead_ = -1;
+            ytop_ = -1;
+            ybottom_ = -1;
+            isTopOfPage_ = true;
+            @pages.push(page_);
             ++pageNumber_;
+            context_.footnoteCounter = 0;
             return true;
+        }
+
+        public addFootnote(footnote) {
+            footnotes_.push(footnote);
+            ybottom_ = (ybottom_ > 0 ? ybottom_ : margin_.bottom) + footnote.lineFeedWidth;
         }
 
         public getPageNumber() {
             return pageNumber_;
         }
 
-        public saveCurretParameters() {
-            saved_.page = page_;
-            saved_.curCol = curCol_;
-            saved_.x = x_;
-            saved_.y = y_;
-            saved_.ascent = ascent_;
-            saved_.yhead = yhead_;
-            saved_.width = width_;
-            saved_.height = height_;
-            saved_.pageNumber = pageNumber_;
-            check_ = true;
-        }
-
-        public restoreCurretParameters() {
-            page_ = saved_.page;
-            curCol_ = saved_.curCol;
-            x_ = saved_.x;
-            y_ = saved_.y;
-            ascent_ = saved_.ascent;
-            yhead_ = saved_.yhead;
-            width_ = saved_.width;
-            height_ = saved_.height;
-            pageNumber_ = saved_.pageNumber;
-            check_ = false;
-        }
-
         public columnBreak() {
-            x_ = -1;
-            y_ = -1;
-            if (cols_ > 0) {            
-                curCol_ = (curCol_ + 1) % cols_;
-            }
-            if (curCol_ == 0) {
-                page_ = null;
-            }
-        }
-
-        public pageBreak() {
-            x_ = -1;
-            y_ = -1;
-            curCol_ = 0;
-            page_ = null;
-        }
-
-        public lineBreak(lineFeedWidth) {
-            x_ = -1;
-            y_ -= lineFeedWidth;
-            var margin = makeMarginSize();
-            if (!margin) {
-                return false;
-            }
-            var bottomMin = margin.bottom + lineFeedWidth;
-            if (y_ < bottomMin) {
+            if (y_ >= 0) {
+                isColMoved_ = true;
+                x_ = -1;
                 y_ = -1;
                 if (cols_ > 0) {            
                     curCol_ = (curCol_ + 1) % cols_;
                 }
                 if (curCol_ == 0) {
                     page_ = null;
-                    return false;
                 }
+            } else {
+                isColMoved_ = false;
             }
-            return true;
+        }
+
+        public pageBreak() {
+            if (page_.isDefined) {
+                x_ = -1;
+                y_ = -1;
+                curCol_ = 0;
+                page_ = null;
+            }
+        }
+
+        public isTopOfPage() {
+            return isTopOfPage_;
+        }
+
+        public getPositionBase() {
+            var margin = makeMarginSize();
+            return { x: x_, y: y_, bottom: margin.bottom };
+        }
+
+        public isColumnBreakPoint(totalLineFeeds) {
+            if (y_ < 0 || totalLineFeeds == 0) {
+                return false;
+            }
+            var margin = makeMarginSize();
+            if (!margin) {
+                return false;
+            }
+            y = y_ - totalLineFeeds;
+            var bottomMin = ybottom_ > 0 ? ybottom_ : margin.bottom;
+            if (y < bottomMin) {
+                return true;
+            }
+            return false;
+        }
+
+        public checkColumnBreak(totalLineFeeds) {
+            if (isColumnBreakPoint(totalLineFeeds)) {
+                @columnBreak();
+            }
+        }
+
+        public lineBreak(lineFeedWidth) {
+            if (y_ < 0) {
+                return false;
+            }
+            lastLineFeedWidth_ = lineFeedWidth;
+            x_ = -1;
+            y_ -= lineFeedWidth;
+            var margin = makeMarginSize();
+            if (!margin) {
+                return false;
+            }
+            var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + lineFeedWidth;
+            isColMoved_ = false;
+            if (y_ < bottomMin) {
+                isColMoved_ = true;
+                y_ = -1;
+                if (cols_ > 0) {            
+                    curCol_ = (curCol_ + 1) % cols_;
+                }
+                if (curCol_ == 0) {
+                    page_ = null;
+                    isTopOfPage_ = true;
+                }
+                return true;
+            }
+            isTopOfPage_ = false;
+            return false;
         }
 
         public setMarginAbove(marginWidth) {
@@ -218,44 +341,73 @@ namespace Typesetting {
             }
         }
 
-        private setupWrite(value) {
+        private setupWrite(value, width, isBox, x) {
             if (page_.isUndefined) {
                 if (!@addPage()) {
                     return false;
                 }
             }
-            var font = value.font;
-            var fontSize = value.size;
-            ascent_ = (font.getAscent() / 1000) * fontSize;
+
             var margin = makeMarginSize();
-            var leftMin = margin.left;
-            var topMin = yhead_ > 0 ? yhead_ : height_ - margin.top - ascent_;
-            if (x_ < 0) {
-                x_ = leftMin;
+            if (isBox) {
+                var font = value.font;
+                var fontSize = value.size;
+                ascent_ = (font.getAscent() / 1000) * fontSize;
+                var topMin = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+                if (y_ < 0) {
+                    y_ = topMin;
+                    x_ = -1;
+                }
+                page_.setFontAndSize(font, fontSize);
             }
-            if (y_ < 0) {
-                y_ = topMin;
+            if (x.isDefined) {
+                x_ = x;
+            } else if (x_ < 0) {
+                x_ = margin.left;
             }
-            page_.setFontAndSize(font, fontSize);
             return true;
         }
 
-        public write(node) {
+        public write(node, x) {
             var width = node.width;
             var value = node.value;
-            if (width > 0 && node.isBox) {
-                if (!setupWrite(value)) {
-                    return false;
-                }
+            if (!setupWrite(value, width, node.isBox, x)) {
+                return false;
             }
-            if (value && !check_) {
+
+            if (value) {
                 page_.beginText();
-                page_.moveTextPos(x_ + value.offset, y_);
+                page_.moveTextPos(x_ + value.offsetX, y_ + value.offsetY);
                 page_.showText(value.word);
                 page_.endText();
+                # page_.setRGBFill(0, 0, 0);
+                # page_.moveTo(x_ + value.offsetX, y_ + value.offsetY);
+                # page_.lineTo(x_ + value.offsetX + width, y_ + value.offsetY);
+                # page_.fill();
             }
             x_ += width;
             return true;
+        }
+
+        public imageCenter(path) {
+            var image = pdf_.loadPngImageFromFile(path);
+            var width = image.getWidth();
+            var height = image.getHeight();
+            var margin = makeMarginSize();
+            var left, ratio;
+            if (margin.width < width) {
+                ratio = margin.width / width;
+                left = margin.left;
+            } else {
+                ratio = 1.0;
+                left = margin.left + (margin.width - width) / 2;
+            }
+            height = height * ratio;
+            var lineFeedWidth = (lastLineFeedWidth_ + ascent_) / 2;
+            var offsetY = lineFeedWidth - height;
+            y_ += offsetY;
+            page_.drawImage(image, left, y_, width * ratio, height);
+            lineBreak(lineFeedWidth - ascent_);
         }
 
         public save(file) {

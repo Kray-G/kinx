@@ -27,6 +27,10 @@ namespace Typesetting {
             measure_.setFontAndSize(fontObj, fontSize);
             return measure_.textWidth(text);
         }
+        public getAscent(fontObj, fontSize) {
+            var ascent = fontObj.getAscent();
+            return ascent * fontSize / 1000;
+        }
     }
 
 } # namespace Typesetting
