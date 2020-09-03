@@ -1,0 +1,65 @@
+namespace Typesetting {
+namespace Util {
+
+    var re_ = /^([-+]?([0-9]+)?(?:\.[0-9]+)?)(em|ex|in|cm|mm|pt|pc|px)?$/;
+
+    Typesetting.Util.getPt = function(context_, sizeString) {
+        var value, unit;
+        sizeString ??= "";
+        re_.reset(sizeString);
+        if (re_.matches()) {
+            unit = re_.group[3].string;
+            value = re_.group[1].string;
+            if (re_.group[1].string == "") {
+                value = "0" + value;
+            }
+        }
+        value = Double.parseDouble(value ?? 0.0);
+        switch (unit) {
+        case "em":
+            value *= context_.font.fontSize;
+            break;
+        case "ex":
+            var xh = context_.font.fontObj.utf8.getXHeight();
+            value *= (xh * context_.font.fontSize) / 1000;
+            break;
+        case "px":
+            value /= 1.33;
+            break;
+        case "pc":
+            value *= (16/1.33);
+            break;
+        case "mm":
+            value *= 2.8346;
+            break;
+        case "cm":
+            value *= 28.346;
+            break;
+        case "in":
+            value *= 72;
+            break;
+        }
+        return value;
+    };
+
+    var romanKey_    = ["","c","cc","ccc","cd","d","dc","dcc","dccc","cm","","x","xx","xxx","xl","l","lx","lxx","lxxx","xc","","i","ii","iii","iv","v","vi","vii","viii","ix"];
+    var romanKeyCap_ = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM","","X","XX","XXX","XL","L","LX","LXX","LXXX","XC","","I","II","III","IV","V","VI","VII","VIII","IX"];
+
+    Typesetting.Util.romanize = function(num) {
+        var digits = (""+num).split(""), roman = "", i = 3;
+        while (i--) {
+            roman = (romanKey_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
+        }
+        return ("M" * Integer.parseInt(digits.join(""))) + roman;
+    };
+
+    Typesetting.Util.romanizeCap = function(num) {
+        var digits = (""+num).split(""), roman = "", i = 3;
+        while (i--) {
+            roman = (romanKeyCap_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
+        }
+        return ("M" * Integer.parseInt(digits.join(""))) + roman;
+    };
+
+} # namespace Util
+} # namespace Typesetting
