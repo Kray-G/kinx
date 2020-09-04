@@ -512,7 +512,6 @@ namespace Typesetting {
                 bottom: top - (height + bsep) - captionArea,
                 right: right,
             };
-System.println([captionArea, floating_.bottom]);
         }
 
         public imageCenter(path, scale) {
