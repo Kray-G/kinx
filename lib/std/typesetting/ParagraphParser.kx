@@ -21,7 +21,7 @@ namespace Typesetting {
             if (word == "\\{" || word == "\\}" || word == "\\\\") {
                 return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, *word[1]);
             }
-            var hyphenWidth = measure_.hyphenWidth(context_.font.fontObj.en, context_.font.fontSize);
+            var hyphenWidth = measure_.hyphenWidth(context_.font.fontObj, context_.font.fontSize);
             var words = [];
             var len = word.length();
             for (var i = 0; i < len; ) {
@@ -45,7 +45,7 @@ namespace Typesetting {
                     var hyphenated = [];
                     var wlen = i - s;
                     var text = word.subString(s, wlen);
-                    if (wlen > 6 && text =~ /^[a-zA-Z]+$/) {
+                    if (wlen > 6 && text =~ /^[-a-zA-Z]+$/) {
                         hyphenated = hyphenate_(text);
                         if (hyphenated.length() > 1) {
                             var len = hyphenated.length();
@@ -151,7 +151,7 @@ namespace Typesetting {
             if (_1 == "") {
                 return;
             }
-            var width = info_.measure.spaceWidth(context_.font.fontObj.utf8, context_.font.fontSize);
+            var width = info_.measure.spaceWidth(context_.font.fontObj, context_.font.fontSize);
             var stretch = (width * 3) / 6;
             var shrink = (width * 3) / 9;
             return Linebreak.Glue(width, stretch, shrink);

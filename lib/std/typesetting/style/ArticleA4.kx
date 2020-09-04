@@ -1,0 +1,84 @@
+
+namespace Typesetting {
+namespace Style {
+
+    class ArticleA4 {
+        var fontSize = 10.0;
+        @style = {
+            "outline":                  true,
+            "pagesize":                 PDF_PAGE_SIZE_A4,
+            "direction":                PDF_PAGE_PORTRAIT,
+            "columns":                  1,
+            "sectionLevel":             1,
+            "indentSize":               20.0,
+            "margin": {
+                "left":                 56.7,
+                "right":                56.7,
+                "bottom":               56.7,
+                "top":                  68.0,
+                "alley":                20.3,
+            },
+            "footnote": {
+                "left":                 20.0,
+                "numberSizeRatio":      0.7,
+                "fontSize":             fontSize * 0.8,
+                "lineFeedWidthRatio":   1.4,
+                "margin":               14.0,
+                "labelsep":             2.8,
+            },
+            "fontSize": [
+                fontSize,
+                fontSize * 1.6,
+                fontSize * 1.4,
+                fontSize * 1.2,
+                fontSize * 1.1,
+            ],
+            "widowPenalty":             1,
+            "orphanPenalty":            1,
+            "title": {
+                "fontSize":             24,
+                "lineFeedWidth":        40,
+            },
+            "abstract": {
+                "fontSize":             fontSize,
+                "lineFeedWidth":        24.5,
+                "paragraphSkipWidth":   24.5,
+                "widthRatio":           0.9,
+                "title":                "Abstract",
+            },
+            "image": {
+                "label":                "Fig",
+                "leftsep":              20.0,
+                "rightsep":             20.0,
+                "bottomsep":            10.0,
+            },
+            "itemize": {
+                "fontSize":             [fontSize, fontSize-1, fontSize-1, fontSize-1],
+                "lineFeedWidthRatio":   [1.4, 1.4, 1.4, 1.4],
+                "paragraphSkipWidth":   [fontSize * 1.8, fontSize * 1.8, fontSize * 1.8, fontSize * 1.8],
+                "margin":               [20.0, 20.0, 20.0, 20.0],
+                "labelsep":             [4.62343, 4.62343, 4.62343, 4.62343],
+                "itemLabels": {
+                    'item':             ['\u2022', '\u25E6', '-', '*' ],
+                    'enum':             ['1.', '(a)', 'i.', 'A.' ],
+                }
+            },
+            "lineFeedWidthRatio": [
+                1.75,
+                1.2,
+                1.2,
+                1.3,
+                1.5,
+            ],
+            "paragraphSkipWidthRatio": [
+                2.2,
+                1.4,
+                1.4,
+                1.6,
+                1.8,
+            ],
+        };
+    }
+
+} # namespace Style
+} # namespace Typesetting
