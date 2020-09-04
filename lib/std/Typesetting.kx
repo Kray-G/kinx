@@ -97,7 +97,7 @@ namespace Typesetting {
         }
 
         public writeCenter(opts, text, fontObj, fontSize, lineFeedWidth) {
-            var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, text);
+            var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
             var writer = info_.writer;
             var margin = writer.makeMarginSize();
             var x = (margin.width - textWidth) / 2 + margin.left;
@@ -109,9 +109,9 @@ namespace Typesetting {
 
         public writeLine(opts, text, fontObj, fontSize, lineFeedWidth) {
             var writer = info_.writer;
-            var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, text);
+            var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
             var margin = writer.makeMarginSize();
-            var x = margin.left;
+            var x = opts.margin.left ?? margin.left;
             var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
             writer.write(n, x);
             writer.lineBreak(lineFeedWidth);
@@ -156,7 +156,8 @@ namespace Typesetting {
             };
         }
 
-        private justifyLines(lines) {
+        private adjustLines(lines, doJustification) {
+            doJustification ??= true;
             var llast = lines.length() - 1;
             lines.each { &(line, li):
                 var x1 = 0.0;
@@ -184,7 +185,8 @@ namespace Typesetting {
                         x1 += n.width;
                     }
                 };
-                var diff = spaces > 0 ? ((x1 - expected) / spaces) : 0;
+                var prev;
+                var diff = doJustification && spaces > 0 ? ((x1 - expected) / spaces) : 0;
                 x1 = 0.0;
                 line.nodes.each(function(n, i) {
                     var d = li == llast ? 0 : diff;
@@ -204,23 +206,27 @@ namespace Typesetting {
                         n.width = 0.0;
                     } else if (n.isPenalty && n.penalty == hyphenPenalty_ && i == alast) {
                         value.x = x1;
-                        n.value.word = "-";
+                        n.value.word = (prev.isDefined && prev.isBox && prev.value.word[-1] != '-'[0]) ? "-" : "";
                         x1 += n.width;
                     } else {
                         n.width = 0.0;
                     }
+                    prev = n;
                 });
             };
         }
 
         private processWordSet(opts, wordSet, fontObj, fontSize, areaWidth, settings) {
+            if (!areaWidth.isArray) {
+                areaWidth = [areaWidth];
+            }
             var words = wordSet.flatten();
             var nodes = [];
             if (!context_.noIndent) {
                 nodes.push(Linebreak.Box(info_.base.indentSize, new Word(info_).setWord(fontObj, fontSize, '')));
             }
             if (settings.preText) {
-                var textWidth = info_.measure.textWidth(fontObj.utf8, fontSize, settings.preText);
+                var textWidth = info_.measure.textWidth(fontObj, fontSize, settings.preText);
                 nodes.push(Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, settings.preText)));
                 if (settings.preTextSpace) {
                     var width = settings.preTextSpace;
@@ -238,41 +244,47 @@ namespace Typesetting {
 # nodes.each { => _1.display() };
             var breaks;
             for (var i = 1; i < 10; ++i) {
-                breaks = new Linebreak(nodes, [areaWidth], { tolerance: i }).parse();
+                breaks = new Linebreak(nodes, areaWidth, { tolerance: i }).parse();
                 if (breaks.length() > 0) {
                     break;
                 }
             }
 
+            var areaWidthLen = areaWidth.length();
             var lines = [];
             if (breaks.length() == 0) {
-                var spaceWidth = info_.measure.spaceWidth(fontObj.utf8, fontSize);
+                var currentWidth, ci = 0;
+                var spaceWidth = info_.measure.spaceWidth(fontObj, fontSize);
                 var nl = nodes.length();
                 var ns = [];
-                var x = 0.0;
-                for (var i = 0; i < nl; ++i) {
+                var x = 0.0, i;
+                for (i = 0; i < nl; ++i) {
+                    currentWidth = ci < areaWidthLen ? areaWidth[ci] : areaWidth[-1];
                     var n = nodes[i];
                     x += n.width;
-                    if (x < areaWidth) {
+                    if (x < currentWidth) {
                         ns.push(n);
                     } else {
                         lines.push({
                             ratio: 0,
                             nodes: ns,
                             position: 0,
-                            width: areaWidth,
+                            width: currentWidth,
                             lineFeedWidth: 0,
                         });
                         ns = [];
-                        x = 0.0;
+                        ns.push(n);
+                        x = n.width;
+                        ++ci;
                     }
                 }
                 if (ns.length() > 0) {
+                    currentWidth = ci < areaWidthLen ? areaWidth[ci] : areaWidth[-1];
                     lines.push({
                         ratio: 0,
                         nodes: ns,
                         position: 0,
-                        width: areaWidth,
+                        width: currentWidth,
                         lineFeedWidth: 0,
                     });
                 }
@@ -282,7 +294,7 @@ namespace Typesetting {
                 # System.println(text);
                 # System.println("----");
             } else {
-                var lineStart = 0;
+                var lineStart = 0, ls = 0;
                 for (var i = 1, blen = breaks.length(); i < blen; ++i) {
                     var point = breaks[i].position;
                     var r = breaks[i].ratio;
@@ -297,17 +309,18 @@ namespace Typesetting {
                         ratio: r,
                         nodes: nodes.subArray(lineStart, point + 1 - lineStart),
                         position: point,
-                        width: areaWidth,
+                        width: ls < areaWidthLen ? areaWidth[ls] : areaWidth[-1],
                         lineFeedWidth: 0,
                     });
                     lineStart = point;
+                    ++ls;
                 }
             }
             if (opts.label.isBox) {
                 lines[0].nodes.unshift(opts.label);
             }
             setLineInfo(lines);
-            justifyLines(lines);
+            adjustLines(lines);
             return lines;
         }
 
@@ -328,7 +341,7 @@ namespace Typesetting {
                 context_.noIndent = true;
                 context_.footnotes.each { &(wordSet):
                     var number = wordSet.footnoteNumber;
-                    var lines = processWordSet({}, wordSet, context_.font.fontObj, fontSize, marginSize.width, settings);
+                    var lines = processWordSet({}, wordSet, context_.font.fontObj, fontSize, [marginSize.width], settings);
                     var lineFeedWidth = lines.reduce { &(r, e) => r + e.lineFeedWidth };
                     info_.writer.addFootnote({
                         number: number,
@@ -344,8 +357,8 @@ namespace Typesetting {
 
             var margin = util_.makeMargin(opts);
             info_.writer.setMargin(margin);
-            var marginSize = info_.writer.makeMarginSize();
-            return processWordSet(opts, wordSet, context_.font.fontObj, context_.font.fontSize, marginSize.width, settings);
+            var areaWidth = info_.writer.getAreaWidth();
+            return processWordSet(opts, wordSet, context_.font.fontObj, context_.font.fontSize, areaWidth, settings);
         }
 
     }
@@ -412,15 +425,18 @@ namespace Typesetting {
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
             context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
             context_.font = font;
+            return sectionNumberText + ' ' + text;
         }
 
     }
 
     class Itemize(info_, context_, doc_, util_, paragraph_) {
 
+        var itemizeImpl;
+
         private itemizeItem(opts, items, level, itemType, itemMarginBase, itemMargin, writer, margin) {
             var bullet = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '-');
-            var textWidth = info_.measure.textWidth(context_.font.fontObj.utf8, context_.font.fontSize, bullet);
+            var textWidth = info_.measure.textWidth(context_.font.fontObj, context_.font.fontSize, bullet);
             var label = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, bullet);
             label.offsetX = -info_.base.itemize.labelsep[level] - textWidth;
             var n = Linebreak.Box(0, label);
@@ -431,16 +447,12 @@ namespace Typesetting {
                 var item = itemlist[i];
                 if (item.items.isArray) {
                     item.level = level + 1;
-                    @exec({ margin: margin, itemMarginBase: itemx }, item);
+                    itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
                 } else if (item.isString) {
                     [opts, item] = util_.makeOption(opts, item);
                     var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
                     util_.write(lines);
                 }
-            }
-
-            if (level == 0) {
-                writer.addY(context_.page.paragraphSkipWidth, false);
             }
         }
 
@@ -480,10 +492,10 @@ namespace Typesetting {
                 var item = itemlist[i];
                 if (item.items.isArray) {
                     item.level = level + 1;
-                    @exec({ margin: margin, itemMarginBase: itemx }, item);
+                    itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
                 } else if (item.isString) {
                     var number = numberFormat.replace(format, ""+counter);
-                    var textWidth = info_.measure.textWidth(context_.font.fontObj.utf8, context_.font.fontSize, number);
+                    var textWidth = info_.measure.textWidth(context_.font.fontObj, context_.font.fontSize, number);
                     var label = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, number);
                     label.offsetX = -info_.base.itemize.labelsep[level] - textWidth;
                     var n = Linebreak.Box(0, label);
@@ -492,10 +504,6 @@ namespace Typesetting {
                     util_.write(lines);
                     counter = getCounter();
                 }
-            }
-
-            if (level == 0) {
-                writer.addY(context_.page.paragraphSkipWidth, false);
             }
         }
 
@@ -539,12 +547,15 @@ namespace Typesetting {
 
         public exec(opts, items) {
             itemizeImpl(opts, items);
+            var lineFeedWidthRatio = info_.base.itemize.lineFeedWidthRatio[0];
+            var fontSize = info_.base.itemize.fontSize[0];
+            info_.writer.addY(lineFeedWidthRatio * fontSize / 2, false);
         }
 
     }
 
     class Document(options_) {
-        var info_, context_;
+        var info_, context_, outline_;
         var fontObjSerifBase_, fontObjSansBase_;
         var fontObjSerif_, fontObjSans_;
         var fontObjMonotype_, fontObjMonotypeBase_;
@@ -556,6 +567,7 @@ namespace Typesetting {
                 options_ = new options_().style;
             }
             info_.base = options_.clone();
+            outline_ = info_.base.outline;
             var pagesize = options_.pagesize ?? PDF_PAGE_SIZE_A4;
             var direction = options_.direction ?? PDF_PAGE_PORTRAIT;
             var fontSize = options_.fontSize[0] ?? 10.0;
@@ -569,6 +581,7 @@ namespace Typesetting {
             context_ = {
                 noIndent: false,
                 commands: [],
+                outline: [],
                 sectionNumber: [],
                 imageCounter: [info_.base.sectionLevel, 0],
                 footnotes: [],
@@ -610,14 +623,7 @@ namespace Typesetting {
 
             @define("TeX", %!T\hspace[width=-0.152em]\lower[height=0.171em]{E}\hspace[width=-0.084em]X!);
             @define("LaTeX", %!L\hspace[width=-0.3em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
-        }
-
-        public columnBreak() {
-            info_.writer.columnBreak();
-        }
-
-        public pageBreak() {
-            info_.writer.pageBreak();
+            @define("KaTeX", %!K\hspace[width=-0.2em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
         }
 
         public define(name, value) {
@@ -628,21 +634,46 @@ namespace Typesetting {
             var writer = info_.writer;
             var totalLineFeeds = pendings_.sum({ => _1.lineFeedWidth ?? 0 });
             writer.checkColumnBreak(totalLineFeeds);
-            pendings_.each { => _1.func() };
+            pendings_.each {
+                if (!_1.isParagraph) {
+                    writer.clearFloatingImage(_1.lineFeedWidth);
+                }
+                _1.func();
+            };
             pendings_ = [];
+        }
+
+        public setColumn(column) {
+            flushParagraph();
+            info_.writer.setColumn(column);
+        }
+
+        public columnBreak() {
+            flushParagraph();
+            info_.writer.columnBreak();
+        }
+
+        public pageBreak() {
+            flushParagraph();
+            info_.writer.pageBreak();
         }
 
         public title(opts, text) {
             [opts, text] = core_.util.makeOption(opts, text);
             info_.writer.setColumn(1);
             core_.util.writeCenter(opts, text, context_.font.fontObj, info_.base.title.fontSize, info_.base.title.lineFeedWidth);
+            if (outline_) {
+                var ol = info_.writer.createOutline(null, text, true);
+                info_.writer.setCurrentPage(ol);
+            }
         }
 
         public abstract(opts, text) {
             [opts, text] = core_.util.makeOption(opts, text);
             var fontObj = context_.font.fontObj;
             context_.font.fontObj = context_.font.fontObjBase.bold;
-            core_.util.writeCenter(opts, info_.base.abstract.title, context_.font.fontObj, info_.base.abstract.fontSize, info_.base.abstract.lineFeedWidth);
+            var titleText = info_.base.abstract.title;
+            core_.util.writeCenter(opts, titleText, context_.font.fontObj, info_.base.abstract.fontSize, info_.base.abstract.lineFeedWidth);
             context_.font.fontObj = fontObj;
             var writer = info_.writer;
             var pageWidth = writer.getPage().getWidth();
@@ -654,6 +685,10 @@ namespace Typesetting {
                 core_.util.write(lines);
             };
             writer.addY(info_.base.abstract.paragraphSkipWidth, true);
+            if (outline_) {
+                var ol = info_.writer.createOutline(null, titleText, true);
+                info_.writer.setCurrentPage(ol);
+            }
         }
 
         public chapter(opts, text) {
@@ -664,7 +699,12 @@ namespace Typesetting {
             pendings_.push({
                 lineFeedWidth: core_.section.getHeight(1),
                 func: &() => {
-                    core_.section.exec(1, opts, text);
+                    var header = core_.section.exec(1, opts, text);
+                    if (outline_) {
+                        var ol = info_.writer.createOutline(null, header, true);
+                        info_.writer.setCurrentPage(ol);
+                        outline[0] = ol;
+                    }
                 },
             });
         }
@@ -675,7 +715,13 @@ namespace Typesetting {
                 isSection: true,
                 lineFeedWidth: core_.section.getHeight(1),
                 func: &() => {
-                    core_.section.exec(info_.base.sectionLevel, opts, text);
+                    var level = info_.base.sectionLevel;
+                    var header = core_.section.exec(level, opts, text);
+                    if (outline_) {
+                        var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
+                        info_.writer.setCurrentPage(ol);
+                        context_.outline[level] = ol;
+                    }
                 },
             });
         }
@@ -685,7 +731,13 @@ namespace Typesetting {
                 isSection: true,
                 lineFeedWidth: core_.section.getHeight(2),
                 func: &() => {
-                    core_.section.exec(info_.base.sectionLevel + 1, opts, text);
+                    var level = info_.base.sectionLevel + 1;
+                    var header = core_.section.exec(level, opts, text);
+                    if (outline_) {
+                        var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
+                        info_.writer.setCurrentPage(ol);
+                        context_.outline[level] = ol;
+                    }
                 },
             });
         }
@@ -695,7 +747,13 @@ namespace Typesetting {
                 isSection: true,
                 lineFeedWidth: core_.section.getHeight(3),
                 func: &() => {
-                    core_.section.exec(info_.base.sectionLevel + 2, opts, text);
+                    var level = info_.base.sectionLevel + 2;
+                    var header = core_.section.exec(level, opts, text);
+                    if (outline_) {
+                        var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
+                        info_.writer.setCurrentPage(ol);
+                        context_.outline[level] = ol;
+                    }
                 },
             });
         }
@@ -724,12 +782,7 @@ namespace Typesetting {
             core_.itemize.exec(opts, items);
         }
 
-        public image(opts) {
-            flushParagraph();
-
-            info_.writer.imageCenter(opts.file);
-            var fontSize = context_.font.fontSize;
-            var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
+        private makeImageNumber() {
             var level = context_.imageCounter[0];
             var num = ++context_.imageCounter[1];
             var lt = [];
@@ -737,9 +790,57 @@ namespace Typesetting {
                 lt.push(context_.sectionNumber[i]);
             }
             lt.push("" + num);
-            var caption = info_.base.image.label + ' ' + lt.join('.') + ' ' + opts.caption;
+            return lt.join('.');
+        }
+
+        public imageCaption(caption) {
+            var fontSize = context_.font.fontSize;
+            var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
+
+            caption = info_.base.image.label + ' ' + makeImageNumber() + ' ' + caption;
             core_.util.writeCenter({}, caption, context_.font.fontObj, fontSize, lineFeedWidth);
+
             info_.writer.lineBreak(lineFeedWidth);
+        }
+
+        public floatingImageCaption(caption, fontObj, fontSize, center, y) {
+            if (!caption) {
+                return;
+            }
+            caption = info_.base.image.label + ' ' + makeImageNumber() + ' ' + caption;
+            var textWidth = info_.measure.textWidth(fontObj, fontSize, caption);
+            var writer = info_.writer;
+            var margin = writer.makeMarginSize();
+
+            var x = center - textWidth / 2;
+            var n = Linebreak.Box(0, new Word(info_).setWord(fontObj, fontSize, caption));
+            writer.writeFloatingCaption(n, x, y);
+        }
+
+        public image(opts) {
+            flushParagraph();
+            if (opts.float.left || opts.float.right) {
+                var fontSize = context_.font.fontSize;
+                var fontObj = context_.font.fontObj;
+                info_.writer.loadFloatingImage(opts.file, opts.scale, opts.float, opts.caption,
+                    &(center, y) => floatingImageCaption(opts.caption, fontObj, fontSize, center, y));
+                return;
+            }
+
+            info_.writer.imageCenter(opts.file, opts.scale);
+            if (opts.caption) {
+                imageCaption(opts.caption);
+            } else {
+                var fontSize = context_.font.fontSize;
+                var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
+                info_.writer.lineBreak(lineFeedWidth);
+            }
+        }
+
+        public math(str) {
+            flushParagraph();
+            var img = Typesetting.Util.compileMath(str, true, info_.writer);
+            info_.writer.imageCenter(img, 0.25);
         }
 
         private fontType(type) {
