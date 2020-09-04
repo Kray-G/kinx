@@ -232,7 +232,7 @@ libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS)
 	ar rcs libkx.a fileutil.o
 
 kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-json.o duktape.o $(PICOBJS)
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o -lm
 
 kxstring.so: src/extlib/kxstring.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
