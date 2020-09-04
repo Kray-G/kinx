@@ -79,7 +79,7 @@ doc.image({
     float: { right: true },
     scale: 0.6,
     caption: "Hyphenation and justification",
-    file: "examples/linebreak.png",
+    file: "examples/typesetting/linebreak.png",
 });
 doc.paragraph(%{
     The figure on the right is an example of hyphenation and justification.
@@ -180,6 +180,8 @@ doc.itemize({
 
 doc.setColumn(1);
 
+doc.columnBreak();
+
 doc.subSection("Math formula and equation");
 
 doc.paragraph(%{
@@ -215,6 +217,6 @@ function fib(n) {
 System.println("fib(34) = ", fib(34));
 });
 
-doc.save("ts.pdf");
+doc.save("examples/typesetting/typesetting.pdf");
 
 System.println("done.");
