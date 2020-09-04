@@ -276,9 +276,10 @@ const char *kx_gen_namespace_name_object(const char *name)
 kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t *blk)
 {
     kx_object_t *callns = NULL;
+    kx_object_t *last = NULL;
     int len = kv_size(ns_stack);
     if (len > 1) {
-        kx_object_t *last = kv_last_by(ns_stack, 2);
+        last = kv_last_by(ns_stack, 2);
         kx_object_t *nassign = kx_gen_bassign_object(KXOP_ASSIGN,
             kx_gen_bassign_object(KXOP_IDX,
                 kx_gen_var_object(last->value.s, KX_OBJ_T),
@@ -292,7 +293,21 @@ kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t
         NULL
     );
     kx_object_t *namevar = kx_gen_var_object(name, KX_OBJ_T);
-    kx_object_t *assign = kx_gen_bassign_object(KXOP_ASSIGN, namevar, kx_gen_bassign_object(KXOP_LUNDEF, namevar, kx_gen_uexpr_object(KXOP_MKOBJ, NULL)));
+    kx_object_t *assign;
+    if (last) {
+        assign = kx_gen_bassign_object(KXOP_ASSIGN, namevar,
+            kx_gen_bassign_object(KXOP_LUNDEF,
+                kx_gen_bassign_object(KXOP_IDX,
+                    kx_gen_var_object(last->value.s, KX_OBJ_T),
+                    kx_gen_str_object(name)),
+                kx_gen_uexpr_object(KXOP_MKOBJ, NULL)
+            )
+        );
+    } else {
+        assign = kx_gen_bassign_object(KXOP_ASSIGN, namevar,
+            kx_gen_bassign_object(KXOP_LUNDEF, namevar, kx_gen_uexpr_object(KXOP_MKOBJ, NULL))
+        );
+    }
     kx_object_t *stmt = kx_gen_bexpr_object(KXST_STMTLIST, assign, blk);
     kv_pop(ns_stack);
     return stmt;
