@@ -66,13 +66,14 @@ namespace Util {
     var exepath_ = $exepath.replace('\\', '/');
     var phantomjs_ = System.PLATFORM.endsWith("-WIN") ? "phantomjs.exe" : "phantomjs";
     var katex_, duktape_;
-    var executable_;
+    var executable_, phantomPath_;
 
     function runPhantomJs(writer) {
         if (!executable_) {
             var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib', exepath_ / 'src/extlib'];
             for (var i = 0, l = base.length(); i < l; ++i) {
-                var path = base[i] / 'phantomjs' / phantomjs_;
+                phantomPath_ = base[i] / 'phantomjs';
+                var path = phantomPath_ / phantomjs_;
                 if (File.exists(path)) {
                     executable_ = path;
                     break;
@@ -82,7 +83,7 @@ namespace Util {
                 throw RuntimeException("Necessary phantomjs executable not found");
             }
         }
-        new Process([executable_, "phtml2png.js", "tempXXX.html", "tempXXX.png"]).run().wait();
+        new Process([executable_, phantomPath_ / "phtml2png.js", "tempXXX.html", "tempXXX.png"]).run().wait();
         return writer.loadImage("tempXXX.png");
     }
 
