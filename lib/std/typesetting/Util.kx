@@ -1,3 +1,5 @@
+using Process;
+
 namespace Typesetting {
 namespace Util {
 
@@ -20,7 +22,7 @@ namespace Util {
             value *= context_.font.fontSize;
             break;
         case "ex":
-            var xh = context_.font.fontObj.utf8.getXHeight();
+            var xh = context_.font.fontObj.getXHeight();
             value *= (xh * context_.font.fontSize) / 1000;
             break;
         case "px":
@@ -59,6 +61,68 @@ namespace Util {
             roman = (romanKeyCap_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
         }
         return ("M" * Integer.parseInt(digits.join(""))) + roman;
+    };
+
+    var exepath_ = $exepath.replace('\\', '/');
+    var phantomjs_ = System.PLATFORM.endsWith("-WIN") ? "phantomjs.exe" : "phantomjs";
+    var katex_, duktape_;
+    var executable_, phantomPath_;
+
+    function runPhantomJs(writer) {
+        if (!executable_) {
+            var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib', exepath_ / 'src/extlib'];
+            for (var i = 0, l = base.length(); i < l; ++i) {
+                phantomPath_ = base[i] / 'phantomjs';
+                var path = phantomPath_ / phantomjs_;
+                if (File.exists(path)) {
+                    executable_ = path;
+                    break;
+                }
+            }
+            if (!executable_) {
+                throw RuntimeException("Necessary phantomjs executable not found");
+            }
+        }
+        new Process([executable_, phantomPath_ / "phtml2png.js", "tempXXX.html", "tempXXX.png"]).run().wait();
+        return writer.loadImage("tempXXX.png");
+    }
+
+    function loadKatex() {
+        var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib'];
+        for (var i = 0, l = base.length(); i < l; ++i) {
+            var path = base[i] / 'katex/katex.min.js';
+            if (File.exists(path)) {
+                return {
+                    code: File.load(path),
+                    cssPath: base[i].replace(/^(C:\/|\/)/, "file:///") / 'katex/katex.min.css'
+                };
+            }
+        }
+        throw RuntimeException("Necessary KaTeX file not found");
+    }
+
+    Typesetting.Util.compileMath = function(str, displayMode, writer) {
+        if (!katex_) {
+            katex_ = loadKatex();
+            duktape_ = new Duktape();
+            duktape_.eval(katex_.code);
+        }
+        str = str.trim().replace('\\', '\\\\').replace(/\r?\n/, "\\n'+\n'");
+        var snippet = "katex.renderToString('%{str}', {'displayMode': " + (displayMode ? 'true' : 'false') + "});";
+        snippet = duktape_.eval(snippet);
+
+        var html = "<!DOCTYPE html>\n<html>\n";
+        html += "<head>\n<meta charset='utf-8'/>\n";
+        html += "<link rel='stylesheet' type='text/css' ";
+        html += "href='" + katex_.cssPath + "'>\n";
+        html += "</head>\n<body>\n";
+        html += "<div id='katex-node' class='latex'>\n" + snippet + "</div>\n";
+        html += "</body>\n</html>";
+        File.open("tempXXX.html", File.WRITE, &(f) => f.println(html));
+        var img = runPhantomJs(writer);
+        File.remove("tempXXX.html");
+        File.remove("tempXXX.png");
+        return img;
     };
 
 } # namespace Util

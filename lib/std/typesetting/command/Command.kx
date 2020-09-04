@@ -32,9 +32,9 @@ namespace Typesetting {
 
         class Ruby(info_, context_) {
             private generateRuby(measure, ruby, word, rubySize, fontSize, fontObj) {
-                var rl = measure.textWidth(fontObj.utf8, rubySize, ruby);
-                var vl = measure.textWidth(fontObj.utf8, fontSize, word);
-                var height = measure.getAscent(fontObj.utf8, fontSize);
+                var rl = measure.textWidth(fontObj, rubySize, ruby);
+                var vl = measure.textWidth(fontObj, fontSize, word);
+                var height = measure.getAscent(fontObj, fontSize);
                 rw.offsetY = height;
                 var ws = new Typesetting.WordSet(info_);
                 if (rl < vl) {
