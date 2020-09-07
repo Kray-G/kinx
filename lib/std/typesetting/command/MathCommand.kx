@@ -1,0 +1,15 @@
+namespace Typesetting {
+
+    namespace MathCommand {
+
+        class InlineMath(info_, context_) {
+            public exec(value) {
+                var img = Typesetting.Util.compileMath(value, false, info_.writer);
+                var inlineImage = new Typesetting.InlineImage(info_).setImage(img, 0.25);
+                return Typesetting.Linebreak.Box(inlineImage.width, inlineImage);
+            }
+        }
+
+    } # namespace MathCommand
+
+} # namespace Typesetting
