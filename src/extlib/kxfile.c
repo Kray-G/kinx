@@ -1917,6 +1917,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
 
     { "mkdir", File_static_mkdir },
     { "rename", File_static_rename },
+    { "remove", File_static_unlink },
     { "unlink", File_static_unlink },
     { "exists", File_static_exists },
     { "isDirectory", File_static_is_directory },
