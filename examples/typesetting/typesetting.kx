@@ -59,6 +59,7 @@ doc.itemize({
                 "Math formula & equation like \\TeX",
                 "Writing a program source code.",
                 "Footnotes\\footnote{This is a footnote example.}.",
+                "Images, and it can be also put with floating inside paragraph.",
             ]
         },
         "For Japanese",
@@ -82,7 +83,7 @@ doc.image({
     file: "examples/typesetting/linebreak.png",
 });
 doc.paragraph(%{
-    The figure on the right is an example of hyphenation and justification.
+    The figure on the right\footnote{This is an example of not only hyphenation but also a floating image.} is an example of hyphenation and justification.
     Hyphenation will be done before applying line-breaking algorithm.
     The algorithm is based on \monotype{Hyper.js},
     and it relies on the hyphenation algorithm by Franklin M. Liang commonly known from \LaTeX.
@@ -99,7 +100,7 @@ doc.paragraph(%{
     Widows and orphans control is not perfect so far.
     But normally it is available for a section and a paragraph.
     Unfortunately it is not available for listing items, images, and so on.
-    Please check it and you can use \monotype{\\pagebreak} command anywhere you need.
+    Please check it and you can use \monotype{\\columnbreak} command anywhere you need.
 });
 
 doc.subSection("List items");
@@ -109,7 +110,6 @@ doc.paragraph(%{
 });
 
 doc.setColumn(2);
-
 doc.paragraph(%{
     Here is an example of 'itemize'.
 });
@@ -142,9 +142,7 @@ doc.itemize({
         },
     ]
 });
-
 doc.columnBreak();
-
 doc.paragraph(%{
     Here is an example of 'enumerate'.
 });
@@ -177,9 +175,7 @@ doc.itemize({
         },
     ]
 });
-
 doc.setColumn(1);
-
 doc.columnBreak();
 
 doc.subSection("Math formula and equation");
@@ -193,14 +189,28 @@ doc.paragraph(%{
 });
 
 doc.math(%{
-\begin{aligned}
-    E &= mc^2 \\
-    m &= \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}}
-\end{aligned}
+    \begin{aligned}
+        E &= mc^2 \\
+        m &= \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}} \\
+    \end{aligned}
+});
+doc.math(%{
+    \begin{aligned}
+        \int_{-\infty}^{\infty} f(x) dx &= \sqrt{\pi}
+    \end{aligned}
 });
 
 doc.imageCaption("Math example");
 
+doc.paragraph(%{
+    If you want to write it in a paragraph line, use \verb{$...$} style directly in paragraph.
+    For example, $E = mc^2$ is written as \verb{$E = mc^2$},
+    and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$
+    written as \verb{$\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
+});
+doc.paragraph(%{
+    If you want to use \$ in paragraph, use \$ with \\ like \verb{\$}.
+});
 
 doc.subSection("Program source code");
 

@@ -27,6 +27,50 @@ namespace Typesetting {
         }
     }
 
+    class InlineImage(info_) {
+        @isInlineImage = true;
+        var measure_ = info_.measure;
+        private initialize() {
+        }
+        public setImage(image, scale) {
+            fontObj ??= info_.context.font.fontObj;
+            fontSize ??= info_.context.font.fontSize;
+            var bbox = fontObj.getBBox();
+            # var ascent = fontObj.getAscent();
+            # var descent = fontObj.getDescent();
+            @offsetY = bbox.bottom * fontSize / 1000 + 1.0;
+            @image = image;
+            var width = image.getWidth();
+            var height = image.getHeight();
+            var lineHeight = (bbox.top + bbox.bottom) * fontSize / 1000;
+            var ratio = lineHeight / height;
+            @width = width * ratio;
+            @height = height * ratio;
+            return this;
+        }
+        public fontObj() {
+        }
+        public fontSize() {
+        }
+        public textWidth() {
+            return @width;
+        }
+        public spaceWidth() {
+            return @addSpace;
+        }
+        public additionalSpace(width) {
+            @addSpace = width;
+        }
+        public toString() {
+            return "{Image}";
+        }
+        public display(indent) {
+        }
+        public flatten() {
+            return this;
+        }
+    }
+
     class Word(info_) {
         @isWord = true;
         var context_ = info_.context;
@@ -72,6 +116,9 @@ namespace Typesetting {
                 System.print("    " * indent);
             }
             System.println(@toString());
+        }
+        public flatten() {
+            return this;
         }
     }
 

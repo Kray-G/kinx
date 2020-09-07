@@ -2,15 +2,6 @@ namespace Typesetting {
 
     namespace ParagraphCommand {
 
-        class Pack(info_, context_) {
-            public start() {
-                ;
-            }
-            public end() {
-                ;
-            }
-        }
-
         class Smaller(info_, context_) {
             var fontSize_;
             public start() {
