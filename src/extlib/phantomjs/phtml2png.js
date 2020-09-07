@@ -19,7 +19,14 @@ page.open(htmlFile, function(status) {
   page.zoomFactor = 4.00;
   page.viewportSize = { width: width * page.zoomFactor, height: 600 };
   var clipRect = page.evaluate(function(){
-    return document.querySelector('.katex-html').getBoundingClientRect();
+    var all = document.querySelector('#katex-node').getBoundingClientRect();
+    var clip = document.querySelector('.katex-html').getBoundingClientRect();
+    return {
+      top: all.top,
+      left: clip.left,
+      width:  clip.width,
+      height: all.height
+    };
   });
 
   page.evaluate(function() {
