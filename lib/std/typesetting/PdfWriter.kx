@@ -118,7 +118,12 @@ namespace Typesetting {
         }
 
         public loadImage(path) {
-            return pdf_.loadPngImageFromFile(path);
+            if (path.endsWith(".png")) {
+                return pdf_.loadPngImageFromFile(path);
+            } else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
+                return pdf_.loadJpegImageFromFile(path);
+            }
+            throw RuntimeException("Unsupported image file format");
         }
 
         private drawBox(left, top, width, height, lineWidth) {
