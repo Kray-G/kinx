@@ -85,7 +85,8 @@ namespace Typesetting {
             return lastLineFeedWidth_;
         }
 
-        private getPageWidth(pageWidth) {
+        public getColumnWidth(pageWidth) {
+            pageWidth ??= page_.getWidth();
             return (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
         }
 
@@ -94,7 +95,7 @@ namespace Typesetting {
                 @addPage();
             }
             var pageWidth = page_.getWidth();
-            var width = getPageWidth(pageWidth);
+            var width = getColumnWidth(pageWidth);
             var ldiff = margin_.left - pageMargin_.left;
             var rdiff = margin_.right - pageMargin_.right;
             width = width - ldiff - rdiff;
@@ -120,9 +121,9 @@ namespace Typesetting {
             return pdf_.loadPngImageFromFile(path);
         }
 
-        private drawBox(left, top, width, height) {
+        private drawBox(left, top, width, height, lineWidth) {
             page_.gSave();
-            page_.setLineWidth(3.0);
+            page_.setLineWidth(lineWidth || 1.0);
             page_.setRGBFill(1.0, 0, 0);
             page_.moveTo(left, top);
             page_.lineTo(left + width, top);
@@ -201,7 +202,7 @@ namespace Typesetting {
                 @addPage();
             }
             var pageWidth = page_.getWidth();
-            var width = getPageWidth(pageWidth);
+            var width = getColumnWidth(pageWidth);
             var ldiff = margin_.left - pageMargin_.left;
             var rdiff = margin_.right - pageMargin_.right;
             var pleft = pageMargin_.left + ((width + margin_.alley) * curCol_);
@@ -437,9 +438,27 @@ namespace Typesetting {
             return true;
         }
 
+        public writeImage(img, x, y) {
+            var margin = makeMarginSize();
+            if (x.isUndefined) {
+                x = x_ < 0 ? margin.left : x_;
+            }
+            y ||= y_;
+            var width = img.width;
+            var height = img.height;
+            page_.drawImage(img.image, x, y + img.offsetY, width, height);
+            x_ = x + width;
+            # drawBox(x, y + img.offsetY + height, width, height);
+            return true;
+        }
+
         public write(node, x, y) {
-            var width = node.width;
             var value = node.value;
+            if (value.isInlineImage) {
+                return writeImage(value, x, y);
+            }
+
+            var width = node.width;
             if (!setupWrite(value, width, node.isBox, x)) {
                 return false;
             }
@@ -535,12 +554,14 @@ namespace Typesetting {
                 scale = 1.0;
                 left = margin.left + (margin.width - width) / 2;
             }
+            width = width * scale;
             height = height * scale;
-            var lineFeedWidth = (lastLineFeedWidth_ + ascent_) / 2;
+            var lineFeedWidth = lastLineFeedWidth_ / 2;
             var offsetY = lineFeedWidth - height;
             y_ += offsetY;
-            page_.drawImage(image, left, y_, width * scale, height);
-            lineBreak(lineFeedWidth - ascent_);
+            page_.drawImage(image, left, y_, width, height);
+            # drawBox(left, y_ + height, width, height);
+            lineBreak(lineFeedWidth);
         }
 
         public save(file) {

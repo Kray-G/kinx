@@ -130,6 +130,16 @@ _class ParsekParser($, defName, func) {
         });
     }
 
+    public option() {
+        return new ParsekParser($, __FUNC__, _function(target, position) {
+            var parsed = parse(target, position);
+            if (parsed.status) {
+                return parsed;
+            }
+            return Parsek.makeResult(true, null, position);
+        });
+    }
+
     public many() {
         return new ParsekParser($, __FUNC__, _function(target, position) {
             var result = [];
