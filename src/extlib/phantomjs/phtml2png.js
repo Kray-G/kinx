@@ -2,13 +2,17 @@ var page = require('webpage').create();
 var system = require('system');
 
 if (system.args.length !== 4) {
-  console.log('Usage: ' + system.args[0] + ' html_file png_file');
+  console.log('Usage: ' + system.args[0] + ' html_file png_file width');
   phantom.exit(1);
 }
 
 var htmlFile = system.args[1];
 var pngFile = system.args[2];
 var width = system.args[3];
+
+function endsWith(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
 
 page.open(htmlFile, function(status) {
   if (status === 'fail') {
@@ -44,6 +48,10 @@ page.open(htmlFile, function(status) {
   // console.log(page.clipRect.width);
   // console.log(page.clipRect.height);
 
-  page.render(pngFile);
+  if (endsWith(pngFile, ".jpg") || endsWith(pngFile, ".jpeg")) {
+    page.render(pngFile, {format: 'jpeg', quality: '100'});
+  } else {
+    page.render(pngFile);
+  }
   phantom.exit();
 });

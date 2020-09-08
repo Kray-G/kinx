@@ -69,7 +69,7 @@ namespace Util {
     var katex_, duktape_;
     var executable_, phantomPath_;
 
-    function runPhantomJs(writer, width, htmlname, pngname) {
+    function runPhantomJs(writer, width, htmlname, imgfile) {
         if (!executable_) {
             var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib', exepath_ / 'src/extlib'];
             for (var i = 0, l = base.length(); i < l; ++i) {
@@ -84,8 +84,8 @@ namespace Util {
                 throw RuntimeException("Necessary phantomjs executable not found");
             }
         }
-        new Process([executable_, phantomPath_ / "phtml2png.js", htmlname, pngname, ""+width]).run().wait();
-        return writer.loadImage(pngname);
+        new Process([executable_, phantomPath_ / "phtml2png.js", htmlname, imgfile, ""+width]).run().wait();
+        return writer.loadImage(imgfile);
     }
 
     function loadKatex() {
@@ -105,7 +105,7 @@ namespace Util {
     Typesetting.Util.compileMath = function(str, displayMode, writer) {
         var basename = "tempXXX" + (++imgCounter_);
         var htmlname = basename + ".html";
-        var pngname = basename + ".png";
+        var imgfile = basename + ".jpeg";
         if (!katex_) {
             katex_ = loadKatex();
             duktape_ = new Duktape();
@@ -124,9 +124,9 @@ namespace Util {
         html += "</body>\n</html>";
         File.open(htmlname, File.WRITE, &(f) => f.println(html));
         var width = writer.getColumnWidth();
-        var img = runPhantomJs(writer, width, htmlname, pngname);
+        var img = runPhantomJs(writer, width, htmlname, imgfile);
         File.remove(htmlname);
-        File.remove(pngname);
+        File.remove(imgfile);
         return img;
     };
 
