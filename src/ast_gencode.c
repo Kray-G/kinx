@@ -917,6 +917,14 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         break;
     case KXVL_STR:
         KX_CANNOT_BE_LVALUE(node, "String literal");
+        if (code_size(module, ana) > 0 && last_op(ana) == KX_STOREV) {
+            last_op(ana) = KX_STOREVX; // pop it once.
+            int lexical = last_value1(ana).idx;
+            kv_push(kx_code_t, get_block(module, ana->block)->code,
+                ((kx_code_t){ FILELINE(ana), .op = (lexical == 0 ? KX_PUSHVL0 : (lexical == 1 ? KX_PUSHVL1 : KX_PUSHV)),
+                .value1 = { .idx = lexical },
+                .value2 = { .idx = last_value2(ana).idx } }));
+        }
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHS, .value1 = { .s = const_str(ctx, node->value.s) } }));
         break;
     case KXVL_BIG:
