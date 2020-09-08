@@ -1,13 +1,14 @@
 var page = require('webpage').create();
 var system = require('system');
 
-if (system.args.length !== 3) {
+if (system.args.length !== 4) {
   console.log('Usage: ' + system.args[0] + ' html_file png_file');
   phantom.exit(1);
 }
 
 var htmlFile = system.args[1];
 var pngFile = system.args[2];
+var width = system.args[3];
 
 page.open(htmlFile, function(status) {
   if (status === 'fail') {
@@ -15,10 +16,17 @@ page.open(htmlFile, function(status) {
     phantom.exit(1);
   }
 
-  page.viewportSize = { width: 600, height: 600 };
   page.zoomFactor = 4.00;
+  page.viewportSize = { width: width * page.zoomFactor, height: 600 };
   var clipRect = page.evaluate(function(){
-    return document.querySelector('.katex-html').getBoundingClientRect();
+    var all = document.querySelector('#katex-node').getBoundingClientRect();
+    var clip = document.querySelector('.katex-html').getBoundingClientRect();
+    return {
+      top: all.top,
+      left: clip.left,
+      width:  clip.width,
+      height: all.height
+    };
   });
 
   page.evaluate(function() {
