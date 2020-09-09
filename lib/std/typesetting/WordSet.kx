@@ -14,6 +14,8 @@ namespace Typesetting {
         }
         public fontSize() {
         }
+        public getHeight() {
+        }
         public textWidth() {
         }
         public spaceWidth() {
@@ -24,6 +26,55 @@ namespace Typesetting {
             return "{NullWord}";
         }
         public display(indent) {
+        }
+    }
+
+    class InlineImage(info_) {
+        @isInlineImage = true;
+        var measure_ = info_.measure;
+        private initialize() {
+        }
+        public setImage(image, scale) {
+            fontObj ??= info_.context.font.fontObj;
+            fontSize ??= info_.context.font.fontSize;
+            var bbox = fontObj.getBBox();
+            # var ascent = fontObj.getAscent();
+            # var descent = fontObj.getDescent();
+            @offsetY = bbox.bottom * fontSize / 1000 + 1.0;
+            @image = image;
+            @width = image.getWidth();
+            @height = image.getHeight();
+            if (!scale) {
+                var lineHeight = (bbox.top + bbox.bottom) * fontSize / 1000;
+                scale = lineHeight / @height;
+            }
+            @width = @width * scale;
+            @height = @height * scale;
+            return this;
+        }
+        public fontObj() {
+        }
+        public fontSize() {
+        }
+        public getHeight() {
+            return @height;
+        }
+        public textWidth() {
+            return @width;
+        }
+        public spaceWidth() {
+            return @addSpace;
+        }
+        public additionalSpace(width) {
+            @addSpace = width;
+        }
+        public toString() {
+            return "{Image}";
+        }
+        public display(indent) {
+        }
+        public flatten() {
+            return this;
         }
     }
 
@@ -54,6 +105,9 @@ namespace Typesetting {
         public fontSize() {
             return @size ?? 0.0;
         }
+        public getHeight() {
+            return info_.measure.getAscent(@font, @size);
+        }
         public textWidth() {
             return @width ?? 0.0;
         }
@@ -72,6 +126,9 @@ namespace Typesetting {
                 System.print("    " * indent);
             }
             System.println(@toString());
+        }
+        public flatten() {
+            return this;
         }
     }
 
@@ -94,6 +151,9 @@ namespace Typesetting {
         }
         public fontSize() {
             return @words.length() > 0 ? @words[-1].fontSize() : 0.0;
+        }
+        public getHeight() {
+            return 0;
         }
         public textWidth() {
             var sum = 0.0;

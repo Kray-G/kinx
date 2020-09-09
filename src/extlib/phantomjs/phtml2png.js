@@ -1,13 +1,18 @@
 var page = require('webpage').create();
 var system = require('system');
 
-if (system.args.length !== 3) {
-  console.log('Usage: ' + system.args[0] + ' html_file png_file');
+if (system.args.length !== 4) {
+  console.log('Usage: ' + system.args[0] + ' html_file png_file width');
   phantom.exit(1);
 }
 
 var htmlFile = system.args[1];
 var pngFile = system.args[2];
+var width = system.args[3];
+
+function endsWith(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
 
 page.open(htmlFile, function(status) {
   if (status === 'fail') {
@@ -15,10 +20,17 @@ page.open(htmlFile, function(status) {
     phantom.exit(1);
   }
 
-  page.viewportSize = { width: 600, height: 600 };
   page.zoomFactor = 4.00;
+  page.viewportSize = { width: width * page.zoomFactor, height: 600 };
   var clipRect = page.evaluate(function(){
-    return document.querySelector('.katex-html').getBoundingClientRect();
+    var all = document.querySelector('#katex-node').getBoundingClientRect();
+    var clip = document.querySelector('.katex-html').getBoundingClientRect();
+    return {
+      top: all.top,
+      left: clip.left,
+      width:  clip.width,
+      height: all.height
+    };
   });
 
   page.evaluate(function() {
@@ -36,6 +48,10 @@ page.open(htmlFile, function(status) {
   // console.log(page.clipRect.width);
   // console.log(page.clipRect.height);
 
-  page.render(pngFile);
+  if (endsWith(pngFile, ".jpg") || endsWith(pngFile, ".jpeg")) {
+    page.render(pngFile, {format: 'jpeg', quality: '100'});
+  } else {
+    page.render(pngFile);
+  }
   phantom.exit();
 });

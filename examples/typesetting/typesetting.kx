@@ -1,16 +1,16 @@
 using Typesetting;
 using typesetting.style.ArticleA4;
 
-var doc = new Typesetting.Document(Typesetting.Style.ArticleA4);
+var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true });
 
 doc.title("Kinx TT - Kinx Tiny Typesetting");
 doc.abstract(%{
-This system is a small typesetting system written in Kinx.
-Most of people knows the \LaTeX\footnote{Leslie Lamport, https://en.wikipedia.org/wiki/LaTeX} is being used for that purpose,
-but the \TeX\footnote{Donald E. Knuth, https://en.wikipedia.org/wiki/TeX} system is very huge.
-This system provides only a limited functionality,
-but supports some of \TeX algorithms in this small system.
-This would be your best partner as long as used for your personal use.
+    This system is a small typesetting system written in Kinx.
+    Most of people knows the \LaTeX\footnote{Leslie Lamport, https://en.wikipedia.org/wiki/LaTeX} is being used for that purpose,
+    but the \TeX\footnote{Donald E. Knuth, https://en.wikipedia.org/wiki/TeX} system is very huge.
+    This system provides only a limited functionality,
+    but supports some of \TeX algorithms in this small system.
+    This would be your best partner as long as used for your personal use.
 });
 
 doc.section("Overview");
@@ -49,26 +49,15 @@ doc.paragraph(%{This system supports following algorithms.});
 doc.itemize({
     labelType: 'enum',
     items: [
-        "Main Features",
-        {
-            labelType: 'enum',
-            items: [
-                "Hyphenation & Knuth-Plass Line Breaking Algorithm.",
-                "Widows & Orphans penalty control.",
-                "Listing items with a bullet or numbering.",
-                "Math formula & equation like \\TeX",
-                "Writing a program source code.",
-                "Footnotes\\footnote{This is a footnote example.}.",
-            ]
-        },
-        "For Japanese",
-        {
-            labelType: 'enum',
-            items: [
-                "Japanese hyphenation rules.",
-                "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
-            ]
-        },
+        "Hyphenation & Knuth-Plass Line Breaking Algorithm, and also for Japanese hyphenation rules.",
+        "Footnotes\\footnote{This is a footnote example.}.",
+        "Widows & Orphans penalty control.",
+        "Listing items with a bullet or numbering.",
+        "Images, and it can be also put with floating inside paragraph.",
+        "Math formula & equation like \\TeX",
+        "Tables, and the header of table is automatically repeated each page.",
+        "Writing a program source code.",
+        "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
 });
 
@@ -82,7 +71,7 @@ doc.image({
     file: "examples/typesetting/linebreak.png",
 });
 doc.paragraph(%{
-    The figure on the right is an example of hyphenation and justification.
+    The figure on the right\footnote{This is also the example of a floating image.} is an example of hyphenation and justification.
     Hyphenation will be done before applying line-breaking algorithm.
     The algorithm is based on \monotype{Hyper.js},
     and it relies on the hyphenation algorithm by Franklin M. Liang commonly known from \LaTeX.
@@ -99,7 +88,7 @@ doc.paragraph(%{
     Widows and orphans control is not perfect so far.
     But normally it is available for a section and a paragraph.
     Unfortunately it is not available for listing items, images, and so on.
-    Please check it and you can use \monotype{\\pagebreak} command anywhere you need.
+    Please check it and you can use \monotype{\\columnbreak} command anywhere you need.
 });
 
 doc.subSection("List items");
@@ -109,7 +98,6 @@ doc.paragraph(%{
 });
 
 doc.setColumn(2);
-
 doc.paragraph(%{
     Here is an example of 'itemize'.
 });
@@ -142,9 +130,7 @@ doc.itemize({
         },
     ]
 });
-
 doc.columnBreak();
-
 doc.paragraph(%{
     Here is an example of 'enumerate'.
 });
@@ -177,15 +163,13 @@ doc.itemize({
         },
     ]
 });
-
 doc.setColumn(1);
-
 doc.columnBreak();
 
 doc.subSection("Math formula and equation");
 
 doc.paragraph(%{
-    Here is an example of Math fomula and equation.
+    Here is an example of Math formula and equation.
     You will think as if it is \LaTeX output.
     Yes, you are quite right because this is came from \TeX output,
     but it is never using a huge \TeX system.
@@ -193,14 +177,135 @@ doc.paragraph(%{
 });
 
 doc.math(%{
-\begin{aligned}
-    E &= mc^2 \\
-    m &= \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}}
-\end{aligned}
+    \begin{aligned}
+        E &= mc^2 \\
+        m &= \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}} \\
+    \end{aligned}
+});
+doc.math(%{
+    \begin{aligned}
+        \int_{-\infty}^{\infty} f(x) dx &= \sqrt{\pi}
+    \end{aligned}
 });
 
 doc.imageCaption("Math example");
 
+doc.paragraph(%{
+    If you want to write a math formula inline, use \verb{$...$} style directly in paragraph.
+    For example, $E = mc^2$ is written as \verb{$E = mc^2$},
+    and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$
+    written as \verb{$\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
+});
+doc.paragraph(%{
+    If you want to use \$ in paragraph, use \$ with \\ like \verb{\$}.
+});
+doc.paragraph(%{
+    And also you can use \verb{\displaystyle} keyword,
+    the Math fomula is directly inside paragraph like $\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$,
+    by \verb{$\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
+});
+
+doc.subSection("Table");
+
+doc.paragraph(%{
+    Here is an example of table.
+    The ruled line can be selected from no line, a single line, or a double line.
+    Besides, the column width is also automatically calculated according to inside text size.
+});
+
+var line = 0;
+doc.table({
+    header: 0,
+    # size: 0.9,
+    # align: "l",
+    cellAlign: "l||c|r",
+    body: [
+        "---",
+        [
+            "Left",
+            "Center",
+            "Right"
+        ],
+        "===",
+        [
+            "A1",
+            "B1\\footnote{This is a footnote in table.}",
+            "C1",
+        ],
+        "---",
+        [
+            "A2",
+            "This column is aligned to the center.",
+            "C2",
+        ],
+        "---",
+        [
+            "A3",
+            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ is\\\\\nan example of Math formula in the table.",
+            "This column is aligned to the right.",
+        ],
+        "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+    ]
+});
+doc.paragraph(%{
+    The table header can be automatically repeated each page.
+});
+
+doc.setColumn(2);
+doc.table({
+    header: 0,
+    cellAlign: "cl",
+    body: [
+        "---",
+        [
+            "#",
+            "Outline",
+        ],
+        "===",
+        [
+            "1",
+            "Something",
+        ],
+        [
+            "2",
+            "Something",
+        ],
+        "---",
+    ]
+});
+doc.columnBreak();
+doc.table({
+    header: 0,
+    cellAlign: "cl",
+    body: [
+        "---",
+        [
+            "#",
+            "Overview",
+        ],
+        "===",
+        [
+            "1",
+            "Something",
+        ],
+        [
+            "2",
+            "Something",
+        ],
+        "---",
+        [
+            "3",
+            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ is\\\\\nan example of Math formula in the table.",
+        ],
+        "---",
+    ]
+});
+doc.setColumn(1);
 
 doc.subSection("Program source code");
 

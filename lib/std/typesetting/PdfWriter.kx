@@ -40,7 +40,7 @@ namespace Typesetting {
     }
 
     class PdfWriter(pagesize, direction, info_) {
-        var pdf_, page_, margin_, pageMargin_;
+        var pdf_, page_, margin_, pageMargin_, marginCache_;
         var cols_, curCol_, isColMoved_;
         var pagesize_, direction_;
         var width_, height_, ascent_;
@@ -53,6 +53,16 @@ namespace Typesetting {
         private initialize() {
             pageNumber_ = 0;
             pdf_ = new Pdf();
+            pdf_.setCompressionMode(PDF_COMP_ALL);
+            pdf_.setInfoAttr(PDF_INFO_PRODUCER, "Kinx Tiny Typesetting");
+
+            # Properties.
+            # PDF_INFO_AUTHOR
+            # PDF_INFO_CREATOR
+            # PDF_INFO_TITLE
+            # PDF_INFO_SUBJECT
+            # PDF_INFO_KEYWORDS
+
             loadFonts(pdf_);
             @setPageSize(pagesize, direction);
             cols_ = 1;
@@ -77,6 +87,10 @@ namespace Typesetting {
             return [ fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_ ];
         }
 
+        public getColumnNumber() {
+            return curCol_;
+        }
+
         public isColumnMoved() {
             return isColMoved_;
         }
@@ -85,7 +99,8 @@ namespace Typesetting {
             return lastLineFeedWidth_;
         }
 
-        private getPageWidth(pageWidth) {
+        public getColumnWidth(pageWidth) {
+            pageWidth ??= page_.getWidth();
             return (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
         }
 
@@ -94,7 +109,7 @@ namespace Typesetting {
                 @addPage();
             }
             var pageWidth = page_.getWidth();
-            var width = getPageWidth(pageWidth);
+            var width = getColumnWidth(pageWidth);
             var ldiff = margin_.left - pageMargin_.left;
             var rdiff = margin_.right - pageMargin_.right;
             width = width - ldiff - rdiff;
@@ -117,13 +132,30 @@ namespace Typesetting {
         }
 
         public loadImage(path) {
-            return pdf_.loadPngImageFromFile(path);
+            if (path.endsWith(".png")) {
+                return pdf_.loadPngImageFromFile(path);
+            } else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
+                return pdf_.loadJpegImageFromFile(path);
+            }
+            throw RuntimeException("Unsupported image file format");
         }
 
-        private drawBox(left, top, width, height) {
+        public drawLine(left, top, width, height, lineWidth, color) {
+            color ??= [1.0, 0, 0];
             page_.gSave();
-            page_.setLineWidth(3.0);
-            page_.setRGBFill(1.0, 0, 0);
+            page_.setLineWidth(lineWidth || 1.0);
+            page_.setRGBFill(...color);
+            page_.moveTo(left, top);
+            page_.lineTo(left + width, top - height);
+            page_.stroke();
+            page_.gRestore();
+        }
+
+        public drawBox(left, top, width, height, lineWidth, color) {
+            color ??= [1.0, 0, 0];
+            page_.gSave();
+            page_.setLineWidth(lineWidth || 1.0);
+            page_.setRGBFill(...color);
             page_.moveTo(left, top);
             page_.lineTo(left + width, top);
             page_.lineTo(left + width, top - height);
@@ -131,6 +163,11 @@ namespace Typesetting {
             page_.lineTo(left, top);
             page_.stroke();
             page_.gRestore();
+        }
+
+        public drawMargin() {
+            var margin = @makeMarginSize();
+            drawBox(margin.left, margin.pageHeight - margin.top, margin.width, margin.height);
         }
 
         private writeFloatingImage() {
@@ -179,11 +216,26 @@ namespace Typesetting {
 
         public setMargin(margin) {
             margin_ = margin;
+            marginCache_ = null;
+        }
+
+        public getMargin() {
+            return margin_;
+        }
+
+        public setPos(pos) {
+            x_ = pos.x;
+            y_ = pos.y;
+        }
+
+        public getPos() {
+            return { x: x_, y: y_ };
         }
 
         public setPageMargin(margin) {
             pageMargin_ = margin;
             margin_ = margin;
+            marginCache_ = null;
         }
 
         public setColumn(cols) {
@@ -194,28 +246,50 @@ namespace Typesetting {
                 ytop_ = y_;
                 isTopOfPage_ = true;
             }
+            marginCache_ = null;
         }
 
-        public makeMarginSize(page) {
+        public makeMarginSize() {
             if (!page_) {
                 @addPage();
             }
-            var pageWidth = page_.getWidth();
-            var width = getPageWidth(pageWidth);
-            var ldiff = margin_.left - pageMargin_.left;
-            var rdiff = margin_.right - pageMargin_.right;
-            var pleft = pageMargin_.left + ((width + margin_.alley) * curCol_);
-            var left = margin_.left + ((width + margin_.alley) * curCol_);
-            var margin = {
-                pageWidth: pageWidth,
-                columnWidth: width,
-                width: width - ldiff - rdiff,
-                left: left,
-                right: pageWidth - pleft - width,
-                top: margin_.top,
-                bottom: margin_.bottom,
-            };
-            return margin;
+            if (!marginCache_) {
+                var pageHeight = page_.getHeight();
+                var pageWidth = page_.getWidth();
+                var width = getColumnWidth(pageWidth);
+                var ldiff = margin_.left - pageMargin_.left;
+                var rdiff = margin_.right - pageMargin_.right;
+                var pleft = pageMargin_.left + ((width + margin_.alley) * curCol_);
+                var left = margin_.left + ((width + margin_.alley) * curCol_);
+                marginCache_ = {
+                    pageHeight: pageHeight,
+                    pageWidth: pageWidth,
+                    columnWidth: width,
+                    height: pageHeight - margin_.bottom - margin_.top,
+                    width: width - ldiff - rdiff,
+                    left: left,
+                    right: pageWidth - pleft - width,
+                    top: margin_.top,
+                    bottom: margin_.bottom,
+                };
+            }
+            return marginCache_;
+        }
+
+        private showText(page, text, isUrl, link) {
+            if (!isUrl) {
+                page.showText(text);
+            } else {
+                var tp = page.getCurrentTextPos();
+                page.showText(text);
+                var rect = {
+                    left:   tp.x - 4,
+                    bottom: tp.y - 4,
+                    right:  page.getCurrentTextPos().x + 4,
+                    top:    tp.y + 10,
+                };
+                page.createURILinkAnnot(rect, link);
+            }
         }
 
         private writeFootnote(page, node, x, y) {
@@ -227,7 +301,7 @@ namespace Typesetting {
                 page.setFontAndSize(font, fontSize);
                 page.beginText();
                 page.moveTextPos(x + value.offsetX, y + value.offsetY);
-                page.showText(value.word);
+                showText(page, value.word, value.isUrl, value.link);
                 page.endText();
             }
             return x + width;
@@ -242,17 +316,22 @@ namespace Typesetting {
                 var measure = info_.measure;
                 var page = @pages[-1];
                 # Currently supported the footnote is always in 1 column.
-                var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
-                page.gSave();
-                page.setLineWidth(0.3);
-                page.setRGBFill(0, 0, 0);
-                page.moveTo(pageMargin_.left, ybottom_);
-                page.lineTo(pageMargin_.left + width * 0.7, ybottom_);
-                page.stroke();
-                page.gRestore();
-                var ypos = ybottom_ - 10.0;
-                for (var f = 0, fl = footnotes_.length(); f < fl; ++f) {
+                var fn = [], flush = [];
+                var fs = footnotes_.length();
+                ybottom_ = 0;
+                for (var f = 0; f < fs; ++f) {
                     var footnote = footnotes_[f];
+                    if (!footnote.good) {
+                        fn.push(footnote);
+                    } else {
+                        flush.push(footnote);
+                        ybottom_ = (ybottom_ > 0 ? ybottom_ : margin_.bottom) + footnote.lineFeedWidth;
+                    }
+                }
+                var ypos = (ybottom_ > 0 ? ybottom_ : margin_.bottom) - 10.0;
+                var fl = flush.length();
+                for (var f = 0; f < fl; ++f) {
+                    var footnote = flush[f];
                     var n = "" + footnote.number;
                     var nwidth = measure.textWidth(fontObj, fontSize, n);
                     var xpos = pageMargin_.left + margin - labelsep - nwidth;
@@ -271,7 +350,22 @@ namespace Typesetting {
                         ypos -= line.lineFeedWidth;
                     }
                 };
-                footnotes_ = [];
+                if (fl > 0) {
+                    var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
+                    page.gSave();
+                    page.setLineWidth(0.3);
+                    page.setRGBFill(0, 0, 0);
+                    page.moveTo(pageMargin_.left, ybottom_);
+                    page.lineTo(pageMargin_.left + width * 0.7, ybottom_);
+                    page.stroke();
+                    page.gRestore();
+                }
+                footnotes_ = fn;
+                fl = fn.length();
+                for (var f = 0; f < fl; ++f) {
+                    var footnote = footnotes_[f];
+                    ybottom_ = (ybottom_ > 0 ? ybottom_ : margin_.bottom) + footnote.lineFeedWidth;
+                }
             }
         }
 
@@ -290,11 +384,26 @@ namespace Typesetting {
             @pages.push(page_);
             ++pageNumber_;
             context_.footnoteCounter = 0;
+            marginCache_ = null;
         }
 
         public addFootnote(footnote) {
             footnotes_.push(footnote);
             ybottom_ = (ybottom_ > 0 ? ybottom_ : margin_.bottom) + footnote.lineFeedWidth;
+        }
+
+        public resolveFootnotes(footnotes) {
+            var l1 = footnotes.length();
+            var l2 = footnotes_.length();
+            for (var i = 0; i < l1; ++i) {
+                var r = footnotes[i];
+                for (var j = 0; j < l2; ++j) {
+                    var f = footnotes_[j];
+                    if (r == f.number) {
+                        f.good = true;
+                    }
+                }
+            }
         }
 
         public getPageNumber() {
@@ -315,6 +424,7 @@ namespace Typesetting {
             } else {
                 isColMoved_ = false;
             }
+            marginCache_ = null;
         }
 
         public pageBreak() {
@@ -335,15 +445,16 @@ namespace Typesetting {
             return { x: x_, y: y_, bottom: margin.bottom };
         }
 
-        public isColumnBreakPoint(totalLineFeeds) {
-            if (y_ < 0 || totalLineFeeds == 0) {
+        public isColumnBreakPoint(totalLineFeeds, ybase) {
+            var y = ybase ?? y_;
+            if (y < 0 || totalLineFeeds == 0) {
                 return false;
             }
             var margin = makeMarginSize();
             if (!margin) {
                 return false;
             }
-            y = y_ - totalLineFeeds;
+            y -= totalLineFeeds;
             var bottomMin = ybottom_ > 0 ? ybottom_ : margin.bottom;
             if (y < bottomMin) {
                 return true;
@@ -359,6 +470,10 @@ namespace Typesetting {
 
         public lineBreak(lineFeedWidth) {
             if (y_ < 0) {
+                if (curCol_ > 0) {
+                    var margin = makeMarginSize();
+                    y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+                }
                 return false;
             }
             lastLineFeedWidth_ = lineFeedWidth;
@@ -397,9 +512,7 @@ namespace Typesetting {
 
         private setupWrite(value, width, isBox, x) {
             if (page_.isUndefined) {
-                if (!@addPage()) {
-                    return false;
-                }
+                @addPage();
             }
 
             var margin = makeMarginSize();
@@ -437,9 +550,27 @@ namespace Typesetting {
             return true;
         }
 
+        public writeImage(img, x, y) {
+            var margin = makeMarginSize();
+            if (x.isUndefined) {
+                x = x_ < 0 ? margin.left : x_;
+            }
+            y ||= y_;
+            var width = img.width;
+            var height = img.height;
+            page_.drawImage(img.image, x, y + img.offsetY, width, height);
+            x_ = x + width;
+            # drawBox(x, y + img.offsetY + height, width, height);
+            return true;
+        }
+
         public write(node, x, y) {
-            var width = node.width;
             var value = node.value;
+            if (value.isInlineImage) {
+                return writeImage(value, x, y);
+            }
+
+            var width = node.width;
             if (!setupWrite(value, width, node.isBox, x)) {
                 return false;
             }
@@ -451,7 +582,7 @@ namespace Typesetting {
                 }
                 page_.beginText();
                 page_.moveTextPos(x_ + offsetX, (y ?? y_) + value.offsetY);
-                page_.showText(value.word);
+                showText(page_, value.word, value.isUrl, value.link);
                 page_.endText();
                 # page_.setRGBFill(0, 0, 0);
                 # page_.moveTo(x_ + value.offsetX, y_ + value.offsetY);
@@ -535,15 +666,18 @@ namespace Typesetting {
                 scale = 1.0;
                 left = margin.left + (margin.width - width) / 2;
             }
+            width = width * scale;
             height = height * scale;
-            var lineFeedWidth = (lastLineFeedWidth_ + ascent_) / 2;
+            var lineFeedWidth = lastLineFeedWidth_ / 2;
             var offsetY = lineFeedWidth - height;
             y_ += offsetY;
-            page_.drawImage(image, left, y_, width * scale, height);
-            lineBreak(lineFeedWidth - ascent_);
+            page_.drawImage(image, left, y_, width, height);
+            # drawBox(left, y_ + height, width, height);
+            lineBreak(lineFeedWidth);
         }
 
         public save(file) {
+            flushFootnotes();
             if (pageNumber_ > 0) {
                 System.println("[%{pageNumber_}]");
             }
