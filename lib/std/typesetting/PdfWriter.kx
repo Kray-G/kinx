@@ -264,6 +264,22 @@ namespace Typesetting {
             return marginCache_;
         }
 
+        private showText(page, text, isUrl, link) {
+            if (!isUrl) {
+                page.showText(text);
+            } else {
+                var tp = page.getCurrentTextPos();
+                page.showText(text);
+                var rect = {
+                    left:   tp.x - 4,
+                    bottom: tp.y - 4,
+                    right:  page.getCurrentTextPos().x + 4,
+                    top:    tp.y + 10,
+                };
+                page.createURILinkAnnot(rect, link);
+            }
+        }
+
         private writeFootnote(page, node, x, y) {
             var width = node.width;
             var value = node.value;
@@ -273,7 +289,7 @@ namespace Typesetting {
                 page.setFontAndSize(font, fontSize);
                 page.beginText();
                 page.moveTextPos(x + value.offsetX, y + value.offsetY);
-                page.showText(value.word);
+                showText(page, value.word, value.isUrl, value.link);
                 page.endText();
             }
             return x + width;
@@ -549,7 +565,7 @@ namespace Typesetting {
                 }
                 page_.beginText();
                 page_.moveTextPos(x_ + offsetX, (y ?? y_) + value.offsetY);
-                page_.showText(value.word);
+                showText(page_, value.word, value.isUrl, value.link);
                 page_.endText();
                 # page_.setRGBFill(0, 0, 0);
                 # page_.moveTo(x_ + value.offsetX, y_ + value.offsetY);
