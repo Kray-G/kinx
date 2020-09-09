@@ -231,8 +231,8 @@ do { \
                 if (index < 0) { \
                     do { index += sz; } while (index < 0); \
                     val = &(kv_A(obj->ary, index)); \
-                } else if (sz != 0) { \
-                    val = &(kv_A(obj->ary, (index % sz))); \
+                } else if (index < sz) { \
+                    val = &(kv_A(obj->ary, index)); \
                 } \
             } else if (v2->type == KX_OBJ_T) { \
                 kx_fnc_t *fn = search_array_function(ctx, "[]", v1, 1); \
