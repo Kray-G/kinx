@@ -137,11 +137,15 @@ namespace Typesetting {
         var wlast = words.length() - 1;
         words.each { &(node, i):
             nodes.push(node);
+            var prev = words[i-1];
+            var next = words[i+1];
             var value = node.value;
+            if (value.isInlineImage || prev.value.isInlineImage || next.value.isInlineImage) {
+                return;
+            }
             if (node.isBox && !node.value.noGlue && node.value.word != '') {
-                var next = words[i+1];
                 if (next.isBox) {
-                    if (specialCheck(info, Linebreak, nodes, i, words[i-1], node, next)) {
+                    if (specialCheck(info, Linebreak, nodes, i, prev, node, next)) {
                         return;
                     }
                 }

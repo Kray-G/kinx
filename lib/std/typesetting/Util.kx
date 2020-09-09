@@ -63,12 +63,13 @@ namespace Util {
         return ("M" * Integer.parseInt(digits.join(""))) + roman;
     };
 
+    var imgCounter_ = 0;
     var exepath_ = $exepath.replace('\\', '/');
     var phantomjs_ = System.PLATFORM.endsWith("-WIN") ? "phantomjs.exe" : "phantomjs";
     var katex_, duktape_;
     var executable_, phantomPath_;
 
-    function runPhantomJs(writer) {
+    function runPhantomJs(writer, width, htmlname, imgfile) {
         if (!executable_) {
             var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib', exepath_ / 'src/extlib'];
             for (var i = 0, l = base.length(); i < l; ++i) {
@@ -83,8 +84,8 @@ namespace Util {
                 throw RuntimeException("Necessary phantomjs executable not found");
             }
         }
-        new Process([executable_, phantomPath_ / "phtml2png.js", "tempXXX.html", "tempXXX.png"]).run().wait();
-        return writer.loadImage("tempXXX.png");
+        new Process([executable_, phantomPath_ / "phtml2png.js", htmlname, imgfile, ""+width]).run().wait();
+        return writer.loadImage(imgfile);
     }
 
     function loadKatex() {
@@ -102,6 +103,9 @@ namespace Util {
     }
 
     Typesetting.Util.compileMath = function(str, displayMode, writer) {
+        var basename = "tempXXX" + (++imgCounter_);
+        var htmlname = basename + ".html";
+        var imgfile = basename + ".jpeg";
         if (!katex_) {
             katex_ = loadKatex();
             duktape_ = new Duktape();
@@ -118,10 +122,11 @@ namespace Util {
         html += "</head>\n<body>\n";
         html += "<div id='katex-node' class='latex'>\n" + snippet + "</div>\n";
         html += "</body>\n</html>";
-        File.open("tempXXX.html", File.WRITE, &(f) => f.println(html));
-        var img = runPhantomJs(writer);
-        File.remove("tempXXX.html");
-        File.remove("tempXXX.png");
+        File.open(htmlname, File.WRITE, &(f) => f.println(html));
+        var width = writer.getColumnWidth();
+        var img = runPhantomJs(writer, width, htmlname, imgfile);
+        File.remove(htmlname);
+        File.remove(imgfile);
         return img;
     };
 

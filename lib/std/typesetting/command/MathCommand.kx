@@ -1,0 +1,16 @@
+namespace Typesetting {
+
+    namespace MathCommand {
+
+        class InlineMath(info_, context_) {
+            public exec(param, value) {
+                var img = Typesetting.Util.compileMath(value, false, info_.writer);
+                var displaystyle = value.find("\\displaystyle") >= 0;
+                var inlineImage = new Typesetting.InlineImage(info_).setImage(img, displaystyle ? 0.2 : null);
+                return Typesetting.Linebreak.Box(inlineImage.width, inlineImage);
+            }
+        }
+
+    } # namespace MathCommand
+
+} # namespace Typesetting

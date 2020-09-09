@@ -108,6 +108,44 @@ const PDF_COMP_MASK     = 0xFF;
 
 /* from HaruPdf header of hpdf_types.h */
 
+enum {
+    /* date-time type parameters */
+    PDF_INFO_CREATION_DATE = 0,
+    PDF_INFO_MOD_DATE,
+
+    /* string type parameters */
+    PDF_INFO_AUTHOR,
+    PDF_INFO_CREATOR,
+    PDF_INFO_PRODUCER,
+    PDF_INFO_TITLE,
+    PDF_INFO_SUBJECT,
+    PDF_INFO_KEYWORDS,
+    PDF_INFO_TRAPPED,
+    PDF_INFO_GTS_PDFX,
+    PDF_INFO_EOF
+}
+
+/* PDF-A Types */
+enum {
+    PDF_PDFA_1A = 0,
+    PDF_PDFA_1B = 1
+}
+
+enum {
+    PDF_VER_12 = 0,
+    PDF_VER_13,
+    PDF_VER_14,
+    PDF_VER_15,
+    PDF_VER_16,
+    PDF_VER_17,
+    PDF_VER_EOF
+}
+
+enum {
+    PDF_ENCRYPT_R2 = 2,
+    PDF_ENCRYPT_R3 = 3
+}
+
 /*---------------------------------------------------------------------------*/
 /*------ The line cap style -------------------------------------------------*/
 
