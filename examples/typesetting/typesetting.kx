@@ -1,16 +1,16 @@
 using Typesetting;
 using typesetting.style.ArticleA4;
 
-var doc = new Typesetting.Document(Typesetting.Style.ArticleA4);
+var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true });
 
 doc.title("Kinx TT - Kinx Tiny Typesetting");
 doc.abstract(%{
-This system is a small typesetting system written in Kinx.
-Most of people knows the \LaTeX\footnote{Leslie Lamport, https://en.wikipedia.org/wiki/LaTeX} is being used for that purpose,
-but the \TeX\footnote{Donald E. Knuth, https://en.wikipedia.org/wiki/TeX} system is very huge.
-This system provides only a limited functionality,
-but supports some of \TeX algorithms in this small system.
-This would be your best partner as long as used for your personal use.
+    This system is a small typesetting system written in Kinx.
+    Most of people knows the \LaTeX\footnote{Leslie Lamport, https://en.wikipedia.org/wiki/LaTeX} is being used for that purpose,
+    but the \TeX\footnote{Donald E. Knuth, https://en.wikipedia.org/wiki/TeX} system is very huge.
+    This system provides only a limited functionality,
+    but supports some of \TeX algorithms in this small system.
+    This would be your best partner as long as used for your personal use.
 });
 
 doc.section("Overview");
@@ -53,10 +53,10 @@ doc.itemize({
         "Footnotes\\footnote{This is a footnote example.}.",
         "Widows & Orphans penalty control.",
         "Listing items with a bullet or numbering.",
-        "Math formula & equation like \\TeX",
-        "Writing a program source code.",
         "Images, and it can be also put with floating inside paragraph.",
+        "Math formula & equation like \\TeX",
         "Tables, and the header of table is automatically repeated each page.",
+        "Writing a program source code.",
         "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
 });
@@ -199,20 +199,10 @@ doc.paragraph(%{
 doc.paragraph(%{
     If you want to use \$ in paragraph, use \$ with \\ like \verb{\$}.
 });
-
-doc.subSection("Program source code");
-
 doc.paragraph(%{
-    Here is an example of a source code.
-});
-
-doc.code(%{
-function fib(n) {
-    if (n < 3) return n;
-    return fib(n-2) + fib(n-1);
-}
-
-System.println("fib(34) = ", fib(34));
+    And also you can use \verb{\displaystyle} keyword,
+    the Math fomula is directly inside paragraph like $\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$,
+    by \verb{$\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
 });
 
 doc.subSection("Table");
@@ -239,7 +229,7 @@ doc.table({
         "===",
         [
             "A1",
-            "B1\\footnote{If you want to write a math formula inline, use \\verb{$...$} style directly in paragraph.}",
+            "B1\\footnote{This is a footnote in table.}",
             "C1",
         ],
         "---",
@@ -257,19 +247,25 @@ doc.table({
         "---",
         [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
         [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
-        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
     ]
 });
 doc.paragraph(%{
     The table header can be automatically repeated each page.
+});
+
+doc.subSection("Program source code");
+
+doc.paragraph(%{
+    Here is an example of a source code.
+});
+
+doc.code(%{
+function fib(n) {
+    if (n < 3) return n;
+    return fib(n-2) + fib(n-1);
+}
+
+System.println("fib(34) = ", fib(34));
 });
 
 doc.save("examples/typesetting/typesetting.pdf");

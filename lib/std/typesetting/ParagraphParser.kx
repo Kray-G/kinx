@@ -182,7 +182,10 @@ namespace Typesetting {
             throw RuntimeException('Unknown command (%{name}) at the line ' + index.line);
         };
         var urlLink_ = ($.regex(/(https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)/)).map {
-            return @parseEach(_1);
+            var value = @parseEach(_1);
+            value.isUrl = true;
+            value.link = _1;
+            return value;
         };
         var optWhitespace_ = $.optWhitespace.map {
             if (_1 == "") {
