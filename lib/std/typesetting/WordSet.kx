@@ -14,6 +14,8 @@ namespace Typesetting {
         }
         public fontSize() {
         }
+        public getHeight() {
+        }
         public textWidth() {
         }
         public spaceWidth() {
@@ -32,7 +34,7 @@ namespace Typesetting {
         var measure_ = info_.measure;
         private initialize() {
         }
-        public setImage(image, scale) {
+        public setImage(image, scale, ratio) {
             fontObj ??= info_.context.font.fontObj;
             fontSize ??= info_.context.font.fontSize;
             var bbox = fontObj.getBBox();
@@ -40,17 +42,22 @@ namespace Typesetting {
             # var descent = fontObj.getDescent();
             @offsetY = bbox.bottom * fontSize / 1000 + 1.0;
             @image = image;
-            var width = image.getWidth();
-            var height = image.getHeight();
-            var lineHeight = (bbox.top + bbox.bottom) * fontSize / 1000;
-            var ratio = lineHeight / height;
-            @width = width * ratio;
-            @height = height * ratio;
+            @width = image.getWidth();
+            @height = image.getHeight();
+            if (!ratio) {
+                var lineHeight = (bbox.top + bbox.bottom) * fontSize / 1000;
+                ratio = lineHeight / @height;
+            }
+            @width = @width * ratio;
+            @height = @height * ratio;
             return this;
         }
         public fontObj() {
         }
         public fontSize() {
+        }
+        public getHeight() {
+            return @height;
         }
         public textWidth() {
             return @width;
@@ -98,6 +105,9 @@ namespace Typesetting {
         public fontSize() {
             return @size ?? 0.0;
         }
+        public getHeight() {
+            return info_.measure.getAscent(@font, @size);
+        }
         public textWidth() {
             return @width ?? 0.0;
         }
@@ -141,6 +151,9 @@ namespace Typesetting {
         }
         public fontSize() {
             return @words.length() > 0 ? @words[-1].fontSize() : 0.0;
+        }
+        public getHeight() {
+            return 0;
         }
         public textWidth() {
             var sum = 0.0;
