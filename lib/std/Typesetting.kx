@@ -137,8 +137,13 @@ namespace Typesetting {
                 line.nodes.each { &(n, i):
                     var value = n.value;
                     var word = value ? value.word : '';
-                    if (n.isBox && word != '') {
-                        var lfs = lineFeedWidthRatio * value.size;
+                    if (n.isBox) {
+                        var lfs;
+                        if (value.isInlineImage) {
+                            lfs = value.getHeight();
+                        } else if (word != '') {
+                            lfs = lineFeedWidthRatio * value.size;
+                        }
                         if (lineFeedWidth < lfs) {
                             lineFeedWidth = lfs;
                         }
