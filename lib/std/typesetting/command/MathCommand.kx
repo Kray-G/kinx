@@ -3,9 +3,10 @@ namespace Typesetting {
     namespace MathCommand {
 
         class InlineMath(info_, context_) {
-            public exec(value) {
+            public exec(param, value) {
                 var img = Typesetting.Util.compileMath(value, false, info_.writer);
-                var inlineImage = new Typesetting.InlineImage(info_).setImage(img, 0.25);
+                var displaystyle = value.find("\\displaystyle") >= 0;
+                var inlineImage = new Typesetting.InlineImage(info_).setImage(img, 0.25, displaystyle ? 0.25: null);
                 return Typesetting.Linebreak.Box(inlineImage.width, inlineImage);
             }
         }

@@ -49,27 +49,15 @@ doc.paragraph(%{This system supports following algorithms.});
 doc.itemize({
     labelType: 'enum',
     items: [
-        "Main Features",
-        {
-            labelType: 'enum',
-            items: [
-                "Hyphenation & Knuth-Plass Line Breaking Algorithm.",
-                "Widows & Orphans penalty control.",
-                "Listing items with a bullet or numbering.",
-                "Math formula & equation like \\TeX",
-                "Writing a program source code.",
-                "Footnotes\\footnote{This is a footnote example.}.",
-                "Images, and it can be also put with floating inside paragraph.",
-            ]
-        },
-        "For Japanese",
-        {
-            labelType: 'enum',
-            items: [
-                "Japanese hyphenation rules.",
-                "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
-            ]
-        },
+        "Hyphenation & Knuth-Plass Line Breaking Algorithm, and also for Japanese hyphenation rules.",
+        "Footnotes\\footnote{This is a footnote example.}.",
+        "Widows & Orphans penalty control.",
+        "Listing items with a bullet or numbering.",
+        "Math formula & equation like \\TeX",
+        "Writing a program source code.",
+        "Images, and it can be also put with floating inside paragraph.",
+        "Tables, and the header of table is automatically repeated each page.",
+        "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
 });
 
@@ -83,7 +71,7 @@ doc.image({
     file: "examples/typesetting/linebreak.png",
 });
 doc.paragraph(%{
-    The figure on the right\footnote{This is an example of not only hyphenation but also a floating image.} is an example of hyphenation and justification.
+    The figure on the right\footnote{This is also the example of a floating image.} is an example of hyphenation and justification.
     Hyphenation will be done before applying line-breaking algorithm.
     The algorithm is based on \monotype{Hyper.js},
     and it relies on the hyphenation algorithm by Franklin M. Liang commonly known from \LaTeX.
@@ -181,7 +169,7 @@ doc.columnBreak();
 doc.subSection("Math formula and equation");
 
 doc.paragraph(%{
-    Here is an example of Math fomula and equation.
+    Here is an example of Math formula and equation.
     You will think as if it is \LaTeX output.
     Yes, you are quite right because this is came from \TeX output,
     but it is never using a huge \TeX system.
@@ -203,7 +191,7 @@ doc.math(%{
 doc.imageCaption("Math example");
 
 doc.paragraph(%{
-    If you want to write it in a paragraph line, use \verb{$...$} style directly in paragraph.
+    If you want to write a math formula inline, use \verb{$...$} style directly in paragraph.
     For example, $E = mc^2$ is written as \verb{$E = mc^2$},
     and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$
     written as \verb{$\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
@@ -225,6 +213,63 @@ function fib(n) {
 }
 
 System.println("fib(34) = ", fib(34));
+});
+
+doc.subSection("Table");
+
+doc.paragraph(%{
+    Here is an example of table.
+    The ruled line can be selected from no line, a single line, or a double line.
+    Besides, the column width is also automatically calculated according to inside text size.
+});
+
+var line = 0;
+doc.table({
+    header: 0,
+    # size: 0.9,
+    # align: "l",
+    cellAlign: "l||c|r",
+    body: [
+        "---",
+        [
+            "Align Left",
+            "Align Center",
+            "Align Right"
+        ],
+        "===",
+        [
+            "A1",
+            "B1\\footnote{If you want to write a math formula inline, use \\verb{$...$} style directly in paragraph.}",
+            "C1",
+        ],
+        "---",
+        [
+            "A2",
+            "If you want to write a math formula inline, use \\verb{$...$} style directly in paragraph.",
+            "C2",
+        ],
+        "---",
+        [
+            "A3",
+            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ is\\\\\na good example of the Math formula in the table of Kinx Tiny Typeseting library.",
+            "This column is aligned to the right.",
+        ],
+        "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+    ]
+});
+doc.paragraph(%{
+    The table header can be automatically repeated each page.
 });
 
 doc.save("examples/typesetting/typesetting.pdf");
