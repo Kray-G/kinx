@@ -34,7 +34,7 @@ namespace Typesetting {
         var measure_ = info_.measure;
         private initialize() {
         }
-        public setImage(image, scale, ratio) {
+        public setImage(image, scale) {
             fontObj ??= info_.context.font.fontObj;
             fontSize ??= info_.context.font.fontSize;
             var bbox = fontObj.getBBox();
@@ -44,12 +44,12 @@ namespace Typesetting {
             @image = image;
             @width = image.getWidth();
             @height = image.getHeight();
-            if (!ratio) {
+            if (!scale) {
                 var lineHeight = (bbox.top + bbox.bottom) * fontSize / 1000;
-                ratio = lineHeight / @height;
+                scale = lineHeight / @height;
             }
-            @width = @width * ratio;
-            @height = @height * ratio;
+            @width = @width * scale;
+            @height = @height * scale;
             return this;
         }
         public fontObj() {
