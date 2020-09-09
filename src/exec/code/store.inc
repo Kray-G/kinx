@@ -75,13 +75,14 @@
 #define KX_STOREV_CODE() \
 { \
     int lex = cur->value1.i; \
+    kx_val_t *v = &kv_last((ctx)->stack); \
     if (lex == 0) { \
         KEX_SAVE_VARINFO(kv_A(frmv->v, cur->value2.i)); \
-        kv_A(frmv->v, cur->value2.i) = kv_last((ctx)->stack); \
+        kv_A(frmv->v, cur->value2.i) = *v; \
         KEX_RESTORE_VARINFO(kv_A(frmv->v, cur->value2.i)); \
     } else if (lex == 1) { \
         KEX_SAVE_VARINFO(kv_A(lexv->v, cur->value2.i)); \
-        kv_A(lexv->v, cur->value2.i) = kv_last((ctx)->stack); \
+        kv_A(lexv->v, cur->value2.i) = *v; \
         KEX_RESTORE_VARINFO(kv_A(lexv->v, cur->value2.i)); \
     } else { \
         kx_frm_t *lexp = lexv; \
@@ -89,8 +90,22 @@
             lexp = lexp->lex; \
         } \
         KEX_SAVE_VARINFO(kv_A(lexp ? lexp->v : frmv->v, cur->value2.i)); \
-        kv_A(lexp ? lexp->v : frmv->v, cur->value2.i) = kv_last((ctx)->stack); \
+        kv_A(lexp ? lexp->v : frmv->v, cur->value2.i) = *v; \
         KEX_RESTORE_VARINFO(kv_A(lexp ? lexp->v : frmv->v, cur->value2.i)); \
+    } \
+    if (v->type == KX_STR_T) { \
+        const char *pv = ks_string(v->value.sv); \
+        v->type = KX_STR_T; \
+        v->value.sv = allocate_str(ctx); \
+        ks_append(v->value.sv, pv); \
+    } else if (v->type == KX_CSTR_T) { \
+        const char *pv = v->value.pv; \
+        v->type = KX_STR_T; \
+        v->value.sv = allocate_str(ctx); \
+        ks_append(v->value.sv, pv); \
+    } else if (v->type == KX_BIG_T) { \
+        v->type = KX_BIG_T; \
+        v->value.bz = make_big_alive(ctx, BzCopy(v->value.bz)); \
     } \
     cur = cur->next; \
 } \
