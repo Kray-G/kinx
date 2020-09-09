@@ -44,6 +44,15 @@ namespace Typesetting {
             }
         }
 
+        class ForceBreak(info_, context_) {
+            public exec(params) {
+                var ws = new Typesetting.WordSet(info_);
+                ws.addWord(Typesetting.Linebreak.Glue(0, Typesetting.Linebreak.Infinity, 0));
+                ws.addWord(Typesetting.Linebreak.Penalty(0, -Typesetting.Linebreak.Infinity, 0));
+                return ws;
+            }
+        }
+
         class Ruby(info_, context_) {
             private generateRuby(measure, ruby, word, rubySize, fontSize, fontObj) {
                 var rl = measure.textWidth(fontObj, rubySize, ruby);
