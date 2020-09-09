@@ -54,6 +54,14 @@ namespace Typesetting {
             pageNumber_ = 0;
             pdf_ = new Pdf();
             pdf_.setCompressionMode(PDF_COMP_ALL);
+            pdf_.setInfoAttr(PDF_INFO_PRODUCER, "Kinx Tiny Typesetting");
+
+            # Properties.
+            # PDF_INFO_AUTHOR
+            # PDF_INFO_CREATOR
+            # PDF_INFO_TITLE
+            # PDF_INFO_SUBJECT
+            # PDF_INFO_KEYWORDS
 
             loadFonts(pdf_);
             @setPageSize(pagesize, direction);
@@ -77,6 +85,10 @@ namespace Typesetting {
 
         public getFontObjBase() {
             return [ fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_ ];
+        }
+
+        public getColumnNumber() {
+            return curCol_;
         }
 
         public isColumnMoved() {
@@ -412,6 +424,7 @@ namespace Typesetting {
             } else {
                 isColMoved_ = false;
             }
+            marginCache_ = null;
         }
 
         public pageBreak() {
@@ -457,6 +470,10 @@ namespace Typesetting {
 
         public lineBreak(lineFeedWidth) {
             if (y_ < 0) {
+                if (curCol_ > 0) {
+                    var margin = makeMarginSize();
+                    y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+                }
                 return false;
             }
             lastLineFeedWidth_ = lineFeedWidth;

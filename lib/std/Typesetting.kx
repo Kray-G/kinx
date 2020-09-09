@@ -161,10 +161,11 @@ namespace Typesetting {
                 line.height = maxHeight;
                 totalHeight += maxHeight;
             };
-            var diffHeight = totalLineFeedWidth - totalHeight;
+            var baseLineFeedWidthRatio = lineFeedWidthRatio * context_.font.fontSize;
+            var diffHeight = baseLineFeedWidthRatio - lines[0].height;
             if (diffHeight < 0) {
-                lines[0].diffHeight = diffHeight - context_.page.paragraphSkipWidth;
-                totalLineFeedWidth = totalHeight + context_.page.paragraphSkipWidth;
+                lines[0].diffHeight = diffHeight;
+                totalLineFeedWidth -= diffHeight;
             }
             lines[0].totalLineFeedWidth = totalLineFeedWidth;
             lines[0].totalHeight = totalHeight;
@@ -830,8 +831,13 @@ namespace Typesetting {
             if (writer.isColumnBreakPoint(totalLineFeedWidth, checkY)) {
                 writer.setPos({ x: xbase, y: checkY });
                 writer.columnBreak();
+                var colnum = writer.getColumnNumber();
                 if (header_) {
-                    offsetY_ = margin_.pageHeight - margin_.top - header_[0].y;
+                    if (colnum == 0) {
+                        offsetY_ = margin_.pageHeight - margin_.top - header_[0].y;
+                    } else {
+                        offsetY_ = pos_.y - header_[0].y;
+                    }
                     ybase = header_.y + offsetY_;
                     outputTextImpl(header_, writer, xbase, ybase, header_.totalLineFeedWidth);
                     if (header_.index >= 0) {
@@ -845,7 +851,11 @@ namespace Typesetting {
                         outputLine(header_, hline1.count, -1, ybase);
                     }
                 }
-                offsetY_ = margin_.pageHeight - margin_.top - array[0].y - header_.totalLineFeedWidth;
+                if (colnum == 0) {
+                    offsetY_ = margin_.pageHeight - margin_.top - array[0].y - header_.totalLineFeedWidth;
+                } else {
+                    offsetY_ = pos_.y - array[0].y - header_.totalLineFeedWidth;
+                }
                 ybase = array.y + offsetY_;
             }
 
@@ -880,13 +890,13 @@ namespace Typesetting {
             savedMargin_ = info_.writer.getMargin();
             margin_ = info_.writer.makeMarginSize();
 
-            info_.writer.lineBreak(0);    // setup x & y.
-            pos_ = info_.writer.getPos();
-
             var fontSize = context_.font.fontSize;
             var paragraphSkipWidth = context_.page.paragraphSkipWidth;
             context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * fontSize;
             bottom_ = (context_.font.fontObj.getBBox().bottom * fontSize) / 1000;
+
+            info_.writer.lineBreak(0);    // setup x & y.
+            pos_ = info_.writer.getPos();
 
             widthlist = setupTable(table);
             makeLines(table, widthlist);
@@ -992,6 +1002,7 @@ namespace Typesetting {
 
         public setColumn(column) {
             flushParagraph();
+            info_.writer.lineBreak(context_.page.lineFeedWidthRatio * context_.font.fontSize);
             info_.writer.setColumn(column);
         }
 

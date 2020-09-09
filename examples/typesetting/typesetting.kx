@@ -222,9 +222,9 @@ doc.table({
     body: [
         "---",
         [
-            "Align Left",
-            "Align Center",
-            "Align Right"
+            "Left",
+            "Center",
+            "Right"
         ],
         "===",
         [
@@ -235,16 +235,19 @@ doc.table({
         "---",
         [
             "A2",
-            "If you want to write a math formula inline, use \\verb{$...$} style directly in paragraph.",
+            "This column is aligned to the center.",
             "C2",
         ],
         "---",
         [
             "A3",
-            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ is\\\\\na good example of the Math formula in the table of Kinx Tiny Typeseting library.",
+            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ is\\\\\nan example of Math formula in the table.",
             "This column is aligned to the right.",
         ],
         "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
+        [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
         [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
         [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
     ]
@@ -252,6 +255,57 @@ doc.table({
 doc.paragraph(%{
     The table header can be automatically repeated each page.
 });
+
+doc.setColumn(2);
+doc.table({
+    header: 0,
+    cellAlign: "cl",
+    body: [
+        "---",
+        [
+            "#",
+            "Outline",
+        ],
+        "===",
+        [
+            "1",
+            "Something",
+        ],
+        [
+            "2",
+            "Something",
+        ],
+        "---",
+    ]
+});
+doc.columnBreak();
+doc.table({
+    header: 0,
+    cellAlign: "cl",
+    body: [
+        "---",
+        [
+            "#",
+            "Overview",
+        ],
+        "===",
+        [
+            "1",
+            "Something",
+        ],
+        [
+            "2",
+            "Something",
+        ],
+        "---",
+        [
+            "3",
+            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ is\\\\\nan example of Math formula in the table.",
+        ],
+        "---",
+    ]
+});
+doc.setColumn(1);
 
 doc.subSection("Program source code");
 
