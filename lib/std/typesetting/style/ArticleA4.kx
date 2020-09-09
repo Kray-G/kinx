@@ -52,6 +52,10 @@ namespace Style {
                 "rightsep":             20.0,
                 "bottomsep":            10.0,
             },
+            "table": {
+                "lineWidth":            0.5,
+                "cellPadding":          5.0,
+            },
             "itemize": {
                 "fontSize":             [fontSize, fontSize-1, fontSize-1, fontSize-1],
                 "lineFeedWidthRatio":   [1.4, 1.4, 1.4, 1.4],
