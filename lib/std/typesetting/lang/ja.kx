@@ -134,16 +134,27 @@ namespace Typesetting {
     }
 
     Typesetting.insertGlue.ja = _function(info, Linebreak, words, nodes) {
+        var skipNext;
         var wlast = words.length() - 1;
         words.each { &(node, i):
-            nodes.push(node);
-            var prev = words[i-1];
-            var next = words[i+1];
-            var value = node.value;
-            if (value.isInlineImage || prev.value.isInlineImage || next.value.isInlineImage) {
+            if (skipNext) {
+                skipNext = false;
                 return;
             }
-            if (node.isBox && !node.value.noGlue && node.value.word != '') {
+            nodes.push(node);
+            var prev = i > 0 ? words[i-1] : null;
+            var next = words[i+1];
+            var value = node.value;
+            if (value.isInlineImage || prev.value.isInlineImage || next.value.isInlineImage ||
+                    value.isImage || prev.value.isImage || next.value.isImage) {
+                return;
+            }
+            if (node.isBox && (value.noGlue || value.word == '')) {
+                if (next.isGlue) {
+                    skipNext = true;
+                }
+            }
+            if (node.isBox && !value.noGlue && value.word != '') {
                 if (next.isBox) {
                     if (specialCheck(info, Linebreak, nodes, i, prev, node, next)) {
                         return;

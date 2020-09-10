@@ -78,6 +78,82 @@ namespace Typesetting {
         }
     }
 
+    class Image(info_) {
+        @isImage = true;
+        var context_ = info_.context;
+        var measure_ = info_.measure;
+        var writer_ = info_.writer;
+        private initialize() {
+        }
+        public setImage(imgfile, scale, caption) {
+            @lineBreak = true;
+            @image = writer_.loadImage(imgfile);
+            scale ??= 1.0;
+            var width = @image.getWidth() * scale;
+            var height = @image.getHeight() * scale;
+            if (caption) {
+                var level = context_.counter.image[0];
+                var num = ++context_.counter.image[1];
+                var lt = [];
+                for (var i = 1; i <= level; ++i) {
+                    lt.push(context_.counter.section[i]);
+                }
+                lt.push("" + num);
+                @caption = info_.base.image.label + ' ' + lt.join('.') + ' ' + caption;
+            }
+            @fontObj = context_.font.fontObj;
+            @fontSize = context_.font.fontSize;
+            @lineFeedWidth = @fontSize * context_.page.lineFeedWidthRatio;
+            var margin = writer_.makeMarginSize();
+            if (margin.width < width) {
+                scale = margin.width / width;
+                @width = width * scale;
+                @height = height * scale;
+            } else {
+                @width = width;
+                @height = height;
+            }
+            @scale = @height / @image.getHeight();
+            return this;
+        }
+        public fontObj() {
+        }
+        public fontSize() {
+        }
+        public getHeight() {
+            return @height;
+        }
+        public textWidth() {
+            return @width;
+        }
+        public spaceWidth() {
+            return @addSpace;
+        }
+        public additionalSpace(width) {
+            @addSpace = width;
+        }
+        public toString() {
+            return "{Image}";
+        }
+        public display(indent) {
+        }
+        public flatten() {
+            return this;
+        }
+        public write() {
+            var captionSpace = @caption ? @lineFeedWidth : 0;
+            writer_.addY(@height);
+            writer_.lineBreak(0);
+            writer_.addY(-@height);
+            writer_.imageCenter(@image, @scale);
+            if (@caption) {
+                writer_.lineBreak(captionSpace);
+                writer_.writeCenter(@caption, @fontObj, @fontSize);
+                writer_.lineBreak(@lineFeedWidth);
+            }
+        }
+    }
+
     class Word(info_) {
         @isWord = true;
         var context_ = info_.context;

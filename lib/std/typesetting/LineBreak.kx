@@ -283,6 +283,13 @@ namespace Typesetting {
                 }
                 System.println("'%{value.word}' - Box, width:%{@width}, offset(%{value.offsetX??0},%{value.offsetY??0})");
             },
+            write: function(writer) {
+                if (value.write.isFunction) {
+                    value.write(writer);
+                } else {
+                    writer.write(this);
+                }
+            },
         };
         return this;
     };
@@ -300,12 +307,15 @@ namespace Typesetting {
                 }
                 System.println("        Glue, width:%{@width}, stretch:%{@stretch}, shrink:%{@shrink}");
             },
+            write: function(writer) {
+                writer.write(this);
+            },
         };
         return this;
     };
 
     Linebreak.Penalty = function(width, penalty, flagged) {
-        return {
+        var this = {
             isPenalty: true,
             width: width,
             penalty: penalty,
@@ -317,7 +327,11 @@ namespace Typesetting {
                 }
                 System.println("        Penalty, width:%{width}, penalty:%{penalty}, flagged:%{flagged}");
             },
+            write: function(writer) {
+                writer.write(this);
+            },
         };
+        return this;
     };
 
 } # namespace Typesetting
