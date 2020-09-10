@@ -11,6 +11,10 @@ namespace Style {
             "columns":                  1,
             "sectionLevel":             1,
             "indentSize":               20.0,
+            "draw": {
+                "margin":               false,
+                "imageBox":             false,
+            },
             "margin": {
                 "left":                 56.7,
                 "right":                56.7,

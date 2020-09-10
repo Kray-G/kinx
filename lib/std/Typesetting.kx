@@ -88,7 +88,7 @@ namespace Typesetting {
                 if (doColumnBreak && widowCheck == i) {
                     writer.columnBreak();
                 }
-                line.nodes.each { => writer.write(_1) };
+                line.nodes.each { => _1.write(writer) };
                 var colBreaked = writer.lineBreak(line.lineFeedWidth);
                 if (colBreaked) {
                     doColumnBreak = false;
@@ -131,9 +131,13 @@ namespace Typesetting {
                 lines[-1].lineFeedWidth = context_.page.paragraphSkipWidth; 
                 totalLineFeedWidth += context_.page.paragraphSkipWidth;
             }
+            var prevBreak;
             lines.each { &(line, li):
-                var lineFeedWidth = 0;
+                var lineFeedWidth = prevBreak ? context_.page.paragraphSkipWidth : 0;
+                prevBreak = false;
                 var maxHeight = 0;
+                var alen = line.nodes.length();
+                var alast = alen - 1;
                 line.nodes.each { &(n, i):
                     var value = n.value;
                     var word = value ? value.word : '';
@@ -147,8 +151,11 @@ namespace Typesetting {
                         if (lineFeedWidth < lfs) {
                             lineFeedWidth = lfs;
                         }
+                    } else if (n.isGlue && i != alast) {
+                        if (n.stretch == Linebreak.Infinity) {
+                            prevBreak = true;
+                        }
                     }
-                    var value = n.value;
                     var height = value.getHeight.isFunction ? value.getHeight() : 0;
                     if (maxHeight < height) {
                         maxHeight = height;
@@ -404,26 +411,26 @@ namespace Typesetting {
         }
 
         private makeSectionNumber(level) {
-            var sectionNumber = context_.sectionNumber[level] ?? 0;
+            var sectionNumber = context_.counter.section[level] ?? 0;
             var numText = [];
             if (context_.check) {
-                for (var i = 1, l = context_.sectionNumber.length(); i < l; ++i) {
+                for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
                     if (i <= level) {
-                        numText.push(context_.sectionNumber[i]);
+                        numText.push(context_.counter.section[i]);
                     }
                 }
             } else {
-                context_.sectionNumber[level] = ++sectionNumber;
+                context_.counter.section[level] = ++sectionNumber;
                 var newNumbers = [];
-                for (var i = 1, l = context_.sectionNumber.length(); i < l; ++i) {
+                for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
                     if (i <= level) {
-                        newNumbers[i] = context_.sectionNumber[i];
+                        newNumbers[i] = context_.counter.section[i];
                         numText.push(newNumbers[i]);
                     } else {
                         newNumbers[i] = 0;
                     }
                 }
-                context_.sectionNumber = newNumbers;
+                context_.counter.section = newNumbers;
             }
             
             return numText;
@@ -832,9 +839,10 @@ namespace Typesetting {
                 writer.setPos({ x: xbase, y: checkY });
                 writer.columnBreak();
                 var colnum = writer.getColumnNumber();
+                var cellPadding2 = info_.base.table.cellPadding * 2;
                 if (header_) {
                     if (colnum == 0) {
-                        offsetY_ = margin_.pageHeight - margin_.top - header_[0].y;
+                        offsetY_ = margin_.pageHeight - margin_.top - header_[0].y - header_.totalLineFeedWidth + cellPadding2;
                     } else {
                         offsetY_ = pos_.y - header_[0].y;
                     }
@@ -848,11 +856,11 @@ namespace Typesetting {
                     }
                     var hline1 = table.body[header_.index + 1];
                     if (hline1.isTableHLine) {
-                        outputLine(header_, hline1.count, -1, ybase);
+                        outputLine(header_, hline1.count, +1, ybase);
                     }
                 }
                 if (colnum == 0) {
-                    offsetY_ = margin_.pageHeight - margin_.top - array[0].y - header_.totalLineFeedWidth;
+                    offsetY_ = margin_.pageHeight - margin_.top - array[0].y - (header_.totalLineFeedWidth * 2) + cellPadding2;
                 } else {
                     offsetY_ = pos_.y - array[0].y - header_.totalLineFeedWidth;
                 }
@@ -876,7 +884,7 @@ namespace Typesetting {
                     } else if (i == l) {
                         outputLine(table.body[i-1], ba.count, +2);
                     } else {
-                        outputLine(table.body[i-1], ba.count, -1);
+                        outputLine(table.body[i-1], ba.count, +1);
                     }
                 } else {
                     ybase = outputText(table, ba);
@@ -933,16 +941,17 @@ namespace Typesetting {
             var measure = new Typesetting.Measurement(writer.getPdf(), writer.getPage());
             info_.measure = measure;
             info_.writer = writer;
-            writer.setPageMargin(info_.base.margin);
             var pageSize = measure.getPageSize();
             context_ = {
                 noIndent: false,
                 commands: [],
                 outline: [],
-                sectionNumber: [],
-                imageCounter: [info_.base.sectionLevel, 0],
+                counter: {
+                    section: [],
+                    image: [info_.base.sectionLevel, 0],
+                    footnote: 0,
+                },
                 footnotes: [],
-                footnoteCounter: 0,
                 page: {
                     width: pageSize.width,
                     height: pageSize.height,
@@ -1141,11 +1150,11 @@ namespace Typesetting {
         }
 
         private makeImageNumber() {
-            var level = context_.imageCounter[0];
-            var num = ++context_.imageCounter[1];
+            var level = context_.counter.image[0];
+            var num = ++context_.counter.image[1];
             var lt = [];
             for (var i = 1; i <= level; ++i) {
-                lt.push(context_.sectionNumber[i]);
+                lt.push(context_.counter.section[i]);
             }
             lt.push("" + num);
             return lt.join('.');

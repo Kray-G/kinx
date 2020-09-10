@@ -195,11 +195,9 @@ doc.paragraph(%{
     For example, $E = mc^2$ is written as \verb{$E = mc^2$},
     and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$
     written as \verb{$\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
-});
-doc.paragraph(%{
+
     If you want to use \$ in paragraph, use \$ with \\ like \verb{\$}.
-});
-doc.paragraph(%{
+
     And also you can use \verb{\displaystyle} keyword,
     the Math fomula is directly inside paragraph like $\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$,
     by \verb{$\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
@@ -241,8 +239,8 @@ doc.table({
         "---",
         [
             "A3",
-            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ is\\\\\nan example of Math formula in the table.",
-            "This column is aligned to the right.",
+            "$\\displaystyle\\int_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$",
+            "Aligned to the right.",
         ],
         "---",
         [ ""+(++line), "Aligned to the center.", "On the right." ], "---",
@@ -320,6 +318,15 @@ function fib(n) {
 }
 
 System.println("fib(34) = ", fib(34));
+});
+
+doc.paragraph(%{
+    This is an example of image, scaled with 80%.
+    \image[scale=0.80]{examples/typesetting/linebreak.png}
+    This is an example of image.
+    \image[scale=0.6]{examples/typesetting/linebreak.png}
+    This is an example of image.
+    \image[scale=0.8,caption=Hyphenation and justification]{examples/typesetting/linebreak.png}
 });
 
 doc.save("examples/typesetting/typesetting.pdf");

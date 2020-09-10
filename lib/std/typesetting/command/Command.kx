@@ -45,10 +45,22 @@ namespace Typesetting {
         }
 
         class ForceBreak(info_, context_) {
-            public exec(params) {
+            public exec() {
                 var ws = new Typesetting.WordSet(info_);
                 ws.addWord(Typesetting.Linebreak.Glue(0, Typesetting.Linebreak.Infinity, 0));
                 ws.addWord(Typesetting.Linebreak.Penalty(0, -Typesetting.Linebreak.Infinity, 0));
+                return ws;
+            }
+        }
+
+        class BreakWithIndentSpace(info_, context_) {
+            public exec() {
+                var ws = new Typesetting.WordSet(info_);
+                ws.addWord(Typesetting.Linebreak.Glue(0, Typesetting.Linebreak.Infinity, 0));
+                ws.addWord(Typesetting.Linebreak.Penalty(0, -Typesetting.Linebreak.Infinity, 0));
+                var indent = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '');
+                indent.noGlue = true;
+                ws.addWord(Typesetting.Linebreak.Box(info_.base.indentSize, indent));
                 return ws;
             }
         }
@@ -150,6 +162,25 @@ namespace Typesetting {
                 }
                 return generateRuby(measure, params, value, rubySize, fontSize, fontObj);
             }
+        }
+
+        class Image(info_, context_) {
+
+            public exec(params, value) {
+                var ws = new Typesetting.WordSet(info_);
+                ws.addWord(Typesetting.Linebreak.Glue(0, Typesetting.Linebreak.Infinity, 0));
+                ws.addWord(Typesetting.Linebreak.Penalty(0, -Typesetting.Linebreak.Infinity, 0));
+                var scale = params.scale ? Double.parseDouble(params.scale) : 1.0;
+                var image = new Typesetting.Image(info_).setImage(value, scale, params.caption);
+                ws.addWord(Typesetting.Linebreak.Box(0, image));
+                ws.addWord(Typesetting.Linebreak.Glue(0, Typesetting.Linebreak.Infinity, 0));
+                ws.addWord(Typesetting.Linebreak.Penalty(0, -Typesetting.Linebreak.Infinity, 0));
+                var indent = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '');
+                indent.noGlue = true;
+                ws.addWord(Typesetting.Linebreak.Box(info_.base.indentSize, indent));
+                return ws;
+            }
+
         }
 
     } # namespace Command
