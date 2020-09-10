@@ -55,6 +55,7 @@ namespace Typesetting {
             pdf_ = new Pdf();
             pdf_.setCompressionMode(PDF_COMP_ALL);
             pdf_.setInfoAttr(PDF_INFO_PRODUCER, "Kinx Tiny Typesetting");
+            @setPageMargin(info_.base.margin);
 
             # Properties.
             # PDF_INFO_AUTHOR
@@ -165,16 +166,26 @@ namespace Typesetting {
             page_.gRestore();
         }
 
-        public drawMargin() {
+        public drawPageMargin() {
             var margin = @makeMarginSize();
-            drawBox(margin.left, margin.pageHeight - margin.top, margin.width, margin.height);
+            drawBox(
+                pageMargin_.left,
+                margin.pageHeight - pageMargin_.top,
+                margin.pageWidth - margin_.right - margin_.left,
+                margin.pageHeight - margin_.bottom - margin_.top
+            );
         }
 
         private writeFloatingImage() {
             if (!page_) {
                 @addPage();
             }
-            page_.drawImage(floating_.image, floating_.left, floating_.top - floating_.height, floating_.width, floating_.height);
+            var left = floating_.left;
+            var top = floating_.top - floating_.height;
+            var width = floating_.width;
+            var height = floating_.height;
+            page_.drawImage(floating_.image, left, top, width, height);
+            drawBox(left, top + height, width, height) if (info_.base.draw.imageBox);
             if (floating_.captionHook.isFunction) {
                 floating_.captionHook(floating_.left + floating_.width / 2, floating_.captionY);
             }
@@ -203,9 +214,11 @@ namespace Typesetting {
 
         public addY(y, isTop) {
             isTopOfPage_ = isTop;
-            y_ -= y;
-            if (floating_.isDefined && y_ <= floating_.bottom) {
-                writeFloatingImage();
+            if (y_ > 0) {
+                y_ -= y;
+                if (floating_.isDefined && y_ <= floating_.bottom) {
+                    writeFloatingImage();
+                }
             }
         }
 
@@ -383,8 +396,11 @@ namespace Typesetting {
             isTopOfPage_ = true;
             @pages.push(page_);
             ++pageNumber_;
-            context_.footnoteCounter = 0;
+            context_.counter.footnote = 0;
             marginCache_ = null;
+            if (info_.base.draw.margin) {
+                drawPageMargin();
+            }
         }
 
         public addFootnote(footnote) {
@@ -559,9 +575,27 @@ namespace Typesetting {
             var width = img.width;
             var height = img.height;
             page_.drawImage(img.image, x, y + img.offsetY, width, height);
+            drawBox(x, y + img.offsetY + height, width, height) if (info_.base.draw.imageBox);
             x_ = x + width;
-            # drawBox(x, y + img.offsetY + height, width, height);
             return true;
+        }
+
+        public writeCenter(text, fontObj, fontSize) {
+            if (page_.isUndefined) {
+                @addPage();
+            }
+            page_.setFontAndSize(fontObj, fontSize);
+            var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
+            var margin = makeMarginSize();
+            ascent_ = (fontObj.getAscent() / 1000) * fontSize;
+            if (y_ < 0) {
+                y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+            }
+            var x = (margin.width - textWidth) / 2 + margin.left;
+            page_.beginText();
+            page_.moveTextPos(x, y_);
+            showText(page_, text);
+            page_.endText();
         }
 
         public write(node, x, y) {
@@ -653,10 +687,14 @@ namespace Typesetting {
                 width *= scale;
                 height *= scale;
             }
+            var lineFeedWidth;
             var margin = makeMarginSize();
             if (y_ < 0) {
                 y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top);
                 x_ = -1;
+                lineFeedWidth = 0;
+            } else {
+                lineFeedWidth = lastLineFeedWidth_ / 2;
             }
             var left;
             if (margin.width < width) {
@@ -668,11 +706,10 @@ namespace Typesetting {
             }
             width = width * scale;
             height = height * scale;
-            var lineFeedWidth = lastLineFeedWidth_ / 2;
             var offsetY = lineFeedWidth - height;
             y_ += offsetY;
             page_.drawImage(image, left, y_, width, height);
-            # drawBox(left, y_ + height, width, height);
+            drawBox(left, y_ + height, width, height) if (info_.base.draw.imageBox);
             lineBreak(lineFeedWidth);
         }
 
