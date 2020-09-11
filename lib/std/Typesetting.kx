@@ -15,6 +15,7 @@ namespace Typesetting {
 
         var defs_ = [];
         var opts_;
+        var dotWidth_;
 
         public add(name, value) {
             defs_.unshift({
@@ -79,16 +80,12 @@ namespace Typesetting {
                 }
             }
             --widowCheck;
-            var lastLineFeedWidth = writer.getLastLineFeedWidth();
-            if (lastLineFeedWidth < lines[0].height) {
-                writer.addY(lines[0].height - lastLineFeedWidth);
-            }
             for (var i = 0, ll = lines.length(); i < ll; ++i) {
                 var line = lines[i];
                 if (doColumnBreak && widowCheck == i) {
                     writer.columnBreak();
                 }
-                line.nodes.each { => writer.write(_1) };
+                line.nodes.each { => _1.write(writer) };
                 var colBreaked = writer.lineBreak(line.lineFeedWidth);
                 if (colBreaked) {
                     doColumnBreak = false;
@@ -118,6 +115,41 @@ namespace Typesetting {
             writer.lineBreak(lineFeedWidth);
         }
 
+        public writeTocLine(lines, pageNumber, fontObj, fontSize) {
+            if (lines.length() == 0) {
+                return;
+            }
+            var writer = info_.writer;
+            var margin = writer.makeMarginSize();
+            if (dotWidth_.isUndefined) {
+                dotWidth_ = info_.measure.textWidth(fontObj, fontSize, ".") * 2;
+            }
+            var ll = lines.length();
+            for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                var line = lines[i];
+                line.nodes.each { &(n):
+                    if (!n.isGlue || n.stretch != Linebreak.Infinity) {
+                        n.write(writer);
+                    }
+                };
+                var num = "" + pageNumber;
+                var numw = info_.measure.textWidth(fontObj, fontSize, num);
+                var right = margin.pageWidth - margin.right - numw;
+                var pos = writer.getPos();
+                var x = pos.x + dotWidth_;
+                x += (right - x) % dotWidth_;
+                var dot = Linebreak.Box(dotWidth_, new Word(info_).setWord(fontObj, fontSize, "."));
+                var limit = right - dotWidth_;
+                while (x < limit) {
+                    writer.write(dot, x);
+                    x += dotWidth_;
+                }
+                num = Linebreak.Box(numw, new Word(info_).setWord(fontObj, fontSize, num));
+                writer.write(num, right);
+                writer.lineBreak(line.lineFeedWidth);
+            }
+        }
+
     }
 
     class Paragraph(info_, context_, doc_, util_) {
@@ -126,20 +158,28 @@ namespace Typesetting {
             var totalLineFeedWidth = 0;
             var totalHeight = 0;
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+            var paragraphSkipWidth = context_.page.paragraphSkipWidth;
             var llast = lines.length() - 1;
             if (llast >= 0) {
                 lines[-1].lineFeedWidth = context_.page.paragraphSkipWidth; 
                 totalLineFeedWidth += context_.page.paragraphSkipWidth;
             }
+            var prevBreak;
             lines.each { &(line, li):
-                var lineFeedWidth = 0;
+                var lineFeedWidth = prevBreak ? paragraphSkipWidth : 0;
+                prevBreak = false;
                 var maxHeight = 0;
+                var alen = line.nodes.length();
+                var alast = alen - 1;
                 line.nodes.each { &(n, i):
                     var value = n.value;
                     var word = value ? value.word : '';
                     if (n.isBox) {
                         var lfs;
-                        if (value.isInlineImage) {
+                        if (value.isImage) {
+                            lfs = value.lineFeedWidth;
+                            prevBreak = true;
+                        } else if (value.isInlineImage) {
                             lfs = value.getHeight();
                         } else if (word != '') {
                             lfs = lineFeedWidthRatio * value.size;
@@ -147,8 +187,11 @@ namespace Typesetting {
                         if (lineFeedWidth < lfs) {
                             lineFeedWidth = lfs;
                         }
+                    } else if (n.isGlue && i != alast) {
+                        if (n.stretch == Linebreak.Infinity) {
+                            prevBreak = true;
+                        }
                     }
-                    var value = n.value;
                     var height = value.getHeight.isFunction ? value.getHeight() : 0;
                     if (maxHeight < height) {
                         maxHeight = height;
@@ -205,7 +248,7 @@ namespace Typesetting {
                 };
                 var prev;
                 var diff = doJustification && spaces > 0 ? ((expected - x1) / spaces) : 0;
-                if (end) {
+                if (end && diff >= 0) {
                     line.totalWidth = x1;
                     end.width += diff;
                 } else {
@@ -247,7 +290,7 @@ namespace Typesetting {
             var words = wordSet.flatten();
             var nodes = [];
             if (!context_.noIndent) {
-                nodes.push(Linebreak.Box(info_.base.indentSize, new Word(info_).setWord(fontObj, fontSize, '')));
+                nodes.push(Linebreak.Box(context_.indentSize, new Word(info_).setWord(fontObj, fontSize, '')));
             }
             if (settings.preText) {
                 var textWidth = info_.measure.textWidth(fontObj, fontSize, settings.preText);
@@ -265,7 +308,9 @@ namespace Typesetting {
             }
             nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
             nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 1));
-# nodes.each { => _1.display() };
+            # System.println("===");
+            # nodes.each { => _1.display() };
+            # System.println("---");
             var breaks;
             for (var i = 1; i < 10; ++i) {
                 breaks = new Linebreak(nodes, areaWidth, { tolerance: i }).parse();
@@ -404,26 +449,26 @@ namespace Typesetting {
         }
 
         private makeSectionNumber(level) {
-            var sectionNumber = context_.sectionNumber[level] ?? 0;
+            var sectionNumber = context_.counter.section[level] ?? 0;
             var numText = [];
             if (context_.check) {
-                for (var i = 1, l = context_.sectionNumber.length(); i < l; ++i) {
+                for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
                     if (i <= level) {
-                        numText.push(context_.sectionNumber[i]);
+                        numText.push(context_.counter.section[i]);
                     }
                 }
             } else {
-                context_.sectionNumber[level] = ++sectionNumber;
+                context_.counter.section[level] = ++sectionNumber;
                 var newNumbers = [];
-                for (var i = 1, l = context_.sectionNumber.length(); i < l; ++i) {
+                for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
                     if (i <= level) {
-                        newNumbers[i] = context_.sectionNumber[i];
+                        newNumbers[i] = context_.counter.section[i];
                         numText.push(newNumbers[i]);
                     } else {
                         newNumbers[i] = 0;
                     }
                 }
-                context_.sectionNumber = newNumbers;
+                context_.counter.section = newNumbers;
             }
             
             return numText;
@@ -456,7 +501,20 @@ namespace Typesetting {
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
             context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
             context_.font = font;
-            return sectionNumberText + ' ' + text;
+
+            if (info_.base.footnote.resetSectionLevel == level && context_.counter.section[level] > 1) {
+                context_.counter.footnote = 0;
+            }
+            var header = (context_.name.section[level] = sectionNumberText + ' ' + text);
+            if (level <= info_.base.toc.level) {
+                context_.tocinfo.list.push({
+                    page: context_.counter.page,
+                    level: level,
+                    number: sectionNumberText,
+                    header: text,
+                });
+            }
+            return header;
         }
 
     }
@@ -832,9 +890,10 @@ namespace Typesetting {
                 writer.setPos({ x: xbase, y: checkY });
                 writer.columnBreak();
                 var colnum = writer.getColumnNumber();
+                var cellPadding2 = info_.base.table.cellPadding * 2;
                 if (header_) {
                     if (colnum == 0) {
-                        offsetY_ = margin_.pageHeight - margin_.top - header_[0].y;
+                        offsetY_ = margin_.pageHeight - margin_.top - header_[0].y - header_.totalLineFeedWidth + cellPadding2;
                     } else {
                         offsetY_ = pos_.y - header_[0].y;
                     }
@@ -848,11 +907,11 @@ namespace Typesetting {
                     }
                     var hline1 = table.body[header_.index + 1];
                     if (hline1.isTableHLine) {
-                        outputLine(header_, hline1.count, -1, ybase);
+                        outputLine(header_, hline1.count, +1, ybase);
                     }
                 }
                 if (colnum == 0) {
-                    offsetY_ = margin_.pageHeight - margin_.top - array[0].y - header_.totalLineFeedWidth;
+                    offsetY_ = margin_.pageHeight - margin_.top - array[0].y - (header_.totalLineFeedWidth * 2) + cellPadding2;
                 } else {
                     offsetY_ = pos_.y - array[0].y - header_.totalLineFeedWidth;
                 }
@@ -876,7 +935,7 @@ namespace Typesetting {
                     } else if (i == l) {
                         outputLine(table.body[i-1], ba.count, +2);
                     } else {
-                        outputLine(table.body[i-1], ba.count, -1);
+                        outputLine(table.body[i-1], ba.count, +1);
                     }
                 } else {
                     ybase = outputText(table, ba);
@@ -911,7 +970,7 @@ namespace Typesetting {
 
     }
 
-    class Document(options_) {
+    class Document(style_, opts_) {
         var info_, context_, outline_;
         var fontObjSerifBase_, fontObjSansBase_;
         var fontObjSerif_, fontObjSans_;
@@ -920,29 +979,42 @@ namespace Typesetting {
         var core_ = {};
 
         private initialize() {
-            if (options_.create.isFunction) {
-                options_ = new options_().style;
+            if (style_.create.isFunction) {
+                style_ = new style_().style;
             }
-            info_.base = options_.clone();
+            info_.base = style_.clone();
             outline_ = info_.base.outline;
-            var pagesize = options_.pagesize ?? PDF_PAGE_SIZE_A4;
-            var direction = options_.direction ?? PDF_PAGE_PORTRAIT;
-            var fontSize = options_.fontSize[0] ?? 10.0;
+            var pagesize = style_.pagesize ?? PDF_PAGE_SIZE_A4;
+            var direction = style_.direction ?? PDF_PAGE_PORTRAIT;
+            var fontSize = style_.fontSize[0] ?? 10.0;
             var writer = new Typesetting.PdfWriter(pagesize, direction, info_);
             [fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_] = writer.getFontObjBase();
             var measure = new Typesetting.Measurement(writer.getPdf(), writer.getPage());
             info_.measure = measure;
             info_.writer = writer;
-            writer.setPageMargin(info_.base.margin);
             var pageSize = measure.getPageSize();
             context_ = {
                 noIndent: false,
+                indentSize: info_.base.indentSize,
                 commands: [],
                 outline: [],
-                sectionNumber: [],
-                imageCounter: [info_.base.sectionLevel, 0],
+                counter: {
+                    page: 1,
+                    section: [],
+                    image: [info_.base.sectionLevel, 0],
+                    footnote: 0,
+                },
+                name: {
+                    section: [],
+                },
+                toc: opts_.toc,
+                tocinfo: {
+                    lastPage: 0,
+                    page: -1,
+                    pos: {},
+                    list: [],
+                },
                 footnotes: [],
-                footnoteCounter: 0,
                 page: {
                     width: pageSize.width,
                     height: pageSize.height,
@@ -1000,9 +1072,8 @@ namespace Typesetting {
             pendings_ = [];
         }
 
-        public setColumn(column) {
+        public setColumn(column, opts) {
             flushParagraph();
-            info_.writer.lineBreak(context_.page.lineFeedWidthRatio * context_.font.fontSize);
             info_.writer.setColumn(column);
         }
 
@@ -1044,8 +1115,16 @@ namespace Typesetting {
             };
             writer.addY(info_.base.abstract.paragraphSkipWidth, true);
             if (outline_) {
-                var ol = info_.writer.createOutline(null, titleText, true);
-                info_.writer.setCurrentPage(ol);
+                var ol = writer.createOutline(null, titleText, true);
+                writer.setCurrentPage(ol);
+            }
+        }
+
+        public toc() {
+            if (context_.toc) {
+                context_.tocinfo.page = context_.counter.page;
+                context_.tocinfo.pos = info_.writer.getPos();
+                @pageBreak();
             }
         }
 
@@ -1075,7 +1154,7 @@ namespace Typesetting {
                 func: &() => {
                     var level = info_.base.sectionLevel;
                     var header = core_.section.exec(level, opts, text);
-                    if (outline_) {
+                    if (outline_ && level <= info_.base.toc.level) {
                         var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
                         info_.writer.setCurrentPage(ol);
                         context_.outline[level] = ol;
@@ -1091,7 +1170,7 @@ namespace Typesetting {
                 func: &() => {
                     var level = info_.base.sectionLevel + 1;
                     var header = core_.section.exec(level, opts, text);
-                    if (outline_) {
+                    if (outline_ && level <= info_.base.toc.level) {
                         var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
                         info_.writer.setCurrentPage(ol);
                         context_.outline[level] = ol;
@@ -1107,7 +1186,7 @@ namespace Typesetting {
                 func: &() => {
                     var level = info_.base.sectionLevel + 2;
                     var header = core_.section.exec(level, opts, text);
-                    if (outline_) {
+                    if (outline_ && level <= info_.base.toc.level) {
                         var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
                         info_.writer.setCurrentPage(ol);
                         context_.outline[level] = ol;
@@ -1141,11 +1220,11 @@ namespace Typesetting {
         }
 
         private makeImageNumber() {
-            var level = context_.imageCounter[0];
-            var num = ++context_.imageCounter[1];
+            var level = context_.counter.image[0];
+            var num = ++context_.counter.image[1];
             var lt = [];
             for (var i = 1; i <= level; ++i) {
-                lt.push(context_.sectionNumber[i]);
+                lt.push(context_.counter.section[i]);
             }
             lt.push("" + num);
             return lt.join('.');
@@ -1176,8 +1255,8 @@ namespace Typesetting {
         }
 
         public image(opts) {
-            flushParagraph();
             if (opts.float.left || opts.float.right) {
+                flushParagraph();
                 var fontSize = context_.font.fontSize;
                 var fontObj = context_.font.fontObj;
                 info_.writer.loadFloatingImage(opts.file, opts.scale, opts.float, opts.caption,
@@ -1185,20 +1264,17 @@ namespace Typesetting {
                 return;
             }
 
-            info_.writer.imageCenter(opts.file, opts.scale);
-            if (opts.caption) {
-                imageCaption(opts.caption);
-            } else {
-                var fontSize = context_.font.fontSize;
-                var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
-                info_.writer.lineBreak(lineFeedWidth);
-            }
+            return paragraph("\\image[scale=%{opts.scale}]{%{opts.file}}");
         }
 
         public math(str) {
             flushParagraph();
+
+            var fontSize = context_.font.fontSize;
+            var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
             var img = Typesetting.Util.compileMath(str, true, info_.writer);
             info_.writer.imageCenter(img, 0.25);
+            info_.writer.lineBreak(lineFeedWidth);
         }
 
         private fontType(type) {
@@ -1262,8 +1338,45 @@ namespace Typesetting {
             context_.font.fontObj = fontObj;
         }
 
+        public flushToc() {
+            info_.writer.initTocPage(info_.context.tocinfo.page);
+            info_.writer.setPos({ x: -1, y: info_.context.tocinfo.pos.y });
+            info_.context.tocinfo.lastPage = 1;
+
+            var fontSize = context_.font.fontSize;
+            var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+            var paragraphSkipWidth = context_.page.paragraphSkipWidth;
+            var indent = context_.indentSize;
+            if (info_.base.toc.header) {
+                context_.font.fontSize = info_.base.toc.headerSize;
+                context_.indentSize = 0;
+                context_.page.lineFeedWidthRatio = info_.base.toc.lineFeedWidthRatio[0];
+                context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * context_.font.fontSize;
+                var lines = core_.paragraph.exec({}, info_.base.toc.header);
+                core_.util.write(lines);
+            }
+            var list = info_.context.tocinfo.list;
+            list.each { &(tocdata, i):
+                var nlevel = list[i+1].level || 0;
+                var nFontSize = info_.base.toc.fontSize[nlevel];
+                context_.font.fontSize = info_.base.toc.fontSize[tocdata.level];
+                context_.page.lineFeedWidthRatio = info_.base.toc.lineFeedWidthRatio[nlevel];
+                context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * nFontSize;
+                context_.indentSize = (tocdata.level - 1) * info_.base.toc.indentSize;
+                var lines = core_.paragraph.exec({}, tocdata.header, { preText: tocdata.number, preTextSpace: context_.font.fontSize });
+                core_.util.writeTocLine(lines, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize);
+            };
+            context_.indentSize = indent;
+            context_.page.paragraphSkipWidth = paragraphSkipWidth;
+            context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
+            context_.font.fontSize = fontSize;
+        }
+
         public save(file) {
             flushParagraph();
+            if (info_.context.toc) {
+                flushToc();
+            }
             info_.writer.save(file);
         }
     }

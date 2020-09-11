@@ -93,11 +93,11 @@ namespace Typesetting {
             }
             public translate(value) {
                 context_.footnotes.push(value);
-                value.footnoteNumber = ++context_.footnoteCounter;
+                value.footnoteNumber = ++context_.counter.footnote;
                 var y = context_.offsetY;
                 context_.offsetY = Typesetting.Util.getPt(context_, "0.65em");
                 var numberSize = fontSize_ * info_.base.footnote.numberSizeRatio;
-                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, numberSize, '' + context_.footnoteCounter);
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, numberSize, '' + context_.counter.footnote);
                 context_.offsetY = y;
                 return w;
             }
