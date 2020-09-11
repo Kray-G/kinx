@@ -44,18 +44,22 @@ namespace Typesetting {
         var cols_, curCol_, isColMoved_;
         var pagesize_, direction_;
         var width_, height_, ascent_;
-        var x_, y_, pageNumber_;
+        var x_, y_;
         var ytop_, ybottom_, isTopOfPage_;
         var lastLineFeedWidth_;
         var footnotes_ = [];
         var floating_;
+        var tocBasePage_;
 
         private initialize() {
-            pageNumber_ = 0;
+            info_.context.counter.page = 0;
             pdf_ = new Pdf();
             pdf_.setCompressionMode(PDF_COMP_ALL);
             pdf_.setInfoAttr(PDF_INFO_PRODUCER, "Kinx Tiny Typesetting");
             @setPageMargin(info_.base.margin);
+            if (info_.base.outline) {
+                pdf_.setPageMode(PDF_PAGE_MODE_USE_OUTLINE);
+            }
 
             # Properties.
             # PDF_INFO_AUTHOR
@@ -71,9 +75,6 @@ namespace Typesetting {
             @pages = [];
             @addPage();
             x_ = y_ = -1;
-            if (info_.base.outline) {
-                pdf_.setPageMode(PDF_PAGE_MODE_USE_OUTLINE);
-            }
         }
 
         public getPdf() {
@@ -305,6 +306,85 @@ namespace Typesetting {
             }
         }
 
+        private makeFormattedText(page, format) {
+            var info = page.info;
+            if (page.noPageNumber) {
+                format = format.replace("<counter:page>", "");
+            }
+            return format
+                .replace(/<counter:([a-zA-Z][0-9a-zA-Z]*)>/) {
+                    &(counter) => info.counter[counter[1].string] - info_.context.tocinfo.lastPage
+                }
+                .replace(/<name:([a-zA-Z][0-9a-zA-Z]*),([0-9])>/) {
+                    &(name) => info.name[name[1].string][Integer.parseInt(name[2].string)]
+                }
+            ;
+        }
+
+        private writeText(page, x, y, text) {
+            if (x >= 0 && y >= 0 && text) {
+                page.beginText();
+                page.moveTextPos(x, y);
+                page.showText(text);
+                page.endText();
+            }
+        }
+
+        private writeHeader(page) {
+            var header = info_.base.header;
+            var fontObj = fontObjSerifBase_.regular;
+            var fontSize = header.fontSize;
+            page.setFontAndSize(fontObj, fontSize);
+
+            var ascent = (fontObj.getAscent() / 1000) * fontSize;
+            var y = page.getHeight() - (header.margin.top ?? (info_.base.margin.top * 0.6)) - ascent;
+            if (header.format.center) {
+                var text = makeFormattedText(page, header.format.center);
+                var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
+                var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var x = pageMargin_.left + ((width - nwidth) / 2);
+                writeText(page, x, y, text);
+            }
+            if (header.format.left) {
+                var text = makeFormattedText(page, header.format.left);
+                var x = pageMargin_.left;
+                writeText(page, x, y, text);
+            }
+            if (header.format.right) {
+                var text = makeFormattedText(page, header.format.right);
+                var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var x = page.getWidth() - pageMargin_.right - nwidth;
+                writeText(page, x, y, text);
+            }
+        }
+
+        private writeFooter(page) {
+            var footer = info_.base.footer;
+            var fontObj = fontObjSerifBase_.regular;
+            var fontSize = footer.fontSize;
+            page.setFontAndSize(fontObj, fontSize);
+
+            var y = footer.margin.bottom ?? (info_.base.margin.bottom * 0.6);
+            if (footer.format.center) {
+                var text = makeFormattedText(page, footer.format.center);
+                var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
+                var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var x = pageMargin_.left + ((width - nwidth) / 2);
+                writeText(page, x, y, text);
+            }
+            if (footer.format.left) {
+                var text = makeFormattedText(page, footer.format.left);
+                var x = pageMargin_.left;
+                writeText(page, x, y, text);
+            }
+            if (footer.format.right) {
+                var text = makeFormattedText(page, footer.format.right);
+                var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var x = page.getWidth() - pageMargin_.right - nwidth;
+                writeText(page, x, y, text);
+            }
+        }
+
         private writeFootnote(page, node, x, y) {
             var width = node.width;
             var value = node.value;
@@ -320,14 +400,13 @@ namespace Typesetting {
             return x + width;
         }
 
-        private flushFootnotes() {
+        private flushFootnotes(page) {
             if (footnotes_.length() > 0) {
                 var margin = info_.base.footnote.margin;
                 var labelsep = info_.base.footnote.labelsep;
-                var fontObj = info_.context.font.fontObj;
-                var fontSize = info_.base.footnote.fontSize * info_.base.footnote.numberSizeRatio;
                 var measure = info_.measure;
-                var page = @pages[-1];
+                var fontObj = fontObjSansBase_.regular;
+                var fontSize = info_.base.footnote.fontSize * info_.base.footnote.numberSizeRatio;
                 # Currently supported the footnote is always in 1 column.
                 var fn = [], flush = [];
                 var fs = footnotes_.length();
@@ -382,12 +461,29 @@ namespace Typesetting {
             }
         }
 
-        public addPage() {
-            if (pageNumber_ > 0) {
-                System.print("[%{pageNumber_}]");
+        private flushPage() {
+            if (info_.context.counter.page > 1) {
+                System.print("[%{info_.context.counter.page-1}]");
             }
-            flushFootnotes();
-            page_ = pdf_.addPage();
+            if (@pages.length() > 0) {
+                var page = @pages[-1];
+                flushFootnotes(page);
+                page.info.counter = info_.context.counter.clone();
+                page.info.name = info_.context.name.clone();
+            }
+        }
+
+        public addPage() {
+            flushPage();
+
+            if (tocBasePage_) {
+                # TOC Mode
+                page_ = pdf_.insertPage(tocBasePage_);
+                page_.noPageNumber = true;
+            } else {
+                page_ = pdf_.addPage();
+            }
+
             page_.setSize(pagesize_, direction_);
             width_ = page_.getWidth();
             height_ = page_.getHeight();
@@ -395,8 +491,10 @@ namespace Typesetting {
             ybottom_ = -1;
             isTopOfPage_ = true;
             @pages.push(page_);
-            ++pageNumber_;
-            context_.counter.footnote = 0;
+            ++info_.context.counter.page;
+            if (!info_.base.footnote.resetSectionLevel) {
+                info_.context.counter.footnote = 0;
+            }
             marginCache_ = null;
             if (info_.base.draw.margin) {
                 drawPageMargin();
@@ -420,10 +518,6 @@ namespace Typesetting {
                     }
                 }
             }
-        }
-
-        public getPageNumber() {
-            return pageNumber_;
         }
 
         public columnBreak() {
@@ -627,6 +721,15 @@ namespace Typesetting {
             return true;
         }
 
+        public initTocPage(page) {
+            if (page < 1) {
+                throw RuntimeException("Invalid state for TOC");
+            }
+            tocBasePage_ = @pages[page];
+            page_ = @pages[page-1];
+            page_.noPageNumber = true;
+        }
+
         public clearFloatingImage(lineFeedWidth) {
             while (floating_.isDefined) {
                 lineBreak(lineFeedWidth);
@@ -727,9 +830,13 @@ namespace Typesetting {
         }
 
         public save(file) {
-            flushFootnotes();
-            if (pageNumber_ > 0) {
-                System.println("[%{pageNumber_}]");
+            flushPage();
+            @pages.each { &(page):
+                writeHeader(page);
+                writeFooter(page);
+            };
+            if (info_.context.counter.page > 0) {
+                System.println("[%{info_.context.counter.page}]");
             }
             pdf_.saveToFile(file);
         }
