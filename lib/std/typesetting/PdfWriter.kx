@@ -640,7 +640,7 @@ namespace Typesetting {
                 clearFloatingImage(lineFeedWidth);
             }
 
-            var image = path.isString ? pdf_.loadPngImageFromFile(path) : path;
+            var image = path.isString ? loadImage(path) : path;
             var width = image.getWidth();
             var height = image.getHeight();
             if (scale.isDefined) {
@@ -680,15 +680,29 @@ namespace Typesetting {
         }
 
         public imageCenter(path, scale) {
-            var image = path.isString ? pdf_.loadPngImageFromFile(path) : path;
+            var image = path.isString ? loadImage(path) : path;
             var width = image.getWidth();
             var height = image.getHeight();
             if (scale.isDefined) {
                 width *= scale;
                 height *= scale;
             }
-            var lineFeedWidth;
+
             var margin = makeMarginSize();
+            var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + height;
+            if (y_ < bottomMin) {
+                isColMoved_ = true;
+                x_ = -1;
+                y_ = -1;
+                if (cols_ > 0) {            
+                    curCol_ = (curCol_ + 1) % cols_;
+                }
+                if (curCol_ == 0) {
+                    page_ = null;
+                    @addPage();
+                }
+            }
+            var lineFeedWidth;
             if (y_ < 0) {
                 y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top);
                 x_ = -1;
@@ -710,7 +724,6 @@ namespace Typesetting {
             y_ += offsetY;
             page_.drawImage(image, left, y_, width, height);
             drawBox(left, y_ + height, width, height) if (info_.base.draw.imageBox);
-            lineBreak(lineFeedWidth);
         }
 
         public save(file) {
