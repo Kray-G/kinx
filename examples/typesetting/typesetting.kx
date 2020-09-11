@@ -13,6 +13,8 @@ doc.abstract(%{
     This would be your best partner as long as used for your personal use.
 });
 
+doc.toc();
+
 doc.section("Overview");
 doc.subSection("Goals");
 
@@ -61,6 +63,8 @@ doc.itemize({
     ]
 });
 
+doc.pageBreak();
+
 doc.section("Features Details");
 doc.subSection("Hyphenation & Line Breaking");
 
@@ -93,7 +97,7 @@ doc.paragraph(%{
     Please check it and you can use \monotype{\\columnbreak} command anywhere you need.
 });
 
-doc.subSection("List items");
+doc.subSection("List Items");
 
 doc.paragraph(%{
     You can use an \bold{itemize} and an \bold{enumerate} listing items as follows.
@@ -168,7 +172,7 @@ doc.itemize({
 doc.setColumn(1);
 doc.columnBreak();
 
-doc.subSection("Math formula and equation");
+doc.subSection("Math Formula and Equation");
 
 doc.paragraph(%{
     Here is an example of Math formula and equation.
@@ -262,6 +266,7 @@ doc.paragraph(%{
 doc.paragraph(%{
     Tables can be put on a line by using multiple columns.
     Here is an example of 2 tables in a line.
+    Note that the width will be becoming narrow in this case.
 });
 
 doc.setColumn(2);
@@ -378,7 +383,7 @@ doc.paragraph(%{
     You will see 3 images in a line.
 });
 
-doc.subSection("Program source code");
+doc.subSection("Program Code");
 
 doc.paragraph(%{
     Here is an example of a source code.

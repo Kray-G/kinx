@@ -15,12 +15,46 @@ namespace Style {
                 "margin":               false,
                 "imageBox":             false,
             },
+            "toc": {
+                "header":               "Contents",
+                "headerSize":           fontSize * 1.8,
+                "level":                3,
+                "indentSize":           15.0,
+                "fontSize":             [
+                    fontSize,
+                    fontSize * 1.6,
+                    fontSize * 1.4,
+                    fontSize * 1.2,
+                    fontSize * 1.1,
+                ],
+                "lineFeedWidthRatio":   [
+                    1.75,
+                    2.75,
+                    1.75,
+                    1.75,
+                    1.75,
+                ],
+            },
             "margin": {
                 "left":                 56.7,
                 "right":                56.7,
                 "bottom":               56.7,
                 "top":                  68.0,
                 "alley":                20.3,
+            },
+            "header": {
+                "format":               { right: "<name:section,1>" },
+                "fontSize":             fontSize * 0.8,
+                "margin": {
+                    "top":              34.0,
+                }
+            },
+            "footer": {
+                "format":               { center: "<counter:page>" },
+                "fontSize":             fontSize * 0.8,
+                "margin": {
+                    "bottom":           34.0,
+                }
             },
             "footnote": {
                 "left":                 20.0,
@@ -29,6 +63,7 @@ namespace Style {
                 "lineFeedWidthRatio":   1.4,
                 "margin":               14.0,
                 "labelsep":             2.8,
+                "resetSectionLevel":    -1,     # 0:by page, 1..:section level
             },
             "fontSize": [
                 fontSize,

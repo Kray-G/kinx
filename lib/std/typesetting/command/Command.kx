@@ -60,7 +60,7 @@ namespace Typesetting {
                 ws.addWord(Typesetting.Linebreak.Penalty(0, -Typesetting.Linebreak.Infinity, 0));
                 var indent = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '');
                 indent.noGlue = true;
-                ws.addWord(Typesetting.Linebreak.Box(info_.base.indentSize, indent));
+                ws.addWord(Typesetting.Linebreak.Box(context_.indentSize, indent));
                 return ws;
             }
         }
