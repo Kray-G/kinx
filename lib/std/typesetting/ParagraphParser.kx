@@ -23,11 +23,7 @@ namespace Typesetting {
                 return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, *word[1]);
             }
             if (word == "\\\\\n" || word == "\\\\\r\n") {
-                var command = new Typesetting.Command.ForceBreak(info_, context_);
-                if (command.exec.isFunction) {
-                    word = command.exec(false, word);
-                }
-                return @parseEach(word);
+                return new Typesetting.Command.ForceBreak(info_, context_).exec();
             }
             var hyphenWidth = measure_.hyphenWidth(context_.font.fontObj, context_.font.fontSize);
             var words = [];
@@ -86,15 +82,16 @@ namespace Typesetting {
         var commandNames = Typesetting.Command.keySet()
             .filter { => Typesetting.Command[_1].create.isFunction }
             .join('|');
-        var commandHead_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})(?:\[([^\]]+)\])?!), [1, 2]).map {
-            var name = _1[0].toUpper(0, 1);
-            var params, pbase = _1[1];
+        var commandHead_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})(?:\[([^\]]*)\])?!), [1, 2]).map { &([name, pbase])
+            var name = name.toUpper(0, 1);
+            var params;
             if (pbase.length() > 0) {
                 if (pbase.find('=') >= 0) {
                     params = {};
-                    pbase.split(",")
-                        .map { => _1.split('=') }
-                        .reduce(&(r, e) => (r[e[0].trim()] = e[1].trim()), params);
+                    pbase.split(",").map { &(p):
+                        var e = p.split('=');
+                        params[e[0].trim()] = e[1].trim();
+                    };
                 } else {
                     params = pbase;
                 }
@@ -187,8 +184,11 @@ namespace Typesetting {
             value.link = _1;
             return value;
         };
-        var optWhitespace_ = $.optWhitespace.map {
-            if (_1 == "") {
+        var optWhitespace_ = $.regex(/(\r?\n(?:[ \t]*\r?\n)+\s*)|(\s*)/, [1, 2]).map { &([para, spc])
+            if (para) {
+                return new Typesetting.Command.BreakWithIndentSpace(info_, context_).exec();
+            }
+            if (spc == "") {
                 return;
             }
             var width = info_.measure.spaceWidth(context_.font.fontObj, context_.font.fontSize);
