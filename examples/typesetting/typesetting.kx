@@ -49,14 +49,14 @@ doc.paragraph(%{This system supports following algorithms.});
 doc.itemize({
     labelType: 'enum',
     items: [
-        "Hyphenation & Knuth-Plass Line Breaking Algorithm, and also for Japanese hyphenation rules.",
-        "Footnotes\\footnote{This is a footnote example.}.",
+        "Hyphenation & Knuth-Plass Line Breaking Algorithm, and also for some Japanese rules.",
         "Widows & Orphans penalty control.",
         "Listing items with a bullet or numbering.",
-        "Images, and it can be also put with floating inside paragraph.",
         "Math formula & equation like \\TeX",
         "Tables, and the header of table is automatically repeated each page.",
+        "Images, and it can be also put with floating inside paragraph.",
         "Writing a program source code.",
+        "Footnotes\\footnote{This is a footnote example.}.",
         "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
 });
@@ -75,11 +75,13 @@ doc.paragraph(%{
     Hyphenation will be done before applying line-breaking algorithm.
     The algorithm is based on \monotype{Hyper.js},
     and it relies on the hyphenation algorithm by Franklin M. Liang commonly known from \LaTeX.
-});
-doc.paragraph(%{
+
     And also, this system is supporting \bold{Knuth-Plass Line Breaking Algorithm} for line-break.
     This is well known algorithm because the \TeX uses it.
     These algorithms are known as the best way so far for a typesetting system.
+
+    Kinx TT is also supporting some Japanese hyphenation rules.
+    For example, 「。」, which is like a period in English, is never appeared at the head of line.
 });
 
 doc.subSection("Widows & Orphans");
@@ -208,7 +210,10 @@ doc.subSection("Table");
 doc.paragraph(%{
     Here is an example of table.
     The ruled line can be selected from no line, a single line, or a double line.
+    And you can set an alignment each column.
     Besides, the column width is also automatically calculated according to inside text size.
+
+    By the way, you can write also a Math formula inside a table cell.
 });
 
 var line = 0;
@@ -252,6 +257,11 @@ doc.table({
 });
 doc.paragraph(%{
     The table header can be automatically repeated each page.
+});
+
+doc.paragraph(%{
+    Tables can be put on a line by using multiple columns.
+    Here is an example of 2 tables in a line.
 });
 
 doc.setColumn(2);
@@ -305,10 +315,74 @@ doc.table({
 });
 doc.setColumn(1);
 
+doc.subSection("Image");
+
+doc.subSubSection("Floating Image");
+
+doc.paragraph(%{
+    Images can be put around a text, or put on a line as a standalone.
+});
+
+doc.image({
+    float: { left: true },
+    scale: 0.6,
+    caption: "Barcode Icon",
+    file: "examples/typesetting/serial.png",
+});
+
+doc.paragraph(%{
+    The first example is for a floating image put around a text.
+    The image on the left, which is a barcode icon example, is wrapped inside text.
+
+    And also, the text around a floating image can be separated by multiple paragraphs like this.
+    The line-break algorithm is correctly performed for a different width per line.
+    By this mechanism, the text will wrap around a floating image and you can do it with only writing a paragraph as usual.
+    You will be able to see this line is put under the image automatically.
+
+    By the way, the scale for a floating image means the parcentage for the actual image size.
+    Note that it is different from a scale for a non-floating image.
+});
+
+doc.subSubSection("Standalone Image");
+
+doc.paragraph(%{
+    This is an example of an image scaled at 80%, and the image is put with a caption.
+    This scale for a non-floating image means a parcentage for the area within the margins.
+    \image[scale=0.8,caption=Figure Example - Kinx Logo Image]{examples/typesetting/kinxlogo.png}
+    This is an example of an image scaled at 50%.
+    \image[scale=0.5]{examples/typesetting/kinxlogo.png}
+    As you see the example above, the image can be directly put into a paragraph.
+    Note that you can not float an image in this way,
+    and you have to use \verb{\floatimage} command instead.
+});
+
+doc.paragraph(%{
+    If you want to multiple images in a line, please see below.
+});
+
+doc.setColumn(3);
+doc.paragraph(%{
+    \image[scale=0.95]{examples/typesetting/kinxlogo.png}
+});
+doc.columnBreak();
+doc.paragraph(%{
+    \image[scale=0.95]{examples/typesetting/kinxlogo.png}
+});
+doc.columnBreak();
+doc.paragraph(%{
+    \image[scale=0.95]{examples/typesetting/kinxlogo.png}
+});
+doc.setColumn(1);
+
+doc.paragraph(%{
+    You will see 3 images in a line.
+});
+
 doc.subSection("Program source code");
 
 doc.paragraph(%{
     Here is an example of a source code.
+    This code is a simple Kinx code of fibonacci function.
 });
 
 doc.code(%{
@@ -318,15 +392,6 @@ function fib(n) {
 }
 
 System.println("fib(34) = ", fib(34));
-});
-
-doc.paragraph(%{
-    This is an example of image, scaled with 80%.
-    \image[scale=0.80]{examples/typesetting/linebreak.png}
-    This is an example of image.
-    \image[scale=0.6]{examples/typesetting/linebreak.png}
-    This is an example of image.
-    \image[scale=0.8,caption=Hyphenation and justification]{examples/typesetting/linebreak.png}
 });
 
 doc.save("examples/typesetting/typesetting.pdf");

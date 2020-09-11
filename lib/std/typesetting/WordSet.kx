@@ -35,11 +35,10 @@ namespace Typesetting {
         private initialize() {
         }
         public setImage(image, scale) {
+            @word = "<InlineImage>";
             fontObj ??= info_.context.font.fontObj;
             fontSize ??= info_.context.font.fontSize;
             var bbox = fontObj.getBBox();
-            # var ascent = fontObj.getAscent();
-            # var descent = fontObj.getDescent();
             @offsetY = bbox.bottom * fontSize / 1000 + 1.0;
             @image = image;
             @width = image.getWidth();
@@ -86,11 +85,14 @@ namespace Typesetting {
         private initialize() {
         }
         public setImage(imgfile, scale, caption) {
+            @word = "<FullWidthImage>";
             @lineBreak = true;
             @image = writer_.loadImage(imgfile);
+            var margin = writer_.makeMarginSize();
+            var width = @image.getWidth();
+            var height = @image.getHeight();
             scale ??= 1.0;
-            var width = @image.getWidth() * scale;
-            var height = @image.getHeight() * scale;
+            scale *= (margin.width / width);
             if (caption) {
                 var level = context_.counter.image[0];
                 var num = ++context_.counter.image[1];
@@ -103,17 +105,10 @@ namespace Typesetting {
             }
             @fontObj = context_.font.fontObj;
             @fontSize = context_.font.fontSize;
+            @width = width * scale;
+            @height = height * scale;
             @lineFeedWidth = @fontSize * context_.page.lineFeedWidthRatio;
-            var margin = writer_.makeMarginSize();
-            if (margin.width < width) {
-                scale = margin.width / width;
-                @width = width * scale;
-                @height = height * scale;
-            } else {
-                @width = width;
-                @height = height;
-            }
-            @scale = @height / @image.getHeight();
+            @scale = scale;
             return this;
         }
         public fontObj() {
@@ -142,9 +137,6 @@ namespace Typesetting {
         }
         public write() {
             var captionSpace = @caption ? @lineFeedWidth : 0;
-            writer_.addY(@height);
-            writer_.lineBreak(0);
-            writer_.addY(-@height);
             writer_.imageCenter(@image, @scale);
             if (@caption) {
                 writer_.lineBreak(captionSpace);

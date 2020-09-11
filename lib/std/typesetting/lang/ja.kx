@@ -134,24 +134,57 @@ namespace Typesetting {
     }
 
     Typesetting.insertGlue.ja = _function(info, Linebreak, words, nodes) {
-        var skipNext;
+        var skipCount;
         var wlast = words.length() - 1;
         words.each { &(node, i):
-            if (skipNext) {
-                skipNext = false;
+            if (skipCount > 0) {
+                --skipCount;
                 return;
             }
-            nodes.push(node);
             var prev = i > 0 ? words[i-1] : null;
             var next = words[i+1];
             var value = node.value;
-            if (value.isInlineImage || prev.value.isInlineImage || next.value.isInlineImage ||
-                    value.isImage || prev.value.isImage || next.value.isImage) {
+            if (node.isGlue && next.isGlue) {
+                if (node.stretch == Linebreak.Infinity) {
+                    nodes.push(node);
+                    skipCount = 1;
+                    return;
+                }
+                if (next.stretch == Linebreak.Infinity) {
+                    nodes.push(next);
+                    skipCount = 1;
+                    return;
+                }
+            }
+            if (value.isImage) {
+                if (prev) {
+                    if (prev.isGlue) {
+                        nodes.pop();
+                    }
+                    nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
+                    nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 0));
+                    nodes.push(node);
+                } else {
+                    nodes.push(node);
+                }
+                if (next.isGlue) {
+                    nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
+                    nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 0));
+                    var indent = new Typesetting.Word(info).setWord(info.context.font.fontObj, info.context.font.fontSize, '');
+                    indent.noGlue = true;
+                    nodes.push(Linebreak.Box(info.base.indentSize, indent));
+                    skipCount = 1;
+                }
+                return;
+            }
+            nodes.push(node);
+            if (value.isInlineImage || prev.value.isInlineImage || next.value.isInlineImage) {
                 return;
             }
             if (node.isBox && (value.noGlue || value.word == '')) {
                 if (next.isGlue) {
-                    skipNext = true;
+                    skipCount = 1;
+                    return;
                 }
             }
             if (node.isBox && !value.noGlue && value.word != '') {
