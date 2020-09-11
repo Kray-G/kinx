@@ -79,10 +79,6 @@ namespace Typesetting {
                 }
             }
             --widowCheck;
-            var lastLineFeedWidth = writer.getLastLineFeedWidth();
-            if (lastLineFeedWidth < lines[0].height) {
-                writer.addY(lines[0].height - lastLineFeedWidth);
-            }
             for (var i = 0, ll = lines.length(); i < ll; ++i) {
                 var line = lines[i];
                 if (doColumnBreak && widowCheck == i) {
@@ -126,6 +122,7 @@ namespace Typesetting {
             var totalLineFeedWidth = 0;
             var totalHeight = 0;
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+            var paragraphSkipWidth = context_.page.paragraphSkipWidth;
             var llast = lines.length() - 1;
             if (llast >= 0) {
                 lines[-1].lineFeedWidth = context_.page.paragraphSkipWidth; 
@@ -133,7 +130,7 @@ namespace Typesetting {
             }
             var prevBreak;
             lines.each { &(line, li):
-                var lineFeedWidth = prevBreak ? context_.page.paragraphSkipWidth : 0;
+                var lineFeedWidth = prevBreak ? paragraphSkipWidth : 0;
                 prevBreak = false;
                 var maxHeight = 0;
                 var alen = line.nodes.length();
@@ -143,7 +140,10 @@ namespace Typesetting {
                     var word = value ? value.word : '';
                     if (n.isBox) {
                         var lfs;
-                        if (value.isInlineImage) {
+                        if (value.isImage) {
+                            lfs = value.lineFeedWidth;
+                            prevBreak = true;
+                        } else if (value.isInlineImage) {
                             lfs = value.getHeight();
                         } else if (word != '') {
                             lfs = lineFeedWidthRatio * value.size;
@@ -272,7 +272,9 @@ namespace Typesetting {
             }
             nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
             nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 1));
-# nodes.each { => _1.display() };
+            # System.println("===");
+            # nodes.each { => _1.display() };
+            # System.println("---");
             var breaks;
             for (var i = 1; i < 10; ++i) {
                 breaks = new Linebreak(nodes, areaWidth, { tolerance: i }).parse();
@@ -1009,9 +1011,8 @@ namespace Typesetting {
             pendings_ = [];
         }
 
-        public setColumn(column) {
+        public setColumn(column, opts) {
             flushParagraph();
-            info_.writer.lineBreak(context_.page.lineFeedWidthRatio * context_.font.fontSize);
             info_.writer.setColumn(column);
         }
 
@@ -1185,8 +1186,8 @@ namespace Typesetting {
         }
 
         public image(opts) {
-            flushParagraph();
             if (opts.float.left || opts.float.right) {
+                flushParagraph();
                 var fontSize = context_.font.fontSize;
                 var fontObj = context_.font.fontObj;
                 info_.writer.loadFloatingImage(opts.file, opts.scale, opts.float, opts.caption,
@@ -1194,20 +1195,17 @@ namespace Typesetting {
                 return;
             }
 
-            info_.writer.imageCenter(opts.file, opts.scale);
-            if (opts.caption) {
-                imageCaption(opts.caption);
-            } else {
-                var fontSize = context_.font.fontSize;
-                var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
-                info_.writer.lineBreak(lineFeedWidth);
-            }
+            return paragraph("\\image[scale=%{opts.scale}]{%{opts.file}}");
         }
 
         public math(str) {
             flushParagraph();
+
+            var fontSize = context_.font.fontSize;
+            var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
             var img = Typesetting.Util.compileMath(str, true, info_.writer);
             info_.writer.imageCenter(img, 0.25);
+            info_.writer.lineBreak(lineFeedWidth);
         }
 
         private fontType(type) {
