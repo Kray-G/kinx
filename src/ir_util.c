@@ -15,6 +15,8 @@
 #include <kxastobject.h>
 #include <libkinx.h>
 
+extern int kx_value_true(kx_context_t *ctx, kx_val_t *v);
+
 #define KX_EQEQ_OP_NAME "=="
 #define KX_NEQ_OP_NAME "!="
 #define KX_LGE_OP_NAME "<=>"
