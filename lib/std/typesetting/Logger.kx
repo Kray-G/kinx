@@ -1,0 +1,41 @@
+using DateTime;
+
+namespace Typesetting {
+
+    class LoggerImpl(opts_) {
+        var debugOutput_ = opts_.debug;
+        var infoOutput_ = opts_.info;
+        var warnOutput_ = opts_.warn;
+        var errorOutput_ = opts_.error;
+        var fatalOutput_ = opts_.fatal;
+        private makeMessage(level, msg) {
+            var dt = DateTime.now();
+            return "[" + (dt.toString()) + "] %{level}: " + msg.trim();
+        }
+        public debug(msg) {
+            debugOutput_.println(makeMessage("Debug", msg)) if (debugOutput_);
+        }
+        public info(msg) {
+            infoOutput_.println(makeMessage("Info", msg)) if (infoOutput_);
+        }
+        public warn(msg) {
+            warnOutput_.println(makeMessage("Warning", msg)) if (warnOutput_);
+        }
+        public error(msg) {
+            errorOutput_.println(makeMessage("Error", msg)) if (errorOutput_);
+        }
+        public fatal(msg) {
+            fatalOutput_.println(makeMessage("Fatal", msg)) if (fatalOutput_);
+        }
+    }
+
+    class Logger() : LoggerImpl({
+            debug: null,
+            info: System,
+            warn: System,
+            error: System,
+            fatal: System,
+        }) {
+    }
+
+} # namespace Typesetting

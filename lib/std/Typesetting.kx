@@ -1,4 +1,5 @@
 using PdfCore;
+using typesetting.Logger;
 using typesetting.LineBreak;
 using typesetting.Measurement;
 using typesetting.PdfWriter;
@@ -144,7 +145,10 @@ namespace Typesetting {
                     writer.write(dot, x);
                     x += dotWidth_;
                 }
-                num = Linebreak.Box(numw, new Word(info_).setWord(fontObj, fontSize, num));
+                num = new Word(info_).setWord(fontObj, fontSize, num);
+                num.isAnnot = true;
+                num.annotPage = pageNumber;
+                num = Linebreak.Box(numw, num);
                 writer.write(num, right);
                 writer.lineBreak(line.lineFeedWidth);
             }
@@ -484,6 +488,12 @@ namespace Typesetting {
                 fontObj: context_.font.fontObjBase.bold,
                 fontSize: info_.base.fontSize[level],
             };
+            if (opts.label) {
+                context_.xref[opts.label] = {
+                    page:    context_.counter.page - (context_.toc ? 0 : 1),
+                    counter: sectionNumberText,
+                };
+            }
 
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
             context_.page.lineFeedWidthRatio = info_.base.lineFeedWidthRatio[level];
@@ -514,6 +524,7 @@ namespace Typesetting {
                     header: text,
                 });
             }
+
             return header;
         }
 
@@ -814,19 +825,19 @@ namespace Typesetting {
 
         private drawHLine(writer, offset, count, x, y, w, h, lw, col) {
             if (count == 2) {
-                writer.drawLine(x, y+offset, w, h, lw, col);
-                writer.drawLine(x, y+offset-2, w, h, lw, col);
+                writer.drawLine(null, x, y+offset, w, h, lw, col);
+                writer.drawLine(null, x, y+offset-2, w, h, lw, col);
             } else {
-                writer.drawLine(x, y, w, h, lw, col);
+                writer.drawLine(null, x, y, w, h, lw, col);
             }
         }
 
         private drawVLine(writer, offset, count, x, y, w, h, lw, col) {
             if (count == 2) {
-                writer.drawLine(x+offset, y, w, h, lw, col);
-                writer.drawLine(x+offset+2, y, w, h, lw, col);
+                writer.drawLine(null, x+offset, y, w, h, lw, col);
+                writer.drawLine(null, x+offset+2, y, w, h, lw, col);
             } else {
-                writer.drawLine(x, y, w, h, lw, col);
+                writer.drawLine(null, x, y, w, h, lw, col);
             }
         }
 
@@ -982,6 +993,7 @@ namespace Typesetting {
             if (style_.create.isFunction) {
                 style_ = new style_().style;
             }
+            info_.logger = new Typesetting.Logger();
             info_.base = style_.clone();
             outline_ = info_.base.outline;
             var pagesize = style_.pagesize ?? PDF_PAGE_SIZE_A4;
@@ -1044,6 +1056,11 @@ namespace Typesetting {
             };
             info_.paragraphParser = new Typesetting.ParagraphParser(context_, info_);
             info_.context = context_;
+            if (opts_.xref) {
+                if (File.exists(opts_.xref)) {
+                    context_.xref = JSON.parse(File.load(opts_.xref));
+                }
+            }
 
             core_.util = new DocumentUtil(info_, context_, this);
             core_.paragraph = new Paragraph(info_, context_, this, core_.util);
@@ -1378,6 +1395,11 @@ namespace Typesetting {
                 flushToc();
             }
             info_.writer.save(file);
+            if (opts_.xref) {
+                File.open(opts_.xref, File.WRITE) { &(f):
+                    f.println(context_.xref.toJsonString(true));
+                };
+            }
         }
     }
 
