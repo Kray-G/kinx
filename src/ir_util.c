@@ -792,7 +792,7 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
         kx_fnc_t *fnc = kv_last_by((ctx)->stack, 3).value.fn; \
         kx_frm_t *lexv = fnc->lex; \
         kx_val_t *v1 = &kv_A(lexv->v, c1->value2.i); \
-        int tf = (v1->type == KX_INT_T) && (v1->value.iv); \
+        int tf = (v1)->type == KX_INT_T ? (v1)->value.iv : kx_value_true(ctx, v1); \
         if ((c2->op == KX_JZ && tf) || (c2->op == KX_JNZ && !tf)) { \
             KX_CALLOPT_RETNULL(c3); \
             KX_CALLOPT_RETI(c3); \
@@ -800,8 +800,8 @@ kx_fnc_t *run_isolate(kx_context_t *ctx, kx_val_t *host, int count, void *jumpta
             KX_CALLOPT_RETVL1(c3); \
             return NULL; \
         } \
-        kx_code_t *cj = c2->jmp; \
         if ((c2->op == KX_JZ && !tf) || (c2->op == KX_JNZ && tf)) { \
+            kx_code_t *cj = c2->jmp; \
             KX_CALLOPT_RETNULL(cj); \
             KX_CALLOPT_RETI(cj); \
             KX_CALLOPT_RETVL0(cj); \
