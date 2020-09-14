@@ -8,12 +8,17 @@ extern char* get_exe_path(void);
 #define KCC_WINDOWS
 #endif
 
+#include <stdint.h>
 #if !defined(KCC_WINDOWS)
+#include <sys/types.h>
+#include <dirent.h>
 #include <dlfcn.h>
 #endif
 
 #if defined(KCC_WINDOWS)
+#ifndef KCC_SKIP_WINDOWS_H
 #include <windows.h>
+#endif
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif
@@ -25,6 +30,13 @@ extern char* get_exe_path(void);
 #define SNPRINTF    _snprintf
 #define DELIM       ";"
 #define PATH_DELIM  "\\"
+#define PATH_DELCH  '\\'
+
+typedef struct dirent {
+    char d_name[256];
+} kx_dirent_t;
+
+typedef void *kx_dir_t;
 #else
 #include <linux/limits.h>
 #include <sys/stat.h>
@@ -38,6 +50,14 @@ extern char* get_exe_path(void);
 #define SNPRINTF    snprintf
 #define DELIM       ":"
 #define PATH_DELIM  "/"
+#define PATH_DELCH  '/'
+
+typedef DIR kx_dir_t;
+typedef struct dirent kx_dirent_t;
 #endif
+
+extern kx_dir_t* kx_open_dir(const char *path);
+extern kx_dirent_t* kx_read_dir(kx_dir_t *dir);
+extern int32_t kx_close_dir(kx_dir_t *dir);
 
 #endif
