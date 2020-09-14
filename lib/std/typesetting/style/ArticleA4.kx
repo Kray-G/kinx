@@ -56,6 +56,16 @@ namespace Style {
                     "bottom":           34.0,
                 }
             },
+            "link": {
+                "annotation": {
+                    "color":            [1, 1, 0, 0],
+                    "underline":        true,
+                },
+                "url": {
+                    "color":            [1, 0, 0, 0],
+                    "underline":        true,
+                }
+            },
             "footnote": {
                 "left":                 20.0,
                 "numberSizeRatio":      0.7,

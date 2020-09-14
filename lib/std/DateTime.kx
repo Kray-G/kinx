@@ -38,8 +38,9 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
         }
     }
     public toString() {
-        return "%04d/%02d/%02d %02d:%02d:%02d"
-            % datetime_.year % datetime_.month % datetime_.day % datetime_.hour % datetime_.minute % datetime_.second;
+        return ("%04d/%02d/%02d %02d:%02d:%02d"
+            % datetime_.year % datetime_.month % datetime_.day % datetime_.hour % datetime_.minute % datetime_.second
+        ).format();
     }
     public format(fmtString) {
         if (fmtString.isUndefined) {

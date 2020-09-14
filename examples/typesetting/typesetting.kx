@@ -1,7 +1,7 @@
 using Typesetting;
 using typesetting.style.ArticleA4;
 
-var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true });
+var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true, xref: "xref.json" });
 
 doc.title("Kinx TT - Kinx Tiny Typesetting");
 doc.abstract(%{
@@ -58,6 +58,8 @@ doc.itemize({
         "Tables, and the header of table is automatically repeated each page.",
         "Images, and it can be also put with floating inside paragraph.",
         "Writing a program source code.",
+        "Cross-reference like \\bold{Reference to the section \\ref{Sec:FeatureDetail}}.",
+        "Autimatic URL link like https://en.wikipedia.org/wiki/TeX, or link text like \\url[url=https://en.wikipedia.org/wiki/TeX]{\\TeX}.",
         "Footnotes\\footnote{This is a footnote example.}.",
         "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
@@ -65,7 +67,7 @@ doc.itemize({
 
 doc.pageBreak();
 
-doc.section("Features Details");
+doc.section({ label: "Sec:FeatureDetail" }, "Features Details");
 doc.subSection("Hyphenation & Line Breaking");
 
 doc.image({
