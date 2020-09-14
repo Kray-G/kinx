@@ -1,0 +1,16 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Glue(info_, context_) {
+            public exec(params) {
+                var width = Typesetting.Util.getPt(context_, params.width);
+                var stretch = Typesetting.Util.getPt(context_, params.stretch);
+                var shrink = Typesetting.Util.getPt(context_, params.shrink);
+                return Typesetting.Linebreak.Glue(width, stretch, shrink);
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

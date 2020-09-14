@@ -1,0 +1,21 @@
+namespace Typesetting {
+
+    namespace ParagraphCommand {
+
+        class Monotype(info_, context_) {
+            var fontObj_, fontObjBase_;
+            public start() {
+                fontObj_ = context_.font.fontObj;
+                fontObjBase_ = context_.font.fontObjBase;
+                context_.font.fontObj = context_.fontSet.monotype.fontObj;
+                context_.font.fontObjBase = context_.fontSet.monotype.fontObjBase;
+            }
+            public end() {
+                context_.font.fontObj = fontObj_;
+                context_.font.fontObjBase = fontObjBase_;
+            }
+        }
+
+    } # namespace ParagraphCommand
+
+} # namespace Typesetting

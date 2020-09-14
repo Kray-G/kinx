@@ -1,0 +1,14 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Pack(info_, context_) {
+            public exec(params, value) {
+                var text = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, value);
+                return Typesetting.Linebreak.Box(text.width, text);
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting
