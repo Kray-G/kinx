@@ -1,0 +1,21 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Pageref(info_, context_) {
+            public exec(params, value) {
+                var ref = context_.xref[value];
+                if (ref.counter.isUndefined) {
+                    info_.logger.warn("Re-run for Page Reference");
+                    return "??";
+                }
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ref.page);
+                w.isAnnot = true;
+                w.annotPage = ref.page;
+                return w;
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

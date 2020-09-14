@@ -47,9 +47,13 @@ namespace Typesetting {
         var x_, y_;
         var ytop_, ybottom_, isTopOfPage_;
         var lastLineFeedWidth_;
+        var annot_ = [];
         var footnotes_ = [];
         var floating_;
         var tocBasePage_;
+        var linkAnnot_ = info_.base.link.annotation;
+        var linkUrl_ = info_.base.link.url;
+        var urlEx_ = {};
 
         private initialize() {
             info_.context.counter.page = 0;
@@ -142,34 +146,38 @@ namespace Typesetting {
             throw RuntimeException("Unsupported image file format");
         }
 
-        public drawLine(left, top, width, height, lineWidth, color) {
-            color ??= [1.0, 0, 0];
-            page_.gSave();
-            page_.setLineWidth(lineWidth || 1.0);
-            page_.setRGBFill(...color);
-            page_.moveTo(left, top);
-            page_.lineTo(left + width, top - height);
-            page_.stroke();
-            page_.gRestore();
+        public drawLine(page, left, top, width, height, lineWidth, color) {
+            page ??= page_;
+            color ??= [0, 0, 0, 1];
+            lineWidth ??= 0.5;
+            page.gSave();
+            page.setLineWidth(lineWidth || 1.0);
+            page.setCMYKFill(...color);
+            page.moveTo(left, top);
+            page.lineTo(left + width, top - height);
+            page.stroke();
+            page.gRestore();
         }
 
-        public drawBox(left, top, width, height, lineWidth, color) {
-            color ??= [1.0, 0, 0];
-            page_.gSave();
-            page_.setLineWidth(lineWidth || 1.0);
-            page_.setRGBFill(...color);
-            page_.moveTo(left, top);
-            page_.lineTo(left + width, top);
-            page_.lineTo(left + width, top - height);
-            page_.lineTo(left, top - height);
-            page_.lineTo(left, top);
-            page_.stroke();
-            page_.gRestore();
+        public drawBox(page, left, top, width, height, lineWidth, color) {
+            page ??= page_;
+            color ??= [0, 0, 0, 1];
+            page.gSave();
+            page.setLineWidth(lineWidth || 1.0);
+            page.setCMYKFill(...color);
+            page.moveTo(left, top);
+            page.lineTo(left + width, top);
+            page.lineTo(left + width, top - height);
+            page.lineTo(left, top - height);
+            page.lineTo(left, top);
+            page.stroke();
+            page.gRestore();
         }
 
         public drawPageMargin() {
             var margin = @makeMarginSize();
             drawBox(
+                page_,
                 pageMargin_.left,
                 margin.pageHeight - pageMargin_.top,
                 margin.pageWidth - margin_.right - margin_.left,
@@ -186,7 +194,7 @@ namespace Typesetting {
             var width = floating_.width;
             var height = floating_.height;
             page_.drawImage(floating_.image, left, top, width, height);
-            drawBox(left, top + height, width, height) if (info_.base.draw.imageBox);
+            drawBox(page_, left, top + height, width, height) if (info_.base.draw.imageBox);
             if (floating_.captionHook.isFunction) {
                 floating_.captionHook(floating_.left + floating_.width / 2, floating_.captionY);
             }
@@ -290,19 +298,75 @@ namespace Typesetting {
             return marginCache_;
         }
 
-        private showText(page, text, isUrl, link) {
-            if (!isUrl) {
+        private showText(page, text, value, x, y, width) {
+            if (value.startUrl) {
+                urlEx_ = { x: x, y: y };
+                var color = linkUrl_.color ?? [0, 1, 1, 0];
+                page.setCMYKFill(...color);
+                page.setCMYKStroke(...color);
+            }
+            if (value.isAnnot) {
+                var color = linkAnnot_.color ?? [0, 1, 1, 0];
+                page.setCMYKFill(...color);
+                page.setCMYKStroke(...color);
+                drawLine(page, x, y - 1, width, 0, linkAnnot_.underlineSize) if (linkAnnot_.underline);
+                page.beginText();
+                page.moveTextPos(x, y);
+                annot_.push({
+                    left: x - 4,
+                    top: y + value.bottom - 2,
+                    right: x + width + 4,
+                    bottom: y + value.top + 2,
+                    page: page,
+                    value: value,
+                });
                 page.showText(text);
-            } else {
+                page.setCMYKStroke(0, 0, 0, 1);
+                page.setCMYKFill(0, 0, 0, 1);
+                page.endText();
+            } else if (value.isUrl) {
+                var color = linkUrl_.color ?? [0, 1, 1, 0];
+                page.setCMYKFill(...color);
+                page.setCMYKStroke(...color);
+                drawLine(page, x, y - 1, width, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
+                page.beginText();
+                page.moveTextPos(x, y);
                 var tp = page.getCurrentTextPos();
                 page.showText(text);
+                var nx = page.getCurrentTextPos().x;
                 var rect = {
                     left:   tp.x - 4,
-                    bottom: tp.y - 4,
-                    right:  page.getCurrentTextPos().x + 4,
-                    top:    tp.y + 10,
+                    bottom: tp.y + value.bottom - 2,
+                    right:  nx + 4,
+                    top:    tp.y + value.top + 2,
                 };
-                page.createURILinkAnnot(rect, link);
+                var annot = page.createURILinkAnnot(rect, value.link);
+                annot.linkAnnot_SetBorderStyle(0, 0, 0);
+                page.setCMYKStroke(0, 0, 0, 1);
+                page.setCMYKFill(0, 0, 0, 1);
+                page.endText();
+            } else if (value.endUrl && urlEx_.x && urlEx_.y) {
+                var linew = x + width - urlEx_.x;
+                drawLine(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
+                page.beginText();
+                page.moveTextPos(x, y);
+                page.showText(text);
+                var rect = {
+                    left:   urlEx_.x - 4,
+                    bottom: urlEx_.y + value.bottom - 2,
+                    right:  x + width + 4,
+                    top:    urlEx_.y + value.top + 2,
+                };
+                var annot = page.createURILinkAnnot(rect, value.link);
+                annot.linkAnnot_SetBorderStyle(0, 0, 0);
+                page.setCMYKStroke(0, 0, 0, 1);
+                page.setCMYKFill(0, 0, 0, 1);
+                page.endText();
+            } else {
+                page.beginText();
+                page.moveTextPos(x, y);
+                page.showText(text);
+                page.endText();
             }
         }
 
@@ -392,10 +456,7 @@ namespace Typesetting {
                 var font = value.font;
                 var fontSize = value.size;
                 page.setFontAndSize(font, fontSize);
-                page.beginText();
-                page.moveTextPos(x + value.offsetX, y + value.offsetY);
-                showText(page, value.word, value.isUrl, value.link);
-                page.endText();
+                showText(page, value.word, value, x + value.offsetX, y + value.offsetY, width);
             }
             return x + width;
         }
@@ -461,16 +522,25 @@ namespace Typesetting {
             }
         }
 
+        private flushAnnot() {
+            annot_.each { &(annot):
+                var annotPage = Integer.parseInt(annot.value.annotPage);
+                var dstpage = @pages[annotPage];
+                var dst = dstpage.createDestination();
+                var page = annot.page;
+                var annot = page.createLinkAnnot(annot, dst);
+                annot.linkAnnot_SetBorderStyle(0, 0, 0);
+            };
+        }
+
         private flushPage() {
-            if (info_.context.counter.page > 1) {
-                System.print("[%{info_.context.counter.page-1}]");
-            }
             if (@pages.length() > 0) {
                 var page = @pages[-1];
                 flushFootnotes(page);
                 page.info.counter = info_.context.counter.clone();
                 page.info.name = info_.context.name.clone();
             }
+            info_.logger.info("Outputted the page [%{info_.context.counter.page}]");
         }
 
         public addPage() {
@@ -669,7 +739,7 @@ namespace Typesetting {
             var width = img.width;
             var height = img.height;
             page_.drawImage(img.image, x, y + img.offsetY, width, height);
-            drawBox(x, y + img.offsetY + height, width, height) if (info_.base.draw.imageBox);
+            drawBox(page_, x, y + img.offsetY + height, width, height) if (info_.base.draw.imageBox);
             x_ = x + width;
             return true;
         }
@@ -686,10 +756,7 @@ namespace Typesetting {
                 y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
             }
             var x = (margin.width - textWidth) / 2 + margin.left;
-            page_.beginText();
-            page_.moveTextPos(x, y_);
-            showText(page_, text);
-            page_.endText();
+            showText(page_, text, null, x, y_, textWidth);
         }
 
         public write(node, x, y) {
@@ -708,10 +775,9 @@ namespace Typesetting {
                 if (floating_.isDefined && floating_.floating.left) {
                     offsetX += (floating_.width + info_.base.image.leftsep);
                 }
-                page_.beginText();
-                page_.moveTextPos(x_ + offsetX, (y ?? y_) + value.offsetY);
-                showText(page_, value.word, value.isUrl, value.link);
-                page_.endText();
+                x = x_ + offsetX;
+                y = (y ?? y_) + value.offsetY;
+                showText(page_, value.word, value, x, y, width);
                 # page_.setRGBFill(0, 0, 0);
                 # page_.moveTo(x_ + value.offsetX, y_ + value.offsetY);
                 # page_.lineTo(x_ + value.offsetX + width, y_ + value.offsetY);
@@ -826,19 +892,22 @@ namespace Typesetting {
             var offsetY = lineFeedWidth - height;
             y_ += offsetY;
             page_.drawImage(image, left, y_, width, height);
-            drawBox(left, y_ + height, width, height) if (info_.base.draw.imageBox);
+            drawBox(page_, left, y_ + height, width, height) if (info_.base.draw.imageBox);
         }
 
         public save(file) {
             flushPage();
+            flushAnnot();
+            info_.logger.info("Finished to flush annotations.");
+
             @pages.each { &(page):
                 writeHeader(page);
                 writeFooter(page);
             };
-            if (info_.context.counter.page > 0) {
-                System.println("[%{info_.context.counter.page}]");
-            }
+            info_.logger.info("Finished to flush headers and footers.");
+
             pdf_.saveToFile(file);
+            info_.logger.info("Finished all.");
         }
     }
 
