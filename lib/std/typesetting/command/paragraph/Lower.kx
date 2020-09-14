@@ -1,0 +1,18 @@
+namespace Typesetting {
+
+    namespace ParagraphCommand {
+
+        class Lower(info_, context_) {
+            var y_;
+            public start(params) {
+                y_ = context_.offsetY;
+                context_.offsetY = -Typesetting.Util.getPt(context_, params.height);
+            }
+            public end() {
+                context_.offsetY = y_;
+            }
+        }
+
+    } # namespace ParagraphCommand
+
+} # namespace Typesetting

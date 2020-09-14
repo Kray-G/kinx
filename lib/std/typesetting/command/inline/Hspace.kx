@@ -1,0 +1,14 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Hspace(info_, context_) {
+            public exec(params) {
+                var width = Typesetting.Util.getPt(context_, params.width);
+                return Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ''));
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

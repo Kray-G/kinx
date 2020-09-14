@@ -1,0 +1,19 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Image(info_, context_) {
+
+            public exec(params, value) {
+                var ws = new Typesetting.WordSet(info_);
+                var scale = params.scale ? Double.parseDouble(params.scale) : 1.0;
+                var image = new Typesetting.Image(info_).setImage(value, scale, params.caption);
+                ws.addWord(Typesetting.Linebreak.Box(0, image));
+                return ws;
+            }
+
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting
