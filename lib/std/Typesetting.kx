@@ -508,7 +508,6 @@ namespace Typesetting {
             var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
             if (opts.label) {
                 context_.xref[opts.label].y = linetop;
-System.println(context_.xref[opts.label]);
             }
             var indent = context_.noIndent;
             context_.noIndent = true;
