@@ -1321,21 +1321,55 @@ namespace Typesetting {
 
             var op = [];
             opts.keySet().each { &(key):
-                if (ops[key].isString) {
+                if (opts[key].isString) {
                     op.push(key + "=" + opts[key]);
                 }
             };
             return paragraph("\\image[%{op.join(',')}]{%{opts.file}}");
         }
 
-        public math(str) {
+        public math(opts, str) {
+            if (str.isUndefined) {
+                str = opts;
+                opts = null;
+            }
             flushParagraph();
 
+            var writer = info_.writer;
             var fontSize = context_.font.fontSize;
             var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
-            var img = Typesetting.Util.compileMath(str, true, info_.writer);
-            info_.writer.imageCenter(img, 0.25);
-            info_.writer.lineBreak(lineFeedWidth);
+            var img = Typesetting.Util.compileMath(str, true, writer);
+            var [bottom, height] = writer.imageCenter(img, 0.25);
+            if (opts.label) {
+                context_.counter.math ??= 0;
+                var labels = opts.label.isArray ? opts.label : [opts.label];
+                labels.each { &(info):
+                    var label = info.isString ? info : (info.isArray ? info[0] : null);
+                    if (label) {
+                        var offsetYRatio = info.isArray ? info[1] : 0;
+                        var fontObj = context_.font.fontObj;
+                        var ascent = fontObj.getAscent() * fontSize / 1000;
+                        var descent = fontObj.getDescent() * fontSize / 1000;
+                        ++context_.counter.math;
+                        var counter = "(" + context_.counter.math + ")";
+                        var pagenum = writer.getPageIndex();
+                        context_.xref[label] = {
+                            page:      pagenum,
+                            counter:   counter,
+                            name:      counter,
+                            text:      counter,
+                            y:         bottom + height,
+                        };
+                        var caption = new Word(info_).setWord(fontObj, fontSize, counter);
+                        var n = Linebreak.Box(caption.width, caption);
+                        var y = offsetYRatio > 0
+                            ? (bottom + height - (height * offsetYRatio))
+                            : (bottom + (height / 2) - ((ascent - descent) / 2 + descent));
+                        writer.writeMathCaption(n, y);
+                    }
+                };
+            }
+            writer.lineBreak(lineFeedWidth);
         }
 
         private fontType(type) {

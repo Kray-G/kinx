@@ -185,13 +185,13 @@ doc.paragraph(%{
     Instead, it is using an output of \KaTeX, which is included in this system.
 });
 
-doc.math(%{
+doc.math({ label: [["Math:1", 0.2], ["Math:2", 0.6]] }, %{
     \begin{aligned}
         E &= mc^2 \\
         m &= \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}} \\
     \end{aligned}
 });
-doc.math(%{
+doc.math({ label: "Math:3" }, %{
     \begin{aligned}
         \int_{-\infty}^{\infty} f(x) dx &= \sqrt{\pi}
     \end{aligned}
@@ -202,13 +202,14 @@ doc.imageCaption("Math example");
 doc.paragraph(%{
     If you want to write a math formula inline, use \verb{$...$} style directly in paragraph.
     For example, $E = mc^2$ is written as \verb{$E = mc^2$},
-    and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$
-    written as \verb{$\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
+    and another example by inline mode is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$ same as \ref[math]{Math:3}.
+    As \KaTeX does not support \monotype{\\label} command, the label is being provided by Kinx TT.
+    Therefore note that you need to control it by yourself a little.
 
-    If you want to use \$ in paragraph, use \$ with \\ like \verb{\$}.
+    If you want to use just ``\$'' in paragraph, use \$ with \\ as \verb{\$}.
 
-    And also you can use \verb{\displaystyle} keyword,
-    the Math fomula is directly inside paragraph like $\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$,
+    And also you can use \verb{\displaystyle} keyword.
+    The Math formula can be directly put inside paragraph like $\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$,
     by \verb{$\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
 });
 
