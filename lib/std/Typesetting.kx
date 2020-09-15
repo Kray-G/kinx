@@ -1342,6 +1342,7 @@ namespace Typesetting {
             var [bottom, height] = writer.imageCenter(img, 0.25);
             if (opts.label) {
                 context_.counter.math ??= 0;
+                var nexty;
                 var labels = opts.label.isArray ? opts.label : [opts.label];
                 labels.each { &(info):
                     var label = info.isString ? info : (info.isArray ? info[0] : null);
@@ -1352,20 +1353,21 @@ namespace Typesetting {
                         var descent = fontObj.getDescent() * fontSize / 1000;
                         ++context_.counter.math;
                         var counter = "(" + context_.counter.math + ")";
+                        var caption = new Word(info_).setWord(fontObj, fontSize, counter);
+                        var n = Linebreak.Box(caption.width, caption);
+                        var y = offsetYRatio > 0
+                            ? (bottom + height - (height * offsetYRatio))
+                            : (bottom + (height / 2) - ((ascent - descent) / 2 + descent));
                         var pagenum = writer.getPageIndex();
                         context_.xref[label] = {
                             page:      pagenum,
                             counter:   counter,
                             name:      counter,
                             text:      counter,
-                            y:         bottom + height,
+                            y:         nexty ?? (bottom + height),
                         };
-                        var caption = new Word(info_).setWord(fontObj, fontSize, counter);
-                        var n = Linebreak.Box(caption.width, caption);
-                        var y = offsetYRatio > 0
-                            ? (bottom + height - (height * offsetYRatio))
-                            : (bottom + (height / 2) - ((ascent - descent) / 2 + descent));
                         writer.writeMathCaption(n, y);
+                        nexty = y + descent - 4;
                     }
                 };
             }

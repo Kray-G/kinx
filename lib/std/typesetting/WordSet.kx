@@ -173,6 +173,7 @@ namespace Typesetting {
             @bottom = descent * fontSize / 1000;
             var ascent = fontObj.getAscent();
             @top = ascent * fontSize / 1000;
+            @color = info_.context.font.color;
             return this;
         }
         public fontObj() {
