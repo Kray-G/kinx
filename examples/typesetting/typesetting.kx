@@ -54,7 +54,7 @@ doc.itemize({
         "Hyphenation & Knuth-Plass Line Breaking Algorithm, and also for some Japanese rules.",
         "Widows & Orphans penalty control.",
         "Listing items with a bullet or numbering.",
-        "Math formula & equation like \\TeX",
+        "Math formula & equation like \\TeX.",
         "Tables, and the header of table is automatically repeated each page.",
         "Images, and it can be also put with floating inside paragraph.",
         "Writing a program source code.",
@@ -202,9 +202,9 @@ doc.imageCaption("Math example");
 doc.paragraph(%{
     If you want to write a math formula inline, use \verb{$...$} style directly in paragraph.
     For example, $E = mc^2$ is written as \verb{$E = mc^2$},
-    and another example by inline mode is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$ same as \ref[math]{Math:3}.
+    and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$ same as \ref[math]{Math:3}.
     As \KaTeX does not support \monotype{\\label} command, the label is being provided by Kinx TT.
-    Therefore note that you need to control it by yourself a little.
+    \color[red]{Therefore note that you need to control it by yourself a little.}
 
     If you want to use just ``\$'' in paragraph, use \$ with \\ as \verb{\$}.
 
