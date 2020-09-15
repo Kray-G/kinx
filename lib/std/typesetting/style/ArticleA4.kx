@@ -60,7 +60,7 @@ namespace Style {
             "link": {
                 "annotation": {
                     "color":            [1, 1, 0, 0],
-                    "underline":        true,
+                    "underline":        false,
                 },
                 "url": {
                     "color":            [1, 0, 0, 0],

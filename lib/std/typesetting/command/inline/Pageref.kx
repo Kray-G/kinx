@@ -6,12 +6,12 @@ namespace Typesetting {
             public exec(params, value) {
                 var ref = context_.xref[value];
                 var cache = context_.xrefCache[value];
-                if (ref.counter.isUndefined) {
+                if (ref.page.isUndefined) {
                     info_.logger.warn("Re-run for Page Reference");
                     return "??";
                 }
                 if (cache) {
-                    if (cache.page != ref.page || cache.counter != ref.counter) {
+                    if (cache.page != ref.page || cache.counter != ref.counter || cache.name != ref.name || cache.text != ref.text) {
                         info_.logger.warn("Re-run for Page Reference");
                     }
                 }
