@@ -20,6 +20,7 @@ typedef struct libkx_systemtimer_ {
     LARGE_INTEGER freq;
     LARGE_INTEGER start;
 } libkx_systemtimer_t;
+
 #else
 #include <sys/time.h>
 typedef struct libkx_systemtimer_ {
