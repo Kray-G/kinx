@@ -10,7 +10,7 @@ namespace Typesetting {
             public translate(value) {
                 var ws = new Typesetting.WordSet(info_).addWord(value);
                 ws.isUrl = true;
-                ws.link = params_.url;
+                ws.link = params_.url || params_;
                 return ws;
             }
         }

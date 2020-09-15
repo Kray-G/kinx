@@ -18,6 +18,7 @@ namespace Style {
             "toc": {
                 "header":               "Contents",
                 "headerSize":           fontSize * 1.8,
+                "fitWidth":             true,
                 "level":                3,
                 "indentSize":           15.0,
                 "fontSize":             [
