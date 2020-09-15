@@ -73,6 +73,10 @@ namespace Typesetting {
         }
 
         public showText(page, text, value, x, y, offsetY, width) {
+            if (value.isLabel) {
+                value.xref.page = page.index;
+                value.xref.y = y;
+            }
             var ay = y + offsetY;
             if (value.startUrl) {
                 urlEx_ = { x: x, y: y, x2: x + width };
@@ -328,7 +332,7 @@ namespace Typesetting {
             writer_.drawImage(page_, floating_.image, left, top, width, height);
             writer_.drawBox(page_, left, top + height, width, height) if (info_.base.draw.imageBox);
             if (floating_.captionHook.isFunction) {
-                floating_.captionHook(floating_.left + floating_.width / 2, floating_.captionY);
+                floating_.captionHook(floating_.left + floating_.width / 2, floating_.captionY, top, floating_.height);
             }
             floating_ = null;
         }
@@ -585,6 +589,13 @@ namespace Typesetting {
             info_.logger.info("Outputted the page [%{info_.context.counter.page}]");
         }
 
+        public getPageIndex() {
+            if (page_) {
+                return page_.index;
+            }
+            return @pages.length();
+        }
+
         public addPage() {
             flushPage();
 
@@ -595,6 +606,7 @@ namespace Typesetting {
             } else {
                 page_ = pdf_.addPage();
             }
+            page_.index = @pages.length();
 
             page_.setSize(pagesize_, direction_);
             width_ = page_.getWidth();
