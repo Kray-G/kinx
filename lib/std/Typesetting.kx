@@ -491,9 +491,12 @@ namespace Typesetting {
                 fontSize: info_.base.fontSize[level],
             };
             if (opts.label) {
+                var pagenum = writer.getPageIndex();
                 context_.xref[opts.label] = {
-                    page:    context_.counter.page - (context_.toc ? 0 : 1),
-                    counter: sectionNumberText,
+                    page:      pagenum,
+                    counter:   sectionNumberText,
+                    name:      sectionNumberText + ' ' + text,
+                    text:      text,
                 };
             }
 
@@ -505,13 +508,13 @@ namespace Typesetting {
                 var marginSize = info_.base.paragraphSkipWidthRatio[level] * context_.font.fontSize;
                 writer.setMarginAbove(marginSize / 2);
             }
+            var indent = context_.noIndent;
+            context_.noIndent = true;
             var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
+            var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
             if (opts.label) {
                 context_.xref[opts.label].y = linetop;
             }
-            var indent = context_.noIndent;
-            context_.noIndent = true;
-            var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
             util_.write(lines);
             context_.noIndent = indent;
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
@@ -1080,6 +1083,7 @@ namespace Typesetting {
             if (opts_.xref) {
                 if (File.exists(opts_.xref)) {
                     context_.xref = JSON.parse(File.load(opts_.xref));
+                    context_.xrefCache = context_.xref.clone();
                 }
             }
 
@@ -1279,17 +1283,29 @@ namespace Typesetting {
             info_.writer.lineBreak(lineFeedWidth);
         }
 
-        public floatingImageCaption(caption, fontObj, fontSize, center, y) {
+        public floatingImageCaption(label, caption, fontObj, fontSize, center, y, imageY, height) {
             if (!caption) {
                 return;
             }
-            caption = info_.base.image.label + ' ' + makeImageNumber() + ' ' + caption;
-            var textWidth = info_.measure.textWidth(fontObj, fontSize, caption);
+            var counter = makeImageNumber();
+            var name = info_.base.image.label + ' ' + counter + ' ' + caption;
+            var textWidth = info_.measure.textWidth(fontObj, fontSize, name);
             var writer = info_.writer;
             var margin = writer.makeMarginSize();
 
+            if (label) {
+                var pagenum = writer.getPageIndex();
+                context_.xref[label] = {
+                    page:      pagenum,
+                    counter:   counter,
+                    name:      name,
+                    text:      caption,
+                    y:         imageY + height,
+                };
+            }
+
             var x = center - textWidth / 2;
-            var n = Linebreak.Box(0, new Word(info_).setWord(fontObj, fontSize, caption));
+            var n = Linebreak.Box(0, new Word(info_).setWord(fontObj, fontSize, name));
             writer.writeFloatingCaption(n, x, y);
         }
 
@@ -1299,11 +1315,17 @@ namespace Typesetting {
                 var fontSize = context_.font.fontSize;
                 var fontObj = context_.font.fontObj;
                 info_.writer.loadFloatingImage(opts.file, opts.scale, opts.float, opts.caption,
-                    &(center, y) => floatingImageCaption(opts.caption, fontObj, fontSize, center, y));
+                    &(center, y, imageY, height) => floatingImageCaption(opts.label, opts.caption, fontObj, fontSize, center, y, imageY, height));
                 return;
             }
 
-            return paragraph("\\image[scale=%{opts.scale}]{%{opts.file}}");
+            var op = [];
+            opts.keySet().each { &(key):
+                if (ops[key].isString) {
+                    op.push(key + "=" + opts[key]);
+                }
+            };
+            return paragraph("\\image[%{op.join(',')}]{%{opts.file}}");
         }
 
         public math(str) {

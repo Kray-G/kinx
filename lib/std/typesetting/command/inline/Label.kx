@@ -5,12 +5,15 @@ namespace Typesetting {
         class Label(info_, context_) {
             public exec(params, value) {
                 context_.xref ??= {};
-                var counterName = params.name || "sectionNumber";
+                var counterName = params.name || "section";
                 context_.xref[value] = {
-                    page: context_.counter.page - (context_.toc ? 0 : 1),
+                    page: 0,
                     counter: "" + context_.counter[counterName],
                 };
-                return new Typesetting.WordSet(info_).addWord(new Typesetting.NullWord());
+                var box = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '');
+                box.isLabel = true;
+                box.xref = context_.xref[value];
+                return Typesetting.Linebreak.Box(0, box);
             }
         }
 
