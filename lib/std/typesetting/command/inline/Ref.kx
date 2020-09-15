@@ -12,6 +12,7 @@ namespace Typesetting {
                 var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ref.counter);
                 w.isAnnot = true;
                 w.annotPage = ref.page;
+                w.annotPos = { y: ref.y };
                 return w;
             }
         }

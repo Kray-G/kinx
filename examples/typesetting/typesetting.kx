@@ -59,7 +59,7 @@ doc.itemize({
         "Images, and it can be also put with floating inside paragraph.",
         "Writing a program source code.",
         "Cross-reference like \\bold{Reference to the section \\ref{Sec:FeatureDetail}}.",
-        "Autimatic URL link like https://en.wikipedia.org/wiki/TeX, or link text like \\url[url=https://en.wikipedia.org/wiki/TeX]{\\TeX}.",
+        "Autimatic URL link like https://en.wikipedia.org/wiki/TeX, or link text like \\url[https://en.wikipedia.org/wiki/TeX]{\\TeX}.",
         "Footnotes\\footnote{This is a footnote example.}.",
         "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
