@@ -73,6 +73,7 @@ namespace Typesetting {
         }
 
         public showText(page, text, value, x, y, offsetY, width) {
+            var textcolor = value.color;
             if (value.isLabel) {
                 value.xref.page = page.index;
                 value.xref.y = y;
@@ -81,12 +82,14 @@ namespace Typesetting {
             if (value.startUrl) {
                 urlEx_ = { x: x, y: y, x2: x + width };
                 urlExRect_ = [];
-                var color = linkUrl_.color ?? [0, 1, 1, 0];
+                var color = linkUrl_.color ?? textcolor ?? [0, 1, 1, 0];
+                page.gSave();
                 page.setCMYKFill(...color);
                 page.setCMYKStroke(...color);
             }
             if (value.isAnnot) {
-                var color = linkAnnot_.color ?? [0, 1, 1, 0];
+                var color = linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0];
+                page.gSave();
                 page.setCMYKFill(...color);
                 page.setCMYKStroke(...color);
                 drawLine(page, x, ay - 1, width, 0, linkAnnot_.underlineSize) if (linkAnnot_.underline);
@@ -102,11 +105,11 @@ namespace Typesetting {
                     y: value.annotPos.y,
                 });
                 page.showText(text);
-                page.setCMYKStroke(0, 0, 0, 1);
-                page.setCMYKFill(0, 0, 0, 1);
                 page.endText();
+                page.gRestore();
             } else if (value.isUrl) {
-                var color = linkUrl_.color ?? [0, 1, 1, 0];
+                var color = linkUrl_.color ?? textcolor ?? [0, 1, 1, 0];
+                page.gSave();
                 page.setCMYKFill(...color);
                 page.setCMYKStroke(...color);
                 drawLine(page, x, ay - 1, width, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
@@ -123,9 +126,8 @@ namespace Typesetting {
                 };
                 var annot = page.createURILinkAnnot(rect, value.link);
                 annot.linkAnnot_SetBorderStyle(0, 0, 0);
-                page.setCMYKStroke(0, 0, 0, 1);
-                page.setCMYKFill(0, 0, 0, 1);
                 page.endText();
+                page.gRestore();
             } else if (value.endUrl) {
                 var linew = x + width - urlEx_.x;
                 drawLine(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
@@ -142,9 +144,8 @@ namespace Typesetting {
                     var annot = page.createURILinkAnnot(rect, value.link);
                     annot.linkAnnot_SetBorderStyle(0, 0, 0);
                 };
-                page.setCMYKStroke(0, 0, 0, 1);
-                page.setCMYKFill(0, 0, 0, 1);
                 page.endText();
+                page.gRestore();
                 urlEx_ = {};
             } else {
                 if (urlEx_.x && urlEx_.y != y) {
@@ -160,10 +161,18 @@ namespace Typesetting {
                 } else {
                     urlEx_.x2 = x + width;
                 }
+                if (textcolor) {
+                    page.gSave();
+                    page.setCMYKFill(...textcolor);
+                    page.setCMYKStroke(...textcolor);
+                }
                 page.beginText();
                 page.moveTextPos(x, ay);
                 page.showText(text);
                 page.endText();
+                if (textcolor) {
+                    page.gRestore();
+                }
             }
         }
 
