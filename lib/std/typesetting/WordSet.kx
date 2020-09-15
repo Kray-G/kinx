@@ -39,7 +39,7 @@ namespace Typesetting {
             fontObj ??= info_.context.font.fontObj;
             fontSize ??= info_.context.font.fontSize;
             var bbox = fontObj.getBBox();
-            @offsetY = bbox.bottom * fontSize / 1000 + 1.0;
+            @offsetY = bbox.bottom * fontSize / 1000 + 0.8;
             @image = image;
             @width = image.getWidth();
             @height = image.getHeight();
@@ -49,6 +49,8 @@ namespace Typesetting {
             }
             @width = @width * scale;
             @height = @height * scale;
+            @bottom = bbox.bottom * fontSize / 1000;
+            @top = @height + @bottom;
             return this;
         }
         public fontObj() {
@@ -109,6 +111,8 @@ namespace Typesetting {
             @height = height * scale;
             @lineFeedWidth = @fontSize * context_.page.lineFeedWidthRatio;
             @scale = scale;
+            @bottom = 0;
+            @top = @height;
             return this;
         }
         public fontObj() {
@@ -165,6 +169,11 @@ namespace Typesetting {
             @space = measure_.spaceWidth(@font, fontSize);
             @offsetX = context_.offsetX;
             @offsetY = context_.offsetY;
+            var descent = fontObj.getDescent();
+            @bottom = descent * fontSize / 1000;
+            var ascent = fontObj.getAscent();
+            @top = ascent * fontSize / 1000;
+            @color = info_.context.font.color;
             return this;
         }
         public fontObj() {
@@ -258,16 +267,56 @@ namespace Typesetting {
             };
         }
         public flatten() {
+            var bottom, top;
             var result = [];
-            @words.each { &(word):
-                if (word.isWordSet) {
-                    result += word.flatten();
+            @words.each { &(word, i):
+                var wd = word.isBox ? word.value : word;
+                if (wd.isWordSet) {
+                    result += wd.flatten();
+                    if (wd.bottom < bottom) {
+                        bottom = wd.bottom;
+                    }
+                    if (top < wd.top) {
+                        top = wd.top;
+                    }
                 } else if (word.isWord) {
                     result.push(Linebreak.Box(word.width, word));
-                } else if (!word.isNullWord) {
+                    if (word.bottom < bottom) {
+                        bottom = word.bottom;
+                    }
+                    if (top < word.top) {
+                        top = word.top;
+                    }
+                } else if (word.isDefined && !word.isNullWord) {
                     result.push(word);
+                    if (word.bottom < bottom) {
+                        bottom = word.bottom;
+                    }
+                    if (top < word.top) {
+                        top = word.top;
+                    }
                 }
             };
+            if (@isUrl && result.length() > 1) {
+                var last;
+                var rl = result.length();
+                for (var i = 0; i < rl; ++i) {
+                    if (result[i].isBox) {
+                        if (last.isUndefined) {
+                            result[i].value.startUrl = true;
+                        }
+                        last = i;
+                    }
+                }
+                if (last > 0) {
+                    result[last].value.endUrl = true;
+                    result[last].value.link = @link;
+                    result[last].value.bottom = bottom;
+                    result[last].value.top = top;
+                }
+            }
+            @bottom = bottom;
+            @top = top;
             return result;
         }
     }

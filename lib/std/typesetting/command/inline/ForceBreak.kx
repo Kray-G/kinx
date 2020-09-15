@@ -1,0 +1,16 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class ForceBreak(info_, context_) {
+            public exec() {
+                var ws = new Typesetting.WordSet(info_);
+                ws.addWord(Typesetting.Linebreak.Glue(0, Typesetting.Linebreak.Infinity, 0));
+                ws.addWord(Typesetting.Linebreak.Penalty(0, -Typesetting.Linebreak.Infinity, 0));
+                return ws;
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

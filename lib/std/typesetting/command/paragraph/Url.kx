@@ -1,0 +1,20 @@
+namespace Typesetting {
+
+    namespace ParagraphCommand {
+
+        class Url(info_, context_) {
+            var params_;
+            public start(params) {
+                params_ = params;
+            }
+            public translate(value) {
+                var ws = new Typesetting.WordSet(info_).addWord(value);
+                ws.isUrl = true;
+                ws.link = params_.url || params_;
+                return ws;
+            }
+        }
+
+    } # namespace ParagraphCommand
+
+} # namespace Typesetting
