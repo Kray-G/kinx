@@ -406,7 +406,7 @@ static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
         break;
     case JSON_REAL:
         val.type = KX_DBL_T;
-        val.value.iv = j->value.d;
+        val.value.dv = j->value.d;
         break;
     case JSON_NULL:
         val.type = KX_UND_T;
