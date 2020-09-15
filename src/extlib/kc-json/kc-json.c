@@ -592,12 +592,12 @@ static inline int __json_lex_make_keyword(void)
 
 #define JSON_CHAR_MAP(ch) \
     switch (ch) { \
-    case '\\': ch = '\\\\'; break; \
-    case '\'': ch = '\'';   break; \
-    case '"':  ch = '"';    break; \
-    case 'n':  ch = '\n';   break; \
-    case 'r':  ch = '\r';   break; \
-    case 't':  ch = '\t';   break; \
+    case '\\': ch = '\\'; break; \
+    case '\'': ch = '\''; break; \
+    case '"':  ch = '"';  break; \
+    case 'n':  ch = '\n'; break; \
+    case 'r':  ch = '\r'; break; \
+    case 't':  ch = '\t'; break; \
     } \
 /**/
 
@@ -628,7 +628,7 @@ static inline int __json_lex_make_string()
     return JSON_TOKEN_STR;
 }
 
-int __json_yylex_impl()
+static inline int __json_yylex_impl()
 {
     while (__json_is_whitespace()) {
         __json_lex_next();
@@ -708,7 +708,7 @@ int __json_yylex_impl()
     return JSON_TOKEN_ERROR;
 }
 
-static inline int __json_yylex()
+int __json_yylex()
 {
     #if !defined(JSON_PARSER_DEBUG)
     return __json_yylex_impl();
