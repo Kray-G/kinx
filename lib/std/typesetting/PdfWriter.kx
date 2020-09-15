@@ -787,6 +787,21 @@ namespace Typesetting {
             return true;
         }
 
+        public writeMathCaption(node, y) {
+            var width = node.width;
+            var value = node.value;
+            var margin = makeMarginSize();
+            var x = margin.pageWidth - margin.right - width;
+            if (!setupWrite(value, width, node.isBox, x)) {
+                return false;
+            }
+            if (value) {
+                writeText(page_, x, y, value.word, width);
+            }
+            x_ = -1;
+            return true;
+        }
+
         public writeImage(img, x, y) {
             var margin = makeMarginSize();
             if (x.isUndefined) {
@@ -946,6 +961,7 @@ namespace Typesetting {
             y_ += offsetY;
             writer_.drawImage(page_, image, left, y_, width, height);
             writer_.drawBox(page_, left, y_ + height, width, height) if (info_.base.draw.imageBox);
+            return [y_, height];
         }
 
         public save(file) {

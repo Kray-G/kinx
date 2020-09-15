@@ -39,7 +39,7 @@ namespace Typesetting {
             fontObj ??= info_.context.font.fontObj;
             fontSize ??= info_.context.font.fontSize;
             var bbox = fontObj.getBBox();
-            @offsetY = bbox.bottom * fontSize / 1000 + 1.0;
+            @offsetY = bbox.bottom * fontSize / 1000 + 0.8;
             @image = image;
             @width = image.getWidth();
             @height = image.getHeight();
