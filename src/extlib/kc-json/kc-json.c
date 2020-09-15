@@ -628,7 +628,7 @@ static inline int __json_lex_make_string()
     return JSON_TOKEN_STR;
 }
 
-static inline int __json_yylex_impl()
+int __json_yylex_impl()
 {
     while (__json_is_whitespace()) {
         __json_lex_next();
