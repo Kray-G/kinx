@@ -1,0 +1,28 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Ref(info_, context_) {
+            public exec(params, value) {
+                var ref = context_.xref[value];
+                var cache = context_.xrefCache[value];
+                if (ref.counter.isUndefined) {
+                    info_.logger.warn("Re-run for Cross Reference with counter");
+                    return "??";
+                }
+                if (cache) {
+                    if (cache.page != ref.page || cache.counter != ref.counter || cache.name != ref.name || cache.text != ref.text) {
+                        info_.logger.warn("Re-run for Cross Reference with counter");
+                    }
+                }
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ref.counter);
+                w.isAnnot = true;
+                w.annotPage = ref.page;
+                w.annotPos = { y: ref.y };
+                return w;
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

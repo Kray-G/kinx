@@ -18,6 +18,7 @@ namespace Style {
             "toc": {
                 "header":               "Contents",
                 "headerSize":           fontSize * 1.8,
+                "fitWidth":             true,
                 "level":                3,
                 "indentSize":           15.0,
                 "fontSize":             [
@@ -54,6 +55,16 @@ namespace Style {
                 "fontSize":             fontSize * 0.8,
                 "margin": {
                     "bottom":           34.0,
+                }
+            },
+            "link": {
+                "annotation": {
+                    "color":            [1, 1, 0, 0],
+                    "underline":        false,
+                },
+                "url": {
+                    "color":            [1, 0, 0, 0],
+                    "underline":        true,
                 }
             },
             "footnote": {

@@ -1,0 +1,27 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Pageref(info_, context_) {
+            public exec(params, value) {
+                var ref = context_.xref[value];
+                var cache = context_.xrefCache[value];
+                if (ref.page.isUndefined) {
+                    info_.logger.warn("Re-run for Page Reference");
+                    return "??";
+                }
+                if (cache) {
+                    if (cache.page != ref.page || cache.counter != ref.counter || cache.name != ref.name || cache.text != ref.text) {
+                        info_.logger.warn("Re-run for Page Reference");
+                    }
+                }
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, "" + (ref.page + (context_.toc ? 0 : 1)));
+                w.isAnnot = true;
+                w.annotPage = ref.page;
+                return w;
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

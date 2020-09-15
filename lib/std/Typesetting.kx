@@ -1,4 +1,5 @@
 using PdfCore;
+using typesetting.Logger;
 using typesetting.LineBreak;
 using typesetting.Measurement;
 using typesetting.PdfWriter;
@@ -115,7 +116,7 @@ namespace Typesetting {
             writer.lineBreak(lineFeedWidth);
         }
 
-        public writeTocLine(lines, pageNumber, fontObj, fontSize) {
+        public writeTocLine(lines, y, pageNumber, fontObj, fontSize) {
             if (lines.length() == 0) {
                 return;
             }
@@ -144,7 +145,11 @@ namespace Typesetting {
                     writer.write(dot, x);
                     x += dotWidth_;
                 }
-                num = Linebreak.Box(numw, new Word(info_).setWord(fontObj, fontSize, num));
+                num = new Word(info_).setWord(fontObj, fontSize, num);
+                num.isAnnot = true;
+                num.annotPage = pageNumber;
+                num.annotPos = { y: y };
+                num = Linebreak.Box(numw, num);
                 writer.write(num, right);
                 writer.lineBreak(line.lineFeedWidth);
             }
@@ -477,6 +482,7 @@ namespace Typesetting {
         public exec(level, opts, text) {
             [opts, text] = util_.makeOption(opts, text);
 
+            var writer = info_.writer;
             var numText = makeSectionNumber(level);
             var sectionNumberText = numText.join('.');
             var font = context_.font;
@@ -484,18 +490,31 @@ namespace Typesetting {
                 fontObj: context_.font.fontObjBase.bold,
                 fontSize: info_.base.fontSize[level],
             };
+            if (opts.label) {
+                var pagenum = writer.getPageIndex();
+                context_.xref[opts.label] = {
+                    page:      pagenum,
+                    counter:   sectionNumberText,
+                    name:      sectionNumberText + ' ' + text,
+                    text:      text,
+                };
+            }
 
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
             context_.page.lineFeedWidthRatio = info_.base.lineFeedWidthRatio[level];
             var paragraphSkipWidth = context_.page.paragraphSkipWidth;
             context_.page.paragraphSkipWidth = context_.font.fontSize * info_.base.paragraphSkipWidthRatio[level];
-            if (!info_.writer.isTopOfPage()) {
+            if (!writer.isTopOfPage()) {
                 var marginSize = info_.base.paragraphSkipWidthRatio[level] * context_.font.fontSize;
-                info_.writer.setMarginAbove(marginSize / 2);
+                writer.setMarginAbove(marginSize / 2);
             }
             var indent = context_.noIndent;
             context_.noIndent = true;
+            var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
             var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
+            if (opts.label) {
+                context_.xref[opts.label].y = linetop;
+            }
             util_.write(lines);
             context_.noIndent = indent;
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
@@ -505,16 +524,18 @@ namespace Typesetting {
             if (info_.base.footnote.resetSectionLevel == level && context_.counter.section[level] > 1) {
                 context_.counter.footnote = 0;
             }
-            var header = (context_.name.section[level] = sectionNumberText + ' ' + text);
+            var header = (context_.name.section[level] = sectionNumberText + '  ' + text);
             if (level <= info_.base.toc.level) {
                 context_.tocinfo.list.push({
                     page: context_.counter.page,
                     level: level,
                     number: sectionNumberText,
                     header: text,
+                    y: linetop,
                 });
             }
-            return header;
+
+            return [linetop, header];
         }
 
     }
@@ -830,9 +851,8 @@ namespace Typesetting {
             }
         }
 
-        private outputLine(array, count, offset, y) {
+        private outputLine(writer, array, count, offset, y) {
             var xbase = left_;
-            var writer = info_.writer;
             y ??= array.y + offsetY_;
             for (var i = 0, l = array.length() - 1; i <= l; ++i) {
                 var h = array[i];
@@ -879,9 +899,8 @@ namespace Typesetting {
             }
         }
 
-        private outputText(table, array) {
+        private outputText(writer, table, array) {
             var xbase = left_, y = 0;
-            var writer = info_.writer;
             var ybase = array.y + offsetY_;
             var totalLineFeedWidth = array.totalLineFeedWidth;
             var checkY = ybase + totalLineFeedWidth - info_.base.table.cellPadding;
@@ -891,7 +910,7 @@ namespace Typesetting {
                 writer.columnBreak();
                 var colnum = writer.getColumnNumber();
                 var cellPadding2 = info_.base.table.cellPadding * 2;
-                if (header_) {
+                if (header_ && !array.isHeader) {
                     if (colnum == 0) {
                         offsetY_ = margin_.pageHeight - margin_.top - header_[0].y - header_.totalLineFeedWidth + cellPadding2;
                     } else {
@@ -902,12 +921,12 @@ namespace Typesetting {
                     if (header_.index >= 0) {
                         var hline0 = table.body[header_.index - 1];
                         if (hline0.isTableHLine) {
-                            outputLine(header_, hline0.count, 0, ybase + header_.totalLineFeedWidth);
+                            outputLine(writer, header_, hline0.count, 0, ybase + header_.totalLineFeedWidth);
                         }
                     }
                     var hline1 = table.body[header_.index + 1];
                     if (hline1.isTableHLine) {
-                        outputLine(header_, hline1.count, +1, ybase);
+                        outputLine(writer, header_, hline1.count, +1, ybase);
                     }
                 }
                 if (colnum == 0) {
@@ -923,6 +942,7 @@ namespace Typesetting {
         }
 
         private outputBody(table) {
+            var writer = info_.writer;
             var ybase;
             for (var i = 0, l = table.body.length() - 1; i <= l; ++i) {
                 var ba = table.body[i];
@@ -930,15 +950,30 @@ namespace Typesetting {
                     if (i == 0) {
                         var array = table.body[1];
                         if (array) {
-                            outputLine(array, ba.count, 0, array.y + array.totalLineFeedWidth + offsetY_);
+                            var totalLineFeedWidth = array.totalLineFeedWidth;
+                            var checkY = array.y + totalLineFeedWidth + offsetY_;
+                            if (writer.isColumnBreakPoint(totalLineFeedWidth, checkY)) {
+                                if (writer.getPos().y >= 0) {
+                                    writer.setPos({ x: -1, y: checkY });
+                                    writer.columnBreak();
+                                }
+                                var colnum = writer.getColumnNumber();
+                                var cellPadding2 = info_.base.table.cellPadding * 2;
+                                if (colnum == 0) {
+                                    offsetY_ = margin_.pageHeight - margin_.top - array[0].y - (header_.totalLineFeedWidth * 2) + cellPadding2;
+                                } else {
+                                    offsetY_ = pos_.y - array[0].y - header_.totalLineFeedWidth;
+                                }
+                            }
+                            outputLine(writer, array, ba.count, 0, array.y + array.totalLineFeedWidth + offsetY_);
                         }
                     } else if (i == l) {
-                        outputLine(table.body[i-1], ba.count, +2);
+                        outputLine(writer, table.body[i-1], ba.count, +2);
                     } else {
-                        outputLine(table.body[i-1], ba.count, +1);
+                        outputLine(writer, table.body[i-1], ba.count, +1);
                     }
                 } else {
-                    ybase = outputText(table, ba);
+                    ybase = outputText(writer, table, ba);
                 }
             }
             return ybase;
@@ -982,6 +1017,7 @@ namespace Typesetting {
             if (style_.create.isFunction) {
                 style_ = new style_().style;
             }
+            info_.logger = new Typesetting.Logger();
             info_.base = style_.clone();
             outline_ = info_.base.outline;
             var pagesize = style_.pagesize ?? PDF_PAGE_SIZE_A4;
@@ -1044,6 +1080,12 @@ namespace Typesetting {
             };
             info_.paragraphParser = new Typesetting.ParagraphParser(context_, info_);
             info_.context = context_;
+            if (opts_.xref) {
+                if (File.exists(opts_.xref)) {
+                    context_.xref = JSON.parse(File.load(opts_.xref));
+                    context_.xrefCache = context_.xref.clone();
+                }
+            }
 
             core_.util = new DocumentUtil(info_, context_, this);
             core_.paragraph = new Paragraph(info_, context_, this, core_.util);
@@ -1102,6 +1144,7 @@ namespace Typesetting {
             var fontObj = context_.font.fontObj;
             context_.font.fontObj = context_.font.fontObjBase.bold;
             var titleText = info_.base.abstract.title;
+            var linetop = info_.writer.getLineTop(context_.font.fontObj, info_.base.abstract.fontSize);
             core_.util.writeCenter(opts, titleText, context_.font.fontObj, info_.base.abstract.fontSize, info_.base.abstract.lineFeedWidth);
             context_.font.fontObj = fontObj;
             var writer = info_.writer;
@@ -1116,7 +1159,7 @@ namespace Typesetting {
             writer.addY(info_.base.abstract.paragraphSkipWidth, true);
             if (outline_) {
                 var ol = writer.createOutline(null, titleText, true);
-                writer.setCurrentPage(ol);
+                writer.setCurrentPage(ol, linetop);
             }
         }
 
@@ -1136,10 +1179,10 @@ namespace Typesetting {
             pendings_.push({
                 lineFeedWidth: core_.section.getHeight(1),
                 func: &() => {
-                    var header = core_.section.exec(1, opts, text);
+                    var [linetop, header] = core_.section.exec(1, opts, text);
                     if (outline_) {
                         var ol = info_.writer.createOutline(null, header, true);
-                        info_.writer.setCurrentPage(ol);
+                        info_.writer.setCurrentPage(ol, linetop);
                         outline[0] = ol;
                     }
                 },
@@ -1153,10 +1196,10 @@ namespace Typesetting {
                 lineFeedWidth: core_.section.getHeight(1),
                 func: &() => {
                     var level = info_.base.sectionLevel;
-                    var header = core_.section.exec(level, opts, text);
+                    var [linetop, header] = core_.section.exec(level, opts, text);
                     if (outline_ && level <= info_.base.toc.level) {
                         var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
-                        info_.writer.setCurrentPage(ol);
+                        info_.writer.setCurrentPage(ol, linetop);
                         context_.outline[level] = ol;
                     }
                 },
@@ -1169,10 +1212,10 @@ namespace Typesetting {
                 lineFeedWidth: core_.section.getHeight(2),
                 func: &() => {
                     var level = info_.base.sectionLevel + 1;
-                    var header = core_.section.exec(level, opts, text);
+                    var [linetop, header] = core_.section.exec(level, opts, text);
                     if (outline_ && level <= info_.base.toc.level) {
                         var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
-                        info_.writer.setCurrentPage(ol);
+                        info_.writer.setCurrentPage(ol, linetop);
                         context_.outline[level] = ol;
                     }
                 },
@@ -1185,10 +1228,10 @@ namespace Typesetting {
                 lineFeedWidth: core_.section.getHeight(3),
                 func: &() => {
                     var level = info_.base.sectionLevel + 2;
-                    var header = core_.section.exec(level, opts, text);
+                    var [linetop, header] = core_.section.exec(level, opts, text);
                     if (outline_ && level <= info_.base.toc.level) {
                         var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
-                        info_.writer.setCurrentPage(ol);
+                        info_.writer.setCurrentPage(ol, linetop);
                         context_.outline[level] = ol;
                     }
                 },
@@ -1240,17 +1283,29 @@ namespace Typesetting {
             info_.writer.lineBreak(lineFeedWidth);
         }
 
-        public floatingImageCaption(caption, fontObj, fontSize, center, y) {
+        public floatingImageCaption(label, caption, fontObj, fontSize, center, y, imageY, height) {
             if (!caption) {
                 return;
             }
-            caption = info_.base.image.label + ' ' + makeImageNumber() + ' ' + caption;
-            var textWidth = info_.measure.textWidth(fontObj, fontSize, caption);
+            var counter = makeImageNumber();
+            var name = info_.base.image.label + ' ' + counter + ' ' + caption;
+            var textWidth = info_.measure.textWidth(fontObj, fontSize, name);
             var writer = info_.writer;
             var margin = writer.makeMarginSize();
 
+            if (label) {
+                var pagenum = writer.getPageIndex();
+                context_.xref[label] = {
+                    page:      pagenum,
+                    counter:   counter,
+                    name:      name,
+                    text:      caption,
+                    y:         imageY + height,
+                };
+            }
+
             var x = center - textWidth / 2;
-            var n = Linebreak.Box(0, new Word(info_).setWord(fontObj, fontSize, caption));
+            var n = Linebreak.Box(0, new Word(info_).setWord(fontObj, fontSize, name));
             writer.writeFloatingCaption(n, x, y);
         }
 
@@ -1260,21 +1315,63 @@ namespace Typesetting {
                 var fontSize = context_.font.fontSize;
                 var fontObj = context_.font.fontObj;
                 info_.writer.loadFloatingImage(opts.file, opts.scale, opts.float, opts.caption,
-                    &(center, y) => floatingImageCaption(opts.caption, fontObj, fontSize, center, y));
+                    &(center, y, imageY, height) => floatingImageCaption(opts.label, opts.caption, fontObj, fontSize, center, y, imageY, height));
                 return;
             }
 
-            return paragraph("\\image[scale=%{opts.scale}]{%{opts.file}}");
+            var op = [];
+            opts.keySet().each { &(key):
+                if (opts[key].isString) {
+                    op.push(key + "=" + opts[key]);
+                }
+            };
+            return paragraph("\\image[%{op.join(',')}]{%{opts.file}}");
         }
 
-        public math(str) {
+        public math(opts, str) {
+            if (str.isUndefined) {
+                str = opts;
+                opts = null;
+            }
             flushParagraph();
 
+            var writer = info_.writer;
             var fontSize = context_.font.fontSize;
             var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
-            var img = Typesetting.Util.compileMath(str, true, info_.writer);
-            info_.writer.imageCenter(img, 0.25);
-            info_.writer.lineBreak(lineFeedWidth);
+            var img = Typesetting.Util.compileMath(str, true, writer);
+            var [bottom, height] = writer.imageCenter(img, 0.25);
+            if (opts.label) {
+                context_.counter.math ??= 0;
+                var nexty;
+                var labels = opts.label.isArray ? opts.label : [opts.label];
+                labels.each { &(info):
+                    var label = info.isString ? info : (info.isArray ? info[0] : null);
+                    if (label) {
+                        var offsetYRatio = info.isArray ? info[1] : 0;
+                        var fontObj = context_.font.fontObj;
+                        var ascent = fontObj.getAscent() * fontSize / 1000;
+                        var descent = fontObj.getDescent() * fontSize / 1000;
+                        ++context_.counter.math;
+                        var counter = "(" + context_.counter.math + ")";
+                        var caption = new Word(info_).setWord(fontObj, fontSize, counter);
+                        var n = Linebreak.Box(caption.width, caption);
+                        var y = offsetYRatio > 0
+                            ? (bottom + height - (height * offsetYRatio))
+                            : (bottom + (height / 2) - ((ascent - descent) / 2 + descent));
+                        var pagenum = writer.getPageIndex();
+                        context_.xref[label] = {
+                            page:      pagenum,
+                            counter:   counter,
+                            name:      counter,
+                            text:      counter,
+                            y:         nexty ?? (bottom + height),
+                        };
+                        writer.writeMathCaption(n, y);
+                        nexty = y + descent - 4;
+                    }
+                };
+            }
+            writer.lineBreak(lineFeedWidth);
         }
 
         private fontType(type) {
@@ -1364,7 +1461,7 @@ namespace Typesetting {
                 context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * nFontSize;
                 context_.indentSize = (tocdata.level - 1) * info_.base.toc.indentSize;
                 var lines = core_.paragraph.exec({}, tocdata.header, { preText: tocdata.number, preTextSpace: context_.font.fontSize });
-                core_.util.writeTocLine(lines, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize);
+                core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize);
             };
             context_.indentSize = indent;
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
@@ -1378,6 +1475,11 @@ namespace Typesetting {
                 flushToc();
             }
             info_.writer.save(file);
+            if (opts_.xref) {
+                File.open(opts_.xref, File.WRITE) { &(f):
+                    f.println(context_.xref.toJsonString(true));
+                };
+            }
         }
     }
 

@@ -543,6 +543,15 @@ static inline int __json_lex_make_number(void)
     }
 
     __json_read_buf(__json_is_number(), str, pos);
+    if (__g_json_parser_ch == '.') {
+        pos = 0; \
+        str[pos++] = __g_json_parser_ch; \
+        __json_lex_next(); \
+        __json_read_buf(__json_is_number(), str, pos);
+        __json_yylval.object = __json_gen_double_object(strtod(s.cstr, NULL));
+        __json_string_pool(s);
+        return JSON_TOKEN_DBL;
+    }
     __json_yylval.object = __json_gen_integer_object(strtoll(s.cstr, NULL, 10));
     __json_string_pool(s);
     return JSON_TOKEN_INT;
@@ -770,7 +779,7 @@ int __json_yylex()
         printf("%%input JSON_TOKEN_STR: %s\n", __json_yylval.object->value.t.cstr);
         break;
     case JSON_TOKEN_INT:
-        printf("%%input JSON_TOKEN_INT: %lld\n", __json_yylval.object->value.i);
+        printf("%%input JSON_TOKEN_INT: %"PRId64"\n", __json_yylval.object->value.i);
         break;
     case JSON_TOKEN_DBL:
         printf("%%input JSON_TOKEN_DBL: %f\n", __json_yylval.object->value.d);
