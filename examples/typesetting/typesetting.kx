@@ -1,7 +1,7 @@
 using Typesetting;
 using typesetting.style.ArticleA4;
 
-var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true });
+var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true, xref: "xref.json" });
 
 doc.title("Kinx TT - Kinx Tiny Typesetting");
 doc.abstract(%{
@@ -54,10 +54,12 @@ doc.itemize({
         "Hyphenation & Knuth-Plass Line Breaking Algorithm, and also for some Japanese rules.",
         "Widows & Orphans penalty control.",
         "Listing items with a bullet or numbering.",
-        "Math formula & equation like \\TeX",
+        "Math formula & equation like \\TeX.",
         "Tables, and the header of table is automatically repeated each page.",
         "Images, and it can be also put with floating inside paragraph.",
         "Writing a program source code.",
+        "Cross-reference like \\bold{Reference to the section \\nameref{Sec:Table}} in the page \\pageref{Sec:Table}.",
+        "Autimatic URL link like https://en.wikipedia.org/wiki/TeX, or link text like \\url[https://en.wikipedia.org/wiki/TeX]{\\TeX}.",
         "Footnotes\\footnote{This is a footnote example.}.",
         "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
@@ -65,10 +67,11 @@ doc.itemize({
 
 doc.pageBreak();
 
-doc.section("Features Details");
+doc.section({ label: "Sec:FeatureDetail" }, "Features Details");
 doc.subSection("Hyphenation & Line Breaking");
 
 doc.image({
+    label: "Fig:Hyphenation",
     float: { right: true },
     scale: 0.6,
     caption: "Hyphenation and justification",
@@ -182,13 +185,13 @@ doc.paragraph(%{
     Instead, it is using an output of \KaTeX, which is included in this system.
 });
 
-doc.math(%{
+doc.math({ label: [["Math:1", 0.2], ["Math:2", 0.6]] }, %{
     \begin{aligned}
         E &= mc^2 \\
         m &= \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}} \\
     \end{aligned}
 });
-doc.math(%{
+doc.math({ label: "Math:3" }, %{
     \begin{aligned}
         \int_{-\infty}^{\infty} f(x) dx &= \sqrt{\pi}
     \end{aligned}
@@ -199,17 +202,18 @@ doc.imageCaption("Math example");
 doc.paragraph(%{
     If you want to write a math formula inline, use \verb{$...$} style directly in paragraph.
     For example, $E = mc^2$ is written as \verb{$E = mc^2$},
-    and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$
-    written as \verb{$\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
+    and another example is $\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$ same as \ref[math]{Math:3}.
+    As \KaTeX does not support \monotype{\\label} command, the label is being provided by Kinx TT.
+    \color[red]{Therefore note that you need to control it by yourself a little.}
 
-    If you want to use \$ in paragraph, use \$ with \\ like \verb{\$}.
+    If you want to use just ``\$'' in paragraph, use \$ with \\ as \verb{\$}.
 
-    And also you can use \verb{\displaystyle} keyword,
-    the Math fomula is directly inside paragraph like $\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$,
+    And also you can use \verb{\displaystyle} keyword.
+    The Math formula can be directly put inside paragraph like $\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$,
     by \verb{$\displaystyle\int_{-\infty}^{\infty} f(x) dx = \sqrt{\pi}$}.
 });
 
-doc.subSection("Table");
+doc.subSection({ label: "Sec:Table" }, "Table");
 
 doc.paragraph(%{
     Here is an example of table.
@@ -346,6 +350,8 @@ doc.paragraph(%{
 
     By the way, the scale for a floating image means the parcentage for the actual image size.
     Note that it is different from a scale for a non-floating image.
+
+    You can also put a reference to an image like \nameref{Fig:Hyphenation}.
 });
 
 doc.subSubSection("Standalone Image");

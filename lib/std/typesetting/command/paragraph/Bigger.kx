@@ -1,0 +1,18 @@
+namespace Typesetting {
+
+    namespace ParagraphCommand {
+
+        class Bigger(info_, context_) {
+            var fontSize_;
+            public start() {
+                fontSize_ = context_.font.fontSize;
+                ++(context_.font.fontSize);
+            }
+            public end() {
+                context_.font.fontSize = fontSize_;
+            }
+        }
+
+    } # namespace ParagraphCommand
+
+} # namespace Typesetting

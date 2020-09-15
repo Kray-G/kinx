@@ -1,4 +1,6 @@
 #include <dbg.h>
+#define KCC_SKIP_WINDOWS_H
+#include <fileutil.h>
 #include <string.h>
 #include <ctype.h>
 #include <parser.h>
@@ -13,8 +15,16 @@ static int g_regexmode = 0;
 static const char *varname = NULL;
 static const char *modulename = NULL;
 
+static inline const char* make_path(const char* base, const char* name)
+{
+    static char buf[4096] = {0};
+    snprintf(buf, 4095, "%s/%s", base, name);
+    return buf;
+}
+
 void setup_lexinfo(kx_context_t *ctx, const char *file, kx_yyin_t *yyin)
 {
+    kx_lexinfo.ch = 0;
     kx_lexinfo.restart = NULL;
     kx_lexinfo.file = const_str(ctx, file);
     kx_lexinfo.line = 1;
@@ -47,12 +57,45 @@ void kx_make_regex_mode(int br)
     g_regexmode = br;
 }
 
+static void load_using_module_asta(const char *name, int len)
+{
+    char *path = kx_calloc(len+2, sizeof(char));
+    memcpy(path, name, len);
+    path[len-2] = 0;
+    const char *search = kxlib_file_exists(path);
+
+    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+    kx_dirent_t *entry = NULL;
+    kx_dir_t *dir = kx_open_dir(search);
+    while ((entry = kx_read_dir(dir)) != NULL) {
+        if (entry->d_name[0] != '.') {
+            const char *file = make_path(search, entry->d_name);
+            setup_lexinfo(g_parse_ctx, file, &(kx_yyin_t){
+                .fp = NULL,
+                .str = NULL,
+                .file = const_str(g_parse_ctx, file)
+            });
+            kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+        }
+    }
+
+    kx_close_dir(dir);
+    kx_free(path);
+}
+
 static int load_using_module(const char *name, int no_error)
 {
     char libname[256] = {0};
-    snprintf(libname, 255, "%s.kz", name);
     const char *file = NULL;
-    if (!(file = kxlib_file_exists(libname))) {
+    int len = strlen(name);
+    if (name[len-1] == '*') {
+        if (name[len-2] != PATH_DELCH) {
+            kx_yywarning("Can not use '*' with a current directoy in 'using' directive");
+        } else {
+            load_using_module_asta(name, len);
+            return kx_yylex();
+        }
+    } else {
         snprintf(libname, 255, "%s.kx", name);
         if (!(file = kxlib_file_exists(libname))) {
             if (!no_error) {
@@ -65,15 +108,16 @@ static int load_using_module(const char *name, int no_error)
             }
             return no_error ? ';' : ERROR;
         }
+
+        kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+        FILE *fp = fopen(file, "r");
+        setup_lexinfo(g_parse_ctx, libname, &(kx_yyin_t){
+            .fp = fp,
+            .str = NULL,
+            .file = const_str(g_parse_ctx, libname)
+        });
     }
 
-    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    FILE *fp = fopen(file, "r");
-    setup_lexinfo(g_parse_ctx, libname, &(kx_yyin_t){
-        .fp = fp,
-        .str = NULL,
-        .file = const_str(g_parse_ctx, libname)
-    });
     kx_lex_next(kx_lexinfo);
     return kx_yylex();  /* recursive call for the new file. */
 }
@@ -92,8 +136,8 @@ static int process_using(void)
     int pos = 0;
     kx_strbuf[pos++] = kx_lexinfo.ch;
     kx_lex_next(kx_lexinfo);
-    while (pos < POSMAX && kx_is_filechar(kx_lexinfo)) {
-        kx_strbuf[pos++] = kx_lexinfo.ch == '.' ? '/' : kx_lexinfo.ch;
+    while (pos < POSMAX && (kx_is_filechar(kx_lexinfo) || kx_lexinfo.ch == '*')) {
+        kx_strbuf[pos++] = kx_lexinfo.ch == '.' ? PATH_DELCH : kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);
     }
     kx_strbuf[pos] = 0;
@@ -617,7 +661,9 @@ HEAD_OF_YYLEX:
                 fclose(kx_lexinfo.in.fp);
             }
             kx_lexinfo = kv_pop(kx_lex_stack);
-            kx_lexinfo.in = kx_lexinfo.in;
+            if (!kx_lexinfo.in.fp && !kx_lexinfo.in.str) {
+                kx_lexinfo.in.fp = fopen(kx_lexinfo.in.file, "r");
+            }
             kx_lex_next(kx_lexinfo);
             goto HEAD_OF_YYLEX; /* retry at the previous file */
         }

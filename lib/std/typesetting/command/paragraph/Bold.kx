@@ -1,0 +1,18 @@
+namespace Typesetting {
+
+    namespace ParagraphCommand {
+
+        class Bold(info_, context_) {
+            var fontObj_;
+            public start() {
+                fontObj_ = context_.font.fontObj;
+                context_.font.fontObj = context_.font.fontObjBase.bold;
+            }
+            public end() {
+                context_.font.fontObj = fontObj_;
+            }
+        }
+
+    } # namespace ParagraphCommand
+
+} # namespace Typesetting

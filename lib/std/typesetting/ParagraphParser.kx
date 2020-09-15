@@ -3,7 +3,6 @@ using typesetting.Hypher;
 using typesetting.WordSet;
 using typesetting.Util;
 using typesetting.command.Command;
-using typesetting.command.ParagraphCommand;
 using typesetting.command.MathCommand;
 
 namespace Typesetting {
@@ -18,9 +17,24 @@ namespace Typesetting {
         var $ = new Parsek();
         var measure_ = info_.measure;
         var paragraph_;
-        var word_ = $.regex(/([^\s\\\{\}\$])+|\\\{|\\\}|\\\\(\r?\n)?|\\\$/).map { &(word):
+        var word_ = $.regex(/([^\s\\\{\}\$])+|\\\{|\\\}|\\\\(\r?\n)?|\\\$|``|''/).map { &(word):
             if (word == "\\{" || word == "\\}" || word == "\\\\" || word == "\\$") {
                 return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, *word[1]);
+            }
+            if (word == "``") {
+                var ws = new WordSet(info_);
+                var wd = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '\u201C');
+                wd.noGlue = true;
+                ws.addWord(wd);
+                ws.addWord(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                return wd;
+            }
+            if (word == "''") {
+                var ws = new WordSet(info_);
+                var wd = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '\u201D');
+                ws.addWord(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                ws.addWord(wd);
+                return wd;
             }
             if (word == "\\\\\n" || word == "\\\\\r\n") {
                 return new Typesetting.Command.ForceBreak(info_, context_).exec();
@@ -119,21 +133,27 @@ namespace Typesetting {
                 value = value.join('');
             }
             if (command.exec.isFunction) {
-                return command.exec(c.params, value);
+                value = command.exec(c.params, value);
             }
+            return @parseEach(value);
         };
         commandNames = Typesetting.ParagraphCommand.keySet()
             .filter { => Typesetting.ParagraphCommand[_1].create.isFunction }
             .join('|');
-        var parCommandStart_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})\s*(?:\[([^\]]+)\]\s*)?\{!), [1, 2]).map {
-            var name = _1[0].toUpper(0, 1);
+        var parCommandStart_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})\s*(?:\[([^\]]+)\]\s*)?\{!), [1, 2]).map { &([name, pbase]):
+            name = name.toUpper(0, 1);
             var command = new Typesetting.ParagraphCommand[name](info_, context_);
-            var params, pbase = _1[1];
+            var params;
             if (pbase.length() > 0) {
-                params = {};
-                pbase.split(",")
-                    .map { => _1.split('=') }
-                    .reduce(&(r, e) => (r[e[0].trim()] = e[1].trim()), params);
+                if (pbase.find('=') >= 0) {
+                    params = {};
+                    pbase.split(",").map { &(p):
+                        var e = p.split('=');
+                        params[e[0].trim()] = e[1].trim();
+                    };
+                } else {
+                    params = pbase;
+                }
             } else {
                 params = {};
             }
@@ -163,8 +183,8 @@ namespace Typesetting {
             }
             return value;
         };
-        var parCommand_ = (parCommandStart_ + paragraphMap_ + parCommandEnd_).map {
-            return @parseEach(_1[1]);
+        var parCommand_ = (parCommandStart_ + paragraphMap_ + parCommandEnd_).map { &(value):
+            return @parseEach(value[1]);
         };
         var inlineMathCommand_ = $.regex(/\$([^\$]+)\$/, 1).map { &(value):
             var command = new Typesetting.MathCommand.InlineMath(info_, context_);
@@ -173,15 +193,16 @@ namespace Typesetting {
             }
             return @parseEach(value);
         };
-        var unknownCommand_ = ($.regex(/\\[a-zA-Z][0-9a-zA-Z]*/) + $.index).map {
-            var name = _1[0];
-            var index = _1[1];
+        var unknownCommand_ = ($.regex(/\\[a-zA-Z][0-9a-zA-Z]*/) + $.index).map { &(value):
+            var name = value[0];
+            var index = value[1];
             throw RuntimeException('Unknown command (%{name}) at the line ' + index.line);
         };
-        var urlLink_ = ($.regex(/(https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)/)).map {
-            var value = @parseEach(_1);
+        var urlLink_ = ($.regex(/(https?|ftp)(:\/\/[^<>#"%\}\|\\\^\[\]`\s]+[^<>#"%\}\|\\\^\[\]`,.\s])/)).map { &(word):
+            var value = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, word);
             value.isUrl = true;
-            value.link = _1;
+            value.link = word;
+            value = Typesetting.Linebreak.Box(value.width, value);
             return value;
         };
         var optWhitespace_ = $.regex(/(\r?\n(?:[ \t]*\r?\n)+\s*)|(\s*)/, [1, 2]).map { &([para, spc])
@@ -196,7 +217,7 @@ namespace Typesetting {
             var shrink = (width * 3) / 9;
             return Linebreak.Glue(width, stretch, shrink);
         };
-        paragraph_ = (optWhitespace_ + (word_ / parCommand_ / command_ / inlineMathCommand_ / urlLink_ / unknownCommand_)).many().map { &(elem)
+        paragraph_ = (optWhitespace_ + (urlLink_ / word_ / parCommand_ / command_ / inlineMathCommand_ / unknownCommand_)).many().map { &(elem)
             var words = new WordSet(info_);
             elem.each {
                 if (_1[0]) {
