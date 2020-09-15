@@ -126,15 +126,20 @@ namespace Typesetting {
         commandNames = Typesetting.ParagraphCommand.keySet()
             .filter { => Typesetting.ParagraphCommand[_1].create.isFunction }
             .join('|');
-        var parCommandStart_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})\s*(?:\[([^\]]+)\]\s*)?\{!), [1, 2]).map {
-            var name = _1[0].toUpper(0, 1);
+        var parCommandStart_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})\s*(?:\[([^\]]+)\]\s*)?\{!), [1, 2]).map { &([name, pbase]):
+            name = name.toUpper(0, 1);
             var command = new Typesetting.ParagraphCommand[name](info_, context_);
-            var params, pbase = _1[1];
+            var params;
             if (pbase.length() > 0) {
-                params = {};
-                pbase.split(",")
-                    .map { => _1.split('=') }
-                    .reduce(&(r, e) => (r[e[0].trim()] = e[1].trim()), params);
+                if (pbase.find('=') >= 0) {
+                    params = {};
+                    pbase.split(",").map { &(p):
+                        var e = p.split('=');
+                        params[e[0].trim()] = e[1].trim();
+                    };
+                } else {
+                    params = pbase;
+                }
             } else {
                 params = {};
             }
