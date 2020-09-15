@@ -3,7 +3,6 @@ using typesetting.Hypher;
 using typesetting.WordSet;
 using typesetting.Util;
 using typesetting.command.Command;
-using typesetting.command.ParagraphCommand;
 using typesetting.command.MathCommand;
 
 namespace Typesetting {
