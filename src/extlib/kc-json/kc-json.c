@@ -1,6 +1,6 @@
 #include "kc-json.h"
 
-string_t string_init_alloc(const char *cstr)
+static inline string_t string_init_alloc(const char *cstr)
 {
     unsigned int len = strlen(cstr);
     unsigned int cap = KCC_CAPACITY(len);
@@ -14,7 +14,7 @@ string_t string_init_alloc(const char *cstr)
     };
 }
 
-string_t string_substr(const string_t str, int start, int len)
+static inline string_t string_substr(const string_t str, int start, int len)
 {
     unsigned int end = len < 0 ? str.len : (start + len);
     if (0 < len && str.len < end) {
@@ -543,6 +543,15 @@ static inline int __json_lex_make_number(void)
     }
 
     __json_read_buf(__json_is_number(), str, pos);
+    if (__g_json_parser_ch == '.') {
+        pos = 0; \
+        str[pos++] = __g_json_parser_ch; \
+        __json_lex_next(); \
+        __json_read_buf(__json_is_number(), str, pos);
+        __json_yylval.object = __json_gen_double_object(strtod(s.cstr, NULL));
+        __json_string_pool(s);
+        return JSON_TOKEN_DBL;
+    }
     __json_yylval.object = __json_gen_integer_object(strtoll(s.cstr, NULL, 10));
     __json_string_pool(s);
     return JSON_TOKEN_INT;
@@ -583,12 +592,12 @@ static inline int __json_lex_make_keyword(void)
 
 #define JSON_CHAR_MAP(ch) \
     switch (ch) { \
-    case '\\': ch = '\\'; break; \
-    case '\'': ch = '\''; break; \
-    case '"':  ch = '"';  break; \
-    case 'n':  ch = '\n'; break; \
-    case 'r':  ch = '\r'; break; \
-    case 't':  ch = '\t'; break; \
+    case '\\': ch = '\\\\'; break; \
+    case '\'': ch = '\'';   break; \
+    case '"':  ch = '"';    break; \
+    case 'n':  ch = '\n';   break; \
+    case 'r':  ch = '\r';   break; \
+    case 't':  ch = '\t';   break; \
     } \
 /**/
 
@@ -699,7 +708,7 @@ static inline int __json_yylex_impl()
     return JSON_TOKEN_ERROR;
 }
 
-int __json_yylex()
+static inline int __json_yylex()
 {
     #if !defined(JSON_PARSER_DEBUG)
     return __json_yylex_impl();
@@ -770,7 +779,7 @@ int __json_yylex()
         printf("%%input JSON_TOKEN_STR: %s\n", __json_yylval.object->value.t.cstr);
         break;
     case JSON_TOKEN_INT:
-        printf("%%input JSON_TOKEN_INT: %lld\n", __json_yylval.object->value.i);
+        printf("%%input JSON_TOKEN_INT: %"PRId64"\n", __json_yylval.object->value.i);
         break;
     case JSON_TOKEN_DBL:
         printf("%%input JSON_TOKEN_DBL: %f\n", __json_yylval.object->value.d);
