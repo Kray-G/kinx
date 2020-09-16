@@ -17,7 +17,7 @@ namespace Typesetting {
         var $ = new Parsek();
         var measure_ = info_.measure;
         var paragraph_;
-        var word_ = $.regex(/([^\s\\\{\}\$])+|\\\{|\\\}|\\\\(\r?\n)?|\\\$|``|''/).map { &(word):
+        var word_ = $.regex(/``|''|([^\s\\\{\}\$])+|\\\{|\\\}|\\\\(\r?\n)?|\\\$/).map { &(word):
             if (word == "\\{" || word == "\\}" || word == "\\\\" || word == "\\$") {
                 return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, *word[1]);
             }
@@ -31,8 +31,8 @@ namespace Typesetting {
             }
             if (word == "''") {
                 var ws = new WordSet(info_);
-                var wd = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '\u201D');
                 ws.addWord(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                var wd = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '\u201D');
                 ws.addWord(wd);
                 return wd;
             }
