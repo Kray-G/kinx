@@ -18,6 +18,8 @@ namespace Typesetting {
                 context_.offsetY = Typesetting.Util.getPt(context_, "0.65em");
                 var numberSize = fontSize_ * info_.base.footnote.numberSizeRatio;
                 var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, numberSize, '' + context_.counter.footnote);
+                w.isFootnote = true;
+                w.footnoteNumber = value.footnoteNumber;
                 context_.offsetY = y;
                 return w;
             }
