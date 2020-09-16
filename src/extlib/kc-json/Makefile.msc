@@ -1,0 +1,43 @@
+
+NAME     = kc-json
+CC       = cl
+LINK     = link
+CFLAGS   = /O2 /MT /Iinclude /DONIG_EXTERN=extern
+LFLAGS   =
+
+.SUFFIXES :
+.SUFFIXES : .c .obj
+
+all: dist/$(NAME).c dist/sample.exe
+
+dist/$(NAME).c: myacc.exe src\$(NAME).y
+	if not exist dist mkdir dist
+	myacc -y __json_yy -Y JSON_YY src\$(NAME).y
+	copy /y src\string.c dist\$(NAME).c
+	type src\vector.c >> dist\$(NAME).c
+	type y.tab.c >> dist\$(NAME).c
+	del /q y.tab.c
+	copy /y src\$(NAME).h dist\$(NAME).h
+
+myacc.exe:
+	$(CC) $(CFLAGS) /Femyacc.exe util\myacc.c
+
+dist/sample.exe:
+	copy /y sample\*.* dist
+	cd dist
+	$(CC) $(CFLAGS) /Fesample.exe sample.c kc-json.c
+	cd ..
+
+sample: dist/sample.exe
+	copy /y sample\*.* dist
+	cd dist
+	sample.exe sample.json
+	sample.exe sample_ext1.json
+	cd ..
+
+clean:
+	del /s *.exe *.obj *.dll *.lib > NUL
+	if exist dist del /q dist\*.* > NUL
+
+.c.obj:
+	$(CC) -c $(CFLAGS) -Fo$*.obj $<
