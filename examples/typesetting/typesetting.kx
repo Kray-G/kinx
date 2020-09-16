@@ -563,7 +563,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 
 doc.apply(new Typesetting.Component.Paragraph(%{
     As another example, the long ruby like 「\ruby[おおかみ]{狼}」 is okay.
-    In a opposite, the short ruby like 「\ruby[いちじく]{無花果}」 is also okay.
+    In an opposite way, the short ruby like 「\ruby[いちじく]{無花果}」 is also okay.
     You can also use English as a ruby such as 「\ruby[personalization]{個人化}」, or 「\ruby[個人化]{personalization}」.
 
     Anyway you can free to use a ruby in your document.
