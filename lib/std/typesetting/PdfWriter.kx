@@ -72,7 +72,7 @@ namespace Typesetting {
             page.gRestore();
         }
 
-        public showText(page, text, value, x, y, offsetY, width) {
+        public writeText(page, text, value, x, y, offsetY, width) {
             var textcolor = value.color;
             if (value.isLabel) {
                 value.xref.page = page.index;
@@ -195,6 +195,9 @@ namespace Typesetting {
                 var annotPage = Integer.parseInt(annot.value.annotPage);
                 var y = annot.value.annotPos.y;
                 var dstpage = pages_[annotPage];
+                if (!dstpage) {
+                    return;
+                }
                 var dst = dstpage.createDestination();
                 if (y && info_.base.toc.fitWidth) {
                     dst.setFitH(y);
@@ -312,7 +315,11 @@ namespace Typesetting {
             throw RuntimeException("Unsupported image file format");
         }
 
-        public drawLine(left, top, width, height, lineWidth, color) {
+        public drawLine(left, top, width, height, lineWidth, color, pageref) {
+            if (pageref < 0) {
+                writer_.drawLine(@pages[pageref], left, top, width, height, lineWidth, color);
+                return;
+            }
             if (!page_) {
                 @addPage();
             }
@@ -463,7 +470,7 @@ namespace Typesetting {
 
         private writeText(page, x, y, text, width) {
             if (x >= 0 && y >= 0 && text) {
-               writer_.showText(page, text, null, x, y, 0, width);
+               writer_.writeText(page, text, null, x, y, 0, width);
             }
         }
 
@@ -531,7 +538,7 @@ namespace Typesetting {
                 var font = value.font;
                 var fontSize = value.size;
                 page.setFontAndSize(font, fontSize);
-                writer_.showText(page, value.word, value, x + value.offsetX, y, value.offsetY, width);
+                writer_.writeText(page, value.word, value, x + value.offsetX, y, value.offsetY, width);
             }
             return x + width;
         }
@@ -639,16 +646,12 @@ namespace Typesetting {
             ybottom_ = (ybottom_ > 0 ? ybottom_ : margin_.bottom) + footnote.lineFeedWidth;
         }
 
-        public resolveFootnotes(footnotes) {
-            var l1 = footnotes.length();
-            var l2 = footnotes_.length();
-            for (var i = 0; i < l1; ++i) {
-                var r = footnotes[i];
-                for (var j = 0; j < l2; ++j) {
-                    var f = footnotes_[j];
-                    if (r == f.number) {
-                        f.good = true;
-                    }
+        private resolveFootnotes(r) {
+            var l = footnotes_.length();
+            for (var i = 0; i < l; ++i) {
+                var f = footnotes_[i];
+                if (r == f.number) {
+                    f.good = true;
                 }
             }
         }
@@ -837,7 +840,7 @@ namespace Typesetting {
                 y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
             }
             var x = (margin.width - textWidth) / 2 + margin.left;
-            writer_.showText(page_, text, null, x, y_, 0, textWidth);
+            writer_.writeText(page_, text, null, x, y_, 0, textWidth);
         }
 
         public write(node, x, y) {
@@ -858,7 +861,10 @@ namespace Typesetting {
                 }
                 x = x_ + offsetX;
                 y = y ?? y_;
-                writer_.showText(page_, value.word, value, x, y, value.offsetY, width);
+                writer_.writeText(page_, value.word, value, x, y, value.offsetY, width);
+                if (value.isFootnote) {
+                    resolveFootnotes(value.footnoteNumber);
+                }
             }
             x_ += width;
             return true;
