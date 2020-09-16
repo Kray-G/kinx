@@ -49,6 +49,8 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
         return fmtString
             .replace("%YYYY%", ("%04d" % datetime_.year).format())
             .replace("%YY%", ("%02d" % (datetime_.year % 1000)).format())
+            .replace("%MMMM%", DateTime.monthString[datetime_.month][0])
+            .replace("%MMM%", DateTime.monthString[datetime_.month][1])
             .replace("%MM%", ("%02d" % datetime_.month).format())
             .replace("%DD%", ("%02d" % datetime_.day).format())
             .replace("%M%", ("%d" % datetime_.month).format())
@@ -184,6 +186,21 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
     }
 }
 DateTime.regex = %m"([0-9]{1,4})[-/]([0-9]{1,2})[-/]([0-9]{1,2}(?:[T\s]([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2}))?)";
+DateTime.monthString = [
+    [ "Dummy",        "Dum." ],
+    [ "January",      "Jan"  ],
+    [ "February",     "Feb"  ],
+    [ "March",        "Mar"  ],
+    [ "April",        "Apr"  ],
+    [ "May",          "May"  ],
+    [ "June",         "June" ],
+    [ "July",         "July" ],
+    [ "August",       "Aug"  ],
+    [ "September",    "Sept" ],
+    [ "October",      "Oct"  ],
+    [ "November",     "Nov"  ],
+    [ "December",     "Dec"  ],
+];
 DateTime.days = [
     0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 ];

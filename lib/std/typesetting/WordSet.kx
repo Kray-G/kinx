@@ -297,7 +297,7 @@ namespace Typesetting {
                     }
                 }
             };
-            if (@isUrl && result.length() > 1) {
+            if (@isUrl && result.length() > 0) {
                 var last;
                 var rl = result.length();
                 for (var i = 0; i < rl; ++i) {
@@ -308,7 +308,7 @@ namespace Typesetting {
                         last = i;
                     }
                 }
-                if (last > 0) {
+                if (last >= 0) {
                     result[last].value.endUrl = true;
                     result[last].value.link = @link;
                     result[last].value.bottom = bottom;
