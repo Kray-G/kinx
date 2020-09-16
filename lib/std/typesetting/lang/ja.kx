@@ -201,6 +201,7 @@ namespace Typesetting {
                     }
                     nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                     nodes.push(node);
+                    return;
                 } else if (notTail_.find(value.word) >= 0) {
                     var prev = words[i-1];
                     if (prev.isBox && !prev.value.isUtf8) {
@@ -213,13 +214,10 @@ namespace Typesetting {
                         nodes.push(node);
                     }
                     nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                    return;
                 }
 
                 if (next.isBox) {
-                    if (specialCheck(info, Linebreak, nodes, i, words[i-1], node, next)) {
-                        return;
-                    }
-
                     var nextv = next.value;
                     var noSpaceForNext = noSpaceForNext_.find(value.word) >= 0;
                     var l1 = System.isUtf8Bytes(value.word[0]);

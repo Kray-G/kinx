@@ -77,7 +77,7 @@ namespace Typesetting {
 
             public exec(params, value) {
                 if (!params.isString) {
-                    throw RuntimeException("Ruby should be just one word");
+                    throw RuntimeException("Ruby should have a word for " + value);
                 }
                 var fontObj = context_.font.fontObj;
                 var fontSize = context_.font.fontSize;

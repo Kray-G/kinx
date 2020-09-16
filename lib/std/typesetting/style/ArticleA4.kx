@@ -17,6 +17,8 @@ namespace Style {
             },
             "toc": {
                 "header":               "Contents",
+                "lof":                  "List of Figures",
+                "lot":                  "List of Tables",
                 "headerSize":           fontSize * 1.8,
                 "fitWidth":             true,
                 "level":                3,
@@ -86,15 +88,29 @@ namespace Style {
             "widowPenalty":             1,
             "orphanPenalty":            1,
             "title": {
-                "fontSize":             24,
-                "lineFeedWidth":        40,
+                "paragraphSkipWidth":   28.8,
+                "titleText": {
+                    "fontSize":         24.0,
+                    "lineFeedWidth":    34.0,
+                },
+                "author": {
+                    "fontSize":         12.0,
+                    "lineFeedWidth":    22.0,
+                },
+                "date": {
+                    "fontSize":         12.0,
+                    "lineFeedWidth":    22.0,
+                },
             },
             "abstract": {
                 "fontSize":             fontSize,
                 "lineFeedWidth":        24.5,
                 "paragraphSkipWidth":   24.5,
-                "widthRatio":           0.9,
-                "title":                "Abstract",
+                "margin": {
+                    "left":             22.5,
+                    "right":            22.5,
+                },
+                "title":                { center: true, text: "Abstract" },
             },
             "image": {
                 "label":                "Fig",
@@ -103,6 +119,8 @@ namespace Style {
                 "bottomsep":            10.0,
             },
             "table": {
+                "label":                "Table",
+                "captionsep":           6.0,
                 "lineWidth":            0.5,
                 "cellPadding":          5.0,
             },
@@ -116,6 +134,17 @@ namespace Style {
                     'item':             ['\u2022', '\u25E6', '-', '*' ],
                     'enum':             ['1.', '(a)', 'i.', 'A.' ],
                 }
+            },
+            "code": {
+                "margin": {
+                    "left":             22.5,
+                    "right":            22.5,
+                },
+                "numberSize":           9.5,
+                "fontSize":             10.0,
+                "labelsep":             10.0,
+                "padding":              10.0,
+                "lineColor":            [ 0.0, 0.0, 0.0, 1.0 ],
             },
             "lineFeedWidthRatio": [
                 1.75,
