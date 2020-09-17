@@ -100,7 +100,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
     These algorithms are known as the best way so far for a typesetting system.
 
     Kinx TT is also supporting some Japanese hyphenation rules.
-    For example, 「。」, which is like a period in English, is never appeared at the head of line.
+    For example, 「。」, which is like a period in English, never appears at the head of line.
 }));
 
 doc.apply(new Typesetting.Component.SubSection("Widows & Orphans"));
@@ -552,7 +552,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
     For example, 「この\ruby[ほん]{本}はとても\ruby[おもしろ]{面白}いです。」,
     which means that ``this book is very interesting''.
     In general, so young children can not read Kanji,
-    and also there is a case that even the adult person can not read a difficult Kanji or the Kanji which they do not use usually.
+    and also there is a case that even adult people can not read a difficult Kanji or the Kanji which they do not use usually.
     So ruby is used like \ruby[ほん]{本} for them.
 
     Kinx TT provides 2 types of ruby.
