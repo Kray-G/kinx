@@ -19,7 +19,7 @@ class Hypher(language) {
         var size = 0, tree = { _points: [] }, patterns;
         for ([size, value] in patternObject) {
             if (value) {
-                patterns = value.match(new Regex('.{1,' + (+size) + '}'));
+                patterns = value.match(new Regex('.{1,' + (+size) + '}'), true);
                 patterns.each(function(pattern) {
                     var chars = pattern.replace(/[0-9]/, '').split(''),
                         points = pattern.split(/\D/).map(function(e) { return e == "" ? 0 : Integer.parseInt(e); }),
