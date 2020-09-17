@@ -72,6 +72,7 @@ doc.apply(new Typesetting.Component.Itemize({
         "Cross-reference like \\bold{Reference to the section \\nameref{Sec:Table}} in the page \\pageref{Sec:Table}.",
         "Autimatic URL hyperlink like https://en.wikipedia.org/wiki/TeX, or link text like \\url[https://en.wikipedia.org/wiki/TeX]{\\TeX}.",
         "Footnotes\\footnote{This is a footnote example.}.",
+        "Ligature. Only 5 words of fi, fl, ff, ffi, ffl are supported.",
         "\\ruby[how to read]{Japanese Ruby}. \\ruby[にほんご]{日本語}, or \\ruby[に|ほん|ご]{日本語} to be separated for each character.",
     ]
 }));
@@ -541,6 +542,13 @@ doc.apply(new Typesetting.Component.Paragraph(%{
     You can use \bold{footnote} for some additional explanation of the sentence.
     For example, this is a main sentence\footnote{This is a footnote for the main sentence.}
     and footnote will appear at the bottom of the page.
+}));
+
+doc.apply(new Typesetting.Component.SubSection("Ligature"));
+
+doc.apply(new Typesetting.Component.Paragraph(%{
+    The ligature for only 5 words of fi, fl, ff, ffi, ffl is now supported.
+    For example, ``difficult'' has a ``ffi'' and you will see ffi not f{}f{}i.
 }));
 
 doc.apply(new Typesetting.Component.SubSection("Japanese Ruby"));

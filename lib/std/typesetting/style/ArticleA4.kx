@@ -10,6 +10,7 @@ namespace Style {
             "direction":                PDF_PAGE_PORTRAIT,
             "columns":                  1,
             "sectionLevel":             1,
+            "ligature":                 true,
             "indentSize":               20.0,
             "draw": {
                 "margin":               false,
