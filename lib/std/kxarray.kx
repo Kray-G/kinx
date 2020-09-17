@@ -389,3 +389,17 @@ Array.[] = _function(ary, obj) {
     }
     throw RuntimeException('Invalid index for Array');
 };
+
+Array.test = _function(ary, str) {
+    if (!ary.isRegex) {
+        throw RuntimeException("Invalid Regex object");
+    }
+    if (!str.isString) {
+        throw RuntimeException("Invalid String for Regex#test");
+    }
+    ary.reset(str);
+    if (ary.find()) {
+        return true;
+    }
+    return false;
+};
