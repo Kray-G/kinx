@@ -275,6 +275,9 @@ namespace Typesetting {
         }
 
         public getColumnWidth(pageWidth) {
+            if (!page_) {
+                @addPage();
+            }
             pageWidth ??= page_.getWidth();
             return (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
         }
