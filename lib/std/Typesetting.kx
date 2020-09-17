@@ -8,6 +8,7 @@ using typesetting.lang;
 
 namespace Typesetting {
 
+    const TOO_BIG_SPACE = 6553600.0;
     var Linebreak = Typesetting.Linebreak;
     var hyphenPenalty_ = Hypher.hyphenPenalty_;
     var Word = Typesetting.Word;
@@ -190,6 +191,8 @@ namespace Typesetting {
 
         class Paragraph(info_, context_, doc_, util_) {
 
+            var measureWidth_;
+
             private setLineInfo(lines) {
                 var totalLineFeedWidth = 0;
                 var totalHeight = 0;
@@ -339,6 +342,9 @@ namespace Typesetting {
                     }
                 }
                 Typesetting.insertGlue.ja(info_, Linebreak, words, nodes);
+                if (measureWidth_) {
+                    return [{ nodes: nodes }];
+                }
                 if (nodes[-1].isGlue) {
                     nodes.pop();
                 }
@@ -358,6 +364,7 @@ namespace Typesetting {
                 var areaWidthLen = areaWidth.length();
                 var lines = [];
                 if (breaks.length() == 0) {
+                    info_.logger.warn("No breaks... " + lines.length());
                     var currentWidth, ci = 0;
                     var spaceWidth = info_.measure.spaceWidth(fontObj, fontSize);
                     var nl = nodes.length();
@@ -393,11 +400,6 @@ namespace Typesetting {
                             lineFeedWidth: 0,
                         });
                     }
-                    # # TODO: warning.
-                    System.println("Warning: no lines...; ", lines.length());
-                    # System.println("----");
-                    # System.println(text);
-                    # System.println("----");
                 } else {
                     var lineStart = 0, ls = 0;
                     for (var i = 1, blen = breaks.length(); i < blen; ++i) {
@@ -435,6 +437,10 @@ namespace Typesetting {
                     return [];
                 }
 
+                measureWidth_ = opts.measureWidth;
+                if (measureWidth_) {
+                    opts.areaWidth = TOO_BIG_SPACE;
+                }
                 var wordSet = info_.paragraphParser.parse(text);
                 if (context_.footnotes.length() > 0) {
                     var margin = util_.makeMargin({ margin: { left: margin.left + info_.base.footnote.left } });
@@ -728,6 +734,22 @@ namespace Typesetting {
                 return true;
             }
 
+            private measureText(text, isHeader) {
+                var lines = paragraph_.exec({ measureWidth: true }, isHeader ? "\\bold{%{text}}" : text);
+                var width = 0.0;
+                var nodes = lines[0].nodes;
+                var len = nodes.length();
+                for (var i = 0; i < len; ++i) {
+                    var n = nodes[i];
+                    if (n.isBox) {
+                        width += n.width;
+                    } else if (n.isGlue && n.width < 20.0) {
+                        width += n.width;
+                    }
+                }
+                return width;
+            }
+
             private setupTable(table) {
                 var sizeX = table.size || 1.0;
                 var talign = table.align || "c";
@@ -787,7 +809,7 @@ namespace Typesetting {
                         ++hpos;
                         for (var j = 0, m = ba.length(); j < m; ++j) {
                             var b = ba[j];
-                            var w = info_.measure.textWidth(context_.font.fontObj, context_.font.fontSize, b);
+                            var w = measureText(b, ba.isHeader);
                             ba[j] = { text: b, width: w };
                             if (lens[j] < w) {
                                 lens[j] = w;
