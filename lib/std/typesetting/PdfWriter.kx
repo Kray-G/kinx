@@ -618,6 +618,7 @@ namespace Typesetting {
             if (tocBasePage_) {
                 # TOC Mode
                 page_ = pdf_.insertPage(tocBasePage_);
+                page_.isTocPage = true;
                 page_.noPageNumber = true;
             } else {
                 page_ = pdf_.addPage();
@@ -876,6 +877,7 @@ namespace Typesetting {
             }
             tocBasePage_ = @pages[page];
             page_ = @pages[page-1];
+            page_.isTocPage = true;
             page_.noPageNumber = true;
         }
 
@@ -985,7 +987,7 @@ namespace Typesetting {
             info_.logger.info("Finished to flush annotations.");
 
             @pages.each { &(page):
-                writeHeader(page);
+                writeHeader(page) if (!page.isTocPage);
                 writeFooter(page);
             };
             info_.logger.info("Finished to flush headers and footers.");
