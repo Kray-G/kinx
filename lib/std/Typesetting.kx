@@ -365,9 +365,9 @@ namespace Typesetting {
                 var lines = [];
                 if (breaks.length() == 0) {
                     info_.logger.warn("No breaks... " + lines.length());
-                System.println("===");
-                nodes.each { => _1.display() };
-                System.println("---");
+                    # System.println("===");
+                    # nodes.each { => _1.display() };
+                    # System.println("---");
                     var currentWidth, ci = 0;
                     var spaceWidth = info_.measure.spaceWidth(fontObj, fontSize);
                     var nl = nodes.length();
