@@ -6,7 +6,7 @@ var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true, lof
 
 var title = new Typesetting.Component.Title();
 title.setTitle("Kinx TT - Kinx Tiny Typesetting");
-title.setAuthor("Kray-G, Diamond Publisher");
+title.setAuthor("Kray-G, Mr.Diamond Global Blue Publisher");
 title.setDate(dt.format("%MMMM% %DD%, %YYYY%"));
 doc.apply(title);
 
