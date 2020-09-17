@@ -26,9 +26,9 @@ namespace Style {
                 "indentSize":           15.0,
                 "fontSize":             [
                     fontSize,
-                    fontSize * 1.6,
                     fontSize * 1.4,
                     fontSize * 1.2,
+                    fontSize * 1.1,
                     fontSize * 1.1,
                 ],
                 "lineFeedWidthRatio":   [
