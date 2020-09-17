@@ -77,16 +77,29 @@ String.replace = _function(str, cond, newstr) {
     }
 };
 
-String.match = _function(str, regex) {
-    if (regex.isUndefined) {
-        return [""];
-    }
+String.match = _function(str, regex, isGlobal) {
+    isGlobal ??= regex.isGlobal;
     var results = [];
     regex.reset(str);
-    while (regex.find()) {
-        results.push(regex.group[0].string);
+    if (isGlobal) {
+        if (regex.isUndefined) {
+            return [""];
+        }
+        while (regex.find()) {
+            results.push(regex.group[0].string);
+        }
+        return results;
     }
-    return results;
+
+    if (regex.find()) {
+        var l = regex.group.length();
+        for (var i = 0; i < l; ++i) {
+            results.push(regex.group[i].string);
+        }
+        return results;
+    }
+
+    return null;
 };
 
 String._addObject = _function(str, obj) {
@@ -141,3 +154,13 @@ String.escapeHtml = (_function() {
         });
     };
 })();
+
+String.slice = _function(str, start, end) {
+    if (end < 0) {
+        return str.subString(start, (str.length() + end) - start);
+    }
+    if (end > 0) {
+        return str.subString(start, end - start);
+    }
+    return "";
+};
