@@ -528,8 +528,8 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 doc.apply(new Typesetting.Component.SubSection("Links"));
 
 doc.apply(new Typesetting.Component.Paragraph(%{
-    Writing just a URL like https://github.com/Kray-G/kinx, it will become a hyperlink automatically.
-    If you want to write a link text instead of directly hyperlink URL,
+    When writing just a URL like https://github.com/Kray-G/kinx, it will be with a hyperlink automatically.
+    If you want to write a link text instead of writing a hyperlink URL directly,
     you can use \monotype{\\url} command for that.
     For example, \monotype{\pack{\url[https://github.com/Kray-G/kinx]{Kray-G/kinx}}} will be \url[https://github.com/Kray-G/kinx]{Kray-G/kinx}
     with a hyperlink to the web site of https://github.com/Kray-G/kinx.
@@ -560,8 +560,8 @@ doc.apply(new Typesetting.Component.Paragraph(%{
     In this case, the ruby is for total words.
     You can see the 「て」 is just on the center between 「素」 and 「敵」.
     Another one is like 「\ruby[す|てき]{素敵}」.
-    In this case, the ruby is for each Kanji one by one.
-
+    In this case, the ruby is for each Kanji one by one,
+    and it allowed to break the line between 「素」 and 「敵」.
     By the way, 「素敵」 means ``wonderful'' in Japanese.
 }));
 

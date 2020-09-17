@@ -84,8 +84,6 @@ namespace Typesetting {
         var context_ = info_.context;
         var measure_ = info_.measure;
         var writer_ = info_.writer;
-        private initialize() {
-        }
         public setImage(imgfile, scale, caption) {
             @word = "<FullWidthImage>";
             @lineBreak = true;
@@ -103,7 +101,9 @@ namespace Typesetting {
                     lt.push(context_.counter.section[i]);
                 }
                 lt.push("" + num);
-                @caption = info_.base.image.label + ' ' + lt.join('.') + ' ' + caption;
+                @captionNumber = lt.join('.');
+                @captionText = caption;
+                @caption = info_.base.image.label + ' ' + @captionNumber + ' ' + caption;
             }
             @fontObj = context_.font.fontObj;
             @fontSize = context_.font.fontSize;
@@ -139,13 +139,25 @@ namespace Typesetting {
         public flatten() {
             return this;
         }
+        private appendListOf(target, level, number, header, linetop) {
+            context_.tocinfo[target] ??= {};
+            context_.tocinfo[target].push({
+                page: context_.counter.page,
+                level: level,
+                number: number,
+                header: header,
+                y: linetop,
+            });
+        }
         public write() {
             var captionSpace = @caption ? @lineFeedWidth : 0;
+            var linetop = info_.writer.getLineTop(@fontObj, @fontSize);
             writer_.imageCenter(@image, @scale);
             if (@caption) {
                 writer_.lineBreak(captionSpace);
                 writer_.writeCenter(@caption, @fontObj, @fontSize);
                 writer_.lineBreak(@lineFeedWidth);
+                appendListOf("lof", info_.base.sectionLevel + 1, @captionNumber, @captionText, linetop);
             }
         }
     }
