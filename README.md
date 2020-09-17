@@ -51,7 +51,7 @@ Kinx is including useful libraries below in the standard package as **All-In-One
 * **Regular Expression** ... Regular expression is f cource supported.
 * **Parser Combinator** ... Exactly original implementation of Parser Combinator named as `Parsek` like `Parsec`.
 * **PDF** ... PDF core library based on HaruPDF.
-* **Typesetting** ... Simple and Tiny Typesetting library by PDF core library. (W.I.P.)
+* **Typesetting** ... Simple and Tiny Typesetting library by PDF core library (W.I.P.). See the [example](examples/typesetting/typesetting.pdf) for current status.
 * **JIT** ... JIT library for various platforms by an abstracted assembler library.
 
 Making libraries improvement and extension is one of the main purpose of this language.
@@ -113,7 +113,8 @@ To build, see below.
 $ make.cmd
 ```
 
-Note that on Windows, compiling `ir_exec.c` takes long time around 40 minutes, so please wait for it. It is no problem on Linux because it is around 2 or 3 minutes.
+Note that on Windows, compiling `ir_exec.c` takes long time around 15 minutes, so please wait for it.
+It is no problem on Linux because it is around 2 or 3 minutes.
 
 #### Linux
 
