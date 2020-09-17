@@ -107,7 +107,9 @@ do { \
             kx_bin_t *bin = lv->value.bn; \
             int sz = kv_size(bin->bin); \
             if (index < 0) { \
-                do { index += sz; } while (index < 0); \
+                if (sz > 0) { \
+                    do { index += sz; } while (index < 0); \
+                } \
             } \
             if (index >= sz) { \
                 int max = index + 1; \
@@ -140,7 +142,9 @@ do { \
             int index = v2->type == KX_INT_T ? (int)v2->value.iv : (int)(v2->value.dv); \
             int sz = kv_size(obj->ary); \
             if (index < 0) { \
-                do { index += sz; } while (index < 0); \
+                if (sz > 0) { \
+                    do { index += sz; } while (index < 0); \
+                } \
             } \
             if (index >= sz) { \
                 int max = index + 1; \
@@ -229,8 +233,10 @@ do { \
                 } \
                 int sz = kv_size(obj->ary); \
                 if (index < 0) { \
-                    do { index += sz; } while (index < 0); \
-                    val = &(kv_A(obj->ary, index)); \
+                    if (sz > 0) { \
+                        do { index += sz; } while (index < 0); \
+                        val = &(kv_A(obj->ary, index)); \
+                    } \
                 } else if (index < sz) { \
                     val = &(kv_A(obj->ary, index)); \
                 } \
@@ -274,8 +280,10 @@ do { \
         kx_obj_t *obj = lv->value.ov; \
         int index = cur->value1.i; \
         int sz = kv_size(obj->ary); \
-        if (index < 0) { \
-            do { index += sz; } while (index < 0); \
+        if (sz > 0) { \
+            if (index < 0) { \
+                do { index += sz; } while (index < 0); \
+            } \
         } \
         if (index >= sz) { \
             int max = index + 1; \
@@ -315,10 +323,14 @@ do { \
                 kx_obj_t *obj = lv->value.ov; \
                 int sz = kv_size(obj->ary); \
                 if (cur->value1.i < 0) { \
-                    int64_t i = cur->value1.i; \
-                    do { i += sz; } while (i < 0); \
-                    kx_val_t *val = &(kv_A(obj->ary, i)); \
-                    push_value((ctx)->stack, *val); \
+                    if (sz > 0) { \
+                        int64_t i = cur->value1.i; \
+                        do { i += sz; } while (i < 0); \
+                        kx_val_t *val = &(kv_A(obj->ary, i)); \
+                        push_value((ctx)->stack, *val); \
+                    } else { \
+                        push_undef((ctx)->stack); \
+                    } \
                 } else if (cur->value1.i < sz) { \
                     kx_val_t *val = &(kv_A(obj->ary, cur->value1.i)); \
                     push_value((ctx)->stack, *val); \
