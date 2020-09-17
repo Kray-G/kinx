@@ -2,7 +2,7 @@ using Typesetting;
 using typesetting.style.ArticleA4;
 
 var dt = DateTime.now();
-var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true, lof: true, lot: true, xref: "xref.json" });
+var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true, lof: true, lot: true, xref: "typesetting.json" });
 
 var title = new Typesetting.Component.Title();
 title.setTitle("Kinx TT - Kinx Tiny Typesetting");
@@ -425,6 +425,7 @@ doc.apply(new Typesetting.Component.Itemize({
         "\\color[cyan1]{\\bold{Cyan}. This line should be colored by the name of \\monotype{[cyan1]}.}",
         "\\color[magenta1]{\\bold{Magenta}. This line should be colored by the name of \\monotype{[magenta1]}.}",
         "\\color[yellow]{\\bold{Yellow}. This line should be colored by the name of \\monotype{[yellow]}.}",
+        "\\color[R=0,G=64,B=255]{\\bold{RGB}. This line should be colored by RGB value of \\monotype{[R=0,G=64,B=255]}.}",
         "\\color[C=0.5,M=0.8,Y=0.2,K=0.0]{\\bold{CMYK}. This line should be colored by CMYK value of \\monotype{[C=0.5,M=0.8,Y:0.2,K=0.0]}.}",
     ]
 }));
@@ -547,16 +548,19 @@ doc.apply(new Typesetting.Component.SubSection("Japanese Ruby"));
 doc.apply(new Typesetting.Component.Paragraph(%{
     This is an requirement only for Japanese.
     In Japanese, there is a writing style called ``Ruby''
-    which is the style of a small text written on a main sentence to inform how to read a main sentence of Kanji.
+    which is the style of a small text written on the top of a main sentence to inform how to read a Kanji of a main sentence.
     For example, 「この\ruby[ほん]{本}はとても\ruby[おもしろ]{面白}いです。」,
     which means that ``this book is very interesting''.
-    In general, so young children can not read Kanji like 本, so ruby is used like \ruby[ほん]{本} for their children.
+    In general, so young children can not read Kanji,
+    and also there is a case that even the adult person can not read a difficult Kanji or the Kanji which they do not use usually.
+    So ruby is used like \ruby[ほん]{本} for them.
 
     Kinx TT provides 2 types of ruby.
     One of those is like 「\ruby[すてき]{素敵}」.
     In this case, the ruby is for total words.
+    You can see the 「て」 is just on the center between 「素」 and 「敵」.
     Another one is like 「\ruby[す|てき]{素敵}」.
-    In this case, the ruby is for each character one by one.
+    In this case, the ruby is for each Kanji one by one.
 
     By the way, 「素敵」 means ``wonderful'' in Japanese.
 }));
@@ -569,4 +573,4 @@ doc.apply(new Typesetting.Component.Paragraph(%{
     Anyway you can free to use a ruby in your document.
 }));
 
-doc.save("examples/typesetting/typesetting.pdf");
+doc.save("typesetting.pdf");
