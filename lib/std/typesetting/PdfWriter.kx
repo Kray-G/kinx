@@ -45,8 +45,13 @@ namespace Typesetting {
         var annot_ = [];
         var linkAnnot_ = info_.base.link.annotation;
         var linkUrl_ = info_.base.link.url;
+        var adjust_ = 0;
 
-        public drawLine(page, left, top, width, height, lineWidth, color) {
+        public setAdjustment(adjust) {
+            adjust_ = adjust;
+        }
+
+        private drawLineImpl(page, left, top, width, height, lineWidth, color) {
             color ??= [0, 0, 0, 1];
             lineWidth ??= 0.5;
             page.gSave();
@@ -58,7 +63,7 @@ namespace Typesetting {
             page.gRestore();
         }
 
-        public drawBox(page, left, top, width, height, lineWidth, color) {
+        private drawBoxImpl(page, left, top, width, height, lineWidth, color) {
             color ??= [0, 0, 0, 1];
             page.gSave();
             page.setLineWidth(lineWidth || 1.0);
@@ -72,7 +77,18 @@ namespace Typesetting {
             page.gRestore();
         }
 
+        public drawLine(page, left, top, width, height, lineWidth, color) {
+            left += adjust_;
+            drawLineImpl(page, left, top, width, height, lineWidth, color);
+        }
+
+        public drawBox(page, left, top, width, height, lineWidth, color) {
+            left += adjust_;
+            drawBoxImpl(page, left, top, width, height, lineWidth, color);
+        }
+
         public writeText(page, text, value, x, y, offsetY, width) {
+            x += adjust_;
             var textcolor = value.color;
             if (value.isLabel) {
                 value.xref.page = page.index;
@@ -92,7 +108,7 @@ namespace Typesetting {
                 page.gSave();
                 page.setCMYKFill(...color);
                 page.setCMYKStroke(...color);
-                drawLine(page, x, ay - 1, width, 0, linkAnnot_.underlineSize) if (linkAnnot_.underline);
+                drawLineImpl(page, x, ay - 1, width, 0, linkAnnot_.underlineSize) if (linkAnnot_.underline);
                 page.beginText();
                 page.moveTextPos(x, ay);
                 annot_.push({
@@ -112,7 +128,7 @@ namespace Typesetting {
                 page.gSave();
                 page.setCMYKFill(...color);
                 page.setCMYKStroke(...color);
-                drawLine(page, x, ay - 1, width, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
+                drawLineImpl(page, x, ay - 1, width, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
                 page.beginText();
                 page.moveTextPos(x, ay);
                 var tp = page.getCurrentTextPos();
@@ -130,7 +146,7 @@ namespace Typesetting {
                 page.gRestore();
             } else if (value.endUrl) {
                 var linew = x + width - urlEx_.x;
-                drawLine(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
+                drawLineImpl(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
                 page.beginText();
                 page.moveTextPos(x, ay);
                 page.showText(text);
@@ -150,7 +166,7 @@ namespace Typesetting {
             } else {
                 if (urlEx_.x && urlEx_.y != y) {
                     var linew = urlEx_.x2 - urlEx_.x;
-                    drawLine(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
+                    drawLineImpl(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
                     urlExRect_.push({
                         left:   urlEx_.x - 4,
                         bottom: urlEx_.y + value.bottom - 2,
@@ -177,10 +193,12 @@ namespace Typesetting {
         }
 
         public drawImage(page, image, x, y, width, height) {
+            x += adjust_;
             page.drawImage(image, x, y, width, height);
         }
 
         public drawFootnoteLine(page, x1, y1, x2, y2, lineWidth, color) {
+            x1 += adjust_;
             page.gSave();
             page.setLineWidth(0.3);
             page.setCMYKFill(...color);
@@ -245,9 +263,9 @@ namespace Typesetting {
             cols_ = 1;
             curCol_ = 0;
             @pages = [];
+            writer_ = new PdfDirectWriter(info_, @pages);
             @addPage();
             x_ = y_ = -1;
-            writer_ = new PdfDirectWriter(info_, @pages);
         }
 
         public getPdf() {
@@ -335,8 +353,8 @@ namespace Typesetting {
                 page_,
                 pageMargin_.left,
                 margin.pageHeight - pageMargin_.top,
-                margin.pageWidth - margin_.right - margin_.left,
-                margin.pageHeight - margin_.bottom - margin_.top
+                margin.pageWidth - pageMargin_.right - pageMargin_.left,
+                margin.pageHeight - pageMargin_.bottom - pageMargin_.top
             );
         }
 
@@ -395,12 +413,16 @@ namespace Typesetting {
         }
 
         public setMargin(margin) {
-            margin_ = margin;
+            margin_ = margin.clone();
             marginCache_ = null;
         }
 
         public getMargin() {
-            return margin_;
+            return margin_.clone();
+        }
+
+        public getPageMargin() {
+            return pageMargin_.clone();
         }
 
         public setPos(pos) {
@@ -413,8 +435,8 @@ namespace Typesetting {
         }
 
         public setPageMargin(margin) {
-            pageMargin_ = margin;
-            margin_ = margin;
+            pageMargin_ = margin.clone();
+            margin_ = margin.clone();
             marginCache_ = null;
         }
 
@@ -598,9 +620,20 @@ namespace Typesetting {
             }
         }
 
+        public setAdjustment(cpage) {
+            if (cpage == 0) {
+                writer_.setAdjustment(0);
+            } else if (info_.base.margin.odd.adjust && ((cpage & 0x01) == 0x01)) {
+                writer_.setAdjustment(info_.base.margin.odd.adjust);
+            } else if (info_.base.margin.even && ((cpage & 0x01) == 0x00)) {
+                writer_.setAdjustment(info_.base.margin.even.adjust);
+            }
+        }
+
         private flushPage() {
             if (@pages.length() > 0) {
                 var page = @pages[-1];
+                setAdjustment(page.number);
                 flushFootnotes(page);
                 page.info.counter = info_.context.counter.clone();
                 page.info.name = info_.context.name.clone();
@@ -635,10 +668,12 @@ namespace Typesetting {
             ybottom_ = -1;
             isTopOfPage_ = true;
             @pages.push(page_);
-            ++info_.context.counter.page;
             if (!info_.base.footnote.resetSectionLevel) {
                 info_.context.counter.footnote = 0;
             }
+            var cpage = ++info_.context.counter.page;
+            page_.number = info_.context.toc ? (cpage - 1) : cpage;
+            setAdjustment(page_.number);
             marginCache_ = null;
             if (info_.base.draw.margin) {
                 drawPageMargin();
@@ -874,12 +909,27 @@ namespace Typesetting {
             return true;
         }
 
+        public setCoverPage() {
+            if (page_) {
+                page_.noPageNumber = true;
+            }
+        }
+
         public initTocPage(page) {
             if (page < 1) {
                 throw RuntimeException("Invalid state for TOC");
             }
+
+            setAdjustment(0);
             tocBasePage_ = @pages[page];
-            page_ = @pages[page-1];
+            if (info_.context.tocNewPage) {
+                @addPage();
+                x_ = y_ = -1;
+                info_.context.tocPages = 1;
+            } else {
+                page_ = @pages[page-1];
+                @setPos({ x: -1, y: info_.context.tocinfo.pos.y });
+            }
             page_.isTocPage = true;
             page_.noPageNumber = true;
         }
@@ -989,7 +1039,13 @@ namespace Typesetting {
             writer_.flushAnnot();
             info_.logger.info("Finished to flush annotations.");
 
+            if (info_.context.tocNewPage && ((info_.context.tocPages & 0x01) == 0)) {
+                # The first page should be odd side.
+                @addPage();
+            }
+
             @pages.each { &(page):
+                setAdjustment(page.number);
                 writeHeader(page) if (!page.isTocPage);
                 writeFooter(page);
             };
