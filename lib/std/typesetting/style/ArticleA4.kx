@@ -126,6 +126,11 @@ namespace Style {
                 "lineWidth":            0.5,
                 "cellPadding":          5.0,
             },
+            "chapter": {
+                "pretext":              "Chapter ",
+                "posttext":             null,
+                "paragraphSkipWidth":   38.2,
+            },
             "itemize": {
                 "fontSize":             [fontSize, fontSize-1, fontSize-1, fontSize-1],
                 "lineFeedWidthRatio":   [1.4, 1.4, 1.4, 1.4],
