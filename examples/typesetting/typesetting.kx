@@ -502,7 +502,7 @@ var codeLineType = new Typesetting.Component.Table({
         "---",
         [
             "\\monotype{Typesetting.BOX_SHADOW}",
-            "The shadow box. This is used the example above.",
+            "The shadow box. This is used in the example above.",
         ],
         "---",
     ]
@@ -558,7 +558,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
     In Japanese, there is a writing style called ``Ruby''
     which is the style of a small text written on the top of a main sentence to inform how to read a Kanji of a main sentence.
     For example, 「この\ruby[ほん]{本}はとても\ruby[おもしろ]{面白}いです。」,
-    which means that ``this book is very interesting''.
+    which means that ``this book is very interesting.''
     In general, so young children can not read Kanji,
     and also there is a case that even adult people can not read a difficult Kanji or the Kanji which they do not use usually.
     So ruby is used like \ruby[ほん]{本} for them.
