@@ -1,0 +1,49 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Table(opts_) : Component.Base(opts_) {
+            private initialize() {
+                opts_.header ??= 0;
+            }
+            public setHeaderPos(pos) {
+                opts_.header = pos;
+            }
+            public setAlign(align) {
+                opts_.align = align;
+            }
+            public setSize(size) {
+                opts_.size = size;
+            }
+            public setCellAlign(align) {
+                opts_.cellAlign = align;
+            }
+            public setBody(body) {
+                opts_.body = body;
+            }
+            public setCaption(caption) {
+                opts_.caption = caption;
+            }
+            private writeCaption(info, core) {
+                var context = info.context;
+                var fontSize = context.font.fontSize;
+                var lineFeedWidth = fontSize * context.page.lineFeedWidthRatio;
+
+                info.writer.lineBreak(lineFeedWidth);
+                var linetop = info.writer.getLineTop(context.font.fontObj, fontSize);
+                var number = @makeCountrNumber(context, "table");
+                var cap = info.base.table.label + ' ' + number + ' ' + opts_.caption;
+                core.util.writeCenter({}, cap, context.font.fontObj, fontSize, lineFeedWidth);
+                @appendListOf(context, "lot", info.base.sectionLevel + 1, number, opts_.caption, linetop);
+
+                info.writer.lineBreak(info.base.table.captionsep);
+            }
+            public write(info, context, core) {
+                core.flushParagraph();
+                return new Typesetting.ProcessDoc.Table(info, context, core.util, core.paragraph).exec(opts_, &() => writeCaption(info, core));
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

@@ -1,0 +1,136 @@
+namespace Typesetting {
+
+    const TOO_BIG_SPACE = 6553600.0;
+    var hyphenPenalty_ = Hypher.hyphenPenalty_;
+    var Linebreak = Typesetting.Linebreak;
+    var Word = Typesetting.Word;
+
+    namespace ProcessDoc {
+
+        class Itemize(info_, context_, util_, paragraph_) {
+
+            var itemizeImpl;
+
+            private itemizeItem(opts, items, level, itemType, itemMarginBase, itemMargin, writer, margin) {
+                var bullet = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '-');
+                var textWidth = info_.measure.textWidth(context_.font.fontObj, context_.font.fontSize, bullet);
+                var label = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, bullet);
+                label.offsetX = -info_.base.itemize.labelsep[level] - textWidth;
+                var n = Linebreak.Box(0, label);
+                var itemx = itemMarginBase + itemMargin;
+                var itemlist = items.items;
+                var ll = itemlist.length();
+                for (var i = 0; i < ll; ++i) {
+                    var item = itemlist[i];
+                    if (item.items.isArray) {
+                        item.level = level + 1;
+                        itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                    } else if (item.isString) {
+                        [opts, item] = util_.makeOption(opts, item);
+                        var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
+                        util_.write(lines);
+                    }
+                }
+            }
+
+            private itemizeEnum(opts, items, level, itemType, counterInit, itemMarginBase, itemMargin, writer, margin) {
+                var numberFormat = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '1. ');
+                var format, counter, getCounter;
+                if (numberFormat.find('1') >= 0) {
+                    counter = 1;
+                    format = '1';
+                    getCounter = function() { return counter + 1; };
+                } else if (numberFormat.find('a') >= 0) {
+                    counter = 'a';
+                    format = 'a';
+                    getCounter = function() { return counter.next(); };
+                } else if (numberFormat.find('i') >= 0) {
+                    var counterBase = 1;
+                    counter = Typesetting.Util.romanize(1);
+                    format = 'i';
+                    getCounter = function() { return Typesetting.Util.romanize(++counterBase); };
+                } else if (numberFormat.find('I') >= 0) {
+                    var counterBase = 1;
+                    counter = Typesetting.Util.romanizeCap(1);
+                    format = 'i';
+                    getCounter = function() { return Typesetting.Util.romanizeCap(++counterBase); };
+                } else if (numberFormat.find('A') >= 0) {
+                    counter = 'A';
+                    format = 'A';
+                    getCounter = function() { return counter.next(); };
+                }
+                while (--counterInit) {
+                    counter = getCounter();
+                }
+                var itemx = itemMarginBase + itemMargin;
+                var itemlist = items.items;
+                var ll = itemlist.length();
+                for (var i = 0; i < ll; ++i) {
+                    var item = itemlist[i];
+                    if (item.items.isArray) {
+                        item.level = level + 1;
+                        itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                    } else if (item.isString) {
+                        var number = numberFormat.replace(format, ""+counter);
+                        var textWidth = info_.measure.textWidth(context_.font.fontObj, context_.font.fontSize, number);
+                        var label = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, number);
+                        label.offsetX = -info_.base.itemize.labelsep[level] - textWidth;
+                        var n = Linebreak.Box(0, label);
+                        [opts, item] = util_.makeOption(opts, item);
+                        var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
+                        util_.write(lines);
+                        counter = getCounter();
+                    }
+                }
+            }
+
+            private itemizeImpl(opts, items) {
+                if (items.isUndefined) {
+                    items = opts;
+                    opts = null;
+                }
+                var level = items.level ?? 0;
+                var itemType = items.labelType ?? 'item';
+                var fontSize = context_.font.fontSize;
+                context_.font.fontSize = info_.base.itemize.fontSize[level];
+                var indent = context_.noIndent;
+                context_.noIndent = true;
+                var paragraphSkipWidth = context_.page.paragraphSkipWidth;
+                context_.page.paragraphSkipWidth = info_.base.itemize.paragraphSkipWidth[level];
+                var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+                context_.page.lineFeedWidthRatio = info_.base.itemize.lineFeedWidthRatio[level];
+                var itemMargin = info_.base.itemize.margin[level];
+                var itemMarginBase = opts.itemMarginBase ?? 0;
+                var margin = util_.makeMargin(opts);
+                if (itemType == "item") {
+                    itemizeItem(opts, items, level, itemType,
+                        itemMarginBase,
+                        itemMargin,
+                        info_.writer,
+                        margin);
+                } else if (itemType == "enum") {
+                    itemizeEnum(opts, items, level, itemType, items.counter || 1,
+                        itemMarginBase,
+                        itemMargin,
+                        info_.writer,
+                        margin);
+                }
+
+                context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
+                context_.page.paragraphSkipWidth = paragraphSkipWidth;
+                context_.font.fontSize = fontSize;
+                context_.noIndent = indent;
+            }
+
+            public exec(opts, items) {
+                itemizeImpl(opts, items);
+                var lineFeedWidthRatio = info_.base.itemize.lineFeedWidthRatio[0];
+                var fontSize = info_.base.itemize.fontSize[0];
+                info_.writer.addY(lineFeedWidthRatio * fontSize / 2, false);
+            }
+
+        }
+
+    } # namespace ProcessDoc
+
+} # namespace Typesetting

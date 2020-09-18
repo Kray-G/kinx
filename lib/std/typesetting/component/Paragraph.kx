@@ -1,0 +1,36 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Paragraph(opts_, text_) : Component.Base(opts_) {
+            private initialize() {
+                if (text_.isUndefined) {
+                    [text_, opts_] = [opts_];
+                }
+            }
+            public setText(text) {
+                text_ = text;
+            }
+            public write(info, context, core) {
+                [opts_, text_] = core.util.makeOption(opts_, text_);
+                var lines = core.paragraph.exec(opts_, text_);
+                var lineFeedWidth = 0;
+                var ll = lines.length();
+                var op = info.base.orphanPenalty + 1;
+                for (var i = 0, l = (op < ll ? op : ll); i < l; ++i) {
+                    lineFeedWidth += lines[i].lineFeedWidth;
+                }
+                core.pendingParagraphList.push({
+                    isParagraph: true,
+                    lineFeedWidth: lineFeedWidth,
+                    func: &() => {
+                        core.util.write(lines);
+                    },
+                });
+                core.flushParagraph();
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting
