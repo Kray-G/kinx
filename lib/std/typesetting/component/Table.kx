@@ -1,0 +1,34 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Table(opts_) : Component.Base(opts_) {
+            private initialize() {
+                opts_.header ??= 0;
+            }
+            public setHeaderPos(pos) {
+                opts_.header = pos;
+            }
+            public setAlign(align) {
+                opts_.align = align;
+            }
+            public setSize(size) {
+                opts_.size = size;
+            }
+            public setCellAlign(align) {
+                opts_.cellAlign = align;
+            }
+            public setBody(body) {
+                opts_.body = body;
+            }
+            public setCaption(caption) {
+                opts_.caption = caption;
+            }
+            public apply(doc) {
+                return @applyDoc(doc, "table", opts_);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

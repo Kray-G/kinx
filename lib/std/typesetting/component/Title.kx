@@ -1,0 +1,27 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Title(opts_, title_) : Component.Base(opts_) {
+            private initialize() {
+                if (title_.isUndefined) {
+                    [title_, opts_] = [opts_];
+                }
+            }
+            public setTitle(title) {
+                title_ = title;
+            }
+            public setAuthor(author) {
+                opts_.author = author;
+            }
+            public setDate(date) {
+                opts_.date = date;
+            }
+            public apply(doc) {
+                return @applyDoc(doc, "title", opts_, title_);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

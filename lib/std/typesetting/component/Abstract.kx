@@ -1,0 +1,21 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Abstract(opts_, text_) : Component.Base(opts_) {
+            private initialize() {
+                if (text_.isUndefined) {
+                    [text_, opts_] = [opts_];
+                }
+            }
+            public setText(text) {
+                text_ = text;
+            }
+            public apply(doc) {
+                return @applyDoc(doc, "abstract", opts_, text_);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting
