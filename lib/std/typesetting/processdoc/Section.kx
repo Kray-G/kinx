@@ -1,0 +1,108 @@
+namespace Typesetting {
+
+    const TOO_BIG_SPACE = 6553600.0;
+    var hyphenPenalty_ = Hypher.hyphenPenalty_;
+    var Linebreak = Typesetting.Linebreak;
+    var Word = Typesetting.Word;
+
+    namespace ProcessDoc {
+
+        class Section(info_, context_, doc_, util_, paragraph_) {
+
+            public getHeight(level) {
+                var lineFeedWidth = info_.base.fontSize[level] * info_.base.lineFeedWidthRatio[level];
+                var paragraphSkipWidth = context_.font.fontSize * context_.page.lineFeedWidthRatio;
+                var marginSize = info_.base.paragraphSkipWidthRatio[level] * context_.font.fontSize;
+                return lineFeedWidth + paragraphSkipWidth + marginSize / 2;
+            }
+
+            private makeSectionNumber(level) {
+                var sectionNumber = context_.counter.section[level] ?? 0;
+                var numText = [];
+                if (context_.check) {
+                    for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
+                        if (i <= level) {
+                            numText.push(context_.counter.section[i]);
+                        }
+                    }
+                } else {
+                    context_.counter.section[level] = ++sectionNumber;
+                    var newNumbers = [];
+                    for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
+                        if (i <= level) {
+                            newNumbers[i] = context_.counter.section[i];
+                            numText.push(newNumbers[i]);
+                        } else {
+                            newNumbers[i] = 0;
+                        }
+                    }
+                    context_.counter.section = newNumbers;
+                }
+                
+                return numText;
+            }
+
+            public exec(level, opts, text) {
+                [opts, text] = util_.makeOption(opts, text);
+
+                var writer = info_.writer;
+                var numText = makeSectionNumber(level);
+                var sectionNumberText = numText.join('.');
+                var font = context_.font;
+                context_.font = {
+                    fontObj: context_.font.fontObjBase.bold,
+                    fontSize: info_.base.fontSize[level],
+                };
+                if (opts.label) {
+                    var pagenum = writer.getPageIndex();
+                    context_.xref[opts.label] = {
+                        page:      pagenum,
+                        counter:   sectionNumberText,
+                        name:      sectionNumberText + ' ' + text,
+                        text:      text,
+                    };
+                }
+
+                var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
+                context_.page.lineFeedWidthRatio = info_.base.lineFeedWidthRatio[level];
+                var paragraphSkipWidth = context_.page.paragraphSkipWidth;
+                context_.page.paragraphSkipWidth = context_.font.fontSize * info_.base.paragraphSkipWidthRatio[level];
+                if (!writer.isTopOfPage()) {
+                    var marginSize = info_.base.paragraphSkipWidthRatio[level] * context_.font.fontSize;
+                    writer.setMarginAbove(marginSize / 2);
+                }
+                var indent = context_.noIndent;
+                context_.noIndent = true;
+                var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
+                var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
+                if (opts.label) {
+                    context_.xref[opts.label].y = linetop;
+                }
+                util_.write(lines);
+                context_.noIndent = indent;
+                context_.page.paragraphSkipWidth = paragraphSkipWidth;
+                context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
+                context_.font = font;
+
+                if (info_.base.footnote.resetSectionLevel == level && context_.counter.section[level] > 1) {
+                    context_.counter.footnote = 0;
+                }
+                var header = (context_.name.section[level] = sectionNumberText + '  ' + text);
+                if (level <= info_.base.toc.level) {
+                    context_.tocinfo.list.push({
+                        page: context_.counter.page,
+                        level: level,
+                        number: sectionNumberText,
+                        header: text,
+                        y: linetop,
+                    });
+                }
+
+                return [linetop, header];
+            }
+
+        }
+
+    } # namespace ProcessDoc
+
+} # namespace Typesetting

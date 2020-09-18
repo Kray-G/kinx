@@ -1,0 +1,37 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Section(opts_, text_) : Component.Base {
+            private initialize() {
+                if (text_.isUndefined) {
+                    [text_, opts_] = [opts_];
+                }
+                opts_ ??= {};
+                @setOptionValue(opts_);
+                @text = text_;
+                @opts = opts_;
+            }
+            public setText(text) {
+                @text = text;
+            }
+            public apply(doc) {
+                return @applyDoc(doc, "section", @opts, @text);
+            }
+        }
+
+        class SubSection(opts_, text_) : Section(opts_, text_) {
+            public apply(doc) {
+                return @applyDoc(doc, "subSection", @opts, @text);
+            }
+        }
+
+        class SubSubSection(opts_, text_) : Section(opts_, text_) {
+            public apply(doc) {
+                return @applyDoc(doc, "subSubSection", @opts, @text);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

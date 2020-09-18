@@ -1,0 +1,9 @@
+using MarkdownParser;
+
+namespace Typesetting {
+
+    class Markdown(doc_) {
+
+    }
+
+} # namespace Typesetting

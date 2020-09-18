@@ -1,0 +1,21 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Base(opts_) {
+            public setOptionValue(opts) {
+                opts_ = opts;
+            }
+            public setLabel(label) {
+                opts_.label = label;
+            }
+            public applyDoc(doc, intrf, options, value) {
+                return doc[intrf](options, value);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting
+
+using typesetting.component.*;

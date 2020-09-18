@@ -1,0 +1,25 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Column(num) : Component.Base {
+            var cols_ = [];
+            public addColumn(f) {
+                cols_.push(f);
+            }
+            public apply(doc) {
+                doc.setColumn(num);
+                var last = cols_.length() - 1;
+                for (var i = 0; i <= last; ++i) {
+                    cols_[i](doc);
+                    if (i != last) {
+                        doc.columnBreak();
+                    }
+                }
+                doc.setColumn(1);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

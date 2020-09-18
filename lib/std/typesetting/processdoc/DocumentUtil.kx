@@ -1,0 +1,186 @@
+namespace Typesetting {
+
+    const TOO_BIG_SPACE = 6553600.0;
+    var hyphenPenalty_ = Hypher.hyphenPenalty_;
+    var Linebreak = Typesetting.Linebreak;
+    var Word = Typesetting.Word;
+
+    namespace ProcessDoc {
+
+        class DocumentUtil(info_, context_, doc_) {
+
+            var defs_ = [];
+            var opts_;
+            var dotWidth_;
+
+            public add(name, value) {
+                defs_.unshift({
+                    regex: new Regex("\\\\" + name + "\\b"),
+                    value: value,
+                });
+            }
+
+            public setOpts(opts) {
+                opts_ = opts;
+            }
+
+            public makeOption(opts, text, replaceText) {
+                if (text.isUndefined && opts.isString) {
+                    text = opts;
+                    opts = null;
+                }
+                if (opts_ && !opts.isObject) {
+                    opts = opts_;
+                }
+                if (text && (replaceText.isUndefined || replaceText)) {
+                    defs_.each {
+                        text = text.replace(_1.regex, _1.value);
+                    };
+                }
+                return [opts, text];
+            }
+
+            public makeMargin(opts) {
+                var margin = info_.base.margin.clone();
+                if (opts.margin.left) {
+                    margin.left = opts.margin.left;
+                }
+                if (opts.margin.right) {
+                    margin.right = opts.margin.right;
+                }
+                return margin;
+            }
+
+            public write(lines) {
+                if (lines.length() == 0) {
+                    return;
+                }
+                var writer = info_.writer;
+                var pos = writer.getPositionBase();
+                var y = pos.y;
+                var y1 = pos.y;
+                var bottom = pos.bottom;
+                var ll = lines.length();
+                var widowCheck = ll - info_.base.widowPenalty;
+                var doColumnBreak;
+                if (y > 0) {
+                    for (var i = 0; i < widowCheck; ++i) {
+                        y -= lines[i].lineFeedWidth;
+                    }
+                    for (var i = widowCheck; i < ll; ++i) {
+                        y -= lines[i].lineFeedWidth;
+                        if (y < bottom) {
+                            doColumnBreak = true;
+                            break;
+                        }
+                    }
+                }
+                --widowCheck;
+                for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                    var line = lines[i];
+                    if (doColumnBreak && widowCheck == i) {
+                        writer.columnBreak();
+                    }
+                    line.nodes.each { => _1.write(writer) };
+                    var colBreaked = writer.lineBreak(line.lineFeedWidth);
+                    if (colBreaked) {
+                        doColumnBreak = false;
+                    }
+                }
+            }
+
+            public writeLeft(opts, text, fontObj, fontSize, lineFeedWidth) {
+                var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var writer = info_.writer;
+                var margin = writer.makeMarginSize();
+                var x = margin.left;
+                var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+                writer.write(n, x);
+                writer.lineBreak(lineFeedWidth);
+                writer.setYHead();
+            }
+
+            public writeRight(opts, text, fontObj, fontSize, lineFeedWidth) {
+                var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var writer = info_.writer;
+                var margin = writer.makeMarginSize();
+                var x = margin.pageWidth - margin.right - textWidth;
+                var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+                writer.write(n, x);
+                writer.lineBreak(lineFeedWidth);
+                writer.setYHead();
+            }
+
+            public writeCenter(opts, text, fontObj, fontSize, lineFeedWidth) {
+                var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var writer = info_.writer;
+                var margin = writer.makeMarginSize();
+                var x = (margin.width - textWidth) / 2 + margin.left;
+                var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+                writer.write(n, x);
+                writer.lineBreak(lineFeedWidth);
+                writer.setYHead();
+            }
+
+            public writeLine(opts, text, fontObj, fontSize, lineFeedWidth) {
+                var writer = info_.writer;
+                var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var margin = writer.makeMarginSize();
+                var x = opts.margin.left ?? margin.left;
+                var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+                writer.write(n, x);
+                writer.lineBreak(lineFeedWidth);
+            }
+
+            public writeX(x, text, fontObj, fontSize) {
+                var writer = info_.writer;
+                var textWidth = info_.measure.textWidth(fontObj, fontSize, text);
+                var margin = writer.makeMarginSize();
+                var n = Linebreak.Box(textWidth, new Word(info_).setWord(fontObj, fontSize, text));
+                writer.write(n, x);
+            }
+
+            public writeTocLine(lines, y, pageNumber, fontObj, fontSize) {
+                if (lines.length() == 0) {
+                    return;
+                }
+                var writer = info_.writer;
+                var margin = writer.makeMarginSize();
+                if (dotWidth_.isUndefined) {
+                    dotWidth_ = info_.measure.textWidth(fontObj, fontSize, ".") * 2;
+                }
+                var ll = lines.length();
+                for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                    var line = lines[i];
+                    line.nodes.each { &(n):
+                        if (!n.isGlue || n.stretch != Linebreak.Infinity) {
+                            n.write(writer);
+                        }
+                    };
+                    var num = "" + pageNumber;
+                    var numw = info_.measure.textWidth(fontObj, fontSize, num);
+                    var right = margin.pageWidth - margin.right - numw;
+                    var pos = writer.getPos();
+                    var x = pos.x + dotWidth_;
+                    x += (right - x) % dotWidth_;
+                    var dot = Linebreak.Box(dotWidth_, new Word(info_).setWord(fontObj, fontSize, "."));
+                    var limit = right - dotWidth_;
+                    while (x < limit) {
+                        writer.write(dot, x);
+                        x += dotWidth_;
+                    }
+                    num = new Word(info_).setWord(fontObj, fontSize, num);
+                    num.isAnnot = true;
+                    num.annotPage = pageNumber;
+                    num.annotPos = { y: y };
+                    num = Linebreak.Box(numw, num);
+                    writer.write(num, right);
+                    writer.lineBreak(line.lineFeedWidth);
+                }
+            }
+
+        }
+
+    } # namespace ProcessDoc
+
+} # namespace Typesetting
