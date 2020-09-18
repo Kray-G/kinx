@@ -1,0 +1,159 @@
+using Typesetting;
+using typesetting.style.BookA4;
+using MarkdownParser;
+
+namespace Typesetting {
+
+    class InlineMaker {
+        public text(value) {
+            return value.value;
+        }
+        public html(value) {
+            return '';
+        }
+        public htmlcomment(value) {
+            return '';
+        }
+        public em(value) {
+            return "\\bold{%{value}}";
+        }
+        public italic(value) {
+            return value.value;
+        }
+        public emitalic(value) {
+            return "\\bold{%{value.value}}";
+        }
+        public strikethrough(value) {
+            return value.value;
+        }
+        public code(value) {
+            return "\\monotype{\\pack{%{value.value}}}";
+        }
+        public image(value) {
+            return '';
+        }
+        public link(value) {
+            return '';
+        }
+    }
+
+    class BookParser {
+        var title_, doc_;
+        var opts_ = {};
+        var inline_ = new InlineMaker();
+        private makeInlineText(values) {
+            var str = '';
+            values.each { &(value):
+                if (inline_[value.name].isFunction) {
+                    str += inline_[value.name](value);
+                }
+            };
+            return str;
+        }
+        private checkParam(values) {
+            var r = false;
+            values.each { &(value):
+                var v = value.value.trim();
+                if (value.name == 'html' && v.startsWith("<param ")) {
+                    var m = v.match(/<param\s*(.+)="(.+)"\s*\/>/);
+                    if (m.isDefined) {
+                        opts_[m[1]] = m[2];
+                    }
+                    r = true;
+                }
+            };
+            return r;
+        }
+        public makeDocument() {
+            opts_.style ??= "BookA4";
+            doc_ = new Typesetting.Document(Typesetting.Style[opts_.style], { toc: true, lof: true, lot: true, xref: "book2.json" });
+
+            if (title_) {
+                var title = new Typesetting.Component.Title();
+                title.setTitle(title_, Double.parseDouble(opts_.titleSize));
+                if (opts_.author) {
+                    title.setAuthor(opts_.author);
+                }
+                if (opts_.subtitle) {
+                    title.setSubtitle(opts_.subtitle, Double.parseDouble(opts_.subtitleSize));
+                }
+                if (opts_.date) {
+                    title.setDate(opts_.date);
+                }
+                doc_.apply(title);
+                doc_.toc();
+            }
+        }
+
+        public heading(ast) {
+            if (ast.level == 1) {
+                title_ = makeInlineText(ast.values);
+            }
+            if (doc_.isUndefined) {
+                if (ast.level != 2) {
+                    return;
+                }
+                makeDocument();
+            }
+            switch (ast.level) {
+            case 1: # ignore
+                break;
+            case 2:
+                doc_.apply(new Typesetting.Component.Chapter(makeInlineText(ast.values)));
+                break;
+            case 3:
+                doc_.apply(new Typesetting.Component.Section(makeInlineText(ast.values)));
+                break;
+            case 4:
+                doc_.apply(new Typesetting.Component.SubSection(makeInlineText(ast.values)));
+                break;
+            case 5:
+                doc_.apply(new Typesetting.Component.SubSubSection(makeInlineText(ast.values)));
+                break;
+            }
+        }
+        public paragraph(ast) {
+            if (checkParam(ast.values)) {
+                return;
+            }
+            if (doc_.isUndefined) {
+                return;
+            }
+            doc_.apply(new Typesetting.Component.Paragraph(makeInlineText(ast.values)));
+        }
+        public horizontal(ast) {
+        }
+        public code(ast) {
+        }
+        public blockquote(ast) {
+        }
+        public list(ast) {
+        }
+        public orderedlist(ast) {
+        }
+        public checklist(ast) {
+        }
+        public table(ast) {
+        }
+
+        public dump() {
+            # System.println("Title: ", title_);
+            # opts_.keySet().each { &(key):
+            #     System.println(key + ": ", opts_[key]);
+            # };
+            if (doc_.isUndefined) {
+                return;
+            }
+            doc_.save("book2.pdf");
+        }
+    }
+
+} # namespace Typesetting
+
+var contents = File.load("examples/typesetting/KinxTT.md");
+var parser = new Typesetting.BookParser();
+var ast = Markdown.BlockParser(contents);
+ast.each { &(a):
+    parser[a.name](a);
+};
+parser.dump();
