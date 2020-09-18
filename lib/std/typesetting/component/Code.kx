@@ -23,7 +23,7 @@ namespace Typesetting {
                 core.fontType("Monotype");
 
                 var writer = info.writer;
-                var margin = core.util.makeMargin(opts_);
+                var margin = writer.getMargin();
                 var numberSize = info.base.code.numberSize;
                 var codeFontSize = info.base.code.fontSize;
 
