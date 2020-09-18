@@ -1,0 +1,74 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Section(opts_, text_) : Component.Base {
+            private initialize() {
+                if (text_.isUndefined) {
+                    [text_, opts_] = [opts_];
+                }
+                opts_ ??= {};
+                @setOptionValue(opts_);
+                @text = text_;
+                @opts = opts_;
+            }
+            public setText(text) {
+                @text = text;
+            }
+            public write(info, context, core) {
+                info.writer.setColumn(info.base.columns);
+                core.pendingParagraphList.push({
+                    isSection: true,
+                    lineFeedWidth: core.section.getHeight(1),
+                    func: &() => {
+                        var level = info.base.sectionLevel;
+                        var [linetop, header] = core.section.exec(level, @opts, @text);
+                        if (info.base.outline && level <= info.base.toc.level) {
+                            var ol = info.writer.createOutline(context.outline[level - 1], header, true);
+                            info.writer.setCurrentPage(ol, linetop);
+                            context.outline[level] = ol;
+                        }
+                    },
+                });
+            }
+        }
+
+        class SubSection(opts_, text_) : Section(opts_, text_) {
+            public write(info, context, core) {
+                core.pendingParagraphList.push({
+                    isSection: true,
+                    lineFeedWidth: core.section.getHeight(2),
+                    func: &() => {
+                        var level = info.base.sectionLevel + 1;
+                        var [linetop, header] = core.section.exec(level, @opts, @text);
+                        if (info.base.outline && level <= info.base.toc.level) {
+                            var ol = info.writer.createOutline(context.outline[level - 1], header, true);
+                            info.writer.setCurrentPage(ol, linetop);
+                            context.outline[level] = ol;
+                        }
+                    },
+                });
+            }
+        }
+
+        class SubSubSection(opts_, text_) : Section(opts_, text_) {
+            public write(info, context, core) {
+                core.pendingParagraphList.push({
+                    isSection: true,
+                    lineFeedWidth: core.section.getHeight(3),
+                    func: &() => {
+                        var level = info.base.sectionLevel + 2;
+                        var [linetop, header] = core.section.exec(level, @opts, @text);
+                        if (info.base.outline && level <= info.base.toc.level) {
+                            var ol = info.writer.createOutline(context.outline[level - 1], header, true);
+                            info.writer.setCurrentPage(ol, linetop);
+                            context.outline[level] = ol;
+                        }
+                    },
+                });
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

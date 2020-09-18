@@ -1,0 +1,29 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Column(num_) : Component.Base {
+            var cols_ = [];
+            public addColumn(f) {
+                cols_.push(f);
+            }
+            private setColumn(info, core, column, opts) {
+                core.flushParagraph();
+                info.writer.setColumn(column);
+            }
+            public write(info, context, core) {
+                setColumn(info, core, num_);
+                var last = cols_.length() - 1;
+                for (var i = 0; i <= last; ++i) {
+                    cols_[i]();
+                    if (i != last) {
+                        @columnBreak(info, core);
+                    }
+                }
+                setColumn(info, core, 1);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting
