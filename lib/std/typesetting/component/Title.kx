@@ -8,8 +8,23 @@ namespace Typesetting {
                     [title_, opts_] = [opts_];
                 }
             }
-            public setTitle(title) {
+            public setTitle(title, size) {
                 title_ = title;
+                if (size.isDefined) {
+                    opts_.titleSize = size;
+                }
+            }
+            public setTitleSize(size) {
+                opts_.titleSize = size;
+            }
+            public setSubtitle(title, size) {
+                opts_.subtitle = title;
+                if (size.isDefined) {
+                    opts_.subtitleSize = size;
+                }
+            }
+            public setSubtitleSize(size) {
+                opts_.subtitleSize = size;
             }
             public setAuthor(author) {
                 opts_.author = author;
@@ -18,9 +33,17 @@ namespace Typesetting {
                 opts_.date = date;
             }
             public write(info, context, core) {
+                var writer = info.writer;
+                if (info.style.coverPage.isFunction) {
+                    info.style.coverPage(info, context, core, title_, opts_);
+                    if (info.base.outline) {
+                        var ol = writer.createOutline(null, title_, true);
+                        writer.setCurrentPage(ol);
+                    }
+                    return;
+                }
                 [opts_, title_] = core.util.makeOption(opts_, title_);
                 var tbase = info.base.title;
-                var writer = info.writer;
                 writer.setColumn(1);
                 core.util.writeCenter(opts_, title_, context.font.fontObj, tbase.titleText.fontSize, tbase.titleText.lineFeedWidth);
                 if (opts_.author) {

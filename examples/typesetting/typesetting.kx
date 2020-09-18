@@ -17,8 +17,7 @@ doc.apply(new Typesetting.Component.Abstract(%{
     This system provides only a limited functionality,
     but supports some of \TeX algorithms in this small system.
     This would be your best partner as long as used for your personal use.
-
-    Note that this document describes just a feature but less technical information.
+    By the way, note that this document describes just a feature but less technical information.
     Please wait for the technical document, and I will prepare that as soon as possible.
 }));
 
@@ -378,7 +377,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
     \image[scale=0.75,caption=Figure Example - Kinx Logo Image]{examples/typesetting/kinxlogo.png}
     This is an example of an image scaled at 40%.
     \image[scale=0.4]{examples/typesetting/kinxlogo.png}
-    As you see the example above, the image can be directly put into a paragraph.
+    This example is the example of writing \monotype{\\image} command directly into a paragraph.
     Note that you can not float an image in this way,
     and you have to use \verb{\floatimage} command instead.
 }));
