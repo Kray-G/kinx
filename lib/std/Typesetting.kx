@@ -20,7 +20,6 @@ namespace Typesetting {
         var fontObjSerifBase_, fontObjSansBase_;
         var fontObjSerif_, fontObjSans_;
         var fontObjMonotype_, fontObjMonotypeBase_;
-        var pendings_ = [];
         var core_ = {};
 
         private initialize() {
@@ -102,98 +101,43 @@ namespace Typesetting {
                 }
             }
 
-            core_.util = new ProcessDoc.DocumentUtil(info_, context_, this);
-            core_.paragraph = new ProcessDoc.Paragraph(info_, context_, this, core_.util);
-            core_.section = new ProcessDoc.Section(info_, context_, this, core_.util, core_.paragraph);
-            core_.itemize = new ProcessDoc.Itemize(info_, context_, this, core_.util, core_.paragraph);
+            core_.util = new ProcessDoc.DocumentUtil(info_, context_);
+            core_.paragraph = new ProcessDoc.Paragraph(info_, context_, core_.util);
+            core_.section = new ProcessDoc.Section(info_, context_, core_.util, core_.paragraph);
+            core_.itemize = new ProcessDoc.Itemize(info_, context_, core_.util, core_.paragraph);
 
             @define("TeX", %!T\hspace[width=-0.152em]\lower[height=0.171em]{E}\hspace[width=-0.084em]X!);
             @define("LaTeX", %!L\hspace[width=-0.3em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
             @define("KaTeX", %!K\hspace[width=-0.2em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
+
+            core_.pendingParagraphList = [];
+            core_.fontType = @fontType;
+            core_.flushParagraph = function() {
+                var writer = info_.writer;
+                var totalLineFeeds = core_.pendingParagraphList.sum({ => _1.lineFeedWidth ?? 0 });
+                writer.checkColumnBreak(totalLineFeeds);
+                core_.pendingParagraphList.each {
+                    if (!_1.isParagraph) {
+                        writer.clearFloatingImage(_1.lineFeedWidth);
+                    }
+                    _1.func();
+                };
+                core_.pendingParagraphList = [];
+            };
         }
 
         public define(name, value) {
             core_.util.add(name, value);
         }
 
-        private flushParagraph() {
-            var writer = info_.writer;
-            var totalLineFeeds = pendings_.sum({ => _1.lineFeedWidth ?? 0 });
-            writer.checkColumnBreak(totalLineFeeds);
-            pendings_.each {
-                if (!_1.isParagraph) {
-                    writer.clearFloatingImage(_1.lineFeedWidth);
-                }
-                _1.func();
-            };
-            pendings_ = [];
-        }
-
-        public setColumn(column, opts) {
-            flushParagraph();
-            info_.writer.setColumn(column);
-        }
-
         public columnBreak() {
-            flushParagraph();
+            core_.flushParagraph();
             info_.writer.columnBreak();
         }
 
         public pageBreak() {
-            flushParagraph();
+            core_.flushParagraph();
             info_.writer.pageBreak();
-        }
-
-        public title(opts, text) {
-            [opts, text] = core_.util.makeOption(opts, text);
-            var tbase = info_.base.title;
-            var writer = info_.writer;
-            writer.setColumn(1);
-            core_.util.writeCenter(opts, text, context_.font.fontObj, tbase.titleText.fontSize, tbase.titleText.lineFeedWidth);
-            if (opts.author) {
-                core_.util.writeCenter(opts, opts.author, context_.font.fontObj, tbase.author.fontSize, tbase.author.lineFeedWidth);
-            }
-            if (opts.date) {
-                core_.util.writeCenter(opts, opts.date, context_.font.fontObj, tbase.date.fontSize, tbase.date.lineFeedWidth);
-            }
-            writer.addY(tbase.paragraphSkipWidth, true);
-            writer.setYHead();
-            if (outline_) {
-                var ol = writer.createOutline(null, text, true);
-                writer.setCurrentPage(ol);
-            }
-        }
-
-        public abstract(opts, text) {
-            [opts, text] = core_.util.makeOption(opts, text);
-            var abstbase = info_.base.abstract;
-            var fontObj = context_.font.fontObj;
-            context_.font.fontObj = context_.font.fontObjBase.bold;
-            var title = abstbase.title;
-            var titleText = title.text;
-            var linetop = info_.writer.getLineTop(context_.font.fontObj, abstbase.fontSize);
-            if (title.center) {
-                core_.util.writeCenter(opts, titleText, context_.font.fontObj, abstbase.fontSize, abstbase.lineFeedWidth);
-            } else if (title.right) {
-                core_.util.writeRight(opts, titleText, context_.font.fontObj, abstbase.fontSize, abstbase.lineFeedWidth);
-            } else {
-                core_.util.writeLeft(opts, titleText, context_.font.fontObj, abstbase.fontSize, abstbase.lineFeedWidth);
-            }
-            context_.font.fontObj = fontObj;
-            var writer = info_.writer;
-            var pageWidth = writer.getPage().getWidth();
-            var margin = core_.util.makeMargin(opts);
-            var width = (pageWidth - margin.left - margin.right) - abstbase.margin.left - abstbase.margin.right;
-            @set({ margin: { left: margin.left + abstbase.margin.left, right: margin.right + abstbase.margin.right } }) {
-                var lines = core_.paragraph.exec(opts, text);
-                core_.util.write(lines);
-            };
-            writer.addY(abstbase.paragraphSkipWidth, true);
-            writer.setYHead();
-            if (outline_) {
-                var ol = writer.createOutline(null, titleText, true);
-                writer.setCurrentPage(ol, linetop);
-            }
         }
 
         public toc() {
@@ -204,242 +148,7 @@ namespace Typesetting {
             }
         }
 
-        public chapter(opts, text) {
-            if (info_.base.sectionLevel <= 1) {
-                throw RuntimeException("This style do not support a chapter");
-            }
-            info_.writer.setColumn(1);
-            pendings_.push({
-                lineFeedWidth: core_.section.getHeight(1),
-                func: &() => {
-                    var [linetop, header] = core_.section.exec(1, opts, text);
-                    if (outline_) {
-                        var ol = info_.writer.createOutline(null, header, true);
-                        info_.writer.setCurrentPage(ol, linetop);
-                        outline[0] = ol;
-                    }
-                },
-            });
-        }
-
-        public section(opts, text) {
-            info_.writer.setColumn(info_.base.columns);
-            pendings_.push({
-                isSection: true,
-                lineFeedWidth: core_.section.getHeight(1),
-                func: &() => {
-                    var level = info_.base.sectionLevel;
-                    var [linetop, header] = core_.section.exec(level, opts, text);
-                    if (outline_ && level <= info_.base.toc.level) {
-                        var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
-                        info_.writer.setCurrentPage(ol, linetop);
-                        context_.outline[level] = ol;
-                    }
-                },
-            });
-        }
-
-        public subSection(opts, text) {
-            pendings_.push({
-                isSection: true,
-                lineFeedWidth: core_.section.getHeight(2),
-                func: &() => {
-                    var level = info_.base.sectionLevel + 1;
-                    var [linetop, header] = core_.section.exec(level, opts, text);
-                    if (outline_ && level <= info_.base.toc.level) {
-                        var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
-                        info_.writer.setCurrentPage(ol, linetop);
-                        context_.outline[level] = ol;
-                    }
-                },
-            });
-        }
-
-        public subSubSection(opts, text) {
-            pendings_.push({
-                isSection: true,
-                lineFeedWidth: core_.section.getHeight(3),
-                func: &() => {
-                    var level = info_.base.sectionLevel + 2;
-                    var [linetop, header] = core_.section.exec(level, opts, text);
-                    if (outline_ && level <= info_.base.toc.level) {
-                        var ol = info_.writer.createOutline(context_.outline[level - 1], header, true);
-                        info_.writer.setCurrentPage(ol, linetop);
-                        context_.outline[level] = ol;
-                    }
-                },
-            });
-        }
-
-        public paragraph(opts, text) {
-            [opts, text] = core_.util.makeOption(opts, text);
-            var lines = core_.paragraph.exec(opts, text);
-            var lineFeedWidth = 0;
-            var ll = lines.length();
-            var op = info_.base.orphanPenalty + 1;
-            for (var i = 0, l = (op < ll ? op : ll); i < l; ++i) {
-                lineFeedWidth += lines[i].lineFeedWidth;
-            }
-            pendings_.push({
-                isParagraph: true,
-                lineFeedWidth: lineFeedWidth,
-                func: &() => {
-                    core_.util.write(lines);
-                },
-            });
-            flushParagraph();
-        }
-
-        public itemize(opts, items) {
-            flushParagraph();
-            core_.itemize.exec(opts, items);
-        }
-
-        private appendListOf(target, level, number, header, linetop) {
-            context_.tocinfo[target] ??= {};
-            context_.tocinfo[target].push({
-                page: context_.counter.page,
-                level: level,
-                number: number,
-                header: header,
-                y: linetop,
-            });
-        }
-
-        private makeCountrNumber(counterName) {
-            var level = context_.counter[counterName][0];
-            var num = ++context_.counter[counterName][1];
-            var lt = [];
-            for (var i = 1; i <= level; ++i) {
-                lt.push(context_.counter.section[i]);
-            }
-            lt.push("" + num);
-            return lt.join('.');
-        }
-
-        public tableCaption(caption) {
-            var fontSize = context_.font.fontSize;
-            var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
-
-            info_.writer.lineBreak(lineFeedWidth);
-            var linetop = info_.writer.getLineTop(context_.font.fontObj, fontSize);
-            var number = makeCountrNumber("table");
-            var cap = info_.base.table.label + ' ' + number + ' ' + caption;
-            core_.util.writeCenter({}, cap, context_.font.fontObj, fontSize, lineFeedWidth);
-            appendListOf("lot", info_.base.sectionLevel + 1, number, caption, linetop);
-
-            info_.writer.lineBreak(info_.base.table.captionsep);
-        }
-
-        public imageCaption(caption, linetop) {
-            var fontSize = context_.font.fontSize;
-            var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
-
-            linetop ??= info_.writer.getLineTop(context_.font.fontObj, fontSize);
-            var number = makeCountrNumber("image");
-            var cap = info_.base.image.label + ' ' + number + ' ' + caption;
-            core_.util.writeCenter({}, cap, context_.font.fontObj, fontSize, lineFeedWidth);
-            appendListOf("lof", info_.base.sectionLevel + 1, number, caption, linetop);
-
-            info_.writer.lineBreak(lineFeedWidth);
-        }
-
-        public floatingImageCaption(label, caption, fontObj, fontSize, center, y, imageY, height) {
-            if (!caption) {
-                return;
-            }
-            var counter = makeCountrNumber("image");
-            var name = info_.base.image.label + ' ' + counter + ' ' + caption;
-            var textWidth = info_.measure.textWidth(fontObj, fontSize, name);
-            var writer = info_.writer;
-            var margin = writer.makeMarginSize();
-            var ytop = imageY + height;
-
-            if (label) {
-                var pagenum = writer.getPageIndex();
-                context_.xref[label] = {
-                    page:      pagenum,
-                    counter:   counter,
-                    name:      name,
-                    text:      caption,
-                    y:         ytop,
-                };
-            }
-
-            var x = center - textWidth / 2;
-            var n = Linebreak.Box(0, new Word(info_).setWord(fontObj, fontSize, name));
-            writer.writeFloatingCaption(n, x, y);
-            appendListOf("lof", info_.base.sectionLevel + 1, counter, caption, ytop);
-        }
-
-        public image(opts) {
-            if (opts.float.left || opts.float.right) {
-                flushParagraph();
-                var fontSize = context_.font.fontSize;
-                var fontObj = context_.font.fontObj;
-                info_.writer.loadFloatingImage(opts.file, opts.scale, opts.float, opts.caption,
-                    &(center, y, imageY, height) => floatingImageCaption(opts.label, opts.caption, fontObj, fontSize, center, y, imageY, height));
-                return;
-            }
-
-            var op = [];
-            opts.keySet().each { &(key):
-                if (opts[key].isString) {
-                    op.push(key + "=" + opts[key]);
-                }
-            };
-            return paragraph("\\image[%{op.join(',')}]{%{opts.file}}");
-        }
-
-        public math(opts, str) {
-            if (str.isUndefined) {
-                str = opts;
-                opts = null;
-            }
-            flushParagraph();
-
-            var writer = info_.writer;
-            var fontSize = context_.font.fontSize;
-            var lineFeedWidth = fontSize * context_.page.lineFeedWidthRatio;
-            var img = Typesetting.Util.compileMath(str, true, writer);
-            var [bottom, height] = writer.imageCenter(img, 0.25);
-            var linetop = bottom + height;
-            if (opts.label) {
-                context_.counter.math ??= 0;
-                var nexty;
-                var labels = opts.label.isArray ? opts.label : [opts.label];
-                labels.each { &(info):
-                    var label = info.isString ? info : (info.isArray ? info[0] : null);
-                    if (label) {
-                        var offsetYRatio = info.isArray ? info[1] : 0;
-                        var fontObj = context_.font.fontObj;
-                        var ascent = fontObj.getAscent() * fontSize / 1000;
-                        var descent = fontObj.getDescent() * fontSize / 1000;
-                        ++context_.counter.math;
-                        var counter = "(" + context_.counter.math + ")";
-                        var caption = new Word(info_).setWord(fontObj, fontSize, counter);
-                        var n = Linebreak.Box(caption.width, caption);
-                        var y = offsetYRatio > 0
-                            ? (linetop - (height * offsetYRatio))
-                            : (bottom + (height / 2) - ((ascent - descent) / 2 + descent));
-                        var pagenum = writer.getPageIndex();
-                        context_.xref[label] = {
-                            page:      pagenum,
-                            counter:   counter,
-                            name:      counter,
-                            text:      counter,
-                            y:         nexty ?? linetop,
-                        };
-                        writer.writeMathCaption(n, y);
-                        nexty = y + descent - 4;
-                    }
-                };
-            }
-            writer.lineBreak(lineFeedWidth);
-            return linetop;
-        }
-
-        private fontType(type) {
+        public fontType(type) {
             switch (type) {
             case "Serif":
                 context_.font.fontObj = fontObjSerif_;
@@ -454,117 +163,6 @@ namespace Typesetting {
                 context_.font.fontObjBase = fontObjMonotypeBase_;
                 break;
             }
-        }
-
-        public code(opts, text) {
-            flushParagraph();
-
-            [opts, text] = core_.util.makeOption(opts, text);
-            var fontObj = context_.font.fontObj;
-            var fontObjBase = context_.font.fontObjBase;
-            fontType("Monotype");
-
-            var writer = info_.writer;
-            var margin = core_.util.makeMargin(opts);
-            var numberSize = info_.base.code.numberSize;
-            var codeFontSize = info_.base.code.fontSize;
-
-            var base = margin.left + info_.base.code.margin.left;
-            var xbase = base;
-            if (opts.lineNumber) {
-                var width = info_.measure.textWidth(context_.font.fontObj, numberSize, "999999");
-                opts.margin.left = xbase + width;
-                opts.margin.right = xbase;
-                xbase = opts.margin.left - info_.base.code.labelsep;
-            } else {
-                opts.margin.left = xbase;
-                opts.margin.right = xbase;
-            }
-            var pageMargin = writer.makeMarginSize();
-            var left = base - info_.base.code.padding;
-            var right = pageMargin.pageWidth - opts.margin.right;
-            var linetop1 = writer.getLineTop(context_.font.fontObj, codeFontSize);
-            var lineWidth = opts.box.isArray ? opts.box[0] : opts.box;
-            var linelength = right - left;
-            var shadow = opts.box[1] == 0x01;
-            if (lineWidth > 0) {
-                writer.drawLine(left, linetop1, linelength, 0, lineWidth, info_.base.code.lineColor);
-                writer.addY(info_.base.code.padding);
-            }
-
-            var lineprev = linetop1;
-            var texts = text.trim().split(/\r?\n/);
-            var tlast = texts.length() - 1;
-            var lineFeedWidthBase = codeFontSize * 1.3;
-            texts.each { &(line, i):
-                if (opts.lineNumber) {
-                    var num = "" + (i+1);
-                    var x = xbase - info_.measure.textWidth(fontObj, numberSize, num);
-                    core_.util.writeX(x, num, fontObj, numberSize);
-                }
-                core_.util.writeLine(opts, line, context_.font.fontObj, codeFontSize, lineFeedWidthBase);
-
-                var isBreak = (writer.getPos().y < 0);
-                if (!isBreak) {
-                    linetop1 = writer.getLineTop(context_.font.fontObj, context_.font.codeFontSize);
-                    var height = lineprev - linetop1;
-                    writer.drawLine(left, lineprev, 0, height, lineWidth, info_.base.code.lineColor);
-                    writer.drawLine(right, lineprev, 0, height, lineWidth, info_.base.code.lineColor);
-                    if (shadow) {
-                        writer.drawLine(right+2, lineprev-2, 0, height+3, 3, info_.base.code.lineColor);
-                    }
-                    lineprev = linetop1;
-                } else {
-                    var height = lineFeedWidthBase;
-                    writer.drawLine(left, lineprev, 0, height, lineWidth, info_.base.code.lineColor, -1);
-                    writer.drawLine(right, lineprev, 0, height, lineWidth, info_.base.code.lineColor, -1);
-                    if (shadow) {
-                        writer.drawLine(right+2, lineprev-2, 0, height+3, 3, info_.base.code.lineColor);
-                    }
-                    if (i == tlast) {
-                        var top = lineprev - height;
-                        writer.drawLine(left, top, linelength, 0, lineWidth, info_.base.code.lineColor, -1);
-                        if (shadow) {
-                            writer.drawLine(left+2, top-2, linelength+1, 0, 3, info_.base.code.lineColor, -1);
-                        }
-                        lineWidth = 0;  # no more drawing a line.
-                    } else {
-                        lineprev = pageMargin.pageHeight - margin.top;
-                    }
-                }
-            };
-
-            if (lineWidth > 0) {
-                writer.addY(lineFeedWidthBase);
-                var linetop2 = writer.getLineTop(context_.font.fontObj, codeFontSize);
-                var height = lineprev - linetop2;
-                writer.drawLine(left, lineprev, 0, height, lineWidth, info_.base.code.lineColor);
-                writer.drawLine(right, lineprev, 0, height, lineWidth, info_.base.code.lineColor);
-                writer.drawLine(left, linetop2, linelength, 0, lineWidth, info_.base.code.lineColor);
-                if (shadow) {
-                    writer.drawLine(left+2, linetop2-2, linelength+1, 0, 3, info_.base.code.lineColor);
-                }
-            }
-            writer.addY(lineFeedWidthBase);
-
-            context_.font.fontObjBase = fontObjBase;
-            context_.font.fontObj = fontObj;
-        }
-
-        public table(tb) {
-            flushParagraph();
-            return new ProcessDoc.Table(info_, context_, core_.util, core_.paragraph).exec(tb, this);
-        }
-
-        public set(opts, func) {
-            var fontObj = context_.font.fontObj;
-            var fontObjBase = context_.font.fontObjBase;
-            fontType(opts.fontType);
-            core_.util.setOpts(opts);
-            func();
-            core_.util.setOpts(null);
-            context_.font.fontObjBase = fontObjBase;
-            context_.font.fontObj = fontObj;
         }
 
         public flushToc() {
@@ -616,7 +214,7 @@ namespace Typesetting {
         }
 
         public save(file) {
-            flushParagraph();
+            core_.flushParagraph();
             if (info_.context.toc) {
                 flushToc();
             }
@@ -629,7 +227,10 @@ namespace Typesetting {
         }
 
         public apply(component) {
-            return component.apply(this);
+            if (component.write.isFunction) {
+                return component.write(info_, context_, core_);
+            }
+            # return component.apply(this);
         }
     }
 

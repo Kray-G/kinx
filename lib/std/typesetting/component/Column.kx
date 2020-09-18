@@ -2,21 +2,25 @@ namespace Typesetting {
 
     namespace Component {
 
-        class Column(num) : Component.Base {
+        class Column(num_) : Component.Base {
             var cols_ = [];
             public addColumn(f) {
                 cols_.push(f);
             }
-            public apply(doc) {
-                doc.setColumn(num);
+            private setColumn(info, core, column, opts) {
+                core.flushParagraph();
+                info.writer.setColumn(column);
+            }
+            public write(info, context, core) {
+                setColumn(info, core, num_);
                 var last = cols_.length() - 1;
                 for (var i = 0; i <= last; ++i) {
-                    cols_[i](doc);
+                    cols_[i]();
                     if (i != last) {
-                        doc.columnBreak();
+                        @columnBreak(info, core);
                     }
                 }
-                doc.setColumn(1);
+                setColumn(info, core, 1);
             }
         }
 

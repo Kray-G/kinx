@@ -11,6 +11,10 @@ namespace Typesetting {
             public apply(doc) {
                 return @applyDoc(doc, "itemize", opts_, items_);
             }
+            public write(info, context, core) {
+                core.flushParagraph();
+                core.itemize.exec(opts_, items_);
+            }
         }
 
     } # namespace Component
