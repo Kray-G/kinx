@@ -69,6 +69,79 @@ namespace Typesetting {
             }
         }
 
+        class Chapter(opts_, text_) : Component.Base {
+            private initialize() {
+                if (text_.isUndefined) {
+                    [text_, opts_] = [opts_];
+                }
+            }
+            public setText(text) {
+                text_ = text;
+            }
+            public write(info, context, core) {
+                @pageBreak(info, core);
+
+                info.writer.setColumn(1);
+                var writer = info.writer;
+                var margin = writer.makeMarginSize();
+
+                var chapterSize = 32.8;
+                var fontObj = context.font.fontObj;
+                var fontSize = context.font.fontSize;
+                context.font.fontSize = chapterSize;
+                var ascent = fontObj.getAscent() * context.font.fontSize / 1000;
+                var descent = fontObj.getDescent() * context.font.fontSize / 1000;
+                var y = margin.pageHeight - margin.top - ascent;
+
+                var level = 1;
+                var numText = core.util.makeSectionNumber(level);
+                var chapterNumberText = numText.join('.');
+                var chapterHeader = info.base.chapter.pretext + chapterNumberText + info.base.chapter.posttext;
+
+                var noIndent = context.noIndent;
+                context.noIndent = true;
+                writer.setPos({ x: margin.left, y: y });
+                var lines = core.paragraph.exec({}, chapterHeader);
+                core.util.write(lines);
+
+                writer.drawLine(margin.left, y + descent, margin.width, 0, 1, [0, 0, 0]);
+
+                var chapterSize = 22.2;
+                context.font.fontSize = chapterSize;
+                ascent = fontObj.getAscent() * context.font.fontSize / 1000;
+                writer.setPos({ x: margin.left, y: y + descent - ascent - 8 });
+                chapterText = "\\bold{%{text_}}";
+                [, chapterText] = core.util.makeOption({}, chapterText);
+                var lines = core.paragraph.exec({}, chapterText);
+                core.util.write(lines, { right: true });
+
+                info.writer.setColumn(info.base.columns);
+
+                context.noIndent = noIndent;
+                context.font.fontSize = fontSize;
+
+                if (level <= info.base.toc.level) {
+                    var linetop = margin.top;
+                    context.tocinfo.list.push({
+                        isHeader: true,
+                        page: context.counter.page,
+                        level: level,
+                        number: chapterHeader,
+                        header: chapterText,
+                        y: linetop,
+                    });
+                    if (info.base.outline) {
+                        var ol = info.writer.createOutline(context.outline[level - 1], text_, true);
+                        info.writer.setCurrentPage(ol, linetop);
+                        context.outline[level] = ol;
+                    }
+                }
+
+                writer.addY(info.base.chapter.paragraphSkipWidth, true);
+                writer.setYHead();
+            }
+        }
+
     } # namespace Component
 
 } # namespace Typesetting

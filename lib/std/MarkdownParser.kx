@@ -627,6 +627,7 @@ namespace Markdown {
                 callback(astToObject(ast[i]));
             }
             ast = [];
+            return;
         }
         return astToObject(ast);
     };
