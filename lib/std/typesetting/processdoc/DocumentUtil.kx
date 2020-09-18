@@ -7,7 +7,7 @@ namespace Typesetting {
 
     namespace ProcessDoc {
 
-        class DocumentUtil(info_, context_, doc_) {
+        class DocumentUtil(info_, context_) {
 
             var defs_ = [];
             var opts_;

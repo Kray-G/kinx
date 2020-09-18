@@ -115,6 +115,7 @@ namespace Style {
             },
             "image": {
                 "label":                "Fig",
+                "fulllabel":            "Figure",
                 "leftsep":              20.0,
                 "rightsep":             20.0,
                 "bottomsep":            10.0,

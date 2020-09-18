@@ -1,0 +1,35 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Chapter(opts_, text_) : Component.Base {
+            private initialize() {
+                if (text_.isUndefined) {
+                    [text_, opts_] = [opts_];
+                }
+            }
+            public setText(text) {
+                text_ = text;
+            }
+            public write(info, context, core) {
+                if (info.base.sectionLevel <= 1) {
+                    throw RuntimeException("This style do not support a chapter");
+                }
+                info.writer.setColumn(1);
+                core.pendingParagraphList.push({
+                    lineFeedWidth: core.section.getHeight(1),
+                    func: &() => {
+                        var [linetop, header] = core.section.exec(1, opts_, text_);
+                        if (info.base.outline) {
+                            var ol = info.writer.createOutline(null, header, true);
+                            info.writer.setCurrentPage(ol, linetop);
+                            outline[0] = ol;
+                        }
+                    },
+                });
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

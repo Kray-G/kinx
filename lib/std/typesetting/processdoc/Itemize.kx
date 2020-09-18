@@ -7,7 +7,7 @@ namespace Typesetting {
 
     namespace ProcessDoc {
 
-        class Itemize(info_, context_, doc_, util_, paragraph_) {
+        class Itemize(info_, context_, util_, paragraph_) {
 
             var itemizeImpl;
 

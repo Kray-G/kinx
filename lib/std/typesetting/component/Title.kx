@@ -17,8 +17,24 @@ namespace Typesetting {
             public setDate(date) {
                 opts_.date = date;
             }
-            public apply(doc) {
-                return @applyDoc(doc, "title", opts_, title_);
+            public write(info, context, core) {
+                [opts_, title_] = core.util.makeOption(opts_, title_);
+                var tbase = info.base.title;
+                var writer = info.writer;
+                writer.setColumn(1);
+                core.util.writeCenter(opts_, title_, context.font.fontObj, tbase.titleText.fontSize, tbase.titleText.lineFeedWidth);
+                if (opts_.author) {
+                    core.util.writeCenter(opts_, opts_.author, context.font.fontObj, tbase.author.fontSize, tbase.author.lineFeedWidth);
+                }
+                if (opts_.date) {
+                    core.util.writeCenter(opts_, opts_.date, context.font.fontObj, tbase.date.fontSize, tbase.date.lineFeedWidth);
+                }
+                writer.addY(tbase.paragraphSkipWidth, true);
+                writer.setYHead();
+                if (info.base.outline) {
+                    var ol = writer.createOutline(null, title_, true);
+                    writer.setCurrentPage(ol);
+                }
             }
         }
 
