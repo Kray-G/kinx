@@ -16,37 +16,11 @@ namespace Typesetting {
                 return lineFeedWidth + paragraphSkipWidth + marginSize / 2;
             }
 
-            private makeSectionNumber(level) {
-                var sectionNumber = context_.counter.section[level] ?? 0;
-                var numText = [];
-                if (context_.check) {
-                    for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
-                        if (i <= level) {
-                            numText.push(context_.counter.section[i]);
-                        }
-                    }
-                } else {
-                    context_.counter.section[level] = ++sectionNumber;
-                    var newNumbers = [];
-                    for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
-                        if (i <= level) {
-                            newNumbers[i] = context_.counter.section[i];
-                            numText.push(newNumbers[i]);
-                        } else {
-                            newNumbers[i] = 0;
-                        }
-                    }
-                    context_.counter.section = newNumbers;
-                }
-                
-                return numText;
-            }
-
             public exec(level, opts, text) {
                 [opts, text] = util_.makeOption(opts, text);
 
                 var writer = info_.writer;
-                var numText = makeSectionNumber(level);
+                var numText = util_.makeSectionNumber(level);
                 var sectionNumberText = numText.join('.');
                 var font = context_.font;
                 context_.font = {

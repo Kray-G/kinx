@@ -24,8 +24,10 @@ namespace Typesetting {
 
         private initialize() {
             if (style_.create.isFunction) {
-                style_ = new style_().style;
+                style_ = new style_();
             }
+            info_.style = style_;
+            style_ = style_.style;
             info_.logger = new Typesetting.Logger();
             info_.base = style_.clone();
             outline_ = info_.base.outline;
@@ -111,6 +113,7 @@ namespace Typesetting {
             @define("KaTeX", %!K\hspace[width=-0.2em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
 
             core_.pendingParagraphList = [];
+            core_.pageBreak = @pageBreak;
             core_.fontType = @fontType;
             core_.flushParagraph = function() {
                 var writer = info_.writer;
@@ -167,7 +170,6 @@ namespace Typesetting {
 
         public flushToc() {
             info_.writer.initTocPage(info_.context.tocinfo.page);
-            info_.writer.setPos({ x: -1, y: info_.context.tocinfo.pos.y });
             info_.context.tocinfo.lastPage = 1;
 
             var fontSize = context_.font.fontSize;
@@ -201,7 +203,7 @@ namespace Typesetting {
                     context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * nFontSize;
                     context_.indentSize = (tocdata.level - 1) * info_.base.toc.indentSize;
                     var lines = core_.paragraph.exec({}, tocdata.header, { preText: tocdata.number, preTextSpace: context_.font.fontSize });
-                    core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize);
+                    core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize, tocdata.isHeader);
                 };
                 if (!info.isLast) {
                     info_.writer.lineBreak(context_.page.lineFeedWidthRatio * info_.base.toc.headerSize);
@@ -219,7 +221,7 @@ namespace Typesetting {
                 flushToc();
             }
             info_.writer.save(file);
-            if (opts_.xref) {
+            if (opts_.xref && context_.xref) {
                 File.open(opts_.xref, File.WRITE) { &(f):
                     f.println(context_.xref.toJsonString(true));
                 };

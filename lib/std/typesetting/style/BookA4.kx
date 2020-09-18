@@ -1,0 +1,97 @@
+using typesetting.style.ArticleA4;
+
+namespace Typesetting {
+namespace Style {
+
+    class BookA4 : Typesetting.Style.ArticleA4 {
+        var fontSize = 10.0;
+        @style.margin = {
+                "left":                 46.7,
+                "right":                46.7,
+                "bottom":               56.7,
+                "top":                  68.0,
+                "alley":                20.3,
+        };
+        @style.sectionLevel = 2;
+        @style.header.format = null;
+        @style.margin.odd = { adjust: 10.0 };
+        @style.margin.even = { adjust: -10.0 };
+        @style.draw = {
+            "margin":   false,
+            "imageBox": false,
+        };
+        @style.toc = {
+            "header":               "Contents",
+            "lof":                  "List of Figures",
+            "lot":                  "List of Tables",
+            "headerSize":           fontSize * 2.2,
+            "fitWidth":             true,
+            "level":                3,
+            "indentSize":           15.0,
+            "fontSize":             [
+                fontSize,
+                fontSize * 1.8,
+                fontSize * 1.4,
+                fontSize * 1.2,
+                fontSize * 1.1,
+                fontSize * 1.1,
+            ],
+            "lineFeedWidthRatio":   [
+                1.75,
+                2.75,
+                1.75,
+                1.75,
+                1.75,
+            ],
+        };
+        @Style.fontSize = [
+            fontSize,
+            fontSize * 2.0,
+            fontSize * 1.6,
+            fontSize * 1.4,
+            fontSize * 1.2,
+        ];
+
+        public coverPage(info, context, core, title, opts) {
+            var writer = info.writer;
+            var margin = writer.makeMarginSize();
+            var y = margin.pageHeight / 2;
+            writer.setAdjustment(0);
+
+            var titleSize = opts.titleSize || 144.8;
+            var fontObj = context.font.fontObj;
+            var fontSize = context.font.fontSize;
+            context.font.fontSize = titleSize;
+            var descent = fontObj.getDescent() * context.font.fontSize / 1000;
+
+            writer.setPos({ x: 10, y: y - descent });
+            var lines = core.paragraph.exec({}, "\\bold{%{title}}");
+            core.util.write(lines);
+
+            if (opts.subtitle) {
+                context.font.fontSize = opts.subtitleSize || 24.8;
+                writer.setPos({ x: 10, y: y - descent + titleSize + 8 });
+                var lines = core.paragraph.exec({}, opts.subtitle);
+                core.util.write(lines);
+            }
+
+            writer.drawLine(0, y + descent - 8, margin.pageWidth, 0, 1, [0, 0, 0]);
+
+            if (opts.author) {
+                writer.setPos({ x: 10, y: margin.pageHeight / 8 });
+                context.font.fontSize = 12.0;
+                core.util.writeRight({}, opts.author, fontObj, context.font.fontSize, context.font.fontSize);
+            }
+            if (opts.date) {
+                context.font.fontSize = 12.0;
+                core.util.writeRight({}, opts.date, fontObj, context.font.fontSize, context.font.fontSize);
+            }
+
+            writer.setCoverPage();
+            context.font.fontSize = fontSize;
+            context.tocNewPage = true;
+        }
+    }
+
+} # namespace Style
+} # namespace Typesetting
