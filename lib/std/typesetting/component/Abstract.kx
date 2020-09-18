@@ -8,11 +8,41 @@ namespace Typesetting {
                     [text_, opts_] = [opts_];
                 }
             }
+
             public setText(text) {
                 text_ = text;
             }
-            public apply(doc) {
-                return @applyDoc(doc, "abstract", opts_, text_);
+
+            public write(info, context, core) {
+                [opts_, text_] = core.util.makeOption(opts_, text_);
+                var abstbase = info.base.abstract;
+                var fontObj = context.font.fontObj;
+                context.font.fontObj = context.font.fontObjBase.bold;
+                var title = abstbase.title;
+                var titleText = title.text;
+                var linetop = info.writer.getLineTop(context.font.fontObj, abstbase.fontSize);
+                if (title.center) {
+                    core.util.writeCenter(opts_, titleText, context.font.fontObj, abstbase.fontSize, abstbase.lineFeedWidth);
+                } else if (title.right) {
+                    core.util.writeRight(opts_, titleText, context.font.fontObj, abstbase.fontSize, abstbase.lineFeedWidth);
+                } else {
+                    core.util.writeLeft(opts_, titleText, context.font.fontObj, abstbase.fontSize, abstbase.lineFeedWidth);
+                }
+                context.font.fontObj = fontObj;
+                var writer = info.writer;
+                var pageWidth = writer.getPage().getWidth();
+                var margin = core.util.makeMargin(opts_);
+                var width = (pageWidth - margin.left - margin.right) - abstbase.margin.left - abstbase.margin.right;
+                @set(core, { margin: { left: margin.left + abstbase.margin.left, right: margin.right + abstbase.margin.right } }) {
+                    var lines = core.paragraph.exec(opts_, text_);
+                    core.util.write(lines);
+                };
+                writer.addY(abstbase.paragraphSkipWidth, true);
+                writer.setYHead();
+                if (info.base.outline) {
+                    var ol = writer.createOutline(null, titleText, true);
+                    writer.setCurrentPage(ol, linetop);
+                }
             }
         }
 

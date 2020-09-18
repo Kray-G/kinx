@@ -14,8 +14,99 @@ namespace Typesetting {
             public showLineNumber(tf) {
                 opts_.lineNumber = tf ?? true;
             }
-            public apply(doc) {
-                return @applyDoc(doc, "code", opts_, code_);
+            public write(info, context, core) {
+                core.flushParagraph();
+
+                [opts_, code_] = core.util.makeOption(opts_, code_);
+                var fontObj = context.font.fontObj;
+                var fontObjBase = context.font.fontObjBase;
+                core.fontType("Monotype");
+
+                var writer = info.writer;
+                var margin = core.util.makeMargin(opts_);
+                var numberSize = info.base.code.numberSize;
+                var codeFontSize = info.base.code.fontSize;
+
+                var base = margin.left + info.base.code.margin.left;
+                var xbase = base;
+                if (opts_.lineNumber) {
+                    var width = info.measure.textWidth(context.font.fontObj, numberSize, "999999");
+                    opts_.margin.left = xbase + width;
+                    opts_.margin.right = xbase;
+                    xbase = opts_.margin.left - info.base.code.labelsep;
+                } else {
+                    opts_.margin.left = xbase;
+                    opts_.margin.right = xbase;
+                }
+                var pageMargin = writer.makeMarginSize();
+                var left = base - info.base.code.padding;
+                var right = pageMargin.pageWidth - opts_.margin.right;
+                var linetop1 = writer.getLineTop(context.font.fontObj, codeFontSize);
+                var lineWidth = opts_.box.isArray ? opts_.box[0] : opts_.box;
+                var linelength = right - left;
+                var shadow = opts_.box[1] == 0x01;
+                if (lineWidth > 0) {
+                    writer.drawLine(left, linetop1, linelength, 0, lineWidth, info.base.code.lineColor);
+                    writer.addY(info.base.code.padding);
+                }
+
+                var lineprev = linetop1;
+                var texts = code_.trim().split(/\r?\n/);
+                var tlast = texts.length() - 1;
+                var lineFeedWidthBase = codeFontSize * 1.3;
+                texts.each { &(line, i):
+                    if (opts_.lineNumber) {
+                        var num = "" + (i+1);
+                        var x = xbase - info.measure.textWidth(fontObj, numberSize, num);
+                        core.util.writeX(x, num, fontObj, numberSize);
+                    }
+                    core.util.writeLine(opts_, line, context.font.fontObj, codeFontSize, lineFeedWidthBase);
+
+                    var isBreak = (writer.getPos().y < 0);
+                    if (!isBreak) {
+                        linetop1 = writer.getLineTop(context.font.fontObj, context.font.codeFontSize);
+                        var height = lineprev - linetop1;
+                        writer.drawLine(left, lineprev, 0, height, lineWidth, info.base.code.lineColor);
+                        writer.drawLine(right, lineprev, 0, height, lineWidth, info.base.code.lineColor);
+                        if (shadow) {
+                            writer.drawLine(right+2, lineprev-2, 0, height+3, 3, info.base.code.lineColor);
+                        }
+                        lineprev = linetop1;
+                    } else {
+                        var height = lineFeedWidthBase;
+                        writer.drawLine(left, lineprev, 0, height, lineWidth, info.base.code.lineColor, -1);
+                        writer.drawLine(right, lineprev, 0, height, lineWidth, info.base.code.lineColor, -1);
+                        if (shadow) {
+                            writer.drawLine(right+2, lineprev-2, 0, height+3, 3, info.base.code.lineColor);
+                        }
+                        if (i == tlast) {
+                            var top = lineprev - height;
+                            writer.drawLine(left, top, linelength, 0, lineWidth, info.base.code.lineColor, -1);
+                            if (shadow) {
+                                writer.drawLine(left+2, top-2, linelength+1, 0, 3, info.base.code.lineColor, -1);
+                            }
+                            lineWidth = 0;  # no more drawing a line.
+                        } else {
+                            lineprev = pageMargin.pageHeight - margin.top;
+                        }
+                    }
+                };
+
+                if (lineWidth > 0) {
+                    writer.addY(lineFeedWidthBase);
+                    var linetop2 = writer.getLineTop(context.font.fontObj, codeFontSize);
+                    var height = lineprev - linetop2;
+                    writer.drawLine(left, lineprev, 0, height, lineWidth, info.base.code.lineColor);
+                    writer.drawLine(right, lineprev, 0, height, lineWidth, info.base.code.lineColor);
+                    writer.drawLine(left, linetop2, linelength, 0, lineWidth, info.base.code.lineColor);
+                    if (shadow) {
+                        writer.drawLine(left+2, linetop2-2, linelength+1, 0, 3, info.base.code.lineColor);
+                    }
+                }
+                writer.addY(lineFeedWidthBase);
+
+                context.font.fontObjBase = fontObjBase;
+                context.font.fontObj = fontObj;
             }
         }
 

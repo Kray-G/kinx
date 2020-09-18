@@ -175,7 +175,7 @@ namespace Typesetting {
         public setWord(fontObj, fontSize, word, width) {
             @word = word;
             @isUtf8 = System.isUtf8Bytes(word[0]) > 1;
-            @font = @isUtf8 ? fontObj : fontObj;
+            @font = fontObj;
             @size = fontSize;
             @width = width ?? measure_.textWidth(@font, fontSize, word);
             @space = measure_.spaceWidth(@font, fontSize);

@@ -9,6 +9,52 @@ namespace Typesetting {
             public apply(doc) {
                 return @applyDoc(doc, "image", opts_);
             }
+            private floatingImageCaption(info, context, label, caption, fontObj, fontSize, center, y, imageY, height) {
+                if (!caption) {
+                    return;
+                }
+                var counter = @makeCountrNumber(context, "image");
+                var name = info.base.image.label + ' ' + counter + ' ' + caption;
+                var fullname = info.base.image.fulllabel + ' ' + counter + ' ' + caption;
+                var textWidth = info.measure.textWidth(fontObj, fontSize, name);
+                var writer = info.writer;
+                var margin = writer.makeMarginSize();
+                var ytop = imageY + height;
+
+                if (label) {
+                    var pagenum = writer.getPageIndex();
+                    context.xref[label] = {
+                        page:      pagenum,
+                        counter:   counter,
+                        name:      fullname,
+                        text:      caption,
+                        y:         ytop,
+                    };
+                }
+
+                var x = center - textWidth / 2;
+                var n = Typesetting.Linebreak.Box(0, new Typesetting.Word(info).setWord(fontObj, fontSize, name));
+                writer.writeFloatingCaption(n, x, y);
+                @appendListOf(context, "lof", info.base.sectionLevel + 1, counter, caption, ytop);
+            }
+            public write(info, context, core) {
+                if (opts_.float.left || opts_.float.right) {
+                    core.flushParagraph();
+                    var fontSize = context.font.fontSize;
+                    var fontObj = context.font.fontObj;
+                    info.writer.loadFloatingImage(opts_.file, opts_.scale, opts_.float, opts_.caption,
+                        &(center, y, imageY, height) => floatingImageCaption(info, context, opts_.label, opts_.caption, fontObj, fontSize, center, y, imageY, height));
+                    return;
+                }
+
+                var op = [];
+                opts_.keySet().each { &(key):
+                    if (opts_[key].isString) {
+                        op.push(key + "=" + opts_[key]);
+                    }
+                };
+                return new Typesetting.Component.Paragraph("\\image[%{op.join(',')}]{%{opts_.file}}");
+            }
         }
 
     } # namespace Component

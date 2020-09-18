@@ -337,7 +337,7 @@ namespace Typesetting {
                 return ybase;
             }
 
-            public exec(table, doc) {
+            public exec(table, tableCaptionWriter) {
                 savedPos_ = info_.writer.getPos();
                 savedMargin_ = info_.writer.getMargin();
                 margin_ = info_.writer.makeMarginSize();
@@ -349,7 +349,7 @@ namespace Typesetting {
 
                 info_.writer.lineBreak(0);    // setup x & y.
                 if (table.caption) {
-                    doc.tableCaption(table.caption);
+                    tableCaptionWriter();
                 }
 
                 pos_ = info_.writer.getPos();

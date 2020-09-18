@@ -7,7 +7,7 @@ namespace Typesetting {
 
     namespace ProcessDoc {
 
-        class Section(info_, context_, doc_, util_, paragraph_) {
+        class Section(info_, context_, util_, paragraph_) {
 
             public getHeight(level) {
                 var lineFeedWidth = info_.base.fontSize[level] * info_.base.lineFeedWidthRatio[level];

@@ -7,7 +7,7 @@ namespace Typesetting {
 
     namespace ProcessDoc {
 
-        class Paragraph(info_, context_, doc_, util_) {
+        class Paragraph(info_, context_, util_) {
 
             var measureWidth_;
 

@@ -69,7 +69,7 @@ doc.apply(new Typesetting.Component.Itemize({
         "Images. It can be also put with floating inside paragraph.",
         "Colors. CMYK, RGB, and a lot of color names are supported.",
         "Writing a program source code.",
-        "Cross-reference like \\bold{Reference to the section \\nameref{Sec:Table}} in the page \\pageref{Sec:Table}.",
+        "Cross-reference like ``\\bold{Reference to the section \\nameref{Sec:Table}} in the page \\pageref{Sec:Table}.''",
         "Autimatic URL hyperlink like https://en.wikipedia.org/wiki/TeX, or link text like \\url[https://en.wikipedia.org/wiki/TeX]{\\TeX}.",
         "Footnotes\\footnote{This is a footnote example.}.",
         "Ligature. Only 5 words of fi, fl, ff, ffi, ffl are supported.",
@@ -289,7 +289,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 
 col = new Typesetting.Component.Column(2);
 col.addColumn(&{
-    doc.table({
+    doc.apply(new Typesetting.Component.Table({
         header: 0,
         cellAlign: "cl",
         body: [
@@ -309,10 +309,10 @@ col.addColumn(&{
             ],
             "---",
         ]
-    });
+    }));
 });
 col.addColumn(&{
-    doc.table({
+    doc.apply(new Typesetting.Component.Table({
         header: 0,
         cellAlign: "cl",
         body: [
@@ -337,7 +337,7 @@ col.addColumn(&{
             ],
             "---",
         ]
-    });
+    }));
 });
 doc.apply(col);
 
@@ -389,19 +389,19 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 
 col = new Typesetting.Component.Column(3);
 col.addColumn(&{
-    doc.paragraph(%{
+    doc.apply(new Typesetting.Component.Paragraph(%{
         \image[scale=0.95]{examples/typesetting/kinxlogo.png}
-    });
+    }));
 });
 col.addColumn(&{
-    doc.paragraph(%{
+    doc.apply(new Typesetting.Component.Paragraph(%{
         \image[scale=0.95]{examples/typesetting/kinxlogo.png}
-    });
+    }));
 });
 col.addColumn(&{
-    doc.paragraph(%{
+    doc.apply(new Typesetting.Component.Paragraph(%{
         \image[scale=0.95]{examples/typesetting/kinxlogo.png}
-    });
+    }));
 });
 doc.apply(col);
 
@@ -411,11 +411,11 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 
 doc.apply(new Typesetting.Component.SubSection("Colors"));
 
-doc.paragraph(%{
+doc.apply(new Typesetting.Component.Paragraph(%{
     Changing a text color is supported by the command of \monotype{\\color}.
     You can specify the color by the name like red, or CMYK/RGB values directly.
     For example, please see below.
-});
+}));
 
 doc.apply(new Typesetting.Component.Itemize({
     labelType: 'enum',
