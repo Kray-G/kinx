@@ -1,0 +1,24 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Code(opts_, code_) : Component.Base(opts_) {
+            private initialize() {
+                if (code_.isUndefined) {
+                    [code_, opts_] = [opts_];
+                }
+            }
+            public showBox(type) {
+                opts_.box = type ?? Typesetting.BOX_NORMAL;
+            }
+            public showLineNumber(tf) {
+                opts_.lineNumber = tf ?? true;
+            }
+            public apply(doc) {
+                return @applyDoc(doc, "code", opts_, code_);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

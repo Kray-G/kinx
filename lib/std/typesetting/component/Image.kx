@@ -1,0 +1,16 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Image(opts_) : Component.Base(opts_) {
+            public setCaption(caption) {
+                opts_.caption = caption;
+            }
+            public apply(doc) {
+                return @applyDoc(doc, "image", opts_);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

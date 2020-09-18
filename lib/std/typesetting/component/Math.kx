@@ -1,0 +1,30 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Math(opts_, str_) : Component.Base(opts_) {
+            var caption_;
+            private initialize() {
+                if (str_.isUndefined) {
+                    [str_, opts_] = [opts_];
+                }
+            }
+            public setLabel(label) {
+                opts_.label ??= [];
+                opts_.label.push(label);
+            }
+            public setCaption(caption) {
+                caption_ = caption;
+            }
+            public apply(doc) {
+                var linetop = @applyDoc(doc, "math", opts_, str_);
+                if (caption_) {
+                    doc.imageCaption(caption_, linetop);
+                }
+                return linetop;
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

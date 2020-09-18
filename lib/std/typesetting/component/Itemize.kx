@@ -1,0 +1,18 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Itemize(opts_, items_) : Component.Base(opts_) {
+            private initialize() {
+                if (items_.isUndefined) {
+                    [items_, opts_] = [opts_];
+                }
+            }
+            public apply(doc) {
+                return @applyDoc(doc, "itemize", opts_, items_);
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting
