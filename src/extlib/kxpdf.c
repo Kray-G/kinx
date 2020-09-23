@@ -281,8 +281,8 @@ int kxpdf_HPDF_Page_SetDash(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
 {
     /* HPDF_Page page                 */ KX_GET_VOIDP(args, ctx, v1, 1);
     /* const HPDF_UINT16 *dash_ptn    */ kx_obj_t *v2 = get_arg_obj(2, args, ctx);
-    /* HPDF_UINT num_param            */ /* not used */
-    /* HPDF_UINT phase                */ int64_t v3 = get_arg_int(3, args, ctx);
+    /* HPDF_UINT num_param            */ int64_t v3 = get_arg_int(3, args, ctx);
+    /* HPDF_UINT phase                */ int64_t v4 = get_arg_int(4, args, ctx);
 
     int len = v2 ? kv_size(v2->ary) : 0;
     HPDF_UINT16 *dash_pth = NULL;
@@ -298,17 +298,46 @@ int kxpdf_HPDF_Page_SetDash(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
         }
     }
     sg_error = sg_detail = 0;
-    int r = HPDF_Page_SetDash(v1, dash_pth, len, v3);
+    int r = HPDF_Page_SetDash(v1, dash_pth, v3, v4);
 
-    if (dash_pth) {
-        kx_free(dash_pth);
-    }
     if (sg_error != 0 || sg_detail != 0) {
         return throw_exception(args, ctx, sg_error, sg_detail);
     }
 
     KX_ADJST_STACK();
     push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
+int kxpdf_HPDF_Outline_SetOpened(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
+int kxpdf_HPDF_Outline_SetDestination(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
+static kx_obj_t *kxpdf_append_method_HPDF_Outline(kx_context_t *ctx, void *r)
+{
+
+    /* HPDF_Outline */
+    KX_MAKE_VOIDP(rv, r);
+    KEX_SET_METHOD("setOpened", rv, kxpdf_HPDF_Outline_SetOpened);
+    KEX_SET_METHOD("setDestination", rv, kxpdf_HPDF_Outline_SetDestination);
+
+    return rv;
+}
+
+int kxpdf_HPDF_CreateOutline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Doc pdf                   */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_Outline parent            */ KX_GET_VOIDP(args, ctx, v2, 2);
+    /* const char *title              */ const char *v3 = get_arg_str(3, args, ctx);
+
+    sg_error = sg_detail = 0;
+    void *e = HPDF_GetEncoder(v1, "UTF-8");
+    void *r = HPDF_CreateOutline(v1, v2, v3, e);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+    kx_obj_t *rv = kxpdf_append_method_HPDF_Outline(ctx, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
     return 0;
 }
 
@@ -1518,36 +1547,16 @@ int kxpdf_HPDF_UseCNTFonts(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     return 0;
 }
 
-static kx_obj_t *kxpdf_append_method_HPDF_Outline(kx_context_t *ctx, void *r)
+/*
 {
-
-    /* HPDF_Outline */
-    KX_MAKE_VOIDP(rv, r);
-    KEX_SET_METHOD("setOpened", rv, kxpdf_HPDF_Outline_SetOpened);
-    KEX_SET_METHOD("setDestination", rv, kxpdf_HPDF_Outline_SetDestination);
-
-    return rv;
-}
-
-int kxpdf_HPDF_CreateOutline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    /* HPDF_Doc pdf                   */ KX_GET_VOIDP(args, ctx, v1, 1);
-    /* HPDF_Outline parent            */ KX_GET_VOIDP(args, ctx, v2, 2);
-    /* const char *title              */ const char *v3 = get_arg_str(3, args, ctx);
-    /* HPDF_Encoder encoder           */ KX_GET_VOIDP(args, ctx, v4, 4);
-
-    sg_error = sg_detail = 0;
-    void *r = HPDF_CreateOutline(v1, v2, v3, v4);
-
-    if (sg_error != 0 || sg_detail != 0) {
-        return throw_exception(args, ctx, sg_error, sg_detail);
+    "args": [["void *", "pdf", "HPDF_Doc"], ["void *", "parent", "HPDF_Outline"], ["const char *", "title", "const char *"], ["void *", "encoder", "HPDF_Encoder"]],
+    "name": "HPDF_CreateOutline",
+    "rtype": {
+        "name": "HPDF_Outline",
+        "type": "void *"
     }
-    kx_obj_t *rv = kxpdf_append_method_HPDF_Outline(ctx, r);
-    KX_ADJST_STACK();
-    push_obj(ctx->stack, rv);
-    return 0;
 }
-
+*/
 int kxpdf_HPDF_Outline_SetOpened(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     /* HPDF_Outline outline           */ KX_GET_VOIDP(args, ctx, v1, 1);
@@ -5598,6 +5607,19 @@ int kxpdf_create_HPDF_Error_Handler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx
 }
 
 
+int kxpdf_create_HPDF_Outline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = allocate_obj(ctx);
+
+    KEX_SET_METHOD("setOpened", obj, kxpdf_HPDF_Outline_SetOpened);
+    KEX_SET_METHOD("setDestination", obj, kxpdf_HPDF_Outline_SetDestination);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+
 int kxpdf_create_Main(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = allocate_obj(ctx);
@@ -5607,6 +5629,7 @@ int kxpdf_create_Main(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     KEX_SET_METHOD("create", obj, kxpdf_create_HPDF_Doc);
     KEX_SET_METHOD("createError", obj, kxpdf_create_HPDF_Error);
     KEX_SET_METHOD("createError_Handler", obj, kxpdf_create_HPDF_Error_Handler);
+    KEX_SET_METHOD("createOutline", obj, kxpdf_create_HPDF_Outline);
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);

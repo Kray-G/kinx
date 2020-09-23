@@ -12,10 +12,10 @@ namespace Typesetting {
             public applyDoc(doc, intrf, options, value) {
                 return doc[intrf](options, value);
             }
-            public appendListOf(context, target, level, number, header, linetop) {
+            public appendListOf(info, context, target, level, number, header, linetop) {
                 context.tocinfo[target] ??= {};
                 context.tocinfo[target].push({
-                    page: context.counter.page,
+                    page: info.writer.getPageNumber(),
                     level: level,
                     number: number,
                     header: header,
@@ -24,6 +24,10 @@ namespace Typesetting {
             }
             public makeCountrNumber(context, counterName) {
                 var level = context.counter[counterName][0];
+                if (context.counter.section[level] != context.counter[counterName][2]) {
+                    context.counter[counterName][1] = 0;
+                }
+                context.counter[counterName][2] = context.counter.section[level];
                 var num = ++context.counter[counterName][1];
                 var lt = [];
                 for (var i = 1; i <= level; ++i) {
@@ -53,7 +57,7 @@ namespace Typesetting {
                 }
 
                 core.util.writeCenter({}, cap, context.font.fontObj, fontSize, lineFeedWidth);
-                appendListOf(context, "lof", info.base.sectionLevel + 1, number, caption, linetop);
+                appendListOf(info, context, "lof", info.base.image.level + 1, number, caption, linetop);
 
                 info.writer.lineBreak(lineFeedWidth);
             }

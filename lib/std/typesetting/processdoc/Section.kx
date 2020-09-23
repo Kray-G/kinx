@@ -16,8 +16,8 @@ namespace Typesetting {
                 return lineFeedWidth + paragraphSkipWidth + marginSize / 2;
             }
 
-            public exec(level, opts, text) {
-                [opts, text] = util_.makeOption(opts, text);
+            public exec(level, opts, sectionText) {
+                [opts, text] = util_.makeOption(opts, sectionText);
 
                 var writer = info_.writer;
                 var numText = util_.makeSectionNumber(level);
@@ -27,15 +27,6 @@ namespace Typesetting {
                     fontObj: context_.font.fontObjBase.bold,
                     fontSize: info_.base.fontSize[level],
                 };
-                if (opts.label) {
-                    var pagenum = writer.getPageIndex();
-                    context_.xref[opts.label] = {
-                        page:      pagenum,
-                        counter:   sectionNumberText,
-                        name:      sectionNumberText + ' ' + text,
-                        text:      text,
-                    };
-                }
 
                 var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
                 context_.page.lineFeedWidthRatio = info_.base.lineFeedWidthRatio[level];
@@ -48,10 +39,17 @@ namespace Typesetting {
                 var indent = context_.noIndent;
                 context_.noIndent = true;
                 var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
-                var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
                 if (opts.label) {
-                    context_.xref[opts.label].y = linetop;
+                    var pagenum = writer.getPageIndex();
+                    context_.xref[opts.label] = {
+                        page:      pagenum,
+                        counter:   sectionNumberText,
+                        name:      sectionNumberText + ' ' + text,
+                        text:      text,
+                        y:         linetop,
+                    };
                 }
+                var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
                 util_.write(lines);
                 context_.noIndent = indent;
                 context_.page.paragraphSkipWidth = paragraphSkipWidth;
@@ -72,7 +70,11 @@ namespace Typesetting {
                     });
                 }
 
-                return [linetop, header];
+                var olheader = sectionNumberText + ' ' + sectionText
+                    .replace("\\LaTeX", "LaTeX")
+                    .replace("\\KaTeX", "KaTeX")
+                    .replace("\\TeX", "TeX");
+                return [linetop, olheader];
             }
 
         }

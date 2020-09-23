@@ -10,6 +10,7 @@ namespace Typesetting {
         class Itemize(info_, context_, util_, paragraph_) {
 
             var itemizeImpl;
+            var counterBase_ = [];
 
             private itemizeItem(opts, items, level, itemType, itemMarginBase, itemMargin, writer, margin) {
                 var bullet = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '-');
@@ -25,6 +26,7 @@ namespace Typesetting {
                     if (item.items.isArray) {
                         item.level = level + 1;
                         itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                        counterBase_[level+1] = null;
                     } else if (item.isString) {
                         [opts, item] = util_.makeOption(opts, item);
                         var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
@@ -37,27 +39,30 @@ namespace Typesetting {
                 var numberFormat = items.label ?? (info_.base.itemize.itemLabels[itemType][level] || '1. ');
                 var format, counter, getCounter;
                 if (numberFormat.find('1') >= 0) {
-                    counter = 1;
+                    counterBase_[level] ??= 1;
                     format = '1';
-                    getCounter = function() { return counter + 1; };
+                    getCounter = function() { return ++counterBase_[level]; };
+                    counter = counterBase_[level];
                 } else if (numberFormat.find('a') >= 0) {
-                    counter = 'a';
+                    counterBase_[level] ??= 'a';
                     format = 'a';
-                    getCounter = function() { return counter.next(); };
+                    getCounter = function() { counterBase_[level] = counterBase_[level].next(); return counterBase_[level]; };
+                    counter = counterBase_[level];
                 } else if (numberFormat.find('i') >= 0) {
-                    var counterBase = 1;
-                    counter = Typesetting.Util.romanize(1);
+                    counterBase_[level] ??= 1;
                     format = 'i';
-                    getCounter = function() { return Typesetting.Util.romanize(++counterBase); };
+                    counter = Typesetting.Util.romanize(counterBase_[level]);
+                    getCounter = function() { return Typesetting.Util.romanize(++counterBase_[level]); };
                 } else if (numberFormat.find('I') >= 0) {
-                    var counterBase = 1;
-                    counter = Typesetting.Util.romanizeCap(1);
+                    counterBase_[level] ??= 1;
+                    counter = Typesetting.Util.romanizeCap(counterBase_[level]);
                     format = 'i';
-                    getCounter = function() { return Typesetting.Util.romanizeCap(++counterBase); };
+                    getCounter = function() { return Typesetting.Util.romanizeCap(++counterBase_[level]); };
                 } else if (numberFormat.find('A') >= 0) {
-                    counter = 'A';
+                    counterBase_[level] ??= 'A';
                     format = 'A';
-                    getCounter = function() { return counter.next(); };
+                    getCounter = function() { counterBase_[level] = counterBase_[level].next(); return counterBase_[level]; };
+                    counter = counterBase_[level];
                 }
                 while (--counterInit) {
                     counter = getCounter();
@@ -70,6 +75,7 @@ namespace Typesetting {
                     if (item.items.isArray) {
                         item.level = level + 1;
                         itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                        counterBase_[item.level] = null;
                     } else if (item.isString) {
                         var number = numberFormat.replace(format, ""+counter);
                         var textWidth = info_.measure.textWidth(context_.font.fontObj, context_.font.fontSize, number);
@@ -123,10 +129,13 @@ namespace Typesetting {
             }
 
             public exec(opts, items) {
+                var savedMargin = info_.writer.getMargin();
+                counterBase_ = [];
                 itemizeImpl(opts, items);
                 var lineFeedWidthRatio = info_.base.itemize.lineFeedWidthRatio[0];
                 var fontSize = info_.base.itemize.fontSize[0];
                 info_.writer.addY(lineFeedWidthRatio * fontSize / 2, false);
+                info_.writer.setMargin(savedMargin);
             }
 
         }

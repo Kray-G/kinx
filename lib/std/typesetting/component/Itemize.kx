@@ -7,9 +7,28 @@ namespace Typesetting {
                 if (items_.isUndefined) {
                     [items_, opts_] = [opts_];
                 }
+                items_ ??= { level: 0 };
             }
-            public apply(doc) {
-                return @applyDoc(doc, "itemize", opts_, items_);
+            public getRoot() {
+                return items_;
+            }
+            public addItem(parent, level, type, text) {
+                var d;
+                if (level != parent.level) {
+                    if (parent.items[-1].isObject && level == parent.items[-1].level) {
+                        parent.items[-1].items.push(text);
+                        return parent.items[-1];
+                    }
+                    d = { level: level };
+                    d.labelType ??= type;
+                    d.items ??= {};
+                    d.items.push(text);
+                    text = d;
+                }
+                parent.labelType ??= type;
+                parent.items ??= {};
+                parent.items.push(text);
+                return d ?? parent;
             }
             public write(info, context, core) {
                 core.flushParagraph();
