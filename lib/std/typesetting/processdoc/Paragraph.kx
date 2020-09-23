@@ -146,7 +146,7 @@ namespace Typesetting {
                 }
                 var words = wordSet.flatten();
                 var nodes = [];
-                if (!context_.noIndent) {
+                if (!context_.noIndent && !context_.outputSection) {
                     nodes.push(Linebreak.Box(context_.indentSize, new Word(info_).setWord(fontObj, fontSize, '')));
                 }
                 if (settings.preText) {

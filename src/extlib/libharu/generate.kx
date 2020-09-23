@@ -144,6 +144,7 @@ var predefinedFunction = {
     HPDF_Page_MeasureText: true,
     HPDF_Page_TextRect: true,
     HPDF_Page_SetDash: true,
+    HPDF_CreateOutline: true,
 };
 var objectMain = [];
 var objectType = {};
@@ -471,6 +472,38 @@ int kxpdf_HPDF_Page_SetDash(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context
 
     KX_ADJST_STACK();
     push_i(ctx->stack, (int64_t)r);
+    return 0;
+}
+
+int kxpdf_HPDF_Outline_SetOpened(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
+int kxpdf_HPDF_Outline_SetDestination(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);
+static kx_obj_t *kxpdf_append_method_HPDF_Outline(kx_context_t *ctx, void *r)
+{
+
+    /* HPDF_Outline */
+    KX_MAKE_VOIDP(rv, r);
+    KEX_SET_METHOD("setOpened", rv, kxpdf_HPDF_Outline_SetOpened);
+    KEX_SET_METHOD("setDestination", rv, kxpdf_HPDF_Outline_SetDestination);
+
+    return rv;
+}
+
+int kxpdf_HPDF_CreateOutline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* HPDF_Doc pdf                   */ KX_GET_VOIDP(args, ctx, v1, 1);
+    /* HPDF_Outline parent            */ KX_GET_VOIDP(args, ctx, v2, 2);
+    /* const char *title              */ const char *v3 = get_arg_str(3, args, ctx);
+
+    sg_error = sg_detail = 0;
+    void *e = HPDF_GetEncoder(v1, "UTF-8");
+    void *r = HPDF_CreateOutline(v1, v2, v3, e);
+
+    if (sg_error != 0 || sg_detail != 0) {
+        return throw_exception(args, ctx, sg_error, sg_detail);
+    }
+    kx_obj_t *rv = kxpdf_append_method_HPDF_Outline(ctx, r);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, rv);
     return 0;
 }
 
