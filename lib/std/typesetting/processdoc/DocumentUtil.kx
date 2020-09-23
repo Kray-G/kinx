@@ -213,7 +213,8 @@ namespace Typesetting {
                             x += dotWidth_;
                         }
                         num = new Word(info_).setWord(fontObj, fontSize, num);
-                        num.isAnnot = true;
+                        num.startAnnot = true;
+                        num.endAnnot = true;
                         num.annotPage = pageNumber;
                         num.annotPos = { y: y };
                         num = Linebreak.Box(numw, num);

@@ -42,7 +42,7 @@ namespace Typesetting {
     class PdfDirectWriter(info_, pages_) {
 
         var urlEx_ = {}, urlExRect_;
-        var annot_ = [];
+        var annot_ = [], prevAnnotX_;
         var linkAnnot_ = info_.base.link.annotation;
         var linkUrl_ = info_.base.link.url;
         var adjust_ = 0;
@@ -87,6 +87,17 @@ namespace Typesetting {
             drawBoxImpl(page, left, top, width, height, lineWidth, color);
         }
 
+        public writeColorText(page, x, y, color, text) {
+            page.gSave();
+            page.setCMYKFill(...color);
+            page.setCMYKStroke(...color);
+            page.beginText();
+            page.moveTextPos(x, y);
+            page.showText(text);
+            page.endText();
+            page.gRestore();
+        }
+
         public writeText(page, text, value, x, y, offsetY, width) {
             x += adjust_;
             var textcolor = value.color;
@@ -103,14 +114,7 @@ namespace Typesetting {
                 page.setCMYKFill(...color);
                 page.setCMYKStroke(...color);
             }
-            if (value.isAnnot) {
-                var color = linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0];
-                page.gSave();
-                page.setCMYKFill(...color);
-                page.setCMYKStroke(...color);
-                drawLineImpl(page, x, ay - 1, width, 0, linkAnnot_.underlineSize) if (linkAnnot_.underline);
-                page.beginText();
-                page.moveTextPos(x, ay);
+            if (value.startAnnot) {
                 annot_.push({
                     left: x - 4,
                     top: ay + value.bottom - 2,
@@ -118,11 +122,32 @@ namespace Typesetting {
                     bottom: ay + value.top + 2,
                     page: page,
                     value: value,
+                    ay: ay,
                     y: value.annotPos.y,
                 });
-                page.showText(text);
-                page.endText();
-                page.gRestore();
+                writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
+            }
+            if (value.endAnnot) {
+                var annot = annot_[-1];
+                if (annot.y == value.annotPos.y) {
+                    annot.right = x + width + 4;
+                } else {
+                    annot.right = prevAnnotX_;
+                    annot_.push({
+                        left: x - 4,
+                        top: ay + value.bottom - 2,
+                        right: x + width + 4,
+                        bottom: ay + value.top + 2,
+                        page: page,
+                        value: value,
+                        ay: ay,
+                        y: value.annotPos.y,
+                    });
+                    annot = annot_[-1];
+                }
+                writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
+            } else if (value.inAnnot) {
+                writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
             } else if (value.isUrl) {
                 var color = linkUrl_.color ?? textcolor ?? [0, 1, 1, 0];
                 page.gSave();
@@ -190,6 +215,7 @@ namespace Typesetting {
                     page.gRestore();
                 }
             }
+            prevAnnotX_ = x + width + 4;
         }
 
         public drawImage(page, image, x, y, width, height) {
@@ -233,13 +259,9 @@ namespace Typesetting {
         var pdf_, page_, margin_, pageMargin_, marginCache_;
         var cols_, curCol_, isColMoved_;
         var pagesize_, direction_;
-        var width_, height_, ascent_;
-        var x_, y_;
-        var ytop_, ybottom_, isTopOfPage_;
-        var lastLineFeedWidth_;
+        var x_, y_, width_, height_, ascent_;
+        var ytop_, ybottom_, isTopOfPage_, lastLineFeedWidth_, floating_, tocBasePage_, setPageToOdd_;
         var footnotes_ = [];
-        var floating_;
-        var tocBasePage_;
 
         private initialize() {
             info_.context.counter.page = 0;
@@ -278,6 +300,31 @@ namespace Typesetting {
 
         public getFontObjBase() {
             return [ fontObjSerif_, fontObjSans_, fontObjMonotype_, fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_ ];
+        }
+
+        public getPageNumber() {
+            if (page_.isUndefined) {
+                return info_.context.counter.page + 1;
+            }
+            return info_.context.counter.page;
+        }
+
+        public adjustTopPageToOdd() {
+            if (setPageToOdd_) {
+                @addPage();
+            }
+        }
+        public setPageToOdd() {
+            setPageToOdd_ = true;
+            if (page_.isUndefined) {
+                @addPage();
+            }
+            if ((page_.number & 0x01) == 0x00) {
+                page_.noPageNumber = true;
+                @pageBreak();
+                @addPage();
+            }
+            marginCache_ = null;
         }
 
         public getColumnNumber() {
@@ -333,7 +380,7 @@ namespace Typesetting {
             } else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
                 return pdf_.loadJpegImageFromFile(path);
             }
-            throw RuntimeException("Unsupported image file format");
+            throw RuntimeException("Unsupported image file format: " + path);
         }
 
         public drawLine(left, top, width, height, lineWidth, color, pageref) {
@@ -375,7 +422,7 @@ namespace Typesetting {
         }
 
         public createOutline(parent, name, isOpened) {
-            var outline = pdf_.createOutline(parent, name, null);
+            var outline = pdf_.createOutline(parent, name);
             outline.setOpened(isOpened);
             return outline;
         }

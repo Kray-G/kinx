@@ -28,6 +28,7 @@ namespace Typesetting {
                     },
                 });
                 core.flushParagraph();
+                context.outputSection = false;
             }
         }
 
