@@ -1719,7 +1719,7 @@ int System_callCFunction(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function address");
 }
 
-char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *input, int inputlen, int *inleftp, int *outlenp)
+static char *kx_convert_iconv(const char *tocode, const char *fromcode, const char *input, int inputlen, int *inleftp, int *outlenp)
 {
     size_t inleft, outleft;
     int64_t converted = 0;
@@ -1801,6 +1801,9 @@ static int System_iconv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
         break;
     }
     if (!output || inleft != 0) {
+        if (output) {
+            kx_free(output);
+        }
         if (errno == EILSEQ) {
             KX_THROW_BLTIN_EXCEPTION("SystemException", "An invalid multibyte sequence has been encountered in the input");
         } else if (errno != 0) {

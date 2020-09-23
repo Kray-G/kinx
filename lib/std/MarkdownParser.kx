@@ -183,26 +183,29 @@ namespace Markdown {
             }
         }
 
-        _class List(text, level) : Node('list', 'block') {
+        _class List(text, level, indent) : Node('list', 'block') {
             private initialize() {
                 @level = level;
                 @values = inlineParser(text);
+                @indent = indent;
             }
         }
 
-        _class OrderedList(text, order, level) : Node('orderedlist', 'block') {
+        _class OrderedList(text, order, level, indent) : Node('orderedlist', 'block') {
             private initialize() {
                 @level = level;
                 @order = order;
                 @values = inlineParser(text);
+                @indent = indent;
             }
         }
 
-        _class CheckList(text, checked, level) : Node('checklist', 'block') {
+        _class CheckList(text, checked, level, indent) : Node('checklist', 'block') {
             private initialize() {
                 @level = level;
                 @checked = checked;
                 @values = inlineParser(text);
+                @indent = indent;
             }
         }
 
@@ -512,6 +515,7 @@ namespace Markdown {
 
     Markdown.BlockParser = _function(str, callback) {
         var ast = [];
+        var indentLevel_ = [1];
 
         if (!/\n$/.test(str)) {
             str += '\n';
@@ -522,6 +526,7 @@ namespace Markdown {
         var mode = MODE_DEFAULT;
         var tables = [];
         var match;
+        var syntax;
 
         const parseParagraph = &(stack) => {
             if (tables.length() > 0) {
@@ -543,10 +548,11 @@ namespace Markdown {
             }
             if (char == '\n'[0]) {
                 if (mode == MODE_CODE) {
-                    if (CODE_REGEX.test(line)) {
-                        ast.push(new Nodes.Code(stack.trim()));
+                    if (line.match(CODE_REGEX)) {
+                        ast.push(new Nodes.Code(stack.trim(), syntax));
                         stack = '';
                         mode = MODE_DEFAULT;
+                        syntax = null;
                     } else {
                         stack += line != '' ? "%{line}\n" : '';
                     }
@@ -559,9 +565,10 @@ namespace Markdown {
                 } else if ((match = line.match(LINEBREAK_REGEX)).isDefined) {
                     parseParagraph(stack + match[1]);
                     stack = '';
-                } else if (CODE_REGEX.test(line)) {
+                } else if ((match = line.match(CODE_REGEX)).isDefined) {
                     parseParagraph(stack);
                     mode = MODE_CODE;
+                    syntax = match[1];
                     stack = '';
                 } else if ((match = line.match(BLOCKQUOTE_REGEX)).isDefined) {
                     parseParagraph(stack);
@@ -580,26 +587,28 @@ namespace Markdown {
                     stack = '';
                     const prev = ast[-1];
                     const check = match[2].match(/^\[(x|\u0020)?\]\s?(.+)$/);
-                    var level = 1;
-                    if (prev && (prev.name == 'list' || prev.name == 'checkedlist')) {
-                        const indent = (match[1] || '').length();
-                        level = (prev.level * 2 <= indent) ? prev.level + 1 : prev.level;
+                    var indent, level = 1;
+                    if (prev && (prev.name == 'list' || prev.name == 'checkedlist' || prev.name == 'orderedlchecklist' || prev.name == 'orderedlist')) {
+                        indent = (match[1] || '').length();
+                        level = (prev.indent < indent) ? prev.level + 1 : (indentLevel_[indent] ?? prev.level);
+                        indentLevel_[indent] = level;
                     }
-                    const list = check ? new Nodes.CheckList(check[2], check[1] == 'x'[0], level) : new Nodes.List(match[2], level);
+                    const list = check ? new Nodes.CheckList(check[2], check[1] == 'x'[0], level, indent) : new Nodes.List(match[2], level, indent);
                     ast.push(list);
                 } else if ((match = line.match(OLIST_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
                     const prev = ast[-1];
                     const check = match[2].match(/^\[(x|\u0020)?\]\s?(.+)$/);
-                    var level = 1;
-                    if (prev && (prev.name == 'orderedlcheckist' || prev.name == 'checkedlist')) {
-                        const indent = (match[1] || '').length();
-                        level = (prev.level * 2 <= indent) ? prev.level + 1 : prev.level;
+                    var indent, level = 1;
+                    if (prev && (prev.name == 'list' || prev.name == 'checkedlist' || prev.name == 'orderedlchecklist' || prev.name == 'orderedlist')) {
+                        indent = (match[1] || '').length();
+                        level = (prev.indent < indent) ? prev.level + 1 : (indentLevel_[indent] ?? prev.level);
+                        indentLevel_[indent] = level;
                     }
                     const list = check ?
-                        new Nodes.OrderedCheckList(check[2], check[1] == 'x'[0], (match[2] || 0), level) :
-                        new Nodes.OrderedList(match[3], (match[2] || 0), level);
+                        new Nodes.OrderedCheckList(check[2], check[1] == 'x'[0], (match[2] || 0), level, indent) :
+                        new Nodes.OrderedList(match[3], (match[2] || 0), level, indent);
                     ast.push(list);
                 } else if ((match = line.match(TABLE_REGEX)).isDefined) {
                     tables.push(line);
