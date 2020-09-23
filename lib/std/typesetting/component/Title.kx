@@ -39,6 +39,7 @@ namespace Typesetting {
                     if (info.base.outline) {
                         var ol = writer.createOutline(null, title_, true);
                         writer.setCurrentPage(ol);
+                        context.contentsOutline = writer.createOutline(null, info.base.toc.header, true);
                     }
                     return;
                 }
@@ -57,6 +58,7 @@ namespace Typesetting {
                 if (info.base.outline) {
                     var ol = writer.createOutline(null, title_, true);
                     writer.setCurrentPage(ol);
+                    context.contentsOutline = writer.createOutline(null, info.base.toc.header, true);
                 }
             }
         }

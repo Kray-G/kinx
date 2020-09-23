@@ -1,12 +1,15 @@
-using typesetting.style.ArticleA4;
+using typesetting.style.BookA4;
 
 namespace Typesetting {
 namespace Style {
 
-    class JArticleA4 : Typesetting.Style.ArticleA4 {
+    class JBookA4 : Typesetting.Style.BookA4 {
         var fontSize = 10.0;
         @style.indentSize = fontSize;
         @style.noIndentTopOfParagraph = false;
+        @style.toc.header = "目次";
+        @style.chapter.pretext = "第 ";
+        @style.chapter.posttext = " 章";
     }
 
 } # namespace Style
