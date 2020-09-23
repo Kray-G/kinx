@@ -1,10 +1,39 @@
 using Typesetting;
-using typesetting.style.BookA4;
+using typesetting.style.JBookA4;
 using MarkdownParser;
 
 namespace Typesetting {
 
     class InlineMaker {
+        var images_ = [];
+        private checkInlineParam(paramsText) {
+            var res = {};
+            paramsText.split(',').each { &(param):
+                var e = param.split('=');
+                if (e.length() > 1) {
+                    res[e[0]] = e[1];
+                } else {
+                    res[e[0]] = true;
+                }
+            };
+            return res;
+        }
+        public reset() {
+            images_ = [];
+        }
+        public flush(doc) {
+            images_.each { &(image):
+                doc.apply(new Typesetting.Component.Image({
+                    label: image.opts.label,
+                    float: image.opts.float,
+                    scale: image.opts.scale ?? 1.0,
+                    caption: image.opts.caption,
+                    file: image.src,
+                }));
+            };
+            images_ = [];
+        }
+
         public text(value) {
             return value.value;
         }
@@ -15,7 +44,7 @@ namespace Typesetting {
             return '';
         }
         public em(value) {
-            return "\\bold{%{value}}";
+            return "\\bold{%{value.value}}";
         }
         public italic(value) {
             return value.value;
@@ -30,7 +59,19 @@ namespace Typesetting {
             return "\\monotype{\\pack{%{value.value}}}";
         }
         public image(value) {
-            return '';
+            var check = checkInlineParam(value.alt);
+            if (check.float.isString) {
+                var floatPos = check.float;
+                check.float = {};
+                check.float[floatPos] = true;
+                if (check.scale) {
+                    check.scale = Double.parseDouble(check.scale);
+                }
+                value.opts = check;
+                images_.push(value);
+                return '';
+            }
+            return '\\image[%{value.alt}]{%{value.src}}';
         }
         public link(value) {
             return '';
@@ -39,10 +80,12 @@ namespace Typesetting {
 
     class BookParser {
         var title_, doc_;
+        var list_ = [];
         var opts_ = {};
         var inline_ = new InlineMaker();
         private makeInlineText(values) {
             var str = '';
+            inline_.reset();
             values.each { &(value):
                 if (inline_[value.name].isFunction) {
                     str += inline_[value.name](value);
@@ -53,13 +96,15 @@ namespace Typesetting {
         private checkParam(values) {
             var r = false;
             values.each { &(value):
-                var v = value.value.trim();
-                if (value.name == 'html' && v.startsWith("<param ")) {
-                    var m = v.match(/<param\s*(.+)="(.+)"\s*\/>/);
-                    if (m.isDefined) {
-                        opts_[m[1]] = m[2];
+                if (value.value.isString) {
+                    var v = value.value.trim();
+                    if (value.name == 'html' && v.startsWith("<param ")) {
+                        var m = v.match(/<param\s*(.+)="(.+)"\s*\/>/);
+                        if (m.isDefined) {
+                            opts_[m[1]] = m[2];
+                        }
+                        r = true;
                     }
-                    r = true;
                 }
             };
             return r;
@@ -84,8 +129,51 @@ namespace Typesetting {
                 doc_.toc();
             }
         }
+        private itemType(name) {
+            switch (name) {
+            case "list":
+            case "checkedlist":
+                return "item";
+            case "orderedlist":
+                return "enum";
+            }
+            return "item";
+        }
+        public flushList() {
+            if (list_.length() == 0) {
+                return;
+            }
+            var itemize = new Typesetting.Component.Itemize();
+            var root = itemize.getRoot();
+            var parent = [root];
+            list_.each { &(item)
+                var l = item.level - 1;
+                var p = parent[l] || parent[-1];
+                var d = itemize.addItem(p, l, itemType(item.name), makeInlineText(item.values));
+                parent[item.level] = d;
+            };
+            doc_.apply(itemize);
+            list_ = [];
+        }
+        private checkInlineParam(paramsText) {
+            var res = { lineNumber: true, box: Typesetting.BOX_SHADOW };
+            var checker = paramsText.split(':');
+            if (checker.length() > 1) {
+                var params = checker[1];
+                params.split(',').each { &(param):
+                    var e = param.split('=');
+                    if (e.length() > 1) {
+                        res[e[0]] = (Typesetting[e[1]] ?? (e[1] == "true"));
+                    } else {
+                        res[e[0]] = Typesetting[e[0]] ?? true;
+                    }
+                };
+            }
+            return res;
+        }
 
         public heading(ast) {
+            flushList();
             if (ast.level == 1) {
                 title_ = makeInlineText(ast.values);
             }
@@ -113,30 +201,53 @@ namespace Typesetting {
             }
         }
         public paragraph(ast) {
+            flushList();
             if (checkParam(ast.values)) {
                 return;
             }
             if (doc_.isUndefined) {
                 return;
             }
-            doc_.apply(new Typesetting.Component.Paragraph(makeInlineText(ast.values)));
+            var text = makeInlineText(ast.values);
+            inline_.flush(doc_);
+            doc_.apply(new Typesetting.Component.Paragraph(text));
         }
         public horizontal(ast) {
+            flushList();
+            # TODO
         }
         public code(ast) {
+            flushList();
+            var code = new Typesetting.Component.Code(makeInlineText(ast.values).trim());
+            var check = checkInlineParam(ast.syntax);
+            if (check.lineNumber) {
+                code.showLineNumber();
+            }
+            if (check.box) {
+                code.showBox(check.box);
+            }
+            doc_.apply(code);
         }
         public blockquote(ast) {
+            flushList();
+            # TODO
         }
         public list(ast) {
+            list_.push(ast);
         }
         public orderedlist(ast) {
+            list_.push(ast);
         }
         public checklist(ast) {
+            list_.push(ast);
         }
         public table(ast) {
+            flushList();
+            # TODO
         }
 
         public dump() {
+            flushList();
             # System.println("Title: ", title_);
             # opts_.keySet().each { &(key):
             #     System.println(key + ": ", opts_[key]);
@@ -150,7 +261,7 @@ namespace Typesetting {
 
 } # namespace Typesetting
 
-var contents = File.load("examples/typesetting/KinxTT.md");
+var contents = File.load("examples/typesetting/KinxTT_jp.md");
 var parser = new Typesetting.BookParser();
 var ast = Markdown.BlockParser(contents);
 ast.each { &(a):

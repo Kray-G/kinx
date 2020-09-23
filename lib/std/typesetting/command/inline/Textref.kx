@@ -16,7 +16,9 @@ namespace Typesetting {
                         info_.logger.warn("Re-run for Cross Reference with text");
                     }
                 }
-                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, text);
+                var parser = new Typesetting.ParagraphParser(context_, info_);
+                var wordSet = parser.parse(text);
+                var w = new Typesetting.WordSet(info_).addWord(wordSet);
                 w.isAnnot = true;
                 w.annotPage = ref.page;
                 w.annotPos = { y: ref.y };
