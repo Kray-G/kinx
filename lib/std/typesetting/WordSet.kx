@@ -157,7 +157,7 @@ namespace Typesetting {
                 writer_.lineBreak(captionSpace);
                 writer_.writeCenter(@caption, @fontObj, @fontSize);
                 writer_.lineBreak(@lineFeedWidth);
-                appendListOf("lof", info_.base.sectionLevel + 1, @captionNumber, @captionText, linetop);
+                appendListOf("lof", info_.base.image.level + 1, @captionNumber, @captionText, linetop);
             }
         }
     }
@@ -309,20 +309,33 @@ namespace Typesetting {
                     }
                 }
             };
-            if (@isUrl && result.length() > 0) {
+            if ((@isUrl || @isAnnot) && result.length() > 0) {
                 var last;
                 var rl = result.length();
                 for (var i = 0; i < rl; ++i) {
                     if (result[i].isBox) {
-                        if (last.isUndefined) {
-                            result[i].value.startUrl = true;
+                        if (@isUrl) {
+                            if (last.isUndefined) {
+                                result[i].value.startUrl = true;
+                            }
+                        } else {
+                            result[i].value.inAnnot = true;
+                            result[i].value.annotPage = @annotPage;
+                            result[i].value.annotPos = @annotPos;
+                            if (last.isUndefined) {
+                                result[i].value.startAnnot = true;
+                            }
                         }
                         last = i;
                     }
                 }
                 if (last >= 0) {
-                    result[last].value.endUrl = true;
-                    result[last].value.link = @link;
+                    if (@isUrl) {
+                        result[last].value.endUrl = true;
+                        result[last].value.link = @link;
+                    } else {
+                        result[last].value.endAnnot = true;
+                    }
                     result[last].value.bottom = bottom;
                     result[last].value.top = top;
                 }

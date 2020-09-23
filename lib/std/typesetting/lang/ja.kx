@@ -199,8 +199,17 @@ namespace Typesetting {
                     if (nodes[-1].isGlue) {
                         nodes.pop();
                     }
-                    nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
-                    nodes.push(node);
+                    if (noSpaceForNext_.find(value.word) >= 0) {
+                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                        nodes.push(node);
+                        var width = value.size / 2;
+                        var stretch = (width * 3) / 6;
+                        var shrink = (width * 3) / 9;
+                        nodes.push(Linebreak.Glue(width, stretch, shrink));
+                    } else {
+                        nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                        nodes.push(node);
+                    }
                     return;
                 } else if (notTail_.find(value.word) >= 0) {
                     var prev = words[i-1];

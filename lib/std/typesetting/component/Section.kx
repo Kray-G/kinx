@@ -11,11 +11,14 @@ namespace Typesetting {
                 @setOptionValue(opts_);
                 @text = text_;
                 @opts = opts_;
+                @opts_.label ??= @text;
             }
             public setText(text) {
                 @text = text;
+                @opts_.label ??= @text;
             }
             public write(info, context, core) {
+                context.outputSection = info.style.noIndentTopOfParagraph;
                 info.writer.setColumn(info.base.columns);
                 core.pendingParagraphList.push({
                     isSection: true,
@@ -35,6 +38,7 @@ namespace Typesetting {
 
         class SubSection(opts_, text_) : Section(opts_, text_) {
             public write(info, context, core) {
+                context.outputSection = info.style.noIndentTopOfParagraph;
                 core.pendingParagraphList.push({
                     isSection: true,
                     lineFeedWidth: core.section.getHeight(2),
@@ -53,6 +57,7 @@ namespace Typesetting {
 
         class SubSubSection(opts_, text_) : Section(opts_, text_) {
             public write(info, context, core) {
+                context.outputSection = info.style.noIndentTopOfParagraph;
                 core.pendingParagraphList.push({
                     isSection: true,
                     lineFeedWidth: core.section.getHeight(3),
@@ -74,16 +79,29 @@ namespace Typesetting {
                 if (text_.isUndefined) {
                     [text_, opts_] = [opts_];
                 }
+                opts_.label ??= text_;
             }
             public setText(text) {
                 text_ = text;
+                opts_.label ??= text_;
             }
             public write(info, context, core) {
+                context.outputSection = info.style.noIndentTopOfParagraph;
                 @pageBreak(info, core);
 
-                info.writer.setColumn(1);
                 var writer = info.writer;
+                writer.setPageToOdd();
+                writer.setColumn(1);
                 var margin = writer.makeMarginSize();
+
+                if (info.style.chapter.isFunction) {
+                    info.style.chapter(info, context, core, text_, opts_);
+                    if (info.base.outline) {
+                        var ol = writer.createOutline(context.outline[0], text_, true);
+                        writer.setCurrentPage(ol, margin.pageHeight - margin.top);
+                    }
+                    return;
+                }
 
                 var chapterSize = 32.8;
                 var fontObj = context.font.fontObj;
@@ -115,24 +133,34 @@ namespace Typesetting {
                 var lines = core.paragraph.exec({}, chapterText);
                 core.util.write(lines, { right: true });
 
-                info.writer.setColumn(info.base.columns);
+                writer.setColumn(info.base.columns);
 
                 context.noIndent = noIndent;
                 context.font.fontSize = fontSize;
 
+                var linetop = margin.pageHeight - margin.top;
+                if (opts_.label) {
+                    var pagenum = writer.getPageIndex();
+                    context.xref[opts_.label] = {
+                        page:      pagenum,
+                        counter:   chapterHeader,
+                        name:      chapterHeader + ' ' + text_,
+                        text:      chapterText,
+                        y:         linetop,
+                    };
+                }
                 if (level <= info.base.toc.level) {
-                    var linetop = margin.top;
                     context.tocinfo.list.push({
                         isHeader: true,
-                        page: context.counter.page,
+                        page: writer.getPageNumber(),
                         level: level,
                         number: chapterHeader,
                         header: chapterText,
                         y: linetop,
                     });
                     if (info.base.outline) {
-                        var ol = info.writer.createOutline(context.outline[level - 1], text_, true);
-                        info.writer.setCurrentPage(ol, linetop);
+                        var ol = writer.createOutline(context.outline[level - 1], text_, true);
+                        writer.setCurrentPage(ol, linetop);
                         context.outline[level] = ol;
                     }
                 }

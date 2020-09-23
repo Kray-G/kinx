@@ -48,8 +48,8 @@ namespace Typesetting {
                 counter: {
                     page: 1,
                     section: [],
-                    image: [info_.base.sectionLevel, 0],
-                    table: [info_.base.sectionLevel, 0],
+                    image: [info_.base.image.level, 0, 0],
+                    table: [info_.base.table.level, 0, 0],
                     footnote: 0,
                 },
                 name: {
@@ -119,11 +119,11 @@ namespace Typesetting {
                 var writer = info_.writer;
                 var totalLineFeeds = core_.pendingParagraphList.sum({ => _1.lineFeedWidth ?? 0 });
                 writer.checkColumnBreak(totalLineFeeds);
-                core_.pendingParagraphList.each {
-                    if (!_1.isParagraph) {
-                        writer.clearFloatingImage(_1.lineFeedWidth);
+                core_.pendingParagraphList.each { &(p):
+                    if (!p.isParagraph) {
+                        writer.clearFloatingImage(p.lineFeedWidth);
                     }
-                    _1.func();
+                    p.func();
                 };
                 core_.pendingParagraphList = [];
             };
@@ -169,13 +169,23 @@ namespace Typesetting {
         }
 
         public flushToc() {
-            info_.writer.initTocPage(info_.context.tocinfo.page);
+            info_.writer.initTocPage(context_.tocinfo.page);
             info_.context.tocinfo.lastPage = 1;
+
+            if (context_.contentsOutline.isDefined) {
+                var y = info_.writer.getPos().y;
+                if (y < 0) {
+                    var margin = info_.writer.makeMarginSize();
+                    y = margin.pageHeight - margin.top;
+                }
+                info_.writer.setCurrentPage(context_.contentsOutline, y);
+            }
 
             var fontSize = context_.font.fontSize;
             var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
             var paragraphSkipWidth = context_.page.paragraphSkipWidth;
             var indent = context_.indentSize;
+            var tocPages = 0, pn1, pn2;
 
             var tocinfo = [{ header: info_.base.toc.header, list: info_.context.tocinfo.list }];
             if (context_.lof) {
@@ -184,6 +194,7 @@ namespace Typesetting {
             if (context_.lot) {
                 tocinfo.push({ header: info_.base.toc.lot, list: info_.context.tocinfo.lot });
             }
+            pn1 = info_.writer.getPageNumber();
             tocinfo[-1].isLast = true;
             tocinfo.each { &(info):
                 if (info.header) {
@@ -208,7 +219,12 @@ namespace Typesetting {
                 if (!info.isLast) {
                     info_.writer.lineBreak(context_.page.lineFeedWidthRatio * info_.base.toc.headerSize);
                 }
+                ++tocPages;
             };
+            var pn2 = info_.writer.getPageNumber();
+            if (((pn2 - pn1) & 0x01) == 0x01) {
+                info_.writer.adjustTopPageToOdd();
+            }
             context_.indentSize = indent;
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
             context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
@@ -225,6 +241,7 @@ namespace Typesetting {
                 File.open(opts_.xref, File.WRITE) { &(f):
                     f.println(context_.xref.toJsonString(true));
                 };
+                info_.logger.info("Saved the Xref information.");
             }
         }
 

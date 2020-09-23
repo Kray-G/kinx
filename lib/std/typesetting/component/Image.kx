@@ -35,7 +35,7 @@ namespace Typesetting {
                 var x = center - textWidth / 2;
                 var n = Typesetting.Linebreak.Box(0, new Typesetting.Word(info).setWord(fontObj, fontSize, name));
                 writer.writeFloatingCaption(n, x, y);
-                @appendListOf(context, "lof", info.base.sectionLevel + 1, counter, caption, ytop);
+                @appendListOf(info, context, "lof", info.base.image.level + 1, counter, caption, ytop);
             }
             public write(info, context, core) {
                 if (opts_.float.left || opts_.float.right) {
