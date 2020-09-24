@@ -18,7 +18,7 @@ namespace Typesetting {
                 @opts_.label ??= @text;
             }
             public write(info, context, core) {
-                context.outputSection = info.style.noIndentTopOfParagraph;
+                context.outputSection = info.base.noIndentTopOfParagraph;
                 info.writer.setColumn(info.base.columns);
                 core.pendingParagraphList.push({
                     isSection: true,
@@ -38,7 +38,7 @@ namespace Typesetting {
 
         class SubSection(opts_, text_) : Section(opts_, text_) {
             public write(info, context, core) {
-                context.outputSection = info.style.noIndentTopOfParagraph;
+                context.outputSection = info.base.noIndentTopOfParagraph;
                 core.pendingParagraphList.push({
                     isSection: true,
                     lineFeedWidth: core.section.getHeight(2),
@@ -57,7 +57,7 @@ namespace Typesetting {
 
         class SubSubSection(opts_, text_) : Section(opts_, text_) {
             public write(info, context, core) {
-                context.outputSection = info.style.noIndentTopOfParagraph;
+                context.outputSection = info.base.noIndentTopOfParagraph;
                 core.pendingParagraphList.push({
                     isSection: true,
                     lineFeedWidth: core.section.getHeight(3),
@@ -86,7 +86,7 @@ namespace Typesetting {
                 opts_.label ??= text_;
             }
             public write(info, context, core) {
-                context.outputSection = info.style.noIndentTopOfParagraph;
+                context.outputSection = info.base.noIndentTopOfParagraph;
                 @pageBreak(info, core);
 
                 var writer = info.writer;
