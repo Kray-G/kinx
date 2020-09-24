@@ -61,6 +61,34 @@ namespace Typesetting {
 
                 info.writer.lineBreak(lineFeedWidth);
             }
+            public floatingImageCaption(info, context, label, caption, fontObj, fontSize, center, y, imageY, height) {
+                if (!caption) {
+                    return;
+                }
+                var counter = @makeCountrNumber(context, "image");
+                var name = info.base.image.label + ' ' + counter + ' ' + caption;
+                var fullname = info.base.image.fulllabel + ' ' + counter + ' ' + caption;
+                var textWidth = info.measure.textWidth(fontObj, fontSize, name);
+                var writer = info.writer;
+                var margin = writer.makeMarginSize();
+                var ytop = imageY + height;
+
+                if (label) {
+                    var pagenum = writer.getPageIndex();
+                    context.xref[label] = {
+                        page:      pagenum,
+                        counter:   counter,
+                        name:      fullname,
+                        text:      caption,
+                        y:         ytop,
+                    };
+                }
+
+                var x = center - textWidth / 2;
+                var n = Typesetting.Linebreak.Box(0, new Typesetting.Word(info).setWord(fontObj, fontSize, name));
+                writer.writeFloatingCaption(n, x, y);
+                @appendListOf(info, context, "lof", info.base.image.level + 1, counter, caption, ytop);
+            }
             public columnBreak(info, core) {
                 core.flushParagraph();
                 info.writer.columnBreak();

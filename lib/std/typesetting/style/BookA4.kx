@@ -51,6 +51,13 @@ namespace Style {
             fontSize * 1.4,
             fontSize * 1.2,
         ];
+        @style.abstract.lineFeedWidth      = 24.5;
+        @style.abstract.paragraphSkipWidth = 24.5;
+        @style.abstract.margin = {
+            "left":             45.0,
+            "right":            0.0,
+        };
+        @style.abstract.adjustment = { right: true };
 
         public coverPage(info, context, core, title, opts) {
             var writer = info.writer;

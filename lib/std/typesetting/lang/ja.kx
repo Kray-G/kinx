@@ -7,6 +7,8 @@ namespace Typesetting {
     var notTail_ = "([（｛〔〈《「『【〘〖〝‘“｟«";
     # Special glue size.
     var noSpaceForNext_ = "、。，．";
+    # small characters.
+    var smallCharacters_ = "ァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ";
 
     var lbr_ = "（｛〔〈《「『【〘〖｟";
     var rbr_ = "）｝〕〉》」』】〙〗｠";
@@ -195,22 +197,33 @@ namespace Typesetting {
                 }
 
                 if (notHead_.find(value.word) >= 0) {
+                    if (smallCharacters_.find(value.word) >= 0 && node.width < (value.size * 0.8)) {
+                        node.width = value.size * 0.8;  # minimum size adjustment.
+                        if (next.isGlue) {
+                            next.width = 0;
+                        }
+                    }
                     nodes.pop();
                     if (nodes[-1].isGlue) {
                         nodes.pop();
                     }
                     if (noSpaceForNext_.find(value.word) >= 0) {
                         nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+                        node.width = value.size;
                         nodes.push(node);
-                        var width = value.size / 2;
-                        var stretch = (width * 3) / 6;
-                        var shrink = (width * 3) / 9;
-                        nodes.push(Linebreak.Glue(width, stretch, shrink));
+                        if (next.isBox && rbr_.find(next.value.word) >= 0) {
+                            node.width = value.size / 2;
+                        }
+                        if (next.isGlue) {
+                            next.width = 0;
+                        } else {
+                            setupSpace(info, value);
+                            nodes.push(Linebreak.Glue(0, space_.stretch, 1));
+                        }
                     } else {
                         nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
                         nodes.push(node);
                     }
-                    return;
                 } else if (notTail_.find(value.word) >= 0) {
                     var prev = words[i-1];
                     if (prev.isBox && !prev.value.isUtf8) {
@@ -226,10 +239,10 @@ namespace Typesetting {
                     return;
                 }
 
-                if (next.isBox) {
+                if (next.isBox && nodes[-1].isBox) {
                     var nextv = next.value;
                     var noSpaceForNext = noSpaceForNext_.find(value.word) >= 0;
-                    var l1 = System.isUtf8Bytes(value.word[0]);
+                    var l1 = (value.word == '“' || value.word == '”') ? 1 : System.isUtf8Bytes(value.word[0]);
                     if (value.offsetX == 0 && value.offsetY == 0) {
                         if (l1 > 1 && value.word.length() == l1) {
                             var d = value.size - node.width;
@@ -240,8 +253,8 @@ namespace Typesetting {
                         }
                     }
 
-                    if (nodes[-1].isBox && i != wlast) {
-                        var l2 = System.isUtf8Bytes(nextv.word[0]);
+                    if (i != wlast) {
+                        var l2 = (nextv.word == '“' || nextv.word == '”') ? 1 : System.isUtf8Bytes(nextv.word[0]);
                         if (l1 > 1 && noSpaceForNext) {
                             node.width /= 2;
                             var width = value.size / 2;

@@ -81,7 +81,10 @@ namespace Typesetting {
     class BookParser {
         var title_, doc_;
         var list_ = [];
+        var paragraph_ = [];
+        var bquote_ = [];
         var opts_ = {};
+        var ctx_ = {};
         var inline_ = new InlineMaker();
         private makeInlineText(values) {
             var str = '';
@@ -93,23 +96,67 @@ namespace Typesetting {
             };
             return str;
         }
-        private checkParam(values) {
+        private itemType(name) {
+            switch (name) {
+            case "list":
+            case "checkedlist":
+                return "item";
+            case "orderedlist":
+                return "enum";
+            }
+            return "item";
+        }
+        private flushDoc(noflush) {
+            if (!noflush.list && list_.length() > 0) {
+                var itemize = new Typesetting.Component.Itemize();
+                var root = itemize.getRoot();
+                var parent = [root];
+                list_.each { &(item):
+                    var l = item.level - 1;
+                    var p = parent[l] || parent[-1];
+                    var d = itemize.addItem(p, l, itemType(item.name), makeInlineText(item.values));
+                    parent[item.level] = d;
+                };
+                doc_.apply(itemize);
+                list_ = [];
+            }
+            if (!noflush.bquote && bquote_.length() > 0) {
+                var text = "";
+                bquote_.each { &(item):
+                    text += makeInlineText(item.values);
+                };
+                doc_.apply(new Typesetting.Component.Abstract(text.trim()));
+                bquote_ = [];
+                ctx_.chapter = false;
+            }
+            if (!noflush.paragraph && paragraph_.length() > 0) {
+                var p = paragraph_.join('\n\n');
+                doc_.apply(new Typesetting.Component.Paragraph(p.trim()));
+                paragraph_ = [];
+            }
+        }
+        private checkParamCommand(values) {
             var r = false;
             values.each { &(value):
-                if (value.value.isString) {
+                if (value.name == 'html' && value.value.isString) {
                     var v = value.value.trim();
-                    if (value.name == 'html' && v.startsWith("<param ")) {
+                    if (v.startsWith("<param ")) {
                         var m = v.match(/<param\s*(.+)="(.+)"\s*\/>/);
                         if (m.isDefined) {
                             opts_[m[1]] = m[2];
                         }
                         r = true;
                     }
+                    if (/<pagebreak\s*\/>/.test(v)) {
+                        flushDoc();
+                        doc_.pageBreak();
+                    }
+                    r = true;
                 }
             };
             return r;
         }
-        public makeDocument() {
+        private makeDocument() {
             opts_.style ??= "BookA4";
             doc_ = new Typesetting.Document(Typesetting.Style[opts_.style], { toc: true, lof: true, lot: true, xref: "book2.json" });
 
@@ -129,41 +176,18 @@ namespace Typesetting {
                 doc_.toc();
             }
         }
-        private itemType(name) {
-            switch (name) {
-            case "list":
-            case "checkedlist":
-                return "item";
-            case "orderedlist":
-                return "enum";
-            }
-            return "item";
-        }
-        public flushList() {
-            if (list_.length() == 0) {
+        private checkInlineParam(paramsText) {
+            if (!paramsText.isString) {
                 return;
             }
-            var itemize = new Typesetting.Component.Itemize();
-            var root = itemize.getRoot();
-            var parent = [root];
-            list_.each { &(item)
-                var l = item.level - 1;
-                var p = parent[l] || parent[-1];
-                var d = itemize.addItem(p, l, itemType(item.name), makeInlineText(item.values));
-                parent[item.level] = d;
-            };
-            doc_.apply(itemize);
-            list_ = [];
-        }
-        private checkInlineParam(paramsText) {
-            var res = { lineNumber: true, box: Typesetting.BOX_SHADOW };
             var checker = paramsText.split(':');
+            var res = { syntax: checker[0], lineNumber: true, box: Typesetting.BOX_SHADOW };
             if (checker.length() > 1) {
                 var params = checker[1];
                 params.split(',').each { &(param):
                     var e = param.split('=');
                     if (e.length() > 1) {
-                        res[e[0]] = (Typesetting[e[1]] ?? (e[1] == "true"));
+                        res[e[0]] = (Typesetting[e[1]] ?? (e[1] == "true" ? true : e[1] == "false" ? false : e[1]));
                     } else {
                         res[e[0]] = Typesetting[e[0]] ?? true;
                     }
@@ -171,9 +195,28 @@ namespace Typesetting {
             }
             return res;
         }
+        private finCommand() {
+            ctx_.chapter = false;
+        }
+        private makeMathDocument(math, check) {
+            if (check.label.isString) {
+                var labels = check.label.split('/');
+                labels.each { &(label):
+                    var m = label.match(/([^\(]*)(?:\((.*)\))?/);
+                    if (m.isDefined) {
+                        if (m[2] == '') {
+                            math.setLabel(m[1]);
+                        } else {
+                            var pos = Double.parseDouble(m[2]);
+                            math.setLabel([m[1], pos]);
+                        }
+                    }
+                };
+            }
+        }
 
         public heading(ast) {
-            flushList();
+            flushDoc();
             if (ast.level == 1) {
                 title_ = makeInlineText(ast.values);
             }
@@ -188,6 +231,7 @@ namespace Typesetting {
                 break;
             case 2:
                 doc_.apply(new Typesetting.Component.Chapter(makeInlineText(ast.values)));
+                ctx_.chapter = true;
                 break;
             case 3:
                 doc_.apply(new Typesetting.Component.Section(makeInlineText(ast.values)));
@@ -201,57 +245,75 @@ namespace Typesetting {
             }
         }
         public paragraph(ast) {
-            flushList();
-            if (checkParam(ast.values)) {
+            flushDoc({ paragraph: true });
+            if (checkParamCommand(ast.values)) {
                 return;
             }
             if (doc_.isUndefined) {
                 return;
             }
             var text = makeInlineText(ast.values);
+            paragraph_.push(text);
             inline_.flush(doc_);
-            doc_.apply(new Typesetting.Component.Paragraph(text));
         }
         public horizontal(ast) {
-            flushList();
+            flushDoc();
             # TODO
+            finCommand();
         }
         public code(ast) {
-            flushList();
-            var code = new Typesetting.Component.Code(makeInlineText(ast.values).trim());
+            flushDoc();
+            var code;
             var check = checkInlineParam(ast.syntax);
-            if (check.lineNumber) {
-                code.showLineNumber();
-            }
-            if (check.box) {
-                code.showBox(check.box);
+            switch (check.syntax) {
+            case 'math':
+                code = new Typesetting.Component.Math(makeInlineText(ast.values).trim());
+                makeMathDocument(code, check);
+                break;
+            default:
+                code = new Typesetting.Component.Code(makeInlineText(ast.values).trim());
+                if (check.lineNumber) {
+                    code.showLineNumber();
+                }
+                if (check.box) {
+                    code.showBox(check.box);
+                }
+                break;
             }
             doc_.apply(code);
+            finCommand();
         }
         public blockquote(ast) {
-            flushList();
-            # TODO
+            if (ctx_.chapter) {
+                flushDoc({ bquote: true });
+                bquote_.push(ast);
+            } else {
+                flushDoc();
+                System.println(ast.toJsonString(true));
+                finCommand();
+            }
         }
         public list(ast) {
+            flushDoc({ list: true });
             list_.push(ast);
         }
         public orderedlist(ast) {
+            flushDoc({ list: true });
             list_.push(ast);
         }
         public checklist(ast) {
+            flushDoc({ list: true });
             list_.push(ast);
         }
         public table(ast) {
-            flushList();
+            flushDoc();
             # TODO
+            finCommand();
         }
 
         public dump() {
-            flushList();
-            # System.println("Title: ", title_);
-            # opts_.keySet().each { &(key):
-            #     System.println(key + ": ", opts_[key]);
-            # };
+            flushDoc();
+            finCommand();
             if (doc_.isUndefined) {
                 return;
             }

@@ -88,6 +88,13 @@ namespace Typesetting {
                 var bottom = pos.bottom;
                 var ll = lines.length();
                 var widowCheck = ll - info_.base.widowPenalty;
+                var isFloatingLine, width = lines[0].width;
+                for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                    if (lines[i].width != width) {
+                        isFloatingLine = true;
+                        break;
+                    }
+                }
                 var doColumnBreak;
                 if (y > 0) {
                     for (var i = 0; i < widowCheck; ++i) {
@@ -104,6 +111,9 @@ namespace Typesetting {
                 --widowCheck;
                 for (var i = 0, ll = lines.length(); i < ll; ++i) {
                     var line = lines[i];
+                    if (line.width != width) {
+                        isFloatingLine = false;
+                    }
                     if (doColumnBreak && widowCheck == i) {
                         writer.columnBreak();
                     }
@@ -118,11 +128,11 @@ namespace Typesetting {
                             }
                         }
                         line.nodes.each { &(n):
-                            writer.write(n, x + offsetX);
+                            writer.write(n, x + offsetX, null, isFloatingLine);
                             x += n.width;
                         };
                     } else {
-                        line.nodes.each { => _1.write(writer) };
+                        line.nodes.each { => _1.write(writer, isFloatingLine) };
                     }
                     var colBreaked = writer.lineBreak(line.lineFeedWidth);
                     if (colBreaked) {
