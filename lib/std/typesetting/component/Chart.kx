@@ -1,0 +1,72 @@
+namespace Typesetting {
+
+    namespace Component {
+
+        class Chart(opts_) : Component.Base(opts_) {
+            public setLabel(label) {
+                opts_.label ??= [];
+                opts_.label.push(label);
+            }
+            public setOptions(options) {
+                opts_.options = options;
+            }
+            public setWidth(width) {
+                opts_.width = width;
+            }
+            public setHeight(height) {
+                opts_.height = height;
+            }
+            public setCaption(caption) {
+                opts_.caption = caption;
+            }
+            public write(info, context, core) {
+                core.flushParagraph();
+
+                const zoom = 2;
+                var writer = info.writer;
+                var margin = writer.makeMarginSize();
+                var fontSize = context.font.fontSize;
+                var lineFeedWidth = fontSize * context.page.lineFeedWidthRatio;
+                var img = Typesetting.Util.compileChart(
+                    opts_.options,
+                    opts_.width ?? Integer.parseInt(margin.width * zoom),
+                    opts_.height ?? Integer.parseInt(margin.width * zoom * 3 / 4),
+                    opts_.fontSize ?? Integer.parseInt(10 * zoom),
+                    writer);
+
+                if (opts_.float.left || opts_.float.right) {
+                    var fontSize = context.font.fontSize;
+                    var fontObj = context.font.fontObj;
+                    info.writer.loadFloatingImage(img, opts_.scale, opts_.float, opts_.caption,
+                        &(center, y, imageY, height) => @floatingImageCaption(info, context, opts_.label, opts_.caption, fontObj, fontSize, center, y, imageY, height));
+                    return;
+                }
+
+                var imgwidth = img.getWidth();
+                var scale = margin.width / imgwidth;
+                var [bottom, height] = writer.imageCenter(img, scale * (opts_.scale ?? 0.80));
+                var linetop = bottom + height;
+                if (opts_.caption && opts_.label) {
+                    var counter = @makeCountrNumber(context, "image");
+                    var name = info.base.image.label + ' ' + counter + ' ' + opts_.caption;
+                    var fullname = info.base.image.fulllabel + ' ' + counter + ' ' + opts_.caption;
+                    var pagenum = writer.getPageIndex();
+                    context.xref[opts_.label] = {
+                        page:      pagenum,
+                        counter:   counter,
+                        name:      fullname,
+                        text:      name,
+                        y:         linetop,
+                    };
+                }
+                writer.lineBreak(lineFeedWidth);
+                if (opts_.caption) {
+                    @imageCaption(info, core, opts_.caption, linetop);
+                }
+                return linetop;
+            }
+        }
+
+    } # namespace Component
+
+} # namespace Typesetting

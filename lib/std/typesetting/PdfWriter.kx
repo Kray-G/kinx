@@ -98,6 +98,22 @@ namespace Typesetting {
             page.gRestore();
         }
 
+        private updateUrlRect(page, value, x, y, width) {
+            if (urlEx_.x && urlEx_.y != y) {
+                var linew = urlEx_.x2 - urlEx_.x;
+                drawLineImpl(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
+                urlExRect_.push({
+                    left:   urlEx_.x - 4,
+                    bottom: urlEx_.y + value.bottom - 2,
+                    right:  urlEx_.x2 + 4,
+                    top:    urlEx_.y + value.top + 2,
+                });
+                urlEx_ = { x: x, y: y, x2: x + width };
+            } else {
+                urlEx_.x2 = x + width;
+            }
+        }
+
         public writeText(page, text, value, x, y, offsetY, width) {
             x += adjust_;
             var textcolor = value.color;
@@ -170,7 +186,8 @@ namespace Typesetting {
                 page.endText();
                 page.gRestore();
             } else if (value.endUrl) {
-                var linew = x + width - urlEx_.x;
+                updateUrlRect(page, value, x, y, width);
+                var linew = urlEx_.x2 - urlEx_.x;
                 drawLineImpl(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
                 page.beginText();
                 page.moveTextPos(x, ay);
@@ -178,7 +195,7 @@ namespace Typesetting {
                 urlExRect_.push({
                     left:   urlEx_.x - 4,
                     bottom: urlEx_.y + value.bottom - 2,
-                    right:  x + width + 4,
+                    right:  urlEx_.x2 + 4,
                     top:    urlEx_.y + value.top + 2,
                 });
                 urlExRect_.each { &(rect):
@@ -189,19 +206,7 @@ namespace Typesetting {
                 page.gRestore();
                 urlEx_ = {};
             } else {
-                if (urlEx_.x && urlEx_.y != y) {
-                    var linew = urlEx_.x2 - urlEx_.x;
-                    drawLineImpl(page, urlEx_.x, urlEx_.y - 1, linew, 0, linkUrl_.underlineSize) if (linkUrl_.underline);
-                    urlExRect_.push({
-                        left:   urlEx_.x - 4,
-                        bottom: urlEx_.y + value.bottom - 2,
-                        right:  urlEx_.x2 + 4,
-                        top:    urlEx_.y + value.top + 2,
-                    });
-                    urlEx_ = { x: x, y: y, x2: x + width };
-                } else {
-                    urlEx_.x2 = x + width;
-                }
+                updateUrlRect(page, value, x, y, width);
                 if (textcolor) {
                     page.gSave();
                     page.setCMYKFill(...textcolor);
@@ -356,7 +361,7 @@ namespace Typesetting {
             var ldiff = margin_.left - pageMargin_.left;
             var rdiff = margin_.right - pageMargin_.right;
             width = width - ldiff - rdiff;
-            if (floating_.isUndefined) {
+            if (!floating_ || floating_.done ) {
                 return [width];
             }
             if (!lineFeedWidth) {
@@ -406,6 +411,9 @@ namespace Typesetting {
         }
 
         private writeFloatingImage() {
+            if (!floating_ || floating_.done) {
+                return;
+            }
             if (!page_) {
                 @addPage();
             }
@@ -418,7 +426,7 @@ namespace Typesetting {
             if (floating_.captionHook.isFunction) {
                 floating_.captionHook(floating_.left + floating_.width / 2, floating_.captionY, top, floating_.height);
             }
-            floating_ = null;
+            floating_.done = true;
         }
 
         public createOutline(parent, name, isOpened) {
@@ -429,6 +437,14 @@ namespace Typesetting {
 
         public setCurrentPage(outline, y) {
             dst = @pages[-1].createDestination();
+            if (y && info_.base.toc.fitWidth) {
+                dst.setFitH(y);
+            }
+            outline.setDestination(dst);
+        }
+
+        public setContentsPage(outline, y) {
+            dst = page_.createDestination();
             if (y && info_.base.toc.fitWidth) {
                 dst.setFitH(y);
             }
@@ -477,7 +493,12 @@ namespace Typesetting {
             y_ = pos.y;
         }
 
-        public getPos() {
+        public getPos(force) {
+            var x = x_;
+            if (!force && x_ < 0) {
+                var margin = @makeMarginSize();
+                return { x: margin.left, y: y_ };
+            }
             return { x: x_, y: y_ };
         }
 
@@ -929,7 +950,7 @@ namespace Typesetting {
             writer_.writeText(page_, text, null, x, y_, 0, textWidth);
         }
 
-        public write(node, x, y) {
+        public write(node, x, y, isFloatingLine) {
             var value = node.value;
             if (value.isInlineImage) {
                 return writeImage(value, x, y);
@@ -942,8 +963,15 @@ namespace Typesetting {
 
             if (value) {
                 var offsetX = value.offsetX;
-                if (floating_.isDefined && floating_.floating.left) {
-                    offsetX += (floating_.width + info_.base.image.leftsep);
+                if (floating_.isDefined) {
+                    if (floating_.floating.left && isFloatingLine) {
+                        offsetX += (floating_.width + info_.base.image.leftsep);
+                    } else if (floating_) {
+                        var savex = x_;
+                        writeFloatingImage();
+                        floating_ = null;
+                        x_ = savex;;
+                    }
                 }
                 x = x_ + offsetX;
                 y = y ?? y_;
@@ -982,14 +1010,14 @@ namespace Typesetting {
         }
 
         public clearFloatingImage(lineFeedWidth) {
-            while (floating_.isDefined) {
+            while (floating_.isDefined && !floating_.done) {
                 lineBreak(lineFeedWidth);
             }
         }
 
         public loadFloatingImage(path, scale, floating, caption, captionHook) {
             var lineFeedWidth = info_.context.font.fontSize * info_.context.page.lineFeedWidthRatio;
-            if (floating_.isDefined) {
+            if (floating_.isDefined && !floating_.done) {
                 # linefeed to the bottom of image.
                 clearFloatingImage(lineFeedWidth);
             }

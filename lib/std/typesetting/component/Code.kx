@@ -50,6 +50,7 @@ namespace Typesetting {
                     writer.addY(info.base.code.padding);
                 }
 
+                var isTop = false;
                 var lineprev = linetop1;
                 var texts = code_.trim().split(/\r?\n/);
                 var tlast = texts.length() - 1;
@@ -62,24 +63,27 @@ namespace Typesetting {
                     }
                     core.util.writeLine(opts_, line, context.font.fontObj, codeFontSize, lineFeedWidthBase);
 
-                    var isBreak = (writer.getPos().y < 0);
+                    var isBreak = (writer.getPos(true).y < 0);
                     if (!isBreak) {
                         linetop1 = writer.getLineTop(context.font.fontObj, context.font.codeFontSize);
                         var height = lineprev - linetop1;
                         writer.drawLine(left, lineprev, 0, height, lineWidth, info.base.code.lineColor);
                         writer.drawLine(right, lineprev, 0, height, lineWidth, info.base.code.lineColor);
                         if (shadow) {
-                            writer.drawLine(right+2, lineprev-2, 0, height+3, 3, info.base.code.lineColor);
+                            var top = isTop ? lineprev : (lineprev-2);
+                            var height2 = isTop ? (height+5) : (height+3);
+                            writer.drawLine(right+2, top, 0, height2, 3, info.base.code.lineColor);
                         }
                         lineprev = linetop1;
+                        isTop = false;
                     } else {
                         var height = lineFeedWidthBase;
                         writer.drawLine(left, lineprev, 0, height, lineWidth, info.base.code.lineColor, -1);
                         writer.drawLine(right, lineprev, 0, height, lineWidth, info.base.code.lineColor, -1);
-                        if (shadow) {
-                            writer.drawLine(right+2, lineprev-2, 0, height+3, 3, info.base.code.lineColor);
-                        }
                         if (i == tlast) {
+                            if (shadow) {
+                                writer.drawLine(right+2, lineprev-2, 0, height+1, 3, info.base.code.lineColor, -1);
+                            }
                             var top = lineprev - height;
                             writer.drawLine(left, top, linelength, 0, lineWidth, info.base.code.lineColor, -1);
                             if (shadow) {
@@ -87,7 +91,11 @@ namespace Typesetting {
                             }
                             lineWidth = 0;  # no more drawing a line.
                         } else {
+                            if (shadow) {
+                                writer.drawLine(right+2, lineprev-2, 0, height-2, 3, info.base.code.lineColor, -1);
+                            }
                             lineprev = pageMargin.pageHeight - margin.top;
+                            isTop = true;
                         }
                     }
                 };
