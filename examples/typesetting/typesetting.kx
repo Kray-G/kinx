@@ -67,6 +67,7 @@ doc.apply(new Typesetting.Component.Itemize({
         "Tables. The header of table is automatically repeated each page.",
         "Images. It can be also put with floating inside paragraph.",
         "Colors. CMYK, RGB, and a lot of color names are supported.",
+        "Chart. All the charts of Chart.js are supported.",
         "Writing a program source code.",
         "Cross-reference like ``\\bold{Reference to the section \\nameref{Sec:Table}} in the page \\pageref{Sec:Table}.''",
         "Autimatic URL hyperlink like https://en.wikipedia.org/wiki/TeX, or link text like \\url[https://en.wikipedia.org/wiki/TeX]{\\TeX}.",
@@ -430,6 +431,120 @@ doc.apply(new Typesetting.Component.Itemize({
     ]
 }));
 
+doc.apply(new Typesetting.Component.SubSection("Chart"));
+
+doc.apply(new Typesetting.Component.Paragraph(%{
+    Chart is now available in the document.
+    You can use any chart of Chart.js.
+    Please look at the web site of https://www.chartjs.org/ if you want to know details.
+}));
+
+var randomize = function() {
+    return Math.random() * 100;
+};
+
+var chart = new Typesetting.Component.Chart({
+    float: { right: true },
+    width: 800,
+    height: 500,
+    scale: 0.4,
+    caption: "Line Chart Example",
+    options: {
+        type: 'line',
+        data: {
+            labels: ["January", "February", "March", "April", "May", "June", "July"],
+            datasets:[{
+                lineTension: 0,
+                label: "Line A",
+                data: [ randomize(), randomize(), randomize(), randomize(), randomize(), randomize(), randomize()],
+                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: "rgb(54, 162, 235)",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            legend: {
+                labels: {
+                    fontColor: '#36a2eb'
+                }
+            }
+        }
+    }
+});
+doc.apply(chart);
+
+doc.apply(new Typesetting.Component.Paragraph(%{
+    This is an example of chart as a floaing image.
+    The chart can be used as a floating image or a standaone image.
+    This example is a line chart, but so many charts are supported by Chart.js.
+    For example, it is a bar chart, a stack chart, a area chart, a scatter chart,
+    a pie chart, a doughnut chart, a polar area chart, a radar chart, and so on.
+    Besides, you can also use a combination of bar and line chart if you want.
+    See the \url[https://www.chartjs.org/]{Chart.js Web Site} for details.
+
+    The next example is a radar chart as a standalone image.
+}));
+
+var chart = new Typesetting.Component.Chart({
+    width: 600,
+    height: 400,
+    fontSize: 10,
+    scale: 0.8,
+    caption: "Radar Chart Example",
+    options: {
+        type: 'radar',
+        data: {
+            labels: [['Eating', 'Dinner'], ['Drinking', 'Water'], 'Sleeping', ['Designing', 'Graphics'], 'Coding', 'Cycling', 'Running'],
+            datasets: [{
+                label: 'My First dataset',
+                backgroundColor: "rgba(255, 0, 0, 0.2)",
+                borderColor: 'red',
+                pointBackgroundColor: 'red',
+                data: [
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize()
+                ]
+            }, {
+                label: 'My Second dataset',
+                backgroundColor: "rgba(0, 0, 255, 0.2)",
+                borderColor: 'blue',
+                pointBackgroundColor: 'blue',
+                data: [
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize(),
+                    randomize()
+                ]
+            }]
+        },
+        options: {
+            legend: {
+                position: 'top',
+            },
+            scale: {
+                ticks: {
+                    beginAtZero: true
+                }
+            }
+        }
+    }
+});
+doc.apply(chart);
+
+doc.apply(new Typesetting.Component.Paragraph(%{
+    Also about chart options, please see the \url[https://www.chartjs.org/]{Chart.js Web Site} for details.
+}));
+
+doc.pageBreak();
+
 doc.apply(new Typesetting.Component.SubSection("Program Code"));
 
 doc.apply(new Typesetting.Component.Paragraph(%{
@@ -528,7 +643,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 doc.apply(new Typesetting.Component.SubSection("Links"));
 
 doc.apply(new Typesetting.Component.Paragraph(%{
-    When writing just a URL like https://github.com/Kray-G/kinx, it will be with a hyperlink automatically.
+    When writing just a URL like https://github.com/Kray-G/kinx, it will be there with a hyperlink automatically.
     If you want to write a link text instead of writing a hyperlink URL directly,
     you can use \monotype{\\url} command for that.
     For example, \monotype{\pack{\url[https://github.com/Kray-G/kinx]{Kray-G/kinx}}} will be \url[https://github.com/Kray-G/kinx]{Kray-G/kinx}
@@ -547,7 +662,7 @@ doc.apply(new Typesetting.Component.SubSection("Ligature"));
 
 doc.apply(new Typesetting.Component.Paragraph(%{
     The ligature for only 5 words of fi, fl, ff, ffi, ffl is now supported.
-    For example, ``difficult'' has a ``ffi'' and you will see ffi not f{}f{}i.
+    For example, ``difficult'' has a ``ffi'' and you will see ffi instead of f{}f{}i.
 }));
 
 doc.apply(new Typesetting.Component.SubSection("Japanese Ruby"));
