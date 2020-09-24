@@ -35,7 +35,7 @@ namespace Typesetting {
                 var width = (pageWidth - margin.left - margin.right) - abstbase.margin.left - abstbase.margin.right;
                 @set(core, { margin: { left: margin.left + abstbase.margin.left, right: margin.right + abstbase.margin.right } }) {
                     var lines = core.paragraph.exec(opts_, text_);
-                    core.util.write(lines);
+                    core.util.write(lines, info.base.abstract.adjustment);
                 };
                 writer.addY(abstbase.paragraphSkipWidth, true);
                 writer.setYHead();
