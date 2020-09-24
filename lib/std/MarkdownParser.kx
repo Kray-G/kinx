@@ -560,7 +560,12 @@ namespace Markdown {
                     continue;
                 }
                 if (prev == '\n'[0]) {
-                    parseParagraph(stack);
+                    if (stack.startsWith('    ')) {
+                        stack = stack.split('\n').map { => _1.subString(4) }.join('\n');
+                        ast.push(new Nodes.Code(stack, "text"));
+                    } else {
+                        parseParagraph(stack);
+                    }
                     stack = '';
                 } else if ((match = line.match(LINEBREAK_REGEX)).isDefined) {
                     parseParagraph(stack + match[1]);
