@@ -13,7 +13,7 @@ namespace Typesetting {
                 }
                 if (cache) {
                     if (cache.page != ref.page || cache.counter != ref.counter || cache.name != ref.name || cache.text != ref.text) {
-                        info_.logger.warn("Re-run for Cross Reference with text");
+                        info_.logger.warn("Re-run for Cross Reference[%{value}] with text");
                     }
                 }
                 var parser = new Typesetting.ParagraphParser(context_, info_);

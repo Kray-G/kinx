@@ -2,7 +2,13 @@ using Typesetting;
 using typesetting.style.ArticleA4;
 
 var dt = DateTime.now();
-var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, { toc: true, lof: true, lot: true, xref: "typesetting.json" });
+var doc = new Typesetting.Document(Typesetting.Style.ArticleA4, {
+    toc: true,
+    lof: true,
+    lot: true,
+    xref: "typesetting.json",
+    filepath: __FILE__.parentPath(),
+});
 
 var title = new Typesetting.Component.Title();
 title.setTitle("Kinx TT - Kinx Tiny Typesetting");
@@ -85,9 +91,9 @@ doc.apply(new Typesetting.Component.SubSection("Hyphenation & Line Breaking"));
 doc.apply(new Typesetting.Component.Image({
     label: "Fig:Hyphenation",
     float: { right: true },
-    scale: 0.6,
+    scale: 0.5,
     caption: "Hyphenation and justification",
-    file: "examples/typesetting/linebreak.png",
+    file: "linebreak.png",
 }));
 
 doc.apply(new Typesetting.Component.Paragraph(%{
@@ -350,9 +356,9 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 
 doc.apply(new Typesetting.Component.Image({
     float: { left: true },
-    scale: 0.6,
+    scale: 0.5,
     caption: "Barcode Icon",
-    file: "examples/typesetting/serial.png",
+    file: "serial.png",
 }));
 
 doc.apply(new Typesetting.Component.Paragraph(%{
@@ -375,9 +381,9 @@ doc.apply(new Typesetting.Component.SubSubSection("Standalone Image"));
 doc.apply(new Typesetting.Component.Paragraph(%{
     This is an example of an image scaled at 75%, and the image is put with a caption.
     This scale for a non-floating image means a parcentage for the area within the margins.
-    \image[scale=0.75,caption=Figure Example - Kinx Logo Image]{examples/typesetting/kinxlogo.png}
+    \image[scale=0.75,caption=Figure Example - Kinx Logo Image]{kinxlogo.png}
     This is an example of an image scaled at 40%.
-    \image[scale=0.4]{examples/typesetting/kinxlogo.png}
+    \image[scale=0.4]{kinxlogo.png}
     This example is the example of writing \monotype{\\image} command directly into a paragraph.
     Note that you can not float an image in this way,
     and you have to use \verb{\floatimage} command instead.
@@ -390,17 +396,17 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 col = new Typesetting.Component.Column(3);
 col.addColumn(&{
     doc.apply(new Typesetting.Component.Paragraph(%{
-        \image[scale=0.95]{examples/typesetting/kinxlogo.png}
+        \image[scale=0.95]{kinxlogo.png}
     }));
 });
 col.addColumn(&{
     doc.apply(new Typesetting.Component.Paragraph(%{
-        \image[scale=0.95]{examples/typesetting/kinxlogo.png}
+        \image[scale=0.95]{kinxlogo.png}
     }));
 });
 col.addColumn(&{
     doc.apply(new Typesetting.Component.Paragraph(%{
-        \image[scale=0.95]{examples/typesetting/kinxlogo.png}
+        \image[scale=0.95]{kinxlogo.png}
     }));
 });
 doc.apply(col);

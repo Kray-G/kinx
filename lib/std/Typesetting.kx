@@ -59,6 +59,7 @@ namespace Typesetting {
                 toc: opts_.toc,
                 lof: opts_.lof,
                 lot: opts_.lot,
+                filepath: opts_.filepath,
                 ligature: info_.base.ligature,
                 inPack: 0,
                 tocinfo: {

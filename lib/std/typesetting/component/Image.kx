@@ -19,13 +19,21 @@ namespace Typesetting {
                     return;
                 }
 
+                var left = opts_.align == "left";
+                var right = opts_.align == "right";
+                var align = {
+                    left: left,
+                    right: right,
+                    center: !left && !right,
+                };
                 var op = [];
                 opts_.keySet().each { &(key):
                     if (opts_[key].isString) {
                         op.push(key + "=" + opts_[key]);
                     }
                 };
-                return new Typesetting.Component.Paragraph("\\image[%{op.join(',')}]{%{opts_.file}}");
+                return new Typesetting.Component.Paragraph("\\image[%{op.join(',')}]{%{opts_.file}}")
+                        .write(info, context, core, align);
             }
         }
 
