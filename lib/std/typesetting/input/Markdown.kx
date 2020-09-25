@@ -2,8 +2,389 @@ using MarkdownParser;
 
 namespace Typesetting {
 
-    class Markdown(doc_) {
+    function parseParamString(paramsText) {
+        var res = {};
+        paramsText.split(',').each { &(param):
+            var e = param.split('=');
+            if (e.length() > 1) {
+                res[e[0]] = e[1];
+            } else {
+                res[e[0]] = true;
+            }
+        };
+        if (res.float.isString) {
+            var floatPos = res.float;
+            res.float = {};
+            res.float[floatPos] = true;
+            if (res.scale) {
+                res.scale = Double.parseDouble(res.scale);
+            }
+        }
+        return res;
+    }
 
+    class InlineMaker {
+        var images_ = [];
+        var tagmap_ = {};
+        public reset() {
+            images_ = [];
+        }
+        public flush(doc) {
+            images_.each { &(image):
+                doc.apply(new Typesetting.Component.Image({
+                    label: image.opts.label,
+                    float: image.opts.float,
+                    scale: image.opts.scale ?? 1.0,
+                    caption: image.opts.caption,
+                    file: image.src,
+                }));
+            };
+            images_ = [];
+        }
+        public addTag(tag, values) {
+            tagmap_[tag] = values;
+        }
+        public makeInlineText(values) {
+            var str = '';
+            reset();
+            values.each { &(value):
+                if (this[value.name].isFunction) {
+                    str += this[value.name](value);
+                }
+            };
+            return str.trim();
+        }
+
+        public text(value) {
+            return value.value;
+        }
+        public html(value) {
+            return '';
+        }
+        public htmlcomment(value) {
+            return '';
+        }
+        public em(value) {
+            return "\\bold{%{value.value}}";
+        }
+        public italic(value) {
+            return value.value;
+        }
+        public emitalic(value) {
+            return "\\bold{%{value.value}}";
+        }
+        public strikethrough(value) {
+            return value.value;
+        }
+        public code(value) {
+            return "\\monotype{\\pack{%{value.value}}}";
+        }
+        public image(value) {
+            var check = parseParamString(value.alt);
+            if (check.float.isDefined) {
+                value.opts = check;
+                images_.push(value);
+                return '';
+            }
+            return '\\inlineimage[%{value.alt}]{%{value.src}}';
+        }
+        public link(value) {
+            return '';
+        }
+        public tag(value) {
+            var values = tagmap_[value.tag];
+            return "\\footnote{%{makeInlineText(values)}}";
+        }
+    }
+
+    class BookParser {
+        var title_, doc_;
+        var options_ = {};
+        var list_ = [];
+        var paragraph_ = [];
+        var bquote_ = [];
+        var opts_ = {};
+        var ctx_ = {};
+        var output_ = [];
+        var inline_ = new InlineMaker();
+
+        private itemType(name) {
+            switch (name) {
+            case "list":
+            case "checkedlist":
+                return "item";
+            case "orderedlist":
+                return "enum";
+            }
+            return "item";
+        }
+        private flushDoc(noflush) {
+            if (!noflush.list && list_.length() > 0) {
+                var list = list_;
+                output_.push(&() => {
+                    var itemize = new Typesetting.Component.Itemize();
+                    var root = itemize.getRoot();
+                    var parent = [root];
+                    list.each { &(item):
+                        var l = item.level - 1;
+                        var p = parent[l] || parent[-1];
+                        var d = itemize.addItem(p, l, itemType(item.name), inline_.makeInlineText(item.values));
+                        parent[item.level] = d;
+                    };
+                    doc_.apply(itemize);
+                });
+                list_ = [];
+            }
+            if (!noflush.bquote && bquote_.length() > 0) {
+                var bquote = bquote_;
+                output_.push(&() => {
+                    var text = bquote.map(&(p) => inline_.makeInlineText(p.values)).join('\n');
+                    doc_.apply(new Typesetting.Component.Abstract(text.trim()));
+                });
+                bquote_ = [];
+                ctx_.chapter = false;
+            }
+            if (!noflush.paragraph && paragraph_.length() > 0) {
+                var paragraph = paragraph_;
+                output_.push(&() => {
+                    var p = paragraph.map(&(p) => {
+                        var t = inline_.makeInlineText(p.values);
+                        inline_.flush(doc_);
+                        return t;
+                    }).join('\n\n');
+                    doc_.apply(new Typesetting.Component.Paragraph(p.trim()));
+                });
+                paragraph_ = [];
+            }
+        }
+        private checkParamCommand(values) {
+            var r = false;
+            values.each { &(value):
+                if (value.name == 'html' && value.value.isString) {
+                    var v = value.value.trim();
+                    if (v.startsWith("<param ")) {
+                        var m = v.match(/<param\s*(.+)="(.+)"\s*\/>/);
+                        if (m.isDefined) {
+                            opts_[m[1]] = m[2];
+                        }
+                        r = true;
+                    }
+                    if (/<pagebreak\s*\/>/.test(v)) {
+                        flushDoc();
+                        output_.push(&() => {
+                            doc_.pageBreak();
+                        });
+                    }
+                    r = true;
+                }
+            };
+            return r;
+        }
+        private makeDocument() {
+            opts_.style ??= "BookA4";
+            doc_ = new Typesetting.Document(Typesetting.Style[opts_.style], {
+                toc: true,
+                lof: true,
+                lot: true,
+                xref: options_.xref,
+                filepath: options_.filepath,
+            });
+
+            if (title_) {
+                output_.push(&() => {
+                    var title = new Typesetting.Component.Title();
+                    title.setTitle(title_, Double.parseDouble(opts_.titleSize));
+                    if (opts_.author) {
+                        title.setAuthor(opts_.author);
+                    }
+                    if (opts_.subtitle) {
+                        title.setSubtitle(opts_.subtitle, Double.parseDouble(opts_.subtitleSize));
+                    }
+                    if (opts_.date) {
+                        title.setDate(opts_.date);
+                    }
+                    doc_.apply(title);
+                    doc_.toc();
+                });
+            }
+        }
+        private parseCodeString(paramsText) {
+            if (!paramsText.isString) {
+                return;
+            }
+            var checker = paramsText.split(':');
+            var res = { syntax: checker[0], lineNumber: true, box: Typesetting.BOX_SHADOW };
+            if (checker.length() > 1) {
+                var params = checker[1];
+                params.split(',').each { &(param):
+                    var e = param.split('=');
+                    if (e.length() > 1) {
+                        res[e[0]] = (Typesetting[e[1]] ?? (e[1] == "true" ? true : e[1] == "false" ? false : e[1]));
+                    } else {
+                        res[e[0]] = Typesetting[e[0]] ?? true;
+                    }
+                };
+            }
+            return res;
+        }
+        private finCommand() {
+            ctx_.chapter = false;
+        }
+        private makeMathDocument(math, check) {
+            if (check.label.isString) {
+                var labels = check.label.split('/');
+                labels.each { &(label):
+                    var m = label.match(/([^\(]*)(?:\((.*)\))?/);
+                    if (m.isDefined) {
+                        if (m[2] == '') {
+                            math.setLabel(m[1]);
+                        } else {
+                            var pos = Double.parseDouble(m[2]);
+                            math.setLabel([m[1], pos]);
+                        }
+                    }
+                };
+            }
+        }
+        private generateAll() {
+            output_.each { => _1() };
+        }
+
+        public heading(ast) {
+            flushDoc();
+            if (ast.level == 1) {
+                title_ = inline_.makeInlineText(ast.values);
+            }
+            if (doc_.isUndefined) {
+                if (ast.level != 2) {
+                    return;
+                }
+                makeDocument();
+            }
+            switch (ast.level) {
+            case 1: # ignore
+                break;
+            case 2:
+                output_.push(&() => {
+                    doc_.apply(new Typesetting.Component.Chapter(inline_.makeInlineText(ast.values)));
+                });
+                ctx_.chapter = true;
+                break;
+            case 3:
+                output_.push(&() => {
+                    doc_.apply(new Typesetting.Component.Section(inline_.makeInlineText(ast.values)));
+                });
+                break;
+            case 4:
+                output_.push(&() => {
+                    doc_.apply(new Typesetting.Component.SubSection(inline_.makeInlineText(ast.values)));
+                });
+                break;
+            case 5:
+                output_.push(&() => {
+                    doc_.apply(new Typesetting.Component.SubSubSection(inline_.makeInlineText(ast.values)));
+                });
+                break;
+            }
+        }
+        public paragraph(ast) {
+            flushDoc({ paragraph: true });
+            if (checkParamCommand(ast.values)) {
+                return;
+            }
+            if (doc_.isUndefined) {
+                return;
+            }
+            paragraph_.push(ast);
+        }
+        public horizontal(ast) {
+            flushDoc();
+            # TODO
+            finCommand();
+        }
+        public code(ast) {
+            flushDoc();
+            var check = parseCodeString(ast.syntax);
+            switch (check.syntax) {
+            case 'math':
+                output_.push(&() => {
+                    var code = new Typesetting.Component.Math(inline_.makeInlineText(ast.values).trim());
+                    makeMathDocument(code, check);
+                    doc_.apply(code);
+                });
+                break;
+            default:
+                output_.push(&() => {
+                    var code = new Typesetting.Component.Code(inline_.makeInlineText(ast.values).trim());
+                    if (check.lineNumber) {
+                        code.showLineNumber();
+                    }
+                    if (check.box) {
+                        code.showBox(check.box);
+                    }
+                    doc_.apply(code);
+                });
+                break;
+            }
+            finCommand();
+        }
+        public blockquote(ast) {
+            if (ctx_.chapter) {
+                flushDoc({ bquote: true });
+                bquote_.push(ast);
+            } else {
+                flushDoc();
+                System.println(ast.toJsonString(true));
+                finCommand();
+            }
+        }
+        public list(ast) {
+            flushDoc({ list: true });
+            list_.push(ast);
+        }
+        public orderedlist(ast) {
+            flushDoc({ list: true });
+            list_.push(ast);
+        }
+        public checklist(ast) {
+            flushDoc({ list: true });
+            list_.push(ast);
+        }
+        public table(ast) {
+            flushDoc();
+            finCommand();
+        }
+        public fullwidthimage(ast) {
+            flushDoc();
+            output_.push(&() => {
+                var opts = parseParamString(ast.alt);
+                opts.file = ast.src;
+                doc_.apply(new Typesetting.Component.Image(opts));
+            });
+        }
+        public tagref(ast) {
+            inline_.addTag(ast.tag, ast.values);
+            return '';
+        }
+
+        private generateTo(file) {
+            flushDoc();
+            finCommand();
+            if (doc_.isUndefined) {
+                return;
+            }
+            generateAll();
+            doc_.save(file);
+        }
+
+        public parse(contents, file, options) {
+            options_ = options;
+            var ast = Markdown.BlockParser(contents);
+            ast.each { &(a):
+                this[a.name](a);
+            };
+            generateTo(file);
+        }
     }
 
 } # namespace Typesetting

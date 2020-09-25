@@ -12,7 +12,7 @@ namespace Typesetting {
                 }
                 if (cache) {
                     if (cache.page != ref.page || cache.counter != ref.counter || cache.name != ref.name || cache.text != ref.text) {
-                        info_.logger.warn("Re-run for Cross Reference with counter");
+                        info_.logger.warn("Re-run for Cross Reference[%{value}] with counter");
                     }
                 }
                 var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ref.counter);
