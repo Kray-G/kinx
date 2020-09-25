@@ -576,27 +576,28 @@ namespace Typesetting {
 
         private writeHeader(page) {
             var header = info_.base.header;
+            var format = (((page.number & 0x01) == 0x00) ? header.format.even : header.format.odd) ?? header.format;
             var fontObj = fontObjSerifBase_.regular;
             var fontSize = header.fontSize;
             page.setFontAndSize(fontObj, fontSize);
 
             var ascent = (fontObj.getAscent() / 1000) * fontSize;
             var y = page.getHeight() - (header.margin.top ?? (info_.base.margin.top * 0.6)) - ascent;
-            if (header.format.center) {
-                var text = makeFormattedText(page, header.format.center);
+            if (format.center) {
+                var text = makeFormattedText(page, format.center);
                 var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left + ((width - nwidth) / 2);
                 writeText(page, x, y, text, nwidth);
             }
-            if (header.format.left) {
-                var text = makeFormattedText(page, header.format.left);
+            if (format.left) {
+                var text = makeFormattedText(page, format.left);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left;
                 writeText(page, x, y, text, nwidth);
             }
-            if (header.format.right) {
-                var text = makeFormattedText(page, header.format.right);
+            if (format.right) {
+                var text = makeFormattedText(page, format.right);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = page.getWidth() - pageMargin_.right - nwidth;
                 writeText(page, x, y, text, nwidth);
@@ -605,26 +606,27 @@ namespace Typesetting {
 
         private writeFooter(page) {
             var footer = info_.base.footer;
+            var format = (((page.number & 0x01) == 0x00) ? footer.format.even : footer.format.odd) ?? footer.format;
             var fontObj = fontObjSerifBase_.regular;
             var fontSize = footer.fontSize;
             page.setFontAndSize(fontObj, fontSize);
 
             var y = footer.margin.bottom ?? (info_.base.margin.bottom * 0.6);
-            if (footer.format.center) {
-                var text = makeFormattedText(page, footer.format.center);
+            if (format.center) {
+                var text = makeFormattedText(page, format.center);
                 var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left + ((width - nwidth) / 2);
                 writeText(page, x, y, text, nwidth);
             }
-            if (footer.format.left) {
-                var text = makeFormattedText(page, footer.format.left);
+            if (format.left) {
+                var text = makeFormattedText(page, format.left);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left;
                 writeText(page, x, y, text, nwidth);
             }
-            if (footer.format.right) {
-                var text = makeFormattedText(page, footer.format.right);
+            if (format.right) {
+                var text = makeFormattedText(page, format.right);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = page.getWidth() - pageMargin_.right - nwidth;
                 writeText(page, x, y, text, nwidth);
