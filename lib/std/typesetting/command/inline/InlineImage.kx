@@ -1,0 +1,18 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Inlineimage(info_, context_) {
+
+            public exec(params, value) {
+                var ws = new Typesetting.WordSet(info_);
+                var image = new Typesetting.InlineImage(info_).setImage(value, params);
+                ws.addWord(Typesetting.Linebreak.Box(image.width, image));
+                return ws;
+            }
+
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

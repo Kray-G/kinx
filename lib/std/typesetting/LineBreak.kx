@@ -283,11 +283,11 @@ namespace Typesetting {
                 }
                 System.println("'%{value.word}' - Box, width:%{@width}, offset(%{value.offsetX??0},%{value.offsetY??0})");
             },
-            write: function(writer, isFloatingLine) {
+            write: function(writer, x, y, isFloatingLine, align) {
                 if (value.write.isFunction) {
-                    value.write(writer, isFloatingLine);
+                    value.write(writer, x, y, isFloatingLine, align);
                 } else {
-                    writer.write(this, null, null, isFloatingLine);
+                    writer.write(this, x, y, isFloatingLine);
                 }
             },
         };
@@ -307,8 +307,8 @@ namespace Typesetting {
                 }
                 System.println("        Glue, width:%{@width}, stretch:%{@stretch}, shrink:%{@shrink}");
             },
-            write: function(writer, isFloatingLine) {
-                writer.write(this, null, null, isFloatingLine);
+            write: function(writer, x, y, isFloatingLine) {
+                writer.write(this, x, y, isFloatingLine);
             },
         };
         return this;
@@ -327,8 +327,8 @@ namespace Typesetting {
                 }
                 System.println("        Penalty, width:%{width}, penalty:%{penalty}, flagged:%{flagged}");
             },
-            write: function(writer, isFloatingLine) {
-                writer.write(this, null, null, isFloatingLine);
+            write: function(writer, x, y, isFloatingLine) {
+                writer.write(this, x, y, isFloatingLine);
             },
         };
         return this;

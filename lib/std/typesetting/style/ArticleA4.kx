@@ -121,6 +121,7 @@ namespace Style {
                 "leftsep":              20.0,
                 "rightsep":             20.0,
                 "bottomsep":            10.0,
+                "maxWidth":             0.7,
             },
             "table": {
                 "label":                "Table",

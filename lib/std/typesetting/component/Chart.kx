@@ -44,7 +44,7 @@ namespace Typesetting {
 
                 var imgwidth = img.getWidth();
                 var scale = margin.width / imgwidth;
-                var [bottom, height] = writer.imageCenter(img, scale * (opts_.scale ?? 0.80));
+                var [bottom, height] = writer.imageTo(img, scale * (opts_.scale ?? 0.80), { center: true });
                 var linetop = bottom + height;
                 if (opts_.caption && opts_.label) {
                     var counter = @makeCountrNumber(context, "image");
