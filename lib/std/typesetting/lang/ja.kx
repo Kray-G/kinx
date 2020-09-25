@@ -285,9 +285,6 @@ namespace Typesetting {
                         } else if (l1 == 1 && l2 > 1) {
                             setupSpace(info, value);
                             nodes.push(Linebreak.Glue(0, space_.stretch, 0));
-                        } else {
-                            setupSpace(info, value);
-                            nodes.push(Linebreak.Glue(space_.width, space_.stretch, space_.shrink));
                         }
                     }
                 }
