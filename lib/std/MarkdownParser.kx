@@ -141,7 +141,15 @@ namespace Markdown {
             }
         }
 
+        _class Tag(text) : Node('tag', 'inline') {
+            private initialize() {
+                @tag = text;
+            }
+        }
+
         # Nodes for Block
+
+        const TAGREF_REGEX = /^\[([^\]]*)?\]\s*:\s*(.+)$/;
 
         _class Paragraph(text) : Node('paragraph', 'block') {
             private initialize() {
@@ -168,7 +176,7 @@ namespace Markdown {
             private initialize() {
                 @level = level;
                 @values = [
-                    new Nodes.Text(text)
+                    new Nodes.Text(text.trim())
                 ];
             }
         }
@@ -176,7 +184,7 @@ namespace Markdown {
         _class Heading(text, level) : Node('heading', 'block') {
             private initialize() {
                 if (level == 0 || level > 6) {
-                    throw new RuntimeException('Invalid heading: heading support only between H1 and H6');
+                    throw RuntimeException('Invalid heading: heading support only between H1 and H6');
                 }
                 @level = level;
                 @values = inlineParser(text);
@@ -227,6 +235,20 @@ namespace Markdown {
             }
         }
 
+        _class FullWidthImage(alt, src) : Node('fullwidthimage', 'block') {
+            private initialize() {
+                @alt = alt;
+                @src = src;
+            }
+        }
+
+        _class TagRef(tag, text) : Node('tagref', 'block') {
+            private initialize() {
+                @tag = tag;
+                @values = inlineParser(text);
+            }
+        }
+
     } # namespace Nodes
 
     # Parser for Inline
@@ -267,213 +289,227 @@ namespace Markdown {
             }
 
             switch (char) {
-                case "*"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
-                    }
+            case "*"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                if (text[i + 1] == '*'[0]) {
+                    i++;
                     if (text[i + 1] == '*'[0]) {
                         i++;
-                        if (text[i + 1] == '*'[0]) {
-                            i++;
-                            if (mode == MODE_ASTERISK_TRIPLE) {
-                                ast.push(new Nodes.EmItalic(stack));
-                                mode = MODE_DEFAULT;
-                            } else {
-                                if (!helper.isEmpty(stack)) {
-                                    ast.push(new Nodes.Text(stack));
-                                }
-                                mode = MODE_ASTERISK_TRIPLE;
-                            }
-                            stack = '';
-                        } else {
-                            if (mode == MODE_ASTERISK_DOUBLE) {
-                                ast.push(new Nodes.Em(stack));
-                                mode = MODE_DEFAULT;
-                            } else {
-                                if (!helper.isEmpty(stack)) {
-                                    ast.push(new Nodes.Text(stack));
-                                }
-                                mode = MODE_ASTERISK_DOUBLE;
-                            }
-                            stack = '';
-                        }
-                        continue;
-                    }
-                    if (mode == MODE_ASTERISK) {
-                        ast.push(new Nodes.Italic(stack));
-                        mode = MODE_DEFAULT;
-                    } else {
-                        if (!helper.isEmpty(stack)) {
-                            ast.push(new Nodes.Text(stack));
-                        }
-                        mode = MODE_ASTERISK;
-                    }
-                    stack = '';
-                    continue;
-                case "_"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
-                    }
-                    if (text[i + 1] == '_'[0]) {
-                        i++;
-                        if (text[i + 1] == '_'[0]) {
-                            i++;
-                            if (mode == MODE_UNDERLINE_TRIPLE) {
-                                ast.push(new Nodes.EmItalic(stack));
-                                mode = MODE_DEFAULT;
-                            } else {
-                                if (!helper.isEmpty(stack)) {
-                                    ast.push(new Nodes.Text(stack));
-                                }
-                                mode = MODE_UNDERLINE_TRIPLE;
-                            }
-                            stack = '';
-                        } else {
-                            if (mode == MODE_UNDERLINE_DOUBLE) {
-                                ast.push(new Nodes.Em(stack));
-                                mode = MODE_DEFAULT;
-                            } else {
-                                if (!helper.isEmpty(stack)) {
-                                    ast.push(new Nodes.Text(stack));
-                                }
-                                mode = MODE_UNDERLINE_DOUBLE;
-                            }
-                            stack = '';
-                        }
-                        continue;
-                    }
-                    if (mode == MODE_UNDERLINE) {
-                        ast.push(new Nodes.Italic(stack));
-                        mode = MODE_DEFAULT;
-                    } else {
-                        if (!helper.isEmpty(stack)) {
-                            ast.push(new Nodes.Text(stack));
-                        }
-                        mode = MODE_UNDERLINE;
-                    }
-                    stack = '';
-                    continue;
-                case "~"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
-                    }
-                    if (text[i + 1] == '~'[0]) {
-                        i++;
-                        if (mode == MODE_STRIKETHROUGH) {
-                            ast.push(new Nodes.Strikethrough(stack));
+                        if (mode == MODE_ASTERISK_TRIPLE) {
+                            ast.push(new Nodes.EmItalic(stack));
                             mode = MODE_DEFAULT;
                         } else {
                             if (!helper.isEmpty(stack)) {
                                 ast.push(new Nodes.Text(stack));
                             }
-                            mode = MODE_STRIKETHROUGH;
+                            mode = MODE_ASTERISK_TRIPLE;
                         }
                         stack = '';
-                        continue;
-                    }
-                    stack += *char;
-                    continue;
-                case "`"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        ast.push(new Nodes.InlineCode(stack));
-                        mode = MODE_DEFAULT;
                     } else {
-                        if (!helper.isEmpty(stack)) {
-                            ast.push(new Nodes.Text(stack));
-                        }
-                        mode = MODE_INLINE_CODE;
-                    }
-                    stack = '';
-                    continue;
-                case "<"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
-                    }
-                    if (!helper.isEmpty(stack)) {
-                        if (html.length() == 0) {
-                            ast.push(new Nodes.Text(stack));
+                        if (mode == MODE_ASTERISK_DOUBLE) {
+                            ast.push(new Nodes.Em(stack));
+                            mode = MODE_DEFAULT;
                         } else {
-                            html[-1] += stack;
+                            if (!helper.isEmpty(stack)) {
+                                ast.push(new Nodes.Text(stack));
+                            }
+                            mode = MODE_ASTERISK_DOUBLE;
                         }
                         stack = '';
                     }
-                    var c = char;
-                    do {
-                        stack += *c;
-                        c = text[++i];
-                    } while (c != ">"[0]);
-                    stack += *c;
-                    if (stack.length() > 2 && stack[-2] == '/'[0]) {
-                        ast.push(new Nodes.Html(stack));
-                    } else if (stack[1] == '/'[0]) {
-                        const h = html.pop() + stack;
-                        ast.push(new Nodes.Html(h));
-                    } else if (stack[1] == '!'[0]) {
-                        ast.push(new Nodes.HtmlComment(stack));
-                    } else {
-                        html.push(stack);
-                    }
-                    stack = '';
-                    continue;
-                case "!"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
-                    }
+                    break;
+                }
+                if (mode == MODE_ASTERISK) {
+                    ast.push(new Nodes.Italic(stack));
+                    mode = MODE_DEFAULT;
+                } else {
                     if (!helper.isEmpty(stack)) {
                         ast.push(new Nodes.Text(stack));
                     }
-                    stack = '';
-                    mode = MODE_IMAGE;
-                    stack = *char;
-                    continue;
-                case "["[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
+                    mode = MODE_ASTERISK;
+                }
+                stack = '';
+                break;
+            case "_"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                if (text[i + 1] == '_'[0]) {
+                    i++;
+                    if (text[i + 1] == '_'[0]) {
+                        i++;
+                        if (mode == MODE_UNDERLINE_TRIPLE) {
+                            ast.push(new Nodes.EmItalic(stack));
+                            mode = MODE_DEFAULT;
+                        } else {
+                            if (!helper.isEmpty(stack)) {
+                                ast.push(new Nodes.Text(stack));
+                            }
+                            mode = MODE_UNDERLINE_TRIPLE;
+                        }
+                        stack = '';
+                    } else {
+                        if (mode == MODE_UNDERLINE_DOUBLE) {
+                            ast.push(new Nodes.Em(stack));
+                            mode = MODE_DEFAULT;
+                        } else {
+                            if (!helper.isEmpty(stack)) {
+                                ast.push(new Nodes.Text(stack));
+                            }
+                            mode = MODE_UNDERLINE_DOUBLE;
+                        }
+                        stack = '';
                     }
-                    if (mode != MODE_IMAGE) {
+                    break;
+                }
+                if (mode == MODE_UNDERLINE) {
+                    ast.push(new Nodes.Italic(stack));
+                    mode = MODE_DEFAULT;
+                } else {
+                    if (!helper.isEmpty(stack)) {
+                        ast.push(new Nodes.Text(stack));
+                    }
+                    mode = MODE_UNDERLINE;
+                }
+                stack = '';
+                break;
+            case "~"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                if (text[i + 1] == '~'[0]) {
+                    i++;
+                    if (mode == MODE_STRIKETHROUGH) {
+                        ast.push(new Nodes.Strikethrough(stack));
+                        mode = MODE_DEFAULT;
+                    } else {
                         if (!helper.isEmpty(stack)) {
                             ast.push(new Nodes.Text(stack));
                         }
-                        mode = MODE_LINK;
-                        stack = *char;
-                        continue;
+                        mode = MODE_STRIKETHROUGH;
                     }
-                    stack += *char;
-                    continue;
-                case ")"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
+                    stack = '';
+                    break;
+                }
+                stack += *char;
+                break;
+            case "`"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    ast.push(new Nodes.InlineCode(stack));
+                    mode = MODE_DEFAULT;
+                } else {
+                    if (!helper.isEmpty(stack)) {
+                        ast.push(new Nodes.Text(stack));
                     }
-                    stack += *char;
-                    if (mode == MODE_IMAGE) {
-                        ast.push(new Nodes.Image(stack));
-                        mode = MODE_DEFAULT;
-                        stack = '';
-                    } else if (mode == MODE_LINK) {
-                        ast.push(new Nodes.Link(stack));
-                        mode = MODE_DEFAULT;
-                        stack = '';
-                    } else {
-                        stack += *char;
-                    }
-                    continue;
-                case "\\"[0]:
-                    if (mode == MODE_INLINE_CODE) {
-                        stack += *char;
-                        continue;
-                    }
-                    escapeSequence = true;
-                    continue;
-                default:
+                    mode = MODE_INLINE_CODE;
+                }
+                stack = '';
+                break;
+            case "<"[0]:
+                if (mode == MODE_INLINE_CODE) {
                     stack += *char;
                     break;
+                }
+                if (!helper.isEmpty(stack)) {
+                    if (html.length() == 0) {
+                        ast.push(new Nodes.Text(stack));
+                    } else {
+                        html[-1] += stack;
+                    }
+                    stack = '';
+                }
+                var c = char;
+                do {
+                    stack += *c;
+                    c = text[++i];
+                } while (c != ">"[0]);
+                stack += *c;
+                if (stack.length() > 2 && stack[-2] == '/'[0]) {
+                    ast.push(new Nodes.Html(stack));
+                } else if (stack[1] == '/'[0]) {
+                    const h = html.pop() + stack;
+                    ast.push(new Nodes.Html(h));
+                } else if (stack[1] == '!'[0]) {
+                    ast.push(new Nodes.HtmlComment(stack));
+                } else {
+                    html.push(stack);
+                }
+                stack = '';
+                break;
+            case "!"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                if (!helper.isEmpty(stack)) {
+                    ast.push(new Nodes.Text(stack));
+                }
+                stack = '';
+                mode = MODE_IMAGE;
+                stack = *char;
+                break;
+            case "["[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                if (mode != MODE_IMAGE) {
+                    if (!helper.isEmpty(stack)) {
+                        ast.push(new Nodes.Text(stack));
+                    }
+                    mode = MODE_LINK;
+                    stack = *char;
+                    break;
+                }
+                stack += *char;
+                break;
+            case "]"[0]:
+                stack += *char;
+                if (mode == MODE_LINK) {
+                    var c = text[++i];
+                    if (c == '('[0]) {
+                        stack += *c;
+                    } else {
+                        # TODO: not supported a link tag.
+                        ast.push(new Nodes.Tag(stack));
+                        stack = *c;
+                        mode = MODE_DEFAULT;
+                    }
+                }
+                break;
+            case ")"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                stack += *char;
+                if (mode == MODE_IMAGE) {
+                    ast.push(new Nodes.Image(stack));
+                    mode = MODE_DEFAULT;
+                    stack = '';
+                } else if (mode == MODE_LINK) {
+                    ast.push(new Nodes.Link(stack));
+                    mode = MODE_DEFAULT;
+                    stack = '';
+                } else {
+                    stack += *char;
+                }
+                break;
+            case "\\"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                escapeSequence = true;
+                break;
+            default:
+                stack += *char;
+                break;
             }
         }
         if (!helper.isEmpty(stack)) {
@@ -483,14 +519,14 @@ namespace Markdown {
             } else {
                 var prefix = '';
                 switch (mode) {
-                    case MODE_ASTERISK: prefix = '*'; break;
-                    case MODE_ASTERISK_DOUBLE: prefix = '**'; break;
-                    case MODE_ASTERISK_TRIPLE: prefix = '**'; break;
-                    case MODE_UNDERLINE: prefix = '_'; break;
-                    case MODE_UNDERLINE_DOUBLE: prefix = '__'; break;
-                    case MODE_UNDERLINE_TRIPLE: prefix = '___'; break;
-                    case MODE_STRIKETHROUGH: prefix = '~~'; break;
-                    case MODE_INLINE_CODE: prefix = '`'; break;
+                case MODE_ASTERISK: prefix = '*'; break;
+                case MODE_ASTERISK_DOUBLE: prefix = '**'; break;
+                case MODE_ASTERISK_TRIPLE: prefix = '**'; break;
+                case MODE_UNDERLINE: prefix = '_'; break;
+                case MODE_UNDERLINE_DOUBLE: prefix = '__'; break;
+                case MODE_UNDERLINE_TRIPLE: prefix = '___'; break;
+                case MODE_STRIKETHROUGH: prefix = '~~'; break;
+                case MODE_INLINE_CODE: prefix = '`'; break;
                 }
                 prev.value += '%{prefix}%{stack}';
             }
@@ -501,13 +537,15 @@ namespace Markdown {
     # Parser for Block
 
     const HEADING_REGEX = /^(#{1,})\s?(.+)$/;
-    const ULIST_REGEX = /^(\s*)?(?:\-|\*)\s*(.+)$/;
+    const ULIST_REGEX = /^(\s*)?(?:\-|\*)\s+(.+)$/;
     const OLIST_REGEX = /^(\s*)?([0-9]+)\.\s*(.+)$/;
     const HORIZONTAL_RULE_REGEX = /^[\*\-_\s]+$/;
     const CODE_REGEX = /^[`~]{3}(.*)$/;
     const BLOCKQUOTE_REGEX = /^(>{1,})\s?(.+)$/;
     const LINEBREAK_REGEX = /(.+?)[\u0020]{2}$/;
     const TABLE_REGEX = /(?:\s*)?\|(.+)\|(?:\s*)$/;
+    const TAGREF_REGEX = /^(\[[^\]]*\])\s*:\s*(.+)$/;
+    const FWIMAGE_REGEX = /^!\[([^\]]*)\]\s*\((.+)\)$/;
 
     const MODE_DEFAULT = 0;
     const MODE_CODE = 1;
@@ -538,7 +576,7 @@ namespace Markdown {
             }
         };
 
-        var prev;
+        var prev, pline;
         for (var i = 0, l = str.length(); i < l; ++i) {
             var char = str[i];
 
@@ -618,9 +656,21 @@ namespace Markdown {
                 } else if ((match = line.match(TABLE_REGEX)).isDefined) {
                     tables.push(line);
                     stack = '';
+                } else if ((match = line.match(TAGREF_REGEX)).isDefined) {
+                    stack = '';
+                    ast.push(new Nodes.TagRef(match[1] || '', match[2] || ''));
+                } else if (pline == "" && (match = line.match(FWIMAGE_REGEX)).isDefined) {
+                    var next = (i+1) < l ? str[i+1] : '\n'[0];
+                    if (next == '\n'[0] || next == '\r'[0]) {
+                        ast.push(new Nodes.FullWidthImage(match[1] || '', match[2] || ''));
+                        stack = '';
+                    } else {
+                        stack += line != '' ? "%{line}\n" : '';
+                    }
                 } else {
                     stack += line != '' ? "%{line}\n" : '';
                 }
+                pline = line;
                 line = '';
             } else {
                 line += *char;
