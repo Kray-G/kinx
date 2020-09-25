@@ -352,7 +352,6 @@ namespace Typesetting {
         }
         public table(ast) {
             flushDoc();
-System.println(ast.toJsonString(true));
             finCommand();
         }
         public fullwidthimage(ast) {
