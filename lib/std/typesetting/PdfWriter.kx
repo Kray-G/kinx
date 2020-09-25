@@ -379,7 +379,14 @@ namespace Typesetting {
             return widthList;
         }
 
-        public loadImage(path) {
+        public loadImage(pathbase) {
+            var path = pathbase;
+            if (!File.exists(path)) {
+                path = info_.context.filepath / pathbase;
+                if (!File.exists(path)) {
+                    throw RuntimeException("Image file not found: " + pathbase);
+                }
+            }
             if (path.endsWith(".png")) {
                 return pdf_.loadPngImageFromFile(path);
             } else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
@@ -569,27 +576,28 @@ namespace Typesetting {
 
         private writeHeader(page) {
             var header = info_.base.header;
+            var format = (((page.number & 0x01) == 0x00) ? header.format.even : header.format.odd) ?? header.format;
             var fontObj = fontObjSerifBase_.regular;
             var fontSize = header.fontSize;
             page.setFontAndSize(fontObj, fontSize);
 
             var ascent = (fontObj.getAscent() / 1000) * fontSize;
             var y = page.getHeight() - (header.margin.top ?? (info_.base.margin.top * 0.6)) - ascent;
-            if (header.format.center) {
-                var text = makeFormattedText(page, header.format.center);
+            if (format.center) {
+                var text = makeFormattedText(page, format.center);
                 var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left + ((width - nwidth) / 2);
                 writeText(page, x, y, text, nwidth);
             }
-            if (header.format.left) {
-                var text = makeFormattedText(page, header.format.left);
+            if (format.left) {
+                var text = makeFormattedText(page, format.left);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left;
                 writeText(page, x, y, text, nwidth);
             }
-            if (header.format.right) {
-                var text = makeFormattedText(page, header.format.right);
+            if (format.right) {
+                var text = makeFormattedText(page, format.right);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = page.getWidth() - pageMargin_.right - nwidth;
                 writeText(page, x, y, text, nwidth);
@@ -598,26 +606,27 @@ namespace Typesetting {
 
         private writeFooter(page) {
             var footer = info_.base.footer;
+            var format = (((page.number & 0x01) == 0x00) ? footer.format.even : footer.format.odd) ?? footer.format;
             var fontObj = fontObjSerifBase_.regular;
             var fontSize = footer.fontSize;
             page.setFontAndSize(fontObj, fontSize);
 
             var y = footer.margin.bottom ?? (info_.base.margin.bottom * 0.6);
-            if (footer.format.center) {
-                var text = makeFormattedText(page, footer.format.center);
+            if (format.center) {
+                var text = makeFormattedText(page, format.center);
                 var width = page.getWidth() - pageMargin_.left - pageMargin_.right;
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left + ((width - nwidth) / 2);
                 writeText(page, x, y, text, nwidth);
             }
-            if (footer.format.left) {
-                var text = makeFormattedText(page, footer.format.left);
+            if (format.left) {
+                var text = makeFormattedText(page, format.left);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = pageMargin_.left;
                 writeText(page, x, y, text, nwidth);
             }
-            if (footer.format.right) {
-                var text = makeFormattedText(page, footer.format.right);
+            if (format.right) {
+                var text = makeFormattedText(page, format.right);
                 var nwidth = info_.measure.textWidth(fontObj, fontSize, text);
                 var x = page.getWidth() - pageMargin_.right - nwidth;
                 writeText(page, x, y, text, nwidth);
@@ -964,13 +973,13 @@ namespace Typesetting {
             if (value) {
                 var offsetX = value.offsetX;
                 if (floating_.isDefined) {
-                    if (floating_.floating.left && isFloatingLine) {
-                        offsetX += (floating_.width + info_.base.image.leftsep);
-                    } else if (floating_) {
+                    if (!isFloatingLine) {
                         var savex = x_;
                         writeFloatingImage();
                         floating_ = null;
                         x_ = savex;;
+                    } else if (floating_.floating.left) {
+                        offsetX += (floating_.width + info_.base.image.leftsep);
                     }
                 }
                 x = x_ + offsetX;
@@ -1025,15 +1034,14 @@ namespace Typesetting {
             var image = path.isString ? loadImage(path) : path;
             var width = image.getWidth();
             var height = image.getHeight();
-            if (scale.isDefined) {
-                width *= scale;
-                height *= scale;
+            if (!scale || scale > info_.base.image.maxWidth) {
+                scale = info_.base.image.maxWidth;
             }
 
             var lrsep = floating.left ? info_.base.image.leftsep : info_.base.image.rightsep;
             var bsep = info_.base.image.bottomsep;
             var margin = makeMarginSize();
-            var mwidth = margin.width / 2;
+            var mwidth = margin.width * scale;
             var ratio = height / width;
             if (mwidth < width) {
                 width = mwidth - lrsep;
@@ -1061,7 +1069,7 @@ namespace Typesetting {
             };
         }
 
-        public imageCenter(path, scale) {
+        public imageTo(path, scale, align) {
             var image = path.isString ? loadImage(path) : path;
             var width = image.getWidth();
             var height = image.getHeight();
@@ -1095,13 +1103,19 @@ namespace Typesetting {
             var left;
             if (margin.width < width) {
                 scale = margin.width / width;
+                width = width * scale;
+                height = height * scale;
                 left = margin.left;
             } else {
                 scale = 1.0;
-                left = margin.left + (margin.width - width) / 2;
+                if (align.center) {
+                    left = margin.left + (margin.width - width) / 2;
+                } else if (align.right) {
+                    left = margin.left + (margin.width - width);
+                } else {
+                    left = margin.left;
+                }
             }
-            width = width * scale;
-            height = height * scale;
             var offsetY = lineFeedWidth - height;
             y_ += offsetY;
             writer_.drawImage(page_, image, left, y_, width, height);

@@ -11,7 +11,7 @@ namespace Typesetting {
             public setText(text) {
                 text_ = text;
             }
-            public write(info, context, core) {
+            public write(info, context, core, align) {
                 [opts_, text_] = core.util.makeOption(opts_, text_);
                 var lines = core.paragraph.exec(opts_, text_);
                 var lineFeedWidth = 0;
@@ -24,7 +24,7 @@ namespace Typesetting {
                     isParagraph: true,
                     lineFeedWidth: lineFeedWidth,
                     func: &() => {
-                        core.util.write(lines);
+                        core.util.write(lines, align);
                     },
                 });
                 core.flushParagraph();

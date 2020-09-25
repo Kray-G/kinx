@@ -249,6 +249,7 @@ namespace Typesetting {
                 }
                 setLineInfo(lines);
                 adjustLines(lines);
+                lines[0].hasFloatingImage = areaWidthLen > 1;
                 return lines;
             }
 

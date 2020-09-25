@@ -32,17 +32,19 @@ namespace Typesetting {
     class InlineImage(info_) {
         @isInlineImage = true;
         var measure_ = info_.measure;
+        var writer_ = info_.writer;
         private initialize() {
         }
-        public setImage(image, scale) {
+        public setImage(imgfile, opts) {
+            var scale = Double.parseDouble(opts.scale);
             @word = "<InlineImage>";
             fontObj ??= info_.context.font.fontObj;
             fontSize ??= info_.context.font.fontSize;
             var bbox = fontObj.getBBox();
             @offsetY = bbox.bottom * fontSize / 1000 + 0.8;
-            @image = image;
-            @width = image.getWidth();
-            @height = image.getHeight();
+            @image = imgfile.isString ? writer_.loadImage(imgfile) : imgfile;
+            @width = @image.getWidth();
+            @height = @image.getHeight();
             if (!scale) {
                 var lineHeight = (bbox.top + bbox.bottom) * fontSize / 1000;
                 scale = lineHeight / @height;
@@ -51,6 +53,9 @@ namespace Typesetting {
             @height = @height * scale;
             @bottom = bbox.bottom * fontSize / 1000;
             @top = @height + @bottom;
+            if (opts.offsetY) {
+                @offsetY += Double.parseDouble(opts.offsetY);
+            }
             return this;
         }
         public fontObj() {
@@ -149,10 +154,10 @@ namespace Typesetting {
                 y: linetop,
             });
         }
-        public write() {
+        public write(writer, x, y, isFloatingLine, align) {
             var captionSpace = @caption ? @lineFeedWidth : 0;
-            var linetop = info_.writer.getLineTop(@fontObj, @fontSize);
-            writer_.imageCenter(@image, @scale);
+            var linetop = writer.getLineTop(@fontObj, @fontSize);
+            writer_.imageTo(@image, @scale, align);
             if (@caption) {
                 writer_.lineBreak(captionSpace);
                 writer_.writeCenter(@caption, @fontObj, @fontSize);
