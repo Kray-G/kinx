@@ -6,16 +6,18 @@ namespace Style {
     class BookA4 : Typesetting.Style.ArticleA4 {
         var fontSize = 10.0;
         @style.margin = {
-                "left":                 46.7,
-                "right":                46.7,
+                "left":                 76.7,
+                "right":                76.7,
                 "bottom":               56.7,
                 "top":                  68.0,
                 "alley":                20.3,
         };
         @style.sectionLevel = 2;
         @style.header.format = null;
-        @style.margin.odd = { adjust: 10.0 };
-        @style.margin.even = { adjust: -10.0 };
+        @style.footer.format.even = { left: "<counter:page>" };
+        @style.footer.format.odd = { right: "<counter:page>" };
+        @style.margin.odd = { adjust: 20.0 };
+        @style.margin.even = { adjust: -20.0 };
         @style.draw = {
             "margin":   false,
             "imageBox": false,
@@ -24,17 +26,17 @@ namespace Style {
             "header":               "Contents",
             "lof":                  "List of Figures",
             "lot":                  "List of Tables",
-            "headerSize":           fontSize * 2.2,
+            "headerSize":           fontSize * 1.8,
             "fitWidth":             true,
             "level":                3,
             "indentSize":           15.0,
             "fontSize":             [
                 fontSize,
-                fontSize * 1.8,
                 fontSize * 1.4,
-                fontSize * 1.2,
                 fontSize * 1.1,
-                fontSize * 1.1,
+                fontSize * 1.0,
+                fontSize * 1.0,
+                fontSize * 1.0,
             ],
             "lineFeedWidthRatio":   [
                 1.75,
@@ -51,6 +53,7 @@ namespace Style {
             fontSize * 1.4,
             fontSize * 1.2,
         ];
+        @style.abstract.noTitle = true;
         @style.abstract.lineFeedWidth      = 24.5;
         @style.abstract.paragraphSkipWidth = 24.5;
         @style.abstract.margin = {

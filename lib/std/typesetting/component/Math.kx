@@ -27,7 +27,7 @@ namespace Typesetting {
                 var fontSize = context.font.fontSize;
                 var lineFeedWidth = fontSize * context.page.lineFeedWidthRatio;
                 var img = Typesetting.Util.compileMath(str_, true, writer);
-                var [bottom, height] = writer.imageCenter(img, 0.25);
+                var [bottom, height] = writer.imageTo(img, 0.25, { center: true });
                 var linetop = bottom + height;
                 if (opts_.label) {
                     context.counter.math ??= 0;

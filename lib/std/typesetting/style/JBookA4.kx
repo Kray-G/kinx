@@ -8,6 +8,8 @@ namespace Style {
         @style.indentSize = fontSize;
         @style.noIndentTopOfParagraph = false;
         @style.toc.header = "目次";
+        @style.toc.lof = "図目次";
+        @style.toc.lot = "表目次";
         @style.chapter.pretext = "第 ";
         @style.chapter.posttext = " 章";
         @style.abstract.title = { right: true, text: "本章の概要" };
