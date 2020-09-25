@@ -167,7 +167,7 @@ namespace Util {
         height ??= 400;
         var img = runPhantomJsForChart(writer, chartjs_, width, height, fontSize, jsonname, imgfile);
         File.remove(jsonname);
-        # File.remove(imgfile);
+        File.remove(imgfile);
         return img;
     };
 
