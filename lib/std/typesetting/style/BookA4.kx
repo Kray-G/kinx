@@ -14,6 +14,8 @@ namespace Style {
         };
         @style.sectionLevel = 2;
         @style.header.format = null;
+        @style.footer.format.even = { left: "<counter:page>" };
+        @style.footer.format.odd = { right: "<counter:page>" };
         @style.margin.odd = { adjust: 20.0 };
         @style.margin.even = { adjust: -20.0 };
         @style.draw = {
@@ -24,17 +26,17 @@ namespace Style {
             "header":               "Contents",
             "lof":                  "List of Figures",
             "lot":                  "List of Tables",
-            "headerSize":           fontSize * 2.2,
+            "headerSize":           fontSize * 1.8,
             "fitWidth":             true,
             "level":                3,
             "indentSize":           15.0,
             "fontSize":             [
                 fontSize,
-                fontSize * 1.8,
                 fontSize * 1.4,
-                fontSize * 1.2,
                 fontSize * 1.1,
-                fontSize * 1.1,
+                fontSize * 1.0,
+                fontSize * 1.0,
+                fontSize * 1.0,
             ],
             "lineFeedWidthRatio":   [
                 1.75,
