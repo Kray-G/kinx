@@ -79,7 +79,7 @@ namespace Typesetting {
                 if (!params.isString) {
                     throw RuntimeException("Ruby should have a word for " + value);
                 }
-                var fontObj = context_.font.fontObj;
+                var fontObj = Typesetting.Util.getMbFont(context_);
                 var fontSize = context_.font.fontSize;
                 var rubySize = fontSize / 2;
                 var measure = info_.measure;

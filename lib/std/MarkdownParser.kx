@@ -496,8 +496,6 @@ namespace Markdown {
                     ast.push(new Nodes.Link(stack));
                     mode = MODE_DEFAULT;
                     stack = '';
-                } else {
-                    stack += *char;
                 }
                 break;
             case "\\"[0]:

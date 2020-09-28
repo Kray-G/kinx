@@ -22,11 +22,10 @@ namespace Typesetting {
                 var writer = info_.writer;
                 var numText = util_.makeSectionNumber(level);
                 var sectionNumberText = numText.join('.');
-                var font = context_.font;
-                context_.font = {
-                    fontObj: context_.font.fontObjBase.bold,
-                    fontSize: info_.base.fontSize[level],
-                };
+                var fontObj = context_.font.fontObj;
+                var fontSize = context_.font.fontSize;
+                context_.font.fontObj = context_.font.fontObjBase.bold;
+                context_.font.fontSize = info_.base.fontSize[level];
 
                 var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
                 context_.page.lineFeedWidthRatio = info_.base.lineFeedWidthRatio[level];
@@ -54,7 +53,8 @@ namespace Typesetting {
                 context_.noIndent = indent;
                 context_.page.paragraphSkipWidth = paragraphSkipWidth;
                 context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
-                context_.font = font;
+                context_.font.fontSize = fontSize;
+                context_.font.fontObj = fontObj;
 
                 if (info_.base.footnote.resetSectionLevel == level && context_.counter.section[level] > 1) {
                     context_.counter.footnote = 0;
