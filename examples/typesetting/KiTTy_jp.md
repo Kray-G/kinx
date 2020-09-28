@@ -1,6 +1,7 @@
 # KiTTy
 
 <param style="JBookA4"/>
+<param multibytefont="jp"/>
 <param titleSize="64.8"/>
 <param subtitleSize="14.4"/>
 <param subtitle="Small and Easy, but Beautiful Design For You"/>
@@ -154,7 +155,7 @@ hello, world
 
 #### ハイフネーション・ジャスティフィケーション・行分割
 
-![float=right,scale=0.5,caption=ハイフネーションとジャスティフィケーション,label=image1](linebreak.png)
+![float=right,scale=0.5,caption=ハイフネーション・両端揃え,label=image1](linebreak.png)
 
 Franklin M. Liang のアルゴリズムに基づくハイフネーションをサポートしています。
 また、ハイフネーションに伴うジャスティフィケーション（両端揃え）機能をサポートしています。
@@ -321,9 +322,8 @@ $\\displaystyle\\int\_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ と表現さ�
 ```
 
 上記のように記載すると以下のように図が挿入されます。
-`scale=0.6` と指定していることにより、
-版面の横幅の 60% の大きさに補正されて表示されます。
-その際、縦横の比率は維持されます。
+`scale=0.6` の指定により版面の横幅の 60% の大きさに補正されて表示されます。
+また、縦横の比率は維持されます。
 
 ![scale=0.6](kinxlogo.png)
 
