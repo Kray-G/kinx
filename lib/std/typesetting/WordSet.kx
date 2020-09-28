@@ -33,29 +33,24 @@ namespace Typesetting {
         @isInlineImage = true;
         var measure_ = info_.measure;
         var writer_ = info_.writer;
-        private initialize() {
-        }
         public setImage(imgfile, opts) {
             var scale = Double.parseDouble(opts.scale);
             @word = "<InlineImage>";
             fontObj ??= info_.context.font.fontObj;
             fontSize ??= info_.context.font.fontSize;
-            var bbox = fontObj.getBBox();
-            @offsetY = bbox.bottom * fontSize / 1000 + 0.8;
             @image = imgfile.isString ? writer_.loadImage(imgfile) : imgfile;
             @width = @image.getWidth();
             @height = @image.getHeight();
+            var lineFeedWidth = info_.context.page.lineFeedWidthRatio * fontSize;
+            var lineHeight = lineFeedWidth;
             if (!scale) {
-                var lineHeight = (bbox.top + bbox.bottom) * fontSize / 1000;
                 scale = lineHeight / @height;
             }
             @width = @width * scale;
             @height = @height * scale;
-            @bottom = bbox.bottom * fontSize / 1000;
+            @offsetY = opts.offsetY ? Double.parseDouble(opts.offsetY) : 0;
+            @bottom = @offsetY;
             @top = @height + @bottom;
-            if (opts.offsetY) {
-                @offsetY += Double.parseDouble(opts.offsetY);
-            }
             return this;
         }
         public fontObj() {

@@ -44,6 +44,27 @@ namespace Util {
         return value;
     };
 
+    var typeMap_ = { serif: 0, sans: 1, monotype: 2 };
+
+    Typesetting.Util.getMbFont = function(ctx) {
+        if (ctx.font.mb.isDefined) {
+            var type = typeMap_[ctx.font.fontType];
+            var fontBase = ctx.font.mb ? ctx.font.mb[type] : ctx.fontSet[ctx.font.fontType].fontObjBase;
+            var font = ctx.font;
+            if (font.isBold && font.isItaric) {
+                return fontBase.bolditaric;
+            }
+            if (font.isBold) {
+                return fontBase.bold;
+            }
+            if (font.isItaric) {
+                return fontBase.itaric;
+            }
+            return fontBase.regular;
+        }
+        return ctx.font.fontObj;
+    };
+
     var romanKey_    = ["","c","cc","ccc","cd","d","dc","dcc","dccc","cm","","x","xx","xxx","xl","l","lx","lxx","lxxx","xc","","i","ii","iii","iv","v","vi","vii","viii","ix"];
     var romanKeyCap_ = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM","","X","XX","XXX","XL","L","LX","LXX","LXXX","XC","","I","II","III","IV","V","VI","VII","VIII","IX"];
 
