@@ -1,0 +1,42 @@
+{
+    "default": {
+        "serif": {
+            "regular": { "file": "GenYoMin-R.ttc", "index": 1 },
+            "bold": { "file": "GenYoMin-B.ttc", "index": 1 },
+            "itaric": { "file": "NotoSerif-Italic.ttf" },
+            "bolditaric": { "file": "NotoSerif-BoldItalic.ttf" }
+        },
+        "sans": {
+            "regular": { "file": "GenShinGothic-Regular.ttf" },
+            "bold": { "file": "GenShinGothic-Bold.ttf" },
+            "itaric": { "file": "NotoSans-Italic.ttf" },
+            "bolditaric": { "file": "NotoSans-BoldItalic.ttf" }
+        },
+        "monotype": {
+            "regular": { "file": "RobotoMono-Regular.ttf" },
+            "bold": { "file": "RobotoMono-Bold.ttf" },
+            "itaric": { "file": "RobotoMono-Italic.ttf" },
+            "bolditaric": { "file": "RobotoMono-BoldItalic.ttf" }
+        }
+    },
+    "jp": {
+        "serif": {
+            "regular": { "file": "GenYoMin-R.ttc", "index": 1 },
+            "bold": { "file": "GenYoMin-B.ttc", "index": 1 },
+            "itaric": { "file": "NotoSerif-Italic.ttf" },
+            "bolditaric": { "file": "NotoSerif-BoldItalic.ttf" }
+        },
+        "sans": {
+            "regular": { "file": "GenShinGothic-Regular.ttf" },
+            "bold": { "file": "GenShinGothic-Bold.ttf" },
+            "itaric": { "file": "NotoSans-Italic.ttf" },
+            "bolditaric": { "file": "NotoSans-BoldItalic.ttf" }
+        },
+        "monotype": {
+            "regular": { "file": "GenShinGothic-Monospace-Regular.ttf" },
+            "bold": { "file": "GenShinGothic-Monospace-Bold.ttf" },
+            "itaric": { "file": "RobotoMono-Italic.ttf" },
+            "bolditaric": { "file": "RobotoMono-BoldItalic.ttf" }
+        }
+    }
+}
