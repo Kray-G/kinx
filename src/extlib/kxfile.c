@@ -209,14 +209,11 @@ static int kx_getch(void)
             }
             ch = r.Event.KeyEvent.uChar.UnicodeChar;
             if (ch > 0) {
-                if (ch > 0xff) {
-                    // it assume not to be ascii.
-                    wchar_t wstr[] = { ch, 0 };
-                    int size = WideCharToMultiByte(CP_UTF8, 0, wstr, 1, g_mbstr, sizeof(g_mbstr), NULL, NULL);
-                    g_mbstr[size] = 0;
-                    ch = g_mbstr[0] & 0xff;
-                    g_mbpos = 1;
-                }
+                wchar_t wstr[] = { ch, 0 };
+                int size = WideCharToMultiByte(CP_UTF8, 0, wstr, 1, g_mbstr, sizeof(g_mbstr), NULL, NULL);
+                g_mbstr[size] = 0;
+                ch = g_mbstr[0] & 0xff;
+                g_mbpos = 1;
                 break;
             }
         }
