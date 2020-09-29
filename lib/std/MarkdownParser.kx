@@ -547,7 +547,9 @@ namespace Markdown {
 
     const MODE_DEFAULT = 0;
     const MODE_CODE = 1;
-    const MODE_TABLE = 2; # not implement yet
+    const MODE_INDENTCODE = 2;
+    const MODE_LIST = 3;
+    const MODE_TABLE = 4;
 
     Markdown.BlockParser = _function(str, callback) {
         var ast = [];
@@ -583,46 +585,62 @@ namespace Markdown {
                 continue;
             }
             if (char == '\n'[0]) {
-                if (mode == MODE_CODE) {
+                if (mode == MODE_INDENTCODE) {
+                    if (line.startsWith('    ')) {
+                        stack += "%{line.subString(4)}\n";
+                    } else {
+                        ast.push(new Nodes.Code(stack, "text"));
+                        stack = line != '' ? "%{line}\n" : '';
+                        syntax = null;
+                        mode = MODE_DEFAULT;
+                    }
+                    line = '';
+                    continue;
+                } else if (mode == MODE_CODE) {
                     if (line.match(CODE_REGEX)) {
                         ast.push(new Nodes.Code(stack.trim(), syntax));
                         stack = '';
-                        mode = MODE_DEFAULT;
                         syntax = null;
+                        mode = MODE_DEFAULT;
                     } else {
                         stack += line != '' ? "%{line}\n" : '';
                     }
                     line = '';
                     continue;
                 }
-                if (prev == '\n'[0]) {
-                    if (stack.startsWith('    ')) {
-                        stack = stack.split('\n').map { => _1.subString(4) }.join('\n');
-                        ast.push(new Nodes.Code(stack, "text"));
-                    } else {
-                        parseParagraph(stack);
-                    }
+                if (mode == MODE_DEFAULT && line.startsWith('    ')) {
+                    parseParagraph(stack);
+                    syntax = 'text';
+                    stack = "%{line.subString(4)}\n";
+                    mode = MODE_INDENTCODE;
+                } else if (prev == '\n'[0]) {
+                    parseParagraph(stack);
                     stack = '';
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(LINEBREAK_REGEX)).isDefined) {
                     parseParagraph(stack + match[1]);
                     stack = '';
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(CODE_REGEX)).isDefined) {
                     parseParagraph(stack);
-                    mode = MODE_CODE;
                     syntax = match[1];
                     stack = '';
+                    mode = MODE_CODE;
                 } else if ((match = line.match(BLOCKQUOTE_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
                     ast.push(new Nodes.Blockquote(match[2], match[1].length()));
+                    mode = MODE_DEFAULT;
                 } else if (HORIZONTAL_RULE_REGEX.test(line) && line.split(/[\*\-_]/).length() > 3) {
                     parseParagraph(stack);
                     stack = '';
                     ast.push(new Nodes.Horizontal());
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(HEADING_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
                     ast.push(new Nodes.Heading(match[2], match[1].length()));
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(ULIST_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
@@ -636,6 +654,7 @@ namespace Markdown {
                     }
                     const list = check ? new Nodes.CheckList(check[2], check[1] == 'x'[0], level, indent) : new Nodes.List(match[2], level, indent);
                     ast.push(list);
+                    mode = MODE_LIST;
                 } else if ((match = line.match(OLIST_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
@@ -651,12 +670,18 @@ namespace Markdown {
                         new Nodes.OrderedCheckList(check[2], check[1] == 'x'[0], (match[2] || 0), level, indent) :
                         new Nodes.OrderedList(match[3], (match[2] || 0), level, indent);
                     ast.push(list);
+                    mode = MODE_LIST;
                 } else if ((match = line.match(TABLE_REGEX)).isDefined) {
+                    if (mode != MODE_TABLE) {
+                        parseParagraph(stack);
+                    }
                     tables.push(line);
                     stack = '';
+                    mode = MODE_TABLE;
                 } else if ((match = line.match(TAGREF_REGEX)).isDefined) {
                     stack = '';
                     ast.push(new Nodes.TagRef(match[1] || '', match[2] || ''));
+                    mode = MODE_DEFAULT;
                 } else if (pline == "" && (match = line.match(FWIMAGE_REGEX)).isDefined) {
                     var next = (i+1) < l ? str[i+1] : '\n'[0];
                     if (next == '\n'[0] || next == '\r'[0]) {
@@ -665,6 +690,7 @@ namespace Markdown {
                     } else {
                         stack += line != '' ? "%{line}\n" : '';
                     }
+                    mode = MODE_DEFAULT;
                 } else {
                     stack += line != '' ? "%{line}\n" : '';
                 }
