@@ -11,6 +11,7 @@ dist/$(NAME).c: dist/myacc
 	./dist/myacc -y __json_yy -Y JSON_YY src/$(NAME).y
 	cp -f y.tab.c dist/$(NAME).c
 	cat src/string.c >> dist/$(NAME).c
+	cat src/vector.c >> dist/$(NAME).c
 	rm -f y.tab.c
 	cp -f src/$(NAME).h dist/$(NAME).h
 
