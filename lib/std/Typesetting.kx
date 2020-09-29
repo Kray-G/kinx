@@ -123,7 +123,7 @@ namespace Typesetting {
                 var totalLineFeeds = core_.pendingParagraphList.sum({ => _1.lineFeedWidth ?? 0 });
                 writer.checkColumnBreak(totalLineFeeds);
                 core_.pendingParagraphList.each { &(p):
-                    if (!p.isParagraph) {
+                    if (!p.isParagraph && p.lineFeedWidth > 0) {
                         writer.clearFloatingImage(p.lineFeedWidth);
                     }
                     p.func();
@@ -254,7 +254,7 @@ namespace Typesetting {
                 File.open(opts_.xref, File.WRITE) { &(f):
                     f.println(context_.xref.toJsonString(true));
                 };
-                info_.logger.info("Saved the Xref information.");
+                info_.logger.info("Saved the Xref information. [%{opts_.xref}]");
             }
         }
 
