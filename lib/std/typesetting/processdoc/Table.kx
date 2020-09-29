@@ -44,6 +44,9 @@ namespace Typesetting {
             }
 
             private measureText(text, isHeader) {
+                if (!text) {
+                    return 0.0;
+                }
                 var lines = paragraph_.exec({ measureWidth: true }, isHeader ? "\\bold{%{text}}" : text);
                 var width = 0.0;
                 var nodes = lines[0].nodes;
@@ -160,11 +163,13 @@ namespace Typesetting {
                 var y = pos_.y - cellPadding * 2;
                 for (var i = 0, l = table.body.length(); i < l; ++i) {
                     var ba = table.body[i];
+                    var isNextline = table.body[i+1].isTableHLine;
                     if (!ba.isTableHLine) {
                         totalLineFeedWidth = 0;
                         ba.y = y;
                         var isHeader = ba.isHeader;
                         var lineFeedWidth = 0;
+                        var additional = (isNextline ? cellPadding2 : cellPadding);
                         for (var j = 0, m = ba.length(); j < m; ++j) {
                             var b = ba[j];
                             b.width = widthlist[j].width;
@@ -173,7 +178,7 @@ namespace Typesetting {
                             context_.noIndent = true;
                             b.lines = paragraph_.exec({ areaWidth: b.areaWidth }, isHeader ? "\\bold{%{b.text}}" : b.text);
                             context_.noIndent = noIndent;
-                            b.totalLineFeedWidth = b.lines[0].totalLineFeedWidth + cellPadding2;
+                            b.totalLineFeedWidth = b.lines[0].totalLineFeedWidth + additional;
                             b.y = y + cellPadding + b.lines[0].diffHeight;
                             if (totalLineFeedWidth < b.totalLineFeedWidth) {
                                 totalLineFeedWidth = b.totalLineFeedWidth;
@@ -221,11 +226,11 @@ namespace Typesetting {
             }
 
             private outputTextImpl(array, writer, xbase, ybase, totalLineFeedWidth) {
+                var cellPadding = info_.base.table.cellPadding;
                 for (var i = 0, l = array.length(); i < l; ++i) {
                     var isCenter = align_[i].align == 'c'[0];
                     var isRight = align_[i].align == 'r'[0];
                     var h = array[i];
-                    var cellPadding = info_.base.table.cellPadding;
                     x += cellPadding;
                     y = h.y + offsetY_;
                     var last = h.lines.length() - 1;
