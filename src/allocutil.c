@@ -15,6 +15,7 @@ kx_obj_t *init_object(kx_obj_t *o)
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+#define KX_CODEPAGE GetConsoleCP()
 static void conv_impl(const char* src, char* dst, int* size, int fromcode, int tocode)
 {
     *size = 0;
@@ -67,13 +68,13 @@ static void conv_impl(const char* src, char* dst, int* size, int fromcode, int t
 int len_acp2utf8(const char *src)
 {
     int len = 0;
-    conv_impl(src, NULL, &len, CP_ACP, CP_UTF8);
+    conv_impl(src, NULL, &len, KX_CODEPAGE, CP_UTF8);
     return len;
 }
 
 char *conv_acp2utf8(char *dst, int len, const char *src)
 {
-    conv_impl(src, dst, &len, CP_ACP, CP_UTF8);
+    conv_impl(src, dst, &len, KX_CODEPAGE, CP_UTF8);
     return dst;
 }
 
@@ -81,20 +82,20 @@ char *conv_acp2utf8_alloc(const char *src)
 {
     int len = len_acp2utf8(src) + 1;
     char *dst = kx_calloc(len, sizeof(char));
-    conv_impl(src, dst, &len, CP_ACP, CP_UTF8);
+    conv_impl(src, dst, &len, KX_CODEPAGE, CP_UTF8);
     return dst;
 }
 
 int len_utf82acp(const char *src)
 {
     int len = 0;
-    conv_impl(src, NULL, &len, CP_UTF8, CP_ACP);
+    conv_impl(src, NULL, &len, CP_UTF8, KX_CODEPAGE);
     return len;
 }
 
 char *conv_utf82acp(char *dst, int len, const char *src)
 {
-    conv_impl(src, dst, &len, CP_UTF8, CP_ACP);
+    conv_impl(src, dst, &len, CP_UTF8, KX_CODEPAGE);
     return dst;
 }
 
@@ -102,7 +103,7 @@ char *conv_utf82acp_alloc(const char *src)
 {
     int len = len_utf82acp(src) + 1;
     char *dst = kx_calloc(len, sizeof(char));
-    conv_impl(src, dst, &len, CP_UTF8, CP_ACP);
+    conv_impl(src, dst, &len, CP_UTF8, KX_CODEPAGE);
     return dst;
 }
 #endif
