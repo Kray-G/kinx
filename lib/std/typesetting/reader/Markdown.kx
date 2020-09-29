@@ -254,35 +254,30 @@ namespace Typesetting {
 
         public heading(ast) {
             flushDoc();
-            if (ast.level == 1) {
-                title_ = inline_.makeInlineText(ast.values);
-            }
             if (doc_.isUndefined) {
-                if (ast.level != 2) {
+                if (ast.level != 1) {
                     return;
                 }
                 makeDocument();
             }
             switch (ast.level) {
-            case 1: # ignore
-                break;
-            case 2:
+            case 1:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.Chapter(inline_.makeInlineText(ast.values)));
                 });
                 ctx_.chapter = true;
                 break;
-            case 3:
+            case 2:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.Section(inline_.makeInlineText(ast.values)));
                 });
                 break;
-            case 4:
+            case 3:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.SubSection(inline_.makeInlineText(ast.values)));
                 });
                 break;
-            case 5:
+            case 4:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.SubSubSection(inline_.makeInlineText(ast.values)));
                 });
@@ -290,11 +285,36 @@ namespace Typesetting {
             }
         }
         public paragraph(ast) {
-            flushDoc({ paragraph: true });
-            if (checkParamCommand(ast.values)) {
+            if (doc_.isUndefined) {
+                if (ast.values[0].value[0] == '%'[0]) {
+                    var value0 = ast.values[0];
+                    var lines = ast.values[0].value.split(/\r?\n/);
+                    lines.each { &(line):
+                        var value = {
+                            name: value0.name,
+                            type: value0.type,
+                            value: line,
+                        };
+                        if (line[0] == '%'[0]) {
+                            if (title_.isUndefined) {
+                                title_ = inline_.makeInlineText([value]).subString(1).trim();
+                            } else if (opts_.author.isUndefined) {
+                                opts_.author = inline_.makeInlineText([value]).subString(1).trim();
+                            } else if (opts_.date.isUndefined) {
+                                opts_.date = inline_.makeInlineText([value]).subString(1).trim();
+                            }
+                        } else {
+
+                            opts_.subtitle = inline_.makeInlineText([value]);
+                        }
+                    };
+                } else {
+                    checkParamCommand(ast.values);
+                }
                 return;
             }
-            if (doc_.isUndefined) {
+            flushDoc({ paragraph: true });
+            if (checkParamCommand(ast.values)) {
                 return;
             }
             paragraph_.push(ast);
@@ -312,6 +332,13 @@ namespace Typesetting {
                 output_.push(&() => {
                     var code = new Typesetting.Component.Math(inline_.makeInlineText(ast.values).trim());
                     makeMathDocument(code, check);
+                    doc_.apply(code);
+                });
+                break;
+            case 'chart':
+System.println(JSON.parse(ast.values[0].value).toJsonString(true));
+                output_.push(&() => {
+                    var code = new Typesetting.Component.Chart(JSON.parse(ast.values[0].value));
                     doc_.apply(code);
                 });
                 break;
@@ -354,6 +381,21 @@ namespace Typesetting {
         }
         public table(ast) {
             flushDoc();
+            output_.push(&() => {
+                var aligns = ast.aligns.map(&(a) => *a[0]).join('');
+                var body = ["---"];
+                body.push(ast.headings.map(&(h) => inline_.makeInlineText(h)));
+                body.push("===");
+                ast.rows.each { &(b):
+                    body.push(b.map(&(c) => inline_.makeInlineText(c)));
+                };
+                body.push("---");
+                var table = {
+                    cellAlign: aligns,
+                    body: body,
+                };
+                doc_.apply(new Typesetting.Component.Table(table));
+            });
             finCommand();
         }
         public fullwidthimage(ast) {
