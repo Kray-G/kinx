@@ -3,13 +3,20 @@ namespace Typesetting {
     namespace ParagraphCommand {
 
         class Bold(info_, context_) {
-            var fontObj_;
+            var fontObj_, bold_;
             public start() {
                 fontObj_ = context_.font.fontObj;
-                context_.font.fontObj = context_.font.fontObjBase.bold;
+                bold_ = context_.font.isBold;
+                context_.font.isBold = true;
+                if (context_.font.isItaric) {
+                    context_.font.fontObj = context_.font.fontObjBase.bolditaric;
+                } else {
+                    context_.font.fontObj = context_.font.fontObjBase.bold;
+                }
             }
             public end() {
                 context_.font.fontObj = fontObj_;
+                context_.font.isBold = bold_;
             }
         }
 

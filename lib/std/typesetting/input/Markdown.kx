@@ -168,14 +168,13 @@ namespace Typesetting {
                             opts_[m[1]] = m[2];
                         }
                         r = true;
-                    }
-                    if (/<pagebreak\s*\/>/.test(v)) {
+                    } else if (/<pagebreak\s*\/>/.test(v)) {
                         flushDoc();
                         output_.push(&() => {
                             doc_.pageBreak();
                         });
+                        r = true;
                     }
-                    r = true;
                 }
             };
             return r;
@@ -189,6 +188,9 @@ namespace Typesetting {
                 xref: options_.xref,
                 filepath: options_.filepath,
             });
+            if (opts_.multibytefont.isString) {
+                doc_.setMultibyteFont(opts_.multibytefont);
+            }
 
             if (title_) {
                 output_.push(&() => {

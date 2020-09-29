@@ -76,6 +76,7 @@ namespace Typesetting {
                     lineFeedWidthRatio: info_.base.lineFeedWidthRatio[0],
                 },
                 font: {
+                    fontType: "serif",
                     fontObj: fontObjSerif_,
                     fontObjBase: fontObjSerifBase_,
                     fontSize: fontSize,
@@ -131,6 +132,10 @@ namespace Typesetting {
             };
         }
 
+        public setMultibyteFont(lang) {
+            context_.font.mb = info_.writer.loadAdditionalFonts(lang);
+        }
+
         public define(name, value) {
             core_.util.add(name, value);
         }
@@ -159,16 +164,16 @@ namespace Typesetting {
         public fontType(type) {
             switch (type) {
             case "Serif":
-                context_.font.fontObj = fontObjSerif_;
                 context_.font.fontObjBase = fontObjSerifBase_;
+                context_.font.fontObj = fontObjSerif_;
                 break;
             case "Sans":
-                context_.font.fontObj = fontObjSans_;
                 context_.font.fontObjBase = fontObjSansBase_;
+                context_.font.fontObj = fontObjSans_;
                 break;
             case "Monotype":
-                context_.font.fontObj = fontObjMonotype_;
-                context_.font.fontObjBase = fontObjMonotypeBase_;
+                context_.font.fontObjBase = context_.font.mb ? context_.font.mb[2] : fontObjMonotypeBase_;
+                context_.font.fontObj = context_.font.fontObjBase.regular;
                 break;
             }
         }
@@ -221,7 +226,7 @@ namespace Typesetting {
                     context_.page.lineFeedWidthRatio = info_.base.toc.lineFeedWidthRatio[nlevel];
                     context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * nFontSize;
                     context_.indentSize = (tocdata.level - 1) * info_.base.toc.indentSize;
-                    var lines = core_.paragraph.exec({}, tocdata.header, { preText: tocdata.number, preTextSpace: context_.font.fontSize });
+                    var lines = core_.paragraph.exec({}, tocdata.number + '\\hspace[width=%{context_.font.fontSize}pt]' + tocdata.header);
                     core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize, tocdata.isHeader);
                 };
                 if (!info.isLast) {
