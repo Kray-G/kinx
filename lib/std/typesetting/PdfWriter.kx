@@ -1071,8 +1071,14 @@ namespace Typesetting {
         }
 
         public clearFloatingImage(lineFeedWidth) {
+            var counter = 0;
+            const max = 100;
             while (floating_.isDefined && !floating_.done) {
                 lineBreak(lineFeedWidth);
+                if (max < ++counter) {
+                    info_.logger.warn("Too many loop for clearing a floating image.");
+                    break;
+                }
             }
         }
 
