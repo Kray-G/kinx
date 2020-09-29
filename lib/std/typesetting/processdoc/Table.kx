@@ -345,7 +345,7 @@ namespace Typesetting {
                 var fontSize = context_.font.fontSize;
                 var paragraphSkipWidth = context_.page.paragraphSkipWidth;
                 context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * fontSize;
-                bottom_ = (context_.font.fontObj.getBBox().bottom * fontSize) / 1000;
+                bottom_ = -fontSize / 2;
 
                 info_.writer.lineBreak(0);    // setup x & y.
                 if (table.caption) {

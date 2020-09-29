@@ -1,42 +1,90 @@
 namespace Typesetting {
 
+    var fontMap_, fontPath_;
     var fontObjSerif_, fontObjSans_, fontObjMonotype_;
-    var fontObjSerifBase_ = {
-        regular: null,
-        bold: null,
-        itaric: null,
-    };
-    var fontObjSansBase_ = {
-        regular: null,
-        bold: null,
-        itaric: null,
-    };
-    var fontObjMonotypeBase_ = {
-        regular: null,
-        bold: null,
-    };
+    var fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_;
+
+    function loadFontMap() {
+        fontPath_ = 'C:/Windows/Fonts';
+        var path = fontPath_ / "fontmap.json";
+        if (File.exists(path)) {
+            fontMap_ = JSON.parse(File.load(path));
+            return;
+        }
+        fontPath_ = $exepath / 'fonts';
+        var path = fontPath_ / "fontmap.json";
+        if (File.exists(path)) {
+            fontMap_ = JSON.parse(File.load(path));
+            return;
+        }
+        throw RuntimeException("No font file map found");
+    }
+
+    function loadFontOne(pdf, info) {
+        var path = (fontPath_ / info.file)
+                    .replace("\\", '/');
+        if (info.index.isDefined) {
+            return pdf.loadTTFontFromFile2(path, info.index, true);
+        }
+        return pdf.loadTTFontFromFile(path, true);
+    }
 
     function loadFonts(pdf) {
-        if (fontObjSerif_.isUndefined) {
-            var regular = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-R.ttc", 1, true), "UTF-8");
-            var bold = pdf.getFont(pdf.loadTTFontFromFile2("fonts/GenYoMin-B.ttc", 1, true), "UTF-8");
-            fontObjSerifBase_.regular = regular;
-            fontObjSerifBase_.bold = bold;
+        if (fontMap_.isUndefined) {
+            loadFontMap();
+
+            fontObjSerifBase_.regular = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.regular), "UTF-8");
+            fontObjSerifBase_.bold = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.bold), "UTF-8");
+            fontObjSerifBase_.itaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.itaric), "UTF-8");
+            fontObjSerifBase_.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.bolditaric), "UTF-8");
             fontObjSerif_ = fontObjSerifBase_.regular;
-        }
-        if (fontObjSans_.isUndefined) {
-            var regular = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Regular.ttf", true), "UTF-8");
-            var bold = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Bold.ttf", true), "UTF-8");
-            fontObjSansBase_.regular = regular;
-            fontObjSansBase_.bold = bold;
+
+            fontObjSansBase_.regular = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.regular), "UTF-8");
+            fontObjSansBase_.bold = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.bold), "UTF-8");
+            fontObjSansBase_.itaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.itaric), "UTF-8");
+            fontObjSansBase_.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.bolditaric), "UTF-8");
             fontObjSans_ = fontObjSansBase_.regular;
-        }
-        if (fontObjMonotype_.isUndefined) {
-            var mono = pdf.getFont(pdf.loadTTFontFromFile("fonts/GenShinGothic-Monospace-Normal.ttf", true), "UTF-8");
-            fontObjMonotypeBase_.regular = mono;
-            fontObjMonotypeBase_.bold = mono;
+
+            fontObjMonotypeBase_.regular = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.regular), "UTF-8");
+            fontObjMonotypeBase_.bold = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.bold), "UTF-8");
+            fontObjMonotypeBase_.itaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.itaric), "UTF-8");
+            fontObjMonotypeBase_.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.bolditaric), "UTF-8");
             fontObjMonotype_ = fontObjMonotypeBase_.regular;
         }
+    }
+
+    function loadAdditionalLangFonts(pdf, lang) {
+        if (fontMap_[lang]) {
+            if (fontMap_[lang].isLoaded) {
+                return fontMap_[lang].bases;
+            }
+            var bases = [];
+            var fontObjSerifBase, fontObjSansBase, fontObjMonotypeBase;
+
+            fontObjSerifBase.regular = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.regular), "UTF-8");
+            fontObjSerifBase.bold = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.bold), "UTF-8");
+            fontObjSerifBase.itaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.itaric), "UTF-8");
+            fontObjSerifBase.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.bolditaric), "UTF-8");
+            bases.push(fontObjSerifBase);
+
+            fontObjSansBase.regular = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.regular), "UTF-8");
+            fontObjSansBase.bold = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.bold), "UTF-8");
+            fontObjSansBase.itaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.itaric), "UTF-8");
+            fontObjSansBase.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.bolditaric), "UTF-8");
+            bases.push(fontObjSansBase);
+
+            fontObjMonotypeBase.regular = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.regular), "UTF-8");
+            fontObjMonotypeBase.bold = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.bold), "UTF-8");
+            fontObjMonotypeBase.itaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.itaric), "UTF-8");
+            fontObjMonotypeBase.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.bolditaric), "UTF-8");
+            bases.push(fontObjMonotypeBase);
+
+            fontMap_[lang].isLoaded = true;
+            fontMap_[lang].bases = bases;
+            return bases;
+        }
+
+        return [];
     }
 
     class PdfDirectWriter(info_, pages_) {
@@ -301,6 +349,10 @@ namespace Typesetting {
 
         public getPage() {
             return page_;
+        }
+
+        public loadAdditionalFonts(lang) {
+            return loadAdditionalLangFonts(pdf_, lang);
         }
 
         public getFontObjBase() {

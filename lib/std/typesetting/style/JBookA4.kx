@@ -13,6 +13,9 @@ namespace Style {
         @style.chapter.pretext = "第 ";
         @style.chapter.posttext = " 章";
         @style.abstract.title = { right: true, text: "本章の概要" };
+        @style.table.label ="表";
+        @style.image.label ="図";
+        @style.image.fulllabel ="図";
     }
 
 } # namespace Style

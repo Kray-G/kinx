@@ -3,16 +3,32 @@ namespace Typesetting {
     namespace ParagraphCommand {
 
         class Monotype(info_, context_) {
-            var fontObj_, fontObjBase_;
+            var fontType_, fontObj_, fontObjBase_;
             public start() {
+                fontType_ = context_.font.fontType;
+                context_.font.fontType = "monotype";
                 fontObj_ = context_.font.fontObj;
                 fontObjBase_ = context_.font.fontObjBase;
-                context_.font.fontObj = context_.fontSet.monotype.fontObj;
-                context_.font.fontObjBase = context_.fontSet.monotype.fontObjBase;
+                var fontBase = context_.font.mb ? context_.font.mb[2] : context_.fontSet.monotype.fontObjBase;
+                context_.font.fontObjBase = fontBase;
+                if (context_.font.isBold) {
+                    if (context_.font.isItaric) {
+                        context_.font.fontObj = fontBase.bolditaric;
+                    } else {
+                        context_.font.fontObj = fontBase.bold;
+                    }
+                } else {
+                    if (context_.font.isItaric) {
+                        context_.font.fontObj = fontBase.itaric;
+                    } else {
+                        context_.font.fontObj = fontBase.regular;
+                    }
+                }
             }
             public end() {
                 context_.font.fontObj = fontObj_;
                 context_.font.fontObjBase = fontObjBase_;
+                context_.font.fontType = fontType_;
             }
         }
 

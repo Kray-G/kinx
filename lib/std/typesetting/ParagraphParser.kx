@@ -35,7 +35,8 @@ namespace Typesetting {
                 var c = word[i];
                 var l = System.isUtf8Bytes(c);
                 if (l > 1) {
-                    words.push(word.subString(i, l));
+                    var w = word.subString(i, l);
+                    words.push(new Word(info_).setWord(Typesetting.Util.getMbFont(context_), context_.font.fontSize, w));
                     i += l;
                 } else {
                     var s = i;
@@ -80,13 +81,16 @@ namespace Typesetting {
                 }
             }
             if (words.length() == 1) {
+                if (words[0].isWord) {
+                    return words[0];
+                }
                 return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, words[0]);
             }
-            return new WordSet(info_).addWord(words.map {
-                if (_1.isBox || _1.isGlue || _1.isPenalty) {
-                    return _1;
+            return new WordSet(info_).addWord(words.map { &(w):
+                if (w.isBox || w.isGlue || w.isPenalty || w.isWord) {
+                    return w;
                 }
-                return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, _1);
+                return new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, w);
             });
         };
         var commandValuePack_;

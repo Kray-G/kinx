@@ -38,7 +38,7 @@ namespace Typesetting {
                     var fontSize = context.font.fontSize;
                     var fontObj = context.font.fontObj;
                     info.writer.loadFloatingImage(img, opts_.scale, opts_.float, opts_.caption,
-                        &(center, y, imageY, height) => @floatingImageCaption(info, context, opts_.label, opts_.caption, fontObj, fontSize, center, y, imageY, height));
+                        &(center, y, imageY, height) => @floatingImageCaption(info, core, context, opts_.label, opts_.caption, fontObj, fontSize, center, y, imageY, height));
                     return;
                 }
 
