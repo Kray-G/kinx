@@ -18,10 +18,6 @@ namespace Style {
         @style.footer.format.odd = { right: "<counter:page>" };
         @style.margin.odd = { adjust: 20.0 };
         @style.margin.even = { adjust: -20.0 };
-        @style.draw = {
-            "margin":   false,
-            "imageBox": false,
-        };
         @style.toc = {
             "header":               "Contents",
             "lof":                  "List of Figures",
@@ -61,6 +57,7 @@ namespace Style {
             "right":            0.0,
         };
         @style.abstract.adjustment = { right: true };
+        # @style.table.cellPadding = 2.0;
 
         public coverPage(info, context, core, title, opts) {
             var writer = info.writer;

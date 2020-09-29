@@ -6,9 +6,6 @@ namespace Typesetting {
             public setCaption(caption) {
                 opts_.caption = caption;
             }
-            public apply(doc) {
-                return @applyDoc(doc, "image", opts_);
-            }
             public write(info, context, core) {
                 if (opts_.float.left || opts_.float.right) {
                     core.flushParagraph();
