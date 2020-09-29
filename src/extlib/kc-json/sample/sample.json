@@ -4,5 +4,6 @@
         "p1": { "x": 130, "y": 150, "type": "file" },
         "p2": { "x": 230, "y": 90, "type": "directory" },
         "p3": { "x": 230, "y": 775.89, "type": "directory" }
-    }
+    },
+    ["aa", ["bb","cc"], "dd"]
 ]
