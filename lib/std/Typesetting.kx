@@ -28,7 +28,7 @@ namespace Typesetting {
             }
             info_.style = style_;
             style_ = style_.style;
-            info_.logger = new Typesetting.Logger();
+            info_.logger = opts_.logger ?? new Typesetting.Logger();
             info_.base = style_.clone();
             outline_ = info_.base.outline;
             var pagesize = style_.pagesize ?? PDF_PAGE_SIZE_A4;

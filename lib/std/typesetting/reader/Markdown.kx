@@ -97,7 +97,7 @@ namespace Typesetting {
         }
     }
 
-    class BookParser {
+    class BookParser() {
         var title_, doc_;
         var options_ = {};
         var list_ = [];
@@ -107,6 +107,7 @@ namespace Typesetting {
         var ctx_ = {};
         var output_ = [];
         var inline_ = new InlineMaker();
+        var logger_ = new Typesetting.Logger();
 
         private itemType(name) {
             switch (name) {
@@ -168,6 +169,12 @@ namespace Typesetting {
                             opts_[m[1]] = m[2];
                         }
                         r = true;
+                    } else if (v.startsWith("<context ")) {
+                        var m = v.match(/<context\s*(.+)="(.+)"\s*\/>/);
+                        if (m.isDefined) {
+                            ctx_[m[1]] = m[2];
+                        }
+                        r = true;
                     } else if (/<pagebreak\s*\/>/.test(v)) {
                         flushDoc();
                         output_.push(&() => {
@@ -187,6 +194,7 @@ namespace Typesetting {
                 lot: true,
                 xref: options_.xref,
                 filepath: options_.filepath,
+                logger: logger_,
             });
             if (opts_.multibytefont.isString) {
                 doc_.setMultibyteFont(opts_.multibytefont);
@@ -195,6 +203,7 @@ namespace Typesetting {
             if (title_) {
                 output_.push(&() => {
                     var title = new Typesetting.Component.Title();
+                    logger_.info(opts_.extend({ title: title_ }).toJsonString(true));
                     title.setTitle(title_, Double.parseDouble(opts_.titleSize));
                     if (opts_.author) {
                         title.setAuthor(opts_.author);
@@ -255,9 +264,6 @@ namespace Typesetting {
         public heading(ast) {
             flushDoc();
             if (doc_.isUndefined) {
-                if (ast.level != 1) {
-                    return;
-                }
                 makeDocument();
             }
             switch (ast.level) {
@@ -285,7 +291,7 @@ namespace Typesetting {
             }
         }
         public paragraph(ast) {
-            if (doc_.isUndefined) {
+           if (doc_.isUndefined) {
                 if (ast.values[0].value[0] == '%'[0]) {
                     var value0 = ast.values[0];
                     var lines = ast.values[0].value.split(/\r?\n/);
@@ -303,8 +309,7 @@ namespace Typesetting {
                             } else if (opts_.date.isUndefined) {
                                 opts_.date = inline_.makeInlineText([value]).subString(1).trim();
                             }
-                        } else {
-
+                        } else if (!checkParamCommand(ast.values)) {
                             opts_.subtitle = inline_.makeInlineText([value]);
                         }
                     };
@@ -336,7 +341,6 @@ namespace Typesetting {
                 });
                 break;
             case 'chart':
-System.println(JSON.parse(ast.values[0].value).toJsonString(true));
                 output_.push(&() => {
                     var code = new Typesetting.Component.Chart(JSON.parse(ast.values[0].value));
                     doc_.apply(code);
@@ -380,6 +384,8 @@ System.println(JSON.parse(ast.values[0].value).toJsonString(true));
             list_.push(ast);
         }
         public table(ast) {
+            var caption = ctx_.caption;
+            ctx_.caption = null;
             flushDoc();
             output_.push(&() => {
                 var aligns = ast.aligns.map(&(a) => *a[0]).join('');
@@ -390,11 +396,11 @@ System.println(JSON.parse(ast.values[0].value).toJsonString(true));
                     body.push(b.map(&(c) => inline_.makeInlineText(c)));
                 };
                 body.push("---");
-                var table = {
+                doc_.apply(new Typesetting.Component.Table({
+                    caption: caption,
                     cellAlign: aligns,
                     body: body,
-                };
-                doc_.apply(new Typesetting.Component.Table(table));
+                }));
             });
             finCommand();
         }
