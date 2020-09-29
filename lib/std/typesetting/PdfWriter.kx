@@ -1137,17 +1137,19 @@ namespace Typesetting {
             }
 
             var margin = makeMarginSize();
-            var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + height;
-            if (y_ < bottomMin) {
-                isColMoved_ = true;
-                x_ = -1;
-                y_ = -1;
-                if (cols_ > 0) {            
-                    curCol_ = (curCol_ + 1) % cols_;
-                }
-                if (curCol_ == 0) {
-                    page_ = null;
-                    @addPage();
+            if (y_ > 0) {
+                var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + height;
+                if (y_ < bottomMin) {
+                    isColMoved_ = true;
+                    x_ = -1;
+                    y_ = -1;
+                    if (cols_ > 0) {            
+                        curCol_ = (curCol_ + 1) % cols_;
+                    }
+                    if (curCol_ == 0) {
+                        page_ = null;
+                        @addPage();
+                    }
                 }
             }
             var lineFeedWidth;

@@ -50,7 +50,7 @@ namespace Typesetting {
                             var pagenum = writer.getPageIndex();
                             context.xref[label] = {
                                 page:      pagenum,
-                                counter:   counter,
+                                counter:   ""+context.counter.math,
                                 name:      counter,
                                 text:      counter,
                                 y:         nexty ?? linetop,

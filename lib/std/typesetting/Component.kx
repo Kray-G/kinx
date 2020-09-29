@@ -36,13 +36,13 @@ namespace Typesetting {
                 lt.push("" + num);
                 return lt.join('.');
             }
-            public imageCaption(info, core, caption, linetop) {
+            public imageCaption(info, core, caption, linetop, number) {
                 var context = info.context;
                 var fontSize = context.font.fontSize;
                 var lineFeedWidth = fontSize * context.page.lineFeedWidthRatio;
 
                 linetop ??= info.writer.getLineTop(context.font.fontObj, fontSize);
-                var number = makeCountrNumber(context, "image");
+                number ??= makeCountrNumber(context, "image");
                 var cap = info.base.image.label + ' ' + number + ' ' + caption;
                 var fullname = info.base.image.fulllabel + ' ' + number + ' ' + caption;
                 if (opts_.label) {
