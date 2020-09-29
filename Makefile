@@ -231,7 +231,7 @@ libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
 	ar rcs libkx.a fileutil.o
 
-kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/kc-json.h kc-json.o duktape.o $(PICOBJS)
+kxsystem.so: src/extlib/kxsystem.c src/extlib/kc-json/dist/kc-json.h kc-json.o duktape.o $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o -lm
 
 kxstring.so: src/extlib/kxstring.c $(PICOBJS)
@@ -321,7 +321,11 @@ libonig.so:
 	ln -s libonig.so.5.0.0 libonig.so.5; \
 	ln -s libonig.so.5 libonig.so;
 
-kc-json.o: src/extlib/kc-json/kc-json.c
+kc-json.o: src/extlib/kc-json/dist/kc-json.c src/extlib/kc-json/dist/kc-json.h
+	cd src/extlib/kc-json; \
+	nmake -f Makefile clean all
+
+src/extlib/kc-json/dist/kc-json.h:
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 duktape.o: src/extlib/duktape/duktape.c
