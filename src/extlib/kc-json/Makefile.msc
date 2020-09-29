@@ -12,7 +12,7 @@ all: dist/$(NAME).c dist/sample.exe
 
 dist/$(NAME).c: myacc.exe src\$(NAME).y
 	if not exist dist mkdir dist
-	myacc -y __json_yy -Y JSON_YY src\$(NAME).y
+	myacc -v -y __json_yy -Y JSON_YY src\$(NAME).y
 	copy /y src\string.c dist\$(NAME).c
 	type src\vector.c >> dist\$(NAME).c
 	type y.tab.c >> dist\$(NAME).c
