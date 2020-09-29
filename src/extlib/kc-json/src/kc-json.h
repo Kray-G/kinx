@@ -216,6 +216,7 @@ typedef struct __json_object_ {
     struct __json_object_   *lobj;      /* last property of object */
     struct __json_object_   *next;      /* next element of array */
     struct __json_object_   *lary;      /* last element of array */
+    struct __json_object_   *array;     /* link to array */
 
     string_t                key;        /* key if exists */
     __json_value_t          value;      /* value of json object */
