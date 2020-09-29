@@ -321,11 +321,11 @@ libonig.so:
 	ln -s libonig.so.5.0.0 libonig.so.5; \
 	ln -s libonig.so.5 libonig.so;
 
-kc-json.o: src/extlib/kc-json/dist/kc-json.c src/extlib/kc-json/dist/kc-json.h
-	cd src/extlib/kc-json; \
-	nmake -f Makefile clean all
-
 src/extlib/kc-json/dist/kc-json.h:
+	cd src/extlib/kc-json; \
+	make -f Makefile clean all
+
+kc-json.o: src/extlib/kc-json/dist/kc-json.c src/extlib/kc-json/dist/kc-json.h
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 duktape.o: src/extlib/duktape/duktape.c
