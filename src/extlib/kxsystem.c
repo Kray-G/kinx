@@ -9,7 +9,7 @@
 #include <kxutf8.h>
 #include <kxthread.h>
 #include <kxiconv.h>
-#include "kc-json/kc-json.h"
+#include "kc-json/dist/kc-json.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #define KX_WIN_NAMED_MUTEX
@@ -344,6 +344,10 @@ static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
 
     json_object_t *n;
     int cr = 1;
+    if (j->array) {
+        return mk_json_object(ctx, j->array);
+    }
+
     switch (j->type) {
     case JSON_UNKNOWN:
         /* TODO: error */
