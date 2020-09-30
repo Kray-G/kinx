@@ -8,10 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: install
-        if: steps.linked_files.outputs.result == 'true'
         run: |
           make
           sudo make install
       - name: run test
-        if: steps.linked_files.outputs.result == 'true'
         run: kinx --exec:spectest -v
