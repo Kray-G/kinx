@@ -24,14 +24,19 @@ namespace Typesetting {
     }
 
     class InlineMaker {
+        var doc_;
         var images_ = [];
         var tagmap_ = {};
+        public setDocument(doc) {
+            doc_ = doc;
+        }
         public reset() {
             images_ = [];
         }
-        public flush(doc) {
+        public flush() {
+            var done = images_.length() > 0;
             images_.each { &(image):
-                doc.apply(new Typesetting.Component.Image({
+                doc_.apply(new Typesetting.Component.Image({
                     label: image.opts.label,
                     float: image.opts.float,
                     scale: image.opts.scale ?? 1.0,
@@ -40,6 +45,7 @@ namespace Typesetting {
                 }));
             };
             images_ = [];
+            return done;
         }
         public addTag(tag, values) {
             tagmap_[tag] = values;
@@ -59,7 +65,26 @@ namespace Typesetting {
             return value.value;
         }
         public html(value) {
-            return '';
+            var v = value.value;
+            if (v.startsWith("<font-")) {
+                var m = v.match(/<font-([^\s]*)\s*(?:(.+)\s*=\s*"(.+)"\s*)?\/>/);
+                if (m.isDefined) {
+                    switch (m[1]) {
+                    case 'load':
+                        var info = m[3].split(',');
+                        doc_.loadFont(
+                            info[0] || 'main',
+                            info[1] || 'serif',
+                            info[2] || 'regular',
+                            info[3],
+                            info[4] || null
+                        );
+                        break;
+                    }
+                    return '';
+                }
+            }
+            return "\\monotype{\\pack{%{value.value}}}";
         }
         public htmlcomment(value) {
             return '';
@@ -68,10 +93,10 @@ namespace Typesetting {
             return "\\bold{%{value.value}}";
         }
         public italic(value) {
-            return value.value;
+            return "\\italic{%{value.value}}";
         }
         public emitalic(value) {
-            return "\\bold{%{value.value}}";
+            return "\\bold{\\italic{%{value.value}}}";
         }
         public strikethrough(value) {
             return value.value;
@@ -105,9 +130,20 @@ namespace Typesetting {
         var bquote_ = [];
         var opts_ = {};
         var ctx_ = {};
+        var ignoreContextName_;
         var output_ = [];
         var inline_ = new InlineMaker();
         var logger_ = new Typesetting.Logger();
+
+        private initialize() {
+            ctx_['hline-top-default'] = "single";
+            ctx_['hline-bottom-default'] = "single";
+            ctx_['hline-header-default'] = "single";
+            ignoreContextName_ = {
+                "label-default": true,
+                "caption-default": true,
+            };
+        }
 
         private itemType(name) {
             switch (name) {
@@ -148,12 +184,23 @@ namespace Typesetting {
             if (!noflush.paragraph && paragraph_.length() > 0) {
                 var paragraph = paragraph_;
                 output_.push(&() => {
+                    var done;
                     var p = paragraph.map(&(p) => {
                         var t = inline_.makeInlineText(p.values);
-                        inline_.flush(doc_);
+                        if (!done) {
+                            done = inline_.flush();
+                        }
                         return t;
-                    }).join('\n\n');
-                    doc_.apply(new Typesetting.Component.Paragraph(p.trim()));
+                    });
+                    if (done) {
+                        doc_.apply(new Typesetting.Component.Paragraph(p.join('\n\n').trim()));
+                        logger_.info("-- Paragraph");
+                    } else {
+                        p.each { &(px, i):
+                            doc_.apply(new Typesetting.Component.Paragraph(px.trim()));
+                            logger_.info("-- Paragraph");
+                        };
+                    }
                 });
                 paragraph_ = [];
             }
@@ -163,16 +210,52 @@ namespace Typesetting {
             values.each { &(value):
                 if (value.name == 'html' && value.value.isString) {
                     var v = value.value.trim();
-                    if (v.startsWith("<param ")) {
-                        var m = v.match(/<param\s*(.+)="(.+)"\s*\/>/);
+                    if (v.startsWith("<context ")) {
+                        var m = v.match(/<context\s*(.+)\s*=\s*"(.+)"\s*\/>/);
+                        if (m.isDefined) {
+                            var name = m[1];
+                            if (!ignoreContextName_[name]) {
+                                ctx_[name] = m[2];
+                            }
+                        }
+                        r = true;
+                    } else if (v.startsWith("<param ")) {
+                        var m = v.match(/<param\s*(.+)\s*=\s*"(.+)"\s*\/>/);
                         if (m.isDefined) {
                             opts_[m[1]] = m[2];
                         }
                         r = true;
-                    } else if (v.startsWith("<context ")) {
-                        var m = v.match(/<context\s*(.+)="(.+)"\s*\/>/);
+                    } else if (v.startsWith("<toc ")) {
+                        var m = v.match(/<toc\s*with\s*=\s*"(.+)"\s*\/>/);
                         if (m.isDefined) {
-                            ctx_[m[1]] = m[2];
+                            opts_.toc = true;
+                            var value = m[1];
+                            if (value.find("lot") >= 0) {
+                                opts_.lot = true;
+                            }
+                            if (value.find("lof") >= 0) {
+                                opts_.lof = true;
+                            }
+                        }
+                        r = true;
+                    } else if (v.startsWith("<style-info ")) {
+                        var m = v.match(/<style-info\s*(.+)\s*=\s*"(.+)"\s+(.+)\s*=\s*"(.+)"\/>/);
+                        if (m.isDefined) {
+                            var stylename, stylevalue;
+                            [[1,2],[3,4]].each { &([ni, vi]):
+                                var name = m[ni];
+                                var value = m[vi];
+                                if (name == "name") {
+                                    stylename = value;
+                                } else if (name == "value") {
+                                    stylevalue = value;
+                                }
+                            };
+                            if (stylename && stylevalue) {
+                                output_.push(&() => {
+                                    doc_.setStyle(stylename, stylevalue);
+                                });
+                            }
                         }
                         r = true;
                     } else if (/<pagebreak\s*\/>/.test(v)) {
@@ -186,16 +269,28 @@ namespace Typesetting {
             };
             return r;
         }
+        private getContextValue(name, toReset) {
+            var r = ctx_[name];
+            if (toReset) {
+                ctx_[name] = null;
+            }
+            if (r.isUndefined) {
+                r = ctx_[name+'-default'];
+            }
+            return r;
+        }
         private makeDocument() {
             opts_.style ??= "BookA4";
             doc_ = new Typesetting.Document(Typesetting.Style[opts_.style], {
-                toc: true,
-                lof: true,
-                lot: true,
+                toc: opts_.toc,
+                lof: opts_.lof,
+                lot: opts_.lot,
                 xref: options_.xref,
                 filepath: options_.filepath,
                 logger: logger_,
             });
+            logger_.info({ toc: opts_.toc, lot: opts_.lot, lof: opts_.lof });
+            inline_.setDocument(doc_);
             if (opts_.multibytefont.isString) {
                 doc_.setMultibyteFont(opts_.multibytefont);
             }
@@ -203,16 +298,27 @@ namespace Typesetting {
             if (title_) {
                 output_.push(&() => {
                     var title = new Typesetting.Component.Title();
-                    logger_.info(opts_.extend({ title: title_ }).toJsonString(true));
-                    title.setTitle(title_, Double.parseDouble(opts_.titleSize));
+                    var text = inline_.makeInlineText(title_).subString(1).trim();
+                    logger_.info({ title: text });
+                    title.setTitle(text, Double.parseDouble(opts_.titleSize));
                     if (opts_.author) {
-                        title.setAuthor(opts_.author);
+                        text = inline_.makeInlineText(opts_.author).subString(1).trim();
+                        logger_.info({ author: text });
+                        title.setAuthor(text);
                     }
                     if (opts_.subtitle) {
-                        title.setSubtitle(opts_.subtitle, Double.parseDouble(opts_.subtitleSize));
+                        text = inline_.makeInlineText(opts_.subtitle);
+                        logger_.info({ subtitle: text });
+                        title.setSubtitle(text, Double.parseDouble(opts_.subtitleSize));
                     }
                     if (opts_.date) {
-                        title.setDate(opts_.date);
+                        text = inline_.makeInlineText(opts_.date).subString(1).trim();
+                        logger_.info({ date: text });
+                        title.setDate(text);
+                    }
+                    if (opts_.backgroundImage) {
+                        logger_.info({ image: opts_.backgroundImage });
+                        title.setBackgroundImage(opts_.backgroundImage);
                     }
                     doc_.apply(title);
                     doc_.toc();
@@ -270,22 +376,26 @@ namespace Typesetting {
             case 1:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.Chapter(inline_.makeInlineText(ast.values)));
+                    logger_.info("-- Chapter");
                 });
                 ctx_.chapter = true;
                 break;
             case 2:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.Section(inline_.makeInlineText(ast.values)));
+                    logger_.info("-- Section");
                 });
                 break;
             case 3:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.SubSection(inline_.makeInlineText(ast.values)));
+                    logger_.info("-- SubSection");
                 });
                 break;
             case 4:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.SubSubSection(inline_.makeInlineText(ast.values)));
+                    logger_.info("-- SubSubSection");
                 });
                 break;
             }
@@ -303,18 +413,20 @@ namespace Typesetting {
                         };
                         if (line[0] == '%'[0]) {
                             if (title_.isUndefined) {
-                                title_ = inline_.makeInlineText([value]).subString(1).trim();
+                                title_ = [value];
                             } else if (opts_.author.isUndefined) {
-                                opts_.author = inline_.makeInlineText([value]).subString(1).trim();
+                                opts_.author = [value];
                             } else if (opts_.date.isUndefined) {
-                                opts_.date = inline_.makeInlineText([value]).subString(1).trim();
+                                opts_.date = [value];
                             }
-                        } else if (!checkParamCommand(ast.values)) {
-                            opts_.subtitle = inline_.makeInlineText([value]);
+                        } else if (!checkParamCommand(value)) {
+                            opts_.subtitle = [value];
                         }
                     };
                 } else {
-                    checkParamCommand(ast.values);
+                    if (!checkParamCommand(ast.values)) {
+                        opts_.subtitle = ast.values;
+                    }
                 }
                 return;
             }
@@ -384,21 +496,53 @@ namespace Typesetting {
             list_.push(ast);
         }
         public table(ast) {
-            var caption = ctx_.caption;
-            ctx_.caption = null;
+            var caption = getContextValue('caption', true);
+            var label = getContextValue('label', true);
+            var vlineLeft = getContextValue('vline-left', true);
+            var vlineRight = getContextValue('vline-right', true);
+            var vlineInside = getContextValue('vline-inside', true);
+            var hlineTop = getContextValue('hline-top', true);
+            var hlineBottom = getContextValue('hline-bottom', true);
+            var hlineHeader = getContextValue('hline-header', true);
+            var hlineInside = getContextValue('hline-inside', true);
+            var limitColumn = getContextValue('limit-column', true);
+            var limitWidth = getContextValue('limit-width', true);
+            var cells = [];
+            ast.rows.each { &(b, i):
+                b.each { &(c, j):
+                    var cell = getContextValue("cell-%{i}-%{j}", true);
+                    cells[i][j] = cell ? [{
+                        type: 'inline',
+                        name: 'text',
+                        value: cell
+                    }] : c;
+                };
+            };
             flushDoc();
             output_.push(&() => {
-                var aligns = ast.aligns.map(&(a) => *a[0]).join('');
-                var body = ["---"];
+                var sep = vlineInside == "single" ? '|' : vlineInside == "double" ? '||' : '';
+                var aligns = ast.aligns.map(&(a) => *a[0]).join(sep);
+                aligns = ((vlineLeft == "single" ? '|' : '||') + aligns) if (vlineLeft);
+                aligns = (aligns + (vlineRight == "single" ? '|' : '||')) if (vlineRight);
+                var body = [];
+                body.push(hlineTop == "single" ? "---" : "===") if (hlineTop);
                 body.push(ast.headings.map(&(h) => inline_.makeInlineText(h)));
-                body.push("===");
-                ast.rows.each { &(b):
-                    body.push(b.map(&(c) => inline_.makeInlineText(c)));
+                body.push(hlineHeader == "single" ? "---" : "===") if (hlineHeader);
+                var rowlast = ast.rows.length() - 1;
+                ast.rows.each { &(b, i):
+                    body.push(b.map(&(c, j) => inline_.makeInlineText(cells[i][j]) ));
+                    if (i < rowlast) {
+                        body.push(hlineInside == "single" ? "---" : "===") if (hlineInside);
+                    } else {
+                        body.push(hlineBottom == "single" ? "---" : "===") if (hlineBottom);
+                    }
                 };
-                body.push("---");
                 doc_.apply(new Typesetting.Component.Table({
+                    label: label,
                     caption: caption,
                     cellAlign: aligns,
+                    limitColumn: limitColumn ? Integer.parseInt(limitColumn) : null,
+                    limitWidth: limitWidth ? Double.parseDouble(limitWidth) : null,
                     body: body,
                 }));
             });

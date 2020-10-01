@@ -1,0 +1,72 @@
+namespace Typesetting {
+namespace Style {
+
+    Typesetting.Style.Chapter[__FILE__.stem()] = function(info, context, core, text, opts, this) {
+        var writer = info.writer;
+        var margin = writer.makeMarginSize();
+        var chapterSize = 32.8;
+        var fontObj = context.font.fontObj;
+        var fontSize = context.font.fontSize;
+        context.font.fontSize = chapterSize;
+        var ascent = fontObj.getAscent() * context.font.fontSize / 1000;
+        var descent = fontObj.getDescent() * context.font.fontSize / 1000;
+        var y = margin.pageHeight - margin.top - ascent;
+
+        var level = 1;
+        var numText = core.util.makeSectionNumber(level);
+        var chapterNumberText = numText.join('.');
+        var chapterHeader = info.base.chapter.pretext + chapterNumberText + info.base.chapter.posttext;
+
+        var noIndent = context.noIndent;
+        context.noIndent = true;
+        writer.setPos({ x: margin.left, y: y });
+        var lines = core.paragraph.exec({}, "\\color[grey]{%{chapterHeader}}");
+        core.util.write(lines);
+
+        writer.drawLine(margin.left, y + descent, margin.width, 0, 1, [0, 0, 0]);
+
+        var chapterSize = 22.2;
+        context.font.fontSize = chapterSize;
+        ascent = fontObj.getAscent() * context.font.fontSize / 1000;
+        descent = fontObj.getDescent() * context.font.fontSize / 1000;
+        writer.setPos({ x: margin.left, y: y + descent + 4 });
+        chapterText = "\\font[type=sans]{%{text}}";
+        [, chapterText] = core.util.makeOption({}, chapterText);
+        var lines = core.paragraph.exec({}, chapterText);
+        core.util.write(lines, { right: true });
+
+        writer.setColumn(info.base.columns);
+
+        context.noIndent = noIndent;
+        context.font.fontSize = fontSize;
+
+        var chapterPlainText = chapterHeader + ' ' + text;
+        var linetop = margin.pageHeight - margin.top;
+        if (opts.label) {
+            var pagenum = writer.getPageIndex();
+            context.xref[opts.label] = {
+                page:      pagenum,
+                counter:   chapterHeader,
+                name:      chapterPlainText,
+                text:      chapterText,
+                y:         linetop,
+            };
+        }
+        if (level <= info.base.toc.level) {
+            context.tocinfo.list.push({
+                isHeader: true,
+                page: writer.getPageNumber(),
+                level: level,
+                number: chapterHeader,
+                header: chapterText,
+                y: linetop,
+            });
+        }
+
+        writer.addY(info.base.chapter.paragraphSkipWidth, true);
+        writer.setYHead();
+        return [linetop, chapterPlainText];
+    };
+
+} # namespace Style
+} # namespace Typesetting

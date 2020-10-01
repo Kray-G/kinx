@@ -81,6 +81,7 @@ namespace Typesetting {
                     fontObjBase: fontObjSerifBase_,
                     fontSize: fontSize,
                     footnoteSize: info_.base.footnoteSize,
+                    stack: [],
                 },
                 fontSet: {
                     serif: {
@@ -130,10 +131,50 @@ namespace Typesetting {
                 };
                 core_.pendingParagraphList = [];
             };
+            core_.makePlainText = function(text) {
+                text = text
+                    .replace("\\LaTeX", "LaTeX")
+                    .replace("\\KaTeX", "KaTeX")
+                    .replace("\\TeX", "TeX");
+                [, text] = core_.util.makeOption(text);
+                var lines = core_.paragraph.exec({}, text);
+                var str;
+                lines.each { &(line):
+                    line.nodes.each { &(n):
+                        if (n.isBox) {
+                            if (n.value.word.isString && n.value.word.length() > 0) {
+                                str += n.value.word;
+                            }
+                        } else if (n.isGlue) {
+                            if (n.width > 0 && str[-1] != ' '[0]) {
+                                str += ' ';
+                            }
+                        }
+                    };
+                };
+                return str ?? text;
+            };
+        }
+
+        public setStyle(name, value) {
+            name = name.split('.');
+            var lastkey = name.pop();
+            var style = info_.base;
+            name.each { &(k):
+                style = style[k];
+            };
+            if (style[lastkey]) {
+                style[lastkey] = value;
+System.println(["set", lastkey, value]);
+            }
         }
 
         public setMultibyteFont(lang) {
             context_.font.mb = info_.writer.loadAdditionalFonts(lang);
+        }
+
+        public loadFont(name, type, shape, filepath, index) {
+            info_.writer.loadFontFile(name, type, shape, filepath, index);
         }
 
         public define(name, value) {
@@ -150,12 +191,16 @@ namespace Typesetting {
             info_.writer.pageBreak();
         }
 
+        public setAppendix() {
+            context_.appendix = true;
+        }
+
         public toc() {
             if (context_.toc) {
                 context_.tocinfo.page = context_.counter.page;
                 context_.tocinfo.pos = info_.writer.getPos();
                 if (info_.base.outline) {
-                    context_.contentsOutline = info_.writer.createOutline(null, info_.base.toc.header, true);
+                    context_.contentsOutline = info_.writer.createOutline(null, core_.makePlainText(info_.base.toc.header), true);
                 }
                 @pageBreak();
             }

@@ -82,58 +82,76 @@ namespace Typesetting {
                     return;
                 }
                 var writer = info_.writer;
-                var pos = writer.getPositionBase();
-                var y = pos.y;
-                var y1 = pos.y;
-                var bottom = pos.bottom;
-                var ll = lines.length();
-                var widowCheck = ll - info_.base.widowPenalty;
                 var width = lines[0].width;
                 var isFloatingLine = lines[0].hasFloatingImage;
-                var doColumnBreak;
-                if (y > 0) {
-                    for (var i = 0; i < widowCheck; ++i) {
-                        y -= lines[i].lineFeedWidth;
-                    }
-                    for (var i = widowCheck; i < ll; ++i) {
-                        y -= lines[i].lineFeedWidth;
-                        if (y < bottom) {
-                            doColumnBreak = true;
-                            break;
-                        }
+
+                var paras = [];
+                var start = 0;
+                var l = lines.length();
+                for (var i = 0; i < l; ++i) {
+                    if (lines[i].endParagraph) {
+                        var next = i + 1;
+                        paras.push([start, next]);
+                        start = next;
                     }
                 }
-                --widowCheck;
-                for (var i = 0, ll = lines.length(); i < ll; ++i) {
-                    var line = lines[i];
-                    if (line.width != width) {
-                        isFloatingLine = false;
-                    }
-                    if (doColumnBreak && widowCheck == i) {
-                        writer.columnBreak();
-                    }
-                    if (align.center || align.right) {
-                        x = writer.getPos().x;
-                        var offsetX = 0;
-                        if (line.totalWidth != line.width) {
-                            if (align.center) {
-                                offsetX = (line.width - line.totalWidth) / 2;
-                            } else if (align.right) {
-                                offsetX = line.width - line.totalWidth;
+                paras.push([start, l]) if (start != l);
+                var lineFeedWidth = lines[0].lineFeedWidth;
+                var widowCheckDone = false;
+                paras.each { &([start, end]):
+                    var pos = writer.getPositionBase();
+                    var y = pos.y;
+                    var y1 = pos.y;
+                    var bottom = pos.bottom + lineFeedWidth;
+                    var widowCheck = end - info_.base.widowPenalty;
+                    var doColumnBreak = false;
+                    if (!widowCheckDone && y > 0 && widowCheck > start) {
+                        for (var i = start; i < widowCheck; ++i) {
+                            y -= lines[i].lineFeedWidth;
+                        }
+                        for (var i = widowCheck; i < end; ++i) {
+                            y -= lines[i].lineFeedWidth;
+                            if (y < bottom) {
+                                doColumnBreak = true;
+                                break;
                             }
                         }
-                        line.nodes.each { &(n):
-                            n.write(writer, x + offsetX, null, isFloatingLine, align);
-                            x += n.width;
-                        };
-                    } else {
-                        line.nodes.each { => _1.write(writer, null, null, isFloatingLine) };
                     }
-                    var colBreaked = writer.lineBreak(line.lineFeedWidth);
-                    if (colBreaked) {
-                        doColumnBreak = false;
+                    --widowCheck;
+                    for (var i = start; i < end; ++i) {
+                        var line = lines[i];
+                        if (line.width != width) {
+                            isFloatingLine = false;
+                        }
+                        if (doColumnBreak && widowCheck == i) {
+                            writer.columnBreak();
+                            widowCheckDone = true;
+                        }
+                        if (align.center || align.right) {
+                            x = writer.getPos().x;
+                            var offsetX = 0;
+                            if (line.totalWidth != line.width) {
+                                if (align.center) {
+                                    offsetX = (line.width - line.totalWidth) / 2;
+                                } else if (align.right) {
+                                    offsetX = line.width - line.totalWidth;
+                                }
+                            }
+                            line.nodes.each { &(n):
+                                n.write(writer, x + offsetX, null, isFloatingLine, align);
+                                x += n.width;
+                            };
+                        } else {
+                            line.nodes.each { &(n) => n.write(writer, null, null, isFloatingLine) };
+                        }
+                        var colBreaked = writer.lineBreak(line.lineFeedWidth);
+                        if (colBreaked) {
+                            doColumnBreak = false;
+                        }
+                        lineFeedWidth = lines[end-1].lineFeedWidth;
                     }
-                }
+                };
+
             }
 
             public writeLeft(opts, text, fontObj, fontSize, lineFeedWidth) {
@@ -207,12 +225,15 @@ namespace Typesetting {
                     if (!isHeader) {
                         var num = "" + pageNumber;
                         var numw = info_.measure.textWidth(fontObj, fontSize, num);
-                        var right = margin.pageWidth - margin.right - numw;
+                        var pagenumWidth = info_.measure.textWidth(fontObj, fontSize, '999');
+                        var pageRight = margin.pageWidth - margin.right;
+                        var limitRight = pageRight - pagenumWidth;
+                        var right = pageRight - numw;
                         var pos = writer.getPos();
                         var x = pos.x + dotWidth_;
-                        x += (right - x) % dotWidth_;
+                        x += (limitRight - x) % dotWidth_;
                         var dot = Linebreak.Box(dotWidth_, new Word(info_).setWord(fontObj, fontSize, "."));
-                        var limit = right - dotWidth_;
+                        var limit = limitRight - dotWidth_;
                         while (x < limit) {
                             writer.write(dot, x);
                             x += dotWidth_;

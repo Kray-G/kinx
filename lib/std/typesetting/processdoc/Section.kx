@@ -70,10 +70,7 @@ namespace Typesetting {
                     });
                 }
 
-                var olheader = sectionNumberText + ' ' + sectionText
-                    .replace("\\LaTeX", "LaTeX")
-                    .replace("\\KaTeX", "KaTeX")
-                    .replace("\\TeX", "TeX");
+                var olheader = sectionNumberText + ' ' + sectionText;
                 return [linetop, olheader];
             }
 

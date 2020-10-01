@@ -12,8 +12,15 @@ namespace Typesetting {
             var dt = DateTime.now();
             return "[" + (dt.toString()) + "] %{level}: " + msg.trimRight();
         }
+        private makeString(msg) {
+            if (msg.isString) {
+                return msg;
+            }
+            return msg.toString();
+        }
         public debug(msg) {
             if (debugOutput_) {
+                msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
                     debugOutput_.println(makeMessage("Debug", m));
                 };
@@ -21,6 +28,7 @@ namespace Typesetting {
         }
         public info(msg) {
             if (infoOutput_) {
+                msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
                     infoOutput_.println(makeMessage("Info", m));
                 };
@@ -28,6 +36,7 @@ namespace Typesetting {
         }
         public warn(msg) {
             if (warnOutput_) {
+                msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
                     warnOutput_.println(makeMessage("Warning", m));
                 };
@@ -35,6 +44,7 @@ namespace Typesetting {
         }
         public error(msg) {
             if (errorOutput_) {
+                msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
                     errorOutput_.println(makeMessage("Error", m));
                 };
@@ -42,6 +52,7 @@ namespace Typesetting {
         }
         public fatal(msg) {
             if (fatalOutput_) {
+                msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
                     fatalOutput_.println(makeMessage("Fatal", m));
                 };
