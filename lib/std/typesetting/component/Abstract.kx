@@ -43,7 +43,7 @@ namespace Typesetting {
                 writer.addY(abstbase.paragraphSkipWidth, true);
                 writer.setYHead();
                 if (titleText && info.base.outline) {
-                    var ol = writer.createOutline(null, titleText, true);
+                    var ol = writer.createOutline(null, core.makePlainText(titleText), true);
                     writer.setCurrentPage(ol, linetop);
                 }
             }

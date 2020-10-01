@@ -1,0 +1,7 @@
+using Typesetting;
+using typesetting.reader.Markdown;
+using typesetting.style.Styles;
+
+var contents = File.load("examples/typesetting/lorem.md");
+var parser = new Typesetting.BookParser();
+parser.parse(contents, "lorem.pdf", { xref: "lorem.json", filepath: "examples/typesetting" });

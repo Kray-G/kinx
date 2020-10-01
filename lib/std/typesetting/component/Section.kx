@@ -27,7 +27,7 @@ namespace Typesetting {
                         var level = info.base.sectionLevel;
                         var [linetop, header] = core.section.exec(level, @opts, @text);
                         if (info.base.outline && level <= info.base.toc.level) {
-                            var ol = info.writer.createOutline(context.outline[level - 1], header, true);
+                            var ol = info.writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
                             info.writer.setCurrentPage(ol, linetop);
                             context.outline[level] = ol;
                         }
@@ -46,7 +46,7 @@ namespace Typesetting {
                         var level = info.base.sectionLevel + 1;
                         var [linetop, header] = core.section.exec(level, @opts, @text);
                         if (info.base.outline && level <= info.base.toc.level) {
-                            var ol = info.writer.createOutline(context.outline[level - 1], header, true);
+                            var ol = info.writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
                             info.writer.setCurrentPage(ol, linetop);
                             context.outline[level] = ol;
                         }
@@ -65,7 +65,7 @@ namespace Typesetting {
                         var level = info.base.sectionLevel + 2;
                         var [linetop, header] = core.section.exec(level, @opts, @text);
                         if (info.base.outline && level <= info.base.toc.level) {
-                            var ol = info.writer.createOutline(context.outline[level - 1], header, true);
+                            var ol = info.writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
                             info.writer.setCurrentPage(ol, linetop);
                             context.outline[level] = ol;
                         }
@@ -86,87 +86,28 @@ namespace Typesetting {
                 opts_.label ??= text_;
             }
             public write(info, context, core) {
+                var chapterName = info.base.chapter.style;
+                var chapterFunc = Typesetting.Style.Chapter[chapterName];
+                if (!chapterFunc.isFunction) {
+                    info.logger.warn("Not specified a chapter style...");
+                    return;
+                }
+
+                # Chapter is an independent page and always an odd page.
                 context.outputSection = info.base.noIndentTopOfParagraph;
                 @pageBreak(info, core);
 
                 var writer = info.writer;
                 writer.setPageToOdd();
                 writer.setColumn(1);
-                var margin = writer.makeMarginSize();
 
-                if (info.style.chapter.isFunction) {
-                    info.style.chapter(info, context, core, text_, opts_);
-                    if (info.base.outline) {
-                        var ol = writer.createOutline(context.outline[0], text_, true);
-                        writer.setCurrentPage(ol, margin.pageHeight - margin.top);
-                    }
-                    return;
+                var [linetop, chapterPlainText] = chapterFunc(info, context, core, text_, opts_, this);
+                if (info.base.outline) {
+                    var margin = writer.makeMarginSize();
+                    var ol = writer.createOutline(context.outline[0], core.makePlainText(chapterPlainText), true);
+                    writer.setCurrentPage(ol, linetop);
+                    context.outline[1] = ol;
                 }
-
-                var chapterSize = 32.8;
-                var fontObj = context.font.fontObj;
-                var fontSize = context.font.fontSize;
-                context.font.fontSize = chapterSize;
-                var ascent = fontObj.getAscent() * context.font.fontSize / 1000;
-                var descent = fontObj.getDescent() * context.font.fontSize / 1000;
-                var y = margin.pageHeight - margin.top - ascent;
-
-                var level = 1;
-                var numText = core.util.makeSectionNumber(level);
-                var chapterNumberText = numText.join('.');
-                var chapterHeader = info.base.chapter.pretext + chapterNumberText + info.base.chapter.posttext;
-
-                var noIndent = context.noIndent;
-                context.noIndent = true;
-                writer.setPos({ x: margin.left, y: y });
-                var lines = core.paragraph.exec({}, chapterHeader);
-                core.util.write(lines);
-
-                writer.drawLine(margin.left, y + descent, margin.width, 0, 1, [0, 0, 0]);
-
-                var chapterSize = 22.2;
-                context.font.fontSize = chapterSize;
-                ascent = fontObj.getAscent() * context.font.fontSize / 1000;
-                writer.setPos({ x: margin.left, y: y + descent - ascent - 8 });
-                chapterText = "\\bold{%{text_}}";
-                [, chapterText] = core.util.makeOption({}, chapterText);
-                var lines = core.paragraph.exec({}, chapterText);
-                core.util.write(lines, { right: true });
-
-                writer.setColumn(info.base.columns);
-
-                context.noIndent = noIndent;
-                context.font.fontSize = fontSize;
-
-                var linetop = margin.pageHeight - margin.top;
-                if (opts_.label) {
-                    var pagenum = writer.getPageIndex();
-                    context.xref[opts_.label] = {
-                        page:      pagenum,
-                        counter:   chapterHeader,
-                        name:      chapterHeader + ' ' + text_,
-                        text:      chapterText,
-                        y:         linetop,
-                    };
-                }
-                if (level <= info.base.toc.level) {
-                    context.tocinfo.list.push({
-                        isHeader: true,
-                        page: writer.getPageNumber(),
-                        level: level,
-                        number: chapterHeader,
-                        header: chapterText,
-                        y: linetop,
-                    });
-                    if (info.base.outline) {
-                        var ol = writer.createOutline(context.outline[level - 1], text_, true);
-                        writer.setCurrentPage(ol, linetop);
-                        context.outline[level] = ol;
-                    }
-                }
-
-                writer.addY(info.base.chapter.paragraphSkipWidth, true);
-                writer.setYHead();
             }
         }
 

@@ -51,14 +51,14 @@ namespace Util {
             var type = typeMap_[ctx.font.fontType];
             var fontBase = ctx.font.mb ? ctx.font.mb[type] : ctx.fontSet[ctx.font.fontType].fontObjBase;
             var font = ctx.font;
-            if (font.isBold && font.isItaric) {
-                return fontBase.bolditaric;
+            if (font.isBold && font.isItalic) {
+                return fontBase.bolditalic;
             }
             if (font.isBold) {
                 return fontBase.bold;
             }
-            if (font.isItaric) {
-                return fontBase.itaric;
+            if (font.isItalic) {
+                return fontBase.italic;
             }
             return fontBase.regular;
         }

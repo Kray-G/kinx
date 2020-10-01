@@ -1,6 +1,6 @@
 using Typesetting;
 using typesetting.reader.Markdown;
-using typesetting.style.JBookA4;
+using typesetting.style.Styles;
 
 var contents = File.load("examples/typesetting/KiTTy_jp.md");
 var parser = new Typesetting.BookParser();

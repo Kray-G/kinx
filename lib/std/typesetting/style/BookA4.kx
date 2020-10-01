@@ -5,6 +5,8 @@ namespace Style {
 
     class BookA4 : Typesetting.Style.ArticleA4 {
         var fontSize = 10.0;
+        @style.title.style = "StandardBook";
+        @style.chapter.style = "StandardBook";
         @style.margin = {
                 "left":                 76.7,
                 "right":                76.7,
@@ -58,46 +60,6 @@ namespace Style {
         };
         @style.abstract.adjustment = { right: true };
         # @style.table.cellPadding = 2.0;
-
-        public coverPage(info, context, core, title, opts) {
-            var writer = info.writer;
-            var margin = writer.makeMarginSize();
-            var y = margin.pageHeight / 2;
-            writer.setAdjustment(0);
-
-            var titleSize = opts.titleSize || 144.8;
-            var fontObj = context.font.fontObj;
-            var fontSize = context.font.fontSize;
-            context.font.fontSize = titleSize;
-            var descent = fontObj.getDescent() * context.font.fontSize / 1000;
-
-            writer.setPos({ x: 10, y: y - descent });
-            var lines = core.paragraph.exec({}, "\\bold{%{title}}");
-            core.util.write(lines);
-
-            if (opts.subtitle) {
-                context.font.fontSize = opts.subtitleSize || 24.8;
-                writer.setPos({ x: 10, y: y - descent + titleSize + 8 });
-                var lines = core.paragraph.exec({}, opts.subtitle);
-                core.util.write(lines);
-            }
-
-            writer.drawLine(0, y + descent - 8, margin.pageWidth, 0, 1, [0, 0, 0]);
-
-            if (opts.author) {
-                writer.setPos({ x: 10, y: margin.pageHeight / 8 });
-                context.font.fontSize = 12.0;
-                core.util.writeRight({}, opts.author, fontObj, context.font.fontSize, context.font.fontSize);
-            }
-            if (opts.date) {
-                context.font.fontSize = 12.0;
-                core.util.writeRight({}, opts.date, fontObj, context.font.fontSize, context.font.fontSize);
-            }
-
-            writer.setCoverPage();
-            context.font.fontSize = fontSize;
-            context.tocNewPage = true;
-        }
     }
 
 } # namespace Style

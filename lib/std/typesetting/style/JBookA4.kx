@@ -16,6 +16,7 @@ namespace Style {
         @style.table.label = "表";
         @style.image.label = "図";
         @style.image.fulllabel = "図";
+        @style.chapter.style = "StandardBook";
     }
 
 } # namespace Style

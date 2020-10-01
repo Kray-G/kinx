@@ -32,30 +32,20 @@ namespace Typesetting {
             public setDate(date) {
                 opts_.date = date;
             }
+            public setBackgroundImage(image) {
+                opts_.backgroundImage = image;
+            }
             public write(info, context, core) {
                 var writer = info.writer;
-                if (info.style.coverPage.isFunction) {
-                    info.style.coverPage(info, context, core, title_, opts_);
-                    if (info.base.outline) {
-                        var ol = writer.createOutline(null, title_, true);
-                        writer.setCurrentPage(ol);
-                    }
+                var titleName = info.base.title.style;
+                var titleFunc = Typesetting.Style.Title[titleName];
+                if (!titleFunc.isFunction) {
+                    info.logger.warn("Not specified a title style...");
                     return;
                 }
-                [opts_, title_] = core.util.makeOption(opts_, title_);
-                var tbase = info.base.title;
-                writer.setColumn(1);
-                core.util.writeCenter(opts_, title_, context.font.fontObj, tbase.titleText.fontSize, tbase.titleText.lineFeedWidth);
-                if (opts_.author) {
-                    core.util.writeCenter(opts_, opts_.author, context.font.fontObj, tbase.author.fontSize, tbase.author.lineFeedWidth);
-                }
-                if (opts_.date) {
-                    core.util.writeCenter(opts_, opts_.date, context.font.fontObj, tbase.date.fontSize, tbase.date.lineFeedWidth);
-                }
-                writer.addY(tbase.paragraphSkipWidth, true);
-                writer.setYHead();
+                titleFunc(info, context, core, title_, opts_, this);
                 if (info.base.outline) {
-                    var ol = writer.createOutline(null, title_, true);
+                    var ol = writer.createOutline(null, core.makePlainText(title_), true);
                     writer.setCurrentPage(ol);
                 }
             }
