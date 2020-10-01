@@ -2,7 +2,7 @@
 namespace Typesetting {
 
     # Not place to the head.
-    var notHead_ = ",)]｝、，〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～?!‼⁇⁈⁉・:;/.．。";
+    var notHead_ = ",)]）｝、，〕〉》」』】〙〗〟’”｠»ゝゞーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇷ゚ㇺㇻㇼㇽㇾㇿ々〻‐゠–〜～?!‼⁇⁈⁉・:;/.．。";
     # Not place to the tail.
     var notTail_ = "([（｛〔〈《「『【〘〖〝‘“｟«";
     # Special glue size.
@@ -144,6 +144,9 @@ namespace Typesetting {
                 return;
             }
             var prev = i > 0 ? words[i-1] : null;
+            if (node.isGlue && lbr_.find(prev.value.word) >= 0) {
+                return; // skip.
+            }
             var next = words[i+1];
             var value = node.value;
             if (node.isGlue && next.isGlue) {

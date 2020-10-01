@@ -13,7 +13,8 @@ namespace Typesetting {
             var savedPos_, savedMargin_;
             var bottom_, align_, header_;
             var offsetY_ = 0;
-            var limitWidth_ = 50;
+            var limitWidthBase_ = 50;
+            var limitWidth_ = limitWidthBase_;
 
             private adjustWidth(lens) {
                 var l = lens.length() - 1;
@@ -122,6 +123,11 @@ namespace Typesetting {
                         for (var j = 0, m = ba.length(); j < m; ++j) {
                             var b = ba[j];
                             var w = measureText(b, ba.isHeader);
+                            if (table.limitColumn.isDefined && j == table.limitColumn) {
+                                if (limitWidth_ < w) {
+                                    limitWidth_ = w;
+                                }
+                            }
                             ba[j] = { text: b, width: w };
                             if (lens[j] < w) {
                                 lens[j] = w;
@@ -343,21 +349,28 @@ namespace Typesetting {
             }
 
             public exec(table, tableCaptionWriter) {
-                savedPos_ = info_.writer.getPos();
-                savedMargin_ = info_.writer.getMargin();
-                margin_ = info_.writer.makeMarginSize();
+                var writer = info_.writer;
+                savedPos_ = writer.getPos();
+                savedMargin_ = writer.getMargin();
+                margin_ = writer.makeMarginSize();
+                limitWidth_ = table.limitWidth ?? limitWidthBase_;
 
                 var fontSize = context_.font.fontSize;
                 var paragraphSkipWidth = context_.page.paragraphSkipWidth;
                 context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * fontSize;
                 bottom_ = -fontSize / 2;
 
-                info_.writer.lineBreak(0);    // setup x & y.
+                writer.lineBreak(0);    // setup x & y.
+                if (writer.isColumnBreakPoint(paragraphSkipWidth * 2 + info_.base.table.cellPadding * 3)) {
+                    if (writer.getPos().y >= 0) {
+                        writer.columnBreak();
+                    }
+                }
                 if (table.caption) {
                     tableCaptionWriter();
                 }
 
-                pos_ = info_.writer.getPos();
+                pos_ = writer.getPos();
 
                 widthlist = setupTable(table);
                 makeLines(table, widthlist);
@@ -365,9 +378,9 @@ namespace Typesetting {
 
                 context_.page.paragraphSkipWidth = paragraphSkipWidth;
 
-                info_.writer.setMargin(savedMargin_);
-                info_.writer.setPos({ x: -1, y: ybase });
-                info_.writer.lineBreak(paragraphSkipWidth);
+                writer.setMargin(savedMargin_);
+                writer.setPos({ x: -1, y: ybase });
+                writer.lineBreak(paragraphSkipWidth);
             }
 
         }

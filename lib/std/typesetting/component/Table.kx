@@ -29,12 +29,24 @@ namespace Typesetting {
                 var fontSize = context.font.fontSize;
                 var lineFeedWidth = fontSize * context.page.lineFeedWidthRatio;
 
-                info.writer.lineBreak(lineFeedWidth);
+                # info.writer.lineBreak(lineFeedWidth);
                 var linetop = info.writer.getLineTop(context.font.fontObj, fontSize);
                 var number = @makeCountrNumber(context, "table");
-                var cap = info.base.table.label + ' ' + number + ' ' + opts_.caption;
+                var tableHeader = info.base.table.label + ' ' + number;
+                var cap = tableHeader + ' ' + opts_.caption;
                 core.util.writeCenter({}, cap, context.font.fontObj, fontSize, lineFeedWidth);
-                @appendListOf(info, context, "lot", info.base.table.level + 1, number, opts_.caption, linetop);
+                @appendListOf(info, context, "lot", info.base.table.level + 1, tableHeader, opts_.caption, linetop);
+
+                if (opts_.label) {
+                    var pagenum = info.writer.getPageIndex();
+                    context.xref[opts_.label] = {
+                        page:      pagenum,
+                        counter:   number,
+                        name:      cap,
+                        text:      opts_.caption,
+                        y:         linetop,
+                    };
+                }
 
                 info.writer.lineBreak(info.base.table.captionsep);
             }
