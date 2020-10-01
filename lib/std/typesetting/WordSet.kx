@@ -104,6 +104,7 @@ namespace Typesetting {
                 @captionNumber = lt.join('.');
                 @captionText = caption;
                 @captionHeader = info_.base.image.label + ' ' + @captionNumber;
+                @fullHeader = info_.base.image.fulllabel + ' ' + @captionNumber;
                 @caption =  + ' ' + caption;
             }
             @fontObj = context_.font.fontObj;
@@ -158,7 +159,7 @@ namespace Typesetting {
                 writer_.lineBreak(captionSpace);
                 writer_.writeCenter(@caption, @fontObj, @fontSize);
                 writer_.lineBreak(@lineFeedWidth);
-                appendListOf("lof", info_.base.image.level + 1, @captionHeader, @captionText, linetop);
+                appendListOf("lof", info_.base.image.level + 1, @fullHeader, @captionText, linetop);
             }
         }
     }
