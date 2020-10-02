@@ -20,7 +20,7 @@ namespace Style {
         @style.footer.format.odd = { right: "<counter:page>" };
         @style.margin.odd = { adjust: 20.0 };
         @style.margin.even = { adjust: -20.0 };
-        @style.toc = {
+        @style.toc.extend({
             "header":               "Contents",
             "lof":                  "List of Figures",
             "lot":                  "List of Tables",
@@ -43,14 +43,8 @@ namespace Style {
                 1.75,
                 1.75,
             ],
-        };
-        @Style.fontSize = [
-            fontSize,
-            fontSize * 2.0,
-            fontSize * 1.6,
-            fontSize * 1.4,
-            fontSize * 1.2,
-        ];
+        });
+        @style.footnote.resetSectionLevel = 1;
         @style.abstract.noTitle = true;
         @style.abstract.lineFeedWidth      = 24.5;
         @style.abstract.paragraphSkipWidth = 24.5;
