@@ -14,6 +14,13 @@ namespace Style {
             "ligature":                 true,
             "indentSize":               20.0,
             "noIndentTopOfParagraph":   true,
+            "blockquote": {
+                "indentSize":           28.8,
+                "color":                [0.0, 0.0, 0.0, 0.85098],   # grey15
+                "linesep":              -18.0,
+                "lineWidth":            2.0,
+                "lineColor":            [0.0, 0.0, 0.0, 0.498039],  # grey
+            },
             "draw": {
                 "margin":               false,
                 "imageBox":             false,
@@ -22,6 +29,8 @@ namespace Style {
                 "header":               "Contents",
                 "lof":                  "List of Figures",
                 "lot":                  "List of Tables",
+                "appendix":             "Appendix ",
+                "appendixFormat":       "A",
                 "headerSize":           fontSize * 1.8,
                 "fitWidth":             true,
                 "level":                3,
@@ -79,7 +88,7 @@ namespace Style {
                 "lineFeedWidthRatio":   1.4,
                 "margin":               14.0,
                 "labelsep":             fontSize * 0.4,
-                "multilinesep":         -fontSize * 0.6,
+                "multilinesep":         fontSize * 0.6,
                 "resetSectionLevel":    -1,     # 0:by page, 1..:section level
             },
             "fontSize": [
