@@ -675,6 +675,10 @@ static inline void __json_pretty_print(__json_object_t *j, int indent, int comma
     if (!contd) {
         __json_print_indent(indent);
     }
+    if (j->array) {
+        __json_pretty_print(j->array, indent, j->next ? 1 : 0, 1);
+        return;
+    }
     switch (j->type) {
     case JSON_UNKNOWN:
         printf("(unknown)");
@@ -807,6 +811,11 @@ __json_object_t *__json_append_value(__json_object_t *j1, __json_object_t *j2)
         j1 = __json_gen_array();
     }
     assert(j1->type == JSON_ARRAY);
+    if (j2->type == JSON_ARRAY) {
+        __json_object_t *jw = __json_gen_array();
+        jw->array = j2;
+        j2 = jw;
+    }
     if (j1->lary) {
         j1->lary->next = j2;
         j1->lary = j2;

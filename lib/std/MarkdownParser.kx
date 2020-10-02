@@ -7,7 +7,7 @@ namespace Markdown {
 
     var inlineParser;
     helper.isEmpty = _function(str) {
-        return str.length() == 0 || EMPTY_REGEX.test(str);
+        return str.length() == 0 || EMPTY_REGEX.test(str.trim());
     };
 
     _function astToObject(ast) {
@@ -79,7 +79,7 @@ namespace Markdown {
 
         _class Html(text) : Node('html', 'inline') {
             private initialize() {
-                @value = text;
+                @value = text.trim();
             }
         }
 
@@ -149,8 +149,6 @@ namespace Markdown {
 
         # Nodes for Block
 
-        const TAGREF_REGEX = /^\[([^\]]*)?\]\s*:\s*(.+)$/;
-
         _class Paragraph(text) : Node('paragraph', 'block') {
             private initialize() {
                 @values = inlineParser(text);
@@ -175,9 +173,7 @@ namespace Markdown {
         _class Blockquote(text, level) : Node('blockquote', 'block') {
             private initialize() {
                 @level = level;
-                @values = [
-                    new Nodes.Text(text.trim())
-                ];
+                @values = inlineParser(text.trim());
             }
         }
 
@@ -265,13 +261,14 @@ namespace Markdown {
     const MODE_LINK = 9;
     const MODE_INLINE_CODE = 10;
 
-    var inlineParser = _function(text) {
+    inlineParser = _function(text) {
         const ast = [];
 
         var stack = '';
         var mode = MODE_DEFAULT;
         var escapeSequence = false;
         const html = [];
+        var dquotep = 0;
 
         for (var i = 0, l = text.length(); i < l; ++i) {
             const char = text[i];
@@ -289,14 +286,27 @@ namespace Markdown {
             }
 
             switch (char) {
+            case "'"[0]:
+                if (mode == MODE_INLINE_CODE) {
+                    stack += *char;
+                    break;
+                }
+                if (((i+1) < l) && text[i + 1] == "'"[0]) {
+                    i++;
+                    stack += dquotep ? "''" : "``";
+                    dquotep = 1 - dquotep;
+                } else {
+                    stack += *char;
+                }
+                break;
             case "*"[0]:
                 if (mode == MODE_INLINE_CODE) {
                     stack += *char;
                     break;
                 }
-                if (text[i + 1] == '*'[0]) {
+                if (((i+1) < l) && text[i + 1] == '*'[0]) {
                     i++;
-                    if (text[i + 1] == '*'[0]) {
+                    if (((i+1) < l) && text[i + 1] == '*'[0]) {
                         i++;
                         if (mode == MODE_ASTERISK_TRIPLE) {
                             ast.push(new Nodes.EmItalic(stack));
@@ -338,9 +348,9 @@ namespace Markdown {
                     stack += *char;
                     break;
                 }
-                if (text[i + 1] == '_'[0]) {
+                if (((i+1) < l) && text[i + 1] == '_'[0]) {
                     i++;
-                    if (text[i + 1] == '_'[0]) {
+                    if (((i+1) < l) && text[i + 1] == '_'[0]) {
                         i++;
                         if (mode == MODE_UNDERLINE_TRIPLE) {
                             ast.push(new Nodes.EmItalic(stack));
@@ -519,7 +529,7 @@ namespace Markdown {
                 switch (mode) {
                 case MODE_ASTERISK: prefix = '*'; break;
                 case MODE_ASTERISK_DOUBLE: prefix = '**'; break;
-                case MODE_ASTERISK_TRIPLE: prefix = '**'; break;
+                case MODE_ASTERISK_TRIPLE: prefix = '***'; break;
                 case MODE_UNDERLINE: prefix = '_'; break;
                 case MODE_UNDERLINE_DOUBLE: prefix = '__'; break;
                 case MODE_UNDERLINE_TRIPLE: prefix = '___'; break;
@@ -539,15 +549,19 @@ namespace Markdown {
     const OLIST_REGEX = /^(\s*)?([0-9]+)\.\s*(.+)$/;
     const HORIZONTAL_RULE_REGEX = /^[\*\-_\s]+$/;
     const CODE_REGEX = /^[`~]{3}(.*)$/;
-    const BLOCKQUOTE_REGEX = /^(>{1,})\s?(.+)$/;
+    const BLOCKQUOTE_REGEX = /^((?:\s*>){1,})\s?(.+)$/;
     const LINEBREAK_REGEX = /(.+?)[\u0020]{2}$/;
     const TABLE_REGEX = /(?:\s*)?\|(.+)\|(?:\s*)$/;
-    const TAGREF_REGEX = /^(\[[^\]]*\])\s*:\s*(.+)$/;
+    const FWIMAGE_REGEX = /^!\[([^\]]*)\]\s*\((.+)\)$/;
+    const TAGREF_REGEX = /^(\[[^\]]*\])\s*:\s*((?:.|\r?\n)+)/;
+    const TAGREFNEXT_REGEX = /(.+?)\r?\n(\[[^\]]*\])\s*:\s*((?:.|\r?\n)+)/;
     const FWIMAGE_REGEX = /^!\[([^\]]*)\]\s*\((.+)\)$/;
 
     const MODE_DEFAULT = 0;
     const MODE_CODE = 1;
-    const MODE_TABLE = 2; # not implement yet
+    const MODE_INDENTCODE = 2;
+    const MODE_LIST = 3;
+    const MODE_TABLE = 4;
 
     Markdown.BlockParser = _function(str, callback) {
         var ast = [];
@@ -570,7 +584,25 @@ namespace Markdown {
                 tables = [];
             }
             if (!helper.isEmpty(stack)) {
-                ast.push(new Nodes.Paragraph(stack));
+                var m = stack.match(TAGREF_REGEX);
+                if (m.isDefined) {
+                    var t, n;
+                    var tag = m[1];
+                    var next = m[2];
+                    while (true) {
+                        var x = (n??next).match(TAGREFNEXT_REGEX);
+                        if (x.isUndefined) {
+                            break;
+                        }
+                        var rest = x[1];
+                        ast.push(new Nodes.TagRef(t??tag, rest));
+                        t = x[2];
+                        n = x[3];
+                    }
+                    ast.push(new Nodes.TagRef(t??tag, n??next));
+                } else {
+                    ast.push(new Nodes.Paragraph(stack));
+                }
             }
         };
 
@@ -583,46 +615,64 @@ namespace Markdown {
                 continue;
             }
             if (char == '\n'[0]) {
-                if (mode == MODE_CODE) {
+                if (mode == MODE_INDENTCODE) {
+                    if (line.startsWith('    ')) {
+                        stack += "%{line.subString(4)}\n";
+                    } else {
+                        ast.push(new Nodes.Code(stack, "text"));
+                        stack = line != '' ? "%{line}\n" : '\n';
+                        syntax = null;
+                        mode = MODE_DEFAULT;
+                    }
+                    line = '';
+                    continue;
+                } else if (mode == MODE_CODE) {
                     if (line.match(CODE_REGEX)) {
                         ast.push(new Nodes.Code(stack.trim(), syntax));
                         stack = '';
-                        mode = MODE_DEFAULT;
                         syntax = null;
+                        mode = MODE_DEFAULT;
                     } else {
-                        stack += line != '' ? "%{line}\n" : '';
+                        stack += line != '' ? "%{line}\n" : '\n';
                     }
                     line = '';
                     continue;
                 }
-                if (prev == '\n'[0]) {
-                    if (stack.startsWith('    ')) {
-                        stack = stack.split('\n').map { => _1.subString(4) }.join('\n');
-                        ast.push(new Nodes.Code(stack, "text"));
-                    } else {
-                        parseParagraph(stack);
-                    }
+                if (mode == MODE_DEFAULT && line.startsWith('    ')) {
+                    parseParagraph(stack);
+                    syntax = 'text';
+                    stack = "%{line.subString(4)}\n";
+                    mode = MODE_INDENTCODE;
+                } else if (mode == MODE_LIST && pline != "" && line != "" && !line.match(ULIST_REGEX) && !line.match(OLIST_REGEX)) {
+                    ast[-1].values += inlineParser(line);
+                } else if (prev == '\n'[0]) {
+                    parseParagraph(stack);
                     stack = '';
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(LINEBREAK_REGEX)).isDefined) {
                     parseParagraph(stack + match[1]);
                     stack = '';
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(CODE_REGEX)).isDefined) {
                     parseParagraph(stack);
-                    mode = MODE_CODE;
                     syntax = match[1];
                     stack = '';
+                    mode = MODE_CODE;
                 } else if ((match = line.match(BLOCKQUOTE_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
-                    ast.push(new Nodes.Blockquote(match[2], match[1].length()));
+                    ast.push(new Nodes.Blockquote(match[2], match[1].replace(/\s+/, "").length()));
+                    mode = MODE_DEFAULT;
                 } else if (HORIZONTAL_RULE_REGEX.test(line) && line.split(/[\*\-_]/).length() > 3) {
                     parseParagraph(stack);
                     stack = '';
                     ast.push(new Nodes.Horizontal());
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(HEADING_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
                     ast.push(new Nodes.Heading(match[2], match[1].length()));
+                    mode = MODE_DEFAULT;
                 } else if ((match = line.match(ULIST_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
@@ -636,6 +686,7 @@ namespace Markdown {
                     }
                     const list = check ? new Nodes.CheckList(check[2], check[1] == 'x'[0], level, indent) : new Nodes.List(match[2], level, indent);
                     ast.push(list);
+                    mode = MODE_LIST;
                 } else if ((match = line.match(OLIST_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
@@ -651,12 +702,14 @@ namespace Markdown {
                         new Nodes.OrderedCheckList(check[2], check[1] == 'x'[0], (match[2] || 0), level, indent) :
                         new Nodes.OrderedList(match[3], (match[2] || 0), level, indent);
                     ast.push(list);
+                    mode = MODE_LIST;
                 } else if ((match = line.match(TABLE_REGEX)).isDefined) {
+                    if (mode != MODE_TABLE) {
+                        parseParagraph(stack);
+                    }
                     tables.push(line);
                     stack = '';
-                } else if ((match = line.match(TAGREF_REGEX)).isDefined) {
-                    stack = '';
-                    ast.push(new Nodes.TagRef(match[1] || '', match[2] || ''));
+                    mode = MODE_TABLE;
                 } else if (pline == "" && (match = line.match(FWIMAGE_REGEX)).isDefined) {
                     var next = (i+1) < l ? str[i+1] : '\n'[0];
                     if (next == '\n'[0] || next == '\r'[0]) {
@@ -665,6 +718,7 @@ namespace Markdown {
                     } else {
                         stack += line != '' ? "%{line}\n" : '';
                     }
+                    mode = MODE_DEFAULT;
                 } else {
                     stack += line != '' ? "%{line}\n" : '';
                 }
@@ -673,12 +727,14 @@ namespace Markdown {
             } else {
                 line += *char;
             }
-            if (callback.isFunction) {
+            if (pline == "" && callback.isFunction) {
                 var l = ast.length();
-                for (var i = 0; i < l; ++i) {
-                    callback(astToObject(ast[i]));
+                if (l > 0) {
+                    for (var i = 0; i < l; ++i) {
+                        callback(astToObject(ast[i]));
+                    }
+                    ast = [];
                 }
-                ast = [];
             }
             prev = char;
         }
