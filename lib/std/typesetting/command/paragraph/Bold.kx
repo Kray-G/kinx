@@ -8,8 +8,8 @@ namespace Typesetting {
                 fontObj_ = context_.font.fontObj;
                 bold_ = context_.font.isBold;
                 context_.font.isBold = true;
-                if (context_.font.isItaric) {
-                    context_.font.fontObj = context_.font.fontObjBase.bolditaric;
+                if (context_.font.isItalic) {
+                    context_.font.fontObj = context_.font.fontObjBase.bolditalic;
                 } else {
                     context_.font.fontObj = context_.font.fontObjBase.bold;
                 }

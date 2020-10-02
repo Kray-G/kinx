@@ -36,15 +36,17 @@ namespace Typesetting {
                 lt.push("" + num);
                 return lt.join('.');
             }
-            public imageCaption(info, core, caption, linetop) {
+            public imageCaption(info, core, caption, linetop, number) {
                 var context = info.context;
                 var fontSize = context.font.fontSize;
                 var lineFeedWidth = fontSize * context.page.lineFeedWidthRatio;
 
                 linetop ??= info.writer.getLineTop(context.font.fontObj, fontSize);
-                var number = makeCountrNumber(context, "image");
-                var cap = info.base.image.label + ' ' + number + ' ' + caption;
-                var fullname = info.base.image.fulllabel + ' ' + number + ' ' + caption;
+                number ??= makeCountrNumber(context, "image");
+                var imageHeader = info.base.image.label + ' ' + number;
+                var fullHeader = info.base.image.fulllabel + ' ' + number;
+                var cap = imageHeader + ' ' + caption;
+                var fullname = fullHeader + ' ' + caption;
                 if (opts_.label) {
                     var pagenum = info.writer.getPageIndex();
                     context.xref[opts_.label] = {
@@ -57,7 +59,7 @@ namespace Typesetting {
                 }
 
                 core.util.writeCenter({}, cap, context.font.fontObj, fontSize, lineFeedWidth);
-                appendListOf(info, context, "lof", info.base.image.level + 1, number, caption, linetop);
+                appendListOf(info, context, "lof", info.base.image.level + 1, fullHeader, caption, linetop);
 
                 info.writer.lineBreak(lineFeedWidth);
             }
@@ -66,7 +68,8 @@ namespace Typesetting {
                     return;
                 }
                 var counter = @makeCountrNumber(context, "image");
-                var fullname = info.base.image.fulllabel + ' ' + counter + ' ' + caption;
+                var imageHeader = info.base.image.fulllabel + ' ' + counter;
+                var fullname = imageHeader + ' ' + caption;
                 var writer = info.writer;
                 var margin = writer.makeMarginSize();
                 var ytop = imageY + height;
@@ -89,7 +92,7 @@ namespace Typesetting {
                     writer.writeFloatingCaption(node, x, y);
                     x += node.width;
                 };
-                @appendListOf(info, context, "lof", info.base.image.level + 1, counter, caption, ytop);
+                @appendListOf(info, context, "lof", info.base.image.level + 1, imageHeader, caption, ytop);
             }
             public columnBreak(info, core) {
                 core.flushParagraph();
