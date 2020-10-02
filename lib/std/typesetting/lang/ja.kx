@@ -217,7 +217,7 @@ namespace Typesetting {
                 }
 
                 if (notHead_.find(value.word) >= 0) {
-                    if (smallCharacters_.find(value.word) >= 0 && node.width < (value.size * 0.8)) {
+                    if (smallCharacters_.find(value.word) >= 0 && node.width > 0 && node.width < (value.size * 0.8)) {
                         node.width = value.size * 0.8;  # minimum size adjustment.
                         if (next.isGlue) {
                             next.width = 0;

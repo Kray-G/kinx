@@ -173,9 +173,7 @@ namespace Markdown {
         _class Blockquote(text, level) : Node('blockquote', 'block') {
             private initialize() {
                 @level = level;
-                @values = [
-                    new Nodes.Text(text.trim())
-                ];
+                @values = inlineParser(text.trim());
             }
         }
 
@@ -551,7 +549,7 @@ namespace Markdown {
     const OLIST_REGEX = /^(\s*)?([0-9]+)\.\s*(.+)$/;
     const HORIZONTAL_RULE_REGEX = /^[\*\-_\s]+$/;
     const CODE_REGEX = /^[`~]{3}(.*)$/;
-    const BLOCKQUOTE_REGEX = /^(>{1,})\s?(.+)$/;
+    const BLOCKQUOTE_REGEX = /^((?:\s*>){1,})\s?(.+)$/;
     const LINEBREAK_REGEX = /(.+?)[\u0020]{2}$/;
     const TABLE_REGEX = /(?:\s*)?\|(.+)\|(?:\s*)$/;
     const FWIMAGE_REGEX = /^!\[([^\]]*)\]\s*\((.+)\)$/;
@@ -622,7 +620,7 @@ namespace Markdown {
                         stack += "%{line.subString(4)}\n";
                     } else {
                         ast.push(new Nodes.Code(stack, "text"));
-                        stack = line != '' ? "%{line}\n" : '';
+                        stack = line != '' ? "%{line}\n" : '\n';
                         syntax = null;
                         mode = MODE_DEFAULT;
                     }
@@ -635,7 +633,7 @@ namespace Markdown {
                         syntax = null;
                         mode = MODE_DEFAULT;
                     } else {
-                        stack += line != '' ? "%{line}\n" : '';
+                        stack += line != '' ? "%{line}\n" : '\n';
                     }
                     line = '';
                     continue;
@@ -645,6 +643,8 @@ namespace Markdown {
                     syntax = 'text';
                     stack = "%{line.subString(4)}\n";
                     mode = MODE_INDENTCODE;
+                } else if (mode == MODE_LIST && pline != "" && line != "" && !line.match(ULIST_REGEX) && !line.match(OLIST_REGEX)) {
+                    ast[-1].values += inlineParser(line);
                 } else if (prev == '\n'[0]) {
                     parseParagraph(stack);
                     stack = '';
@@ -661,7 +661,7 @@ namespace Markdown {
                 } else if ((match = line.match(BLOCKQUOTE_REGEX)).isDefined) {
                     parseParagraph(stack);
                     stack = '';
-                    ast.push(new Nodes.Blockquote(match[2], match[1].length()));
+                    ast.push(new Nodes.Blockquote(match[2], match[1].replace(/\s+/, "").length()));
                     mode = MODE_DEFAULT;
                 } else if (HORIZONTAL_RULE_REGEX.test(line) && line.split(/[\*\-_]/).length() > 3) {
                     parseParagraph(stack);
@@ -727,12 +727,14 @@ namespace Markdown {
             } else {
                 line += *char;
             }
-            if (callback.isFunction) {
+            if (pline == "" && callback.isFunction) {
                 var l = ast.length();
-                for (var i = 0; i < l; ++i) {
-                    callback(astToObject(ast[i]));
+                if (l > 0) {
+                    for (var i = 0; i < l; ++i) {
+                        callback(astToObject(ast[i]));
+                    }
+                    ast = [];
                 }
-                ast = [];
             }
             prev = char;
         }

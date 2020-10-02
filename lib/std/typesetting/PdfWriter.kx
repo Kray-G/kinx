@@ -117,6 +117,7 @@ namespace Typesetting {
             page.gSave();
             page.setLineWidth(lineWidth || 1.0);
             page.setCMYKFill(...color);
+            page.setCMYKStroke(...color);
             page.moveTo(left, top);
             page.lineTo(left + width, top - height);
             page.stroke();
@@ -128,6 +129,7 @@ namespace Typesetting {
             page.gSave();
             page.setLineWidth(lineWidth || 1.0);
             page.setCMYKFill(...color);
+            page.setCMYKStroke(...color);
             page.moveTo(left, top);
             page.lineTo(left + width, top);
             page.lineTo(left + width, top - height);
@@ -765,7 +767,7 @@ namespace Typesetting {
                     var lines = footnote.lines;
                     for (var i = 0, ll = lines.length(); i < ll; ++i) {
                         xpos = pageMargin_.left + margin;
-                        if (i > 0 && multilinesep.isDeinfed) {
+                        if (i > 0 && multilinesep.isDefined) {
                             xpos -= multilinesep;
                         }
                         var line = lines[i];

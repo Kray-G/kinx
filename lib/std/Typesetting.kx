@@ -165,7 +165,6 @@ namespace Typesetting {
             };
             if (style[lastkey]) {
                 style[lastkey] = value;
-System.println(["set", lastkey, value]);
             }
         }
 
@@ -193,6 +192,8 @@ System.println(["set", lastkey, value]);
 
         public setAppendix() {
             context_.appendix = true;
+            info_.base.chapter.pretext = info_.base.toc.appendix;
+            info_.base.chapter.posttext = "";
         }
 
         public toc() {
@@ -272,7 +273,7 @@ System.println(["set", lastkey, value]);
                     context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * nFontSize;
                     context_.indentSize = (tocdata.level - 1) * info_.base.toc.indentSize;
                     var lines = core_.paragraph.exec({}, tocdata.number + '\\hspace[width=%{context_.font.fontSize}pt]' + tocdata.header);
-                    core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize, tocdata.isHeader);
+                    core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize, tocdata.isChapter);
                 };
                 if (!info.isLast) {
                     info_.writer.lineBreak(context_.page.lineFeedWidthRatio * info_.base.toc.headerSize);

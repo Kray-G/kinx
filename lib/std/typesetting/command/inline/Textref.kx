@@ -2,7 +2,7 @@ namespace Typesetting {
 
     namespace Command {
 
-        class Nameref(info_, context_) {
+        class Textref(info_, context_) {
             public exec(params, value) {
                 var ref = context_.xref[value];
                 var cache = context_.xrefCache[value];
