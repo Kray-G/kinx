@@ -18,21 +18,33 @@ namespace Typesetting {
                 var label = new Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, bullet);
                 label.offsetX = -info_.base.itemize.labelsep[level] - textWidth;
                 var n = Linebreak.Box(0, label);
+                var baseLineFeedWidth = info_.base.itemize.lastParagraphSkipWidth[level];
+                var lastLineFeedWidth;
                 var itemx = itemMarginBase + itemMargin;
                 var itemlist = items.items;
                 var ll = itemlist.length();
+                var last = ll - 1;
                 for (var i = 0; i < ll; ++i) {
                     var item = itemlist[i];
                     if (item.items.isArray) {
                         item.level = level + 1;
-                        itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                        lastLineFeedWidth = itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                        if (i == last && lastLineFeedWidth < baseLineFeedWidth) {
+                            writer.addY(baseLineFeedWidth - lastLineFeedWidth);
+                            lastLineFeedWidth = baseLineFeedWidth;
+                        }
                         counterBase_[level+1] = null;
                     } else if (item.isString) {
                         [opts, item] = util_.makeOption(opts, item);
                         var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
+                        if (i == last) {
+                            lines[-1].lineFeedWidth = baseLineFeedWidth;
+                        }
+                        lastLineFeedWidth = lines[-1].lineFeedWidth;
                         util_.write(lines);
                     }
                 }
+                return lastLineFeedWidth ?? baseLineFeedWidth;
             }
 
             private itemizeEnum(opts, items, level, itemType, counterInit, itemMarginBase, itemMargin, writer, margin) {
@@ -67,14 +79,21 @@ namespace Typesetting {
                 while (--counterInit) {
                     counter = getCounter();
                 }
+                var baseLineFeedWidth = info_.base.itemize.lastParagraphSkipWidth[level];
+                var lastLineFeedWidth;
                 var itemx = itemMarginBase + itemMargin;
                 var itemlist = items.items;
                 var ll = itemlist.length();
+                var last = ll - 1;
                 for (var i = 0; i < ll; ++i) {
                     var item = itemlist[i];
                     if (item.items.isArray) {
                         item.level = level + 1;
-                        itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                        lastLineFeedWidth = itemizeImpl({ margin: margin, itemMarginBase: itemx }, item);
+                        if (i == last && lastLineFeedWidth < baseLineFeedWidth) {
+                            writer.addY(baseLineFeedWidth - lastLineFeedWidth);
+                            lastLineFeedWidth = baseLineFeedWidth;
+                        }
                         counterBase_[item.level] = null;
                     } else if (item.isString) {
                         var number = numberFormat.replace(format, ""+counter);
@@ -84,10 +103,15 @@ namespace Typesetting {
                         var n = Linebreak.Box(0, label);
                         [opts, item] = util_.makeOption(opts, item);
                         var lines = paragraph_.exec({ label: n, margin: { left: margin.left + itemx } }, item || "((none))");
+                        if (i == last) {
+                            lines[-1].lineFeedWidth = baseLineFeedWidth;
+                        }
+                        lastLineFeedWidth = lines[-1].lineFeedWidth;
                         util_.write(lines);
                         counter = getCounter();
                     }
                 }
+                return lastLineFeedWidth ?? baseLineFeedWidth;
             }
 
             private itemizeImpl(opts, items) {
@@ -108,14 +132,15 @@ namespace Typesetting {
                 var itemMargin = info_.base.itemize.margin[level];
                 var itemMarginBase = opts.itemMarginBase ?? 0;
                 var margin = util_.makeMargin(opts);
+                var lastLineFeedWidth;
                 if (itemType == "item") {
-                    itemizeItem(opts, items, level, itemType,
+                    lastLineFeedWidth = itemizeItem(opts, items, level, itemType,
                         itemMarginBase,
                         itemMargin,
                         info_.writer,
                         margin);
                 } else if (itemType == "enum") {
-                    itemizeEnum(opts, items, level, itemType, items.counter || 1,
+                    lastLineFeedWidth = itemizeEnum(opts, items, level, itemType, items.counter || 1,
                         itemMarginBase,
                         itemMargin,
                         info_.writer,
@@ -126,6 +151,7 @@ namespace Typesetting {
                 context_.page.paragraphSkipWidth = paragraphSkipWidth;
                 context_.font.fontSize = fontSize;
                 context_.noIndent = indent;
+                return lastLineFeedWidth;
             }
 
             public exec(opts, items) {

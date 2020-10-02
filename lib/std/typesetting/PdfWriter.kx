@@ -33,22 +33,28 @@ namespace Typesetting {
         if (fontMap_.isUndefined) {
             loadFontMap();
 
+            fontObjSerifBase_.type = "serif";
+            fontObjSerifBase_.file = fontMap_.default.serif.regular;
             fontObjSerifBase_.regular = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.regular), "UTF-8");
             fontObjSerifBase_.bold = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.bold), "UTF-8");
-            fontObjSerifBase_.itaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.itaric), "UTF-8");
-            fontObjSerifBase_.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.bolditaric), "UTF-8");
+            fontObjSerifBase_.italic = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.italic), "UTF-8");
+            fontObjSerifBase_.bolditalic = pdf.getFont(loadFontOne(pdf, fontMap_.default.serif.bolditalic), "UTF-8");
             fontObjSerif_ = fontObjSerifBase_.regular;
 
+            fontObjSansBase_.type = "sans";
+            fontObjSansBase_.file = fontMap_.default.sans.regular;
             fontObjSansBase_.regular = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.regular), "UTF-8");
             fontObjSansBase_.bold = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.bold), "UTF-8");
-            fontObjSansBase_.itaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.itaric), "UTF-8");
-            fontObjSansBase_.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.bolditaric), "UTF-8");
+            fontObjSansBase_.italic = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.italic), "UTF-8");
+            fontObjSansBase_.bolditalic = pdf.getFont(loadFontOne(pdf, fontMap_.default.sans.bolditalic), "UTF-8");
             fontObjSans_ = fontObjSansBase_.regular;
 
+            fontObjMonotypeBase_.type = "monotype";
+            fontObjMonotypeBase_.file = fontMap_.default.monotype.regular;
             fontObjMonotypeBase_.regular = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.regular), "UTF-8");
             fontObjMonotypeBase_.bold = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.bold), "UTF-8");
-            fontObjMonotypeBase_.itaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.itaric), "UTF-8");
-            fontObjMonotypeBase_.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.bolditaric), "UTF-8");
+            fontObjMonotypeBase_.italic = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.italic), "UTF-8");
+            fontObjMonotypeBase_.bolditalic = pdf.getFont(loadFontOne(pdf, fontMap_.default.monotype.bolditalic), "UTF-8");
             fontObjMonotype_ = fontObjMonotypeBase_.regular;
         }
     }
@@ -61,22 +67,28 @@ namespace Typesetting {
             var bases = [];
             var fontObjSerifBase, fontObjSansBase, fontObjMonotypeBase;
 
+            fontObjSerifBase.type = "serif";
+            fontObjSerifBase_.file = fontMap_[lang].serif.regular;
             fontObjSerifBase.regular = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.regular), "UTF-8");
             fontObjSerifBase.bold = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.bold), "UTF-8");
-            fontObjSerifBase.itaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.itaric), "UTF-8");
-            fontObjSerifBase.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.bolditaric), "UTF-8");
+            fontObjSerifBase.italic = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.italic), "UTF-8");
+            fontObjSerifBase.bolditalic = pdf.getFont(loadFontOne(pdf, fontMap_[lang].serif.bolditalic), "UTF-8");
             bases.push(fontObjSerifBase);
 
+            fontObjSansBase.type = "sans";
+            fontObjSansBase.file = fontMap_[lang].sans.regular;
             fontObjSansBase.regular = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.regular), "UTF-8");
             fontObjSansBase.bold = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.bold), "UTF-8");
-            fontObjSansBase.itaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.itaric), "UTF-8");
-            fontObjSansBase.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.bolditaric), "UTF-8");
+            fontObjSansBase.italic = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.italic), "UTF-8");
+            fontObjSansBase.bolditalic = pdf.getFont(loadFontOne(pdf, fontMap_[lang].sans.bolditalic), "UTF-8");
             bases.push(fontObjSansBase);
 
+            fontObjMonotypeBase.type = "monotype";
+            fontObjMonotypeBase.file = fontMap_[lang].monotype.regular;
             fontObjMonotypeBase.regular = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.regular), "UTF-8");
             fontObjMonotypeBase.bold = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.bold), "UTF-8");
-            fontObjMonotypeBase.itaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.itaric), "UTF-8");
-            fontObjMonotypeBase.bolditaric = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.bolditaric), "UTF-8");
+            fontObjMonotypeBase.italic = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.italic), "UTF-8");
+            fontObjMonotypeBase.bolditalic = pdf.getFont(loadFontOne(pdf, fontMap_[lang].monotype.bolditalic), "UTF-8");
             bases.push(fontObjMonotypeBase);
 
             fontMap_[lang].isLoaded = true;
@@ -105,6 +117,7 @@ namespace Typesetting {
             page.gSave();
             page.setLineWidth(lineWidth || 1.0);
             page.setCMYKFill(...color);
+            page.setCMYKStroke(...color);
             page.moveTo(left, top);
             page.lineTo(left + width, top - height);
             page.stroke();
@@ -116,6 +129,7 @@ namespace Typesetting {
             page.gSave();
             page.setLineWidth(lineWidth || 1.0);
             page.setCMYKFill(...color);
+            page.setCMYKStroke(...color);
             page.moveTo(left, top);
             page.lineTo(left + width, top);
             page.lineTo(left + width, top - height);
@@ -191,9 +205,9 @@ namespace Typesetting {
                 });
                 writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
             }
-            if (value.endAnnot) {
+            if (value.endAnnot || value.inAnnot) {
                 var annot = annot_[-1];
-                if (annot.y == value.annotPos.y) {
+                if (annot.ay == ay) {
                     annot.right = x + width + 4;
                 } else {
                     annot.right = prevAnnotX_;
@@ -207,10 +221,7 @@ namespace Typesetting {
                         ay: ay,
                         y: value.annotPos.y,
                     });
-                    annot = annot_[-1];
                 }
-                writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
-            } else if (value.inAnnot) {
                 writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
             } else if (value.isUrl) {
                 var color = linkUrl_.color ?? textcolor ?? [0, 1, 1, 0];
@@ -315,6 +326,7 @@ namespace Typesetting {
         var x_, y_, width_, height_, ascent_;
         var ytop_, ybottom_, isTopOfPage_, lastLineFeedWidth_, floating_, tocBasePage_, setPageToOdd_;
         var footnotes_ = [];
+        var fonts_;
 
         private initialize() {
             info_.context.counter.page = 0;
@@ -353,6 +365,28 @@ namespace Typesetting {
 
         public loadAdditionalFonts(lang) {
             return loadAdditionalLangFonts(pdf_, lang);
+        }
+
+        public loadFontFile(name, type, shape, filepath, index) {
+            # name is the name, identifier
+            # type is 'serif', 'sans', or 'monotype'.
+            # shape is 'regular', 'bold', 'italic', or 'bolditalic'.
+            if (fonts_[name].isUndefined) {
+                var info = {
+                    file: filepath,
+                    index: index,
+                };
+                fonts_[name] = {
+                    type: type,
+                    shape: shape,
+                    font: pdf_.getFont(loadFontOne(pdf_, info), "UTF-8"),
+                };
+            }
+            return fonts_[name];
+        }
+
+        public getFontByName(name) {
+            return fonts_[name];
         }
 
         public getFontObjBase() {
@@ -543,6 +577,12 @@ namespace Typesetting {
             return margin_.clone();
         }
 
+        public setPageMargin(margin) {
+            pageMargin_ = margin.clone();
+            margin_ = margin.clone();
+            marginCache_ = null;
+        }
+
         public getPageMargin() {
             return pageMargin_.clone();
         }
@@ -559,12 +599,6 @@ namespace Typesetting {
                 return { x: margin.left, y: y_ };
             }
             return { x: x_, y: y_ };
-        }
-
-        public setPageMargin(margin) {
-            pageMargin_ = margin.clone();
-            margin_ = margin.clone();
-            marginCache_ = null;
         }
 
         public setColumn(cols) {
@@ -701,6 +735,7 @@ namespace Typesetting {
             if (footnotes_.length() > 0) {
                 var margin = info_.base.footnote.margin;
                 var labelsep = info_.base.footnote.labelsep;
+                var multilinesep = info_.base.footnote.multilinesep;
                 var measure = info_.measure;
                 var fontObj = fontObjSansBase_.regular;
                 var fontSize = info_.base.footnote.fontSize * info_.base.footnote.numberSizeRatio;
@@ -726,9 +761,12 @@ namespace Typesetting {
                     var xpos = pageMargin_.left + margin - labelsep - nwidth;
                     page.setFontAndSize(fontObj, fontSize);
                     writeText(page, xpos, ypos + 2, n, nwidth);
-                    xpos = pageMargin_.left + margin;
                     var lines = footnote.lines;
                     for (var i = 0, ll = lines.length(); i < ll; ++i) {
+                        xpos = pageMargin_.left + margin;
+                        if (i > 0 && multilinesep.isDefined) {
+                            xpos -= multilinesep;
+                        }
                         var line = lines[i];
                         line.nodes.each { &(node):
                             xpos = writeFootnote(page, node, xpos, ypos);
@@ -1071,8 +1109,14 @@ namespace Typesetting {
         }
 
         public clearFloatingImage(lineFeedWidth) {
+            var counter = 0;
+            const max = 100;
             while (floating_.isDefined && !floating_.done) {
                 lineBreak(lineFeedWidth);
+                if (max < ++counter) {
+                    info_.logger.warn("Too many loop for clearing a floating image.");
+                    break;
+                }
             }
         }
 
@@ -1131,17 +1175,19 @@ namespace Typesetting {
             }
 
             var margin = makeMarginSize();
-            var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + height;
-            if (y_ < bottomMin) {
-                isColMoved_ = true;
-                x_ = -1;
-                y_ = -1;
-                if (cols_ > 0) {            
-                    curCol_ = (curCol_ + 1) % cols_;
-                }
-                if (curCol_ == 0) {
-                    page_ = null;
-                    @addPage();
+            if (y_ > 0) {
+                var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + height;
+                if (y_ < bottomMin) {
+                    isColMoved_ = true;
+                    x_ = -1;
+                    y_ = -1;
+                    if (cols_ > 0) {            
+                        curCol_ = (curCol_ + 1) % cols_;
+                    }
+                    if (curCol_ == 0) {
+                        page_ = null;
+                        @addPage();
+                    }
                 }
             }
             var lineFeedWidth;

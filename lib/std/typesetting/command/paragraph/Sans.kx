@@ -2,14 +2,14 @@ namespace Typesetting {
 
     namespace ParagraphCommand {
 
-        class Monotype(info_, context_) {
+        class Sans(info_, context_) {
             var fontType_, fontObj_, fontObjBase_;
             public start() {
                 fontType_ = context_.font.fontType;
-                context_.font.fontType = "monotype";
+                context_.font.fontType = "sans";
                 fontObj_ = context_.font.fontObj;
                 fontObjBase_ = context_.font.fontObjBase;
-                var fontBase = context_.font.mb ? context_.font.mb[2] : context_.fontSet.monotype.fontObjBase;
+                var fontBase = context_.fontSet.sans.fontObjBase;
                 context_.font.fontObjBase = fontBase;
                 if (context_.font.isBold) {
                     if (context_.font.isItalic) {

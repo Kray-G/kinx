@@ -2,21 +2,21 @@ namespace Typesetting {
 
     namespace ParagraphCommand {
 
-        class Itaric(info_, context_) {
-            var fontObj_, itaric_;
+        class Italic(info_, context_) {
+            var fontObj_, italic_;
             public start() {
                 fontObj_ = context_.font.fontObj;
-                itaric_ = context_.font.isItaric;
-                context_.font.isItaric = true;
+                italic_ = context_.font.isItalic;
+                context_.font.isItalic = true;
                 if (context_.font.isBold) {
-                    context_.font.fontObj = context_.font.fontObjBase.bolditaric;
+                    context_.font.fontObj = context_.font.fontObjBase.bolditalic;
                 } else {
-                    context_.font.fontObj = context_.font.fontObjBase.itaric;
+                    context_.font.fontObj = context_.font.fontObjBase.italic;
                 }
             }
             public end() {
                 context_.font.fontObj = fontObj_;
-                context_.font.isItaric = itaric_;
+                context_.font.isItalic = italic_;
             }
         }
 

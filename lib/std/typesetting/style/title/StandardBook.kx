@@ -1,0 +1,67 @@
+namespace Typesetting {
+namespace Style {
+
+    Typesetting.Style.Title[__FILE__.stem()] = function(info, context, core, title, opts) {
+        var writer = info.writer;
+        writer.setAdjustment(0);
+        var savedMargin = writer.getMargin();
+        var savedPageMargin = writer.getPageMargin();
+        writer.setPageMargin({
+            left:   0.0,
+            right:  0.0,
+            bottom: 0.0,
+            top:    0.0,
+        });
+        if (opts.backgroundImage) {
+            writer.imageTo(opts.backgroundImage, 1.0, { center: true });
+        }
+        const leftMargin = 38.8;
+        const rightMargin = 26.0;
+        writer.setPageMargin({
+            left:   leftMargin,
+            right:  rightMargin,
+            bottom: 26.0,
+            top:    26.0,
+        });
+        var margin = writer.makeMarginSize();
+        var y = margin.pageHeight / 2;
+
+        var titleSize = opts.titleSize || 144.8;
+        var fontObj = context.font.fontObj;
+        var fontSize = context.font.fontSize;
+        context.font.fontSize = titleSize;
+        var descent = fontObj.getDescent() * context.font.fontSize / 1000;
+
+        writer.setPos({ x: leftMargin, y: y - descent });
+        var lines = core.paragraph.exec({}, "\\bold{%{title}}");
+        core.util.write(lines);
+
+        if (opts.subtitle) {
+            context.font.fontSize = opts.subtitleSize || 24.8;
+            writer.setPos({ x: leftMargin, y: y - descent + titleSize + 4 });
+            var lines = core.paragraph.exec({}, opts.subtitle);
+            core.util.write(lines);
+        }
+
+        writer.drawLine(0, y + descent - 8, margin.pageWidth, 0, 1, [0, 0, 0]);
+
+        if (opts.author) {
+            writer.setPos({ x: leftMargin, y: margin.pageHeight / 8 });
+            context.font.fontSize = 12.0;
+            core.util.writeRight({}, opts.author, fontObj, context.font.fontSize, context.font.fontSize);
+        }
+        if (opts.date) {
+            context.font.fontSize = 12.0;
+            writer.lineBreak(context.font.fontSize / 2);
+            core.util.writeRight({}, opts.date, fontObj, context.font.fontSize, context.font.fontSize);
+        }
+
+        writer.setCoverPage();
+        context.font.fontSize = fontSize;
+        context.tocNewPage = true;
+        writer.setPageMargin(savedPageMargin);
+        writer.setMargin(savedMargin);
+    };
+
+} # namespace Style
+} # namespace Typesetting
