@@ -28,7 +28,7 @@ namespace Typesetting {
             }
             info_.style = style_;
             style_ = style_.style;
-            info_.logger = new Typesetting.Logger();
+            info_.logger = opts_.logger ?? new Typesetting.Logger();
             info_.base = style_.clone();
             outline_ = info_.base.outline;
             var pagesize = style_.pagesize ?? PDF_PAGE_SIZE_A4;
@@ -81,6 +81,7 @@ namespace Typesetting {
                     fontObjBase: fontObjSerifBase_,
                     fontSize: fontSize,
                     footnoteSize: info_.base.footnoteSize,
+                    stack: [],
                 },
                 fontSet: {
                     serif: {
@@ -123,17 +124,56 @@ namespace Typesetting {
                 var totalLineFeeds = core_.pendingParagraphList.sum({ => _1.lineFeedWidth ?? 0 });
                 writer.checkColumnBreak(totalLineFeeds);
                 core_.pendingParagraphList.each { &(p):
-                    if (!p.isParagraph) {
+                    if (!p.isParagraph && p.lineFeedWidth > 0) {
                         writer.clearFloatingImage(p.lineFeedWidth);
                     }
                     p.func();
                 };
                 core_.pendingParagraphList = [];
             };
+            core_.makePlainText = function(text) {
+                text = text
+                    .replace("\\LaTeX", "LaTeX")
+                    .replace("\\KaTeX", "KaTeX")
+                    .replace("\\TeX", "TeX");
+                [, text] = core_.util.makeOption(text);
+                var lines = core_.paragraph.exec({}, text);
+                var str;
+                lines.each { &(line):
+                    line.nodes.each { &(n):
+                        if (n.isBox) {
+                            if (n.value.word.isString && n.value.word.length() > 0) {
+                                str += n.value.word;
+                            }
+                        } else if (n.isGlue) {
+                            if (n.width > 0 && str[-1] != ' '[0]) {
+                                str += ' ';
+                            }
+                        }
+                    };
+                };
+                return str ?? text;
+            };
+        }
+
+        public setStyle(name, value) {
+            name = name.split('.');
+            var lastkey = name.pop();
+            var style = info_.base;
+            name.each { &(k):
+                style = style[k];
+            };
+            if (style[lastkey]) {
+                style[lastkey] = value;
+            }
         }
 
         public setMultibyteFont(lang) {
             context_.font.mb = info_.writer.loadAdditionalFonts(lang);
+        }
+
+        public loadFont(name, type, shape, filepath, index) {
+            info_.writer.loadFontFile(name, type, shape, filepath, index);
         }
 
         public define(name, value) {
@@ -150,12 +190,18 @@ namespace Typesetting {
             info_.writer.pageBreak();
         }
 
+        public setAppendix() {
+            context_.appendix = true;
+            info_.base.chapter.pretext = info_.base.toc.appendix;
+            info_.base.chapter.posttext = "";
+        }
+
         public toc() {
             if (context_.toc) {
                 context_.tocinfo.page = context_.counter.page;
                 context_.tocinfo.pos = info_.writer.getPos();
                 if (info_.base.outline) {
-                    context_.contentsOutline = info_.writer.createOutline(null, info_.base.toc.header, true);
+                    context_.contentsOutline = info_.writer.createOutline(null, core_.makePlainText(info_.base.toc.header), true);
                 }
                 @pageBreak();
             }
@@ -227,7 +273,7 @@ namespace Typesetting {
                     context_.page.paragraphSkipWidth = context_.page.lineFeedWidthRatio * nFontSize;
                     context_.indentSize = (tocdata.level - 1) * info_.base.toc.indentSize;
                     var lines = core_.paragraph.exec({}, tocdata.number + '\\hspace[width=%{context_.font.fontSize}pt]' + tocdata.header);
-                    core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize, tocdata.isHeader);
+                    core_.util.writeTocLine(lines, tocdata.y, tocdata.page - info_.context.tocinfo.lastPage, context_.font.fontObj, context_.font.fontSize, tocdata.isChapter);
                 };
                 if (!info.isLast) {
                     info_.writer.lineBreak(context_.page.lineFeedWidthRatio * info_.base.toc.headerSize);
@@ -254,7 +300,7 @@ namespace Typesetting {
                 File.open(opts_.xref, File.WRITE) { &(f):
                     f.println(context_.xref.toJsonString(true));
                 };
-                info_.logger.info("Saved the Xref information.");
+                info_.logger.info("Saved the Xref information. [%{opts_.xref}]");
             }
         }
 

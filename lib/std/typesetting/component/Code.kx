@@ -17,7 +17,7 @@ namespace Typesetting {
             public write(info, context, core) {
                 core.flushParagraph();
 
-                [opts_, code_] = core.util.makeOption(opts_, code_);
+                [opts_, code_] = core.util.makeOption(opts_, code_, false);
                 var fontObj = context.font.fontObj;
                 var fontObjBase = context.font.fontObjBase;
                 core.fontType("Monotype");
@@ -27,16 +27,18 @@ namespace Typesetting {
                 var numberSize = info.base.code.numberSize;
                 var codeFontSize = info.base.code.fontSize;
 
-                var base = margin.left + info.base.code.margin.left;
-                var xbase = base;
+                const shadowWidth = 3;
+                var base = margin.left + info.base.code.margin.left + shadowWidth + 1;
+                var lbase = base;
+                var rbase = margin.right + info.base.code.margin.right - shadowWidth - 1;
                 if (opts_.lineNumber) {
                     var width = info.measure.textWidth(context.font.fontObj, numberSize, "999999");
-                    opts_.margin.left = xbase + width;
-                    opts_.margin.right = xbase;
-                    xbase = opts_.margin.left - info.base.code.labelsep;
+                    opts_.margin.right = rbase;
+                    opts_.margin.left = lbase + width;
+                    lbase = opts_.margin.left - info.base.code.labelsep;
                 } else {
-                    opts_.margin.left = xbase;
-                    opts_.margin.right = xbase;
+                    opts_.margin.left = lbase;
+                    opts_.margin.right = rbase;
                 }
                 var pageMargin = writer.makeMarginSize();
                 var left = base - info.base.code.padding;
@@ -58,7 +60,7 @@ namespace Typesetting {
                 texts.each { &(line, i):
                     if (opts_.lineNumber) {
                         var num = "" + (i+1);
-                        var x = xbase - info.measure.textWidth(fontObj, numberSize, num);
+                        var x = lbase - info.measure.textWidth(fontObj, numberSize, num);
                         core.util.writeX(x, num, fontObj, numberSize);
                     }
                     core.util.writeLine(opts_, line, context.font.fontObj, codeFontSize, lineFeedWidthBase);
@@ -72,7 +74,7 @@ namespace Typesetting {
                         if (shadow) {
                             var top = isTop ? lineprev : (lineprev-2);
                             var height2 = isTop ? (height+5) : (height+3);
-                            writer.drawLine(right+2, top, 0, height2, 3, info.base.code.lineColor);
+                            writer.drawLine(right+2, top, 0, height2, shadowWidth, info.base.code.lineColor);
                         }
                         lineprev = linetop1;
                         isTop = false;
@@ -82,17 +84,17 @@ namespace Typesetting {
                         writer.drawLine(right, lineprev, 0, height, lineWidth, info.base.code.lineColor, -1);
                         if (i == tlast) {
                             if (shadow) {
-                                writer.drawLine(right+2, lineprev-2, 0, height+1, 3, info.base.code.lineColor, -1);
+                                writer.drawLine(right+2, lineprev-2, 0, height+1, shadowWidth, info.base.code.lineColor, -1);
                             }
                             var top = lineprev - height;
                             writer.drawLine(left, top, linelength, 0, lineWidth, info.base.code.lineColor, -1);
                             if (shadow) {
-                                writer.drawLine(left+2, top-2, linelength+1, 0, 3, info.base.code.lineColor, -1);
+                                writer.drawLine(left+2, top-2, linelength+1, 0, shadowWidth, info.base.code.lineColor, -1);
                             }
                             lineWidth = 0;  # no more drawing a line.
                         } else {
                             if (shadow) {
-                                writer.drawLine(right+2, lineprev-2, 0, height-2, 3, info.base.code.lineColor, -1);
+                                writer.drawLine(right+2, lineprev-2, 0, height-2, shadowWidth, info.base.code.lineColor, -1);
                             }
                             lineprev = pageMargin.pageHeight - margin.top;
                             isTop = true;
@@ -108,7 +110,7 @@ namespace Typesetting {
                     writer.drawLine(right, lineprev, 0, height, lineWidth, info.base.code.lineColor);
                     writer.drawLine(left, linetop2, linelength, 0, lineWidth, info.base.code.lineColor);
                     if (shadow) {
-                        writer.drawLine(left+2, linetop2-2, linelength+1, 0, 3, info.base.code.lineColor);
+                        writer.drawLine(left+2, linetop2-2, linelength+1, 0, shadowWidth, info.base.code.lineColor);
                     }
                 }
                 writer.addY(lineFeedWidthBase);

@@ -42,6 +42,9 @@ namespace Typesetting {
 
             public makeSectionNumber(level) {
                 var sectionNumber = context_.counter.section[level] ?? 0;
+                if (level == 1 && context_.appendix && !sectionNumber.isString) {
+                    sectionNumber = 0;
+                }
                 var numText = [];
                 if (context_.check) {
                     for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
@@ -50,7 +53,11 @@ namespace Typesetting {
                         }
                     }
                 } else {
-                    context_.counter.section[level] = ++sectionNumber;
+                    if (level == 1 && context_.appendix) {
+                        context_.counter.section[level] = sectionNumber.isString ? sectionNumber.next() : info_.base.toc.appendixFormat;
+                    } else {
+                        context_.counter.section[level] = ++sectionNumber;
+                    }
                     var newNumbers = [];
                     for (var i = 1, l = context_.counter.section.length(); i < l; ++i) {
                         if (i <= level) {
@@ -77,63 +84,97 @@ namespace Typesetting {
                 return margin;
             }
 
-            public write(lines, align) {
+            public write(lines, align, opts) {
                 if (lines.length() == 0) {
                     return;
                 }
                 var writer = info_.writer;
-                var pos = writer.getPositionBase();
-                var y = pos.y;
-                var y1 = pos.y;
-                var bottom = pos.bottom;
-                var ll = lines.length();
-                var widowCheck = ll - info_.base.widowPenalty;
                 var width = lines[0].width;
                 var isFloatingLine = lines[0].hasFloatingImage;
-                var doColumnBreak;
-                if (y > 0) {
-                    for (var i = 0; i < widowCheck; ++i) {
-                        y -= lines[i].lineFeedWidth;
-                    }
-                    for (var i = widowCheck; i < ll; ++i) {
-                        y -= lines[i].lineFeedWidth;
-                        if (y < bottom) {
-                            doColumnBreak = true;
-                            break;
-                        }
+                var fontObj = context_.font.fontObj;
+                var fontSize = context_.font.fontSize;
+
+                var paras = [];
+                var start = 0;
+                var linel = lines.length();
+                var lastl = linel - 1;
+                for (var i = 0; i < linel; ++i) {
+                    if (lines[i].endParagraph) {
+                        var next = i + 1;
+                        paras.push([start, next]);
+                        start = next;
                     }
                 }
-                --widowCheck;
-                for (var i = 0, ll = lines.length(); i < ll; ++i) {
-                    var line = lines[i];
-                    if (line.width != width) {
-                        isFloatingLine = false;
-                    }
-                    if (doColumnBreak && widowCheck == i) {
-                        writer.columnBreak();
-                    }
-                    if (align.center || align.right) {
-                        x = writer.getPos().x;
-                        var offsetX = 0;
-                        if (line.totalWidth != line.width) {
-                            if (align.center) {
-                                offsetX = (line.width - line.totalWidth) / 2;
-                            } else if (align.right) {
-                                offsetX = line.width - line.totalWidth;
+                paras.push([start, linel]) if (start != linel);
+                var lineFeedWidth = lines[0].lineFeedWidth;
+                var widowCheckDone = false;
+                paras.each { &([start, end], pi):
+                    var pos = writer.getPositionBase();
+                    var y = pos.y;
+                    var bottom = pos.bottom + lineFeedWidth;
+                    var widowCheck = end - info_.base.widowPenalty;
+                    var doColumnBreak = false;
+                    if (!widowCheckDone && y > 0 && widowCheck > start) {
+                        for (var i = start; i < widowCheck; ++i) {
+                            y -= lines[i].lineFeedWidth;
+                        }
+                        for (var i = widowCheck; i < end; ++i) {
+                            y -= lines[i].lineFeedWidth;
+                            if (y < bottom) {
+                                doColumnBreak = true;
+                                break;
                             }
                         }
-                        line.nodes.each { &(n):
-                            n.write(writer, x + offsetX, null, isFloatingLine, align);
-                            x += n.width;
-                        };
-                    } else {
-                        line.nodes.each { => _1.write(writer, null, null, isFloatingLine) };
                     }
-                    var colBreaked = writer.lineBreak(line.lineFeedWidth);
-                    if (colBreaked) {
-                        doColumnBreak = false;
+                    --widowCheck;
+                    for (var i = start; i < end; ++i) {
+                        var line = lines[i];
+                        if (line.width != width) {
+                            isFloatingLine = false;
+                        }
+                        if (doColumnBreak && widowCheck == i) {
+                            writer.columnBreak();
+                            widowCheckDone = true;
+                        }
+                        if (align.center || align.right) {
+                            x = writer.getPos().x;
+                            var offsetX = 0;
+                            if (line.totalWidth != line.width) {
+                                if (align.center) {
+                                    offsetX = (line.width - line.totalWidth) / 2;
+                                } else if (align.right) {
+                                    offsetX = line.width - line.totalWidth;
+                                }
+                            }
+                            line.nodes.each { &(n):
+                                n.write(writer, x + offsetX, null, isFloatingLine, align);
+                                x += n.width;
+                            };
+                        } else {
+                            line.nodes.each { &(n) => n.write(writer, null, null, isFloatingLine) };
+                        }
+
+                        if (opts.vline.isArray) {
+                            var linetop1 = writer.getLineTop(fontObj, fontSize);
+                            var height = line.lineFeedWidth;
+                            var lastv = opts.vline.length() - 1;
+                            opts.vline.each { &(v, vi):
+                                if (vi == lastv && i == lastl && opts.endBlockquote) {
+                                    var descent = (fontObj.getDescent() / 1000) * fontSize;
+                                    height = fontSize - descent;
+                                }
+                                writer.drawLine(v, linetop1, 0, height, info_.base.blockquote.lineWidth, info_.base.blockquote.lineColor, -1);
+                            };
+                        }
+
+                        var colBreaked = writer.lineBreak(line.lineFeedWidth);
+                        if (colBreaked) {
+                            doColumnBreak = false;
+                        }
+                        lineFeedWidth = lines[end-1].lineFeedWidth;
                     }
-                }
+                };
+
             }
 
             public writeLeft(opts, text, fontObj, fontSize, lineFeedWidth) {
@@ -187,7 +228,7 @@ namespace Typesetting {
                 writer.write(n, x);
             }
 
-            public writeTocLine(lines, y, pageNumber, fontObj, fontSize, isHeader) {
+            public writeTocLine(lines, y, pageNumber, fontObj, fontSize, withoutLeadDot) {
                 if (lines.length() == 0) {
                     return;
                 }
@@ -204,27 +245,30 @@ namespace Typesetting {
                             n.write(writer);
                         }
                     };
-                    if (!isHeader) {
-                        var num = "" + pageNumber;
-                        var numw = info_.measure.textWidth(fontObj, fontSize, num);
-                        var right = margin.pageWidth - margin.right - numw;
+                    var num = "" + pageNumber;
+                    var numw = info_.measure.textWidth(fontObj, fontSize, num);
+                    var pagenumWidth = info_.measure.textWidth(fontObj, fontSize, '999');
+                    var pageRight = margin.pageWidth - margin.right;
+                    var right = pageRight - numw;
+                    if (!withoutLeadDot) {
+                        var limitRight = pageRight - pagenumWidth;
                         var pos = writer.getPos();
                         var x = pos.x + dotWidth_;
-                        x += (right - x) % dotWidth_;
+                        x += (limitRight - x) % dotWidth_;
                         var dot = Linebreak.Box(dotWidth_, new Word(info_).setWord(fontObj, fontSize, "."));
-                        var limit = right - dotWidth_;
+                        var limit = limitRight - dotWidth_;
                         while (x < limit) {
                             writer.write(dot, x);
                             x += dotWidth_;
                         }
-                        num = new Word(info_).setWord(fontObj, fontSize, num);
-                        num.startAnnot = true;
-                        num.endAnnot = true;
-                        num.annotPage = pageNumber;
-                        num.annotPos = { y: y };
-                        num = Linebreak.Box(numw, num);
-                        writer.write(num, right);
                     }
+                    num = new Word(info_).setWord(fontObj, fontSize, num);
+                    num.startAnnot = true;
+                    num.endAnnot = true;
+                    num.annotPage = pageNumber;
+                    num.annotPos = { y: y };
+                    num = Linebreak.Box(numw, num);
+                    writer.write(num, right);
                     writer.lineBreak(line.lineFeedWidth);
                 }
             }

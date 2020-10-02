@@ -46,8 +46,9 @@ namespace Typesetting {
                 var scale = margin.width / imgwidth;
                 var [bottom, height] = writer.imageTo(img, scale * (opts_.scale ?? 0.80), { center: true });
                 var linetop = bottom + height;
+                var counter;
                 if (opts_.caption && opts_.label) {
-                    var counter = @makeCountrNumber(context, "image");
+                    counter = @makeCountrNumber(context, "image");
                     var name = info.base.image.label + ' ' + counter + ' ' + opts_.caption;
                     var fullname = info.base.image.fulllabel + ' ' + counter + ' ' + opts_.caption;
                     var pagenum = writer.getPageIndex();
@@ -61,7 +62,7 @@ namespace Typesetting {
                 }
                 writer.lineBreak(lineFeedWidth);
                 if (opts_.caption) {
-                    @imageCaption(info, core, opts_.caption, linetop);
+                    @imageCaption(info, core, opts_.caption, linetop, counter);
                 }
                 return linetop;
             }

@@ -47,6 +47,7 @@ namespace Typesetting {
                         } else if (n.isGlue && i != alast) {
                             if (n.stretch == Linebreak.Infinity) {
                                 prevBreak = true;
+                                line.endParagraph = true;
                             }
                         }
                         var height = value.getHeight.isFunction ? value.getHeight() : 0;
@@ -169,7 +170,7 @@ namespace Typesetting {
                 nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
                 nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 1));
                 # System.println("===");
-                # nodes.each { => _1.display() };
+                # nodes.each { => System.println(_1) };
                 # System.println("---");
                 var breaks;
                 for (var i = 1; i < 10; ++i) {
@@ -262,6 +263,11 @@ namespace Typesetting {
                 measureWidth_ = opts.measureWidth;
                 if (measureWidth_) {
                     opts.areaWidth = TOO_BIG_SPACE;
+                }
+
+                if (text.startsWith("\\noindent{}")) {
+                    text = text.subString("\\noindent{}".length());
+                    opts.noIndent = true;
                 }
                 var wordSet = info_.paragraphParser.parse(text);
                 if (context_.footnotes.length() > 0) {

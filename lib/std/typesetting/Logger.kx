@@ -10,22 +10,53 @@ namespace Typesetting {
         var fatalOutput_ = opts_.fatal;
         private makeMessage(level, msg) {
             var dt = DateTime.now();
-            return "[" + (dt.toString()) + "] %{level}: " + msg.trim();
+            return "[" + (dt.toString()) + "] %{level}: " + msg.trimRight();
+        }
+        private makeString(msg) {
+            if (msg.isString) {
+                return msg;
+            }
+            return msg.toString();
         }
         public debug(msg) {
-            debugOutput_.println(makeMessage("Debug", msg)) if (debugOutput_);
+            if (debugOutput_) {
+                msg = makeString(msg);
+                msg.split(/\r?\n/).each { &(m):
+                    debugOutput_.println(makeMessage("Debug", m));
+                };
+            }
         }
         public info(msg) {
-            infoOutput_.println(makeMessage("Info", msg)) if (infoOutput_);
+            if (infoOutput_) {
+                msg = makeString(msg);
+                msg.split(/\r?\n/).each { &(m):
+                    infoOutput_.println(makeMessage("Info", m));
+                };
+            }
         }
         public warn(msg) {
-            warnOutput_.println(makeMessage("Warning", msg)) if (warnOutput_);
+            if (warnOutput_) {
+                msg = makeString(msg);
+                msg.split(/\r?\n/).each { &(m):
+                    warnOutput_.println(makeMessage("Warning", m));
+                };
+            }
         }
         public error(msg) {
-            errorOutput_.println(makeMessage("Error", msg)) if (errorOutput_);
+            if (errorOutput_) {
+                msg = makeString(msg);
+                msg.split(/\r?\n/).each { &(m):
+                    errorOutput_.println(makeMessage("Error", m));
+                };
+            }
         }
         public fatal(msg) {
-            fatalOutput_.println(makeMessage("Fatal", msg)) if (fatalOutput_);
+            if (fatalOutput_) {
+                msg = makeString(msg);
+                msg.split(/\r?\n/).each { &(m):
+                    fatalOutput_.println(makeMessage("Fatal", m));
+                };
+            }
         }
     }
 
