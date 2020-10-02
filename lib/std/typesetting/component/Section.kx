@@ -11,11 +11,11 @@ namespace Typesetting {
                 @setOptionValue(opts_);
                 @text = text_;
                 @opts = opts_;
-                @opts_.label ??= @text;
+                @opts.label ??= @text;
             }
             public setText(text) {
                 @text = text;
-                @opts_.label ??= @text;
+                @opts.label ??= @text;
             }
             public write(info, context, core) {
                 context.outputSection = info.base.noIndentTopOfParagraph;
@@ -101,13 +101,38 @@ namespace Typesetting {
                 writer.setPageToOdd();
                 writer.setColumn(1);
 
-                var [linetop, chapterPlainText] = chapterFunc(info, context, core, text_, opts_, this);
+                var chapterInfo = chapterFunc(info, context, core, text_, opts_, this);
+                var level = chapterInfo.level;
+                if (info.base.footnote.resetSectionLevel == level) {
+                    context.counter.footnote = 0;
+                }
+                if (opts_.label) {
+                    context.xref[opts_.label] = {
+                        page:    context.counter.page,
+                        counter: chapterInfo.number,
+                        name:    chapterInfo.plain,
+                        text:    chapterInfo.header,
+                        y:       chapterInfo.linetop,
+                    };
+                }
+                if (level <= info.base.toc.level) {
+                    context.tocinfo.list.push({
+                        isChapter: true,
+                        page:   context.counter.page,
+                        level:  level,
+                        number: chapterInfo.number,
+                        header: chapterInfo.header,
+                        y:      chapterInfo.linetop,
+                    });
+                }
                 if (info.base.outline) {
                     var margin = writer.makeMarginSize();
-                    var ol = writer.createOutline(context.outline[0], core.makePlainText(chapterPlainText), true);
-                    writer.setCurrentPage(ol, linetop);
+                    var ol = writer.createOutline(context.outline[0], core.makePlainText(chapterInfo.plain), true);
+                    writer.setCurrentPage(ol, chapterInfo.linetop);
                     context.outline[1] = ol;
                 }
+
+                writer.setColumn(info.base.columns);
             }
         }
 
