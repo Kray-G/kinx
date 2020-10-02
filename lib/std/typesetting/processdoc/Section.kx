@@ -56,7 +56,7 @@ namespace Typesetting {
                 context_.font.fontSize = fontSize;
                 context_.font.fontObj = fontObj;
 
-                if (info_.base.footnote.resetSectionLevel == level && context_.counter.section[level] > 1) {
+                if (info_.base.footnote.resetSectionLevel == level) {
                     context_.counter.footnote = 0;
                 }
                 var header = (context_.name.section[level] = sectionNumberText + '  ' + text);
