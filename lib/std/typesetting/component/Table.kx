@@ -34,7 +34,9 @@ namespace Typesetting {
                 var number = @makeCountrNumber(context, "table");
                 var tableHeader = info.base.table.label + ' ' + number;
                 var cap = tableHeader + ' ' + opts_.caption;
-                core.util.writeCenter({}, cap, context.font.fontObj, fontSize, lineFeedWidth);
+
+                var lines = core.paragraph.exec({ noIndent: true }, cap);
+                core.util.write(lines, { center: true });
                 @appendListOf(info, context, "lot", info.base.table.level + 1, tableHeader, opts_.caption, linetop);
 
                 if (opts_.label) {

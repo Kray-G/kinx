@@ -65,9 +65,17 @@ namespace Typesetting {
             return value.value;
         }
         public html(value) {
-            var v = value.value;
+            var m, v = value.value;
+            if ((m = v.match(/<backq([0-9]+)\s*\/>/)).isDefined) {
+                var value = "`" * Integer.parseInt(m[1]);
+                return "\\pack{%{value}}";
+            }
+            if ((m = v.match(/<monotype-backq([0-9]+)\s*\/>/)).isDefined) {
+                var value = "`" * Integer.parseInt(m[1]);
+                return "\\monotype{\\pack{%{value}}}";
+            }
             if (v.startsWith("<font-")) {
-                var m = v.match(/<font-([^\s]*)\s*(?:(.+)\s*=\s*"(.+)"\s*)?\/>/);
+                m = v.match(/<font-([^\s]*)\s*(?:(.+)\s*=\s*"(.+)"\s*)?\/>/);
                 if (m.isDefined) {
                     switch (m[1]) {
                     case 'load':
@@ -174,12 +182,39 @@ namespace Typesetting {
             }
             if (!noflush.bquote && bquote_.length() > 0) {
                 var bquote = bquote_;
-                output_.push(&() => {
-                    var text = bquote.map(&(p) => inline_.makeInlineText(p.values)).join('\n');
-                    doc_.apply(new Typesetting.Component.Abstract(text.trim()));
-                });
+                if (ctx_.chapter) {
+                    output_.push(&() => {
+                        var text = bquote.map(&(p) => inline_.makeInlineText(p.values)).join('\n');
+                        doc_.apply(new Typesetting.Component.Abstract(text.trim()));
+                    });
+                    ctx_.chapter = false;
+                } else {
+                    output_.push(&() => {
+                        var info = { level: 0, values: [] };
+                        bquote.each(&(p) => {
+                            if (info.level != p.level || p.values.length() == 0) {
+                                if (info.values.length() > 0) {
+                                    var text = inline_.makeInlineText(info.values).trim();
+                                    var para = new Typesetting.Component.Paragraph({ blockquoteLevel: info.level, endBlockquote: (p.level < info.level) }, text);
+                                    doc_.apply(para);
+                                }
+                                info = {
+                                    level: p.level,
+                                    values: p.values,
+                                };
+                            } else {
+                                info.values += p.values;
+                            }
+                        });
+                        if (info.values.length() > 0) {
+                            var text = inline_.makeInlineText(info.values).trim();
+                            var para = new Typesetting.Component.Paragraph({ blockquoteLevel: info.level, endBlockquote: true }, text);
+                            doc_.apply(para);
+                        }
+                        logger_.info("-- Blockquote done");
+                    });
+                }
                 bquote_ = [];
-                ctx_.chapter = false;
             }
             if (!noflush.paragraph && paragraph_.length() > 0) {
                 var paragraph = paragraph_;
@@ -194,11 +229,11 @@ namespace Typesetting {
                     });
                     if (done) {
                         doc_.apply(new Typesetting.Component.Paragraph(p.join('\n\n').trim()));
-                        logger_.info("-- Paragraph");
+                        logger_.info("-- Paragraph done");
                     } else {
                         p.each { &(px, i):
                             doc_.apply(new Typesetting.Component.Paragraph(px.trim()));
-                            logger_.info("-- Paragraph");
+                            logger_.info("-- Paragraph done");
                         };
                     }
                 });
@@ -226,7 +261,7 @@ namespace Typesetting {
                         }
                         r = true;
                     } else if (v.startsWith("<toc ")) {
-                        var m = v.match(/<toc\s*with\s*=\s*"(.+)"\s*\/>/);
+                        var m = v.match(/<toc(?:\s*with\s*=\s*"(.+)"\s*)?\/>/);
                         if (m.isDefined) {
                             opts_.toc = true;
                             var value = m[1];
@@ -257,6 +292,12 @@ namespace Typesetting {
                                 });
                             }
                         }
+                        r = true;
+                    } else if (/<appendix\s*\/>/.test(v)) {
+                        flushDoc();
+                        output_.push(&() => {
+                            doc_.setAppendix();
+                        });
                         r = true;
                     } else if (/<pagebreak\s*\/>/.test(v)) {
                         flushDoc();
@@ -364,7 +405,11 @@ namespace Typesetting {
             }
         }
         private generateAll() {
-            output_.each { => _1() };
+            var l = output_.length();
+            if (l > 0) {
+                output_.each { => _1() };
+                output_ = [];
+            }
         }
 
         public heading(ast) {
@@ -372,30 +417,32 @@ namespace Typesetting {
             if (doc_.isUndefined) {
                 makeDocument();
             }
+            generateAll();
             switch (ast.level) {
             case 1:
                 output_.push(&() => {
-                    doc_.apply(new Typesetting.Component.Chapter(inline_.makeInlineText(ast.values)));
-                    logger_.info("-- Chapter");
+                    var text = inline_.makeInlineText(ast.values);
+                    doc_.apply(new Typesetting.Component.Chapter(text));
+                    logger_.info("-- Chapter done");
                 });
                 ctx_.chapter = true;
                 break;
             case 2:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.Section(inline_.makeInlineText(ast.values)));
-                    logger_.info("-- Section");
+                    logger_.info("-- Section done");
                 });
                 break;
             case 3:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.SubSection(inline_.makeInlineText(ast.values)));
-                    logger_.info("-- SubSection");
+                    logger_.info("-- SubSection done");
                 });
                 break;
             case 4:
                 output_.push(&() => {
                     doc_.apply(new Typesetting.Component.SubSubSection(inline_.makeInlineText(ast.values)));
-                    logger_.info("-- SubSubSection");
+                    logger_.info("-- SubSubSection done");
                 });
                 break;
             }
@@ -474,14 +521,8 @@ namespace Typesetting {
             finCommand();
         }
         public blockquote(ast) {
-            if (ctx_.chapter) {
-                flushDoc({ bquote: true });
-                bquote_.push(ast);
-            } else {
-                flushDoc();
-                System.println(ast.toJsonString(true));
-                finCommand();
-            }
+            flushDoc({ bquote: true });
+            bquote_.push(ast);
         }
         public list(ast) {
             flushDoc({ list: true });
@@ -573,10 +614,9 @@ namespace Typesetting {
 
         public parse(contents, file, options) {
             options_ = options;
-            var ast = Markdown.BlockParser(contents);
-            ast.each { &(a):
+            Markdown.BlockParser(contents, &(a) => {
                 this[a.name](a);
-            };
+            });
             generateTo(file);
         }
     }
