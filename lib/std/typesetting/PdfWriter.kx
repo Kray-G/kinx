@@ -205,9 +205,9 @@ namespace Typesetting {
                 });
                 writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
             }
-            if (value.endAnnot) {
+            if (value.endAnnot || value.inAnnot) {
                 var annot = annot_[-1];
-                if (annot.y == value.annotPos.y) {
+                if (annot.ay == ay) {
                     annot.right = x + width + 4;
                 } else {
                     annot.right = prevAnnotX_;
@@ -221,10 +221,7 @@ namespace Typesetting {
                         ay: ay,
                         y: value.annotPos.y,
                     });
-                    annot = annot_[-1];
                 }
-                writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
-            } else if (value.inAnnot) {
                 writeColorText(page, x, ay, linkAnnot_.color ?? textcolor ?? [0, 1, 1, 0], text);
             } else if (value.isUrl) {
                 var color = linkUrl_.color ?? textcolor ?? [0, 1, 1, 0];

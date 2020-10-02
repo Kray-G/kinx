@@ -107,8 +107,9 @@ namespace Typesetting {
                     context.counter.footnote = 0;
                 }
                 if (opts_.label) {
+                    var pagenum = writer.getPageIndex();
                     context.xref[opts_.label] = {
-                        page:    context.counter.page,
+                        page:    pagenum,
                         counter: chapterInfo.number,
                         name:    chapterInfo.plain,
                         text:    chapterInfo.header,
