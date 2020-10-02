@@ -3,7 +3,7 @@ using Process;
 namespace Typesetting {
 namespace Util {
 
-    var re_ = /^([-+]?([0-9]+)?(?:\.[0-9]+)?)(em|ex|in|cm|mm|pt|pc|px)?$/;
+    var re_ = /^([-+]?([0-9]+)?(?:\.[0-9]+)?)(em|ex|in|cm|mm|pt|pc|px|pt)?$/;
 
     Typesetting.Util.getPt = function(context_, sizeString) {
         var value, unit;
@@ -29,7 +29,7 @@ namespace Util {
             value /= 1.33;
             break;
         case "pc":
-            value *= (16/1.33);
+            value *= 12;
             break;
         case "mm":
             value *= 2.8346;

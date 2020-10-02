@@ -17,7 +17,7 @@ namespace Typesetting {
             public write(info, context, core) {
                 core.flushParagraph();
 
-                [opts_, code_] = core.util.makeOption(opts_, code_);
+                [opts_, code_] = core.util.makeOption(opts_, code_, false);
                 var fontObj = context.font.fontObj;
                 var fontObjBase = context.font.fontObjBase;
                 core.fontType("Monotype");
