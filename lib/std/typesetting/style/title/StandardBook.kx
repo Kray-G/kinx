@@ -43,7 +43,7 @@ namespace Style {
             core.util.write(lines);
         }
 
-        writer.drawLine(0, y + descent - 8, margin.pageWidth, 0, 1, [0, 0, 0]);
+        writer.drawLine(0, y + descent - 8, margin.pageWidth, 0, 1, [0, 0, 0, 0.95]);
 
         if (opts.author) {
             writer.setPos({ x: leftMargin, y: margin.pageHeight / 8 });
