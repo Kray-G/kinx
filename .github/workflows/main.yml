@@ -110,7 +110,7 @@ jobs:
             asset_name: package_win64.zip
             content_type: application/zip
           - job: package-kitty
-            asset_path: package-kitty.zip
+            asset_path: package
             asset_name: package_kitty.zip
             content_type: application/zip
     steps:
