@@ -22,6 +22,18 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
+## V0.15.0 (15th Preview Release)
+
+*   Updated
+    *   Supported `Tiny Typesetting` library.
+        *   Not documented yet, wait for the next release.
+    *   Added duktape library to execute JavaScript internally.
+    *   Added phantomjs for a typesetting library.
+    *   Added a small Markdown Parser.
+    *   Integrated `kc-json` to this project.
+    *   Supported loading multiple library by `using`.
+    *   Some bug fixes and improvement.
+
 ## V0.14.0 (14th Preview Release)
 
 *   Updated
