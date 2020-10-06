@@ -8,7 +8,7 @@ LFLAGS   =
 .SUFFIXES :
 .SUFFIXES : .c .obj
 
-all: dist/$(NAME).c dist/sample.exe
+all: dist/$(NAME).c dist/$(NAME).obj dist/sample.exe
 
 dist/$(NAME).c: myacc.exe src\$(NAME).y
 	if not exist dist mkdir dist
@@ -18,6 +18,11 @@ dist/$(NAME).c: myacc.exe src\$(NAME).y
 	type y.tab.c >> dist\$(NAME).c
 	del /q y.tab.c
 	copy /y src\$(NAME).h dist\$(NAME).h
+
+dist/$(NAME).obj:
+	cd dist
+	$(CC) -c $(CFLAGS) -Fo$(NAME).obj $(NAME).c
+	cd ..
 
 myacc.exe:
 	$(CC) $(CFLAGS) /Femyacc.exe util\myacc.c

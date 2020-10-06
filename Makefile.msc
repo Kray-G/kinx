@@ -232,7 +232,7 @@ kxmath.dll: src/extlib/kxmath.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxmath.c $(PICOBJS)
 
 kxregex.dll: src/extlib/kxregex.c $(PICOBJS) onig.dll
-	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxregex.c $(PICOBJS) onig.lib
+	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkxregex.map /Fakxregex.s src/extlib/kxregex.c $(PICOBJS) onig.lib
 
 kxssh.dll: src/extlib/kxssh.c $(PICOBJS) onig.dll
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxssh.c $(PICOBJS) onig.lib src/extlib/libssh2/x64/vs2017/libssh2.lib ws2_32.lib
@@ -279,6 +279,11 @@ src/extlib/zip/x64/vs2017/zlib.dll:
 
 src/extlib/zip/x64/vs2017/zlib.lib:
 	echo Build minizip.lib first.
+
+src/extlib/kc-json/dist/kc-json.obj:
+	cd src\extlib\kc-json
+	nmake -f Makefile.msc all
+	cd ..\..\..
 
 sqlite3.obj:
 	cd src\extlib\sqlite
