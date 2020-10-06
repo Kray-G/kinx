@@ -60,20 +60,18 @@ jobs:
           sudo make kitty-install
       - name: package
         run: |
-          ref='${{ github.ref }}'
-          tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
-
-          mkdir -p $tag/kinxlib/fonts
-          mkdir -p $tag/kinxlib/lib/phantomjs
-          cp -r /usr/bin/kinxlib/fonts/* $tag/kinxlib/fonts
-          cp -r /usr/bin/kinxlib/lib/phantomjs/* $tag/kinxlib/lib/phantomjs
-          cd $tag
+          mkdir -p package/kinxlib/fonts
+          mkdir -p package/kinxlib/lib/phantomjs
+          cp -r /usr/bin/kinxlib/fonts/* package/kinxlib/fonts
+          cp -r /usr/bin/kinxlib/lib/phantomjs/* package/kinxlib/lib/phantomjs
+          cd package
           zip -r package-kitty.zip *
+          mv package-kitty.zip ../
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
-          name: package-kitty
-          path: package-kitty.zip
+          name: package-kitty.zip
+          path: package
 
   release:
     name: release
