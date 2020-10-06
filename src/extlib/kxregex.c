@@ -74,6 +74,9 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     KEX_SET_PROP_CSTR(obj, "source", str);
+    if (r->source) {
+        kx_free(r->source);
+    }
     r->source = kx_calloc(strlen(str) + 2, sizeof(char));
     strcpy(r->source, str);
     r->start = 0;
