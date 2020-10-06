@@ -163,7 +163,7 @@ namespace Typesetting {
                                     var descent = (fontObj.getDescent() / 1000) * fontSize;
                                     height = fontSize - descent;
                                 }
-                                writer.drawLine(v, linetop1, 0, height, info_.base.blockquote.lineWidth, info_.base.blockquote.lineColor, -1);
+                                writer.drawLine(v, linetop1, 0, height + 2, info_.base.blockquote.lineWidth, info_.base.blockquote.lineColor, -1);
                             };
                         }
 
