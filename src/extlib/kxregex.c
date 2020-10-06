@@ -4,6 +4,10 @@
 #include <kxthread.h>
 #include <ctype.h>
 
+// #define dbgin() printf("--> %s:%d\n", __FILE__, __LINE__);
+#define dbgin()
+#define dbgout()
+
 KX_DECL_MEM_ALLOCATORS();
 
 #include "onig/src/oniguruma.h"
@@ -67,6 +71,7 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!str) {
         KX_THROW_BLTIN_EXCEPTION("RegexException", "String is needed in argument 1");
     }
+
     KEX_SET_PROP_CSTR(obj, "source", str);
     r->source = str;
     r->start = 0;
@@ -216,6 +221,9 @@ int Regex_splitOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid Regex object");
     }
     const char *str = get_arg_str(2, args, ctx);
+    if (!str) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "No string to split");
+    }
     int index = 0;
     int len = strlen(str);
     const unsigned char *end = str + len;
@@ -305,6 +313,9 @@ int Regex_replaceOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
     const char *str = get_arg_str(2, args, ctx);
     const char *newstr = get_arg_str(3, args, ctx);
+    if (!str || !newstr) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "No string to replace");
+    }
     int sn = strlen(newstr);
     int index = 0;
     int len = strlen(str);
@@ -345,6 +356,9 @@ int Regex_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KEX_SET_PROP_CSTR(obj, "pattern", str);
         kx_any_t *r = allocate_any(ctx);
         r->p = Regex_compile_impl(str);
+        if (!r->p) {
+            KX_THROW_BLTIN_EXCEPTION("RegexException", "Failed to allocate a Regex object");
+        }
         r->any_free = Regex_free;
         KEX_SET_PROP_ANY(obj, "_pack", r);
         KEX_SET_METHOD("matches", obj, Regex_matches);
