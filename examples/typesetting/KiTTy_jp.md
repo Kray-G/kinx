@@ -5,7 +5,6 @@
 Small and Easy, but Beautiful Design For You
 
 <param style="JBookA4"/>
-<param multibytefont="jp"/>
 <param titleSize="78.8"/>
 <param subtitleSize="14.4"/>
 <param backgroundImage="back.jpg"/>
@@ -960,7 +959,6 @@ Small and Easy, but Beautiful Design For You
 
 ```
 <param style="JBookA4"/>
-<param multibytefont="jp"/>
 <param titleSize="78.8"/>
 <param subtitleSize="14.4"/>
 <param backgroundImage="back.jpg"/>
@@ -1163,7 +1161,7 @@ KiTTy ではモノルビ、およびグループルビの 2 種類の形式を�
 このようになります。
 「御釈迦様（おしゃかさま）」はルビの乗り方が異なっていることが分かるでしょう。
 「蓮池（はすいけ）」は位置があまり変わりませんが、
-「蓮（はす）」と「池（いけ）」の間で行分割は可能となります。
+「蓮（はす）」と「池（いけ）」の間で行分割が可能となります。
 
 > ある日の事でございます。\\ruby\[お|しゃ|か|さま\]{御釈迦様}は
 > 極楽の\\ruby\[はす|いけ\]{蓮池}のふちを、
@@ -1277,9 +1275,19 @@ Markdown の以下のコマンドをサポートしています。
 
 ### StandardBook
 
+![scale=0.6,box=BOX_THIN,float=right](title_book.png)
+
 独立した表紙を作成します。
 本書で使用しているスタイルです。
-バックグラウンドのイメージも出力可能です。
+サブタイトルの設定、
+およびバックグラウンドのイメージが出力可能です。
+
+右の図は本書の表紙の例です。
+本スタイルではタイトルの上部にサブタイトルを出力し、
+タイトルの下にラインを引きます。
+著作者と日付はラインの下側、右端に出力します。
+それ以外はバックグラウンド・イメージになります。
+バックグラウンド・イメージは最上部よりマージン 0 で描画されます。
 
 ## チャプター・デザイン
 
@@ -1288,6 +1296,8 @@ Markdown の以下のコマンドをサポートしています。
 ### StandardBook
 
 本書で使用しているスタイルです。
+大きめの章番号にアンダーラインを引き、
+ボールド体の見出しをラインの下側・右端に表記します。
 
 ![scale=0.8,box=BOX_THIN](chapter_stdbook_jp.png)
 
@@ -1299,27 +1309,31 @@ Markdown の以下のコマンドをサポートしています。
 
 ### BigChapter2
 
-`StandardBook` で章番号を若干小さくし、見出しを若干大きくした上でアンダーラインに乗せたものです。
+`StandardBook` で章番号を若干小さくて見出しを若干大きくし、
+通常の書体でアンダーラインの上に乗せたものです。
 
 ![scale=0.8,box=BOX_THIN](chapter_bigchapter2_jp.png)
 
 ### BigChapter3
 
-章番号を極端に大きい番号だけの表記とし、見出しをその下に配置したものです。
+章番号を極端に大きい番号だけの表記とし、通常の書体の見出しをその下に配置したものです。
 
 ![scale=0.8,box=BOX_THIN](chapter_bigchapter3_jp.png)
 
 # スタイル・パラメータについて
 
-## スタイル・パラメータ名とスタイルごとのデフォルト値
+## スタイル・パラメータ一覧
+
+スタイル・パラメータを `<style-info />` タグを使用して変更することが可能です。
+各パラメータは `<style-info name="name" value="value" />` の形式で指定します。
 
 <context label="Table:StyleParameter"/>
-<context caption="スタイル・パラメータ名とスタイルごとのデフォルト値"/>
+<context caption="スタイル・パラメータ一覧"/>
 <context limit-column="0"/>
 
-|  パラメータ名   | ArticleA4 | JArticleA4 |     BookA4     |    JBookA4     |
-| --------------- | :-------: | :--------: | :------------: | :------------: |
-| `chapter.style` |     -     |     -      | `StandardBook` | `StandardBook` |
+|  パラメータ名   | ArticleA4 | JArticleA4 |      BookA4      |     JBookA4      |
+| --------------- | :-------: | :--------: | :--------------: | :--------------: |
+| `chapter.style` |     -     |     -      | `"StandardBook"` | `"StandardBook"` |
 
 # 色一覧
 
