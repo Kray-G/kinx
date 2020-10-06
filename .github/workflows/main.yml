@@ -63,15 +63,17 @@ jobs:
           ref='${{ github.ref }}'
           tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
 
-          mkdir -p package/kinxlib/fonts
-          mkdir -p package/kinxlib/lib/phantomjs
-          cp -r /usr/bin/kinxlib/fonts/* package/kinxlib/fonts
-          cp -r /usr/bin/kinxlib/lib/phantomjs/* package/kinxlib/lib/phantomjs
+          mkdir -p $tag/kinxlib/fonts
+          mkdir -p $tag/kinxlib/lib/phantomjs
+          cp -r /usr/bin/kinxlib/fonts/* $tag/kinxlib/fonts
+          cp -r /usr/bin/kinxlib/lib/phantomjs/* $tag/kinxlib/lib/phantomjs
+          cd $tag
+          zip -r package-kitty.zip *
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
           name: package-kitty
-          path: package
+          path: package-kitty.zip
 
   release:
     name: release
@@ -110,7 +112,7 @@ jobs:
             asset_name: package_win64.zip
             content_type: application/zip
           - job: package-kitty
-            asset_path: package
+            asset_path: package-kitty.zip
             asset_name: package_kitty.zip
             content_type: application/zip
     steps:
