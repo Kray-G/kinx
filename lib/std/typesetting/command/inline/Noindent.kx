@@ -1,0 +1,13 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Noindent(info_, context_) {
+            public exec(params, value) {
+                context_.noIndent = true;
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

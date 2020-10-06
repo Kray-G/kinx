@@ -117,6 +117,11 @@ namespace Typesetting {
             @top = @height;
             return this;
         }
+        public setBox(lineWidth, padding) {
+            @lineWidth = lineWidth;
+            padding = padding.isUndefined ? 0.0 : Double.parseDouble(padding);
+            @padding = padding;
+        }
         public fontObj() {
         }
         public fontSize() {
@@ -152,11 +157,10 @@ namespace Typesetting {
             });
         }
         public write(writer, x, y, isFloatingLine, align) {
-            var captionSpace = @caption ? @lineFeedWidth : 0;
             var linetop = writer.getLineTop(@fontObj, @fontSize);
-            writer_.imageTo(@image, @scale, align);
+            writer_.imageTo(@image, @scale, align, { lineWidth: @lineWidth, padding: @padding });
             if (@caption) {
-                writer_.lineBreak(captionSpace);
+                writer_.lineBreak(@lineFeedWidth);
                 writer_.writeCenter(@caption, @fontObj, @fontSize);
                 writer_.lineBreak(@lineFeedWidth);
                 appendListOf("lof", info_.base.image.level + 1, @fullHeader, @captionText, linetop);
@@ -209,7 +213,7 @@ namespace Typesetting {
             @addSpace = width;
         }
         public toString() {
-            return "{'%{@word}',%{@font.getFontName()},%{@size}, offset:[%{@offsetX},%{@offsetY}]}";
+            return "{'%{@word}',%{@font.getFontName()},%{[@size,@width]}, offset:[%{@offsetX},%{@offsetY}]}";
         }
         public display(indent) {
             indent ??= 0;

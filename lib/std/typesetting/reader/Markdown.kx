@@ -66,6 +66,9 @@ namespace Typesetting {
         }
         public html(value) {
             var m, v = value.value;
+            if ((m = v.match(/<br\s*\/>/)).isDefined) {
+                return "\n\n";
+            }
             if ((m = v.match(/<backq([0-9]+)\s*\/>/)).isDefined) {
                 var value = "`" * Integer.parseInt(m[1]);
                 return "\\pack{%{value}}";
@@ -305,6 +308,12 @@ namespace Typesetting {
                             doc_.pageBreak();
                         });
                         r = true;
+                    } else if (/<clear-float\s*\/>/.test(v)) {
+                        flushDoc();
+                        output_.push(&() => {
+                            doc_.clearFloat();
+                        });
+                        r = true;
                     }
                 }
             };
@@ -471,7 +480,7 @@ namespace Typesetting {
                         }
                     };
                 } else {
-                    if (!checkParamCommand(ast.values)) {
+                    if (!checkParamCommand(ast.values) && opts_.subtitle.isUndefined) {
                         opts_.subtitle = ast.values;
                     }
                 }
