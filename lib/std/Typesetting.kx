@@ -112,10 +112,6 @@ namespace Typesetting {
             core_.section = new ProcessDoc.Section(info_, context_, core_.util, core_.paragraph);
             core_.itemize = new ProcessDoc.Itemize(info_, context_, core_.util, core_.paragraph);
 
-            @define("TeX", %!T\hspace[width=-0.152em]\lower[height=0.171em]{E}\hspace[width=-0.084em]X!);
-            @define("LaTeX", %!L\hspace[width=-0.3em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
-            @define("KaTeX", %!K\hspace[width=-0.2em]\raise[height=0.3ex]{\font[size=0.8em]{A}}\hspace[width=-0.132em]\TeX!);
-
             core_.pendingParagraphList = [];
             core_.pageBreak = @pageBreak;
             core_.fontType = @fontType;
