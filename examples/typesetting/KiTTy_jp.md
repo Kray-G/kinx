@@ -5,6 +5,7 @@
 Small and Easy, but Beautiful Design For You
 
 <param style="JBookA4"/>
+<param multibytefont="jp"/>
 <param titleSize="78.8"/>
 <param subtitleSize="14.4"/>
 <param backgroundImage="back.jpg"/>
