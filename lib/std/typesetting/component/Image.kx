@@ -7,11 +7,25 @@ namespace Typesetting {
                 opts_.caption = caption;
             }
             public write(info, context, core) {
+                var lineWidth;
+                switch (opts_.box) {
+                case "BOX_NORMAL":
+                    lineWidth = Typesetting.BOX_NORMAL;
+                    break;
+                case "BOX_THIN":
+                    lineWidth = Typesetting.BOX_THIN;
+                    break;
+                case "BOX_THICK":
+                    lineWidth = Typesetting.BOX_THICK;
+                    break;
+                }
+
                 if (opts_.float.left || opts_.float.right) {
                     core.flushParagraph();
                     var fontSize = context.font.fontSize;
                     var fontObj = context.font.fontObj;
-                    info.writer.loadFloatingImage(opts_.file, opts_.scale, opts_.float, opts_.caption,
+                    info.writer.loadFloatingImage(
+                        { path: opts_.file, scale: opts_.scale, floating: opts_.float, caption: opts_.caption, padding: opts_.padding ?? 0, lineWidth: lineWidth },
                         &(center, y, imageY, height) => @floatingImageCaption(info, core, context, opts_.label, opts_.caption, fontObj, fontSize, center, y, imageY, height));
                     return;
                 }

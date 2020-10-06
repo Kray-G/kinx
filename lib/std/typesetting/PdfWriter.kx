@@ -539,12 +539,16 @@ namespace Typesetting {
             if (!page_) {
                 @addPage();
             }
+            var padding = floating_.padding;
+            var padding2 = padding * 2;
             var left = floating_.left;
             var top = floating_.top - floating_.height;
             var width = floating_.width;
             var height = floating_.height;
-            writer_.drawImage(page_, floating_.image, left, top, width, height);
-            writer_.drawBox(page_, left, top + height, width, height) if (info_.base.draw.imageBox);
+            writer_.drawImage(page_, floating_.image, left + padding, top + padding, width - padding2, height - padding2);
+            if (info_.base.draw.imageBox || floating_.lineWidth > 0) {
+                writer_.drawBox(page_, left, top + height, width, height, floating_.lineWidth);
+            }
             if (floating_.captionHook.isFunction) {
                 floating_.captionHook(floating_.left + floating_.width / 2, floating_.captionY, top, floating_.height);
             }
@@ -917,6 +921,11 @@ namespace Typesetting {
             }
         }
 
+        public clearFloat(lineFeedWidth) {
+            writeFloatingImage();
+            @clearFloatingImage(lineFeedWidth);
+        }
+
         public isTopOfPage() {
             return isTopOfPage_;
         }
@@ -1147,9 +1156,19 @@ namespace Typesetting {
                     break;
                 }
             }
+            if (floating_.bottom) {
+                y_ = floating_.bottom - lineFeedWidth;
+            }
+            floating_ = null;
         }
 
-        public loadFloatingImage(path, scale, floating, caption, captionHook) {
+        public loadFloatingImage(opts, captionHook) {
+            var path = opts.path;
+            var scale = opts.scale;
+            var floating = opts.floating;
+            var caption = opts.caption;
+            var padding = Double.parseDouble(opts.padding);
+            var lineWidth = opts.lineWidth;
             var lineFeedWidth = info_.context.font.fontSize * info_.context.page.lineFeedWidthRatio;
             if (floating_.isDefined && !floating_.done) {
                 # linefeed to the bottom of image.
@@ -1157,8 +1176,8 @@ namespace Typesetting {
             }
 
             var image = path.isString ? loadImage(path) : path;
-            var width = image.getWidth();
-            var height = image.getHeight();
+            var width = image.getWidth() + padding;
+            var height = image.getHeight() + (padding * 2);
             if (!scale || scale > info_.base.image.maxWidth) {
                 scale = info_.base.image.maxWidth;
             }
@@ -1191,6 +1210,8 @@ namespace Typesetting {
                 top: top + bsep,
                 bottom: top - (height + bsep) - captionArea,
                 right: right,
+                padding: padding,
+                lineWidth: lineWidth,
             };
         }
 
