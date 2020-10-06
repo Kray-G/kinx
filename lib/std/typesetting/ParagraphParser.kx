@@ -235,6 +235,9 @@ namespace Typesetting {
         }
 
         public parseEach(word) {
+            if (word.isUndefined) {
+                return new Typesetting.WordSet(info_);
+            }
             if (word.isBox) {
                 return word;
             }

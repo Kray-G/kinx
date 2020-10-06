@@ -86,7 +86,7 @@ namespace Typesetting {
         }
         if (isRbrPrev && isRbr) {
             var n2 = nodes[-2];
-            if (n2.isGlue) {
+            if (n2.isGlue && nextv.word && notHead_.find(nextv.word) >= 0) {
                 value.offsetX = 0;
                 if (!isSmallWord(node)) {
                     node.width = value.size / 2;
@@ -135,16 +135,36 @@ namespace Typesetting {
         }
     }
 
-    Typesetting.insertGlue.ja = _function(info, Linebreak, words, nodes) {
+    Typesetting.insertGlue.ja = _function(info, Linebreak, wordlist, nodes) {
         var skipCount;
+        var words = [];
+        wordlist.each { &(w0, i):
+            if (skipCount > 0) {
+                --skipCount;
+                return;
+            }
+            var w2 = wordlist[i+2];
+            var w1 = wordlist[i+1];
+            if (w1.isGlue && w0.isBox && w0.value.word != "" && w2.isBox && w2.value.word != "") {
+                var l0 = (w0.value.word == '“' || w0.value.word == '”') ? 1 : System.isUtf8Bytes(w0.value.word[0]);
+                var l2 = (w2.value.word == '“' || w2.value.word == '”') ? 1 : System.isUtf8Bytes(w2.value.word[0]);
+                if (l0 > 1 && l2 > 1) {
+                    skipCount = 1;
+                }
+            }
+            words.push(w0);
+        };
         var wlast = words.length() - 1;
         words.each { &(node, i):
+            if (node.isUndefined) {
+                return;
+            }
             if (skipCount > 0) {
                 --skipCount;
                 return;
             }
             var prev = i > 0 ? words[i-1] : null;
-            if (node.isGlue && lbr_.find(prev.value.word) >= 0) {
+            if (node.isGlue && (prev.isUndefined || lbr_.find(prev.value.word) >= 0)) {
                 return; // skip.
             }
             var next = words[i+1];
