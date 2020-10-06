@@ -308,6 +308,12 @@ namespace Typesetting {
                             doc_.pageBreak();
                         });
                         r = true;
+                    } else if (/<clear-float\s*\/>/.test(v)) {
+                        flushDoc();
+                        output_.push(&() => {
+                            doc_.clearFloat();
+                        });
+                        r = true;
                     }
                 }
             };
@@ -474,7 +480,7 @@ namespace Typesetting {
                         }
                     };
                 } else {
-                    if (!checkParamCommand(ast.values)) {
+                    if (!checkParamCommand(ast.values) && opts_.subtitle.isUndefined) {
                         opts_.subtitle = ast.values;
                     }
                 }

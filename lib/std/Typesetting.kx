@@ -121,7 +121,7 @@ namespace Typesetting {
                 writer.checkColumnBreak(totalLineFeeds);
                 core_.pendingParagraphList.each { &(p):
                     if (!p.isParagraph && p.lineFeedWidth > 0) {
-                        writer.clearFloatingImage(p.lineFeedWidth);
+                        writer.clearFloat(p.lineFeedWidth);
                     }
                     p.func();
                 };
@@ -184,6 +184,12 @@ namespace Typesetting {
         public pageBreak() {
             core_.flushParagraph();
             info_.writer.pageBreak();
+        }
+
+        public clearFloat() {
+            core_.flushParagraph();
+            var lineFeedWidth = context_.page.lineFeedWidthRatio * context_.font.fontSize;
+            info_.writer.clearFloat(lineFeedWidth);
         }
 
         public setAppendix() {
