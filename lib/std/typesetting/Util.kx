@@ -3,6 +3,24 @@ using Process;
 namespace Typesetting {
 namespace Util {
 
+    function min3(a, b, c) {
+        var min = a;
+        if (b < min) min = b;
+        if (c < min) min = c;
+        return min;
+    };
+
+    Typesetting.Util.rgb2cmyk = function(r, g, b) {
+        R = Double.parseDouble(r) / 255;
+        G = Double.parseDouble(g) / 255;
+        B = Double.parseDouble(b) / 255;
+        K = min3(1 - R, 1 - G, 1 - B);
+        C = (1 - R - K);
+        M = (1 - G - K);
+        Y = (1 - B - K);
+        return [ C, M, Y, K ];
+    };
+
     var re_ = /^([-+]?([0-9]+)?(?:\.[0-9]+)?)(em|ex|in|cm|mm|pt|pc|px|pt)?$/;
 
     Typesetting.Util.getPt = function(context_, sizeString) {
@@ -115,7 +133,7 @@ namespace Util {
     }
 
     function loadKatex() {
-        var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib'];
+        var base = [exepath_ / 'kinxlib', exepath_ / 'lib'];
         for (var i = 0, l = base.length(); i < l; ++i) {
             var path = base[i] / 'katex/katex.min.js';
             if (File.exists(path)) {
@@ -137,7 +155,7 @@ namespace Util {
     }
 
     function getChartjsPath() {
-        var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib'];
+        var base = [exepath_ / 'kinxlib', exepath_ / 'lib'];
         for (var i = 0, l = base.length(); i < l; ++i) {
             var path = base[i] / 'chartjs/Chart.min.js';
             if (File.exists(path)) {
