@@ -15,7 +15,7 @@ KX_DECL_MEM_ALLOCATORS();
 
 typedef struct regex_pack_ {
     regex_t *reg;
-    const unsigned char *source;
+    unsigned char *source;
     int start;
     OnigRegion *region;
 } regex_pack_t;
@@ -53,6 +53,7 @@ void Regex_free(void *p)
     regex_pack_t *r = (regex_pack_t *)p;
     onig_region_free(r->region, 1);
     onig_free(r->reg);
+    kx_free(r->source);
     kx_free(r);
 }
 
@@ -73,7 +74,8 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     KEX_SET_PROP_CSTR(obj, "source", str);
-    r->source = str;
+    r->source = kx_calloc(strlen(str) + 2, sizeof(char));
+    strcpy(r->source, str);
     r->start = 0;
     return 0;
 }
