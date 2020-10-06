@@ -4,6 +4,10 @@
 #include <kxthread.h>
 #include <ctype.h>
 
+// #define dbgin() printf("--> %s:%d\n", __FILE__, __LINE__);
+#define dbgin()
+#define dbgout()
+
 KX_DECL_MEM_ALLOCATORS();
 
 #include "onig/src/oniguruma.h"
@@ -11,7 +15,7 @@ KX_DECL_MEM_ALLOCATORS();
 
 typedef struct regex_pack_ {
     regex_t *reg;
-    const unsigned char *source;
+    unsigned char *source;
     int start;
     OnigRegion *region;
 } regex_pack_t;
@@ -49,6 +53,7 @@ void Regex_free(void *p)
     regex_pack_t *r = (regex_pack_t *)p;
     onig_region_free(r->region, 1);
     onig_free(r->reg);
+    kx_free(r->source);
     kx_free(r);
 }
 
@@ -67,8 +72,13 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!str) {
         KX_THROW_BLTIN_EXCEPTION("RegexException", "String is needed in argument 1");
     }
+
     KEX_SET_PROP_CSTR(obj, "source", str);
-    r->source = str;
+    if (r->source) {
+        kx_free(r->source);
+    }
+    r->source = kx_calloc(strlen(str) + 2, sizeof(char));
+    strcpy(r->source, str);
     r->start = 0;
     return 0;
 }
@@ -216,6 +226,9 @@ int Regex_splitOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid Regex object");
     }
     const char *str = get_arg_str(2, args, ctx);
+    if (!str) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "No string to split");
+    }
     int index = 0;
     int len = strlen(str);
     const unsigned char *end = str + len;
@@ -305,6 +318,9 @@ int Regex_replaceOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
     const char *str = get_arg_str(2, args, ctx);
     const char *newstr = get_arg_str(3, args, ctx);
+    if (!str || !newstr) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "No string to replace");
+    }
     int sn = strlen(newstr);
     int index = 0;
     int len = strlen(str);
@@ -345,6 +361,9 @@ int Regex_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KEX_SET_PROP_CSTR(obj, "pattern", str);
         kx_any_t *r = allocate_any(ctx);
         r->p = Regex_compile_impl(str);
+        if (!r->p) {
+            KX_THROW_BLTIN_EXCEPTION("RegexException", "Failed to allocate a Regex object");
+        }
         r->any_free = Regex_free;
         KEX_SET_PROP_ANY(obj, "_pack", r);
         KEX_SET_METHOD("matches", obj, Regex_matches);

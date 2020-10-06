@@ -19,11 +19,11 @@ jobs:
           ref='${{ github.ref }}'
           tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
 
-          mkdir -p $tag/bin
+          mkdir -p $tag/bin/kinxlib
           cp /usr/bin/kinx $tag/bin/kinx
           cp /usr/bin/kxrepl $tag/bin/kxrepl
           cp /usr/bin/kxtest $tag/bin/kxtest
-          cp -r /usr/bin/kinxlib $tag/lib
+          cp -r /usr/bin/kinxlib $tag/bin/kinxlib
           tar zcvf linux-amd64.tar.gz $tag/
       - name: upload archive
         uses: actions/upload-artifact@v1
@@ -50,6 +50,30 @@ jobs:
           name: build-windows-x64
           path: windows-x64.zip
 
+  package-kitty:
+    name: package-kitty
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: build
+        run: |
+          sudo make kitty-install
+      - name: package
+        run: |
+          ref='${{ github.ref }}'
+          tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
+
+          mkdir -p $tag/kinxlib/fonts
+          mkdir -p $tag/kinxlib/lib/phantomjs
+          cp -r /usr/bin/kinxlib/fonts/* $tag/kinxlib/fonts
+          cp -r /usr/bin/kinxlib/lib/phantomjs/* $tag/kinxlib/lib/phantomjs
+          zip -r package-kitty.zip $tag/
+      - name: upload archive
+        uses: actions/upload-artifact@v1
+        with:
+          name: package-kitty
+          path: package-kitty.zip
+
   release:
     name: release
     runs-on: ubuntu-latest
@@ -72,10 +96,11 @@ jobs:
       - release
       - build-linux-amd64
       - build-windows-x64
+      - package-kitty
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job: [build-linux-amd64, build-windows-x64]
+        job: [build-linux-amd64, build-windows-x64, package-kitty]
         include:
           - job: build-linux-amd64
             asset_path: linux-amd64.tar.gz
@@ -84,6 +109,10 @@ jobs:
           - job: build-windows-x64
             asset_path: windows-x64.zip
             asset_name: package_win64.zip
+            content_type: application/zip
+          - job: package-kitty
+            asset_path: package-kitty.zip
+            asset_name: package_kitty.zip
             content_type: application/zip
     steps:
       - name: download archive
