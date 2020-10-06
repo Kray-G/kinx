@@ -66,12 +66,13 @@ jobs:
           cp -r /usr/bin/kinxlib/lib/phantomjs/* package/kinxlib/lib/phantomjs
           cd package
           zip -r package-kitty.zip *
-          mv package-kitty.zip ../
+          cd ..
+          mv package/package-kitty.zip ./
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
-          name: package-kitty.zip
-          path: package
+          name: package-kitty
+          path: package-kitty.zip
 
   release:
     name: release
