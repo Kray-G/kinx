@@ -1,4 +1,4 @@
-using typesetting.style.ArticleA4;
+using typesetting.style.JArticleA4;
 
 namespace Typesetting {
 namespace Style {
