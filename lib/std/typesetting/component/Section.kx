@@ -18,8 +18,12 @@ namespace Typesetting {
                 @opts.label ??= @text;
             }
             public write(info, context, core) {
+                # flush floating image if exists.
+                var writer = info.writer;
+                writer.writeFloatingImage();
+
                 context.outputSection = info.base.noIndentTopOfParagraph;
-                info.writer.setColumn(info.base.columns);
+                writer.setColumn(info.base.columns);
                 core.pendingParagraphList.push({
                     isSection: true,
                     lineFeedWidth: core.section.getHeight(1),
@@ -27,8 +31,8 @@ namespace Typesetting {
                         var level = info.base.sectionLevel;
                         var [linetop, header] = core.section.exec(level, @opts, @text);
                         if (info.base.outline && level <= info.base.toc.level) {
-                            var ol = info.writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
-                            info.writer.setCurrentPage(ol, linetop);
+                            var ol = writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
+                            writer.setCurrentPage(ol, linetop);
                             context.outline[level] = ol;
                         }
                     },
@@ -38,6 +42,10 @@ namespace Typesetting {
 
         class SubSection(opts_, text_) : Section(opts_, text_) {
             public write(info, context, core) {
+                # flush floating image if exists.
+                var writer = info.writer;
+                writer.writeFloatingImage();
+
                 context.outputSection = info.base.noIndentTopOfParagraph;
                 core.pendingParagraphList.push({
                     isSection: true,
@@ -46,8 +54,8 @@ namespace Typesetting {
                         var level = info.base.sectionLevel + 1;
                         var [linetop, header] = core.section.exec(level, @opts, @text);
                         if (info.base.outline && level <= info.base.toc.level) {
-                            var ol = info.writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
-                            info.writer.setCurrentPage(ol, linetop);
+                            var ol = writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
+                            writer.setCurrentPage(ol, linetop);
                             context.outline[level] = ol;
                         }
                     },
@@ -57,6 +65,10 @@ namespace Typesetting {
 
         class SubSubSection(opts_, text_) : Section(opts_, text_) {
             public write(info, context, core) {
+                # flush floating image if exists.
+                var writer = info.writer;
+                writer.writeFloatingImage();
+
                 context.outputSection = info.base.noIndentTopOfParagraph;
                 core.pendingParagraphList.push({
                     isSection: true,
@@ -65,8 +77,8 @@ namespace Typesetting {
                         var level = info.base.sectionLevel + 2;
                         var [linetop, header] = core.section.exec(level, @opts, @text);
                         if (info.base.outline && level <= info.base.toc.level) {
-                            var ol = info.writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
-                            info.writer.setCurrentPage(ol, linetop);
+                            var ol = writer.createOutline(context.outline[level - 1], core.makePlainText(header), true);
+                            writer.setCurrentPage(ol, linetop);
                             context.outline[level] = ol;
                         }
                     },
@@ -86,6 +98,10 @@ namespace Typesetting {
                 opts_.label ??= text_;
             }
             public write(info, context, core) {
+                # flush floating image if exists.
+                var writer = info.writer;
+                writer.writeFloatingImage();
+
                 var chapterName = info.base.chapter.style;
                 var chapterFunc = Typesetting.Style.Chapter[chapterName];
                 if (!chapterFunc.isFunction) {
@@ -97,7 +113,6 @@ namespace Typesetting {
                 context.outputSection = info.base.noIndentTopOfParagraph;
                 @pageBreak(info, core);
 
-                var writer = info.writer;
                 writer.setPageToOdd();
                 writer.setColumn(1);
 

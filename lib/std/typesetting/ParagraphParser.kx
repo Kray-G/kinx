@@ -97,7 +97,8 @@ namespace Typesetting {
         var commandNames = Typesetting.Command.keySet()
             .filter { => Typesetting.Command[_1].create.isFunction }
             .join('|');
-        var commandHead_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})(?:\[([^\]]*)\])?!), [1, 2]).map { &([name, pbase])
+        commandNames = commandNames + '|' + commandNames.toLower();
+        var commandHead_ = $.regex(new Regex(%!\\(%{commandNames})(?:\[([^\]]*)\])?!), [1, 2]).map { &([name, pbase])
             var name = name.toUpper(0, 1);
             var params;
             if (pbase.length() > 0) {
@@ -141,7 +142,8 @@ namespace Typesetting {
         commandNames = Typesetting.ParagraphCommand.keySet()
             .filter { => Typesetting.ParagraphCommand[_1].create.isFunction }
             .join('|');
-        var parCommandStart_ = $.regex(new Regex(%!\\(%{commandNames.toLower()})\s*(?:\[([^\]]+)\]\s*)?\{!), [1, 2]).map { &([name, pbase]):
+        commandNames = commandNames + '|' + commandNames.toLower();
+        var parCommandStart_ = $.regex(new Regex(%!\\(%{commandNames})\s*(?:\[([^\]]+)\]\s*)?\{!), [1, 2]).map { &([name, pbase]):
             name = name.toUpper(0, 1);
             var command = new Typesetting.ParagraphCommand[name](info_, context_);
             var params;
@@ -235,6 +237,9 @@ namespace Typesetting {
         }
 
         public parseEach(word) {
+            if (word.isUndefined) {
+                return new Typesetting.WordSet(info_);
+            }
             if (word.isBox) {
                 return word;
             }

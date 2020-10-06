@@ -265,10 +265,7 @@ namespace Typesetting {
                     opts.areaWidth = TOO_BIG_SPACE;
                 }
 
-                if (text.startsWith("\\noindent{}")) {
-                    text = text.subString("\\noindent{}".length());
-                    opts.noIndent = true;
-                }
+                var noIndent = context_.noIndent;
                 var wordSet = info_.paragraphParser.parse(text);
                 if (context_.footnotes.length() > 0) {
                     var margin = info_.writer.getMargin();
@@ -302,6 +299,7 @@ namespace Typesetting {
                 info_.writer.setMargin(margin);
                 var areaWidth = opts.areaWidth ?? info_.writer.getAreaWidth();
                 var lines = processWordSet(opts, wordSet, context_.font.fontObj, context_.font.fontSize, areaWidth, settings);
+                context_.noIndent = noIndent;
                 return lines;
             }
 

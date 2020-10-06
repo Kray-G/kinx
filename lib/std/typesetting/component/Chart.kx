@@ -37,8 +37,10 @@ namespace Typesetting {
                 if (opts_.float.left || opts_.float.right) {
                     var fontSize = context.font.fontSize;
                     var fontObj = context.font.fontObj;
-                    info.writer.loadFloatingImage(img, opts_.scale, opts_.float, opts_.caption,
-                        &(center, y, imageY, height) => @floatingImageCaption(info, core, context, opts_.label, opts_.caption, fontObj, fontSize, center, y, imageY, height));
+                    info.writer.loadFloatingImage(
+                        { path: img, scale: opts_.scale, floating: opts_.float, caption: opts_.caption },
+                        &(center, y, imageY, height) =>
+                            @floatingImageCaption(info, core, context, opts_.label, opts_.caption, fontObj, fontSize, center, y, imageY, height));
                     return;
                 }
 

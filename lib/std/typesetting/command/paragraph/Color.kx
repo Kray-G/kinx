@@ -4,30 +4,14 @@ namespace Typesetting {
 
         class Color(info_, context_) {
             var color_;
-            private min(a, b, c) {
-                var min = a;
-                if (b < min) min = b;
-                if (c < min) min = c;
-                return min;
-            }
-            private rgb2cmyk(r, g, b) {
-                R = Double.parseDouble(r) / 255;
-                G = Double.parseDouble(g) / 255;
-                B = Double.parseDouble(b) / 255;
-                K = min(1 - R, 1 - G, 1 - B);
-                C = (1 - R - K);
-                M = (1 - G - K);
-                Y = (1 - B - K);
-                return [ C, M, Y, K ];
-            }
             public start(params) {
                 color_ = context_.font.color;
                 if (params.R && params.G && params.B) {
-                    context_.font.color = rgb2cmyk(params.R, params.G, params.B);
+                    context_.font.color = Typesetting.Util.rgb2cmyk(params.R, params.G, params.B);
                 } else if (params.C && params.M && params.Y && params.K) {
                     context_.font.color = [ params.C, params.M, params.Y, params.K ];
                 } else if (params.r && params.g && params.b) {
-                    context_.font.color = rgb2cmyk(params.r, params.g, params.b);
+                    context_.font.color = Typesetting.Util.rgb2cmyk(params.r, params.g, params.b);
                 } else if (params.c && params.m && params.y && params.k) {
                     context_.font.color = [ params.c, params.m, params.y, params.k ];
                 } else {

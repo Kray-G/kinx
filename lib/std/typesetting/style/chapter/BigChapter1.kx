@@ -29,7 +29,7 @@ namespace Style {
         context.font.fontSize = chapterSize;
         ascent = fontObj.getAscent() * context.font.fontSize / 1000;
         writer.setPos({ x: margin.left, y: y + descent - ascent - 8 });
-        chapterText = "\\bold{%{text}}";
+        chapterText = "\\font[type=sans]{\\bold{%{text}}}";
         [, chapterText] = core.util.makeOption({}, chapterText);
         var lines = core.paragraph.exec({}, chapterText);
         core.util.write(lines);

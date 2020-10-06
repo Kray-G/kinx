@@ -73,11 +73,11 @@ namespace Style {
             },
             "link": {
                 "annotation": {
-                    "color":            [1, 1, 0, 0],
+                    "color":            "blue",
                     "underline":        false,
                 },
                 "url": {
-                    "color":            [1, 0, 0, 0],
+                    "color":            "navyblue",
                     "underline":        true,
                 }
             },
@@ -140,7 +140,7 @@ namespace Style {
                 "level":                1,
                 "captionsep":           6.0,
                 "lineWidth":            0.5,
-                "cellPadding":          5.0,
+                "cellPadding":          4.6,
             },
             "chapter": {
                 "style":                "StandardArticle",
