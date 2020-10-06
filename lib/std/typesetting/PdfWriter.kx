@@ -7,22 +7,36 @@ namespace Typesetting {
     function loadFontMap() {
         fontPath_ = 'C:/Windows/Fonts';
         var path = fontPath_ / "fontmap.json";
-        if (File.exists(path)) {
-            fontMap_ = JSON.parse(File.load(path));
-            return;
+        if (!File.exists(path)) {
+            fontPath_ = $exepath / 'fonts';
+            path = fontPath_ / "fontmap.json";
         }
-        fontPath_ = $exepath / 'fonts';
-        var path = fontPath_ / "fontmap.json";
-        if (File.exists(path)) {
-            fontMap_ = JSON.parse(File.load(path));
-            return;
+        if (!File.exists(path)) {
+            fontPath_ = $exepath / 'lib/fonts';
+            path = fontPath_ / "fontmap.json";
         }
-        throw RuntimeException("No font file map found");
+        if (!File.exists(path)) {
+            fontPath_ = $exepath / 'kinxlib/fonts';
+            path = fontPath_ / "fontmap.json";
+        }
+        if (!File.exists(path)) {
+            throw RuntimeException("No font file map found");
+        }
+        fontMap_ = JSON.parse(File.load(path));
     }
 
     function loadFontOne(pdf, info) {
-        var path = (fontPath_ / info.file)
-                    .replace("\\", '/');
+        var path = (fontPath_ / info.file);
+        if (!File.exists(path)) {
+            path = ('C:/Windows/Fonts' / info.file);
+        }
+        if (!File.exists(path)) {
+            path = ('/usr/share/fonts/truetype' / info.file);
+        }
+        if (!File.exists(path)) {
+            throw RuntimeException("Cannot find the font file: " + info.file);
+        }
+        path = path.replace("\\", '/');
         if (info.index.isDefined) {
             return pdf.loadTTFontFromFile2(path, info.index, true);
         }
@@ -465,7 +479,7 @@ namespace Typesetting {
             var ldiff = margin_.left - pageMargin_.left;
             var rdiff = margin_.right - pageMargin_.right;
             width = width - ldiff - rdiff;
-            if (!floating_ || floating_.done ) {
+            if (!floating_ || floating_.done) {
                 return [width];
             }
             if (!lineFeedWidth) {
@@ -532,7 +546,7 @@ namespace Typesetting {
             );
         }
 
-        private writeFloatingImage() {
+        public writeFloatingImage() {
             if (!floating_ || floating_.done) {
                 return;
             }
