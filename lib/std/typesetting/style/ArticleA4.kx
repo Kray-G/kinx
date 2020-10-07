@@ -14,6 +14,7 @@ namespace Style {
             "ligature":                 true,
             "indentSize":               20.0,
             "noIndentTopOfParagraph":   true,
+            "hyphenationRule":          "ja",
             "blockquote": {
                 "indentSize":           28.8,
                 "color":                [0.0, 0.0, 0.0, 0.85098],   # grey15

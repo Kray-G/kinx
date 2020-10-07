@@ -116,7 +116,10 @@ namespace Typesetting {
                 writer.setPageToOdd();
                 writer.setColumn(1);
 
-                var chapterInfo = chapterFunc(info, context, core, text_, opts_, this);
+                var chapterInfo = chapterFunc(info, context, core, text_, opts_);
+                writer.addY(info.base.chapter.paragraphSkipWidth);
+                writer.setYHead();
+
                 var level = chapterInfo.level;
                 if (info.base.footnote.resetSectionLevel == level) {
                     context.counter.footnote = 0;
