@@ -19,11 +19,11 @@ jobs:
           ref='${{ github.ref }}'
           tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
 
-          mkdir -p $tag/bin/kinxlib
-          cp /usr/bin/kinx $tag/bin/kinx
-          cp /usr/bin/kxrepl $tag/bin/kxrepl
-          cp /usr/bin/kxtest $tag/bin/kxtest
-          cp -r /usr/bin/kinxlib $tag/bin/kinxlib
+          mkdir -p $tag/lib
+          cp /usr/bin/kinx $tag/kinx
+          cp /usr/bin/kxrepl $tag/kxrepl
+          cp /usr/bin/kxtest $tag/kxtest
+          cp -r /usr/bin/kinxlib/* $tag/lib
           tar zcvf linux-amd64.tar.gz $tag/
       - name: upload archive
         uses: actions/upload-artifact@v1
@@ -60,14 +60,14 @@ jobs:
           sudo make kitty-install
       - name: package
         run: |
-          mkdir -p package/kinxlib/fonts
-          mkdir -p package/kinxlib/lib/phantomjs
-          cp -r /usr/bin/kinxlib/fonts/* package/kinxlib/fonts
-          cp -r /usr/bin/kinxlib/lib/phantomjs/* package/kinxlib/lib/phantomjs
-          cd package
-          zip -r package-kitty.zip *
-          cd ..
-          mv package/package-kitty.zip ./
+          ref='${{ github.ref }}'
+          tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
+
+          mkdir -p $tag/lib/fonts
+          mkdir -p $tag/lib/lib/phantomjs
+          cp -r /usr/bin/kinxlib/fonts/* $tag/lib/fonts
+          cp -r /usr/bin/kinxlib/lib/phantomjs/* $tag/lib/lib/phantomjs
+          zip -r package-kitty.zip $tag/
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
