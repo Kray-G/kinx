@@ -953,7 +953,7 @@ and the font will be restored here.」
 *   \\color\[C=0.5,M=0.8,Y=0.2,K=0.0\]{\\bold{CMYK}.
     This line should be colored by CMYK value of `CMYK=0.5,0.8,0.2,0.0`.}
 
-サポートされる色の名称に関しては、「\\nameref{色名称一覧}」を参照してください。
+サポートされる色の名称に関しては、「\\nameref{色一覧}」を参照してください。
 
 ### 合字・特殊文字
 
@@ -1159,8 +1159,8 @@ Small and Easy, but Beautiful Design For You
 ### 引用
 
 引用は以下のように行頭に `>` を付けて記述します。
-引用中に Markdown コマンド（\\nameref{Markdown コマンド}）を使用することはできませんが、
-KiTTy コマンド（\\nameref{KiTTy コマンド}）を使用することはできます。
+引用中に Markdown のパラグラフ・コマンド（\\nameref{パラグラフ・コマンド}）を使用することはできませんが、
+インライン・コマンド（\\nameref{インライン・コマンド}）、KiTTy コマンド（\\nameref{KiTTy コマンド}）を使用することはできます。
 また、引用はネストすることが可能です。
 その場合、引用は全て段落として認識されます。
 インデントをしない場合、段落の冒頭に `\\noindent` を付けることで解除します。
