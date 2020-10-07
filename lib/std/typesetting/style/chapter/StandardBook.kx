@@ -37,7 +37,7 @@ namespace Style {
         context.noIndent = noIndent;
         context.font.fontSize = fontSize;
 
-        var chapterPlainText = chapterHeader + '\\hspace[width=1em]{}' + text;
+        var chapterPlainText = chapterHeader + '\\hspace[width=0.5em]{}' + text;
         var linetop = margin.pageHeight - margin.top;
         var pagenum = writer.getPageIndex();
         return {
