@@ -135,7 +135,7 @@ namespace Typesetting {
         }
     }
 
-    Typesetting.insertGlue.ja = _function(info, Linebreak, wordlist, nodes) {
+    Typesetting.insertGlue[__FILE__.stem()] = _function(info, Linebreak, wordlist, nodes) {
         var skipCount;
         var words = [];
         wordlist.each { &(w0, i):
@@ -314,5 +314,7 @@ namespace Typesetting {
             }
         };
     };
+
+    Typesetting.insertGlue.en = Typesetting.insertGlue.ja;
 
 } # namespace Typesetting

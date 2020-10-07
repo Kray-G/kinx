@@ -109,7 +109,7 @@ namespace Util {
     var executable_, phantomPath_;
 
     function makePhantomjsPath() {
-        var base = [exepath_ / 'kinxlib/lib', exepath_ / 'lib', exepath_ / 'src/extlib'];
+        var base = [exepath_ / 'kinxlib', exepath_ / 'lib', exepath_ / 'kinxlib/lib', exepath_ / 'lib/lib', exepath_ / 'src/extlib'];
         for (var i = 0, l = base.length(); i < l; ++i) {
             phantomPath_ = base[i] / 'phantomjs';
             var path = phantomPath_ / phantomjs_;

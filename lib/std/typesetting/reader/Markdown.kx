@@ -129,6 +129,9 @@ namespace Typesetting {
         }
         public tag(value) {
             var values = tagmap_[value.tag];
+            if (!values) {
+                throw RuntimeException("Unknown tag: " + value.tag);
+            }
             return "\\footnote{%{makeInlineText(values)}}";
         }
     }
