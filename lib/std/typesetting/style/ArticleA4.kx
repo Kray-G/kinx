@@ -59,7 +59,7 @@ namespace Style {
                 "alley":                20.3,
             },
             "header": {
-                "format":               { right: "<name:section,1>" },
+                "format":               null,
                 "fontSize":             fontSize * 0.8,
                 "margin": {
                     "top":              34.0,

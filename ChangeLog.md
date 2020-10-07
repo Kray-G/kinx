@@ -29,7 +29,7 @@
     *   Added phantomjs for a typesetting library.
     *   Added a small Markdown Parser.
     *   Integrated `kc-json` to this project.
-    *   Supported loading multiple library by `using`.
+    *   Supported loading multiple libraries by `using`.
     *   Some bug fixes and improvement.
 
 ## V0.14.0 (14th Preview Release) - 2020/08/24
