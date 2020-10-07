@@ -136,19 +136,24 @@ namespace Typesetting {
                 var lines = core_.paragraph.exec({}, text);
                 var str;
                 lines.each { &(line):
-                    line.nodes.each { &(n):
+                    line.nodes.each { &(n, i):
                         if (n.isBox) {
-                            if (n.value.word.isString && n.value.word.length() > 0) {
-                                str += n.value.word;
+                            if (n.value.word.isString) {
+                                if (n.value.word.length() > 0) {
+                                    str += n.value.word;
+                                } else if (n.value.word == '' && n.width > 0) {
+                                    str += ' ';
+                                }
                             }
                         } else if (n.isGlue) {
                             if (n.width > 0 && str[-1] != ' '[0]) {
                                 str += ' ';
                             }
+                        } else {
                         }
                     };
                 };
-                return str ?? text;
+                return str.trim() ?? text;
             };
         }
 

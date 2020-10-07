@@ -1,7 +1,7 @@
 namespace Typesetting {
 namespace Style {
 
-    Typesetting.Style.Chapter[__FILE__.stem()] = function(info, context, core, text, opts, this) {
+    Typesetting.Style.Chapter[__FILE__.stem()] = function(info, context, core, text, opts) {
         var writer = info.writer;
         var margin = writer.makeMarginSize();
         var chapterSize = 32.8;
@@ -38,12 +38,9 @@ namespace Style {
         context.noIndent = noIndent;
         context.font.fontSize = fontSize;
 
-        var chapterPlainText = chapterHeader + ' ' + text;
+        var chapterPlainText = chapterHeader + '\\hspace[width=1em]{}' + text;
         var linetop = margin.pageHeight - margin.top;
         var pagenum = writer.getPageIndex();
-
-        writer.addY(info.base.chapter.paragraphSkipWidth, true);
-        writer.setYHead();
         return {
             page: pagenum,
             level: level,
