@@ -5,12 +5,6 @@
 *   Planned, or remaining tasks.
     *   Support OpenCV library.
     *   Support HTTP Server library with libhttp.
-    *   The followings are planned but priority is low.
-        *   Improvement with `KX_FASTENTER`.
-            *   `KX_FASTENTER` is entering function without frame.
-        *   Improvement with some specialized instructions.
-            *   `KXOPT_LENGTH` ... for `Array`, `Binary`, `String`
-            *   `KXOPT_PARSEINT` ... `Integer.parseInt`
 
 ## V1.0.0 (Planned)
 
@@ -22,7 +16,11 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.15.0 (15th Preview Release)
+## V0.16.0 (Current Development Version)
+
+*   Updated
+
+## V0.15.1 (15th Preview Release) - 2020/10/07
 
 *   Updated
     *   Supported `Tiny Typesetting` library.
@@ -34,7 +32,7 @@
     *   Supported loading multiple library by `using`.
     *   Some bug fixes and improvement.
 
-## V0.14.0 (14th Preview Release)
+## V0.14.0 (14th Preview Release) - 2020/08/24
 
 *   Updated
     *   Supported SSH & libssh2 library.
@@ -44,7 +42,7 @@
     *   Support PDF library with libHaru.
     *   Some bug fixes and improvement.
 
-## V0.13.1 (13th Preview Release)
+## V0.13.1 (13th Preview Release) - 2020/07/19
 
 *   Updated
     *   Improved `String#split` to support UTF-8.
@@ -57,7 +55,7 @@
     *   Added a CLI support of kinx content.
     *   Some bug fixes and improvement.
 
-## V0.12.0 (12th Preview Release)
+## V0.12.0 (12th Preview Release) - 2020/07/10
 
 *   Updated
     *   Supported a numbered parameter of a function argument.
@@ -83,13 +81,13 @@
         ```
     *   Some bug fixes and improvement.
 
-## V0.11.0 (11th Preview Release)
+## V0.11.0 (11th Preview Release) - 2020/07/03
 
 *   Updated
     *   Supported a Parser Combinator Library named as `Parsek`.
     *   Some bug fixes and improvement.
 
-## V0.10.0 (10th Preview Release)
+## V0.10.0 (10th Preview Release) - 2020/06/26
 
 *   Updated
     *   Changed disassembler for x64.
@@ -110,7 +108,7 @@
     *   Supported the option of `-q` for quiet mode.
     *   Some bug fixes and improvement.
 
-## V0.9.2 (9th Preview Release)
+## V0.9.2 (9th Preview Release) - 2020/06/03
 
 *   Updated
     *   Supported a long option by `System.getopt()`.
@@ -125,7 +123,7 @@
         *   Moving by word with Ctrl + arrow left/right.
     *   Some bug fixes and improvement.
 
-## V0.8.1 (8th Preview Release)
+## V0.8.1 (8th Preview Release) - 2020/05/26
 
 *   Updated
     *   Updated some of native code output.
@@ -136,7 +134,7 @@
     *   Supported a part of REPL (Read-Eval-Print Loop), but it is not a full version.
     *   Some bug fixes and improvement.
 
-## V0.7.1 (7th Preview Release)
+## V0.7.1 (7th Preview Release) - 2020/05/15
 
 *   Updated
     *   Bug fixes for operator override.
@@ -151,7 +149,7 @@
     *   Supported a Database class for easier to use than a SQLite class.
     *   Some bug fixes and improvement.
 
-## V0.6.0 (6th Preview Release)
+## V0.6.0 (6th Preview Release) - 2020/05/01
 
 Updates from v0.5.2.
 
@@ -172,7 +170,7 @@ Updates from v0.5.2.
         *   `Array#select`, `Array#findAll` for `Array#filter`.
     *   Some bug fixes and improvement.
 
-## V0.5.2 (5th Preview Release)
+## V0.5.2 (5th Preview Release) - 2020/04/20
 
 Updates from v0.4.1.
 
@@ -187,7 +185,7 @@ Updates from v0.4.1.
     *   Supported applying a Range object to the index for String, Binary, and Array.
     *   Some bug fixes and improvement.
 
-## V0.4.1 (4th Preview Release)
+## V0.4.1 (4th Preview Release) - 2020/04/13
 
 Updates from v0.3.1.
 
@@ -200,7 +198,7 @@ Updates from v0.3.1.
     *   Supported a spread operator with declaration statement.
     *   Some bug fixes.
 
-## V0.3.1 (3rd Preview Release)
+## V0.3.1 (3rd Preview Release) - 2020/04/03
 
 Updates from v0.2.0.
 
@@ -210,7 +208,7 @@ Updates from v0.2.0.
     *   Supported Signal.
     *   Some bug fixes.
 
-## V0.2.0 (2nd Preview Release)
+## V0.2.0 (2nd Preview Release) - 2020/03/19
 
 Updates from v0.1.0.
 
@@ -222,6 +220,29 @@ Updates from v0.1.0.
     *   Added or modified `File` instance methods.
         *   Supported `getch`, `putch`, `peek`.
 
-## V0.1.0 (1st Preview Release)
+## V0.1.0 (1st Preview Release) - 2020/03/18
 
-*   Initial Release.
+This is a first preview release.
+
+* For Windows, extract `package_win64.zip` and put it where you want.
+    * Setup the PATH for executable.
+* For Linux, extract a source file and do `make` and `sudo make install`.
+    * The executable named as `kinx` is installed to `/usr/bin`.
+    * Some libraries are installed under `/usr/bin/kinxlib`
+    * Setup the PATH for executable if you need.
+    * If you want to uninstall, remove above files by hand.
+
+### Please try `hello, world.`
+
+You can write the program on the top level of source. Prepare the following file named as `hello.kx`.
+
+```javascript:hello.kx
+System.println("hello, world.");
+```
+
+Execute it as follows, and you will do it well if the PATH is correctly set.
+
+```
+$ kinx hello.kx
+hello, world.
+```
