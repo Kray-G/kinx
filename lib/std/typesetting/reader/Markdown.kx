@@ -77,6 +77,14 @@ namespace Typesetting {
                 var value = "`" * Integer.parseInt(m[1]);
                 return "\\monotype{\\pack{%{value}}}";
             }
+            if ((m = v.match(/<q([0-9]+)\s*\/>/)).isDefined) {
+                var value = "'" * Integer.parseInt(m[1]);
+                return "\\pack{%{value}}";
+            }
+            if ((m = v.match(/<monotype-q([0-9]+)\s*\/>/)).isDefined) {
+                var value = "'" * Integer.parseInt(m[1]);
+                return "\\monotype{\\pack{%{value}}}";
+            }
             if (v.startsWith("<font-")) {
                 m = v.match(/<font-([^\s]*)\s*(?:(.+)\s*=\s*"(.+)"\s*)?\/>/);
                 if (m.isDefined) {

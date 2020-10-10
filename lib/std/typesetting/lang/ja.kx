@@ -17,7 +17,7 @@ namespace Typesetting {
     var space_ = {};
 
     function getUtf8Length(word) {
-        return (word == '“' || word == '”') ? 1 : System.isUtf8Bytes(word[0]);
+        return (word == '‘' || word == '’' || word == '“' || word == '”') ? 1 : System.isUtf8Bytes(word[0]);
     }
 
     function setupSpace(info, value) {
@@ -272,7 +272,8 @@ namespace Typesetting {
                     }
                 } else if (notTail_.find(value.word) >= 0) {
                     var prev = words[i-1];
-                    if (prev.isBox && !prev.value.isUtf8) {
+                    var prevIsUtf8 = (prev.isBox && prev.value.word && prev.value.word != "") ? (getUtf8Length(prev.value.word) > 1) : 0;
+                    if (prevIsUtf8) {
                         nodes.pop();
                         if (nodes[-1].isGlue) {
                             nodes.pop();
@@ -312,6 +313,9 @@ namespace Typesetting {
                         } else if (l1 == 1 && l2 > 1) {
                             setupSpace(info, value);
                             nodes.push(Linebreak.Glue(0, space_.stretch, 0));
+                        } else if (l1 == 1 && l2 == 1) {
+                            setupSpace(info, value);
+                            nodes.push(Linebreak.Glue(space_.width, space_.stretch, space_.shrink));
                         }
                     }
                 }
