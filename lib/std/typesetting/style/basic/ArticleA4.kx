@@ -14,6 +14,7 @@ namespace Style {
             "ligature":                 true,
             "indentSize":               20.0,
             "noIndentTopOfParagraph":   true,
+            "hyphenationRule":          "en",
             "blockquote": {
                 "indentSize":           28.8,
                 "color":                [0.0, 0.0, 0.0, 0.85098],   # grey15
@@ -58,7 +59,7 @@ namespace Style {
                 "alley":                20.3,
             },
             "header": {
-                "format":               { right: "<name:section,1>" },
+                "format":               null,
                 "fontSize":             fontSize * 0.8,
                 "margin": {
                     "top":              34.0,
@@ -143,6 +144,7 @@ namespace Style {
                 "cellPadding":          4.6,
             },
             "chapter": {
+                "available":            false,
                 "style":                "StandardArticle",
                 "pretext":              "Chapter ",
                 "posttext":             null,

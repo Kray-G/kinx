@@ -196,6 +196,7 @@ main_kxcmd: src/main_kxcmd.c include/libkinx.h libkinx.dll $(RCFILE)
 	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map src/main_kxcmd.c src/fileutil.obj $(RCFILE)
 	copy /y main_kxcmd.exe kxrepl.exe
 	copy /y main_kxcmd.exe kxtest.exe
+	copy /y main_kxcmd.exe kxkitty.exe
 
 libkinx.dll: src/parser.c include/parser.tab.h onig.dll $(OBJS) $(DISASM)
 	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM) ws2_32.lib

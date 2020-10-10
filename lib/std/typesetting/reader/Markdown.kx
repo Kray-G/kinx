@@ -77,6 +77,14 @@ namespace Typesetting {
                 var value = "`" * Integer.parseInt(m[1]);
                 return "\\monotype{\\pack{%{value}}}";
             }
+            if ((m = v.match(/<q([0-9]+)\s*\/>/)).isDefined) {
+                var value = "'" * Integer.parseInt(m[1]);
+                return "\\pack{%{value}}";
+            }
+            if ((m = v.match(/<monotype-q([0-9]+)\s*\/>/)).isDefined) {
+                var value = "'" * Integer.parseInt(m[1]);
+                return "\\monotype{\\pack{%{value}}}";
+            }
             if (v.startsWith("<font-")) {
                 m = v.match(/<font-([^\s]*)\s*(?:(.+)\s*=\s*"(.+)"\s*)?\/>/);
                 if (m.isDefined) {
@@ -129,12 +137,15 @@ namespace Typesetting {
         }
         public tag(value) {
             var values = tagmap_[value.tag];
+            if (!values) {
+                throw RuntimeException("Unknown tag: " + value.tag);
+            }
             return "\\footnote{%{makeInlineText(values)}}";
         }
     }
 
     class BookParser() {
-        var title_, doc_;
+        var title_, doc_, style_;
         var options_ = {};
         var list_ = [];
         var paragraph_ = [];
@@ -145,6 +156,7 @@ namespace Typesetting {
         var output_ = [];
         var inline_ = new InlineMaker();
         var logger_ = new Typesetting.Logger();
+        var makeDocument;
 
         private initialize() {
             ctx_['hline-top-default'] = "single";
@@ -185,10 +197,15 @@ namespace Typesetting {
             }
             if (!noflush.bquote && bquote_.length() > 0) {
                 var bquote = bquote_;
+                if (!doc_ && !style_.chapter.available && title_.isDefined) {
+                    makeDocument();
+                    ctx_.chapter = true;
+                }
                 if (ctx_.chapter) {
                     output_.push(&() => {
                         var text = bquote.map(&(p) => inline_.makeInlineText(p.values)).join('\n');
                         doc_.apply(new Typesetting.Component.Abstract(text.trim()));
+                        logger_.info("-- Abstract done");
                     });
                     ctx_.chapter = false;
                 } else {
@@ -206,7 +223,10 @@ namespace Typesetting {
                                     values: p.values,
                                 };
                             } else {
-                                info.values += p.values;
+                                if (p.values.isArray && p.values.length() > 0) {
+                                    info.values += [new Markdown.Nodes.Text(' ')];
+                                    info.values += p.values;
+                                }
                             }
                         });
                         if (info.values.length() > 0) {
@@ -264,51 +284,57 @@ namespace Typesetting {
                         }
                         r = true;
                     } else if (v.startsWith("<toc ")) {
-                        var m = v.match(/<toc(?:\s*with\s*=\s*"(.+)"\s*)?\/>/);
-                        if (m.isDefined) {
-                            opts_.toc = true;
-                            var value = m[1];
-                            if (value.find("lot") >= 0) {
+                        var doc = Xml.parseString(v);
+                        var elem = doc.documentElement();
+                        var tocwith = elem.getAttribute('with');
+                        opts_.toc = true;
+                        if (tocwith) {
+                            if (tocwith.find("lot") >= 0) {
                                 opts_.lot = true;
                             }
-                            if (value.find("lof") >= 0) {
+                            if (tocwith.find("lof") >= 0) {
                                 opts_.lof = true;
                             }
                         }
                         r = true;
+                    } else if (v.startsWith("<set-column ")) {
+                        var doc = Xml.parseString(v);
+                        var elem = doc.documentElement();
+                        var value = elem.getAttribute('value');
+                        var height = elem.getAttribute('height');
+                        if (value) {
+                            value = Integer.parseInt(value);
+                            height ||= null;
+                            flushDoc();
+                            output_.push(&() => {
+                                doc_.setColumn(value, height);
+                            });
+                            r = true;
+                        }
                     } else if (v.startsWith("<style-info ")) {
-                        var m = v.match(/<style-info\s*(.+)\s*=\s*"(.+)"\s+(.+)\s*=\s*"(.+)"\/>/);
-                        if (m.isDefined) {
-                            var stylename, stylevalue;
-                            [[1,2],[3,4]].each { &([ni, vi]):
-                                var name = m[ni];
-                                var value = m[vi];
-                                if (name == "name") {
-                                    stylename = value;
-                                } else if (name == "value") {
-                                    stylevalue = value;
-                                }
-                            };
-                            if (stylename && stylevalue) {
-                                output_.push(&() => {
-                                    doc_.setStyle(stylename, stylevalue);
-                                });
-                            }
+                        var doc = Xml.parseString(v);
+                        var elem = doc.documentElement();
+                        var name = elem.getAttribute('name');
+                        var value = elem.getAttribute('value');
+                        if (name && value) {
+                            output_.push(&() => {
+                                doc_.setStyle(name, value);
+                            });
                         }
                         r = true;
-                    } else if (/<appendix\s*\/>/.test(v)) {
+                    } else if (/<appendix[\/\s].*/.test(v)) {
                         flushDoc();
                         output_.push(&() => {
                             doc_.setAppendix();
                         });
                         r = true;
-                    } else if (/<pagebreak\s*\/>/.test(v)) {
+                    } else if (/<pagebreak[\/\s].*/.test(v)) {
                         flushDoc();
                         output_.push(&() => {
                             doc_.pageBreak();
                         });
                         r = true;
-                    } else if (/<clear-float\s*\/>/.test(v)) {
+                    } else if (/<clear-float[\/\s].*/.test(v)) {
                         flushDoc();
                         output_.push(&() => {
                             doc_.clearFloat();
@@ -331,7 +357,8 @@ namespace Typesetting {
         }
         private makeDocument() {
             opts_.style ??= "BookA4";
-            doc_ = new Typesetting.Document(Typesetting.Style[opts_.style], {
+            style_ = Typesetting.Style[opts_.style];
+            doc_ = new Typesetting.Document(style_, {
                 toc: opts_.toc,
                 lof: opts_.lof,
                 lot: opts_.lot,
@@ -339,6 +366,7 @@ namespace Typesetting {
                 filepath: options_.filepath,
                 logger: logger_,
             });
+            style_ = doc_.getStyle();
             logger_.info({ toc: opts_.toc, lot: opts_.lot, lof: opts_.lof });
             inline_.setDocument(doc_);
             if (opts_.multibytefont.isString) {
@@ -426,8 +454,9 @@ namespace Typesetting {
             if (doc_.isUndefined) {
                 makeDocument();
             }
+            var level = style_.chapter.available ? ast.level : (ast.level + 1);
             generateAll();
-            switch (ast.level) {
+            switch (level) {
             case 1:
                 output_.push(&() => {
                     var text = inline_.makeInlineText(ast.values);
@@ -494,7 +523,10 @@ namespace Typesetting {
         }
         public horizontal(ast) {
             flushDoc();
-            # TODO
+            output_.push(&() => {
+                doc_.drawFullWidthLine();
+                logger_.info("-- Horizontal line done");
+            });
             finCommand();
         }
         public code(ast) {
@@ -595,6 +627,7 @@ namespace Typesetting {
                     limitWidth: limitWidth ? Double.parseDouble(limitWidth) : null,
                     body: body,
                 }));
+                logger_.info("-- Table done");
             });
             finCommand();
         }
@@ -604,6 +637,7 @@ namespace Typesetting {
                 var opts = parseParamString(ast.alt);
                 opts.file = ast.src;
                 doc_.apply(new Typesetting.Component.Image(opts));
+                logger_.info("-- Fill width image done");
             });
         }
         public tagref(ast) {

@@ -1,0 +1,13 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Vspace(info_, context_) {
+            public exec(params, value) {
+                return Typesetting.Linebreak.Box(0, new Typesetting.Vspace(info_).setSpace(params.height ?? value));
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting
