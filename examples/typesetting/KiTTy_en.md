@@ -150,12 +150,13 @@ By the way, kerning is not supported so far.
 ### Typesetting Features for Japanese
 
 KiTTy also supports following feautres for the own requirement in Japanese.
-As I am sorry I do not have any knowkedge for other languages
-and I could not care about the extension point for other languages,
+If you want to add any other languages,
+I can not lead you because I am sorry I do not have any knowkedge for other languages.
+As it has been  difficult to care about the extension point for other languages,
 it might need to add a lot of features or many points of fixes.
 But it will be possible to extend features because this is an open source.
 
-*   Japanese hypehation
+*   Japanese hyphenation
 *   Japanese Ruby like \\ruby\[how to read\]{Difficult Kanji}
 
 ### PDF Features
@@ -357,9 +358,9 @@ Writing `<set-column value="2" height="12em" />` will set 2 columns with the hei
 
 About footnotes, it is not set each column.
 footnotes are always set against total width of a page.
-The following example is a part of *Alice’s Adventures in Wonderland*[^oz] with 2 columns.
+The following example is a part of *Alice\\apos{}s Adventures in Wonderland*[^oz] with 2 columns.
 
-[^oz]: \\url\[https://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland\]{Alice’s Adventures in Wonderland - Lewis Carroll}
+[^oz]: \\url\[https://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland\]{Alice\\apos{}s Adventures in Wonderland - Lewis Carroll}
 
 ---
 
@@ -817,9 +818,220 @@ Here is the output result below.
 | A2   |      Cell $(1,1)$      |      Cell $(1,2)$     |
 | A3   |           -            |      Cell $(2,2)$     |
 
+#### Table Options
+
+`<context />` tag can specify the parameters which can not be specified in a normal Markdown syntax.
+''\\nameref{Table:TableOptions}'' shows the list of the parameters which can be specified for the table.
+Those parameters are used as a temporary and they will be removed right after it being used.
+Therefore the parameters specified once can not used for multiple tables.
+You have to set it again if you want to use the same parameters for a next table.
+
+But you can change a default value for the parameters except `label` and `caption`.
+For that, change the value for the name with `-default` at the end of the parameter name.
+For example, you can change the default value of `vline-left` by changing the value for `vline-left-default`.
+
+<context label="Table:TableOptions"/>
+<context caption="Table Options"/>
+<context limit-column="0"/>
+
+|      Name      |            Value            |                                                 Meaning                                                 |
+| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `label`        | Text                        | The label for Cross-Reference.                                                                          |
+| `caption`      | Text                        | The caption of a table.                                                                                 |
+| `vline-left`   | `single`, `double`, `false` | Vertical line type of the left on a table (`false` by default).                                         |
+| `vline-right`  | Same as above               | Vertical line type of the right on a table (`false` by default).                                        |
+| `vline-inside` | Same as above               | Vertical line type inside a table (`false` by default).                                                 |
+| `hline-top`    | Same as above               | Horizontal line type of the top on a table (`single` by default).                                       |
+| `hline-bottom` | Same as above               | Horizontal line type of the bottom on a table (`single` by default).                                    |
+| `hline-header` | Same as above               | Horizontal line type under a header (`single` by default).                                              |
+| `hline-inside` | Same as above               | Horizontal line type inside a table (`false` by default).                                               |
+| `cell-i-j`     | Text                        | The text in the cell of $(i,j)$. $i$ is a row number and $j$ is a column number, and both are 0 origin. |
+| `limit-column` | Integer number              | The column number for the minimum width to determine a cell width limitation.                           |
+| `limit-width`  | Real number                 | The minimum width of a cell width.                                                                      |
+
 ### Font
+
+#### Bold, Italic, BoldItalic
+
+**Bold**、*Italic*、***BoldItalic*** is shown by a normal Markdown syntax.
+Here is examples.
+
+<context label="Table:FontShape"/>
+<context caption="How to write Bold, Italic, and BoldItalic"/>
+
+|      Markdown      |      Output      |
+| ------------------ | ---------------- |
+| `**Bold**`         | **Bold**         |
+| `*Italic*`         | *Italic*         |
+| `***BoldItalic***` | ***BoldItalic*** |
+
+#### Use Fonts
+
+If you want to use a font which is not loaded by default, load it by yourself, and you can use it.
+The following shows how to load a font file.
+It is necessary to specify 4 parameters separated by comma.
+
+```
+<font-load info="Name,type,shape,FileName.ttf" />
+```
+
+You can freely use the font after loading once.
+The parameter meaning is as follows.
+
+* `Name` is the own name of the font you can specify.
+* `type` is a font type. It should be `serif`, `sans`, `monotype`.
+* `shape` is a font shape. It should be `regular`、`bold`、`italic`、`bolditalic`.
+    * `regular` means a normal shape used in the normal sentence.
+    * `bold`, `italic`, and `bolditalic` is for the shape meant by that name.
+
+Use `\font` command to change the font as a following example.
+By the way, you have to escape `\` of a command name, `[`, and `]` like `\\`, `\[`, and `\]`
+because it is a Markdown special character.
+The following example shows how to use `Parisienne-Regular.ttf` font[^FontLoad].
+
+[^FontLoad]: This TrueType font file is already included in the KiTTy package,
+but it is not loaded by default.
+Load it by yourself to use it.
+
+```
+<font-load info="Parisienne,serif,regular,Parisienne-Regular.ttf" />
+- Changing the font is available only with a scope like
+''\\font\[name=Parisienne\]{This is a pen.},''
+and the font will be restored here.
+```
+
+This shows as below.
+This is available inside a scope of `\font` command as you see in the following example.
+
+<font-load info="Parisienne,serif,regular,Parisienne-Regular.ttf" />
+- Changing the font is available only with a scope like
+''\\font\[name=Parisienne\]{This is a pen.},''
+and the font will be restored here.
+
+#### Font Size (Direct)
+
+Font size is specified by `size` parameter of `\font` command.
+
+```
+''After this, the font size will be \\font\[size=7pt\]{shrink to 7pt}.
+And after this, the font size will be \\font\[size=15pt\]{extend to 15pt}.''
+will be shown.
+And also, for example, `\font[size=1.2em]{1.2 times larger size}` shows
+\\font\[size=1.2em\]{1.2 times larger size} will be shown.
+```
+
+''After this, the font size will be \\font\[size=7pt\]{shrink to 7pt}.
+And after this, the font size will be \\font\[size=15pt\]{extend to 15pt}.''
+will be shown.
+And also, for example, `\font[size=1.2em]{1.2 times larger size}` shows
+\\font\[size=1.2em\]{1.2 times larger size} will be shown.
+
+You can use the unit of size as you see in the above example.
+The unit you can specified is as follows.
+
+<context label="Table:FontSizeUnit"/>
+<context caption="Unit for Font Size"/>
+
+| Unit |                            Meaning                            |
+| ---- | ------------------------------------------------------------- |
+| `em` | Relative size based on the current font size.                 |
+| `ex` | Relative size based on the x height at the current font size. |
+| `px` | By Pixel.                                                     |
+| `pt` | By Point.                                                     |
+| `pc` | By Pica, which means 1/6 inch.                                |
+| `mm` | By Millimeter.                                                |
+| `cm` | By Centimeter.                                                |
+| `in` | By Inch.                                                      |
+
+#### Font Size (Relative)
+
+Use `\bigger`、`\smaller` to change the size with a relative size.
+The size will be changed by +1 point for `\bigger` or -1 point for `\smaller` inside its scope.
+
+```
+This is an example of `\bigger`.
+\\bigger{This is, \\bigger{this is, \\bigger{this is} a sentence,} a sentence}.
+For `\smaller`,
+\\smaller{This is, \\smaller{this is, \\smaller{this is} a sentence,} a sentence}.
+```
+
+This is an example of `\bigger`.
+\\bigger{This is, \\bigger{this is, \\bigger{this is} a sentence,} a sentence}.
+For `\smaller`,
+\\smaller{This is, \\smaller{this is, \\smaller{this is} a sentence,} a sentence}.
+
 ### Color
-### Ligature
+
+Use `\color` to change the text color.
+Here are examples below.
+
+```
+*   \\color\[red\]{\\bold{Red}.
+    This line should be colored by the name of `red`.}
+*   \\color\[green\]{\\bold{Green}.
+    This line should be colored by the name of `green`.}
+*   \\color\[blue\]{\\bold{Blue}.
+    This line should be colored by the name of `blue`.}
+*   \\color\[cyan1\]{\\bold{Cyan}.
+    This line should be colored by the name of `cyan1`.}
+*   \\color\[magenta1\]{\\bold{Magenta}.
+    This line should be colored by the name of `magenta1`.}
+*   \\color\[yellow\]{\\bold{Yellow}.
+    This line should be colored by the name of `yellow`.}
+*   \\color\[R=0,G=64,B=255\]{\\bold{RGB}.
+    This line should be colored by RGB value of `RGB=0,64,255`.}
+*   \\color\[C=0.5,M=0.8,Y=0.2,K=0.0\]{\\bold{CMYK}.
+    This line should be colored by CMYK value of `CMYK=0.5,0.8,0.2,0.0`.}
+```
+
+*   \\color\[red\]{\\bold{Red}.
+    This line should be colored by the name of `red`.}
+*   \\color\[green\]{\\bold{Green}.
+    This line should be colored by the name of `green`.}
+*   \\color\[blue\]{\\bold{Blue}.
+    This line should be colored by the name of `blue`.}
+*   \\color\[cyan1\]{\\bold{Cyan}.
+    This line should be colored by the name of `cyan1`.}
+*   \\color\[magenta1\]{\\bold{Magenta}.
+    This line should be colored by the name of `magenta1`.}
+*   \\color\[yellow\]{\\bold{Yellow}.
+    This line should be colored by the name of `yellow`.}
+*   \\color\[R=0,G=64,B=255\]{\\bold{RGB}.
+    This line should be colored by RGB value of `RGB=0,64,255`.}
+*   \\color\[C=0.5,M=0.8,Y=0.2,K=0.0\]{\\bold{CMYK}.
+    This line should be colored by CMYK value of `CMYK=0.5,0.8,0.2,0.0`.}
+
+See \\nameref{Color List} about supported color names.
+
+### Ligature and Special Character
+
+#### Ligature
+
+Now the following 5 ligatures is only supported.
+
+* f{}i ... fi
+* f{}l ... fl
+* f{}f ... ff
+* f{}f{}i ... ffi
+* f{}f{}l ... ffl
+
+#### '' and\\hs{}''
+
+both '' and\\hs{}'' are automatically replaced by writing 2 single quotes.
+
+```
+This is an ''example'' of double-quote.
+```
+
+This is an ''example'' of double-quote, will be shown.
+
+#### Backquote
+
+Use a special command of `<backqN />`
+because backquote is same as a special character in Markdown.
+`N` is a number of backquote.
+`<backq3 />` shows <backq3 />, and `<backq2 />` shows <backq2 />.
+
 ### Programming Code Block
 ### Title, Cover Page, and Contents
 ### Chapter and Section

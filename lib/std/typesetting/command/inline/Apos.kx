@@ -1,0 +1,13 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Apos(info_, context_) {
+            public exec(params) {
+                return new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '’');
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting
