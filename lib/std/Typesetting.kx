@@ -136,20 +136,29 @@ namespace Typesetting {
                 var lines = core_.paragraph.exec({}, text);
                 var str;
                 lines.each { &(line):
-                    line.nodes.each { &(n):
+                    line.nodes.each { &(n, i):
                         if (n.isBox) {
-                            if (n.value.word.isString && n.value.word.length() > 0) {
-                                str += n.value.word;
+                            if (n.value.word.isString) {
+                                if (n.value.word.length() > 0) {
+                                    str += n.value.word;
+                                } else if (n.value.word == '' && n.width > 0) {
+                                    str += ' ';
+                                }
                             }
                         } else if (n.isGlue) {
                             if (n.width > 0 && str[-1] != ' '[0]) {
                                 str += ' ';
                             }
+                        } else {
                         }
                     };
                 };
-                return str ?? text;
+                return str.trim() ?? text;
             };
+        }
+
+        public getStyle() {
+            return style_;
         }
 
         public setStyle(name, value) {
@@ -162,6 +171,16 @@ namespace Typesetting {
             if (style[lastkey]) {
                 style[lastkey] = value;
             }
+        }
+
+        public setColumn(columns, height) {
+            var lineFeedWidth = context_.page.lineFeedWidthRatio * context_.font.fontSize;
+            info_.writer.addY(lineFeedWidth / 2);
+            var h;
+            if (height) {
+                h = Typesetting.Util.getPt(context_, height);
+            }
+            info_.writer.setColumn(columns, h);
         }
 
         public setMultibyteFont(lang) {
@@ -196,6 +215,12 @@ namespace Typesetting {
             context_.appendix = true;
             info_.base.chapter.pretext = info_.base.toc.appendix;
             info_.base.chapter.posttext = "";
+        }
+
+        public drawFullWidthLine(lineWidth) {
+            info_.writer.drawFullWidthLine(lineWidth ?? 0.4);
+            var lineFeedWidth = context_.page.lineFeedWidthRatio * context_.font.fontSize;
+            info_.writer.addY(lineFeedWidth * 1.5);
         }
 
         public toc() {

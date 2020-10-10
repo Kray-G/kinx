@@ -10,6 +10,7 @@ namespace Typesetting {
         class Paragraph(info_, context_, util_) {
 
             var measureWidth_;
+            var text_;
 
             private setLineInfo(lines) {
                 var totalLineFeedWidth = 0;
@@ -160,7 +161,17 @@ namespace Typesetting {
                         nodes.push(Linebreak.Glue(width, stretch, shrink));
                     }
                 }
-                Typesetting.insertGlue.ja(info_, Linebreak, words, nodes);
+                var hyphenationRule = Typesetting.insertGlue[info_.base.hyphenationRule];
+                if (hyphenationRule.isDefined) {
+                    if (!hyphenationRule.isArray) {
+                        hyphenationRule = [hyphenationRule];
+                    }
+                    hyphenationRule.each { &(h):
+                        if (h.isFunction) {
+                            h(info_, Linebreak, words, nodes);
+                        }
+                    };
+                }
                 if (measureWidth_) {
                     return [{ nodes: nodes }];
                 }
@@ -183,7 +194,7 @@ namespace Typesetting {
                 var areaWidthLen = areaWidth.length();
                 var lines = [];
                 if (breaks.length() == 0) {
-                    info_.logger.warn("No breaks... " + lines.length());
+                    info_.logger.warn("No breaks... " + text_);
                     # System.println("===");
                     # nodes.each { => _1.display() };
                     # System.println("---");
@@ -265,13 +276,14 @@ namespace Typesetting {
                     opts.areaWidth = TOO_BIG_SPACE;
                 }
 
+                text_ = text;
                 var noIndent = context_.noIndent;
                 var wordSet = info_.paragraphParser.parse(text);
                 if (context_.footnotes.length() > 0) {
                     var margin = info_.writer.getMargin();
                     margin.left = margin.left + info_.base.footnote.left;
                     info_.writer.setMargin(margin);
-                    var marginSize = info_.writer.makeMarginSize();
+                    var marginSize = info_.writer.makeMarginSize({ fullWidth: true });
                     var fontSize = info_.base.footnote.fontSize;
                     var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
                     context_.page.lineFeedWidthRatio = info_.base.footnote.lineFeedWidthRatio;
@@ -300,6 +312,7 @@ namespace Typesetting {
                 var areaWidth = opts.areaWidth ?? info_.writer.getAreaWidth();
                 var lines = processWordSet(opts, wordSet, context_.font.fontObj, context_.font.fontSize, areaWidth, settings);
                 context_.noIndent = noIndent;
+                text_ = null;
                 return lines;
             }
 

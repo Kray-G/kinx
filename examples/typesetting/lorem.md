@@ -4,17 +4,25 @@
 
 Lorem ipsum dolor sit amet
 
-<param style="BookA4"/>
+<param style="ArticleA4_2Cols"/>
 <!-- <param multibytefont="jp"/> -->
 <param titleSize="54.8"/>
 <param subtitleSize="14.4"/>
 <style-info name="chapter.style" value="BigChapter2"/>
 
+> Massa enim nec dui nunc mattis enim ut tellus elementum.
+> Feugiat in fermentum posuere urna nec tincidunt praesent semper feugiat.
+> Erat imperdiet sed euismod nisi porta lorem mollis aliquam ut.
+> Fames ac turpis egestas maecenas pharetra convallis posuere morbi.
+> Mi sit amet mauris commodo quis.
+> Diam donec adipiscing tristique risus nec.
+
 # Lorem Ipsum
 
 ## Lorem ipsum
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 Integer feugiat scelerisque varius morbi enim nunc.
 Massa placerat duis ultricies lacus sed.
 Facilisis magna etiam tempor orci eu lobortis elementum nibh.
@@ -22,11 +30,19 @@ Sit amet mattis vulputate enim nulla.
 Pellentesque sit amet porttitor eget dolor morbi non.
 Mattis rhoncus urna neque viverra justo nec ultrices.
 Ornare arcu odio ut sem nulla pharetra diam sit amet.
+
+> Eget magna fermentum iaculis eu non diam phasellus.
+> Lectus magna fringilla urna porttitor rhoncus dolor.
+> Leo vel orci porta non pulvinar neque.
+> Morbi tristique senectus et netus et malesuada.
+> Tellus cras adipiscing enim eu turpis egestas pretium aenean.
+> Massa id neque aliquam vestibulum morbi blandit cursus risus at.
+
 Tincidunt nunc pulvinar sapien et ligula ullamcorper malesuada.
 Consectetur libero id faucibus nisl tincidunt eget nullam non.
 Convallis convallis tellus id interdum velit laoreet id.
 
-![float=right,caption=Maecenas ultricies,scale=0.4](damselfly.jpg)
+![caption=Maecenas ultricies](damselfly.jpg)
 
 Iaculis eu non diam phasellus vestibulum.
 Maecenas ultricies mi eget mauris pharetra et ultrices neque ornare.
@@ -110,7 +126,7 @@ Arcu dui vivamus arcu felis.
 Malesuada fames ac turpis egestas sed.
 Ut etiam sit amet nisl purus in.
 
-![float=left,scale=0.5,caption=FEu augue](f14_tomcats.jpg)
+![caption=Eu augue](f14_tomcats.jpg)
 
 Eu augue ut lectus arcu bibendum at varius vel pharetra.
 Non diam phasellus vestibulum lorem sed risus ultricies tristique nulla.
@@ -158,20 +174,7 @@ Lobortis elementum nibh tellus molestie nunc.
 Leo vel orci porta non pulvinar neque laoreet suspendisse.
 Augue eget arcu dictum varius duis at consectetur.
 
-## Massa enim 
-
-Massa enim nec dui nunc mattis enim ut tellus elementum.
-Feugiat in fermentum posuere urna nec tincidunt praesent semper feugiat.
-Erat imperdiet sed euismod nisi porta lorem mollis aliquam ut.
-Fames ac turpis egestas maecenas pharetra convallis posuere morbi.
-Mi sit amet mauris commodo quis.
-Diam donec adipiscing tristique risus nec.
-Eget magna fermentum iaculis eu non diam phasellus.
-Lectus magna fringilla urna porttitor rhoncus dolor.
-Leo vel orci porta non pulvinar neque.
-Morbi tristique senectus et netus et malesuada.
-Tellus cras adipiscing enim eu turpis egestas pretium aenean.
-Massa id neque aliquam vestibulum morbi blandit cursus risus at.
+## Blandit turpis 
 
 Blandit turpis cursus in hac habitasse platea dictumst quisque.
 Amet risus nullam eget felis eget.
@@ -272,11 +275,11 @@ Eu ultrices vitae auctor eu.
 
 <context label="Table:Commodo"/>
 <context caption="Commodo elit at imperdiet dui accumsan sit"/>
-|     Commodo     |       Pellentesque       |               Ultrices               |
-| --------------- | ------------------------ | ------------------------------------ |
-| Quis hendrerit. | Tincidunt arcu.          | Urna condimentum nibh.               |
-| Congue eu.      | Non curabitur convallis. | Diam maecenas.                       |
-| Maecenas sed.   | Faucibus vitae.          | Semper auctor neque nec nam aliquam. |
+|     Commodo     |               Ultrices               |
+| --------------- | ------------------------------------ |
+| Quis hendrerit. | Urna condimentum nibh.               |
+| Congue eu.      | Diam maecenas.                       |
+| Maecenas sed.   | Semper auctor neque nec nam aliquam. |
 
 Vulputate odio ut enim blandit volutpat maecenas volutpat blandit.
 Pulvinar etiam non quam lacus.
@@ -377,12 +380,12 @@ Phasellus egestas tellus rutrum tellus pellentesque eu tincidunt tortor.
 
 <context label="Table:Sit"/>
 <context caption="Sit amet cursus sit amet dictum sit"/>
-|      Sit       |       Eget        |              Cursus               |
-| -------------- | ----------------- | --------------------------------- |
-| Sit amet.      | Tortor posuere.   | Viverra orci sagittis eu.         |
-| Nibh praesent. | Lectus urna duis. | Nullam ac tortor vitae.           |
-| Vel risus.     | Dolor sit amet.   | Purus faucibus ornare.            |
-| Ac turpis.     | At consectetur.   | Cursus mattis molestie a iaculis. |
+|      Sit       |              Cursus               |
+| -------------- | --------------------------------- |
+| Sit amet.      | Viverra orci sagittis eu.         |
+| Nibh praesent. | Nullam ac tortor vitae.           |
+| Vel risus.     | Purus faucibus ornare.            |
+| Ac turpis.     | Cursus mattis molestie a iaculis. |
 
 Massa tincidunt nunc pulvinar sapien.
 Mattis aliquam faucibus purus in massa tempor nec feugiat.

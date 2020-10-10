@@ -1,4 +1,4 @@
-using typesetting.style.JArticleA4;
+using typesetting.style.basic.JArticleA4;
 
 namespace Typesetting {
 namespace Style {
@@ -6,6 +6,7 @@ namespace Style {
     class BookA4 : Typesetting.Style.ArticleA4 {
         var fontSize = 10.0;
         @style.title.style = "StandardBook";
+        @style.chapter.available = true;
         @style.chapter.style = "StandardBook";
         @style.margin = {
                 "left":                 76.7,

@@ -16,6 +16,10 @@ Small and Easy, but Beautiful Design For You
 
 # イントロダクション
 
+まず KiTTy 自身のご紹介と類似製品との比較、
+およびそれらに対する KiTTy の価値と利用シーンについてご紹介いたします。
+また、サポート機能の一覧を簡単に提示いたします。
+
 ## KiTTy とは
 
 **KiTTy** は **Ki**nx **T**iny **Ty**pesetting を意味し、
@@ -52,7 +56,7 @@ Kinx をインストールすることですぐに使えるようになります
 
 ただし、小さく、そして簡単に使える代わりにトレードオフとして限られた機能[^1]しか提供されないといった欠点があります。
 また、組版スピードは**非常に遅い**です。
-本文書をコンパイルするのに約 3 分ほどかかります。
+本文書をコンパイルするのに約 4 分ほどかかります。
 パフォーマンスの改善は 1 つの課題ですが、小さなプロジェクトで個人的に利用することにフォーカスしています。
 
 [^1]: 「限られた機能」に関しては、「\\nameref{機能概要}」を参照してください。
@@ -127,10 +131,12 @@ WYSIWYG で実現されているワープロソフトでの管理は大変困難
 ### 組版機能
 
 KiTTy は組版機能として、以下の機能をサポートしています。
+具体的な機能の内容に関しては、「\\nameref{機能概要}」を参照してください。
 なお、カーニングは現在サポートしていません。
 
 *   ハイフネーション・ジャスティフィケーション・行分割
 *   ウィドウ／オーファン
+*   マルチカラム
 *   箇条書き
 *   数式
 *   イメージ
@@ -167,6 +173,12 @@ KiTTy は組版機能として、以下の機能をサポートしています�
 
 # さあ始めよう
 
+KiTTy を実際に始めるための準備と、
+簡単な例を通した使い方をご紹介いたします。
+なお、準備に関しては Windows と Linux で異なりますが、
+あらかじめ準備されているフォントを同じように利用する限り Windows、Linux で同じ出力が得られるようになっていますので、
+どちらで使用しても問題ありません。
+
 ## インストール
 
 インストールは以下の 2 ステップを実施します。
@@ -174,21 +186,131 @@ KiTTy は組版機能として、以下の機能をサポートしています�
 1. Kinx のインストール
 2. KiTTy 追加モジュールのインストール
 
+### Linux
+
+Linux では以下のようにモジュールをダウンロードします。
+`v0.15.2` は KiTTy ライブラリが正式に追加されたバージョンです。
+最新バージョンを使用する場合は書き換えてください。
+ワークディレクトリを作成し、移動してください。
+
+```:lineNumber=false
+$ mkdir temp
+$ cd temp
+```
+
+最初に kinx モジュールをダウンロードし展開し、
+次に KiTTy パッケージをダウンロードして展開します。
+
+```:lineNumber=false
+$ curl -L \
+    https://github.com/Kray-G/kinx/releases/download/v0.15.2/package_linux-amd64.tar.gz \
+    --output package_linux-amd64.tar.gz
+$ tar -xvf package_linux-amd64.tar.gz
+$ curl -L \
+    https://github.com/Kray-G/kinx/releases/download/v0.15.2/package_kitty.zip \
+    --output package_kitty.zip
+$ unzip package_kitty.zip
+```
+
+展開するとバージョン番号のフォルダができますので、
+移動して `install.sh` コマンドを実行します。
+
+```:lineNumber=false
+$ cd v0.15.2
+$ sudo ./install.sh
+```
+
+これでインストールは完了です。
+実行フィルの位置を確認してみましょう。
+
+```:lineNumber=false
+$ which kinx
+/usr/bin/kinx
+```
+
+### Windows
+
+Windows では \\url\[https://github.com/Kray-G/kinx/releases\]{Release ページ}から最新のパッケージ（以下 2 点）をダウンロードします。
+
+*   package_win64.zip
+*   package_kitty.zip
+
+それぞれ展開し、`package_kitty.zip` の中身を lib フォルダ配下にコピーします[^winbuild]。
+
+> \\noindent その際、lib 配下に fonts、phantomjs フォルダが配置されるようにしてください。
+> 圧縮ファイル内のファイル構成が必ずしもそうなっていない可能性があります。
+
+[^winbuild]: 現時点でインストーラは用意できていませんが、将来的に Windows インストーラを用意する予定です。
+
 ## ビルド
 
 通常、ビルドから実施する必要はありません。
-既にインストーラが提供されており、手順にしたがってインストールを実施することで本システムを利用することができます。
+既にビルドされた実行モジュールが提供されており、手順にしたがってインストールを実施することで本システムを利用することができます。
 あえてビルドから実行したい、といった場合は以下の手順によってビルドを実施できます。
+
+### Linux
+
+Github よりクローンし、make します。
+
+```:lineNumber=false
+$ git clone https://github.com/Kray-G/kinx.git
+$ cd kinx
+$ make
+```
+
+インストールします。
+
+```:lineNumber=false
+$ git clone https://github.com/Kray-G/kinx.git
+$ cd kinx
+$ sudo make install
+$ sudo make kitty-install
+```
+
+### Windows
+
+Github よりクローンし、make します。
+
+```:lineNumber=false
+$ git clone https://github.com/Kray-G/kinx.git
+$ cd kinx
+$ make.cmd
+```
+
+特に現在はインストール用のコマンドを用意していませんが、
+ビルドした環境で使用可能です。
+ビルドした環境でご使用ください。
 
 ## hello, world
 
 次の文書を作成し、`helloworld.md` ファイルとして保存します。
 
 ```markdown:lineNumber=false
+% Hello Kinx Tiny Typesetting
+% Your name
+% October 7, 2020
+
+<param style="ArticleA4"/>
+
+# Greeting
 hello, world
 ```
 
+以下のように `kxkitty` コマンドを実行することで、`helloworld.pdf` が作成されます。
+
+```:lineNumber=false
+$ kxkitty helloworld.md
+```
+
+なお、現在はサンプル程度の記載が必要ですが、
+もう少しシンプルなサンプルを提示できるよう改善する予定です。
+
 # 機能概要
+
+ここでは機能の概要を説明いたします。
+本書自体 KiTTy で組版されていますので、
+本書で実現できていることはすべて実現可能です。
+まずは色々と試してみましょう。
 
 ## 組版機能
 
@@ -215,16 +337,78 @@ Franklin M. Liang のアルゴリズムに基づくハイフネーションを�
 
 *   セクション名がページの最後に取り残されるケースを抑止。
     *   この場合、セクション名ごと次のページに追い出されます。
-*   複数行パラグラフにおいて、最後の行のみ次のページに送られるケースを抑止。
-    *   この場合、最後の 2 行分が次のページに追い出されます。
 *   複数行パラグラフにおいて、最初の行のみ前のページに残るケースを抑止。
     *   この場合、全ての行が次のページに追い出されます。
     *   この処理の結果としてセクションが残る場合、セクション自体も次のページに追い出されます。
+*   複数行パラグラフにおいて、最後の行のみ次のページに送られるケースを抑止。
+    *   この場合、最後の 2 行分が次のページに追い出されます。
 
 これらの処理は自動的に行われます。
 特に文書内に指示を記載する必要はありません。
 ただし、全てのケースで正しく動作をする訳ではありませんので、
 うまくレイアウトされない場合は必要に応じて `<pagebreak/>` コマンドを使って改ページを行ってください。
+
+<pagebreak/>
+
+### マルチカラム
+
+マルチカラムに対応しています。
+`<set-column value="N"/>` で N カラムに設定されます。
+元に戻す場合は `<set-column value="1"/>` と指定します。
+ただし、あまり N を大きくすると行幅が狭くなるのでレイアウトが崩れやすくなります。
+ページの最下段までテキストが到達した時点でカラムの先頭に戻ります。
+
+高さを指定したい場合は、`height` 属性を使用します。
+`height` 属性には、例えば `10em` のような形で値に単位を付けることが可能です。
+`<set-column value="N" height="12em" />` で N カラムで高さを 12em に設定します。
+
+
+脚注に関しては、カラムごとに出力されず常にページ全体として処理されます。
+以下は 2 カラムで構成する例です。
+夏目漱石「吾輩は猫である[^iamacat]」の冒頭の一節です。
+
+[^iamacat]: \\url\[https://ja.wikipedia.org/wiki/%E5%90%BE%E8%BC%A9%E3%81%AF%E7%8C%AB%E3%81%A7%E3%81%82%E3%82%8B\]{「吾輩は猫である」（夏目漱石）}
+
+---
+
+<set-column value="2" height="28em" />
+
+\\font\[type=sans\]{\\bold{一}}
+
+\\ruby\[わがはい\]{吾輩}は猫である。
+名前はまだ無い。
+
+どこで生れたかとんと\\ruby\[けんとう\]{見当}がつかぬ。
+何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
+吾輩はここで始めて人間というものを見た。
+しかもあとで聞くとそれは書生という人間中で一番\\ruby\[どうあく\]{獰悪}な種族であったそうだ。
+この書生というのは時々我々を\\ruby\[つかま\]{捕}えて\\ruby\[に\]{煮}て食うという話である。
+しかしその当時は何という考もなかったから別段恐しいとも思わなかった。
+ただ彼の\\ruby\[てのひら\]{掌}に載せられてスーと持ち上げられた時何だかフワフワした感じがあったばかりである。
+掌の上で少し落ちついて書生の顔を見たのがいわゆる人間というものの\\ruby\[みはじめ\]{見始}であろう。
+この時妙なものだと思った感じが今でも残っている。
+第一毛をもって装飾されべきはずの顔がつるつるしてまるで\\ruby\[やかん\]{薬缶}だ。
+その\\ruby\[ご\]{後}猫にもだいぶ\\ruby\[あ\]{逢}ったがこんな\\ruby\[かたわ\]{片輪}には一度も\\ruby\[でく\]{出会}わした事がない。
+のみならず顔の真中があまりに突起している。
+そうしてその穴の中から時々ぷうぷうと\\ruby\[けむり\]{煙}を吹く。
+どうも\\ruby\[む\]{咽}せぽくて実に弱った。
+これが人間の飲む\\ruby\[たばこ\]{煙草}というものである事はようやくこの頃知った。
+
+この書生の掌の\\ruby\[うち\]{裏}でしばらくはよい心持に坐っておったが、しばらくすると非常な速力で運転し始めた。
+書生が動くのか自分だけが動くのか分らないが\\ruby\[むやみ\]{無暗}に眼が廻る。
+胸が悪くなる。
+\\ruby\[とうてい\]{到底}助からないと思っていると、どさりと音がして眼から火が出た。
+それまでは記憶しているがあとは何の事やらいくら考え出そうとしても分らない。
+
+<set-column value="1"/>
+
+---
+
+ここでは高さを 28em に設定しています。
+高さを自動で調整することはできませんので、
+調整したい場合は個別に直接値を指定する必要があります。
+高さがページ下限に達した場合はそこで自動的に折り返されます。
+また、高さを指定しなければ自動的にページ下限で折り返されます。
 
 <pagebreak/>
 
@@ -335,8 +519,8 @@ KiTTy は \\KaTeX を内蔵しており、数式を表現することも可能�
 
 インラインで数式を扱う場合は `$` で囲みます。
 例えば、`$E = mc^2$` と記載すると、$E = mc^2$ と表現されます。
-また、インテグラルなどの高さのある表記をインラインで記載すると、
-例えば \\ref{Math1} と同じ `$\\int\_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$` を記載すると、
+また、インテグラルなどの高さのある表記をインラインで記載した場合、
+例えば、数式 \\ref{Math1} と同じ `$\\int\_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$` を記載すると、
 $\\int\_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ と表現されます。
 なお、`$` で括った中では　Markdown の記法と重なるため、
 `\` や `_` を `\` でエスケープする必要があることにご注意ください。
@@ -479,7 +663,7 @@ Chart.js[^ChartJs] のデータそのものを `options` フィールドに記�
     }
     ```
 
-これは図 \\ref{Fig:RadarExample} のように出力されます。
+これは \\nameref{Fig:RadarExample} のように出力されます。
 
 ```chart
 {
@@ -832,7 +1016,7 @@ and the font will be restored here.」
 *   \\color\[C=0.5,M=0.8,Y=0.2,K=0.0\]{\\bold{CMYK}.
     This line should be colored by CMYK value of `CMYK=0.5,0.8,0.2,0.0`.}
 
-サポートされる色の名称に関しては、「\\nameref{色名称一覧}」を参照してください。
+サポートされる色の名称に関しては、「\\nameref{色一覧}」を参照してください。
 
 ### 合字・特殊文字
 
@@ -1021,7 +1205,7 @@ Small and Easy, but Beautiful Design For You
 相互参照をサポートしています。
 相互参照は以下に対して行うことが可能です。
 
-<context label="Table:CrssReference"/>
+<context label="Table:CrossReference"/>
 <context caption="相互参照コマンド一覧"/>
 <context limit-column="0"/>
 
@@ -1038,8 +1222,8 @@ Small and Easy, but Beautiful Design For You
 ### 引用
 
 引用は以下のように行頭に `>` を付けて記述します。
-引用中に Markdown コマンド（\\nameref{Markdown コマンド}）を使用することはできませんが、
-KiTTy コマンド（\\nameref{KiTTy コマンド}）を使用することはできます。
+引用中に Markdown のパラグラフ・コマンド（\\nameref{パラグラフ・コマンド}）を使用することはできませんが、
+インライン・コマンド（\\nameref{インライン・コマンド}）、KiTTy コマンド（\\nameref{KiTTy コマンド}）を使用することはできます。
 また、引用はネストすることが可能です。
 その場合、引用は全て段落として認識されます。
 インデントをしない場合、段落の冒頭に `\\noindent` を付けることで解除します。
@@ -1199,65 +1383,485 @@ PDF のしおり機能にも対応しています。
 
 [^exc:section]: 例外として \\TeX、\\LaTeX、\\KaTeX のみそれぞれ `TeX`、 `LaTeX`、 `KaTeX` に置き換えられます。
 
-# コマンド
+# コマンド詳細
+
+本章では利用可能なコマンドを説明します。
+コマンドには大きく、Markdown としてのコマンド、KiTTy としてのコマンド、の 2 種類があります。
+Markdown としてのコマンドは、実際の Markdown 記法でサポートされているもの、
+および HTML として KiTTy 用に特別に解釈されるものがあります。
+KiTTy としてのコマンドは、基本的にパラグラフ内で使用するコマンドですが、
+`\` で始まるコマンドとなります。
+この文字は Markdown ではエスケープ文字として扱われるため `\\command` の形で記載します。
 
 ## Markdown コマンド
 
-### サポート Markdown コマンド
+### パラグラフ・コマンド
 
-Markdown の以下のコマンドをサポートしています。
-完全にサポートされていない場合がありますので、
-注意事項をご確認ください。
+基本的には Markdown の記法を解釈しますが、個別に条件がある場合があります。
+以下の表を参照してください。
 
-#### パラグラフ・コマンド
+<context label="Table:MarkdownParagraph"/>
+<context caption="Markdown パラグラフ・コマンド"/>
+<context limit-column="0"/>
 
-|  コマンド  |         記載方法         | 注意事項 |
-| ---------- | ------------------------ | -------- |
-| パラグラフ | 空行で区切って表示する。 |          |
+|    コマンド    |                                                       内容                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| パラグラフ     | 空行で区切って記載。                                                                                              |
+| ラインブレーク | 行末に空白を 2 つ配置した行。                                                                                     |
+| コードブロック | 空白 4 文字で始まる行。または <backq3 /> で囲ったパラグラフ。                                                     |
+| 引用           | `>` で始まる行。                                                                                                  |
+| 見出し         | `#` で始まる行。下線（`==`、`--`）を使う形式は未サポート。                                                        |
+| 箇条書き       | `*` で始まる行。数字での箇条書きは `1.` 等の数値で始まる行。 空行を挟むケースは不可。                             |
+| 表             | 通常の Markdown 形式での表形式をサポート。追加で指定したいパラメータは `<context />` コマンドを使用する。         |
+| イメージ       | パラグラフに `![...](...)` のみ単独で記載された場合。単独で表れていない場合はインライン・コマンドとして扱われる。 |
+| 脚注           | `[^name]:` で始まる行。`name` は任意。（対応する脚注マークはインライン・コマンド）                                |
 
-#### インライン・コマンド
+### インライン・コマンド
 
-| コマンド | 記載方法 | 注意事項 |
-| -------- | -------- | -------- |
-| 脚注     |          |          |
+こちらも基本的には Markdown の記法を解釈しますが、個別に条件がある場合があります。
+以下の表を参照してください。
 
+<context label="Table:MarkdownInline"/>
+<context caption="Markdown インライン・コマンド"/>
+<context limit-column="0"/>
+
+|       コマンド       |                        内容                         |
+| -------------------- | --------------------------------------------------- |
+| イタリック           | `*`～`*` で囲った文字列。                           |
+| ボールド             | `**`～`**` で囲った文字列。                         |
+| ボールドイタリック   | `***`～`***` で囲った文字列。                       |
+| インライン・コード   | <backq1 />～<backq1 /> で囲った文字列。             |
+| インライン・イメージ | `![...](...)` 形式で記載。                          |
+| リンク               | URL を自動認識。`[...](...)` 形式は現在未サポート。 |
+| 脚注                 | `[^name]` で記載。`name` は任意。                   |
 
 ### HTML コマンド
+
+Markdown 記法の中に、HTML で記載するコマンドがいくつか存在します。
+主に文章中には表示されず、パラメータの設定や制御を目的としたものです。
+
+<context label="Table:HtmlCommand"/>
+<context caption="HTML コマンド"/>
+<context limit-column="0"/>
+
+|     コマンド      |                                                内容                                                |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| `<toc />`         | 目次を表示する。最初のチャプターの前に指定する。`with` 属性に `lot`、`lof` を指定可能。            |
+| `<param />`       | ページの初期値を設定する。最初のチャプターの前に指定する。                                         |
+| `<context />`     | 一部の機能で必要な追加パラメータを一時的に設定する。使用可能なパラメータは、対象となる機能による。 |
+| `<clear-float />` | フローティングされた図への回り込みを強制的に解除する。                                             |
+| `<pagebreak />`   | ページ区切りを強制的に挿入し、改ページ処理を行う。                                                 |
+| `<set-column />`  | カラム数を設定する。`value` 属性でカラム数を指定し、`height` 属性で高さを指定する。                |
+| `<style-info />`  | スタイルに関するパラメータを変更する。`name`、`value` 属性で指定する。                             |
+| `<appendix />`    | Apendix の始まりを示す。                                                                           |
 
 ## KiTTy コマンド
 
 ### パラグラフ処理コマンド
 
-パラグラフ処理コマンドとは、ブロックを生成し、そのブロック内をパラグラフとして認識するコマンドです。
+パラグラフ処理コマンドとは、`{}` 内をブロック（スコープ）として扱い、
+そのブロック内をパラグラフとして認識・処理するコマンドです。
 
-### 単処理コマンド
+<context label="Table:KiTTyCommandParagraph"/>
+<context caption="パラグラフ処理コマンド"/>
+<context limit-column="0"/>
 
-# 機能拡張
+|      コマンド      |                                                                   内容                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `\bigger{}`        | フォントサイズを +1 する。                                                                                                               |
+| `\smaller{}`       | フォントサイズを -1 する。                                                                                                               |
+| `\bold{}`          | フォントをボールド体にする。                                                                                                             |
+| `\itaric{}`        | フォントをイタリック体にする。                                                                                                           |
+| `\color[params]{}` | 色を変更する。<br/>`red` などの色名称、および `R=r,G=g,B=b`、`C=c,M=m,Y=y,K=k` による色指定が可能。                                      |
+| `\font[params]{}`  | フォントを変更する。`\font[size=1em]{}` のように指定する。<br/>`size` ... フォントサイズを指定する。<br/>`name` ... フォントを変更する。 |
+| `\footnote{}`      | 脚注を設定する。                                                                                                                         |
+| `\monotype{}`      | 等倍フォントを使用するように変更する。                                                                                                   |
+| `\raise[params]{}` | Y 軸のオフセットを変更し、上に移動させる。`height` ... 位置オフセットを指定する。                                                        |
+| `\lower[params]{}` | Y 軸のオフセットを変更し、下に移動させる。`height` ... 位置オフセットを指定する。                                                        |
+| `\sans{}`          | ゴシック体（Sans Serif 体）を使用するように変更する。                                                                                    |
+| `\url[params]{}`   | リンクテキストを生成する。`param` に URL を記載する。                                                                                    |
 
-## スタイル
+### 単独処理コマンド
 
-### スタイルの追加
+単独処理コマンドとは、`{}` 内もパラメータの一種として扱い、
+パラグラフ処理を行わないコマンドのことを指します。
+なお、`[]` も `{}` も省略可能ですが、次の単語との区切りを明確にする必要がある場合は、
+`{}` を付ける必要があります。
+例えば、`\\noindent{}` と記載します。
+
+<context label="Table:KiTTyCommandStandalone"/>
+<context caption="単独処理コマンド"/>
+<context limit-column="0"/>
+
+|          コマンド          |                                              内容                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| `\TeX`                     | \\TeX のロゴを出力する。                                                                        |
+| `\LaTeX`                   | \\LaTeX のロゴを出力する。                                                                      |
+| `\KaTeX`                   | \\KaTeX のロゴを出力する。                                                                      |
+| `\noindent`                | インデント処理を打ち消す。インデントしないパラグラフを生成する。                                |
+| `\apos`                    | アポストロフィーを出力する。                                                                    |
+| `\hs`                      | 区切りスペース（小文字 i の幅）のサイズ分の空白を出力する。                                     |
+| `\hspace{width}`           | `width` で指定された幅（単位指定可）分 X 座標を変更する（プラスの値で右方向）。                 |
+| `\vspace{height}`          | `height` で指定された高さ（単位指定可）分 Y 座標を変更する（プラスの値で下方向）。              |
+| `\ref{label}`              | `label` で指定された番号に対するクロス・リファレンスを生成する。                                |
+| `\pageref{label}`          | `label` で指定された手ページに対するクロス・リファレンスを生成する。                            |
+| `\textref{label}`          | `label` で指定されたテキストに対するクロス・リファレンスを生成する。                            |
+| `\nameref{label}`          | `label` で指定された「番号＋テキスト」に対するクロス・リファレンスを生成する。                  |
+| `\pack{text}`              | `text` の内容を改行させずひとまとまりとして認識させる。                                         |
+| `\ruby[Ruby]{Parent-Text}` | `Parent-Text` の上部にルビ（`Ruby`）を表記する。（左記表記での例：\\ruby\[Ruby\]{Parent-Text}） |
+
+# 機能拡張方法
+
+KiTTy での機能追加の方法に関する概要を記載します。
+本章だけでは実際に追加するために必要な情報の全てを書ききれませんので、
+追加方法は別途まとめる予定です。
+現時点では大まかな機能拡張方法の概要と、
+追加の仕方のみ説明いたします。
+
+## 各種スタイル定義の追加
+
+### 文書スタイルの追加
+
+文書全体のスタイル・ファイルはインストール・フォルダを `$INSTALL` として以下の位置に配置します。
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/additional/*.kx
+```
+
+ここに配置するスタイルは順不同で読み込まれるため、スタイル同士で関連（クラス継承等）させることはできません。
+基準となる（親クラスとできる）標準スタイルは以下にあります。
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/basic/*.kx
+```
+
+`additional` フォルダ配下にはファイルを配置するだけで使用可能となりますが、
+`basic` 配下に追加する場合は、以下のファイルにロード処理を追加する必要がありますのでご注意ください。
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/Styles.kx
+```
+
+したがって、通常は `additional` 配下にスタイル定義ファイルを追加するようにしてください。
+
+#### スタイル定義ファイルの追加
+
+以下がデフォルトで配置されているスタイル定義ファイル（`JArticleA4_2Cols`）の例です。
+
+```
+using typesetting.style.basic.JArticleA4;
+
+namespace Typesetting {
+namespace Style {
+
+    class JArticleA4_2Cols : Typesetting.Style.JArticleA4 {
+        @style.columns = 2;
+    }
+
+} # namespace Style
+} # namespace Typesetting
+```
+
+クラス名がスタイル名となります。
+また、名前空間として `Typesetting.Style` に属している必要があります。
+`JArticleA4` スタイルを継承し、カラム数を 2 に設定している例になります。
+現時点で全てのスタイルの元となる `ArticleA4` スタイルの定義は `basic/ArticleA4.kx` にあります。
+設定可能な項目は、本スタイル定義ファイルを参照してください。
+
 ### タイトル・スタイルの追加
 
 タイトルの表現方法をプラグインできます。
 タイトルページとして独立したページとすることも可能です。
+タイトルページのスタイル設定定義は以下の位置に存在します。
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/title/*.kx
+```
+
+タイトル・スタイルを変更する場合は、以下のようにスタイル設定値を設定します。
+ここで指定される `yourstylename` は、
+（後述する方法でスタイルを追加した場合）「スタイル定義ファイルの拡張子を除くファイル名」となります。
+
+```
+<style-info name="title.style" value="yourstylename" />
+```
+
+#### タイトル・スタイルの例
+
+例として、`StandardArticle` の定義例を見てみましょう。
+
+`Typesetting.Style.Title[__FILE__.stem()]` という記述によって、
+ファイル名の拡張子を除いた部分をプロパティ名とし、
+`Typesetting.Style.Title` に関数オブジェクトとして登録するように記述します。
+
+```
+namespace Typesetting {
+namespace Style {
+
+    Typesetting.Style.Title[__FILE__.stem()]
+        = function(info, context, core, title, opts) {
+            # 描画ロジックを記載。
+        };
+
+} # namespace Style
+} # namespace Typesetting
+```
+
+事前に定義されているタイトル・スタイルに関しては、
+「\\nameref{タイトル・デザイン}」をご参照ください。
 
 ### チャプター・スタイルの追加
 
 チャプターのスタイルもプラグインできます。
+チャプターのスタイル設定定義は、
+インストール・フォルダを `$INSTALL` として以下の位置に存在します。
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/chapter/*.kx
+```
+
+チャプター・スタイルを変更する場合は、以下のようにスタイル設定値を設定します。
+ここで指定される `yourstylename` は、
+（後述する方法でスタイルを追加した場合）「スタイル定義ファイルの拡張子を除くファイル名」となります。
+
+```
+<style-info name="chapter.style" value="yourstylename" />
+```
+
+#### チャプター・スタイルの例
+
+例として、`StandardBook` の定義例を見てみましょう。
+
+`Typesetting.Style.Chapter[__FILE__.stem()]` という記述によって、
+ファイル名の拡張子を除いた部分をプロパティ名とし、
+`Typesetting.Style.Chapter` に関数オブジェクトとして登録するように記述します。
+
+```
+namespace Typesetting {
+namespace Style {
+
+    Typesetting.Style.Chapter[__FILE__.stem()]
+        = function(info, context, core, text, opts) {
+            # 描画ロジックを記載。
+        };
+
+} # namespace Style
+} # namespace Typesetting
+```
+
+事前に定義されているチャプター・スタイルに関しては、
+「\\nameref{チャプター・デザイン}」をご参照ください。
 
 ## 禁則処理
 
 ### 禁則処理の追加
 
+禁則処理は以下のフォルダに配置しています。
+なお、日本語内の英文に対する処理と英文のみの文章で使用する処理は同じであるため、
+英文用の処理は日本語用の処理と同じものを使用します。
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/lang/*.kx
+```
+
+禁則処理を変更する場合は、以下のようにスタイル設定値を設定します。
+ここで指定される `yourprocname` は、
+（後述する方法で処理を追加した場合）「禁則処理定義ファイルの拡張子を除くファイル名」となります。
+
+```
+<style-info name="hyphenationRule" value="yourprocname" />
+```
+
+禁則処理定義ファイルに記載する内容としては、
+`Typesetting.insertGlue[__FILE__.stem()]` の形で関数オブジェクトを登録するようにプログラムを記載します。
+例えば、`ja.kx` であれば、`Typesetting.insertGlue.ja` に禁則処理のための関数オブジェクトを登録するように記述します。
+
+```
+Typesetting.insertGlue[__FILE__.stem()] = _function(info, Linebreak, wordlist, nodes) {
+    # 禁則処理のロジックを記載。
+
+    wordlist.each { &(node, i):
+        # ...
+        nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
+        nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 0));
+        nodes.push(node);
+        # ...
+    };
+};
+```
+
+#### ルールの作成
+
+`wordlist` に解析後の単語リストが格納されているため、
+その内容を見て `nodes` 配列に追加していきます。
+以下のような形でルールを作っていきます。
+
+*   ノードの前で改行を禁止する場合、以下の形になるようにノードの前に挿入する。
+
+```
+nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+nodes.push(node);   # 対象のノード
+```
+
+*   ノードの後で改行を禁止する場合、以下の形になるようにノードの前に挿入する。
+
+```
+nodes.push(node);   # 対象のノード
+nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+```
+
+*   ノードの後で必ず改行させ場合、以下の形になるようにノードの後に挿入する。
+
+```
+nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
+nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+nodes.push(node);   # 対象のノード
+```
+
+*   ノードの前にグルーを挿入する場合、以下の形になるようにノードの前に挿入する。
+
+```
+nodes.push(Linebreak.Glue(width, stretch, shrink));
+    # width ..... 空白の幅
+    # stretch ... 空白が伸びる場合の最大の伸び幅
+    # shrink .... 空白が縮む場合の最大の縮み幅
+nodes.push(node);   # 対象のノード
+```
+
+最終的に `nodes` 配列が禁則処理を含む単語配列となります。
+この情報を元にハイフネーション処理が行われます。
+
 ## フォント
 
 ### 新規フォントの追加
+
+フォントを追加する場合、以下の位置にフォントファイルを格納してください。
+なお、現時点では TrueType フォントのみをサポートしています[^fontlimit]。
+
+```:lineNumber=false
+$INSTALL/lib/fonts
+```
+
+[^fontlimit]: libharu の制限です。
+
 ### OS 組込みフォントの追加
+
+OS 用の組込みフォントを使用する場合は、フォントファイル名を指定してください。
+その際、Windows と Linux で検索パスが異なります。
+
+<context label="Table:OSFonts"/>
+<context caption="OS 組込みフォントの検索パス"/>
+
+|   OS    |          検索パス           |
+| ------- | --------------------------- |
+| Windows | `C:/Windows/Fonts`          |
+| Linux   | `/usr/share/fonts/truetype` |
+
+上記パスからの相対パスで指定してください。
+例えば、Windows で `Times New Roman` を使用する場合、
+以下のようにします。
+
+```
+<font-load info="Times,serif,regular,times.ttf" />
+
+* This is a Regular Style of a default font.
+* \\font\[name=Times\]{Times New Roman of Regular Style}
+```
+
+<font-load info="Times,serif,regular,times.ttf" />
+
+* This is a Regular Style of a default font.
+* \\font\[name=Times\]{Times New Roman of Regular Style}
 
 ## コマンド
 
-### KiTTy コマンドの追加
+KiTTy コマンドの追加も可能です。
+KiTTy コマンドは以下の場所に配置されています。
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/command/inline/*.kx
+$INSTALL/lib/std/typesetting/command/paragraph/*.kx
+```
+
+`inline` 配下が単独処理コマンド（\\nameref{単独処理コマンド}）で、
+`paragraph` 配下がパラグラフ処理コマンド（\\nameref{パラグラフ処理コマンド}）です。
+
+この場所にファイルを配置することで、
+自動的に新しいコマンドが追加されて使用できるようになります。
+なお、KiTTy コマンドの実装はファイル名がコマンド名とはなっていますが、
+実際にはクラス名がコマンド名として使用されます。
+現状では全てクラス名とファイル名をある程度揃えてあります。
+コマンド名はクラス名と大文字小文字含めて完全一致するか、
+lower ケースで一致した場合に有効となります。
+
+### 単独処理コマンドの定義
+
+単独処理コマンドの定義の雛形は以下の通りです。
+必要な実装は `exec` メソッドです。
+
+ここでは `WordSet` オブジェクトを返していますが、
+`Word` オブジェクト、`LineBreak.Box` オブジェクト、`LineBreak.Glue` オブジェクト、
+`LineBreak.Penalty` オブジェクト、または null を返すことができます。
+必要に応じて使い分けます。
+
+```
+namespace Typesetting {
+namespace Command {
+
+    class Command(info_, context_) {
+        public exec(params) {
+            var ws = new Typesetting.WordSet(info_);
+            # ...
+            return ws;
+        }
+    }
+
+} # namespace Command
+} # namespace Typesetting
+```
+
+<context label="Table:StandaloneKiTTyCommandObject"/>
+<context caption="単独処理コマンドの返却オブジェクト種別"/>
+<context limit-column="0"/>
+
+|  返却オブジェクト   |                                         内容                                         |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| `WordSet`           | 複数の文字や単語をまとめて返す際に使用します。                                       |
+| `Word`              | 単独の文字や単語を返します。                                                         |
+| `LineBreak.Box`     | テキスト幅が決まっている場合など、`WordSet` で表現できない場合に使用します。         |
+| `LineBreak.Glue`    | グルーを挿入します。                                                                 |
+| `LineBreak.Penalty` | ペナルティを挿入します。                                                             |
+| null                | 単にコンテキストを変更する場合などに返します。文字や単語が存在しないことを伝えます。 |
+
+### パラグラフ処理コマンドの定義
+
+パラグラフ処理コマンドの定義の雛形は以下の通りです。
+クラスが定義される名前空間が `ParagraphCommand` となり、
+クラスで使用される実装が `start`、`end`、`translate` メソッドになります。
+なお、定義されていなければ無視されます。
+
+```
+namespace Typesetting {
+namespace ParagraphCommand {
+
+    class Command(info_, context_) {
+        public start() {
+            # `{` が開始した際に実施する処理
+        }
+        public end() {
+            # 対応する `}` が現れた際に実施する処理
+        }
+        public translate(value) {
+            # `{` と `}` に挟まれたパラグラフ情報が value として入力される
+            # value はパラグラフ処理された後なので、WordSet オブジェクト等の配列
+            # value に対して変換が必要、または情報を追加する場合、ここで処理を行う
+            # end() 処理の前に呼ばれる
+        }
+    }
+
+} # namespace Command
+} # namespace Typesetting
+```
 
 <appendix/>
 
@@ -1328,13 +1932,47 @@ Markdown の以下のコマンドをサポートしています。
 スタイル・パラメータを `<style-info />` タグを使用して変更することが可能です。
 各パラメータは `<style-info name="name" value="value" />` の形式で指定します。
 
+以下が欧文用スタイルのデフォルト値です。
+
 <context label="Table:StyleParameter"/>
-<context caption="スタイル・パラメータ一覧"/>
+<context caption="スタイル・パラメータ一覧（欧文用スタイル）"/>
 <context limit-column="0"/>
 
-|  パラメータ名   | ArticleA4 | JArticleA4 |      BookA4      |     JBookA4      |
-| --------------- | :-------: | :--------: | :--------------: | :--------------: |
-| `chapter.style` |     -     |     -      | `"StandardBook"` | `"StandardBook"` |
+|     パラメータ名      |      ArticleA4      |       BookA4        |
+| --------------------- | :-----------------: | :-----------------: |
+| `title.style`         | `"StandardArticle"` |  `"StandardBook"`   |
+| `abstract.title.text` |    `"Abstract"`     |    `"Abstract"`     |
+| `chapter.style`       |          -          |  `"StandardBook"`   |
+| `hyphenationRule`     |       `"en"`        |       `"en"`        |
+| `toc.header`          |    `"Contents"`     |    `"Contents"`     |
+| `toc.lof`             | `"List Of Figures"` | `"List Of Figures"` |
+| `toc.lot`             | `"List Of Tables"`  | `"List Of Tables"`  |
+| `toc.appendix`        |    `"Appendix "`    |    `"Appendix "`    |
+| `table.label`         |      `"Table"`      |      `"Table"`      |
+| `image.label`         |       `"Fig"`       |       `"Fig"`       |
+| `image.fulllabel`     |     `"Figure"`      |     `"Figure"`      |
+
+次に、以下が和文用スタイルのデフォルト値となります。
+
+<context label="Table:StyleParameterJapanese"/>
+<context caption="スタイル・パラメータ一覧（和文用スタイル）"/>
+<context limit-column="0"/>
+
+|     パラメータ名      |     JArticleA4      |     JBookA4      |
+| --------------------- | :-----------------: | :--------------: |
+| `title.style`         | `"StandardArticle"` | `"StandardBook"` |
+| `abstract.title.text` |      `"概要"`       |  `"本章の概要"`  |
+| `chapter.style`       |          -          | `"StandardBook"` |
+| `hyphenationRule`     |       `"ja"`        |      `"ja"`      |
+| `toc.header`          |      `"目次"`       |     `"目次"`     |
+| `toc.lof`             |     `"図目次"`      |    `"図目次"`    |
+| `toc.lot`             |     `"表目次"`      |    `"表目次"`    |
+| `toc.appendix`        |      `"付録 "`      |    `"付録 "`     |
+| `table.label`         |       `"表"`        |      `"表"`      |
+| `image.label`         |       `"図"`        |      `"図"`      |
+| `image.fulllabel`     |       `"図"`        |      `"図"`      |
+
+今後、対応可能なパラメータを随時増やしていく予定です。
 
 # 色一覧
 
