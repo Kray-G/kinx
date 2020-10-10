@@ -352,7 +352,7 @@ namespace Typesetting {
                 var writer = info_.writer;
                 savedPos_ = writer.getPos();
                 savedMargin_ = writer.getMargin();
-                margin_ = writer.makeMarginSize();
+                margin_ = writer.makeMarginSize({ cache: false });
                 limitWidth_ = table.limitWidth ?? limitWidthBase_;
 
                 var fontSize = context_.font.fontSize;
