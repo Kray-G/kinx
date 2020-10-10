@@ -1,3 +1,4 @@
-using typesetting.style.JBookA4;
+using typesetting.style.basic.JBookA4;
+using typesetting.style.additional.*;
 using typesetting.style.title.*;
 using typesetting.style.chapter.*;
