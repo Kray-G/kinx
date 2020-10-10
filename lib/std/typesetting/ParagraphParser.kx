@@ -94,10 +94,8 @@ namespace Typesetting {
             });
         };
         var commandValuePack_;
-        var commandNames = Typesetting.Command.keySet()
-            .filter { => Typesetting.Command[_1].create.isFunction }
-            .join('|');
-        commandNames = commandNames + '|' + commandNames.toLower();
+        var commandNames = Typesetting.Command.keySet().filter { => Typesetting.Command[_1].create.isFunction };
+        commandNames = (commandNames + (commandNames.map { &(p) => p.toLower() })).sort { &(e1, e2) => e2.length() <=> e1.length() }.join('|');
         var commandHead_ = $.regex(new Regex(%!\\(%{commandNames})(?:\[([^\]]*)\])?!), [1, 2]).map { &([name, pbase])
             var name = name.toUpper(0, 1);
             var params;
@@ -139,10 +137,8 @@ namespace Typesetting {
             }
             return @parseEach(value);
         };
-        commandNames = Typesetting.ParagraphCommand.keySet()
-            .filter { => Typesetting.ParagraphCommand[_1].create.isFunction }
-            .join('|');
-        commandNames = commandNames + '|' + commandNames.toLower();
+        commandNames = Typesetting.ParagraphCommand.keySet().filter { => Typesetting.ParagraphCommand[_1].create.isFunction };
+        commandNames = (commandNames + (commandNames.map { &(p) => p.toLower() })).sort { &(e1, e2) => e2.length() <=> e1.length() }.join('|');
         var parCommandStart_ = $.regex(new Regex(%!\\(%{commandNames})\s*(?:\[([^\]]+)\]\s*)?\{!), [1, 2]).map { &([name, pbase]):
             name = name.toUpper(0, 1);
             var command = new Typesetting.ParagraphCommand[name](info_, context_);

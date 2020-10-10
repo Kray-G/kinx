@@ -157,6 +157,10 @@ namespace Typesetting {
             };
         }
 
+        public getStyle() {
+            return style_;
+        }
+
         public setStyle(name, value) {
             name = name.split('.');
             var lastkey = name.pop();
@@ -167,6 +171,16 @@ namespace Typesetting {
             if (style[lastkey]) {
                 style[lastkey] = value;
             }
+        }
+
+        public setColumn(columns, height) {
+            var lineFeedWidth = context_.page.lineFeedWidthRatio * context_.font.fontSize;
+            info_.writer.addY(lineFeedWidth / 2);
+            var h;
+            if (height) {
+                h = Typesetting.Util.getPt(context_, height);
+            }
+            info_.writer.setColumn(columns, h);
         }
 
         public setMultibyteFont(lang) {
@@ -201,6 +215,12 @@ namespace Typesetting {
             context_.appendix = true;
             info_.base.chapter.pretext = info_.base.toc.appendix;
             info_.base.chapter.posttext = "";
+        }
+
+        public drawFullWidthLine(lineWidth) {
+            info_.writer.drawFullWidthLine(lineWidth ?? 0.4);
+            var lineFeedWidth = context_.page.lineFeedWidthRatio * context_.font.fontSize;
+            info_.writer.addY(lineFeedWidth * 1.5);
         }
 
         public toc() {
