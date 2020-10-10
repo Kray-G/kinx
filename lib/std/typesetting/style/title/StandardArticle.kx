@@ -14,7 +14,7 @@ namespace Style {
         if (opts.date) {
             core.util.writeCenter(opts, opts.date, context.font.fontObj, tbase.date.fontSize, tbase.date.lineFeedWidth);
         }
-        writer.addY(tbase.paragraphSkipWidth, true);
+        writer.addY(tbase.paragraphSkipWidth);
         writer.setYHead();
     };
 

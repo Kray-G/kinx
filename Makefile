@@ -180,6 +180,7 @@ install:
 	cp -f ./kinx /usr/bin/kinx
 	cp -f ./kxrepl /usr/bin/kxrepl
 	cp -f ./kxtest /usr/bin/kxtest
+	cp -f ./kxkitty /usr/bin/kxkitty
 	cp -rf lib/* /usr/bin/kinxlib/
 	mkdir -p /usr/bin/kinxlib/include
 	cp -f include/libkinx.h /usr/bin/kinxlib/include/libkinx.h
@@ -232,6 +233,7 @@ main_kxcmd: src/main_kxcmd.c libkinx.so
 	./timex $(CC) $(CFLAGS) -o $@ src/main_kxcmd.c fileutil.o -ldl
 	cp -f main_kxcmd kxrepl
 	cp -f main_kxcmd kxtest
+	cp -f main_kxcmd kxkitty
 
 libkinx.so: src/optimizer.c src/parser.c include/parser.tab.h libonig.so $(OBJS) $(DISASM)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm

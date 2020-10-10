@@ -16,6 +16,10 @@ namespace Typesetting {
 
     var space_ = {};
 
+    function getUtf8Length(word) {
+        return (word == '‘' || word == '’' || word == '“' || word == '”') ? 1 : System.isUtf8Bytes(word[0]);
+    }
+
     function setupSpace(info, value) {
         if (space_.prevsize != value.size) {
             space_.prevsize = value.size;
@@ -135,7 +139,7 @@ namespace Typesetting {
         }
     }
 
-    Typesetting.insertGlue.ja = _function(info, Linebreak, wordlist, nodes) {
+    Typesetting.insertGlue[__FILE__.stem()] = function(info, Linebreak, wordlist, nodes) {
         var skipCount;
         var words = [];
         wordlist.each { &(w0, i):
@@ -146,8 +150,8 @@ namespace Typesetting {
             var w2 = wordlist[i+2];
             var w1 = wordlist[i+1];
             if (w1.isGlue && w0.isBox && w0.value.word != "" && w2.isBox && w2.value.word != "") {
-                var l0 = (w0.value.word == '“' || w0.value.word == '”') ? 1 : System.isUtf8Bytes(w0.value.word[0]);
-                var l2 = (w2.value.word == '“' || w2.value.word == '”') ? 1 : System.isUtf8Bytes(w2.value.word[0]);
+                var l0 = getUtf8Length(w0.value.word);
+                var l2 = getUtf8Length(w2.value.word);
                 if (l0 > 1 && l2 > 1) {
                     skipCount = 1;
                 }
@@ -268,7 +272,8 @@ namespace Typesetting {
                     }
                 } else if (notTail_.find(value.word) >= 0) {
                     var prev = words[i-1];
-                    if (prev.isBox && !prev.value.isUtf8) {
+                    var prevIsUtf8 = (prev.isBox && prev.value.word && prev.value.word != "") ? (getUtf8Length(prev.value.word) > 1) : 0;
+                    if (prevIsUtf8) {
                         nodes.pop();
                         if (nodes[-1].isGlue) {
                             nodes.pop();
@@ -283,7 +288,7 @@ namespace Typesetting {
 
                 if (next.isBox && nodes[-1].isBox) {
                     var nextv = next.value;
-                    var l1 = (value.word == '“' || value.word == '”') ? 1 : System.isUtf8Bytes(value.word[0]);
+                    var l1 = getUtf8Length(value.word);
                     if (value.offsetX == 0 && value.offsetY == 0) {
                         if (l1 > 1 && value.word.length() == l1) {
                             var d = value.size - node.width;
@@ -295,7 +300,7 @@ namespace Typesetting {
                     }
 
                     if (i != wlast) {
-                        var l2 = (nextv.word == '“' || nextv.word == '”') ? 1 : System.isUtf8Bytes(nextv.word[0]);
+                        var l2 = getUtf8Length(nextv.word);
                         if (l1 > 1 && noSpaceForNext) {
                             node.width /= 2;
                             var width = value.size / 2;
@@ -308,11 +313,16 @@ namespace Typesetting {
                         } else if (l1 == 1 && l2 > 1) {
                             setupSpace(info, value);
                             nodes.push(Linebreak.Glue(0, space_.stretch, 0));
+                        } else if (l1 == 1 && l2 == 1) {
+                            setupSpace(info, value);
+                            nodes.push(Linebreak.Glue(space_.width, space_.stretch, space_.shrink));
                         }
                     }
                 }
             }
         };
     };
+
+    Typesetting.insertGlue.en = Typesetting.insertGlue.ja;
 
 } # namespace Typesetting

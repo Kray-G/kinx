@@ -1,0 +1,25 @@
+using typesetting.style.basic.BookA4;
+
+namespace Typesetting {
+namespace Style {
+
+    class JBookA4 : Typesetting.Style.BookA4 {
+        var fontSize = 10.0;
+        @style.indentSize = fontSize;
+        @style.hyphenationRule = "ja";
+        @style.noIndentTopOfParagraph = false;
+        @style.toc.header = "目次";
+        @style.toc.lof = "図目次";
+        @style.toc.lot = "表目次";
+        @style.toc.appendix = "付録 ";
+        @style.chapter.pretext = "第 ";
+        @style.chapter.posttext = " 章";
+        @style.abstract.title = { right: true, text: "本章の概要" };
+        @style.table.label = "表";
+        @style.image.label = "図";
+        @style.image.fulllabel = "図";
+        @style.chapter.style = "StandardBook";
+    }
+
+} # namespace Style
+} # namespace Typesetting
