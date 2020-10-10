@@ -283,7 +283,7 @@ namespace Typesetting {
                     var margin = info_.writer.getMargin();
                     margin.left = margin.left + info_.base.footnote.left;
                     info_.writer.setMargin(margin);
-                    var marginSize = info_.writer.makeMarginSize();
+                    var marginSize = info_.writer.makeMarginSize({ fullWidth: true });
                     var fontSize = info_.base.footnote.fontSize;
                     var lineFeedWidthRatio = context_.page.lineFeedWidthRatio;
                     context_.page.lineFeedWidthRatio = info_.base.footnote.lineFeedWidthRatio;

@@ -1,0 +1,16 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Hs(info_, context_) {
+            public exec(params) {
+                fontSize = context_.font.fontSize;
+                fontObj = context_.font.fontObj;
+                var width = info_.measure.spaceWidth(fontObj, fontSize);
+                return Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(fontObj, fontSize, ''));
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

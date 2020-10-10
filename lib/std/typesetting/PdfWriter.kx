@@ -1,5 +1,6 @@
 namespace Typesetting {
 
+    const WRITER_DEFAULT_LINEFEEDWIDTH = 17.5;
     var fontMap_, fontPath_;
     var fontObjSerif_, fontObjSans_, fontObjMonotype_;
     var fontObjSerifBase_, fontObjSansBase_, fontObjMonotypeBase_;
@@ -356,7 +357,8 @@ namespace Typesetting {
         var cols_, curCol_, isColMoved_;
         var pagesize_, direction_;
         var x_, y_, width_, height_, ascent_;
-        var ytop_, ybottom_, isTopOfPage_, lastLineFeedWidth_, floating_, tocBasePage_, setPageToOdd_;
+        var ytop_, ybottom_, colBottom_, colHeight_;
+        var isTopOfPage_, lastLineFeedWidth_, floating_, tocBasePage_, setPageToOdd_;
         var footnotes_ = [];
         var fonts_;
 
@@ -462,11 +464,14 @@ namespace Typesetting {
             return lastLineFeedWidth_;
         }
 
-        public getColumnWidth(pageWidth) {
+        public getColumnWidth(pageWidth, asFullWidth) {
             if (!page_) {
                 @addPage();
             }
             pageWidth ??= page_.getWidth();
+            if (asFullWidth) {
+                return pageWidth - pageMargin_.left - pageMargin_.right;
+            }
             return (pageWidth - pageMargin_.left - pageMargin_.right - (pageMargin_.alley * (cols_ - 1))) / cols_;
         }
 
@@ -524,6 +529,18 @@ namespace Typesetting {
             writer_.drawLine(page_, left, top, width, height, lineWidth, color);
         }
 
+        public drawFullWidthLine(lineWidth, color, pageref) {
+            var margin = @makeMarginSize();
+            if (pageref < 0) {
+                writer_.drawLine(@pages[pageref], margin.left, y_, margin.width, 0, lineWidth, color);
+                return;
+            }
+            if (!page_) {
+                @addPage();
+            }
+            writer_.drawLine(page_, margin.left, y_, margin.width, 0, lineWidth, color);
+        }
+
         public drawBox(left, top, width, height, lineWidth, color, bgcolor, pageref) {
             if (pageref < 0) {
                 writer_.drawBox(@pages[pageref], left, top, width, height, lineWidth, color, bgcolor);
@@ -550,8 +567,12 @@ namespace Typesetting {
             if (!floating_ || floating_.done) {
                 return;
             }
+            var page;
             if (!page_) {
+                page = @pages[-1];
                 @addPage();
+            } else {
+                page = page_;
             }
             var padding = floating_.padding;
             var padding2 = padding * 2;
@@ -559,9 +580,9 @@ namespace Typesetting {
             var top = floating_.top - floating_.height;
             var width = floating_.width;
             var height = floating_.height;
-            writer_.drawImage(page_, floating_.image, left + padding, top + padding, width - padding2, height - padding2);
+            writer_.drawImage(page, floating_.image, left + padding, top + padding, width - padding2, height - padding2);
             if (info_.base.draw.imageBox || floating_.lineWidth > 0) {
-                writer_.drawBox(page_, left, top + height, width, height, floating_.lineWidth);
+                writer_.drawBox(page, left, top + height, width, height, floating_.lineWidth);
             }
             if (floating_.captionHook.isFunction) {
                 floating_.captionHook(floating_.left + floating_.width / 2, floating_.captionY, top, floating_.height);
@@ -634,9 +655,22 @@ namespace Typesetting {
             return pageMargin_.clone();
         }
 
+        private setColumnBottom() {
+            colBottom_ = y_ - colHeight_;
+            if (colBottom_.isUndefined) {
+                return;
+            }
+            var margin = @makeMarginSize();
+            var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom);
+            if (colBottom_ < bottomMin) {
+                colBottom_ = bottomMin;
+            }
+        }
+
         public setPos(pos) {
             x_ = pos.x;
             y_ = pos.y;
+            colBottom_ = null;
         }
 
         public getPos(force) {
@@ -648,29 +682,38 @@ namespace Typesetting {
             return { x: x_, y: y_ };
         }
 
-        public setColumn(cols) {
+        public setColumn(cols, height) {
             if (cols != cols_) {
                 cols_ = cols;
                 curCol_ = 0;
                 x_ = -1;
+                if (colBottom_.isDefined) {
+                    y_ = colBottom_ - lastLineFeedWidth_;
+                }
                 ytop_ = y_;
+                colBottom_ = null;
+                colHeight_ = height;
+                setColumnBottom() if (colHeight_.isDefined);
                 isTopOfPage_ = true;
             }
             marginCache_ = null;
         }
 
-        public makeMarginSize() {
+        public makeMarginSize(opts) {
+            var asFullWidth = opts.fullWidth;
+            var cache = opts.cache ?? true;
             if (!page_) {
                 @addPage();
             }
-            if (!marginCache_) {
+            if (!marginCache_ || !cache) {
+                var curCol = asFullWidth ? 0 : curCol_;
                 var pageHeight = page_.getHeight();
                 var pageWidth = page_.getWidth();
-                var width = getColumnWidth(pageWidth);
+                var width = getColumnWidth(pageWidth, asFullWidth);
                 var ldiff = margin_.left - pageMargin_.left;
                 var rdiff = margin_.right - pageMargin_.right;
-                var pleft = pageMargin_.left + ((width + margin_.alley) * curCol_);
-                var left = margin_.left + ((width + margin_.alley) * curCol_);
+                var pleft = pageMargin_.left + ((width + margin_.alley) * curCol);
+                var left = margin_.left + ((width + margin_.alley) * curCol);
                 marginCache_ = {
                     pageHeight: pageHeight,
                     pageWidth: pageWidth,
@@ -932,6 +975,7 @@ namespace Typesetting {
                 y_ = -1;
                 curCol_ = 0;
                 page_ = null;
+                marginCache_ = null;
             }
         }
 
@@ -978,16 +1022,18 @@ namespace Typesetting {
             }
         }
 
-        public lineBreak(lineFeedWidth) {
+        public lineBreak(lineFeedWidth, stayX) {
             if (y_ < 0) {
                 if (curCol_ > 0) {
                     var margin = makeMarginSize();
                     y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+                    colBottom_ = null;
                 }
                 return false;
             }
             lastLineFeedWidth_ = lineFeedWidth;
-            x_ = -1;
+            x_ = -1 if (!stayX);
+            setColumnBottom() if (colBottom_.isUndefined && colHeight_.isDefined);
             y_ -= lineFeedWidth;
             if (floating_.isDefined && y_ <= floating_.bottom) {
                 writeFloatingImage();
@@ -997,17 +1043,26 @@ namespace Typesetting {
                 return false;
             }
             var bottomMin = (ybottom_ > 0 ? ybottom_ : margin.bottom) + lineFeedWidth;
+            var bottomChk = colBottom_ ?? bottomMin;
             isColMoved_ = false;
-            if (y_ < bottomMin) {
+            if (y_ < bottomChk) {
                 isColMoved_ = true;
-                y_ = -1;
                 if (cols_ > 0) {            
                     curCol_ = (curCol_ + 1) % cols_;
                 }
+                var lastY = y_;
+                y_ = -1;
                 if (curCol_ == 0) {
-                    page_ = null;
-                    isTopOfPage_ = true;
+                    if (lastY < bottomMin) {
+                        page_ = null;
+                        isTopOfPage_ = true;
+                    } else {
+                        y_ = colBottom_ - lineFeedWidth;
+                        colBottom_ = null;
+                        @setYHead();
+                    }
                 }
+                marginCache_ = null;
                 return true;
             }
             isTopOfPage_ = false;
@@ -1031,8 +1086,9 @@ namespace Typesetting {
                 var fontSize = value.size;
                 ascent_ = (font.getAscent() / 1000) * fontSize;
                 if (y_ < 0) {
-                    y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
                     x_ = -1;
+                    y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+                    colBottom_ = null;
                 }
                 page_.setFontAndSize(font, fontSize);
             }
@@ -1096,6 +1152,7 @@ namespace Typesetting {
             ascent_ = (fontObj.getAscent() / 1000) * fontSize;
             if (y_ < 0) {
                 y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+                colBottom_ = null;
             }
             var x = (margin.width - textWidth) / 2 + margin.left;
             writer_.writeText(page_, text, null, x, y_, 0, textWidth);
@@ -1105,6 +1162,10 @@ namespace Typesetting {
             var value = node.value;
             if (value.isInlineImage) {
                 return writeImage(value, x, y);
+            }
+            if (value.isVspace) {
+                lineBreak(value.space, true);
+                return true;
             }
 
             var width = node.width;
@@ -1254,13 +1315,16 @@ namespace Typesetting {
                         page_ = null;
                         @addPage();
                     }
+                    marginCache_ = null;
+                    margin = makeMarginSize();
                 }
             }
             var lineFeedWidth;
             if (y_ < 0) {
-                y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top);
                 x_ = -1;
                 lineFeedWidth = 0;
+                y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top);
+                colBottom_ = null;
             } else {
                 lineFeedWidth = lastLineFeedWidth_ / 2;
             }

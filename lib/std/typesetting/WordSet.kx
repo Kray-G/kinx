@@ -29,6 +29,23 @@ namespace Typesetting {
         }
     }
 
+    class Vspace(info_) : NullWord {
+        @isVspace = true;
+        private initialize() {
+            @word = "";
+        }
+        public setSpace(spaceText) {
+            @spaceText = spaceText;
+            @space = Typesetting.Util.getPt(info_.context, spaceText);
+            return this;
+        }
+        public toString() {
+            return "{Vspace:%{[@spaceText,@space]}}";
+        }
+        public display(indent) {
+        }
+    }
+
     class InlineImage(info_) {
         @isInlineImage = true;
         var measure_ = info_.measure;
