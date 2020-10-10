@@ -663,7 +663,7 @@ namespace Markdown {
                     stack = '';
                     ast.push(new Nodes.Blockquote(match[2], match[1].replace(/\s+/, "").length()));
                     mode = MODE_DEFAULT;
-                } else if (HORIZONTAL_RULE_REGEX.test(line) && line.split(/[\*\-_]/).length() > 3) {
+                } else if (HORIZONTAL_RULE_REGEX.test(line) && line.replace(/[^\*\-_]/, "").length() >= 3) {
                     parseParagraph(stack);
                     stack = '';
                     ast.push(new Nodes.Horizontal());
