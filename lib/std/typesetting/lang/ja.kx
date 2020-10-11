@@ -16,6 +16,10 @@ namespace Typesetting {
 
     var space_ = {};
 
+    function isQuoteUtf8(word) {
+        return (word == '‘' || word == '’' || word == '“' || word == '”');
+    }
+
     function getUtf8Length(word) {
         return (word == '‘' || word == '’' || word == '“' || word == '”') ? 1 : System.isUtf8Bytes(word[0]);
     }
@@ -314,8 +318,10 @@ namespace Typesetting {
                             setupSpace(info, value);
                             nodes.push(Linebreak.Glue(0, space_.stretch, 0));
                         } else if (l1 == 1 && l2 == 1) {
-                            setupSpace(info, value);
-                            nodes.push(Linebreak.Glue(space_.width, space_.stretch, space_.shrink));
+                            if (isQuoteUtf8(value.word) || isQuoteUtf8(nextv.word)) {
+                                setupSpace(info, value);
+                                nodes.push(Linebreak.Glue(space_.width, space_.stretch, space_.shrink));
+                            }
                         }
                     }
                 }
