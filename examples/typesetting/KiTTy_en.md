@@ -703,7 +703,7 @@ This will be shown as \\nameref{Fig:RadarExample}.
 }
 ```
 
-#### Floating CHart
+#### Floating Chart
 
 A floating chart is also supported as same as an Image.
 
@@ -962,6 +962,8 @@ For `\smaller`,
 
 ### Color
 
+#### Text Color
+
 Use `\color` to change the text color.
 Here are examples below.
 
@@ -1027,13 +1029,142 @@ This is an ''example'' of double-quote, will be shown.
 
 #### Backquote
 
-Use a special command of `<backqN />`
+You can use a special command
 because backquote is same as a special character in Markdown.
-`N` is a number of backquote.
-`<backq3 />` shows <backq3 />, and `<backq2 />` shows <backq2 />.
+For this purpose, the special tag of `<backqN />` where `N` is a number of backquote can be used.
+Write `<backq3 />` to show <backq3 />, and write `<backq2 />` to show <backq2 />.
+If you want to use `Mototype`, you can use `<monotype-backqN />`.
 
 ### Programming Code Block
+
+#### Code Block
+
+Programming Code is written as a Code Block.
+It shows with a line number and a shadow box by default.
+
+    ```
+    class Test {
+        public test() {
+            # Test Method.
+        }
+    }
+    ```
+
+Above example will show the following code[^ProgramCodeBox1]。
+
+[^ProgramCodeBox1]: It is hard to distinguish those because the same style,
+but the code with <monotype-backq3 /> is the example to write.
+
+```
+class Test {
+    public test() {
+        # Test Method.
+    }
+}
+```
+
+Write the following to erase a line number and to be without a shadow.
+
+    ```:lineNumber=false,box=BOX_NORMAL
+    class Test {
+        public test() {
+            # Test Method.
+        }
+    }
+    ```
+
+Here is the result.
+
+```:lineNumber=false,box=BOX_NORMAL
+class Test {
+    public test() {
+        # Test Method.
+    }
+}
+```
+
+#### Code Block Option
+
+Specify `true` or `false` to the `lineNumber` option.
+The available values for the `box` option are as follows.
+
+<context label="Table:CodeBoxOption"/>
+<context caption="The available values for box"/>
+<context limit-column="0"/>
+
+|      値      |                  意味                  |
+| ------------ | -------------------------------------- |
+| `BOX_NORMAL` | Show a box with a normal line width.   |
+| `BOX_THIN`   | Show a box with a thin line width.     |
+| `BOX_THICK`  | Show a box with a thick line width.    |
+| `BOX_SHADOW` | Show a box with a shadow. (by default) |
+
 ### Title, Cover Page, and Contents
+
+#### Specify Title Content
+
+KiTTy will automatically generate a title page, a cover page, and a table of contents.
+The necessary parameters have to be set before the first chapter title.
+The following example is the example of parameters used by this document.
+A title, author, and date is set by `%` at the head of a line.
+You should write only `%` for no information because its order can not be changed.
+The paragraph right after the setting by `%` will be a sub title.
+
+```
+% KiTTy
+% Kray-G, Mr.Diamond Global Blue Publisher
+% September 18, 2020
+
+Small and Easy, but Beautiful Design For You
+```
+
+#### Other Parameters for Title
+
+About the other parameters for a title,
+specify those by `<param />` tag before the first chapter title.
+The following is the example in this document.
+
+```
+<param style="JBookA4"/>
+<param titleSize="78.8"/>
+<param subtitleSize="14.4"/>
+<param backgroundImage="back.jpg"/>
+```
+
+The parameter which can be set depends on the style.
+This example shows parameters which can be set in the `BookA4` style.
+The meaning of each parameter is as follows.
+
+*   This document will use the `BookA4` style.
+*   The size of a title text is 78.8pt.
+*   The size of a sub title text is 14.4pt.
+*   The cover page will use the `back.jpg` for the background image.
+
+#### Parameters for Table Of Contents
+
+To set the following command, and the document will show a table of contents.
+By `with` parameter, you can choose if the document will show a list of figures and a list of table[^loflot].
+
+```
+<toc with="lof,lot"/>
+```
+
+[^loflot]: Set `lof` for a list of figures, and `lot` for a list of tables.
+If you want to show both, set it separated by comma like `lof,lot`.
+
+#### Customize Style
+
+There are default values of parameters for each style.
+Use `<style-info />` tag to change those default vlues.
+For example, write the tag like a following to change the chapter design.
+See \\nameref{Chapter Design} for the chaptr design.
+
+```
+<style-info name="chapter.style" value="BigChapter3" />
+```
+
+See \\nameref{Style Parameters} for details of style parameters which you can change.
+
 ### Chapter and Section
 ### Cross-Reference
 ### Quotation
