@@ -107,7 +107,7 @@ Said again, a main point of view in KiTTy is a small and easy to use.
 If you want to use a typesetting system right now in a real earnest, you should use \\LaTeX.
 If you want to study a typesetting system in the future and use it,
 you had better use a CSS Typesetting like Vivliostyle.
-Moreover, in sumerize, KiTTy will useful in following situations.
+Moreover, in sumerize, KiTTy will be useful in following situations.
 
 *   Wants to use a small system, instead of the huge system like \\TeX.
 *   Wants to manage a diff by a version control system like Git.
@@ -147,7 +147,7 @@ By the way, kerning is not supported so far.
 *   Quotation
 *   Footnote
 
-### Typesetting Features for Japanese
+### Typesetting Features in Japanese
 
 KiTTy also supports following feautres for the own requirement in Japanese.
 If you want to add any other languages,
@@ -279,7 +279,7 @@ Use the system in the build environment.
 
 ## hello, world
 
-Create a following document and save it as the name of `helloworld.md`.
+Create the following text and save it as the name of `helloworld.md`.
 
 ```markdown:lineNumber=false
 % Hello Kinx Tiny Typesetting
@@ -358,9 +358,9 @@ Writing `<set-column value="2" height="12em" />` will set 2 columns with the hei
 
 About footnotes, it is not set each column.
 footnotes are always set against total width of a page.
-The following example is a part of *Alice\\apos{}s Adventures in Wonderland*[^oz] with 2 columns.
+The following example is a part of *Alice\\apos{}s Adventures in Wonderland*[^alice] with 2 columns.
 
-[^oz]: \\url\[https://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland\]{Alice\\apos{}s Adventures in Wonderland - Lewis Carroll}
+[^alice]: \\url\[https://en.wikipedia.org/wiki/Alice%27s\_Adventures\_in\_Wonderland\]{Alice\\apos{}s Adventures in Wonderland - Lewis Carroll}
 
 ---
 
@@ -462,7 +462,7 @@ This is formatted as follows.
 
 ### Math formula and equations
 
-KiTTy includes \\LaTeX, and output Math formula and equations.
+KiTTy includes \\KaTeX, and output Math formula and equations.
 There are 2 styles of standalone style and inline style as an output style.
 
 #### Standalone Style
@@ -1003,7 +1003,7 @@ Here are examples below.
 *   \\color\[C=0.5,M=0.8,Y=0.2,K=0.0\]{\\bold{CMYK}.
     This line should be colored by CMYK value of `CMYK=0.5,0.8,0.2,0.0`.}
 
-See \\nameref{Color List} about supported color names.
+See \\nameref{Color Examples} about supported color names.
 
 ### Ligature and Special Character
 
@@ -1092,7 +1092,7 @@ The available values for the `box` option are as follows.
 <context caption="The available values for box"/>
 <context limit-column="0"/>
 
-|      値      |                  意味                  |
+|    Value     |                Meaning                 |
 | ------------ | -------------------------------------- |
 | `BOX_NORMAL` | Show a box with a normal line width.   |
 | `BOX_THIN`   | Show a box with a thin line width.     |
@@ -1101,7 +1101,7 @@ The available values for the `box` option are as follows.
 
 ### Title, Cover Page, and Contents
 
-#### Specify Title Content
+#### Title Information
 
 KiTTy will automatically generate a title page, a cover page, and a table of contents.
 The necessary parameters have to be set before the first chapter title.
@@ -1157,7 +1157,7 @@ If you want to show both, set it separated by comma like `lof,lot`.
 There are default values of parameters for each style.
 Use `<style-info />` tag to change those default vlues.
 For example, write the tag like a following to change the chapter design.
-See \\nameref{Chapter Design} for the chaptr design.
+See \\nameref{Chapter Design} for the chapter design.
 
 ```
 <style-info name="chapter.style" value="BigChapter3" />
@@ -1165,7 +1165,281 @@ See \\nameref{Chapter Design} for the chaptr design.
 
 See \\nameref{Style Parameters} for details of style parameters which you can change.
 
-### Chapter and Section
+### Heading
+
+The heading like Chapter and Section will be shown by the line lead by `#` as a normal Markdown syntax.
+Please look at the following.
+
+<context label="Table:ChapterSection"/>
+<context caption="Headings in Markdown"/>
+<context limit-column="0"/>
+
+| Symbol |     Meaning     |
+| ------ | --------------- |
+| `#`    | Chapter         |
+| `##`   | Section         |
+| `###`  | Sub Section     |
+| `####` | Sub Sub Section |
+
+The numbering for the above Headings will be automatically done,
+and Cross-Reference (\\nameref{Cross-Reference}) will be available.
+You can use a heading text as a label for Cross-Reference.
+
 ### Cross-Reference
+
+Cross-Reference is supported.
+The following list is the target which you can use for Cross-Reference.
+
+<context label="Table:CrossReference"/>
+<context caption="Command List for Cross-Reference"/>
+<context limit-column="0"/>
+
+|      Command      |                                  Target                                  |
+| ----------------- | ------------------------------------------------------------------------ |
+| `\ref{label}`     | The number of a chapter, a section, a figure and table, or Math formula. |
+| `\textref{label}` | The text for a label.                                                    |
+| `\nameref{label}` | ''Number and Text'' for a label.                                         |
+| `\pageref{label}` | The page number for a label.                                             |
+
+If the reference appears before an actual source of the reference, it can not be solved.
+In that case, re-run KiTTy to solve the reference.
+
 ### Quotation
+
+Quotation will be shown by `>` at the head of a line.
+This is also a normal Markdown syntax.
+You can not use the paragraph commands (\\nameref{Paragraph Commands}) of Markdown,
+but the inline commands (\\nameref{Inline Commands}) and KiTTy commands (\\nameref{KiTTy Commands})
+are available in a quotation syntax.
+And nesting a quotation syntax is also available.
+In that case, each quoted text is always recognized as a paragraph.
+If you do not want to do indentation, use `\\noindent` command at the head of paragraph.
+For example, here is an example of the introduction of this document.
+
+```
+> **KiTTy** means **Ki**nx **T**iny **Ty**pesetting,
+> which is a simple typesetting system implemented by Kinx.
+> > \\noindent It also provides a translator from Markdown,
+> > then you can typeset a Markdown document and can get a beautiful document.
+> > This document itself is also the example typeset by this system.
+> 
+> The objective is similar to \\LaTeX, it is an objective to typeset beautifully for
+> a document managed as a text file.
+> To be concretely, it is never going to be alternative,
+> but the objective is being more useful in the use case like your personal situation
+> by followings.
+```
+
+The result is as below.
+
+> **KiTTy** means **Ki**nx **T**iny **Ty**pesetting,
+> which is a simple typesetting system implemented by Kinx.
+> > \\noindent It also provides a translator from Markdown,
+> > then you can typeset a Markdown document and can get a beautiful document.
+> > This document itself is also the example typeset by this system.
+> 
+> The objective is similar to \\LaTeX, it is an objective to typeset beautifully for
+> a document managed as a text file.
+> To be concretely, it is never going to be alternative,
+> but the objective is being more useful in the use case like your personal situation
+> by followings.
+
 ### Footnote
+
+Footnote is also supported.
+A footnote is the style of `[^label]` in Markdown.
+Write the actual footnote text by the style of `[^label]: ...` in the independent paragraph.
+For example, see the example below.
+
+```
+This is a footnote[^f1] in this paragraph.
+
+[^f1]: This is a footnote text.
+```
+
+Here is a result, ''This is a footnote[^f1] in this paragraph.''
+You will see the footnote will be shown at the bottom of this page.
+
+[^f1]: This is a footnote text.
+
+## Typesetting Features in Japanese
+
+This is only for Japanese requirements.
+If you do not need this section, skip and go to the next section of \\nameref{PdfFeatures}.
+
+### Japanese Hypenation
+
+The following Japanse hyphenation is now supported.
+
+*   A line head Japanese hyphenation processing.
+*   A line end Japanese hyphenation processing.
+*   Line breaking is prohibited in a group ruby.
+
+### Japanese Furigana
+#### About Japanese Furigana
+
+Japanese Furigana[^furigana] is supported.
+Furigana is sometimes told as Ruby[^ruby].
+Here is the specification.
+
+[^furigana]: Furigana means syllabic characters to indicate pronunciation. To be simple, you can know how to read Kanji.
+[^ruby]: It is also called ruby because the name of the 5.5-point size imported from England in the latter half of the 19th century was ruby.
+
+*   The width is the longer width in a parent text and its ruby.
+*   Both a mono ruby and a group ruby are supported.
+*   Both Japanese and English can be used in both a parent text and its ruby.
+
+This is only for Japanese requirement.
+In Japanese, there is a way, which is named as ''Furigana'' or ''Ruby'', to write a text.
+It is to write a small text as a way to read on the top of a main sentence.
+For example, it is used like ''この\\ruby\[ほん\]{本}はとても\\ruby\[おもしろ\]{面白}いです.''
+Usually, very young children can't read Kanji.
+And even if it were adults, there is a case they can't read a difficult Kanji or the Kanji they do not use usually.
+Considering those cases, Furigana is used like ''\\ruby\[ほん\]{本}.''
+
+#### How To Use Furigana
+
+KiTTy supports 2 types of Furigana as a mono ruby and a group ruby.
+When it is a mono ruby, write `|` as a separator like `\\ruby\[す|てき\]{素敵}`.
+In this case, it shows ''\\ruby\[す|てき\]{素敵}'' and you will see the small words on each Kanji.
+On the other hand, when it is a group ruby, write `\\ruby\[すてき\]{素敵}` without `|`.
+In this case, it shows ''\\ruby\[すてき\]{素敵}'' and you will see the small words are aligned at both ends in the entire kanji.
+You can see ''て'' is a center between ''素'' and ''敵'' at the example.
+Besides, line breaking is prohibited in a group ruby, but it is allowed in a mono ruby.
+By the way, ''素敵'' means ''wonderful.''
+
+#### Furigana Examples
+
+The following text is a beginning part of *The Spider\\apos{}s Thread*[^spider] from Ryunosuke Akutagawa.
+It is shown as block quote style for easy to read.
+First, it is an example of a group ruby.
+
+[^spider]: \\url\[https://en.wikipedia.org/wiki/The\_Spider%27s\_Thread\]{The Spider\\apos{}s Thread - Ryunosuke Akutagawa}
+
+```
+> \\noindent ある日の事でございます。\\ruby\[おしゃかさま\]{御釈迦様}は
+> 極楽の\\ruby\[はすいけ\]{蓮池}のふちを、
+> 独りでぶらぶら御歩きになっていらっしゃいました。
+```
+
+Here is the result.
+
+> \\noindent ある日の事でございます。\\ruby\[おしゃかさま\]{御釈迦様}は
+> 極楽の\\ruby\[はすいけ\]{蓮池}のふちを、
+> 独りでぶらぶら御歩きになっていらっしゃいました。
+
+Next, it is an example of a mono ruby.
+When it is a mono ruby, insert `|` as a separator.
+
+```
+> \\noindent ある日の事でございます。\\ruby\[お|しゃ|か|さま\]{御釈迦様}は
+> 極楽の\\ruby\[はす|いけ\]{蓮池}のふちを、
+> 独りでぶらぶら御歩きになっていらっしゃいました。
+```
+
+Here is the result.
+You can see that the position of a ruby of ''おしゃかさま'' for ''御釈迦様'' is different.
+The position of ''はすいけ'' for ''蓮池'' is same,
+but the line break can be inserted between ''蓮'' and ''池'' as it is a mono ruby.
+
+> \\noindent ある日の事でございます。\\ruby\[お|しゃ|か|さま\]{御釈迦様}は
+> 極楽の\\ruby\[はす|いけ\]{蓮池}のふちを、
+> 独りでぶらぶら御歩きになっていらっしゃいました。
+
+## \\label\[PdfFeatures\]{PDF Features}
+
+### External Link by URL
+
+Write a URL directly to generate an external link for URL automatically.
+For example, write `https://github.com/Kray-G/kinx` to generate the link to https://github.com/Kray-G/kinx on URL text itself.
+If you want to change the link text instead of URL, use `\\url` command.
+For example, write `\\url\[https://github.com/Kray-G/kinx\]{Kinx}` to show \\url\[https://github.com/Kray-G/kinx\]{Kinx},
+and you can click the link text to jump to the external web site.
+
+### Link by Cross-Reference
+
+As a document a Cross-Reference (\\nameref{Cross-Reference}) is supported,
+and the internal link will be generated for that as a PDF document.
+You can click that link to jump to the related document place like headings, figures, or tables.
+
+### Bookmark
+
+PDF bookmark is also supported.
+The link for each heading is automatically generated as a PDF bookmark.
+Click the heading displaying on the bookmark, and you can jump to the related heading.
+
+Note that PDF link text can not include any commands like KiTTy command.
+Therefore do not use any command in the heading text name[^exc:section].
+
+[^exc:section]: As excepted, only \\TeX、\\LaTeX、\\KaTeX are replaced by the plain text of `TeX`、 `LaTeX`、 `KaTeX`.
+
+# Command Details
+
+This chapter will describe available commands. As a command type,
+roughly there are 2 types of commands as Markdown command or KiTTy command. And also in Markdown commands,
+there are 3 types as a normal Markdown syntax, HTML, and a special command for KiTTy.
+KiTTy commands are basically used in a paragraph, but the command will start with `\` symbol and will use `\[` and `]`.
+Therefore you have to use `\\` instead of `\` like ''`\\command\[\]`'' style because those symbols are
+a specal character in Markdown to be an escape character.
+
+## Markdown Commands
+
+### Markdown Paragraph Commands
+
+KiTTy will basically use a normal Markdown syntax,
+but there is a case the syntax has an own condition.
+See the table below.
+
+<context label="Table:MarkdownParagraph"/>
+<context caption="Markdown Paragraph Commands"/>
+<context limit-column="0"/>
+
+|   Syntax    |                                                          Meaning                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Paragraph   | Separated by blank line.                                                                                                  |
+| Line Break  | Put double spaces at the end of line.                                                                                     |
+| Code Block  | The line which is started with 4 spaces, or a paragraph between <backq3 />.                                               |
+| Blockquote  | The line which is started with `'>'`.                                                                                     |
+| Heading     | The line which is started with `'#'`. The style of underline, which is `==` and `--` under the heading, is not supported. |
+| Itemization | The line which is started with `'*'`, or the number like `1.` etc. Blank lines can not be included between items.         |
+| Table       | Normal Markdown table is supported. Use `<context />` command for additional information for table.                       |
+| Figure      | When there is only one line of `![...](...)` in a paragraph. Otherwise it will be dealt with an inline command.           |
+| Footnote    | The line which is started with ''`[^name]:`'' in a paragraph, and `name` is anything you can name.                        |
+
+### Markdown Inline Commands
+
+KiTTy will basically use a normal Markdown syntax also for inline commands,
+but there is a case the syntax has an own condition.
+See the table below.
+
+<context label="Table:MarkdownInline"/>
+<context caption="Markdown Inline Commands"/>
+<context limit-column="0"/>
+
+|   Purpose    |                                     Syntax                                      |
+| ------------ | ------------------------------------------------------------------------------- |
+| Italic       | The string wrapped between `'*'` and `'*'`.                                     |
+| Bold         | The string wrapped between `'**'` and `'**'`.                                   |
+| BoldItalic   | The string wrapped between `'***'` and `'***'`.                                 |
+| Inline Code  | The string wrapped between <backq1 /> and <backq1 />.                           |
+| Inline Image | Use `![...](...)` style.                                                        |
+| Link         | Automatically generated by URL. Now the style of `[...](...)` is not supported. |
+| Footnote Tag | Write ''`[^name]`'' in a paragraph. `name` is anything you can name.            |
+
+### HTML Commands
+
+## KiTTy Commands
+
+### Paragraph Scope Commands
+### Standalone Commands
+
+# How To Extend Features
+
+<appendix/>
+
+# Pre-defined Designs
+
+# About Style Parameters
+
+# Color Examples
+

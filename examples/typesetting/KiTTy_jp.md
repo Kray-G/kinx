@@ -582,7 +582,7 @@ $\\displaystyle\\int\_{-\\infty}^{\\infty} f(x) dx = \\sqrt{\\pi}$ と表現さ�
 最終的にフローティングされたイメージの下までパラグラフの文章が到達した際に自動的にテキスト幅が版面の幅に戻り、
 自然な形でテキストが配置されます。
 
-![float=right,caption=F14 Tomcats,scale=0.6](f14_tomcats.jpg)
+![float=right,caption=F14 Tomcats,scale=0.5](f14_tomcats.jpg)
 
 また、右のイメージのようにパラグラフの右側に配置することも可能です。
 イメージは上記と同様 Public Domain のものを使わせていただいています。
