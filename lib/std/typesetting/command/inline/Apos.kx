@@ -4,7 +4,10 @@ namespace Typesetting {
 
         class Apos(info_, context_) {
             public exec(params) {
-                return new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '’');
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '’');
+                w.noGlue = true;
+                w.noPrevGlue = true;
+                return w;
             }
         }
 

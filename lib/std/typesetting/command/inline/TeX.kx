@@ -80,7 +80,7 @@ namespace Typesetting {
 
                 var k = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, 'K');
 
-                var width = Typesetting.Util.getPt(context_, "-0.2em");
+                var width = Typesetting.Util.getPt(context_, "-0.15em");
                 var hs0 = Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ''));
 
                 context_.offsetY = Typesetting.Util.getPt(context_, "0.3ex");

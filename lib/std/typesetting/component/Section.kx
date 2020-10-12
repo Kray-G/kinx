@@ -116,6 +116,7 @@ namespace Typesetting {
                 writer.setPageToOdd();
                 writer.setColumn(1);
 
+                context_.xrefLabel = null;
                 var chapterInfo = chapterFunc(info, context, core, text_, opts_);
                 writer.addY(info.base.chapter.paragraphSkipWidth);
                 writer.setYHead();
@@ -124,15 +125,22 @@ namespace Typesetting {
                 if (info.base.footnote.resetSectionLevel == level) {
                     context.counter.footnote = 0;
                 }
-                if (opts_.label) {
+                if (opts_.label || context.xrefLabel) {
                     var pagenum = writer.getPageIndex();
-                    context.xref[opts_.label] = {
+                    var xrefInfo = {
                         page:    pagenum,
                         counter: chapterInfo.number,
                         name:    chapterInfo.plain,
                         text:    chapterInfo.header,
                         y:       chapterInfo.linetop,
                     };
+                    if (opts_.label) {
+                        context.xref[opts_.label] = xrefInfo;
+                    }
+                    if (context.xrefLabel) {
+                        context.xref[context.xrefLabel] = xrefInfo;
+                        context.xrefLabel = null;
+                    }
                 }
                 if (level <= info.base.toc.level) {
                     context.tocinfo.list.push({
