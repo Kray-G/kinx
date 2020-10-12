@@ -1,0 +1,13 @@
+namespace Typesetting {
+
+    namespace ParagraphCommand {
+
+        class Label(info_, context_) {
+            public start(params) {
+                context_.xrefLabel = params;
+            }
+        }
+
+    } # namespace ParagraphCommand
+
+} # namespace Typesetting

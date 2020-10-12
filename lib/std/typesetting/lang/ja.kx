@@ -172,10 +172,11 @@ namespace Typesetting {
                 return;
             }
             var prev = i > 0 ? words[i-1] : null;
-            if (node.isGlue && (prev.isUndefined || lbr_.find(prev.value.word) >= 0)) {
+            if (node.isGlue && (prev.value.word.isUndefined || lbr_.find(prev.value.word) >= 0)) {
                 return; // skip.
             }
             var next = words[i+1];
+            var nextv = next.value;
             var value = node.value;
             if (node.isGlue && next.isGlue) {
                 if (node.stretch == Linebreak.Infinity) {
@@ -237,7 +238,7 @@ namespace Typesetting {
                     return;
                 }
             }
-            if (node.isBox && !value.noGlue && value.word != '') {
+            if (node.isBox && !value.noGlue && !nextv.noPrevGlue && value.word != '') {
                 if (next.isBox) {
                     if (specialCheck(info, Linebreak, nodes, i, prev, node, next)) {
                         return;
@@ -291,7 +292,6 @@ namespace Typesetting {
                 }
 
                 if (next.isBox && nodes[-1].isBox) {
-                    var nextv = next.value;
                     var l1 = getUtf8Length(value.word);
                     if (value.offsetX == 0 && value.offsetY == 0) {
                         if (l1 > 1 && value.word.length() == l1) {

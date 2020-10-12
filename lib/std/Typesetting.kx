@@ -134,6 +134,7 @@ namespace Typesetting {
                     .replace("\\TeX", "TeX");
                 [, text] = core_.util.makeOption(text);
                 var lines = core_.paragraph.exec({}, text);
+                context_.xrefLabel = null;
                 var str;
                 lines.each { &(line):
                     line.nodes.each { &(n, i):

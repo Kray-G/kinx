@@ -37,19 +37,27 @@ namespace Typesetting {
                 }
                 var indent = context_.noIndent;
                 context_.noIndent = true;
+                context_.xrefLabel = null;
                 var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
-                if (opts.label) {
-                    var pagenum = writer.getPageIndex();
-                    context_.xref[opts.label] = {
+                var pagenum = writer.getPageIndex();
+                var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
+                util_.write(lines);
+                if (opts.label || context_.xrefLabel) {
+                    var xrefInfo = {
                         page:      pagenum,
                         counter:   sectionNumberText,
                         name:      sectionNumberText + ' ' + text,
                         text:      text,
                         y:         linetop,
                     };
+                    if (opts.label) {
+                        context.xref[opts.label] = xrefInfo;
+                    }
+                    if (context_.xrefLabel) {
+                        context_.xref[context_.xrefLabel] = xrefInfo;
+                        context_.xrefLabel = null;
+                    }
                 }
-                var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
-                util_.write(lines);
                 context_.noIndent = indent;
                 context_.page.paragraphSkipWidth = paragraphSkipWidth;
                 context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
