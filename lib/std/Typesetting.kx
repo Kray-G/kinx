@@ -39,6 +39,7 @@ namespace Typesetting {
             var measure = new Typesetting.Measurement(writer.getPdf(), writer.getPage());
             info_.measure = measure;
             info_.writer = writer;
+            info_.logger.setWriter(writer);
             var pageSize = measure.getPageSize();
             context_ = {
                 noIndent: false,
@@ -317,6 +318,10 @@ namespace Typesetting {
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
             context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
             context_.font.fontSize = fontSize;
+        }
+
+        public report() {
+            info_.logger.report();
         }
 
         public save(file) {
