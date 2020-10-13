@@ -292,6 +292,7 @@ namespace Typesetting {
                     var lines = core_.paragraph.exec({}, info.header);
                     core_.util.write(lines);
                 }
+                context_.outputSection = false;
                 var list = info.list || [];
                 list.each { &(tocdata, i):
                     var nlevel = list[i+1].level || 0;
