@@ -209,7 +209,7 @@ $ unzip package_kitty.zip
 ```
 
 You will find the folder of the name of the version number,
-and move into it and execute a `install.sh` command.
+and move into it and execute an `install.sh` command.
 
 ```:lineNumber=false
 $ cd v0.15.2
@@ -424,7 +424,7 @@ This is formatted as follows.
             *   Level 4
 
 The next example is a numbered itemization.
-The number will be adjusted automatically.
+The numbered for each item will be adjusted automatically.
 
 ```
 1.  Level 1
@@ -1031,7 +1031,7 @@ This is an ''example'' of double-quote, will be shown.
 
 You can use a special command
 because backquote is same as a special character in Markdown.
-For this purpose, the special tag of `<backqN />` where `N` is a number of backquote can be used.
+For this purpose, the special tag of `<backqN />` where `N` is the number of backquote can be used.
 Write `<backq3 />` to show <backq3 />, and write `<backq2 />` to show <backq2 />.
 If you want to use `Mototype`, you can use `<monotype-backqN />`.
 
@@ -1194,19 +1194,19 @@ The following list is the target which you can use for Cross-Reference.
 <context caption="Command List for Cross-Reference"/>
 <context limit-column="0"/>
 
-|      Command      |                                  Target                                  |
-| ----------------- | ------------------------------------------------------------------------ |
-| `\ref{label}`     | The number of a chapter, a section, a figure and table, or Math formula. |
-| `\textref{label}` | The text for a label.                                                    |
-| `\nameref{label}` | ''Number and Text'' for a label.                                         |
-| `\pageref{label}` | The page number for a label.                                             |
+|      Command      |                                       Shown Text                                       |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| `\ref{label}`     | A chapter number, a section number, a figure and table number, or Math formula number. |
+| `\textref{label}` | The text for a label.                                                                  |
+| `\nameref{label}` | ''Number and Text'' for a label.                                                       |
+| `\pageref{label}` | The page number for a label.                                                           |
 
 If the reference appears before an actual source of the reference, it can not be solved.
 In that case, re-run KiTTy to solve the reference.
 
 ### Quotation
 
-Quotation will be shown by `>` at the head of a line.
+Quotation will be shown by '`>`' at the head of a line.
 This is also a normal Markdown syntax.
 You can not use the paragraph commands (\\nameref{Paragraph Commands}) of Markdown,
 but the inline commands (\\nameref{Inline Commands}) and KiTTy commands (\\nameref{KiTTy Commands})
@@ -1300,9 +1300,9 @@ Considering those cases, Furigana is used like ''\\ruby\[ほん\]{本}.''
 #### How To Use Furigana
 
 KiTTy supports 2 types of Furigana as a mono ruby and a group ruby.
-When it is a mono ruby, write `|` as a separator like `\\ruby\[す|てき\]{素敵}`.
+When it is a mono ruby, write '`|`' as a separator like `\\ruby\[す|てき\]{素敵}`.
 In this case, it shows ''\\ruby\[す|てき\]{素敵}'' and you will see the small words on each Kanji.
-On the other hand, when it is a group ruby, write `\\ruby\[すてき\]{素敵}` without `|`.
+On the other hand, when it is a group ruby, write `\\ruby\[すてき\]{素敵}` without '`|`'.
 In this case, it shows ''\\ruby\[すてき\]{素敵}'' and you will see the small words are aligned at both ends in the entire kanji.
 You can see ''て'' is a center between ''素'' and ''敵'' at the example.
 Besides, line breaking is prohibited in a group ruby, but it is allowed in a mono ruby.
@@ -1329,7 +1329,7 @@ Here is the result.
 > 独りでぶらぶら御歩きになっていらっしゃいました。
 
 Next, it is an example of a mono ruby.
-When it is a mono ruby, insert `|` as a separator.
+When it is a mono ruby, insert '`|`' as a separator.
 
 ```
 > \\noindent ある日の事でございます。\\ruby\[お|しゃ|か|さま\]{御釈迦様}は
@@ -1378,13 +1378,13 @@ Therefore do not use any command in the heading text name[^exc:section].
 This chapter will describe available commands. As a command type,
 roughly there are 2 types of commands as Markdown command or KiTTy command. And also in Markdown commands,
 there are 3 types as a normal Markdown syntax, HTML, and a special command for KiTTy.
-KiTTy commands are basically used in a paragraph, but the command will start with `\` symbol and will use `\[` and `]`.
-Therefore you have to use `\\` instead of `\` like ''`\\command\[\]`'' style because those symbols are
+KiTTy commands are basically used in a paragraph, but the command will start with `\` symbol and will use `\[` and `\]`.
+Therefore you have to use `\\` instead of '`\`' like ''`\\command\[\]`'' style because those symbols are
 a specal character in Markdown to be an escape character.
 
 ## Markdown Commands
 
-### Markdown Paragraph Commands
+### Paragraph Commands
 
 KiTTy will basically use a normal Markdown syntax,
 but there is a case the syntax has an own condition.
@@ -1394,7 +1394,7 @@ See the table below.
 <context caption="Markdown Paragraph Commands"/>
 <context limit-column="0"/>
 
-|   Syntax    |                                                          Meaning                                                          |
+|  Markdown   |                                                       Syntax Detail                                                       |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Paragraph   | Separated by blank line.                                                                                                  |
 | Line Break  | Put double spaces at the end of line.                                                                                     |
@@ -1406,7 +1406,7 @@ See the table below.
 | Figure      | When there is only one line of `![...](...)` in a paragraph. Otherwise it will be dealt with an inline command.           |
 | Footnote    | The line which is started with ''`[^name]:`'' in a paragraph, and `name` is anything you can name.                        |
 
-### Markdown Inline Commands
+### Inline Commands
 
 KiTTy will basically use a normal Markdown syntax also for inline commands,
 but there is a case the syntax has an own condition.
@@ -1420,7 +1420,7 @@ See the table below.
 | ------------ | ------------------------------------------------------------------------------- |
 | Italic       | The string wrapped between `'*'` and `'*'`.                                     |
 | Bold         | The string wrapped between `'**'` and `'**'`.                                   |
-| BoldItalic   | The string wrapped between `'***'` and `'***'`.                                 |
+| Bold Italic  | The string wrapped between `'***'` and `'***'`.                                 |
 | Inline Code  | The string wrapped between <backq1 /> and <backq1 />.                           |
 | Inline Image | Use `![...](...)` style.                                                        |
 | Link         | Automatically generated by URL. Now the style of `[...](...)` is not supported. |
@@ -1428,18 +1428,733 @@ See the table below.
 
 ### HTML Commands
 
+KiTTy will use some HTML tags as a command.
+It is used mainly for setting a parameter and controling a typesetting without showing in the document.
+
+<context label="Table:HtmlCommand"/>
+<context caption="HTML Commands"/>
+<context limit-column="0"/>
+
+|      Command      |                                                                 Meaning                                                                  |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `<toc />`         | To show a Table of Contnts. This have to be set before the first chapter. The value of `lot` and `lof` can be set to the `with` option.  |
+| `<param />`       | To set an initial value of page. This have to be set before the first chapter.                                                           |
+| `<context />`     | To set an additional parameter temporarily for some commands. The parameter depends on the command.                                      |
+| `<clear-float />` | To clear floating setting and to stop wrapping around an image.                                                                          |
+| `<pagebreak />`   | To insert a page break forcely, and to do processing of page break.                                                                      |
+| `<set-column />`  | To set the number of column. The number of columns is set to `value` attribute, and column\\apos{}s height is set to `height` attribute. |
+| `<style-info />`  | To change the parameter of a style. The parameter is set to `name` and `value` attribute.                                                |
+| `<appendix />`    | To indicate the start of Apendix.                                                                                                        |
+
 ## KiTTy Commands
 
 ### Paragraph Scope Commands
+
+Paragraph scope commands will do process the text inside `{}` as a paragraph.
+The following table shows a description of commands.
+
+<context label="Table:KiTTyCommandParagraph"/>
+<context caption="Paragraph Scope Commands"/>
+<context limit-column="0"/>
+
+|      Command       |                                                              Meaning                                                              |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `\bigger{}`        | To change the font size by +1pt.                                                                                                  |
+| `\smaller{}`       | To change the font size by -1pt.                                                                                                  |
+| `\bold{}`          | To set the font shape to bold. It can be also shown by enclosing a text by `**`.                                                  |
+| `\itaric{}`        | To set the font shape to italic. It can be also shown by enclosing a text by `*`.                                                 |
+| `\color[params]{}` | To change a color of a text. <br/>You can use a color name like `red`, `R=r,G=g,B=b`, or `C=c,M=m,Y=y,K=k`.                       |
+| `\font[params]{}`  | To change a font information like `\font[size=1em]{}`.<br/>`size` ... to change the font size.<br/>`name` ... to change the font. |
+| `\footnote{}`      | To generate a footnote. It can be also shown by `[^name]`.                                                                        |
+| `\monotype{}`      | To set to use a non-proportional font.                                                                                            |
+| `\raise[params]{}` | To change an offset of Y, and to move a text to upside. The offset is set by `height` attribute.                                  |
+| `\lower[params]{}` | To change an offset of Y, and to move a text to downside. The offset is set by `height` attribute.                                |
+| `\sans{}`          | To set to use Sans Serif.                                                                                                         |
+| `\url[params]{}`   | To generate a link text. URL should be written in `params`.                                                                       |
+
+In the `{}` of all commands you can write a paragraph although just `{}` is written in above examples.
+For example, if you write `\\sans{''This is Sans Serif Font.''}`, it will show \\sans{''This is Sans Serif Font.''}
+
 ### Standalone Commands
 
+Standalone command will not process the text inside `{}` as a paragraph.
+The text inside `{}` is used as one of parameters.
+By the way you can omit both `[]` and `{}`,
+but you have to insert a space or only `{}` to distinguish from a next word if necessary.
+For example, you can write `\\noindent{}`.
+
+<context label="Table:KiTTyCommandStandalone"/>
+<context caption="Standalone Commands"/>
+<context limit-column="0"/>
+
+|          Command           |                                              Meaning                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `\TeX`                     | \\TeX logo will be shown.                                                                         |
+| `\LaTeX`                   | \\LaTeX logo will be shown.                                                                       |
+| `\KaTeX`                   | \\KaTeX logo will be shown.                                                                       |
+| `\noindent`                | Indentation will be erased. The paragraph without indentation will be generated.                  |
+| `\apos`                    | Apostrophe will be shown.                                                                         |
+| `\hs`                      | A space, which width is the width of a small i, will be shown.                                    |
+| `\hspace{width}`           | To change the X position by the value of `width`. To move to the right by a plus value.           |
+| `\vspace{height}`          | To change the Y position by the value of `height`. To move to the down by a plus value.           |
+| `\ref{label}`              | To generate a Cross-Reference with the number specified by `label`.                               |
+| `\pageref{label}`          | To generate a Cross-Reference to the page specified by `label`.                                   |
+| `\textref{label}`          | To generate a Cross-Reference with the text specified by `label`.                                 |
+| `\nameref{label}`          | To generate a Cross-Reference with the number and the text specified by `label`.                  |
+| `\pack{text}`              | To make it be recognized as no line breaking in `text`.                                           |
+| `\ruby[Ruby]{Parent-Text}` | To show `Ruby` on the top of `Parent-Text`. For example of the left, \\ruby\[Ruby\]{Parent-Text}. |
+
 # How To Extend Features
+
+This chapter describe how to extend features in KiTTy.
+However all information can not be described in this chapter,
+and some other document will be provided in the future.
+Now this describe only an outline of a rough way to extend and add features.
+
+## Adding Style
+
+### Document Style
+
+The style definition file of a document will be stored to the following path when the install path is `$INSTALL`.
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/additional/*.kx
+```
+
+The files here are loaded in no particular order, so styles cannot be related, for example, class inheritance.
+The standard styles, which can be parent classes, are stored below.
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/basic/*.kx
+```
+
+You can use the style just by placing a file under the folder of `additional`.
+When adding it under `basic`, please note that you need to add the load process to the following file.
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/Styles.kx
+```
+
+Therefore, you should normally add the style definition file under `additional`.
+
+#### Style Definition File Example
+
+Here is the example of `ArticleA4_2Cols` which is provided by default.
+
+```
+using typesetting.style.basic.ArticleA4;
+
+namespace Typesetting {
+namespace Style {
+
+    class ArticleA4_2Cols : Typesetting.Style.ArticleA4 {
+        @style.columns = 2;
+    }
+
+} # namespace Style
+} # namespace Typesetting
+```
+
+The class name is the style name.
+And the class have to be joining in the namespace of `Typesetting.Style`.
+This example shows the class `ArticleA4_2Cols` is inherit from `ArticleA4` style,
+and set the number of columns to be 2 columns.
+The style of `ArticleA4` which is the base of all styles, are located to the path of `basic/ArticleA4.kx`.
+The parameters that you can set are all described in that file.
+Please see the file of `ArticleA4` to know what parameters you can set.
+
+### Title Style
+
+You can create a plug-in of title design.
+It can be also an independent page as a cover page.
+The style definition of a title page is placed as below.
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/title/*.kx
+```
+
+In your document, use the following tag to change a style of a title.
+The `yourstylname` means a file name without an extension of the style definition file,
+when you follow how to create as described below.
+
+```
+<style-info name="title.style" value="yourstylename" />
+```
+
+#### Title Style Example
+
+For example, please look at the definition of `StandardArticle`.
+
+By `Typesetting.Style.Title[__FILE__.stem()]`, the property name will be the name without an extension.
+And write it to add a function object which defines a title design to that property.
+
+```
+namespace Typesetting {
+namespace Style {
+
+    Typesetting.Style.Title[__FILE__.stem()]
+        = function(info, context, core, title, opts) {
+            # drawing a Title Design
+        };
+
+} # namespace Style
+} # namespace Typesetting
+```
+
+See \\nameref{Title Design} about the pre-designed title style. 
+
+### Chapter Style
+
+You can also create a plug-in of a chapter design.
+The chapter design definition file is placed to the foloowing path.
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/style/chapter/*.kx
+```
+
+If you want to change the chapter style, use the following tag.
+The `yourstylname` means a file name without an extension of the style definition file,
+when you follow how to create as described below.
+
+```
+<style-info name="chapter.style" value="yourstylename" />
+```
+
+#### Chapter Style Example
+
+For example, please look at the example of `StandardBook`.
+
+By `Typesetting.Style.Chapter[__FILE__.stem()]`, the property name will be the name without an extension.
+And write it to add a function object which defines a chapter design to that property.
+
+```
+namespace Typesetting {
+namespace Style {
+
+    Typesetting.Style.Chapter[__FILE__.stem()]
+        = function(info, context, core, text, opts) {
+            # drawing a Chapter Design
+        };
+
+} # namespace Style
+} # namespace Typesetting
+```
+
+See \\nameref{Chapter Design} about the pre-designed chapter style. 
+
+## Hyphenation Rules
+
+### Add The Rule
+
+The rule file is stored under the following path.
+By the way, the rule for Japanese is absolutely same as the rule for English,
+because it is no differences between them.
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/lang/*.kx
+```
+
+If you want to change the chapter style, use the following tag.
+The `yourprocname` means a file name without an extension of the style definition file,
+when you follow how to create as described below.
+
+```
+<style-info name="hyphenationRule" value="yourprocname" />
+```
+
+By `Typesetting.insertGlue[__FILE__.stem()]`, the property name will be the name without an extension.
+And write it to add a function object which defines a process of hyphenation to that property.
+For example, if the file name is `ja.kx`, `Typesetting.insertGlue.ja` will be defined.
+
+```
+Typesetting.insertGlue[__FILE__.stem()] = _function(info, Linebreak, wordlist, nodes) {
+    # Hyphenation Rules
+
+    wordlist.each { &(node, i):
+        # ...
+        nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
+        nodes.push(Linebreak.Penalty(0, -Linebreak.Infinity, 0));
+        nodes.push(node);
+        # ...
+    };
+};
+```
+
+#### Create The Rule
+
+`wordlist` as an argument is the list of words to be analyzed.
+By its content, add a word object to a `nodes` array.
+The following is the basic rule to add a node.
+
+*   To prohibit a line break before the node, a Penalty with `Linebreak.Infinity` should be inserted before the node.
+
+```
+nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+nodes.push(node);   # Target Node
+```
+
+*   To prohibit a line break after the node, a Penalty with `Linebreak.Infinity` should be inserted after the node.
+
+```
+nodes.push(node);   # Target Node
+nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+```
+
+*   To do a line break before the node, the list will be as below.
+
+```
+nodes.push(Linebreak.Glue(0, Linebreak.Infinity, 0));
+nodes.push(Linebreak.Penalty(0, Linebreak.Infinity, 0));
+nodes.push(node);   # Target Node
+```
+
+*   To insert a Glue before the node, the Glue will be inserted as below.
+
+```
+nodes.push(Linebreak.Glue(width, stretch, shrink));
+    # width ..... Width of Glue
+    # stretch ... Maximum additional width limitation.
+    # shrink .... Minimum shrinked width limitation.
+nodes.push(node);   # Target Node
+```
+
+Finally, `nodes` will be a list including hyphenation rules.
+Hyphenation will be done based on this information.
+
+## Font
+
+### Add New Font
+
+If you want to add the font, place the font file at the following path.
+By the way, only TrueType font is supported so far[^fontlimit].
+
+```:lineNumber=false
+$INSTALL/lib/fonts
+```
+
+[^fontlimit]: This is a limitation of libharu.
+
+### Add System Font
+
+If you want to use a system font provided by an operating system,
+specify the file name of the font you want to use.
+When doing so, a serch path is different between Windows and Linux.
+
+<context label="Table:OSFonts"/>
+<context caption="Font File Search Path"/>
+
+|   OS    |         Search Path         |
+| ------- | --------------------------- |
+| Windows | `C:/Windows/Fonts`          |
+| Linux   | `/usr/share/fonts/truetype` |
+
+You can specify the file name as a relative path from above search path.
+For example, when you want to use `Times New Roman` on Windows, do the following.
+
+```
+<font-load info="Times,serif,regular,times.ttf" />
+
+* This is a Regular Style of a default font.
+* \\font\[name=Times\]{Times New Roman of Regular Style}
+```
+
+The font information is embedded to a PDF file,
+so the PDF file can be read and displayed correctly even on the other OS.
+However, as a matter of course, note that if you use a font that can not be detected on a different OS,
+the typesetting process itself will fail because the font can not be found.
+
+## Commands
+
+You can also add KiTTy commands.
+KiTTy commands are located to the following path.
+
+```:lineNumber=false
+$INSTALL/lib/std/typesetting/command/inline/*.kx
+$INSTALL/lib/std/typesetting/command/paragraph/*.kx
+```
+
+Standalone Commands (\\nameref{Standalone Commands}) are stored under `inline` folder,
+and  Paragraph Scope Commands (\\nameref{Paragraph Scope Commands}) are stored under `paragraph` folder.
+
+Put your additional command file, and you can use the new command automatically.
+By the way, the file name seems to be a command name in almost all cases,
+but the class name is actually used as a command name.
+So far a class name and a file name is same in almost all commands.
+A command is recognized when the name is absolutely matched or matched with a lower case.
+
+### Define Standalone Commands
+
+Here is the template for Standalone Commands.
+It is necessary to implement an `exec` method.
+
+Though `WordSet` object is returned in this case,
+but you can return `Word` object, `LineBreak.Box` object, `LineBreak.Glue` object, `LineBreak.Penalty` object, or null.
+You should return one of those if necessary.
+
+```
+namespace Typesetting {
+namespace Command {
+
+    class Command(info_, context_) {
+        public exec(params) {
+            var ws = new Typesetting.WordSet(info_);
+            # ...
+            return ws;
+        }
+    }
+
+} # namespace Command
+} # namespace Typesetting
+```
+
+<context label="Table:StandaloneKiTTyCommandObject"/>
+<context caption="KiTTy Command Available Object Type"/>
+<context limit-column="0"/>
+
+|       Object        |                                            Meaning                                            |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `WordSet`           | To return multiple words.                                                                     |
+| `Word`              | To return a word.                                                                             |
+| `LineBreak.Box`     | To return a Box instead of Word or WordSet. For example, use it when the text width is fixed. |
+| `LineBreak.Glue`    | To insert a Glue.                                                                             |
+| `LineBreak.Penalty` | To insert a Penalty.                                                                          |
+| null                | Nothing to return when only changing the context, etc. This means no word in there.           |
+
+### Define Paragraph Scope Commands
+
+Here is the template for Paragraph Scope Commands.
+The namespace is `ParagraphCommand` and it is different from Standalone Commands.
+It is necessary to implement `start`, `end`, and `translate` method.
+You do not need to implement if the method is not used.
+If not implemented, KiTTy will just ignore it.
+
+```
+namespace Typesetting {
+namespace ParagraphCommand {
+
+    class Command(info_, context_) {
+        public start() {
+            # Procedure when started by `{`
+        }
+        public end() {
+            # Procedure when ended by `}`
+        }
+        public translate(value) {
+            # A paragraph between `{` and `}` is received as value.
+            # value is an array of WordSet or something because this is called after
+            # processing a paragraph.  If you want to translat from value to another
+            # word set, do process it here.
+            # This method is called before calling end().
+        }
+    }
+
+} # namespace Command
+} # namespace Typesetting
+```
 
 <appendix/>
 
 # Pre-defined Designs
 
+## Title Design
+
+As a title design, there are 2 types of designs by default.
+
+### StandardArticle
+
+This is a title design for article.
+The title is shown at the upside of a top page of a document.
+
+![scale=0.8,box=BOX_THIN](title_article.png)
+
+### StandardBook
+
+![scale=0.6,box=BOX_THIN,float=right](title_book.png)
+
+This will create an independent cover page.
+This is the style used in this document.
+It is available to set a sub title and a background image.
+
+The image on the right is the example of the cover page of this document.
+The sub title is shown on the top of the title text,
+and there is underline under the title text.
+The author and date is shown at the right side under the underline.
+The other place is covered by the background image.
+The background image is drawn from the top with the margin 0.
+
+## Chapter Design
+
+As a chapter design, there are 4 types of designs by default.
+
+### StandardBook
+
+This is the style used in this document.
+This has a largish chapter number with an underline,
+and put a bold type of a heading to the right side under the underline.
+
+![scale=0.8,box=BOX_THIN](chapter_stdbook_en.png)
+
+### BigChapter1
+
+This style has a chapter number which is a little bigger than `StandardBook`,
+and it changes the location of a number and a heading.
+
+![scale=0.8,box=BOX_THIN](chapter_bigchapter1_en.png)
+
+### BigChapter2
+
+This style has a chapter number which is a little smaller than `StandardBook`,
+and it puts a heading which is a little bigger with a regular font on the underline.
+
+![scale=0.8,box=BOX_THIN](chapter_bigchapter2_en.png)
+
+### BigChapter3
+
+This style has a quite big chapter number and puts a heading with a regular font under the number.
+
+![scale=0.8,box=BOX_THIN](chapter_bigchapter3_en.png)
+
 # About Style Parameters
 
+## Style Parameters
+
+You can change the style parameters by `<style-info />`,
+and it is specified by the format of `<style-info name="name" value="value" />`.
+Here is the default value of the styles for an English document.
+
+<context label="Table:StyleParameter"/>
+<context caption="Style Parameter List"/>
+<context limit-column="0"/>
+
+|         Name          |      ArticleA4      |       BookA4        |
+| --------------------- | :-----------------: | :-----------------: |
+| `title.style`         | `"StandardArticle"` |  `"StandardBook"`   |
+| `abstract.title.text` |    `"Abstract"`     |    `"Abstract"`     |
+| `chapter.style`       |          -          |  `"StandardBook"`   |
+| `hyphenationRule`     |       `"en"`        |       `"en"`        |
+| `toc.header`          |    `"Contents"`     |    `"Contents"`     |
+| `toc.lof`             | `"List Of Figures"` | `"List Of Figures"` |
+| `toc.lot`             | `"List Of Tables"`  | `"List Of Tables"`  |
+| `toc.appendix`        |    `"Appendix "`    |    `"Appendix "`    |
+| `table.label`         |      `"Table"`      |      `"Table"`      |
+| `image.label`         |       `"Fig"`       |       `"Fig"`       |
+| `image.fulllabel`     |     `"Figure"`      |     `"Figure"`      |
+
+The parameters which you can change will be added in the future.
+
 # Color Examples
+
+## Color Names and RGB/CMYK Values
+
+You can use the color names below with the `\color` command.
+This table also shows a value of RGB and CMYK for the color name.
+
+<context label="Table:ColorMap"/>
+<context caption="Color Names and RGB/CMYK Values"/>
+
+|     Color Name      |      RGB Value       |           CMYK Value           |             Color Example             |
+| :------------------ | :------------------: | :----------------------------: | :-----------------------------------: |
+| `aqua`              | `[0x00, 0xff, 0xff]` | `[1.000, 0.000, 0.000, 0.000]` | \\color\[aqua\]{■ Color}              |
+| `aquamarine1`       | `[0x87, 0xff, 0xd7]` | `[0.471, 0.000, 0.157, 0.000]` | \\color\[aquamarine1\]{■ Color}       |
+| `aquamarine3`       | `[0x5f, 0xd7, 0xaf]` | `[0.471, 0.000, 0.157, 0.157]` | \\color\[aquamarine3\]{■ Color}       |
+| `black`             | `[0x00, 0x00, 0x00]` | `[0.000, 0.000, 0.000, 1.000]` | \\color\[black\]{■ Color}             |
+| `blue`              | `[0x00, 0x00, 0xff]` | `[1.000, 1.000, 0.000, 0.000]` | \\color\[blue\]{■ Color}              |
+| `blue1`             | `[0x00, 0x00, 0xff]` | `[1.000, 1.000, 0.000, 0.000]` | \\color\[blue1\]{■ Color}             |
+| `blue3`             | `[0x00, 0x00, 0xd7]` | `[0.843, 0.843, 0.000, 0.157]` | \\color\[blue3\]{■ Color}             |
+| `blueviolet`        | `[0x5f, 0x00, 0xff]` | `[0.627, 1.000, 0.000, 0.000]` | \\color\[blueviolet\]{■ Color}        |
+| `cadetblue`         | `[0x5f, 0xaf, 0xaf]` | `[0.314, 0.000, 0.000, 0.314]` | \\color\[cadetblue\]{■ Color}         |
+| `chartreuse1`       | `[0x87, 0xff, 0x00]` | `[0.471, 0.000, 1.000, 0.000]` | \\color\[chartreuse1\]{■ Color}       |
+| `chartreuse2`       | `[0x87, 0xd7, 0x00]` | `[0.314, 0.000, 0.843, 0.157]` | \\color\[chartreuse2\]{■ Color}       |
+| `chartreuse3`       | `[0x5f, 0xd7, 0x00]` | `[0.471, 0.000, 0.843, 0.157]` | \\color\[chartreuse3\]{■ Color}       |
+| `chartreuse4`       | `[0x5f, 0x87, 0x00]` | `[0.157, 0.000, 0.529, 0.471]` | \\color\[chartreuse4\]{■ Color}       |
+| `cornflowerblue`    | `[0x5f, 0x87, 0xff]` | `[0.627, 0.471, 0.000, 0.000]` | \\color\[cornflowerblue\]{■ Color}    |
+| `cornsilk1`         | `[0xff, 0xff, 0xd7]` | `[0.000, 0.000, 0.157, 0.000]` | \\color\[cornsilk1\]{■ Color}         |
+| `cyan1`             | `[0x00, 0xff, 0xff]` | `[1.000, 0.000, 0.000, 0.000]` | \\color\[cyan1\]{■ Color}             |
+| `cyan2`             | `[0x00, 0xff, 0xd7]` | `[1.000, 0.000, 0.157, 0.000]` | \\color\[cyan2\]{■ Color}             |
+| `cyan3`             | `[0x00, 0xd7, 0xaf]` | `[0.843, 0.000, 0.157, 0.157]` | \\color\[cyan3\]{■ Color}             |
+| `darkblue`          | `[0x00, 0x00, 0x87]` | `[0.529, 0.529, 0.000, 0.471]` | \\color\[darkblue\]{■ Color}          |
+| `darkcyan`          | `[0x00, 0xaf, 0x87]` | `[0.686, 0.000, 0.157, 0.314]` | \\color\[darkcyan\]{■ Color}          |
+| `darkgoldenrod`     | `[0xaf, 0x87, 0x00]` | `[0.000, 0.157, 0.686, 0.314]` | \\color\[darkgoldenrod\]{■ Color}     |
+| `darkgreen`         | `[0x00, 0x5f, 0x00]` | `[0.373, 0.000, 0.373, 0.627]` | \\color\[darkgreen\]{■ Color}         |
+| `darkkhaki`         | `[0xaf, 0xaf, 0x5f]` | `[0.000, 0.000, 0.314, 0.314]` | \\color\[darkkhaki\]{■ Color}         |
+| `darkmagenta`       | `[0x87, 0x00, 0xaf]` | `[0.157, 0.686, 0.000, 0.314]` | \\color\[darkmagenta\]{■ Color}       |
+| `darkolivegreen1`   | `[0xd7, 0xff, 0x87]` | `[0.157, 0.000, 0.471, 0.000]` | \\color\[darkolivegreen1\]{■ Color}   |
+| `darkolivegreen2`   | `[0xaf, 0xff, 0x5f]` | `[0.314, 0.000, 0.627, 0.000]` | \\color\[darkolivegreen2\]{■ Color}   |
+| `darkolivegreen3`   | `[0xaf, 0xd7, 0x5f]` | `[0.157, 0.000, 0.471, 0.157]` | \\color\[darkolivegreen3\]{■ Color}   |
+| `darkorange`        | `[0xff, 0x87, 0x00]` | `[0.000, 0.471, 1.000, 0.000]` | \\color\[darkorange\]{■ Color}        |
+| `darkorange3`       | `[0xd7, 0x5f, 0x00]` | `[0.000, 0.471, 0.843, 0.157]` | \\color\[darkorange3\]{■ Color}       |
+| `darkred`           | `[0x87, 0x00, 0x00]` | `[0.000, 0.529, 0.529, 0.471]` | \\color\[darkred\]{■ Color}           |
+| `darkseagreen`      | `[0x87, 0xaf, 0x87]` | `[0.157, 0.000, 0.157, 0.314]` | \\color\[darkseagreen\]{■ Color}      |
+| `darkseagreen1`     | `[0xd7, 0xff, 0xaf]` | `[0.157, 0.000, 0.314, 0.000]` | \\color\[darkseagreen1\]{■ Color}     |
+| `darkseagreen2`     | `[0xaf, 0xff, 0xaf]` | `[0.314, 0.000, 0.314, 0.000]` | \\color\[darkseagreen2\]{■ Color}     |
+| `darkseagreen3`     | `[0xaf, 0xd7, 0x87]` | `[0.157, 0.000, 0.314, 0.157]` | \\color\[darkseagreen3\]{■ Color}     |
+| `darkseagreen4`     | `[0x5f, 0xaf, 0x5f]` | `[0.314, 0.000, 0.314, 0.314]` | \\color\[darkseagreen4\]{■ Color}     |
+| `darkslategray1`    | `[0x87, 0xff, 0xff]` | `[0.471, 0.000, 0.000, 0.000]` | \\color\[darkslategray1\]{■ Color}    |
+| `darkslategray2`    | `[0x5f, 0xff, 0xff]` | `[0.627, 0.000, 0.000, 0.000]` | \\color\[darkslategray2\]{■ Color}    |
+| `darkslategray3`    | `[0x87, 0xd7, 0xd7]` | `[0.314, 0.000, 0.000, 0.157]` | \\color\[darkslategray3\]{■ Color}    |
+| `darkturquoise`     | `[0x00, 0xd7, 0xd7]` | `[0.843, 0.000, 0.000, 0.157]` | \\color\[darkturquoise\]{■ Color}     |
+| `darkviolet`        | `[0xaf, 0x00, 0xd7]` | `[0.157, 0.843, 0.000, 0.157]` | \\color\[darkviolet\]{■ Color}        |
+| `deeppink1`         | `[0xff, 0x00, 0xaf]` | `[0.000, 1.000, 0.314, 0.000]` | \\color\[deeppink1\]{■ Color}         |
+| `deeppink2`         | `[0xff, 0x00, 0x5f]` | `[0.000, 1.000, 0.627, 0.000]` | \\color\[deeppink2\]{■ Color}         |
+| `deeppink3`         | `[0xd7, 0x00, 0x87]` | `[0.000, 0.843, 0.314, 0.157]` | \\color\[deeppink3\]{■ Color}         |
+| `deeppink4`         | `[0xaf, 0x00, 0x5f]` | `[0.000, 0.686, 0.314, 0.314]` | \\color\[deeppink4\]{■ Color}         |
+| `deepskyblue1`      | `[0x00, 0xaf, 0xff]` | `[1.000, 0.314, 0.000, 0.000]` | \\color\[deepskyblue1\]{■ Color}      |
+| `deepskyblue2`      | `[0x00, 0xaf, 0xd7]` | `[0.843, 0.157, 0.000, 0.157]` | \\color\[deepskyblue2\]{■ Color}      |
+| `deepskyblue3`      | `[0x00, 0x87, 0xd7]` | `[0.843, 0.314, 0.000, 0.157]` | \\color\[deepskyblue3\]{■ Color}      |
+| `deepskyblue4`      | `[0x00, 0x5f, 0xaf]` | `[0.686, 0.314, 0.000, 0.314]` | \\color\[deepskyblue4\]{■ Color}      |
+| `dodgerblue1`       | `[0x00, 0x87, 0xff]` | `[1.000, 0.471, 0.000, 0.000]` | \\color\[dodgerblue1\]{■ Color}       |
+| `dodgerblue2`       | `[0x00, 0x5f, 0xff]` | `[1.000, 0.627, 0.000, 0.000]` | \\color\[dodgerblue2\]{■ Color}       |
+| `dodgerblue3`       | `[0x00, 0x5f, 0xd7]` | `[0.843, 0.471, 0.000, 0.157]` | \\color\[dodgerblue3\]{■ Color}       |
+| `fuchsia`           | `[0xff, 0x00, 0xff]` | `[0.000, 1.000, 0.000, 0.000]` | \\color\[fuchsia\]{■ Color}           |
+| `gold1`             | `[0xff, 0xd7, 0x00]` | `[0.000, 0.157, 1.000, 0.000]` | \\color\[gold1\]{■ Color}             |
+| `gold3`             | `[0xd7, 0xaf, 0x00]` | `[0.000, 0.157, 0.843, 0.157]` | \\color\[gold3\]{■ Color}             |
+| `green`             | `[0x00, 0x80, 0x00]` | `[0.502, 0.000, 0.502, 0.498]` | \\color\[green\]{■ Color}             |
+| `green1`            | `[0x00, 0xff, 0x00]` | `[1.000, 0.000, 1.000, 0.000]` | \\color\[green1\]{■ Color}            |
+| `green3`            | `[0x00, 0xd7, 0x00]` | `[0.843, 0.000, 0.843, 0.157]` | \\color\[green3\]{■ Color}            |
+| `green4`            | `[0x00, 0x87, 0x00]` | `[0.529, 0.000, 0.529, 0.471]` | \\color\[green4\]{■ Color}            |
+| `greenyellow`       | `[0xaf, 0xff, 0x00]` | `[0.314, 0.000, 1.000, 0.000]` | \\color\[greenyellow\]{■ Color}       |
+| `grey`              | `[0x80, 0x80, 0x80]` | `[0.000, 0.000, 0.000, 0.498]` | \\color\[grey\]{■ Color}              |
+| `grey0`             | `[0x00, 0x00, 0x00]` | `[0.000, 0.000, 0.000, 1.000]` | \\color\[grey0\]{■ Color}             |
+| `grey100`           | `[0xff, 0xff, 0xff]` | `[0.000, 0.000, 0.000, 0.000]` | \\color\[grey100\]{■ Color}           |
+| `grey11`            | `[0x1c, 0x1c, 0x1c]` | `[0.000, 0.000, 0.000, 0.890]` | \\color\[grey11\]{■ Color}            |
+| `grey15`            | `[0x26, 0x26, 0x26]` | `[0.000, 0.000, 0.000, 0.851]` | \\color\[grey15\]{■ Color}            |
+| `grey19`            | `[0x30, 0x30, 0x30]` | `[0.000, 0.000, 0.000, 0.812]` | \\color\[grey19\]{■ Color}            |
+| `grey23`            | `[0x3a, 0x3a, 0x3a]` | `[0.000, 0.000, 0.000, 0.773]` | \\color\[grey23\]{■ Color}            |
+| `grey27`            | `[0x44, 0x44, 0x44]` | `[0.000, 0.000, 0.000, 0.733]` | \\color\[grey27\]{■ Color}            |
+| `grey3`             | `[0x08, 0x08, 0x08]` | `[0.000, 0.000, 0.000, 0.969]` | \\color\[grey3\]{■ Color}             |
+| `grey30`            | `[0x4e, 0x4e, 0x4e]` | `[0.000, 0.000, 0.000, 0.694]` | \\color\[grey30\]{■ Color}            |
+| `grey35`            | `[0x58, 0x58, 0x58]` | `[0.000, 0.000, 0.000, 0.655]` | \\color\[grey35\]{■ Color}            |
+| `grey37`            | `[0x5f, 0x5f, 0x5f]` | `[0.000, 0.000, 0.000, 0.627]` | \\color\[grey37\]{■ Color}            |
+| `grey39`            | `[0x62, 0x62, 0x62]` | `[0.000, 0.000, 0.000, 0.616]` | \\color\[grey39\]{■ Color}            |
+| `grey42`            | `[0x6c, 0x6c, 0x6c]` | `[0.000, 0.000, 0.000, 0.576]` | \\color\[grey42\]{■ Color}            |
+| `grey46`            | `[0x76, 0x76, 0x76]` | `[0.000, 0.000, 0.000, 0.537]` | \\color\[grey46\]{■ Color}            |
+| `grey50`            | `[0x80, 0x80, 0x80]` | `[0.000, 0.000, 0.000, 0.498]` | \\color\[grey50\]{■ Color}            |
+| `grey53`            | `[0x87, 0x87, 0x87]` | `[0.000, 0.000, 0.000, 0.471]` | \\color\[grey53\]{■ Color}            |
+| `grey54`            | `[0x8a, 0x8a, 0x8a]` | `[0.000, 0.000, 0.000, 0.459]` | \\color\[grey54\]{■ Color}            |
+| `grey58`            | `[0x94, 0x94, 0x94]` | `[0.000, 0.000, 0.000, 0.420]` | \\color\[grey58\]{■ Color}            |
+| `grey62`            | `[0x9e, 0x9e, 0x9e]` | `[0.000, 0.000, 0.000, 0.380]` | \\color\[grey62\]{■ Color}            |
+| `grey63`            | `[0xaf, 0x87, 0xaf]` | `[0.000, 0.157, 0.000, 0.314]` | \\color\[grey63\]{■ Color}            |
+| `grey66`            | `[0xa8, 0xa8, 0xa8]` | `[0.000, 0.000, 0.000, 0.341]` | \\color\[grey66\]{■ Color}            |
+| `grey69`            | `[0xaf, 0xaf, 0xaf]` | `[0.000, 0.000, 0.000, 0.314]` | \\color\[grey69\]{■ Color}            |
+| `grey7`             | `[0x12, 0x12, 0x12]` | `[0.000, 0.000, 0.000, 0.929]` | \\color\[grey7\]{■ Color}             |
+| `grey70`            | `[0xb2, 0xb2, 0xb2]` | `[0.000, 0.000, 0.000, 0.302]` | \\color\[grey70\]{■ Color}            |
+| `grey74`            | `[0xbc, 0xbc, 0xbc]` | `[0.000, 0.000, 0.000, 0.263]` | \\color\[grey74\]{■ Color}            |
+| `grey78`            | `[0xc6, 0xc6, 0xc6]` | `[0.000, 0.000, 0.000, 0.224]` | \\color\[grey78\]{■ Color}            |
+| `grey82`            | `[0xd0, 0xd0, 0xd0]` | `[0.000, 0.000, 0.000, 0.184]` | \\color\[grey82\]{■ Color}            |
+| `grey84`            | `[0xd7, 0xd7, 0xd7]` | `[0.000, 0.000, 0.000, 0.157]` | \\color\[grey84\]{■ Color}            |
+| `grey85`            | `[0xda, 0xda, 0xda]` | `[0.000, 0.000, 0.000, 0.145]` | \\color\[grey85\]{■ Color}            |
+| `grey89`            | `[0xe4, 0xe4, 0xe4]` | `[0.000, 0.000, 0.000, 0.106]` | \\color\[grey89\]{■ Color}            |
+| `grey93`            | `[0xee, 0xee, 0xee]` | `[0.000, 0.000, 0.000, 0.067]` | \\color\[grey93\]{■ Color}            |
+| `honeydew2`         | `[0xd7, 0xff, 0xd7]` | `[0.157, 0.000, 0.157, 0.000]` | \\color\[honeydew2\]{■ Color}         |
+| `hotpink`           | `[0xff, 0x5f, 0xd7]` | `[0.000, 0.627, 0.157, 0.000]` | \\color\[hotpink\]{■ Color}           |
+| `hotpink2`          | `[0xd7, 0x5f, 0xaf]` | `[0.000, 0.471, 0.157, 0.157]` | \\color\[hotpink2\]{■ Color}          |
+| `hotpink3`          | `[0xd7, 0x5f, 0x87]` | `[0.000, 0.471, 0.314, 0.157]` | \\color\[hotpink3\]{■ Color}          |
+| `indianred`         | `[0xd7, 0x5f, 0x5f]` | `[0.000, 0.471, 0.471, 0.157]` | \\color\[indianred\]{■ Color}         |
+| `indianred1`        | `[0xff, 0x5f, 0x87]` | `[0.000, 0.627, 0.471, 0.000]` | \\color\[indianred1\]{■ Color}        |
+| `khaki1`            | `[0xff, 0xff, 0x87]` | `[0.000, 0.000, 0.471, 0.000]` | \\color\[khaki1\]{■ Color}            |
+| `khaki3`            | `[0xd7, 0xd7, 0x5f]` | `[0.000, 0.000, 0.471, 0.157]` | \\color\[khaki3\]{■ Color}            |
+| `lightcoral`        | `[0xff, 0x87, 0x87]` | `[0.000, 0.471, 0.471, 0.000]` | \\color\[lightcoral\]{■ Color}        |
+| `lightcyan1`        | `[0xd7, 0xff, 0xff]` | `[0.157, 0.000, 0.000, 0.000]` | \\color\[lightcyan1\]{■ Color}        |
+| `lightcyan3`        | `[0xaf, 0xd7, 0xd7]` | `[0.157, 0.000, 0.000, 0.157]` | \\color\[lightcyan3\]{■ Color}        |
+| `lightgoldenrod1`   | `[0xff, 0xff, 0x5f]` | `[0.000, 0.000, 0.627, 0.000]` | \\color\[lightgoldenrod1\]{■ Color}   |
+| `lightgoldenrod2`   | `[0xff, 0xd7, 0x87]` | `[0.000, 0.157, 0.471, 0.000]` | \\color\[lightgoldenrod2\]{■ Color}   |
+| `lightgoldenrod3`   | `[0xd7, 0xaf, 0x5f]` | `[0.000, 0.157, 0.471, 0.157]` | \\color\[lightgoldenrod3\]{■ Color}   |
+| `lightgreen`        | `[0x87, 0xff, 0x87]` | `[0.471, 0.000, 0.471, 0.000]` | \\color\[lightgreen\]{■ Color}        |
+| `lightpink1`        | `[0xff, 0xaf, 0xaf]` | `[0.000, 0.314, 0.314, 0.000]` | \\color\[lightpink1\]{■ Color}        |
+| `lightpink3`        | `[0xd7, 0x87, 0x87]` | `[0.000, 0.314, 0.314, 0.157]` | \\color\[lightpink3\]{■ Color}        |
+| `lightpink4`        | `[0x87, 0x5f, 0x5f]` | `[0.000, 0.157, 0.157, 0.471]` | \\color\[lightpink4\]{■ Color}        |
+| `lightsalmon1`      | `[0xff, 0xaf, 0x87]` | `[0.000, 0.314, 0.471, 0.000]` | \\color\[lightsalmon1\]{■ Color}      |
+| `lightsalmon3`      | `[0xd7, 0x87, 0x5f]` | `[0.000, 0.314, 0.471, 0.157]` | \\color\[lightsalmon3\]{■ Color}      |
+| `lightseagreen`     | `[0x00, 0xaf, 0xaf]` | `[0.686, 0.000, 0.000, 0.314]` | \\color\[lightseagreen\]{■ Color}     |
+| `lightskyblue1`     | `[0xaf, 0xd7, 0xff]` | `[0.314, 0.157, 0.000, 0.000]` | \\color\[lightskyblue1\]{■ Color}     |
+| `lightskyblue3`     | `[0x87, 0xaf, 0xd7]` | `[0.314, 0.157, 0.000, 0.157]` | \\color\[lightskyblue3\]{■ Color}     |
+| `lightslateblue`    | `[0x87, 0x87, 0xff]` | `[0.471, 0.471, 0.000, 0.000]` | \\color\[lightslateblue\]{■ Color}    |
+| `lightslategrey`    | `[0x87, 0x87, 0xaf]` | `[0.157, 0.157, 0.000, 0.314]` | \\color\[lightslategrey\]{■ Color}    |
+| `lightsteelblue`    | `[0xaf, 0xaf, 0xff]` | `[0.314, 0.314, 0.000, 0.000]` | \\color\[lightsteelblue\]{■ Color}    |
+| `lightsteelblue1`   | `[0xd7, 0xd7, 0xff]` | `[0.157, 0.157, 0.000, 0.000]` | \\color\[lightsteelblue1\]{■ Color}   |
+| `lightsteelblue3`   | `[0xaf, 0xaf, 0xd7]` | `[0.157, 0.157, 0.000, 0.157]` | \\color\[lightsteelblue3\]{■ Color}   |
+| `lightyellow3`      | `[0xd7, 0xd7, 0xaf]` | `[0.000, 0.000, 0.157, 0.157]` | \\color\[lightyellow3\]{■ Color}      |
+| `lime`              | `[0x00, 0xff, 0x00]` | `[1.000, 0.000, 1.000, 0.000]` | \\color\[lime\]{■ Color}              |
+| `magenta1`          | `[0xff, 0x00, 0xff]` | `[0.000, 1.000, 0.000, 0.000]` | \\color\[magenta1\]{■ Color}          |
+| `magenta2`          | `[0xff, 0x00, 0xd7]` | `[0.000, 1.000, 0.157, 0.000]` | \\color\[magenta2\]{■ Color}          |
+| `magenta3`          | `[0xd7, 0x00, 0xd7]` | `[0.000, 0.843, 0.000, 0.157]` | \\color\[magenta3\]{■ Color}          |
+| `maroon`            | `[0x80, 0x00, 0x00]` | `[0.000, 0.502, 0.502, 0.498]` | \\color\[maroon\]{■ Color}            |
+| `mediumorchid`      | `[0xaf, 0x5f, 0xd7]` | `[0.157, 0.471, 0.000, 0.157]` | \\color\[mediumorchid\]{■ Color}      |
+| `mediumorchid1`     | `[0xff, 0x5f, 0xff]` | `[0.000, 0.627, 0.000, 0.000]` | \\color\[mediumorchid1\]{■ Color}     |
+| `mediumorchid3`     | `[0xaf, 0x5f, 0xaf]` | `[0.000, 0.314, 0.000, 0.314]` | \\color\[mediumorchid3\]{■ Color}     |
+| `mediumpurple`      | `[0x87, 0x87, 0xd7]` | `[0.314, 0.314, 0.000, 0.157]` | \\color\[mediumpurple\]{■ Color}      |
+| `mediumpurple1`     | `[0xaf, 0x87, 0xff]` | `[0.314, 0.471, 0.000, 0.000]` | \\color\[mediumpurple1\]{■ Color}     |
+| `mediumpurple2`     | `[0xaf, 0x87, 0xd7]` | `[0.157, 0.314, 0.000, 0.157]` | \\color\[mediumpurple2\]{■ Color}     |
+| `mediumpurple3`     | `[0x87, 0x5f, 0xd7]` | `[0.314, 0.471, 0.000, 0.157]` | \\color\[mediumpurple3\]{■ Color}     |
+| `mediumpurple4`     | `[0x5f, 0x5f, 0x87]` | `[0.157, 0.157, 0.000, 0.471]` | \\color\[mediumpurple4\]{■ Color}     |
+| `mediumspringgreen` | `[0x00, 0xff, 0xaf]` | `[1.000, 0.000, 0.314, 0.000]` | \\color\[mediumspringgreen\]{■ Color} |
+| `mediumturquoise`   | `[0x5f, 0xd7, 0xd7]` | `[0.471, 0.000, 0.000, 0.157]` | \\color\[mediumturquoise\]{■ Color}   |
+| `mediumvioletred`   | `[0xaf, 0x00, 0x87]` | `[0.000, 0.686, 0.157, 0.314]` | \\color\[mediumvioletred\]{■ Color}   |
+| `mistyrose1`        | `[0xff, 0xd7, 0xd7]` | `[0.000, 0.157, 0.157, 0.000]` | \\color\[mistyrose1\]{■ Color}        |
+| `mistyrose3`        | `[0xd7, 0xaf, 0xaf]` | `[0.000, 0.157, 0.157, 0.157]` | \\color\[mistyrose3\]{■ Color}        |
+| `navajowhite1`      | `[0xff, 0xd7, 0xaf]` | `[0.000, 0.157, 0.314, 0.000]` | \\color\[navajowhite1\]{■ Color}      |
+| `navajowhite3`      | `[0xaf, 0xaf, 0x87]` | `[0.000, 0.000, 0.157, 0.314]` | \\color\[navajowhite3\]{■ Color}      |
+| `navy`              | `[0x00, 0x00, 0x80]` | `[0.502, 0.502, 0.000, 0.498]` | \\color\[navy\]{■ Color}              |
+| `navyblue`          | `[0x00, 0x00, 0x5f]` | `[0.373, 0.373, 0.000, 0.627]` | \\color\[navyblue\]{■ Color}          |
+| `olive`             | `[0x80, 0x80, 0x00]` | `[0.000, 0.000, 0.502, 0.498]` | \\color\[olive\]{■ Color}             |
+| `orange1`           | `[0xff, 0xaf, 0x00]` | `[0.000, 0.314, 1.000, 0.000]` | \\color\[orange1\]{■ Color}           |
+| `orange3`           | `[0xd7, 0x87, 0x00]` | `[0.000, 0.314, 0.843, 0.157]` | \\color\[orange3\]{■ Color}           |
+| `orange4`           | `[0x87, 0x5f, 0x00]` | `[0.000, 0.157, 0.529, 0.471]` | \\color\[orange4\]{■ Color}           |
+| `orangered1`        | `[0xff, 0x5f, 0x00]` | `[0.000, 0.627, 1.000, 0.000]` | \\color\[orangered1\]{■ Color}        |
+| `orchid`            | `[0xd7, 0x5f, 0xd7]` | `[0.000, 0.471, 0.000, 0.157]` | \\color\[orchid\]{■ Color}            |
+| `orchid1`           | `[0xff, 0x87, 0xff]` | `[0.000, 0.471, 0.000, 0.000]` | \\color\[orchid1\]{■ Color}           |
+| `orchid2`           | `[0xff, 0x87, 0xd7]` | `[0.000, 0.471, 0.157, 0.000]` | \\color\[orchid2\]{■ Color}           |
+| `palegreen1`        | `[0xaf, 0xff, 0x87]` | `[0.314, 0.000, 0.471, 0.000]` | \\color\[palegreen1\]{■ Color}        |
+| `palegreen3`        | `[0x87, 0xd7, 0x87]` | `[0.314, 0.000, 0.314, 0.157]` | \\color\[palegreen3\]{■ Color}        |
+| `paleturquoise1`    | `[0xaf, 0xff, 0xff]` | `[0.314, 0.000, 0.000, 0.000]` | \\color\[paleturquoise1\]{■ Color}    |
+| `paleturquoise4`    | `[0x5f, 0x87, 0x87]` | `[0.157, 0.000, 0.000, 0.471]` | \\color\[paleturquoise4\]{■ Color}    |
+| `palevioletred1`    | `[0xff, 0x87, 0xaf]` | `[0.000, 0.471, 0.314, 0.000]` | \\color\[palevioletred1\]{■ Color}    |
+| `pink1`             | `[0xff, 0xaf, 0xd7]` | `[0.000, 0.314, 0.157, 0.000]` | \\color\[pink1\]{■ Color}             |
+| `pink3`             | `[0xd7, 0x87, 0xaf]` | `[0.000, 0.314, 0.157, 0.157]` | \\color\[pink3\]{■ Color}             |
+| `plum1`             | `[0xff, 0xaf, 0xff]` | `[0.000, 0.314, 0.000, 0.000]` | \\color\[plum1\]{■ Color}             |
+| `plum2`             | `[0xd7, 0xaf, 0xff]` | `[0.157, 0.314, 0.000, 0.000]` | \\color\[plum2\]{■ Color}             |
+| `plum3`             | `[0xd7, 0x87, 0xd7]` | `[0.000, 0.314, 0.000, 0.157]` | \\color\[plum3\]{■ Color}             |
+| `plum4`             | `[0x87, 0x5f, 0x87]` | `[0.000, 0.157, 0.000, 0.471]` | \\color\[plum4\]{■ Color}             |
+| `purple`            | `[0xaf, 0x00, 0xff]` | `[0.314, 1.000, 0.000, 0.000]` | \\color\[purple\]{■ Color}            |
+| `purple3`           | `[0x5f, 0x00, 0xd7]` | `[0.471, 0.843, 0.000, 0.157]` | \\color\[purple3\]{■ Color}           |
+| `purple4`           | `[0x5f, 0x00, 0xaf]` | `[0.314, 0.686, 0.000, 0.314]` | \\color\[purple4\]{■ Color}           |
+| `red`               | `[0xff, 0x00, 0x00]` | `[0.000, 1.000, 1.000, 0.000]` | \\color\[red\]{■ Color}               |
+| `red1`              | `[0xff, 0x00, 0x00]` | `[0.000, 1.000, 1.000, 0.000]` | \\color\[red1\]{■ Color}              |
+| `red3`              | `[0xd7, 0x00, 0x00]` | `[0.000, 0.843, 0.843, 0.157]` | \\color\[red3\]{■ Color}              |
+| `rosybrown`         | `[0xaf, 0x87, 0x87]` | `[0.000, 0.157, 0.157, 0.314]` | \\color\[rosybrown\]{■ Color}         |
+| `royalblue1`        | `[0x5f, 0x5f, 0xff]` | `[0.627, 0.627, 0.000, 0.000]` | \\color\[royalblue1\]{■ Color}        |
+| `salmon1`           | `[0xff, 0x87, 0x5f]` | `[0.000, 0.471, 0.627, 0.000]` | \\color\[salmon1\]{■ Color}           |
+| `sandybrown`        | `[0xff, 0xaf, 0x5f]` | `[0.000, 0.314, 0.627, 0.000]` | \\color\[sandybrown\]{■ Color}        |
+| `seagreen1`         | `[0x5f, 0xff, 0xaf]` | `[0.627, 0.000, 0.314, 0.000]` | \\color\[seagreen1\]{■ Color}         |
+| `seagreen2`         | `[0x5f, 0xff, 0x5f]` | `[0.627, 0.000, 0.627, 0.000]` | \\color\[seagreen2\]{■ Color}         |
+| `seagreen3`         | `[0x5f, 0xd7, 0x87]` | `[0.471, 0.000, 0.314, 0.157]` | \\color\[seagreen3\]{■ Color}         |
+| `silver`            | `[0xc0, 0xc0, 0xc0]` | `[0.000, 0.000, 0.000, 0.247]` | \\color\[silver\]{■ Color}            |
+| `skyblue1`          | `[0x87, 0xd7, 0xff]` | `[0.471, 0.157, 0.000, 0.000]` | \\color\[skyblue1\]{■ Color}          |
+| `skyblue2`          | `[0x87, 0xaf, 0xff]` | `[0.471, 0.314, 0.000, 0.000]` | \\color\[skyblue2\]{■ Color}          |
+| `skyblue3`          | `[0x5f, 0xaf, 0xd7]` | `[0.471, 0.157, 0.000, 0.157]` | \\color\[skyblue3\]{■ Color}          |
+| `slateblue1`        | `[0x87, 0x5f, 0xff]` | `[0.471, 0.627, 0.000, 0.000]` | \\color\[slateblue1\]{■ Color}        |
+| `slateblue3`        | `[0x5f, 0x5f, 0xd7]` | `[0.471, 0.471, 0.000, 0.157]` | \\color\[slateblue3\]{■ Color}        |
+| `springgreen1`      | `[0x00, 0xff, 0x87]` | `[1.000, 0.000, 0.471, 0.000]` | \\color\[springgreen1\]{■ Color}      |
+| `springgreen2`      | `[0x00, 0xff, 0x5f]` | `[1.000, 0.000, 0.627, 0.000]` | \\color\[springgreen2\]{■ Color}      |
+| `springgreen3`      | `[0x00, 0xd7, 0x5f]` | `[0.843, 0.000, 0.471, 0.157]` | \\color\[springgreen3\]{■ Color}      |
+| `springgreen4`      | `[0x00, 0x87, 0x5f]` | `[0.529, 0.000, 0.157, 0.471]` | \\color\[springgreen4\]{■ Color}      |
+| `steelblue`         | `[0x5f, 0x87, 0xaf]` | `[0.314, 0.157, 0.000, 0.314]` | \\color\[steelblue\]{■ Color}         |
+| `steelblue1`        | `[0x5f, 0xd7, 0xff]` | `[0.627, 0.157, 0.000, 0.000]` | \\color\[steelblue1\]{■ Color}        |
+| `steelblue3`        | `[0x5f, 0x87, 0xd7]` | `[0.471, 0.314, 0.000, 0.157]` | \\color\[steelblue3\]{■ Color}        |
+| `tan`               | `[0xd7, 0xaf, 0x87]` | `[0.000, 0.157, 0.314, 0.157]` | \\color\[tan\]{■ Color}               |
+| `teal`              | `[0x00, 0x80, 0x80]` | `[0.502, 0.000, 0.000, 0.498]` | \\color\[teal\]{■ Color}              |
+| `thistle1`          | `[0xff, 0xd7, 0xff]` | `[0.000, 0.157, 0.000, 0.000]` | \\color\[thistle1\]{■ Color}          |
+| `thistle3`          | `[0xd7, 0xaf, 0xd7]` | `[0.000, 0.157, 0.000, 0.157]` | \\color\[thistle3\]{■ Color}          |
+| `turquoise2`        | `[0x00, 0xd7, 0xff]` | `[1.000, 0.157, 0.000, 0.000]` | \\color\[turquoise2\]{■ Color}        |
+| `turquoise4`        | `[0x00, 0x87, 0x87]` | `[0.529, 0.000, 0.000, 0.471]` | \\color\[turquoise4\]{■ Color}        |
+| `violet`            | `[0xd7, 0x87, 0xff]` | `[0.157, 0.471, 0.000, 0.000]` | \\color\[violet\]{■ Color}            |
+| `wheat1`            | `[0xff, 0xff, 0xaf]` | `[0.000, 0.000, 0.314, 0.000]` | \\color\[wheat1\]{■ Color}            |
+| `wheat4`            | `[0x87, 0x87, 0x5f]` | `[0.000, 0.000, 0.157, 0.471]` | \\color\[wheat4\]{■ Color}            |
+| `white`             | `[0xff, 0xff, 0xff]` | `[0.000, 0.000, 0.000, 0.000]` | \\color\[white\]{■ Color}             |
+| `yellow`            | `[0xff, 0xff, 0x00]` | `[0.000, 0.000, 1.000, 0.000]` | \\color\[yellow\]{■ Color}            |
+| `yellow1`           | `[0xff, 0xff, 0x00]` | `[0.000, 0.000, 1.000, 0.000]` | \\color\[yellow1\]{■ Color}           |
+| `yellow2`           | `[0xd7, 0xff, 0x00]` | `[0.157, 0.000, 1.000, 0.000]` | \\color\[yellow2\]{■ Color}           |
+| `yellow3`           | `[0xd7, 0xd7, 0x00]` | `[0.000, 0.000, 0.843, 0.157]` | \\color\[yellow3\]{■ Color}           |
+| `yellow4`           | `[0x87, 0xaf, 0x00]` | `[0.157, 0.000, 0.686, 0.314]` | \\color\[yellow4\]{■ Color}           |
+
 

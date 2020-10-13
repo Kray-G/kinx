@@ -37,7 +37,7 @@ namespace Typesetting {
                 }
                 var indent = context_.noIndent;
                 context_.noIndent = true;
-                context_.xrefLabel = null;
+                context_.xrefLabel = sectionText;
                 var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
                 var pagenum = writer.getPageIndex();
                 var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
