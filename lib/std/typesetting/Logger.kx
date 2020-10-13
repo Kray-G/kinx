@@ -3,14 +3,19 @@ using DateTime;
 namespace Typesetting {
 
     class LoggerImpl(opts_) {
+        var writer_;
         var debugOutput_ = opts_.debug;
         var infoOutput_ = opts_.info;
         var warnOutput_ = opts_.warn;
         var errorOutput_ = opts_.error;
         var fatalOutput_ = opts_.fatal;
-        private makeMessage(level, msg) {
+        private makeMessage(level, levelString, msg) {
             var dt = DateTime.now();
-            return "[" + (dt.toString()) + "] %{level}: " + msg.trimRight();
+            var res = "[%{dt.toString()}] %{levelString}: " + msg.trimRight();
+            if (writer_ && level > 1) {
+                res = res.trimRight(".") + " at the page %{writer_.getPageNumber()}.";
+            }
+            return res;
         }
         private makeString(msg) {
             if (msg.isString) {
@@ -18,11 +23,14 @@ namespace Typesetting {
             }
             return msg.toString();
         }
+        public setWriter(writer) {
+            writer_ = writer;
+        }
         public debug(msg) {
             if (debugOutput_) {
                 msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
-                    debugOutput_.println(makeMessage("Debug", m));
+                    debugOutput_.println(makeMessage(0, "Debug", m));
                 };
             }
         }
@@ -30,7 +38,7 @@ namespace Typesetting {
             if (infoOutput_) {
                 msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
-                    infoOutput_.println(makeMessage("Info", m));
+                    infoOutput_.println(makeMessage(1, "Info", m));
                 };
             }
         }
@@ -38,7 +46,9 @@ namespace Typesetting {
             if (warnOutput_) {
                 msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
-                    warnOutput_.println(makeMessage("Warning", m));
+                    var mm = makeMessage(2, "Warning", m);
+                    warnOutput_.println(mm);
+                    @warns.push(mm);
                 };
             }
         }
@@ -46,7 +56,9 @@ namespace Typesetting {
             if (errorOutput_) {
                 msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
-                    errorOutput_.println(makeMessage("Error", m));
+                    var mm = makeMessage(3, "Error", m);
+                    errorOutput_.println(mm);
+                    @errors.push(mm);
                 };
             }
         }
@@ -54,8 +66,9 @@ namespace Typesetting {
             if (fatalOutput_) {
                 msg = makeString(msg);
                 msg.split(/\r?\n/).each { &(m):
-                    fatalOutput_.println(makeMessage("Fatal", m));
+                    fatalOutput_.println(makeMessage(4, "Fatal", m));
                 };
+                throw RuntimeException("Fatal error occurred, stop the process.");
             }
         }
     }
@@ -67,6 +80,27 @@ namespace Typesetting {
             error: System,
             fatal: System,
         }) {
+        private initialize() {
+            @warns = [];
+            @errors = [];
+        }
+        public report() {
+            if (@warns.length() == 0 && @errors.length() == 0) {
+                System.println("Processing a typestting successfully completed.");
+            }
+            if (@warns.length() > 0) {
+                System.println("Warning detected: %d" % @warns.length());
+                @warns.each { &(m):
+                    System.println(m);
+                };
+            }
+            if (@errors.length() > 0) {
+                System.println("Error detected: %d" % @errors.length());
+                @errors.each { &(m):
+                    System.println(m);
+                };
+            }
+        }
     }
 
 } # namespace Typesetting

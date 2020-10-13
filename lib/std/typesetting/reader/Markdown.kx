@@ -69,6 +69,12 @@ namespace Typesetting {
             if ((m = v.match(/<br\s*\/>/)).isDefined) {
                 return "\n\n";
             }
+            if ((m = v.match(/<lq\s*\/>/)).isDefined) {
+                return "\u2018";
+            }
+            if ((m = v.match(/<rq\s*\/>/)).isDefined) {
+                return "\u2019";
+            }
             if ((m = v.match(/<backq([0-9]+)\s*\/>/)).isDefined) {
                 var value = "`" * Integer.parseInt(m[1]);
                 return "\\pack{%{value}}";
@@ -661,6 +667,7 @@ namespace Typesetting {
                 this[a.name](a);
             });
             generateTo(file);
+            doc_.report();
         }
     }
 

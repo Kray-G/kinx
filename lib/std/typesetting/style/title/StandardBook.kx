@@ -33,13 +33,13 @@ namespace Style {
         var descent = fontObj.getDescent() * context.font.fontSize / 1000;
 
         writer.setPos({ x: leftMargin, y: y - descent });
-        var lines = core.paragraph.exec({}, "\\bold{%{title}}");
+        var lines = core.paragraph.exec({}, "\\noindent{}\\bold{%{title}}");
         core.util.write(lines);
 
         if (opts.subtitle) {
             context.font.fontSize = opts.subtitleSize || 24.8;
             writer.setPos({ x: leftMargin, y: y - descent + titleSize + 4 });
-            var lines = core.paragraph.exec({}, opts.subtitle);
+            var lines = core.paragraph.exec({}, "\\noindent{}" + opts.subtitle);
             core.util.write(lines);
         }
 
