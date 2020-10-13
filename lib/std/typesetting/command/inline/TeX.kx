@@ -36,14 +36,14 @@ namespace Typesetting {
 
                 var l = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, 'L');
 
-                var width = Typesetting.Util.getPt(context_, "-0.3em");
+                var width = Typesetting.Util.getPt(context_, "-0.25em");
                 var hs0 = Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ''));
 
                 context_.offsetY = Typesetting.Util.getPt(context_, "0.3ex");
                 var a = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize * 0.8, 'A');
                 context_.offsetY = y;
 
-                var width = Typesetting.Util.getPt(context_, "-0.132em");
+                var width = Typesetting.Util.getPt(context_, "-0.2em");
                 var hs1 = Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ''));
 
                 var t = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, 'T');
@@ -80,14 +80,14 @@ namespace Typesetting {
 
                 var k = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, 'K');
 
-                var width = Typesetting.Util.getPt(context_, "-0.15em");
+                var width = Typesetting.Util.getPt(context_, "-0.1em");
                 var hs0 = Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ''));
 
                 context_.offsetY = Typesetting.Util.getPt(context_, "0.3ex");
                 var a = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize * 0.8, 'A');
                 context_.offsetY = y;
 
-                var width = Typesetting.Util.getPt(context_, "-0.132em");
+                var width = Typesetting.Util.getPt(context_, "-0.2em");
                 var hs1 = Typesetting.Linebreak.Box(width, new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, ''));
 
                 var t = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, 'T');
