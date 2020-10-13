@@ -85,7 +85,7 @@ namespace Typesetting {
                     };
                 }
 
-                var name = info.base.image.label + ' ' + counter + '\\hspace[width=%{context.font.fontSize}pt]' + caption;
+                var name = info.base.image.label + ' ' + counter + ' ' + caption;
                 var lines = core.paragraph.exec({ noIndent: true }, name);
                 var x = center - lines[0].totalWidth / 2;
                 lines[0].nodes.each { &(node):

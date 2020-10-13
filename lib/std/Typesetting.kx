@@ -39,6 +39,7 @@ namespace Typesetting {
             var measure = new Typesetting.Measurement(writer.getPdf(), writer.getPage());
             info_.measure = measure;
             info_.writer = writer;
+            info_.logger.setWriter(writer);
             var pageSize = measure.getPageSize();
             context_ = {
                 noIndent: false,
@@ -134,6 +135,7 @@ namespace Typesetting {
                     .replace("\\TeX", "TeX");
                 [, text] = core_.util.makeOption(text);
                 var lines = core_.paragraph.exec({}, text);
+                context_.xrefLabel = null;
                 var str;
                 lines.each { &(line):
                     line.nodes.each { &(n, i):
@@ -291,6 +293,7 @@ namespace Typesetting {
                     var lines = core_.paragraph.exec({}, info.header);
                     core_.util.write(lines);
                 }
+                context_.outputSection = false;
                 var list = info.list || [];
                 list.each { &(tocdata, i):
                     var nlevel = list[i+1].level || 0;
@@ -315,6 +318,10 @@ namespace Typesetting {
             context_.page.paragraphSkipWidth = paragraphSkipWidth;
             context_.page.lineFeedWidthRatio = lineFeedWidthRatio;
             context_.font.fontSize = fontSize;
+        }
+
+        public report() {
+            info_.logger.report();
         }
 
         public save(file) {
