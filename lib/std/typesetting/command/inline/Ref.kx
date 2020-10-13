@@ -7,7 +7,7 @@ namespace Typesetting {
                 var ref = context_.xref[value];
                 var cache = context_.xrefCache[value];
                 if (ref.counter.isUndefined) {
-                    info_.logger.warn("Re-run for Cross Reference with counter");
+                    info_.logger.warn("Re-run for Cross Reference[%{value}] with counter, using '??' instead.");
                     return "??";
                 }
                 if (cache) {

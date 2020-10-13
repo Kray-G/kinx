@@ -261,6 +261,8 @@ namespace Markdown {
     const MODE_LINK = 9;
     const MODE_INLINE_CODE = 10;
 
+    Markdown.isTypesettingSpecial = false;
+
     inlineParser = _function(text) {
         const ast = [];
 
@@ -269,6 +271,7 @@ namespace Markdown {
         var escapeSequence = false;
         const html = [];
         var dquotep = 0;
+        var quotep = 0;
 
         for (var i = 0, l = text.length(); i < l; ++i) {
             const char = text[i];
@@ -291,10 +294,19 @@ namespace Markdown {
                     stack += *char;
                     break;
                 }
-                if (((i+1) < l) && text[i + 1] == "'"[0]) {
-                    i++;
-                    stack += dquotep ? "''" : "``";
-                    dquotep = 1 - dquotep;
+                if (Markdown.isTypesettingSpecial) {
+                    if (((i+1) < l) && text[i + 1] == "'"[0]) {
+                        i++;
+                        stack += dquotep ? "''" : "``";
+                        dquotep = 1 - dquotep;
+                    } else {
+                        if (!helper.isEmpty(stack)) {
+                            ast.push(new Nodes.Text(stack));
+                        }
+                        ast.push(new Nodes.Html(quotep ? "<rq/>" : "<lq/>"));
+                        quotep = 1 - quotep;
+                        stack = "";
+                    }
                 } else {
                     stack += *char;
                 }

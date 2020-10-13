@@ -7,6 +7,8 @@ if (!File.exists(file)) {
     System.println("File not found: " + file);
     return 1;
 }
+
+Markdown.isTypesettingSpecial = true;
 var stem = file.stem();
 var path = file.parentPath();
 var parser = new Typesetting.BookParser();
