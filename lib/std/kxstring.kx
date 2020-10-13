@@ -9,7 +9,7 @@ String.find = _function(str, cond) {
         cond.reset(str);
         return cond =~ str;
     } else {
-        throw RuntimeException('Invalid split condition');
+        throw RuntimeException('Invalid find condition');
     }
 };
 
