@@ -7,7 +7,7 @@ namespace Typesetting {
                 var ref = context_.xref[value];
                 var cache = context_.xrefCache[value];
                 if (ref.page.isUndefined) {
-                    info_.logger.warn("Re-run for Page Reference");
+                    info_.logger.warn("Re-run for Page Reference[%{value}], using '??' instead");
                     return "??";
                 }
                 if (cache) {
