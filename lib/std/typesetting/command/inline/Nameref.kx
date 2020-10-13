@@ -8,7 +8,7 @@ namespace Typesetting {
                 var cache = context_.xrefCache[value];
                 var name = ref.name;
                 if (name.isUndefined) {
-                    info_.logger.warn("Re-run for Cross Reference with name");
+                    info_.logger.warn("Re-run for Cross Reference[%{value}] with name, using '??' instead.");
                     return "??";
                 }
                 if (cache) {
