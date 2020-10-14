@@ -1293,8 +1293,8 @@ This is only for Japanese requirement.
 In Japanese, there is a way, which is named as ''Furigana'' or ''Ruby'', to write a text.
 It is to write a small text as a way to read on the top of a main sentence.
 For example, it is used like ''この\\ruby\[ほん\]{本}はとても\\ruby\[おもしろ\]{面白}いです.''
-Usually, very young children can't read Kanji.
-And even if it were adults, there is a case they can't read a difficult Kanji or the Kanji they do not use usually.
+Usually, very young children can\\apos{}t read Kanji.
+And even if it were adults, there is a case they can\\apos{}t read a difficult Kanji or the Kanji they do not use usually.
 Considering those cases, Furigana is used like ''\\ruby\[ほん\]{本}.''
 
 #### How To Use Furigana
