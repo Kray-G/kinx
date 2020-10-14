@@ -66,7 +66,7 @@ jobs:
           tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
 
           mkdir -p $tag/lib/fonts
-          mkdir -p $tag/lib/lib/phantomjs
+          mkdir -p $tag/lib/phantomjs
           cp -r /usr/bin/kinxlib/fonts/* $tag/lib/fonts
           cp -r /usr/bin/kinxlib/lib/phantomjs/* $tag/lib/phantomjs
           zip -r package-kitty.zip $tag/
