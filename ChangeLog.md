@@ -22,7 +22,7 @@
 
 ## V0.15.2 (15th Preview Release) - 2020/10/14
 
-<img align="right" src="https://github.com/Kray-G/kinx/raw/master/examples/typesetting/title_book.png" width="300px">
+<img align="right" src="https://github.com/Kray-G/kinx/raw/master/examples/typesetting/title_book_en.png" width="300px">
 
 * Updated
     * Some bug fixes for Typesetting Library.

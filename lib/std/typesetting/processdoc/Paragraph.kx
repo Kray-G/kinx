@@ -134,7 +134,7 @@ namespace Typesetting {
                             value.x = x1;
                             n.value.word = (prev.isDefined && prev.isBox && prev.value.word[-1] != '-'[0]) ? "-" : "";
                             x1 += n.width;
-                        } else {
+                        } else if (n.isObject) {
                             n.width = 0.0;
                         }
                         prev = n;
