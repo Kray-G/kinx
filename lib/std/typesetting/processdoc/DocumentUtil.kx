@@ -151,7 +151,11 @@ namespace Typesetting {
                                 x += n.width;
                             };
                         } else {
-                            line.nodes.each { &(n) => n.write(writer, null, null, isFloatingLine) };
+                            line.nodes.each { &(n):
+                                if (n.write.isFunction) {
+                                    n.write(writer, null, null, isFloatingLine);
+                                }
+                             };
                         }
 
                         if (opts.vline.isArray) {

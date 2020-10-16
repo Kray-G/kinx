@@ -1,0 +1,19 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Lbrace(info_, context_) {
+            public exec(params, value) {
+                return new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '{');
+            }
+        }
+
+        class Rbrace(info_, context_) {
+            public exec(params, value) {
+                return new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '}');
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting
