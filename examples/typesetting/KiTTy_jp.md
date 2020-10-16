@@ -2,7 +2,7 @@
 % Kray-G, Mr.Diamond Global Blue Publisher
 % September 18, 2020
 
-Small and Easy, but Beautiful Design For You
+小さくて簡単、でも美しいデザイン。
 
 <param style="JBookA4"/>
 <param multibytefont="jp"/>
@@ -1879,7 +1879,7 @@ namespace ParagraphCommand {
 
 ### StandardBook
 
-![scale=0.6,box=BOX_THIN,float=right](title_book.png)
+![scale=0.6,box=BOX_THIN,float=right](title_book_jp.png)
 
 独立した表紙を作成します。
 本書で使用しているスタイルです。
