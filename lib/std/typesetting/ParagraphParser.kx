@@ -171,8 +171,8 @@ namespace Typesetting {
                 command.end();
             }
         };
-        var paragraphMap_ = $.lazy { => paragraph_ }.map {
-            var value = @parseEach(_1);
+        var paragraphMap_ = $.lazy { => (paragraph_ + $.optWhitespace) }.map { &([p]):
+            var value = @parseEach(p);
             if (context_.commands.length() > 0) {
                 var c = context_.commands[-1];
                 var command = c.command;
