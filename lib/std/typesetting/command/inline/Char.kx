@@ -1,0 +1,13 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Char(info_, context_) {
+            public exec(params, value) {
+                return new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, *Integer.parseInt(value));
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting
