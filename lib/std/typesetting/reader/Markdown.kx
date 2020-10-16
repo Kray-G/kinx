@@ -127,6 +127,10 @@ namespace Typesetting {
             return value.value;
         }
         public code(value) {
+            if (value.value.find('{') >= 0 || value.value.find('}') >= 0) {
+                var v = value.value.replace('{', '\\lbrace[]').replace('}', '\\rbrace{}');
+                return "\\monotype{%{v}}";
+            }
             return "\\monotype{\\pack{%{value.value}}}";
         }
         public image(value) {
