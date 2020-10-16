@@ -1,0 +1,25 @@
+namespace Typesetting {
+
+    namespace Command {
+
+        class Prime(info_, context_) {
+            public exec(params) {
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '\u2032');
+                w.noGlue = true;
+                w.noPrevGlue = true;
+                return w;
+            }
+        }
+
+        class Dprime(info_, context_) {
+            public exec(params) {
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '\u2033');
+                w.noGlue = true;
+                w.noPrevGlue = true;
+                return w;
+            }
+        }
+
+    } # namespace Command
+
+} # namespace Typesetting

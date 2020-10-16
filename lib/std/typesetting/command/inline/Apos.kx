@@ -4,7 +4,7 @@ namespace Typesetting {
 
         class Apos(info_, context_) {
             public exec(params) {
-                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '’');
+                var w = new Typesetting.Word(info_).setWord(context_.font.fontObj, context_.font.fontSize, '\u2019');
                 w.noGlue = true;
                 w.noPrevGlue = true;
                 return w;
