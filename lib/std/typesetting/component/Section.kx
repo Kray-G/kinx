@@ -86,6 +86,42 @@ namespace Typesetting {
             }
         }
 
+        class SubSubSubSection(opts_, text_) : Section(opts_, text_) {
+            public write(info, context, core) {
+                # flush floating image if exists.
+                var writer = info.writer;
+                writer.writeFloatingImage();
+
+                context.outputSection = info.base.noIndentTopOfParagraph;
+                core.pendingParagraphList.push({
+                    isSection: true,
+                    lineFeedWidth: core.section.getHeight(4),
+                    func: &() => {
+                        var level = info.base.sectionLevel + 3;
+                        core.section.exec(level, @opts, "\\sans{\\underline{%{@text}}}");
+                    },
+                });
+            }
+        }
+
+        class SubSubSubSubSection(opts_, text_) : Section(opts_, text_) {
+            public write(info, context, core) {
+                # flush floating image if exists.
+                var writer = info.writer;
+                writer.writeFloatingImage();
+
+                context.outputSection = info.base.noIndentTopOfParagraph;
+                core.pendingParagraphList.push({
+                    isSection: true,
+                    lineFeedWidth: core.section.getHeight(5),
+                    func: &() => {
+                        var level = info.base.sectionLevel + 4;
+                        core.section.exec(level, @opts, "\\sans{\\underline{%{@text}}}");
+                    },
+                });
+            }
+        }
+
         class Chapter(opts_, text_) : Component.Base {
             private initialize() {
                 if (text_.isUndefined) {
