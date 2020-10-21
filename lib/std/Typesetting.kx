@@ -45,6 +45,7 @@ namespace Typesetting {
                 noIndent: false,
                 indentSize: info_.base.indentSize,
                 outputSection: info_.base.noIndentTopOfParagraph,
+                stack: [],
                 commands: [],
                 outline: [],
                 counter: {
@@ -168,11 +169,38 @@ namespace Typesetting {
             var lastkey = name.pop();
             var style = info_.base;
             name.each { &(k):
+                style[k] ??= {};
                 style = style[k];
             };
             if (style[lastkey]) {
                 style[lastkey] = value;
             }
+        }
+
+        public setContext(key, value) {
+            var name = key.split('.');
+            var lastkey = name.pop();
+            var context = context_;
+            name.each { &(k):
+                context[k] ??= {};
+                context = context[k];
+            };
+            context_.stack[key] ??= [];
+            context_.stack[key].push(context[lastkey]);
+            context[lastkey] = value;
+        }
+
+        public restoreContext(key) {
+            var name = key.split('.');
+            var lastkey = name.pop();
+            var context = context_;
+            name.each { &(k):
+                context[k] ??= {};
+                context = context[k];
+            };
+            var vals = context_.stack[key];
+            var value = (vals && vals.length() > 0) ? vals.pop() : null;
+            context[lastkey] = value;
         }
 
         public setColumn(columns, height) {
