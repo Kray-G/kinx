@@ -209,6 +209,7 @@ namespace Typesetting {
             var ascent = fontObj.getAscent();
             @top = ascent * fontSize / 1000;
             @color = info_.context.font.color;
+            @underline = info_.context.font.underline;
             return this;
         }
         public fontObj() {

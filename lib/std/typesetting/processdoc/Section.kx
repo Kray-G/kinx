@@ -20,8 +20,8 @@ namespace Typesetting {
                 [opts, text] = util_.makeOption(opts, sectionText);
 
                 var writer = info_.writer;
-                var numText = util_.makeSectionNumber(level);
-                var sectionNumberText = numText.join('.');
+                var sectionNumberText = util_.makeSectionNumber(level).join('.');
+                var sectionTextWithNumber = sectionNumberText ? (sectionNumberText + ' ' + text) : text;
                 var fontObj = context_.font.fontObj;
                 var fontSize = context_.font.fontSize;
                 context_.font.fontObj = context_.font.fontObjBase.bold;
@@ -40,13 +40,13 @@ namespace Typesetting {
                 context_.xrefLabel = sectionText;
                 var linetop = writer.getLineTop(context_.font.fontObj, context_.font.fontSize);
                 var pagenum = writer.getPageIndex();
-                var lines = paragraph_.exec(opts, text, { preText: sectionNumberText, preTextSpace: context_.font.fontSize });
+                var lines = paragraph_.exec(opts, text, { preText: sectionNumberText || null, preTextSpace: context_.font.fontSize });
                 util_.write(lines);
                 if (opts.label || context_.xrefLabel) {
                     var xrefInfo = {
                         page:      pagenum,
                         counter:   sectionNumberText,
-                        name:      sectionNumberText + ' ' + text,
+                        name:      sectionTextWithNumber,
                         text:      text,
                         y:         linetop,
                     };
@@ -67,7 +67,7 @@ namespace Typesetting {
                 if (info_.base.footnote.resetSectionLevel == level) {
                     context_.counter.footnote = 0;
                 }
-                var header = (context_.name.section[level] = sectionNumberText + '  ' + text);
+                var header = (context_.name.section[level] = sectionTextWithNumber);
                 if (level <= info_.base.toc.level) {
                     context_.tocinfo.list.push({
                         page: context_.counter.page,
