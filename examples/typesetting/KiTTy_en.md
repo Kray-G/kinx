@@ -853,7 +853,7 @@ For example, you can change the default value of `vline-left` by changing the va
 
 #### Bold, Italic, BoldItalic
 
-**Bold**、*Italic*、***BoldItalic*** is shown by a normal Markdown syntax.
+**Bold**, *Italic*, and ***BoldItalic*** is shown by a normal Markdown syntax.
 Here is examples.
 
 <context label="Table:FontShape"/>
@@ -880,7 +880,7 @@ The parameter meaning is as follows.
 
 * `Name` is the own name of the font you can specify.
 * `type` is a font type. It should be `serif`, `sans`, `monotype`.
-* `shape` is a font shape. It should be `regular`、`bold`、`italic`、`bolditalic`.
+* `shape` is a font shape. It should be `regular`, `bold`, `italic`, or `bolditalic`.
     * `regular` means a normal shape used in the normal sentence.
     * `bold`, `italic`, and `bolditalic` is for the shape meant by that name.
 
@@ -945,7 +945,7 @@ The unit you can specified is as follows.
 
 #### Font Size (Relative)
 
-Use `\bigger`、`\smaller` to change the size with a relative size.
+Use `\bigger`, `\smaller` to change the size with a relative size.
 The size will be changed by +1 point for `\bigger` or -1 point for `\smaller` inside its scope.
 
 ```
@@ -1388,7 +1388,7 @@ Click the heading on the bookmark, and you can jump there.
 Note that PDF link text can not include any commands like KiTTy command.
 Therefore do not use any command in the heading text name[^exc:section].
 
-[^exc:section]: As excepted, only \\TeX、\\LaTeX、\\KaTeX are replaced by the plain text of `TeX`、 `LaTeX`、 `KaTeX`.
+[^exc:section]: As excepted, only \\TeX, \\LaTeX, and \\KaTeX are replaced by the plain text of `TeX`, `LaTeX`, and `KaTeX`.
 
 # Command Details
 
