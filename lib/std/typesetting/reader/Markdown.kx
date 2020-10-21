@@ -127,11 +127,8 @@ namespace Typesetting {
             return value.value;
         }
         public code(value) {
-            if (value.value.find('{') >= 0 || value.value.find('}') >= 0) {
-                var v = value.value.replace('{', '\\lbrace[]').replace('}', '\\rbrace{}');
-                return "\\monotype{%{v}}";
-            }
-            return "\\monotype{\\pack{%{value.value}}}";
+            var v = value.value.replace('\\', '\\\\').replace('}', '\\}').replace('{', '\\{');
+            return "\\monotype{\\pack{%{v}}}";
         }
         public image(value) {
             var check = parseParamString(value.alt);
@@ -279,7 +276,7 @@ namespace Typesetting {
                 if (value.name == 'html' && value.value.isString) {
                     var v = value.value.trim();
                     if (v.startsWith("<context ")) {
-                        var m = v.match(/<context\s*(.+)\s*=\s*"(.+)"\s*\/>/);
+                        var m = v.match(/<context\s+(.+)\s*=\s*"(.+)"\s*\/>/);
                         if (m.isDefined) {
                             var name = m[1];
                             if (!ignoreContextName_[name]) {
@@ -288,10 +285,27 @@ namespace Typesetting {
                         }
                         r = true;
                     } else if (v.startsWith("<param ")) {
-                        var m = v.match(/<param\s*(.+)\s*=\s*"(.+)"\s*\/>/);
+                        var m = v.match(/<param\s+(.+)\s*=\s*"(.+)"\s*\/>/);
                         if (m.isDefined) {
                             opts_[m[1]] = m[2];
                         }
+                        r = true;
+                    } else if (v.startsWith("<set ")) {
+                        var doc = Xml.parseString(v);
+                        var elem = doc.documentElement();
+                        var name = elem.getAttribute('name');
+                        var value = elem.getAttribute('value');
+                        output_.push(&() => {
+                            doc_.setContext(name, value);
+                        });
+                        r = true;
+                    } else if (v.startsWith("<restore ")) {
+                        var doc = Xml.parseString(v);
+                        var elem = doc.documentElement();
+                        var name = elem.getAttribute('name');
+                        output_.push(&() => {
+                            doc_.restoreContext(name);
+                        });
                         r = true;
                     } else if (v.startsWith("<toc ")) {
                         var doc = Xml.parseString(v);
@@ -493,6 +507,18 @@ namespace Typesetting {
                     logger_.info("-- SubSubSection done");
                 });
                 break;
+            case 5:
+                output_.push(&() => {
+                    doc_.apply(new Typesetting.Component.SubSubSubSection(inline_.makeInlineText(ast.values)));
+                    logger_.info("-- SubSubSubSection done");
+                });
+                break;
+            case 6:
+                output_.push(&() => {
+                    doc_.apply(new Typesetting.Component.SubSubSubSubSection(inline_.makeInlineText(ast.values)));
+                    logger_.info("-- SubSubSubSubSection done");
+                });
+                break;
             }
         }
         public paragraph(ast) {
@@ -556,6 +582,15 @@ namespace Typesetting {
                     doc_.apply(code);
                 });
                 break;
+            case 'console':
+                output_.push(&() => {
+                    var code = new Typesetting.Component.Code(inline_.makeInlineText(ast.values).trim());
+                    code.showBox(Typesetting.BOX_NORMAL);
+                    code.setColor("white");
+                    code.setBackgroundColor("black");
+                    doc_.apply(code);
+                });
+                break;
             default:
                 output_.push(&() => {
                     var code = new Typesetting.Component.Code(inline_.makeInlineText(ast.values).trim());
@@ -564,6 +599,12 @@ namespace Typesetting {
                     }
                     if (check.box) {
                         code.showBox(check.box);
+                    }
+                    if (check.color) {
+                        code.setColor(check.color);
+                    }
+                    if (check.bgcolor) {
+                        code.setBackgroundColor(check.bgcolor);
                     }
                     doc_.apply(code);
                 });
