@@ -41,6 +41,9 @@ namespace Typesetting {
             }
 
             public makeSectionNumber(level) {
+                if (!info_.base.sectionNumber[level]) {
+                    return [];
+                }
                 var sectionNumber = context_.counter.section[level] ?? 0;
                 if (level == 1 && context_.appendix && !sectionNumber.isString) {
                     sectionNumber = 0;

@@ -120,6 +120,8 @@ namespace Typesetting {
         var annot_ = [], prevAnnotX_;
         var linkAnnot_ = info_.base.link.annotation;
         var linkUrl_ = info_.base.link.url;
+        var inUnderline_ = false, prevUnderlineX_ = 0;
+        var underlineSize_ = info_.base.underlineSize_;
         var adjust_ = 0;
 
         public setAdjustment(adjust) {
@@ -303,6 +305,19 @@ namespace Typesetting {
                 if (textcolor) {
                     page.gSave();
                     setColor(page, textcolor);
+                }
+                if (value.underline) {
+                    var ax = inUnderline_ ? prevUnderlineX_ : x;
+                    var wx = (x + width) - ax;
+                    if (wx < 0) {
+                        drawLineImpl(page, x, ay - 1, width, 0, underlineSize_);
+                    } else {
+                        drawLineImpl(page, ax, ay - 1, wx, 0, underlineSize_);
+                    }
+                    prevUnderlineX_ = x + width;
+                    inUnderline_ = true;
+                } else {
+                    inUnderline_ = false;
                 }
                 page.beginText();
                 page.moveTextPos(x, ay);
@@ -616,6 +631,17 @@ namespace Typesetting {
             x_ = x;
         }
 
+        public setY(y) {
+            y_ = y;
+        }
+
+        public updateY() {
+            if (y_ < 0) {
+                var margin = @makeMarginSize();
+                y_ = ytop_ > 0 ? ytop_ : (height_ - margin.top - ascent_);
+            }
+        }
+
         public setYHead() {
             ytop_ = y_;
             isTopOfPage_ = true;
@@ -674,7 +700,6 @@ namespace Typesetting {
         }
 
         public getPos(force) {
-            var x = x_;
             if (!force && x_ < 0) {
                 var margin = @makeMarginSize();
                 return { x: margin.left, y: y_ };
