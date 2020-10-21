@@ -1,0 +1,18 @@
+namespace Typesetting {
+
+    namespace ParagraphCommand {
+
+        class Underline(info_, context_) {
+            var underline_;
+            public start(params) {
+                underline_ = context_.font.underline;
+                context_.font.underline = true;
+            }
+            public end() {
+                context_.font.underline = underline_;
+            }
+        }
+
+    } # namespace ParagraphCommand
+
+} # namespace Typesetting

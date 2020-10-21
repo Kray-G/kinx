@@ -54,7 +54,24 @@ namespace Style {
             "right":            0.0,
         };
         @style.abstract.adjustment = { right: true };
-        # @style.table.cellPadding = 2.0;
+        @style.underline = [
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true,
+        ];
+        @style.sectionNumber = [
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+        ];
     }
 
 } # namespace Style
