@@ -189,7 +189,7 @@ The version `v0.15.2` is the version which includes KiTTy library officially.
 When the latest version is different, rewrite the version number and do it.
 Make the work directory and change the directory.
 
-```:lineNumber=false
+```console
 $ mkdir temp
 $ cd temp
 ```
@@ -197,7 +197,7 @@ $ cd temp
 Download Kinx module and extract it first,
 and then download KiTTy package and extract it.
 
-```:lineNumber=false
+```console
 $ curl -L \
     https://github.com/Kray-G/kinx/releases/download/v0.15.2/package_linux-amd64.tar.gz \
     --output package_linux-amd64.tar.gz
@@ -211,7 +211,7 @@ $ unzip package_kitty.zip
 You will find the folder of the name of the version number,
 and move into it and execute an `install.sh` command.
 
-```:lineNumber=false
+```console
 $ cd v0.15.2
 $ sudo ./install.sh
 ```
@@ -219,9 +219,9 @@ $ sudo ./install.sh
 That is all for installation.
 Let\\apos{}s confirm the location to be installed.
 
-```:lineNumber=false
-$ which kinx
-/usr/bin/kinx
+```console
+$ which kxkitty
+/usr/bin/kxkitty
 ```
 
 ### Windows
@@ -248,7 +248,7 @@ If you dare to build it, you can do it by the procedure as follows.
 
 Clone it from Github, and do `make`.
 
-```:lineNumber=false
+```console
 $ git clone https://github.com/Kray-G/kinx.git
 $ cd kinx
 $ make
@@ -256,7 +256,7 @@ $ make
 
 Install it.
 
-```:lineNumber=false
+```console
 $ git clone https://github.com/Kray-G/kinx.git
 $ cd kinx
 $ sudo make install
@@ -267,7 +267,7 @@ $ sudo make kitty-install
 
 Clone it from Github, and do `make`.
 
-```:lineNumber=false
+```console
 $ git clone https://github.com/Kray-G/kinx.git
 $ cd kinx
 $ make.cmd
@@ -281,7 +281,7 @@ Use the system in the build environment.
 
 Create the following text and save it as the name of `helloworld.md`.
 
-```markdown:lineNumber=false
+```markdown
 % Hello Kinx Tiny Typesetting
 % Your name
 % October 7, 2020
@@ -294,7 +294,7 @@ hello, world
 
 Execute `kxkitty` command as below, and `helloworld.pdf` will be generated.
 
-```:lineNumber=false
+```console
 $ kxkitty helloworld.md
 ```
 
@@ -1052,7 +1052,7 @@ It shows with a line number and a shadow box by default.
 
 Above example will show the following code[^ProgramCodeBox1]。
 
-[^ProgramCodeBox1]: It is hard to distinguish those because the same style,
+[^ProgramCodeBox1]: It is hard to distinguish those because of the same style,
 but the code with <monotype-backq3 /> is the example to write.
 
 ```
@@ -1085,7 +1085,23 @@ class Test {
 
 #### Code Block Option
 
+##### Language Specified
+
+Specified a language, a predefined functionality will be worked.
+By the way, a language is specified right after <backq3 />, and use `:` as a separator for options.
+
+| Language  |                                     Meaning                                      |
+| --------- | -------------------------------------------------------------------------------- |
+| `math`    | This means a Math syntax. See \\nameref{Math formula and equations} for details. |
+| `chart`   | This means a Chart syntax. See \\nameref{Chart} for details.                     |
+| `console` | A text color is white and a background color is black.                           |
+
+##### lineNumber
+
 Specify `true` or `false` to the `lineNumber` option.
+
+##### box
+
 The available values for the `box` option are as follows.
 
 <context label="Table:CodeBoxOption"/>
@@ -1098,6 +1114,11 @@ The available values for the `box` option are as follows.
 | `BOX_THIN`   | Show a box with a thin line width.     |
 | `BOX_THICK`  | Show a box with a thick line width.    |
 | `BOX_SHADOW` | Show a box with a shadow. (by default) |
+
+##### color/bgcolor
+
+You can change a text color and a background color by `color` or `bgcolor`.
+See \\nameref{Color Examples} for the colors you can specify.
 
 ### Title, Cover Page, and Contents
 
@@ -1225,9 +1246,6 @@ For example, here is an example of the introduction of this document.
 > 
 > The objective is similar to \\LaTeX, it is an objective to typeset beautifully for
 > a document managed as a text file.
-> To be concretely, it is never going to be alternative,
-> but the objective is being more useful in the use case like your personal situation
-> by followings.
 ```
 
 The result is as below.
@@ -1240,9 +1258,6 @@ The result is as below.
 > 
 > The objective is similar to \\LaTeX, it is an objective to typeset beautifully for
 > a document managed as a text file.
-> To be concretely, it is never going to be alternative,
-> but the objective is being more useful in the use case like your personal situation
-> by followings.
 
 ### Footnote
 
@@ -1292,7 +1307,8 @@ Here is the specification.
 This is only for Japanese requirement.
 In Japanese, there is a way, which is named as ''Furigana'' or ''Ruby'', to write a text.
 It is to write a small text as a way to read on the top of a main sentence.
-For example, it is used like ''この\\ruby\[ほん\]{本}はとても\\ruby\[おもしろ\]{面白}いです.''
+For example, it is used like ''この\\ruby\[ほん\]{本}はとても\\ruby\[おもしろ\]{面白}いです,''
+means ''This book is very interesting.''
 Usually, very young children can\\apos{}t read Kanji.
 And even if it were adults, there is a case they can\\apos{}t read a difficult Kanji or the Kanji they do not use usually.
 Considering those cases, Furigana is used like ''\\ruby\[ほん\]{本}.''
@@ -1351,10 +1367,11 @@ but the line break can be inserted between ''蓮'' and ''池'' as it is a mono r
 ### External Link by URL
 
 Write a URL directly to generate an external link for URL automatically.
-For example, write `https://github.com/Kray-G/kinx` to generate the link to https://github.com/Kray-G/kinx on URL text itself.
+For example, write `https://github.com/Kray-G/kinx` to generate the link to https://github.com/Kray-G/kinx on the URL text itself automatically.
 If you want to change the link text instead of URL, use `\\url` command.
 For example, write `\\url\[https://github.com/Kray-G/kinx\]{Kinx}` to show \\url\[https://github.com/Kray-G/kinx\]{Kinx},
 and you can click the link text to jump to the external web site.
+In this case, you can click \\url\[https://github.com/Kray-G/kinx\]{Kinx}.
 
 ### Link by Cross-Reference
 
@@ -1366,7 +1383,7 @@ You can click that link to jump to the related document place like headings, fig
 
 PDF bookmark is also supported.
 The link for each heading is automatically generated as a PDF bookmark.
-Click the heading displaying on the bookmark, and you can jump to the related heading.
+Click the heading on the bookmark, and you can jump there.
 
 Note that PDF link text can not include any commands like KiTTy command.
 Therefore do not use any command in the heading text name[^exc:section].
