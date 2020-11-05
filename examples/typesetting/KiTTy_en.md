@@ -1368,10 +1368,12 @@ but the line break can be inserted between ''蓮'' and ''池'' as it is a mono r
 
 Write a URL directly to generate an external link for URL automatically.
 For example, write `https://github.com/Kray-G/kinx` to generate the link to https://github.com/Kray-G/kinx on the URL text itself automatically.
-If you want to change the link text instead of URL, use `\\url` command.
-For example, write `\\url\[https://github.com/Kray-G/kinx\]{Kinx}` to show \\url\[https://github.com/Kray-G/kinx\]{Kinx},
+
+The Markdown syntax as `[Link Text](URL)` is also supported.
+Only one line style is supported, but a separated style like `[Text][ref]` with URL on another line is not supported.
+For example, write `[Kinx](https://github.com/Kray-G/kinx)` to show [Kinx](https://github.com/Kray-G/kinx),
 and you can click the link text to jump to the external web site.
-In this case, you can click \\url\[https://github.com/Kray-G/kinx\]{Kinx}.
+In this case, you can click [Kinx](https://github.com/Kray-G/kinx).
 
 ### Link by Cross-Reference
 
@@ -1487,7 +1489,7 @@ The following table shows a description of commands.
 | `\raise[params]{}` | To change an offset of Y, and to move a text to upside. The offset is set by `height` attribute.                                  |
 | `\lower[params]{}` | To change an offset of Y, and to move a text to downside. The offset is set by `height` attribute.                                |
 | `\sans{}`          | To set to use Sans Serif.                                                                                                         |
-| `\url[params]{}`   | To generate a link text. URL should be written in `params`.                                                                       |
+| `\url[params]{}`   | To generate a link text. URL should be written in `params`. It is same as `[Text](URL)`                                           |
 
 In the `{}` of all commands you can write a paragraph although just `{}` is written in above examples.
 For example, if you write `\\sans{''This is Sans Serif Font.''}`, it will show \\sans{''This is Sans Serif Font.''}
