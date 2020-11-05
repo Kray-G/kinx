@@ -140,7 +140,7 @@ namespace Typesetting {
             return '\\inlineimage[%{value.alt}]{%{value.src}}';
         }
         public link(value) {
-            return '';
+            return "\\url[%{value.href}]{%{value.title}}";
         }
         public tag(value) {
             var values = tagmap_[value.tag];
@@ -356,6 +356,12 @@ namespace Typesetting {
                         flushDoc();
                         output_.push(&() => {
                             doc_.pageBreak();
+                        });
+                        r = true;
+                    } else if (/<columnbreak[\/\s].*/.test(v)) {
+                        flushDoc();
+                        output_.push(&() => {
+                            doc_.columnBreak();
                         });
                         r = true;
                     } else if (/<clear-float[\/\s].*/.test(v)) {
