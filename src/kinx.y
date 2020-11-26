@@ -143,7 +143,7 @@ Program
 
 StatementList
     : Statement
-    | StatementList Statement { $$ = kx_gen_bexpr_object(KXST_STMTLIST, $1, $2); }
+    | StatementList Statement { $$ = kx_gen_stmtlist($1, $2); }
     ;
 
 Statement
