@@ -303,6 +303,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         return;
     }
 
+LOOP_HEAD:;
     kx_object_t *parent = actx->parent;
     actx->parent = node;
     node->lvalue = actx->decl || actx->lvalue;
@@ -957,9 +958,13 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
         break;
     case KXST_EXPRSEQ:   /* lhs: expr1: rhs: expr2 */
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
-    case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
+        break;
+    case KXST_STMTLIST:   /* lhs: stmt2: rhs: stmt1 */
+        analyze_ast(ctx, node->lhs, actx);
+        node = node->rhs;
+        if (node) goto LOOP_HEAD;
         break;
     case KXST_BLOCK:      /* lhs: block */
         if (node->lhs) {
