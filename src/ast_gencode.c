@@ -898,6 +898,7 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         return;
     }
 
+LOOP_HEAD:;
     kx_module_t *module = ana->module;
     switch (node->type) {
     case KXVL_UNKNOWN:
@@ -1544,9 +1545,8 @@ static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     }
     case KXST_STMTLIST: { /* lhs: stmt1: rhs: stmt2 */
         gencode_ast_hook(ctx, node->lhs, ana, 0);
-        if (node->rhs) {
-            gencode_ast_hook(ctx, node->rhs, ana, 0);
-        }
+        node = node->rhs;
+        if (node) goto LOOP_HEAD;
         break;
     }
     case KXST_BLOCK:      /* lhs: block */
