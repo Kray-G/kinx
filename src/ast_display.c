@@ -38,6 +38,7 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         return;
     }
 
+LOOP_HEAD:;
     int no_indent = node->type == KXST_EXPR || node->type == KXST_EXPRLIST || node->type == KXST_STMTLIST;
     if (!no_indent) {
         print_indent(node, indent);
@@ -347,7 +348,8 @@ static void display_ast(kx_object_t *node, int indent, int lvalue)
         break;
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
         display_ast(node->lhs, indent, 0);
-        display_ast(node->rhs, indent, 0);
+        node = node->rhs;
+        if (node) goto LOOP_HEAD;
         break;
     case KXST_BLOCK:      /* lhs: block */
         printf("(block)\n");
