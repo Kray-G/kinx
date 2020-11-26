@@ -166,9 +166,22 @@ kx_object_t *kx_gen_str_object(const char *val)
     return obj;
 }
 
-kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int exclude_end)
+kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs)
 {
-    return kx_gen_obj(KXOP_MKRANGE, exclude_end, start, end, NULL);
+    if (lhs->type != KXST_STMTLIST) {
+        return kx_gen_bexpr_object(KXST_STMTLIST, lhs, rhs);
+    }
+    kx_object_t *node = lhs->ex ? lhs->ex : lhs;
+    while (node->rhs && node->rhs->type == KXST_STMTLIST) {
+        node = node->rhs;
+    }
+    lhs->ex = node->rhs = kx_gen_bexpr_object(KXST_STMTLIST, node->rhs, rhs);
+    return lhs;
+}
+
+kx_object_t *kx_gen_range_object(kx_object_t *lhs, kx_object_t *end, int exclude_end)
+{
+    return kx_gen_obj(KXOP_MKRANGE, exclude_end, lhs, end, NULL);
 }
 
 kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl)
