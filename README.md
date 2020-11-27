@@ -333,11 +333,6 @@ OpenSSL version is 3.0.0, which is not released officially but means the license
 Namespace is now available.
 See the example of [examples/namespacex.kx](examples/namespacex.kx)
 
-### Type Property
-
-You can use the type property to check the object type.
-See example of [`idprop.kx`](examples/idprop.kx) for that.
-
 ### eval
 
 `eval()` is now supported.
