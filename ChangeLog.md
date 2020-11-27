@@ -19,6 +19,7 @@
 ## V0.16.0 (Current Development Version)
 
 *   Updated
+    *   updated some SpecTest pages.
 
 ## V0.15.3 (15th-3 Preview Release) - 2020/11/27
 
