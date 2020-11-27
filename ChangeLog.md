@@ -16,13 +16,18 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.15.3 (Current Development Version)
+## V0.16.0 (Current Development Version)
+
+*   Updated
+    *   updated some SpecTest pages.
+
+## V0.15.3 (15th-3 Preview Release) - 2020/11/27
 
 *   Updated
     *   updated some SpecTest pages.
     *   Some bug fixes and improvement.
 
-## V0.15.2 (15th Preview Release) - 2020/10/14
+## V0.15.2 (15th-2 Preview Release) - 2020/10/14
 
 <img align="right" src="https://github.com/Kray-G/kinx/raw/master/examples/typesetting/title_book_en.png" width="300px">
 
