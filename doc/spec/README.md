@@ -114,14 +114,7 @@ As a special object derived from Function, there are Lambda, Closure, and Fiber.
 
 The following properties are used to check the type of a variable.
 
-*   [isUndefined](typecheck/is_undefined.md) - *not documented yet*
-*   [isDefined](typecheck/is_defined.md) - *not documented yet*
-*   [isInteger](typecheck/is_integer.md) - *not documented yet*
-*   [isDouble](typecheck/is_double.md) - *not documented yet*
-*   [isString](typecheck/is_string.md) - *not documented yet*
-*   [isArray](typecheck/is_array.md) - *not documented yet*
-*   [isObject](typecheck/is_object.md) - *not documented yet*
-*   [isFunction](typecheck/is_function.md) - *not documented yet*
+*   [TypeCheck](statement/expression/typecheck.md)
 
 ### Others
 
