@@ -16,9 +16,11 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.16.0 (Current Development Version)
+## V0.15.3 (Current Development Version)
 
 *   Updated
+    *   updated some SpecTest pages.
+    *   Some bug fixes and improvement.
 
 ## V0.15.2 (15th Preview Release) - 2020/10/14
 
