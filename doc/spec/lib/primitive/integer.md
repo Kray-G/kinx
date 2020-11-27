@@ -1,4 +1,4 @@
-# Array
+# Integer
 
 ## Overview
 
