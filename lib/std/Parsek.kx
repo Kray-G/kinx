@@ -256,11 +256,7 @@ _class ParsekParser($, defName, func) {
             if (!parsed.status) {
                 return parsed;
             }
-            var value = f(parsed.value);
-            if (value.isUndefined) {
-                return Parsek.makeResult(false, null, position);
-            }
-            return Parsek.makeResult(true, value, parsed.position);
+            return Parsek.makeResult(true, f(parsed.value), parsed.position);
         });
     }
 
@@ -542,11 +538,7 @@ _class Parsek(opts) {
                     return parsed;
                 }
             }
-            var value = f(...result);
-            if (value.isUndefined) {
-                return Parsek.makeResult(false, null, position);
-            }
-            return Parsek.makeResult(true, value, position);
+            return Parsek.makeResult(true, f(...result), position);
         });
     }
 
