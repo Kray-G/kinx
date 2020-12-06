@@ -5,7 +5,7 @@
 <p align="center"><img src="doc/kinxlogo.png" height="84px" /></p>
 <p align="center">
 <strong>Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
-Looks like JavaScript, feels like Ruby, and it is the script language fitting in C programmers.
+Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers.
 </p>
 
 ## Introduction
