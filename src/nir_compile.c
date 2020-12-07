@@ -797,6 +797,18 @@ static int natir_compile_uop(kx_native_context_t *nctx, kxn_block_t *block, kxn_
             KXN_MOV(is_last, code->dst, SLJIT_R0, 0);
         }
         break;
+    case KXNOP_BNOT:
+        sljit_emit_op1(nctx->C, SLJIT_NOT, SLJIT_R0, 0, KXN_R(code->op1));
+        if (is_next_ret) {
+            sljit_emit_return(nctx->C, SLJIT_MOV, SLJIT_R0, 0);
+            do_skip = 1;
+        } else if (is_next_arg) {
+            natir_compile_arg(nctx, code, SLJIT_R0);
+            do_skip = 1;
+        } else {
+            KXN_MOV(is_last, code->dst, SLJIT_R0, 0);
+        }
+        break;
     case KXNOP_NOT:
         sljit_emit_op2(nctx->C, SLJIT_SUB | SLJIT_SET_Z, SLJIT_UNUSED, 0, KXN_R(code->op1), SLJIT_IMM, 0);
         sljit_emit_op_flags(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_ZERO);
