@@ -1492,8 +1492,10 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             KXNJP_F(nctx, cond) = ex2;
             nctx->block = ex2;
             nativejit_ast(nctx, node->ex, 0);
+            ex2 = nctx->block;
             out = gen_kxn_block(nctx);
             KXNJP(nctx, ex1) = out;
+            KXNJP(nctx, ex2) = out;
         } else {
             cond = gen_kxn_block(nctx);
 
