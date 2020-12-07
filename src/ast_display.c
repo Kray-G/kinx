@@ -366,6 +366,7 @@ LOOP_HEAD:;
         printf("(then)\n");
         display_ast(node->rhs, indent + 2, 0);
         if (node->ex) {
+            print_indent(node, indent + 1);
             printf("(else)\n");
             display_ast(node->ex, indent + 2, 0);
         }

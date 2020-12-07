@@ -762,7 +762,12 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
 
     case KXOP_BNOT:
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        nativejit_ast(nctx, node->lhs, 0);
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_UOP, .op = KXNOP_BNOT, .var_type = node->var_type,
+                .dst = { .type = KXNOP_REG, .r = nctx->regno },
+                .op1 = { .type = KXNOP_REG, .r = nctx->regno }
+        }));
         break;
     case KXOP_NOT:
         nativejit_ast(nctx, node->lhs, 0);
@@ -1492,8 +1497,10 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             KXNJP_F(nctx, cond) = ex2;
             nctx->block = ex2;
             nativejit_ast(nctx, node->ex, 0);
+            ex2 = nctx->block;
             out = gen_kxn_block(nctx);
             KXNJP(nctx, ex1) = out;
+            KXNJP(nctx, ex2) = out;
         } else {
             cond = gen_kxn_block(nctx);
 
