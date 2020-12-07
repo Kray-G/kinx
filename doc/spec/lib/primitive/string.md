@@ -81,7 +81,7 @@ if (str[5] == 'a'[0]) {
 ```
 
 Note that it is different from C code.
-You need `[0]` because 'a'` is not an character code but *a string literal**.
+You need `[0]` because `'a'` is not a character code but *a string literal**.
 
 #### unary `*` operator
 
