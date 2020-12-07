@@ -51,7 +51,7 @@ Note that unary minus (`-`) has lower precedence than function calls, so it must
 
 ### Special operator
 
-#### unary `*` operator
+#### Unary `*` operator
 
 When the unary `*` operator is applied to an integer value, the character string (1 character) corresponding to the character code is returned.
 
