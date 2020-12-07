@@ -68,7 +68,7 @@ Otherwise an exception will be raised.
 If you use the operator of `!~` for a string, the right hand side should be a Regex object.
 Otherwise an exception will be raised.
 
-#### postfix `[]` operator
+#### Postfix `[]` operator
 
 You can use `[]` operator to access a character in a string by index.
 The value will be an integer number as a character code.
@@ -83,7 +83,7 @@ if (str[5] == 'a'[0]) {
 Note that it is different from C code.
 You need `[0]` because `'a'` is not a character code but *a string literal**.
 
-#### unary `*` operator
+#### Unary `*` operator
 
 Unary `*` operator for a string will convert it to an array of character codes.
 
