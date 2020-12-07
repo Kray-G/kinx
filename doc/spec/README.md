@@ -133,8 +133,8 @@ This is not a library but basic methods for a primitive data type,
 but the description is included in this section because its feature is near a library.
 
 *   [Integer](lib/primitive/integer.md)
-*   [Double](lib/primitive/double.md) - *not documented yet*
-*   [String](lib/primitive/string.md) - *not documented yet*
+*   [Double](lib/primitive/double.md)
+*   [String](lib/primitive/string.md)
 *   [Binary](lib/primitive/binary.md) - *not documented yet*
 *   [Array](lib/primitive/array.md)
 
