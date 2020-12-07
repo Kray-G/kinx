@@ -87,6 +87,7 @@ enum kxn_uopecode_type {
     KXNOP_TOBIG,
     KXNOP_MOV8,
     KXNOP_MOV,
+    KXNOP_BNOT,
     KXNOP_NOT,
     KXNOP_NEG,
     KXNOP_INC,
