@@ -18,7 +18,7 @@ The methods of `Double` can be used for integer values directly.
 | String.subString(val, start[, len]) | A sub string in `val` will be returned.                                                                                               |
 | String.replace(val, cond, repl)     | All of matched sub string with `cond` in `val` will be replaced by `repl`. `cond` should be a string or a Regex object.               |
 | String.toInt(val)                   | Converts `val` into Integer.                                                                                                          |
-| String.toDouble(str)                | Converts `val` into Double.                                                                                                           |
+| String.toDouble(val)                | Converts `val` into Double.                                                                                                           |
 | String.parentPath(val)              | By recognizing `val` as a path string, it will return the parent part. ex) `"ab/cd/ef.x".parentPath()` will return `"ab/cd"`.         |
 | String.filename(val)                | By recognizing `val` as a path string, it will return the filename part. ex) `"ab/cd/ef.x".filename()` will return `"ef.x"`           |
 | String.stem(val)                    | By recognizing `val` as a path string, it will return the stem part. ex) `"ab/cd/ef.x".stem()` will return `"ef"`                     |
