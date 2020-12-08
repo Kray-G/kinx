@@ -452,7 +452,7 @@ function -> function:
     a = 100, b = 1000, c = 10000, d = 100000
 ```
 
-### Example 12. Finally with throw.
+### Example 13. Finally with throw.
 
 #### Code
 
@@ -539,7 +539,7 @@ function -> function:
     a = 100, b = 1000, c = 10000, d = 100000
 ```
 
-### Example 13. Quicksort with Integer
+### Example 14. Quicksort with Integer
 
 #### Code
 
@@ -586,7 +586,7 @@ Before: 69 63 88 85 26 77 51 42 16  4 20 18 18 40 23 26 24 63 96 59
 After:   4 16 18 18 20 23 24 26 26 40 42 51 59 63 63 69 77 85 88 96
 ```
 
-### Example 14. Quicksort with Double
+### Example 15. Quicksort with Double
 
 #### Code
 
