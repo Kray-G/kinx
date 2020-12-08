@@ -66,7 +66,7 @@ const CRCPOLY1 = 0x04C11DB7;
 const CRCPOLY2 = 0xEDB88320;
 const CHAR_BIT = 8;
 
-native crc1(c:ary, n) {
+native crc1(c:int[], n) {
     var r = 0xFFFFFFFF;
 
     for (var i = 0; i < n; i++) {
@@ -79,7 +79,7 @@ native crc1(c:ary, n) {
     return ~r & 0xFFFFFFFF;
 }
 
-native crc2(c:ary, n) {
+native crc2(c:int[], n) {
     var r = 0xFFFFFFFF;
 
     for (var i = 0; i < n; i++) {
