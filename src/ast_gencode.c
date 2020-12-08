@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <kvec.h>
 #include <kinx.h>
+#define KX_PARSER
 #include <kxastobject.h>
 
 #define FILELINE(ana) .file = const_str(ctx, node->file), .line = node->line, .func = get_function(module, (ana)->function)->name
@@ -803,7 +804,7 @@ static int setup_arg_types(kx_object_t *node, kx_code_t *code, int index)
         return index;
     }
     if (node->type == KXOP_VAR) {
-        code->value2.n.arg_types[index] = (uint8_t)node->var_type;
+        code->value2.n.arg_types[index] = (uint8_t)(node->refdepth >= 1 ? KX_OBJ_T : node->var_type);
     } else {
         code->value2.n.arg_types[index] = (uint8_t)KX_UNKNOWN_T;
     }
