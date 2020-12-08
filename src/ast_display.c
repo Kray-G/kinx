@@ -87,10 +87,18 @@ LOOP_HEAD:;
                 printf("%c(var:%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index);
             }
         } else {
-            if (node->lexical_refs) {
-                printf("%c(var:%s):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
+            if (node->refdepth > 0) {
+                if (node->lexical_refs) {
+                    printf("%c(var:%s[depth:%d]):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
+                } else {
+                    printf("%c(var:%s[depth:%d]):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
+                }
             } else {
-                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index);
+                if (node->lexical_refs) {
+                    printf("%c(var:%s):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
+                } else {
+                    printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index);
+                }
             }
         }
         break;
@@ -234,7 +242,7 @@ LOOP_HEAD:;
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_IDX:
-        printf("(ref):%s\n", get_short_typename(node->var_type));
+        printf("(ref):%s, depth:%d\n", get_short_typename(node->var_type), node->refdepth);
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, lvalue);
         break;
