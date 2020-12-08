@@ -83,6 +83,7 @@ DECL_VAR:
         sym.lexical_index = 0;
         sym.base = node;
         sym.optional = node->optional;
+        sym.refdepth = node->refdepth;
         if (node->var_type == KX_UNKNOWN_T && actx->in_native) {
             node->var_type = KX_INT_T;  // automatically set it.
         }
@@ -468,6 +469,7 @@ LOOP_HEAD:;
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
         node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
+        node->refdepth = sym->base->refdepth;
         if (sym->base->var_type == KX_NFNC_T) {
             node->ret_type = sym->base->ret_type;
         }
@@ -558,7 +560,11 @@ LOOP_HEAD:;
             actx->decl = decl;
             analyze_ast(ctx, node->rhs, actx);
             if (node->rhs && node->lhs->type == KXOP_VAR) {
-                node->lhs->var_type = node->rhs->var_type;
+                if (node->lhs->var_type == KX_UNKNOWN_T || (actx->in_native && node->lhs->var_type == KX_INT_T && node->lhs->var_type != node->rhs->var_type)) {
+                    node->lhs->var_type = node->rhs->var_type;
+                } else if (node->lhs->var_type != node->rhs->var_type) {
+                    make_cast(node, node->lhs, node->rhs, actx->in_native);
+                }
             }
             node->var_type = node->lhs->var_type;
             break;
@@ -632,7 +638,11 @@ LOOP_HEAD:;
             node->rhs->var_type = KX_STR_T;
         }
         if (node->lhs->type == KXOP_VAR) {
-            node->lhs->var_type = node->rhs->var_type;
+            if (node->lhs->var_type == KX_UNKNOWN_T) {
+                node->lhs->var_type = node->rhs->var_type;
+            } else if (node->lhs->var_type != node->rhs->var_type && actx->in_native) {
+                make_cast(node, node->lhs, node->rhs, actx->in_native);
+            }
         }
         node->var_type = node->lhs->var_type;
         break;
@@ -719,7 +729,9 @@ LOOP_HEAD:;
         if (actx->in_native) {
             analyze_ast(ctx, node->lhs, actx);
             analyze_ast(ctx, node->rhs, actx);
-            if (node->lhs->type == KXOP_IDX && node->lhs->var_type == KX_INT_T) {
+            if (node->lhs->refdepth >= 1) {
+                node->var_type = node->lhs->var_type;
+                node->refdepth = node->lhs->refdepth - 1;
                 node->lhs->var_type = KX_OBJ_T;
             }
             if (actx->lvalue) {

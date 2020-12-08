@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <kvec.h>
 #include <kinx.h>
+#define KX_PARSER 1
 #include <kxastobject.h>
 
 // #define YYDEBUG 1
@@ -15,11 +16,12 @@
 
 %union {
     kx_object_t   *obj;
-    int           type;
+    int           incdec;
     int64_t       intval;
     double        dblval;
     const char    *strval;
     const uint8_t *binval;
+    arytype_t     arraytype;
 }
 
 %token ERROR
@@ -93,7 +95,7 @@
 %type<obj> PrefixExpression
 %type<obj> PostfixExpression
 %type<obj> PropertyName
-%type<type> PostIncDec
+%type<incdec> PostIncDec
 %type<obj> Factor
 %type<obj> Binary
 %type<obj> Array
@@ -132,7 +134,8 @@
 %type<obj> CallArgumentList
 %type<obj> CallArgument
 %type<intval> NativeType_Opt
-%type<intval> TypeName
+%type<arraytype> TypeName
+%type<intval> ArrayLevel
 %type<intval> ReturnType_Opt
 
 %%
@@ -759,7 +762,7 @@ NativeKeyword
 
 NativeType_Opt
     : { $$ = KX_INT_T; }
-    | '<' TypeName '>' { $$ = $2; }
+    | '<' TypeName '>' { $$ = $2.type; }
     ;
 
 AnonymousFunctionDeclExpression
@@ -837,13 +840,19 @@ Argument
     ;
 
 TypeName
-    : TYPE  { $$ = $1; }
-    | NATIVE { $$ = KX_NFNC_T; }
+    : TYPE ArrayLevel { $$ = (arytype_t){ .type = $1, .depth = $2 }; }
+    | NATIVE { $$ = (arytype_t){ .type = KX_NFNC_T }; }
+    ;
+
+ArrayLevel
+    : /* empty */ { $$ = 0; }
+    | '[' ']' { $$ = 1; }
+    | ArrayLevel '[' ']' { $$ = $1 + 1; }
     ;
 
 ReturnType_Opt
     : { $$ = KX_UNKNOWN_T; }
-    | '(' TypeName ')' { $$ = $2; }
+    | '(' TypeName ')' { $$ = $2.type; }
     ;
 
 ClassCallArgumentList_Opts
