@@ -383,6 +383,91 @@ sljit_sw native_get_var_obj_indexia(sljit_sw *args)
     return native_get_var_obj_indexia_of(info, ctx, oaddr, index);
 }
 
+static sljit_f64 native_get_var_obj_indexd_of(sljit_sw *info, kx_context_t *ctx, kx_obj_t *obj, int index)
+{
+    if (!obj) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+        return 0;
+    }
+    int size = kv_size(obj->ary);
+    if (size == 0) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
+        return 0;
+    }
+    if (size <= index) {
+        index %= size;
+    } else if (index < 0) {
+        index += size;
+        while (index < 0) {
+            index += size;
+        }
+    }
+    kx_val_t *v = &kv_A(obj->ary, index);
+    if (!v || v->type != KX_DBL_T) {
+        if (v && v->type == KX_INT_T) {
+            return (sljit_f64)v->value.iv;
+        }
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+        return 0;
+    }
+    return (sljit_f64)v->value.dv;
+}
+
+sljit_f64 native_get_var_obj_indexd(sljit_sw *args)
+{
+    sljit_sw *info = (sljit_sw *)args[0];
+    kx_obj_t *oaddr = (kx_obj_t *)args[1];
+    int64_t index = (int64_t)args[2];
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    return native_get_var_obj_indexd_of(info, ctx, oaddr, index);
+}
+
+static sljit_sw native_get_var_obj_indexda_of(sljit_sw *info, kx_context_t *ctx, kx_obj_t *obj, int index)
+{
+    if (!obj) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+        return 0;
+    }
+    int size = kv_size(obj->ary);
+    if (size == 0) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
+        return 0;
+    }
+    if (size <= index) {
+        index %= size;
+    } else if (index < 0) {
+        index += size;
+        while (index < 0) {
+            index += size;
+        }
+    }
+    kx_val_t *v = &kv_A(obj->ary, index);
+    if (v->type == KX_INT_T) {
+        v->value.dv = (double)v->value.iv;
+        v->type = KX_DBL_T;
+    }
+    if (v->type != KX_DBL_T) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+        return 0;
+    }
+    return (sljit_sw)&v->value.dv;
+}
+
+sljit_sw native_get_var_obj_indexda(sljit_sw *args)
+{
+    sljit_sw *info = (sljit_sw *)args[0];
+    kx_obj_t *oaddr = (kx_obj_t *)args[1];
+    int64_t index = (int64_t)args[2];
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    return native_get_var_obj_indexda_of(info, ctx, oaddr, index);
+}
+
 static sljit_sw native_get_var_obj_indexo_of(sljit_sw *info, kx_context_t *ctx, kx_obj_t *obj, int index)
 {
     if (!obj) {

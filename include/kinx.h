@@ -210,6 +210,7 @@ typedef struct kxana_symbol_ {
     int local_index;
     int lexical_index;
     int optional;
+    int refdepth;
     struct kx_object_ *base;
     kvec_nt(struct kxana_symbol_) list;
 } kxana_symbol_t;
@@ -233,6 +234,7 @@ typedef struct kx_object_ {
     int var_type;
     int ret_type;
     int optional;
+    int refdepth;
     union {
         int64_t     i;
         double      d;
