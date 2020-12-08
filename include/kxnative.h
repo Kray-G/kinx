@@ -79,6 +79,8 @@ enum kxn_bopecode_type {
     KXNOP_BIDXA,
     KXNOP_OIDXI,
     KXNOP_OIDXIA,
+    KXNOP_OIDXD,
+    KXNOP_OIDXDA,
     KXNOP_OIDXO,
     KXNOP_OIDXOA,
 };
@@ -87,6 +89,7 @@ enum kxn_uopecode_type {
     KXNOP_TOBIG,
     KXNOP_MOV8,
     KXNOP_MOV,
+    KXNOP_MOVF,
     KXNOP_BNOT,
     KXNOP_NOT,
     KXNOP_NEG,

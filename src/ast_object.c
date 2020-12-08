@@ -117,14 +117,15 @@ kx_object_t *kx_gen_var_object(const char *name, int var_type)
     return obj;
 }
 
-kx_object_t *kx_gen_var_type_object(const char *name, int var_type, int ret_type)
+kx_object_t *kx_gen_var_type_object(const char *name, arytype_t var_type, int ret_type)
 {
     kx_object_t *obj = kx_gen_obj(KXOP_VAR, 0, NULL, NULL, NULL);
     obj->value.s = name;
-    obj->var_type = var_type;
-    obj->ret_type = (var_type == KX_NFNC_T && ret_type == KX_UNKNOWN_T) ? KX_INT_T : ret_type;
+    obj->var_type = var_type.type;
+    obj->refdepth = var_type.depth;
+    obj->ret_type = (var_type.type == KX_NFNC_T && ret_type == KX_UNKNOWN_T) ? KX_INT_T : ret_type;
     if (ret_type != KX_UNKNOWN_T) {
-        if (var_type != KX_NFNC_T && var_type != KX_FNC_T) {
+        if (var_type.type != KX_NFNC_T && var_type.type != KX_FNC_T) {
             kx_yyerror_line("Return type is only used for funciton/native definition", obj->file, obj->line);
         }
     }
