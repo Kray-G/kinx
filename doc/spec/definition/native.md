@@ -16,7 +16,7 @@ native fib(n) {
 
 It is very fast but there are some limitations.
 
-*   All variables are defined as a type. Available type is `int`, `dbl`, `str`, `bin`, `obj`, `ary`, or `native`.
+*   All variables are defined as a type. Available type is `int`, `dbl`, `str`, `bin`, `obj`, `int[]`, `dbl[]`, or `native`.
     *   If type information is omitted, the type would be followings.
         *   On argument, it become automatically `int`.
         *   Without initializer on declaration, it become automatically `int`.
