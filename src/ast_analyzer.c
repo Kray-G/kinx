@@ -550,6 +550,7 @@ LOOP_HEAD:;
 
     case KXOP_DECL: {
         if (node->lhs->type != KXOP_MKARY) {
+            int lhs_unknown = node->lhs->var_type == KX_UNKNOWN_T;
             int decl = actx->decl;
             actx->decl = 1;
             if (node->lhs->type == KXOP_VAR) {
@@ -560,10 +561,11 @@ LOOP_HEAD:;
             actx->decl = decl;
             analyze_ast(ctx, node->rhs, actx);
             if (node->rhs && node->lhs->type == KXOP_VAR) {
-                if (node->lhs->var_type == KX_UNKNOWN_T || (actx->in_native && node->lhs->var_type == KX_INT_T && node->lhs->var_type != node->rhs->var_type)) {
+                if (lhs_unknown) {
                     node->lhs->var_type = node->rhs->var_type;
-                } else if (node->lhs->var_type != node->rhs->var_type) {
-                    make_cast(node, node->lhs, node->rhs, actx->in_native);
+                } else if (node->lhs->var_type != node->rhs->var_type && actx->in_native) {
+                    node->rhs = kx_gen_cast_object(node->rhs, node->rhs->var_type, node->lhs->var_type);
+                    node->rhs->var_type = node->lhs->var_type;
                 }
             }
             node->var_type = node->lhs->var_type;
@@ -580,6 +582,7 @@ LOOP_HEAD:;
         // fall through
     }
     case KXOP_ASSIGN: {
+        int lhs_unknown = node->lhs->var_type == KX_UNKNOWN_T;
         if (node->lhs->type == KXOP_IDX && node->lhs->lhs && node->lhs->rhs) {
             kx_object_t *l = node->lhs->lhs;
             if (l->type == KXOP_VAR && !strcmp(l->value.s, KX_ENV_VAR)) {
@@ -638,10 +641,11 @@ LOOP_HEAD:;
             node->rhs->var_type = KX_STR_T;
         }
         if (node->lhs->type == KXOP_VAR) {
-            if (node->lhs->var_type == KX_UNKNOWN_T) {
+            if (lhs_unknown) {
                 node->lhs->var_type = node->rhs->var_type;
             } else if (node->lhs->var_type != node->rhs->var_type && actx->in_native) {
-                make_cast(node, node->lhs, node->rhs, actx->in_native);
+                node->rhs = kx_gen_cast_object(node->rhs, node->rhs->var_type, node->lhs->var_type);
+                node->rhs->var_type = node->lhs->var_type;
             }
         }
         node->var_type = node->lhs->var_type;
