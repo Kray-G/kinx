@@ -20,6 +20,7 @@
 *   Updated
     *   Support Array of Double in native.
     *   updated some SpecTest pages.
+    *   Some bug fixes and improvement.
 
 ## V0.15.3 (15th-3 Preview Release) - 2020/11/27
 
