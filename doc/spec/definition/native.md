@@ -31,9 +31,8 @@ It is very fast but there are some limitations.
         *   `str` is only supported for adding 2 strings and multiplying string by integer.
     *   For `bin`
         *   It is supported as an array of byte.
-    *   For `obj` and `ary`
-        *   `obj` and `ary` is the same.
-        *   It is currently just supported as an array of integer.
+    *   For `int[]` and `dbl[]`
+        *   It is currently just supported as an array of integer or double.
     *   For `native`.
         *   `native` function's return type is shown like `native<int>`.
         *   Even in this case, you can omit `<int>` like just `native` and automatically make it `int`.
@@ -538,4 +537,98 @@ function -> native:
 function -> function:
     a = 0, b = 0, c = 0, d = 0
     a = 100, b = 1000, c = 10000, d = 100000
+```
+
+### Example 13. Quicksort with Integer
+
+#### Code
+
+```javascript
+native quicksort(a:int[], first, last) {
+    var i = first;
+    var j = last;
+    var x = a[(first + last) / 2];
+    while (true) {
+        while (a[i] < x) i++;
+        while (x < a[j]) j--;
+        if (i >= j) break;
+
+        [a[i], a[j]] = [a[j], a[i]];
+        ++i; --j;
+    }
+    if (first  < i - 1)
+        quicksort(a, first , i - 1);
+    if (j + 1 < last)
+        quicksort(a, j + 1, last);
+}
+
+function show(title, a) {
+    System.print(title);
+    a.each(&(e) => System.print(" %2d" % e));
+    System.print("\n");
+}
+
+function demo() {
+    var a = [69, 63, 88, 85, 26, 77, 51, 42, 16, 4, 20, 18, 18, 40, 23, 26, 24, 63, 96, 59];
+
+    show("Before:", a);
+    quicksort(a, 0, a.length() - 1);
+    show("After: ", a);
+}
+
+demo();
+```
+
+#### Result
+
+```
+Before: 69 63 88 85 26 77 51 42 16  4 20 18 18 40 23 26 24 63 96 59
+After:   4 16 18 18 20 23 24 26 26 40 42 51 59 63 63 69 77 85 88 96
+```
+
+### Example 14. Quicksort with Double
+
+#### Code
+
+```javascript
+native quicksort(a:dbl[], first, last) {
+    var i = first;
+    var j = last;
+    var x = a[(first + last) / 2];
+    while (true) {
+        while (a[i] < x) i++;
+        while (x < a[j]) j--;
+        if (i >= j) break;
+
+        [a[i], a[j]] = [a[j], a[i]];
+        ++i; --j;
+    }
+    if (first  < i - 1)
+        quicksort(a, first , i - 1);
+    if (j + 1 < last)
+        quicksort(a, j + 1, last);
+}
+
+function show(title, a) {
+    System.print(title);
+    a.each(&(e) => System.print(" %3.1f" % e));
+    System.print("\n");
+}
+
+function demo() {
+    var a = [69, 63, 88, 85, 26, 77, 51, 42, 16, 4, 20, 18, 18, 40, 23, 26, 24, 63, 96, 59].map { => Double.parseDouble(_1 / 10) };
+
+    show("Before:", a);
+    quicksort(a, 0, a.length() - 1);
+    show("After: ", a);
+}
+
+demo();
+```
+
+#### Result
+
+```
+Before: 6.9 6.3 8.8 8.5 2.6 7.7 5.1 4.2 1.6 0.4 2.0 1.8 1.8 4.0 2.3 2.6 2.4 6.3 9.6 5.9
+After:  0.4 1.6 1.8 1.8 2.0 2.3 2.4 2.6 2.6 4.0 4.2 5.1 5.9 6.3 6.3 6.9 7.7 8.5 8.8 9.6
 ```
