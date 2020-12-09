@@ -643,10 +643,11 @@ LOOP_HEAD:;
         if (node->lhs->type == KXOP_VAR) {
             if (lhs_unknown) {
                 node->lhs->var_type = node->rhs->var_type;
-            } else if (node->lhs->var_type != node->rhs->var_type && actx->in_native) {
-                node->rhs = kx_gen_cast_object(node->rhs, node->rhs->var_type, node->lhs->var_type);
-                node->rhs->var_type = node->lhs->var_type;
             }
+        }
+        if (node->lhs->var_type != node->rhs->var_type && actx->in_native) {
+            node->rhs = kx_gen_cast_object(node->rhs, node->rhs->var_type, node->lhs->var_type);
+            node->rhs->var_type = node->lhs->var_type;
         }
         node->var_type = node->lhs->var_type;
         break;
@@ -1065,8 +1066,10 @@ LOOP_HEAD:;
         if (node->lhs) {
             analyze_ast(ctx, node->lhs, actx);
             if (actx->in_native || actx->func->ret_type != KX_UNKNOWN_T) {
-                if (node->lhs->type == KXOP_IDX && node->lhs->var_type == KX_INT_T && KXN_ISOBJ(actx->func->ret_type)) {
-                    node->lhs->var_type = KX_OBJ_T;
+                if (KXN_ISOBJ(actx->func->ret_type)) {
+                    if (node->lhs->type == KXOP_IDX && node->lhs->refdepth > 0) {
+                        node->lhs->var_type = KX_OBJ_T;
+                    }
                 }
                 make_cast_to(actx->func->ret_type, node);
                 if (actx->func->ret_type != node->lhs->var_type) {

@@ -222,17 +222,19 @@ static sljit_sw native_get_var_bin_index_of(sljit_sw *info, kx_context_t *ctx, k
     }
     int size = kv_size(bin->bin);
     if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
         return 0;
     }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(uint8_t, bin->bin, max);
+        kv_shrinkto(bin->bin, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(bin->bin, i) = 0;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     return kv_A(bin->bin, index);
 }
@@ -254,18 +256,17 @@ static sljit_sw native_get_var_bin_indexa_of(sljit_sw *info, kx_context_t *ctx, 
         return 0;
     }
     int size = kv_size(bin->bin);
-    if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
-        return 0;
-    }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(uint8_t, bin->bin, max);
+        kv_shrinkto(bin->bin, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(bin->bin, i) = 0;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     return (sljit_sw)&kv_A(bin->bin, index);
 }
@@ -318,17 +319,19 @@ static sljit_sw native_get_var_obj_indexi_of(sljit_sw *info, kx_context_t *ctx, 
     }
     int size = kv_size(obj->ary);
     if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
         return 0;
     }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(kx_val_t, obj->ary, max);
+        kv_shrinkto(obj->ary, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(obj->ary, i).type = KX_UND_T;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     kx_val_t *v = &kv_A(obj->ary, index);
     if (!v || v->type != KX_INT_T) {
@@ -356,18 +359,17 @@ static sljit_sw native_get_var_obj_indexia_of(sljit_sw *info, kx_context_t *ctx,
         return 0;
     }
     int size = kv_size(obj->ary);
-    if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
-        return 0;
-    }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(kx_val_t, obj->ary, max);
+        kv_shrinkto(obj->ary, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(obj->ary, i).type = KX_UND_T;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     kx_val_t *v = &kv_A(obj->ary, index);
     v->type = KX_INT_T;
@@ -392,22 +394,29 @@ static sljit_f64 native_get_var_obj_indexd_of(sljit_sw *info, kx_context_t *ctx,
     }
     int size = kv_size(obj->ary);
     if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
-        return 0;
+        return 0.0;
     }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(kx_val_t, obj->ary, max);
+        kv_shrinkto(obj->ary, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(obj->ary, i).type = KX_UND_T;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     kx_val_t *v = &kv_A(obj->ary, index);
     if (!v || v->type != KX_DBL_T) {
-        if (v && v->type == KX_INT_T) {
-            return (sljit_f64)v->value.iv;
+        if (v) {
+            if (v->type == KX_UND_T) {
+                return (sljit_f64)0.0;
+            }
+            if (v->type == KX_INT_T) {
+                return (sljit_f64)v->value.iv;
+            }
         }
         info[KXN_EXC_FLAG] = 1;
         info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
@@ -433,21 +442,23 @@ static sljit_sw native_get_var_obj_indexda_of(sljit_sw *info, kx_context_t *ctx,
         return 0;
     }
     int size = kv_size(obj->ary);
-    if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
-        return 0;
-    }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(kx_val_t, obj->ary, max);
+        kv_shrinkto(obj->ary, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(obj->ary, i).type = KX_UND_T;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     kx_val_t *v = &kv_A(obj->ary, index);
-    if (v->type == KX_INT_T) {
+    if (v->type == KX_UND_T) {
+        v->value.dv = 0.0;
+        v->type = KX_DBL_T;
+    } else if (v->type == KX_INT_T) {
         v->value.dv = (double)v->value.iv;
         v->type = KX_DBL_T;
     }
@@ -476,18 +487,17 @@ static sljit_sw native_get_var_obj_indexo_of(sljit_sw *info, kx_context_t *ctx, 
         return 0;
     }
     int size = kv_size(obj->ary);
-    if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
-        return 0;
-    }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(kx_val_t, obj->ary, max);
+        kv_shrinkto(obj->ary, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(obj->ary, i).type = KX_UND_T;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     kx_val_t *v = &kv_A(obj->ary, index);
     if (!v || v->type != KX_OBJ_T) {
@@ -515,18 +525,17 @@ static sljit_sw native_get_var_obj_indexoa_of(sljit_sw *info, kx_context_t *ctx,
         return 0;
     }
     int size = kv_size(obj->ary);
-    if (size == 0) {
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
-        return 0;
-    }
     if (size <= index) {
-        index %= size;
-    } else if (index < 0) {
-        index += size;
-        while (index < 0) {
-            index += size;
+        int max = index + 1;
+        kv_resize_if(kx_val_t, obj->ary, max);
+        kv_shrinkto(obj->ary, max);
+        for (int i = size; i < max; ++i) {
+            kv_A(obj->ary, i).type = KX_UND_T;
         }
+    } else if (index < 0) {
+        do {
+            index += size;
+        } while (index < 0);
     }
     kx_val_t *v = &kv_A(obj->ary, index);
     if (v->type != KX_OBJ_T) {

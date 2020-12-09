@@ -50,6 +50,6 @@ extern kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs);
 extern kx_object_t *kx_gen_break_object(int type, const char *name);
 extern kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs);
 extern kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *lhs, kx_object_t *ex);
-extern kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
+extern kx_object_t *kx_gen_func_object(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 
 #endif /* KX_OBJECT_H */
