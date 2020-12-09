@@ -126,34 +126,46 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     }
     case KX_STR_T: {
         kstr_t *sv = (kstr_t *)func(info, arglist);
+        if (!sv) {
+            goto TYPE_MISMATCH;
+        }
         kv_shrink(ctx->stack, count);
         push_sv(ctx->stack, sv);
         break;
     }
     case KX_BIN_T: {
         kx_bin_t *bin = (kx_bin_t *)func(info, arglist);
+        if (!bin) {
+            goto TYPE_MISMATCH;
+        }
         kv_shrink(ctx->stack, count);
         push_bin(ctx->stack, bin);
         break;
     }
     case KX_OBJ_T: {
         kx_obj_t *obj = (kx_obj_t *)func(info, arglist);
+        if (!obj) {
+            goto TYPE_MISMATCH;
+        }
         kv_shrink(ctx->stack, count);
         push_obj(ctx->stack, obj);
         break;
     }
     default:
-        info[KXN_EXC_FLAG] = 1;
-        info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
-        kv_shrink(ctx->stack, count);
-        push_i(ctx->stack, 0);
-        break;
+        goto TYPE_MISMATCH;
     }
 
     if (info[KXN_EXC_FLAG] != 0) {
         return info[KXN_EXC_CODE] ? info[KXN_EXC_CODE] : KXN_UNKNOWN_ERROR;
     }
     return 0;
+
+TYPE_MISMATCH:
+    info[KXN_EXC_FLAG] = 1;
+    info[KXN_EXC_CODE] = KXN_TYPE_MISMATCH;
+    kv_shrink(ctx->stack, count);
+    push_i(ctx->stack, 0);
+    return KXN_TYPE_MISMATCH;
 }
 
 #define KX_DEF_NATIVE_HELPER(addr_api, prop, proptype, rettype) \
