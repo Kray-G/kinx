@@ -74,6 +74,7 @@ You can also skip the first parameter.
 ```javascript
 [, a, b] = [1, 2, 3];   // a == 2, b == 3
 ```
+
 ### Function arguments
 
 If you put an array style in the argument list,
