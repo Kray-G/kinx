@@ -15,7 +15,12 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.16.0 (Current Development Version)
+## V0.17.0 (Current Development Version)
+
+*   Updated
+    *   Some bug fixes and improvement.
+
+## V0.16.1 (16th Preview Release) - 2020/12/08
 
 *   Updated
     *   Support Array of Double in native.
