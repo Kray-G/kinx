@@ -102,7 +102,7 @@ System.println(<1, 2, 3, 4, 5, 6, 7, 8, 9, 10>);
 #### Code
 
 ```javascript
-var a = [1, 2, 3];
+var a = <1, 2, 3>;
 a[1] = 4;
 System.println(a);
 ```
@@ -110,7 +110,7 @@ System.println(a);
 #### Result
 
 ```
-[1, 4, 3]
+<0x01, 0x04, 0x03>
 ```
 
 ### Example 3. Operator `+` for binary
