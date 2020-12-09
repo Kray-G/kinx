@@ -661,6 +661,12 @@ sljit_sw native_string_length(sljit_sw *info, sljit_sw *a1)
     return (sljit_sw)ks_length(s1);
 }
 
+sljit_sw native_array_length(sljit_sw *info, sljit_sw *a1)
+{
+    kx_obj_t* obj = (kx_obj_t*)a1[KXN_LOCALVAR_OFFSET];
+    return (sljit_sw)kv_size(obj->ary);
+}
+
 /* Math operation */
 
 #define KNX_TYPE(a1, n) (a1[KXN_LOCALVAR_OFFSET + KXN_MAX_FUNC_ARGS + 1 + n])
