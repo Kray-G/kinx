@@ -208,4 +208,36 @@ extern void natir_display_dot(kx_native_context_t *nctx);
 extern void natir_display_function(kx_native_context_t *nctx);
 extern void natir_compile_function(kx_native_context_t *nctx);
 
+extern sljit_sw native_string_length(sljit_sw *info, sljit_sw *a1);
+extern sljit_sw native_array_length(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_acos(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_asin(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_atan(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_cos(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_sin(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_tan(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_cosh(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_sinh(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_tanh(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_exp(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_log(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_log10(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_sqrt(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_ceil(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_fabs(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_floor(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_atan2(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_pow(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_fmod(sljit_sw *info, sljit_sw *a1);
+extern sljit_f64 native_math_ldexp(sljit_sw *info, sljit_sw *a1);
+
+typedef struct emb_func_info_t_ {
+    const char *name;
+    int val_type;
+    uint64_t addr;
+} kx_emb_func_info_t;
+
+extern kx_emb_func_info_t get_emb_array_function(const char *name);
+extern kx_emb_func_info_t get_emb_string_function(const char *name);
+
 #endif /* KX_KXNATIVE_H */
