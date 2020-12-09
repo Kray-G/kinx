@@ -90,7 +90,6 @@ static void usage(void)
     printf("Main options:\n");
     printf("    -h      Display this help.\n");
     printf("    -c      Check the syntax only.\n");
-    printf("    -m      Output some metrics.\n");
     printf("    -d      Dump compiled code.\n");
     printf("    -D      Display AST.\n");
     printf("    -u      Use UTF8 in standard I/O without converting. (Windows only)\n");
@@ -206,11 +205,6 @@ DllExport int do_main(int ac, char **av)
             break;
         case 'c':
             ctx->options.syntax = 1;
-            break;
-        case 'm':
-            ctx->options.quiet = 1;
-            ctx->options.syntax = 1;
-            ctx->options.metrics = 1;
             break;
         case 'd':
             ctx->options.dump = 1;
