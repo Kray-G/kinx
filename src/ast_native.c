@@ -1152,7 +1152,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                     release_register(nctx, r2);
                 } else if (KXN_ISOBJ(lhs->var_type)) {
                     if (node->var_type == KX_INT_T) {
-                        nativejit_ast(nctx, node->lhs, 1);
+                        nativejit_ast(nctx, node->lhs, 0);
                         int r1 = nctx->regno;
                         nativejit_ast(nctx, node->rhs, 0);
                         int r2 = nctx->regno;
@@ -1165,7 +1165,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                         release_register(nctx, r1);
                         release_register(nctx, r2);
                     } else if (node->var_type == KX_DBL_T) {
-                        nativejit_ast(nctx, node->lhs, 1);
+                        nativejit_ast(nctx, node->lhs, 0);
                         int r1 = nctx->regno;
                         nativejit_ast(nctx, node->rhs, 0);
                         int r2 = nctx->regno;
@@ -1178,7 +1178,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                         release_register(nctx, r1);
                         release_register(nctx, r2);
                     } else if (KXN_ISOBJ(node->var_type)) {
-                        nativejit_ast(nctx, node->lhs, 1);
+                        nativejit_ast(nctx, node->lhs, 0);
                         int r1 = nctx->regno;
                         nativejit_ast(nctx, node->rhs, 0);
                         int r2 = nctx->regno;
