@@ -563,12 +563,14 @@ LOOP_HEAD:;
             if (node->rhs && node->lhs->type == KXOP_VAR) {
                 if (lhs_unknown) {
                     node->lhs->var_type = node->rhs->var_type;
+                    node->lhs->refdepth = node->rhs->refdepth;
                 } else if (node->lhs->var_type != node->rhs->var_type && actx->in_native) {
                     node->rhs = kx_gen_cast_object(node->rhs, node->rhs->var_type, node->lhs->var_type);
                     node->rhs->var_type = node->lhs->var_type;
                 }
             }
             node->var_type = node->lhs->var_type;
+            node->refdepth = node->lhs->refdepth;
             break;
         } else if (!node->rhs) {
             // MKARY with no right hand side, just a declaration.
@@ -643,6 +645,7 @@ LOOP_HEAD:;
         if (node->lhs->type == KXOP_VAR) {
             if (lhs_unknown) {
                 node->lhs->var_type = node->rhs->var_type;
+                node->lhs->refdepth = node->rhs->refdepth;
             }
         }
         if (node->lhs->var_type != node->rhs->var_type && actx->in_native) {
@@ -650,6 +653,7 @@ LOOP_HEAD:;
             node->rhs->var_type = node->lhs->var_type;
         }
         node->var_type = node->lhs->var_type;
+        node->refdepth = node->lhs->refdepth;
         break;
     }
     case KXOP_SHL:
@@ -675,6 +679,7 @@ LOOP_HEAD:;
         actx->lvalue = 0;
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
+        make_cast(node, node->lhs, node->rhs, actx->in_native);
         actx->lvalue = lvalue;
         if (actx->in_native) {
             if (node->lhs->var_type == KX_CSTR_T) {
@@ -1067,11 +1072,12 @@ LOOP_HEAD:;
             analyze_ast(ctx, node->lhs, actx);
             if (actx->in_native || actx->func->ret_type != KX_UNKNOWN_T) {
                 if (KXN_ISOBJ(actx->func->ret_type)) {
-                    if (node->lhs->type == KXOP_IDX && node->lhs->refdepth > 0) {
+                    if (node->lhs->refdepth > 0) {
                         node->lhs->var_type = KX_OBJ_T;
                     }
+                } else {
+                    make_cast_to(actx->func->ret_type, node);
                 }
-                make_cast_to(actx->func->ret_type, node);
                 if (actx->func->ret_type != node->lhs->var_type) {
                     kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(actx->func->ret_type), get_typename(node->lhs->var_type));
                 }
