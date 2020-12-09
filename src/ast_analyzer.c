@@ -780,6 +780,19 @@ LOOP_HEAD:;
             } else if (node->lhs->var_type == KX_BIN_T) {
                 node->var_type = KX_INT_T;
             } else if (KXN_ISOBJ(node->lhs->var_type)) {
+                switch (node->rhs->var_type) {
+                case KX_CSTR_T:
+                    /* Array#length is a special */
+                    if (!strcmp(node->rhs->value.s, "length")) {
+                        node->var_type = KX_INT_T;
+                    } else {
+                        node->var_type = KX_UNKNOWN_T;
+                    }
+                    break;
+                default:
+                    node->var_type = KX_UNKNOWN_T;
+                    break;
+                }
                 if (node->var_type == KX_UNKNOWN_T) {
                     node->var_type = KX_INT_T;
                 }

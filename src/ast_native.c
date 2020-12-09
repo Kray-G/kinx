@@ -6,6 +6,7 @@
 #include <jit.h>
 
 extern sljit_sw native_string_length(sljit_sw *info, sljit_sw *a1);
+extern sljit_sw native_array_length(sljit_sw *info, sljit_sw *a1);
 extern sljit_f64 native_math_acos(sljit_sw *info, sljit_sw *a1);
 extern sljit_f64 native_math_asin(sljit_sw *info, sljit_sw *a1);
 extern sljit_f64 native_math_atan(sljit_sw *info, sljit_sw *a1);
@@ -1240,6 +1241,19 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                         release_register(nctx, r1);
                         release_register(nctx, r2);
                         check_exception(nctx, node, 0);
+                    } else if (rhs->var_type == KX_CSTR_T) {
+                        /* Array#length is a special */
+                        if (!strcmp(node->rhs->value.s, "length")) {
+                            nativejit_ast(nctx, node->lhs, 0);
+                            set_args(nctx, node->lhs);
+                            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                                .inst = KXN_LOADA, .var_type = node->var_type,
+                                    .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
+                                    .op1 = { .type = KXNOP_IMM, .iv = (uint64_t)native_array_length }
+                            }));
+                        } else {
+                            kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+                        }
                     } else if (node->var_type == KX_INT_T) {
                         nativejit_ast(nctx, node->lhs, 0);
                         int r1 = nctx->regno;
