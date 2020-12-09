@@ -116,12 +116,6 @@ The following properties are used to check the type of a variable.
 
 *   [TypeCheck](statement/expression/typecheck.md)
 
-### Others
-
-Some special specifications.
-
-*   [String#next](others/string_next.md)
-
 ### Library
 
 Kinx has many useful libraries and you can use those once you install this product.
@@ -135,7 +129,7 @@ but the description is included in this section because its feature is near a li
 *   [Integer](lib/primitive/integer.md)
 *   [Double](lib/primitive/double.md)
 *   [String](lib/primitive/string.md)
-*   [Binary](lib/primitive/binary.md) - *not documented yet*
+*   [Binary](lib/primitive/binary.md)
 *   [Array](lib/primitive/array.md)
 
 #### Functions
@@ -194,3 +188,9 @@ I strongly want **contributers**. How about you?
 Algorithm and Data structure examples are being described in the page below.
 
 *   [Algorithm](algorithm/README.md)
+
+### Others
+
+Some special specifications.
+
+*   [String#next](others/string_next.md)
