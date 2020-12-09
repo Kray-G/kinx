@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <kvec.h>
 #include <kinx.h>
-#define KX_PARSER
+#define KX_NO_INCLUDE_PARSER_TAB_H
 #include <kxastobject.h>
 
 #define FILELINE(ana) .file = const_str(ctx, node->file), .line = node->line, .func = get_function(module, (ana)->function)->name
