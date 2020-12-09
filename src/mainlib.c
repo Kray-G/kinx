@@ -4,7 +4,7 @@
 #include <kinx.h>
 #include <kxthread.h>
 #include <kxirutil.h>
-#define KX_PARSER
+#define KX_NO_INCLUDE_PARSER_TAB_H
 #include <kxastobject.h>
 #include <libkinx.h>
 #include <getopt.h>
