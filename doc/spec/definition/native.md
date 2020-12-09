@@ -62,6 +62,13 @@ See below for examples of Switch-Case in native.
 
 * [Switch-Case in Native](native/switch_case.md)
 
+### Supported Array
+
+In native function it can use an array of integer and double.
+See below for examples of how to use an array in native.
+
+* [Array in Native](native/array.md)
+
 ## Examples
 
 ### Example 1. Fibonacci

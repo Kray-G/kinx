@@ -128,6 +128,9 @@ kx_object_t *kx_gen_var_type_object(const char *name, arytype_t var_type, int re
         if (var_type.type != KX_NFNC_T && var_type.type != KX_FNC_T) {
             kx_yyerror_line("Return type is only used for funciton/native definition", obj->file, obj->line);
         }
+        if (obj->refdepth > 0) {
+            obj->ret_type = KX_OBJ_T;
+        }
     }
     return obj;
 }
@@ -303,7 +306,7 @@ kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t
         blk = kx_gen_bexpr_object(KXST_STMTLIST, nassign, blk);
     }
     blk = kx_gen_bexpr_object(KXOP_CALL,
-        kx_gen_func_object(KXST_FUNCTION, internal ? KXFT_SYSFUNC : KXFT_FUNCTION, NULL, NULL, blk, NULL),
+        kx_gen_func_object(KXST_FUNCTION, internal ? KXFT_SYSFUNC : KXFT_FUNCTION, 0, NULL, NULL, blk, NULL),
         NULL
     );
     kx_object_t *namevar = kx_gen_var_object(name, KX_OBJ_T);
@@ -494,7 +497,7 @@ kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block,
     return obj;
 }
 
-kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+kx_object_t *kx_gen_func_object(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     static int classid = 0;
     static int counter = 0;
@@ -551,7 +554,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
             kx_gen_stmt_object(KXST_EXPR,
                 kx_gen_bassign_object(KXOP_ASSIGN,
                     kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object("instanceOf")),
-                    kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, NULL,
+                    kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, 0, NULL,
                         kx_gen_var_object("classobj", KX_UNKNOWN_T),
                         kx_gen_bexpr_object(KXST_STMTLIST, instanceOf, NULL),
                     NULL)
@@ -580,7 +583,7 @@ kx_object_t *kx_gen_func_object(int type, int optional, const char *name, kx_obj
     }
     kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
     if (type == KXST_NATIVE) {
-        obj->ret_type = optional;
+        obj->ret_type = refdepth > 0 ? KX_OBJ_T : optional;
     }
     obj->value.s = name;
     kx_object_t *assign;

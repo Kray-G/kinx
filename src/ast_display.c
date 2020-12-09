@@ -162,12 +162,12 @@ LOOP_HEAD:;
         break;
 
     case KXOP_DECL:
-        printf("%s (=):%s\n", node->optional == KXDC_CONST ? "const" : "var", get_short_typename(node->var_type));
+        printf("%s (=):%s, depth:%d\n", node->optional == KXDC_CONST ? "const" : "var", get_short_typename(node->var_type), node->refdepth);
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_ASSIGN:
-        printf("(=):%s\n", get_short_typename(node->var_type));
+        printf("(=):%s, depth:%d\n", get_short_typename(node->var_type), node->refdepth);
         display_ast(node->lhs, indent + 1, 1);
         display_ast(node->rhs, indent + 1, 0);
         break;
