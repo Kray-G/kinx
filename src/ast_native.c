@@ -5,29 +5,6 @@
 #include <kxnative.h>
 #include <jit.h>
 
-extern sljit_sw native_string_length(sljit_sw *info, sljit_sw *a1);
-extern sljit_sw native_array_length(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_acos(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_asin(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_atan(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_cos(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_sin(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_tan(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_cosh(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_sinh(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_tanh(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_exp(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_log(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_log10(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_sqrt(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_ceil(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_fabs(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_floor(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_atan2(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_pow(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_fmod(sljit_sw *info, sljit_sw *a1);
-extern sljit_f64 native_math_ldexp(sljit_sw *info, sljit_sw *a1);
-
 #define KXN_ISOBJ(x) (((x) == KX_OBJ_T) || ((x) == KX_ARY_T))
 
 #define KXN_RESET_REGNO_IF_POSSIBLE(nctx) \
@@ -262,6 +239,38 @@ static void release_all_register(kx_native_context_t *nctx)
         } \
     } \
     /**/
+
+/*
+    Embedded functions.
+*/
+
+kx_emb_func_info_t get_emb_string_function(const char *name)
+{
+    kx_emb_func_info_t info[] = {
+        { .name = "length", .val_type = KX_INT_T, .addr = (uint64_t)native_string_length },
+    };
+    const int n = sizeof(info) / sizeof(info[0]);
+    for (int i = 0; i < n; ++i) {
+        if (!strcmp(name, info[i].name)) {
+            return info[i];
+        }
+    }
+    return (kx_emb_func_info_t){0};
+}
+
+kx_emb_func_info_t get_emb_array_function(const char *name)
+{
+    kx_emb_func_info_t info[] = {
+        { .name = "length", .val_type = KX_INT_T, .addr = (uint64_t)native_array_length },
+    };
+    const int n = sizeof(info) / sizeof(info[0]);
+    for (int i = 0; i < n; ++i) {
+        if (!strcmp(name, info[i].name)) {
+            return info[i];
+        }
+    }
+    return (kx_emb_func_info_t){0};
+}
 
 /*
     Register Layout in calling.
@@ -1075,14 +1084,14 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                 release_register(nctx, r1);
                 release_register(nctx, r2);
             } else if (node->rhs->var_type == KX_CSTR_T) {
-                /* String#length is a special */
-                if (!strcmp(node->rhs->value.s, "length")) {
+                kx_emb_func_info_t info = get_emb_string_function(node->rhs->value.s);
+                if (info.addr) {
                     nativejit_ast(nctx, node->lhs, 0);
                     set_args(nctx, node->lhs);
                     kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
                         .inst = KXN_LOADA, .var_type = node->var_type,
                             .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
-                            .op1 = { .type = KXNOP_IMM, .iv = (uint64_t)native_string_length }
+                            .op1 = { .type = KXNOP_IMM, .iv = info.addr }
                     }));
                 } else {
                     kx_yyerror_line("Not supported operation in native function", node->file, node->line);
@@ -1227,6 +1236,19 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                     release_register(nctx, r2);
                     check_exception(nctx, node, 0);
                 } else if (KXN_ISOBJ(lhs->var_type)) {
+                    if (rhs->var_type == KX_CSTR_T) {
+                        kx_emb_func_info_t info = get_emb_array_function(node->rhs->value.s);
+                        if (info.addr) {
+                            nativejit_ast(nctx, node->lhs, 0);
+                            set_args(nctx, node->lhs);
+                            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                                .inst = KXN_LOADA, .var_type = node->var_type,
+                                    .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
+                                    .op1 = { .type = KXNOP_IMM, .iv = info.addr }
+                            }));
+                            break;
+                        }
+                    }
                     if (KXN_ISOBJ(node->var_type) || node->refdepth > 0) {
                         nativejit_ast(nctx, node->lhs, 0);
                         int r1 = nctx->regno;
@@ -1241,19 +1263,6 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                         release_register(nctx, r1);
                         release_register(nctx, r2);
                         check_exception(nctx, node, 0);
-                    } else if (rhs->var_type == KX_CSTR_T) {
-                        /* Array#length is a special */
-                        if (!strcmp(node->rhs->value.s, "length")) {
-                            nativejit_ast(nctx, node->lhs, 0);
-                            set_args(nctx, node->lhs);
-                            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-                                .inst = KXN_LOADA, .var_type = node->var_type,
-                                    .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
-                                    .op1 = { .type = KXNOP_IMM, .iv = (uint64_t)native_array_length }
-                            }));
-                        } else {
-                            kx_yyerror_line("Not supported operation in native function", node->file, node->line);
-                        }
                     } else if (node->var_type == KX_INT_T) {
                         nativejit_ast(nctx, node->lhs, 0);
                         int r1 = nctx->regno;

@@ -4,6 +4,7 @@
 #include <kinx.h>
 #include <kxalloc.h>
 #include <parser.h>
+#include <kxnative.h>
 
 extern const char *alloc_string(kx_context_t *ctx, const char *str);
 extern void free_string(kx_context_t *ctx);
