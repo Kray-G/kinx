@@ -10,7 +10,7 @@ typedef struct arytype_t_ {
     int depth;
 } arytype_t;
 
-#ifndef KX_PARSER
+#ifndef KX_NO_INCLUDE_PARSER_TAB_H
 #include <parser.tab.h>
 #endif /* KX_PARSER */
 

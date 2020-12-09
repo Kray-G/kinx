@@ -781,19 +781,20 @@ LOOP_HEAD:;
                 node->var_type = KX_INT_T;
             } else if (KXN_ISOBJ(node->lhs->var_type)) {
                 switch (node->rhs->var_type) {
-                case KX_CSTR_T:
-                    /* Array#length is a special */
-                    if (!strcmp(node->rhs->value.s, "length")) {
-                        node->var_type = KX_INT_T;
+                case KX_CSTR_T: {
+                    kx_emb_func_info_t info = get_emb_array_function(node->rhs->value.s);
+                    if (info.addr) {
+                        node->var_type = info.val_type;
                     } else {
                         node->var_type = KX_UNKNOWN_T;
                     }
                     break;
-                default:
-                    break;
                 }
-                if (node->var_type == KX_UNKNOWN_T) {
-                    node->var_type = KX_INT_T;
+                default:
+                    if (node->var_type == KX_UNKNOWN_T) {
+                        node->var_type = KX_INT_T;
+                    }
+                    break;
                 }
             } else if (node->lhs->var_type == KX_STR_T) {
                 switch (node->rhs->var_type) {
@@ -804,14 +805,15 @@ LOOP_HEAD:;
                     node->rhs = kx_gen_cast_object(node->rhs, KX_DBL_T, KX_INT_T);
                     node->var_type = KX_INT_T;
                     break;
-                case KX_CSTR_T:
-                    /* String#length is a special */
-                    if (!strcmp(node->rhs->value.s, "length")) {
-                        node->var_type = KX_INT_T;
+                case KX_CSTR_T: {
+                    kx_emb_func_info_t info = get_emb_string_function(node->rhs->value.s);
+                    if (info.addr) {
+                        node->var_type = info.val_type;
                     } else {
                         node->var_type = KX_UNKNOWN_T;
                     }
                     break;
+                }
                 default:
                     node->var_type = KX_UNKNOWN_T;
                     break;
