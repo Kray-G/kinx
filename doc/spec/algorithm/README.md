@@ -19,3 +19,7 @@ This will help your understanding.
 *   [N Queens](nqueens.md)
 *   [Knight Tour](knight.md)
 *   [Missionaries and Cannibals Problem](cannibal.md)
+
+## Fractals
+
+*   [Mandelbrot Set](mandelbrot.md)
