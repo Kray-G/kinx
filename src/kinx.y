@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <kvec.h>
 #include <kinx.h>
-#define KX_PARSER 1
+#define KX_NO_INCLUDE_PARSER_TAB_H
 #include <kxastobject.h>
 
 // #define YYDEBUG 1
