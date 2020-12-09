@@ -790,7 +790,6 @@ LOOP_HEAD:;
                     }
                     break;
                 default:
-                    node->var_type = KX_UNKNOWN_T;
                     break;
                 }
                 if (node->var_type == KX_UNKNOWN_T) {
