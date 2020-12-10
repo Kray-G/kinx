@@ -1,0 +1,7 @@
+{
+    "root": "doc/benchmark",
+
+    "testfile": "test.kx",
+    "resultfile": "result.txt",
+    "interpreter": "kinx",
+}
