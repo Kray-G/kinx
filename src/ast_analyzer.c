@@ -591,7 +591,6 @@ LOOP_HEAD:;
         // fall through
     }
     case KXOP_ASSIGN: {
-        int lhs_unknown = node->lhs->var_type == KX_UNKNOWN_T;
         if (node->lhs->type == KXOP_IDX && node->lhs->lhs && node->lhs->rhs) {
             kx_object_t *l = node->lhs->lhs;
             if (l->type == KXOP_VAR && !strcmp(l->value.s, KX_ENV_VAR)) {
@@ -650,7 +649,7 @@ LOOP_HEAD:;
             node->rhs->var_type = KX_STR_T;
         }
         if (node->lhs->type == KXOP_VAR) {
-            if (lhs_unknown) {
+            if (node->lhs->var_type == KX_UNKNOWN_T) {
                 node->lhs->var_type = node->rhs->var_type;
                 node->lhs->refdepth = node->rhs->refdepth;
             }
