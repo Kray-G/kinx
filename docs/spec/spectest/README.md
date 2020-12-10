@@ -119,7 +119,7 @@ The items of `.spectest` file is below.
 
 |         Key         |                    Default                     |                                          Meaning                                           |
 | ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| topLevelFilePattern | <code>"(README&#124;CONTENTS)\\\\.md"</code>   | Root document for SpecTest.                                                                |
+| topLevelFilePattern | <code>"(README&#124;CONTENTS&#124;index)\\\\.md"</code>   | Root document for SpecTest.                                                                |
 | linkPattern         | `"\\[([^\\]]+)\\]\\s*\\(([^\\)]+\\.md)\\)"`    | Link pattern to traverse document tree.                                                    |
 | targetNamePattern   | `"^#\\s+(.+)"`                                 | The line of TestSuite name.                                                                |
 | startTestPattern    | `"^##+\\s+Examples"`                           | The line to recognize to start a test code area.                                           |
@@ -127,8 +127,8 @@ The items of `.spectest` file is below.
 | testNamePattern     | `"^##+\\s+Example\\s+[0-9]+[\\.\\)]?\\s+(.+)"` | The line of TestCase name.                                                                 |
 | startCodePattern    | `"^##+\\s+Code(?:\\s+\\(([^\\)]+)\\))?.*"`     | The line to recognize to start a test code section.                                        |
 | startResultPattern  | `"^##+\\s+Result.*"`                           | The line to recognize to start a test result section.                                      |
-| codeBlockStart      | `"^```"`                                       | The line to recognize to start a test code.                                                |
-| codeBlockEnd        | `"^```"`                                       | The line to recognize to end a test code.                                                  |
+| codeBlockStart      | <code>"^```"</code>                                       | The line to recognize to start a test code.                                                |
+| codeBlockEnd        | <code>"^```"</code>                                       | The line to recognize to end a test code.                                                  |
 | testfile            | `"test.kx"`                                    | Temporary test code file name.                                                             |
 | resultfile          | `"result.txt"`                                 | Temporary test result file name.                                                           |
 | compiler            | `""`                                           | *Currently Not supported*. This will be supported when supporting to use compiler.         |
