@@ -10,7 +10,6 @@
 
 *   Planned
     *   Support to read/write from/to Clipboard.
-    *   Support Big Integer in native.
     *   User selectable installation.
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
@@ -18,6 +17,7 @@
 ## V0.17.0 (Current Development Version)
 
 *   Updated
+    *   Support Big Integer in native.
     *   Changed a syntax for a return type of native. It becomes same as a syntax for an argument.
         *   [OLD] native<int>
         *   [NEW] native:int
