@@ -29,7 +29,7 @@ This Kinx is a script language for people who want C-like syntax.
 *   **Isolate** object to control native threads **without GIL** (Global Interpreter Lock).
 *   Including useful libraries as **All-In-One**. See details below.
 *   **[REPL](docs/utility/repl.md)** is provided by default.
-*   Useful Testing System named as **[SpecTest](docs/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
+*   Useful Testing System named as **[SpecTest](docs/index.md)**. It is designed to not only for Kinx but also for any other products.
 
 #### Standard Libraries
 
@@ -64,7 +64,7 @@ Please see [Quick Reference Guide](docs/QuickReference.md) for your understandin
 For the detail of Kinx specification, see [Kinx Specification](docs/spec/README.md).
 This document is also including **Test Codes**.
 I named this system as **SpecTest**.
-See **[SpecTest](docs/spec/spectest/README.md)** for detail.
+See **[SpecTest](docs/index.md)** for detail.
 
 And you can try it on the **[REPL](docs/utility/repl.md)**.
 See **[REPL](docs/utility/repl.md)** for detail.
