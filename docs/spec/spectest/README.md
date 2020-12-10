@@ -100,15 +100,15 @@ This is the actual `.spectest` file of Kinx itself.
 
 ```json
 {
-    "root": "doc/spec",
+    "root": "docs/spec",
 
     "testfile": "test.kx",
     "resultfile": "result.txt",
     "interpreter": "kinx",
 
     "ignoreFiles": [
-        "doc/spec/../benchmark/README.md",
-        "doc/spec/spectest/README.md"
+        "docs/spec/../benchmark/README.md",
+        "docs/spec/spectest/README.md"
     ]
 }
 ```
@@ -152,9 +152,9 @@ Test Cout = 54
 
 <Test Result Detail>
 
-Entry: doc/spec/README.md
+Entry: docs/spec/README.md
     Kinx Specification with SpecTest (0.00s)
-    Entry: doc/spec/statement/declaration.md
+    Entry: docs/spec/statement/declaration.md
         Declaration statement (0.52s)
             Case[0] (Normal case) ........................... successful (  0.08s)
             Case[1] (With initializer) ...................... successful (  0.06s)
@@ -165,73 +165,73 @@ Entry: doc/spec/README.md
             Case[6] (Constant value (3)) .................... successful (  0.04s)
             Case[7] (Constant value (4)) .................... successful (  0.03s)
             Case[8] (Constant value (5)) .................... successful (  0.06s)
-    Entry: doc/spec/statement/enum.md
+    Entry: docs/spec/statement/enum.md
         Enum statement (0.25s)
             Case[0] (Normal case) ........................... successful (  0.06s)
             Case[1] (With initializer (1)) .................. successful (  0.06s)
             Case[2] (With initializer (2)) .................. successful (  0.05s)
             Case[3] (The scope) ............................. successful (  0.07s)
-    Entry: doc/spec/statement/expression.md
+    Entry: docs/spec/statement/expression.md
         Expression statement (0.19s)
             Case[0] (Assignment) ............................ successful (  0.06s)
             Case[1] (Exponent Evaluation) ................... successful (  0.06s)
             Case[2] (Logical Undefined Operator) ............ successful (  0.06s)
-    Entry: doc/spec/statement/mixin.md
+    Entry: docs/spec/statement/mixin.md
         Mixin statement (0.07s)
             Case[0] (Normal case) ........................... successful (  0.07s)
-    Entry: doc/spec/statement/block.md
+    Entry: docs/spec/statement/block.md
         Block statement (0.07s)
             Case[0] (Scope) ................................. successful (  0.07s)
-    Entry: doc/spec/statement/if_else.md
+    Entry: docs/spec/statement/if_else.md
         If-Else statement (0.20s)
             Case[0] (Normal case) ........................... successful (  0.06s)
             Case[1] (No else clause) ........................ successful (  0.06s)
             Case[2] (If-else combination) ................... successful (  0.06s)
-    Entry: doc/spec/statement/switch_case.md
+    Entry: docs/spec/statement/switch_case.md
         Switch-Case statement (0.33s)
             Case[0] (Normal case) ........................... successful (  0.07s)
             Case[1] (With do-while) ......................... successful (  0.08s)
             Case[2] (Non-integer value) ..................... successful (  0.09s)
             Case[3] (Complex switch-case pattern) ........... successful (  0.06s)
-    Entry: doc/spec/statement/while.md
+    Entry: docs/spec/statement/while.md
         While statement (0.12s)
             Case[0] (Normal case) ........................... successful (  0.06s)
             Case[1] (Infinaite loop) ........................ successful (  0.06s)
-    Entry: doc/spec/statement/do_while.md
+    Entry: docs/spec/statement/do_while.md
         Do-While statement (0.12s)
             Case[0] (Normal case) ........................... successful (  0.06s)
             Case[1] (Infinaite loop) ........................ successful (  0.06s)
-    Entry: doc/spec/statement/for.md
+    Entry: docs/spec/statement/for.md
         For statement (0.20s)
             Case[0] (Normal case) ........................... successful (  0.06s)
             Case[1] (Infinaite loop) ........................ successful (  0.06s)
             Case[2] (Declation variable in scope) ........... successful (  0.07s)
-    Entry: doc/spec/algorithm/qsort.md
+    Entry: docs/spec/algorithm/qsort.md
         Quicksort (0.06s)
             Case[0] (Quicksort Algorithm) ................... successful (  0.06s)
-    Entry: doc/spec/algorithm/mergesort.md
+    Entry: docs/spec/algorithm/mergesort.md
         Merge Sort (0.06s)
             Case[0] (Merge Sort Algorithm) .................. successful (  0.06s)
-    Entry(nolink): doc/spec/statement/try_catch_finally.md
-    Entry(nolink): doc/spec/statement/return.md
-    Entry(nolink): doc/spec/statement/yield.md
-    Entry(nolink): doc/spec/statement/throw.md
-    Entry(nolink): doc/spec/statement/function.md
-    Entry(nolink): doc/spec/statement/class.md
-    Entry(nolink): doc/spec/statement/module.md
-    Entry(nolink): doc/spec/statement/lambda.md
-    Entry(nolink): doc/spec/statement/closure.md
-    Entry(nolink): doc/spec/statement/module.md
-    Entry(nolink): doc/spec/lib/primitive/integer.md
-    Entry(nolink): doc/spec/lib/primitive/double.md
-    Entry(nolink): doc/spec/lib/primitive/string.md
-    Entry(nolink): doc/spec/lib/primitive/array.md
-    Entry(nolink): doc/spec/lib/basic/file.md
-    Entry(nolink): doc/spec/lib/basic/directory.md
-    Entry(nolink): doc/spec/lib/basic/regex.md
-    Entry(nolink): doc/spec/lib/basic/xml.md
-    Entry(nolink): doc/spec/lib/basic/zip.md
-    Entry(nolink): doc/spec/lib/net/http.md
+    Entry(nolink): docs/spec/statement/try_catch_finally.md
+    Entry(nolink): docs/spec/statement/return.md
+    Entry(nolink): docs/spec/statement/yield.md
+    Entry(nolink): docs/spec/statement/throw.md
+    Entry(nolink): docs/spec/statement/function.md
+    Entry(nolink): docs/spec/statement/class.md
+    Entry(nolink): docs/spec/statement/module.md
+    Entry(nolink): docs/spec/statement/lambda.md
+    Entry(nolink): docs/spec/statement/closure.md
+    Entry(nolink): docs/spec/statement/module.md
+    Entry(nolink): docs/spec/lib/primitive/integer.md
+    Entry(nolink): docs/spec/lib/primitive/double.md
+    Entry(nolink): docs/spec/lib/primitive/string.md
+    Entry(nolink): docs/spec/lib/primitive/array.md
+    Entry(nolink): docs/spec/lib/basic/file.md
+    Entry(nolink): docs/spec/lib/basic/directory.md
+    Entry(nolink): docs/spec/lib/basic/regex.md
+    Entry(nolink): docs/spec/lib/basic/xml.md
+    Entry(nolink): docs/spec/lib/basic/zip.md
+    Entry(nolink): docs/spec/lib/net/http.md
 
 <Test Result>
     Total Test Cases:       54

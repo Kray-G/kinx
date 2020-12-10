@@ -1,12 +1,12 @@
 {
-    "root": "doc/spec",
+    "root": "docs/spec",
 
     "testfile": "test.kx",
     "resultfile": "result.txt",
     "interpreter": "kinx",
 
     "ignoreFiles": [
-        "doc/spec/../benchmark/README.md",
-        "doc/spec/spectest/README.md"
+        "docs/spec/../benchmark/README.md",
+        "docs/spec/spectest/README.md"
     ]
 }
