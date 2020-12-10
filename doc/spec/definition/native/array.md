@@ -7,6 +7,22 @@ For that, the type will be `int[]` for an array of integer, and `dbl[]` for an a
 
 You can also use a multidimensional array like `int[][]`.
 
+### Multidimensional array with unknown depth
+
+If you cannot determine it, you can use the type of `obj` instead.
+In that case, you have to specify the type for a variable which is lvalue of assignment.
+See an example below.
+
+```javascript
+native:str test1(s:obj) {
+    var a:obj = s[0];       // `a` will receive a value as an object.
+    var b:int = a[0][0];    // `b` will receive a value as an integer.
+    return "a" * b;
+}
+
+System.println(test1([[[100]]])); // => "a" is repeated 100 times like "aaa..."
+```
+
 ## Examples
 
 ### Example 1. Simple an array of integer in native
@@ -88,4 +104,24 @@ System.println(mapArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
 
 ```
 [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+```
+
+### Example 5. Multidimensional array with unknown depth
+
+#### Code
+
+```javascript
+native:str test1(s:obj) {
+    var a:obj = s[0];       // `a` will receive a value as an object.
+    var b:int = a[0][0];    // `b` will receive a value as an integer.
+    return "a" * b;
+}
+
+System.println(test1([[[100]]])); // => "a" is repeated 100 times like "aaa..."
+```
+
+#### Result
+
+```
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 ```
