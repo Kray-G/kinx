@@ -2,7 +2,7 @@
     <img src="https://github.com/Kray-G/kinx/workflows/Unit%20Test/badge.svg?branch=master"/>
     <img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat"/>
 </p>
-<p align="center"><img src="doc/kinxlogo.png" height="84px" /></p>
+<p align="center"><img src="docs/kinxlogo.png" height="84px" /></p>
 <p align="center">
 <strong>Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
 Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers.
@@ -28,8 +28,8 @@ This Kinx is a script language for people who want C-like syntax.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
 *   **Isolate** object to control native threads **without GIL** (Global Interpreter Lock).
 *   Including useful libraries as **All-In-One**. See details below.
-*   **[REPL](doc/utility/repl.md)** is provided by default.
-*   Useful Testing System named as **[SpecTest](doc/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
+*   **[REPL](docs/utility/repl.md)** is provided by default.
+*   Useful Testing System named as **[SpecTest](docs/spec/spectest/README.md)**. It is designed to not only for Kinx but also for any other products.
 
 #### Standard Libraries
 
@@ -58,16 +58,16 @@ Making libraries improvement and extension is one of the main purpose of this la
 
 ### Language Details
 
-There is [Quick Reference Guide](doc/QuickReference.md).
-Please see [Quick Reference Guide](doc/QuickReference.md) for your understanding.
+There is [Quick Reference Guide](docs/QuickReference.md).
+Please see [Quick Reference Guide](docs/QuickReference.md) for your understanding.
 
-For the detail of Kinx specification, see [Kinx Specification](doc/spec/README.md).
+For the detail of Kinx specification, see [Kinx Specification](docs/spec/README.md).
 This document is also including **Test Codes**.
 I named this system as **SpecTest**.
-See **[SpecTest](doc/spec/spectest/README.md)** for detail.
+See **[SpecTest](docs/spec/spectest/README.md)** for detail.
 
-And you can try it on the **[REPL](doc/utility/repl.md)**.
-See **[REPL](doc/utility/repl.md)** for detail.
+And you can try it on the **[REPL](docs/utility/repl.md)**.
+See **[REPL](docs/utility/repl.md)** for detail.
 
 ### Motivation
 
@@ -237,7 +237,7 @@ sys     0m0.016s
 How nice it is around 10x faster.
 
 But you have to know the limitations with native function.
-See [Native Functions](doc/spec/definition/native.md) for details.
+See [Native Functions](docs/spec/definition/native.md) for details.
 
 ### REPL
 
@@ -248,11 +248,11 @@ $ ./kinx --exec:repl
 ```
 
 Here is a demo animation. REPL has an autocomplete by `[TAB]` key.
-See [REPL](doc/utility/repl.md) for details.
+See [REPL](docs/utility/repl.md) for details.
 
 Have fun with it!
 
-<p align="center"><img src="doc/utility/repl.gif" width="90%" /></p>
+<p align="center"><img src="docs/utility/repl.gif" width="90%" /></p>
 
 ### Output with Dot
 
@@ -274,7 +274,7 @@ digraph fib {
 }
 ```
 
-<p align="center"><img src="doc/fibkx.png" /></p>
+<p align="center"><img src="docs/fibkx.png" /></p>
 
 ### Extending Functionalities
 
@@ -305,7 +305,7 @@ var YourLibrary = _import("yourlibrary");
     *   See [`kxregex.c`](src/extlib/kxregex.c) for class definition. Just defines a `create` method for `new` operator.
 
 For `new` operator, `new A` is just alias of `A.create`.
-See [Class Design](doc/HowClassWorks.md) for how class works.
+See [Class Design](docs/HowClassWorks.md) for how class works.
 
 ## TODO
 
@@ -313,7 +313,7 @@ See [ChangeLog.md](ChangeLog.md) for a current status.
 
 ## Undocumented Memo
 
-For specification, see [Kinx Specification](doc/spec/README.md).
+For specification, see [Kinx Specification](docs/spec/README.md).
 But now there is no document about following items.
 I will write it as soon as possible.
 
@@ -374,4 +374,4 @@ System.println(obj.msg()); # => print out "message".
 This project is licensed under the **MIT License**.
 See the [LICENSE](LICENSE) file for details.
 About the licenses of internal used libraries, follow the licenses of each library.
-See [doc/licenses](doc/licenses) folder for details.
+See [docs/licenses](docs/licenses) folder for details.
