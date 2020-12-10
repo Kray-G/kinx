@@ -21,7 +21,7 @@ This is a script language for people who want C-like syntax.
 *   **Extendable**. Contributers are able to extend features easily for your own use.
 *   **Lightweight**. You can start using this without a lot of work.
 *   **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
-*   **Object-Oriented**. Of cource you can do the object-oriented programming.
+*   **Object-Oriented**. Of course you can do the object-oriented programming.
 *   C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
 *   **Dynamic typing**, but you can also specify the type.
 *   **Native function** by JIT compiling supported with some limitations. Very fast.
@@ -48,7 +48,7 @@ Kinx is including useful libraries below in the standard package as **All-In-One
 * **Socket** ... Supporting a simple TCP/UDP socket.
 * **Iconv** ... Converting between text encodings.
 * **SQLite3** ... Database class as a usuful library wapping SQLite3.
-* **Regular Expression** ... Regular expression is f cource supported.
+* **Regular Expression** ... Regular expression is of course supported.
 * **Parser Combinator** ... Exactly original implementation of Parser Combinator named as `Parsek` like `Parsec`.
 * **PDF** ... PDF core library based on HaruPDF.
 * **Typesetting** ... Simple and Tiny Typesetting library by PDF core library. See the [User's Guide](examples/typesetting/KiTTy_en.md) ([PDF](examples/typesetting/KiTTy_en.pdf)).
