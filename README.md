@@ -11,8 +11,8 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 ## Introduction
 
 Ruby is a major scripting language. Also Python is.
-But both syntax of them are **NOT** familier with C programmers.
-This is a script language for people who want C-like syntax.
+However, either of these syntax is **NOT** familiar to C programmers.
+This Kinx is a script language for people who want C-like syntax.
 
 ### Features
 
@@ -72,7 +72,7 @@ See **[REPL](doc/utility/repl.md)** for detail.
 ### Motivation
 
 I guess almost all programmers want a lightweight scripting language with C style syntax
-because it is simple, easy, and familier to them.
+because it is simple, easy, and familiar to them.
 C style syntax is the most fitting in the programmer's hand, I guess.
 
 Any other languages are also all good solution, but for me...
