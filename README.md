@@ -11,8 +11,8 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 ## Introduction
 
 Ruby is a major scripting language. Also Python is.
-But both syntax of them are **NOT** familier with C programmers.
-This is a script language for people who want C-like syntax.
+However, either of these syntax is **NOT** familiar to C programmers.
+This Kinx is a script language for people who want C-like syntax.
 
 ### Features
 
@@ -21,7 +21,7 @@ This is a script language for people who want C-like syntax.
 *   **Extendable**. Contributers are able to extend features easily for your own use.
 *   **Lightweight**. You can start using this without a lot of work.
 *   **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
-*   **Object-Oriented**. Of cource you can do the object-oriented programming.
+*   **Object-Oriented**. Of course you can do the object-oriented programming.
 *   C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
 *   **Dynamic typing**, but you can also specify the type.
 *   **Native function** by JIT compiling supported with some limitations. Very fast.
@@ -48,7 +48,7 @@ Kinx is including useful libraries below in the standard package as **All-In-One
 * **Socket** ... Supporting a simple TCP/UDP socket.
 * **Iconv** ... Converting between text encodings.
 * **SQLite3** ... Database class as a usuful library wapping SQLite3.
-* **Regular Expression** ... Regular expression is f cource supported.
+* **Regular Expression** ... Regular expression is of course supported.
 * **Parser Combinator** ... Exactly original implementation of Parser Combinator named as `Parsek` like `Parsec`.
 * **PDF** ... PDF core library based on HaruPDF.
 * **Typesetting** ... Simple and Tiny Typesetting library by PDF core library. See the [User's Guide](examples/typesetting/KiTTy_en.md) ([PDF](examples/typesetting/KiTTy_en.pdf)).
@@ -72,7 +72,7 @@ See **[REPL](doc/utility/repl.md)** for detail.
 ### Motivation
 
 I guess almost all programmers want a lightweight scripting language with C style syntax
-because it is simple, easy, and familier to them.
+because it is simple, easy, and familiar to them.
 C style syntax is the most fitting in the programmer's hand, I guess.
 
 Any other languages are also all good solution, but for me...

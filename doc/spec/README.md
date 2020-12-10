@@ -8,7 +8,7 @@
 This is Kinx specification, and examples are test code as is.
 This is right just a specification document, but this is also test codes at the same time.
 I named this system as **SpecTest**, and this documentation is also provided as an example of the **SpecTest**.
-Writing a specification means writing a test, and examples are becoming test codes as is.
+Writing a specification means writing a test, and examples will become test codes as is.
 
 As for the detail of **SpecTest**, that will be described in the link below,
 but **SpecTest** is designed to not only for Kinx but also for any other systems.

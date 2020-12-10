@@ -782,7 +782,7 @@ Use a `<context />` tag for the option which is not directly specified as a Mark
 
 Using a normal Markdown syntax, you can make it centering, or aligning to the left or right.
 Besides, you can use Math formula inside your table.
-If the cell content is becoming too long, you can use `<context cell-i-j="..." />` to write a long cell content.
+If the cell content becomes too long, you can use `<context cell-i-j="..." />` to write a long cell content.
 In this case, $(i, j)$ means the location without a header.
 For example, $(0, 0)$ means `A1` cell in the following table.
 You see $i$ means a row number and $j$ means a column number.

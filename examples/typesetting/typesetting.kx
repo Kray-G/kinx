@@ -291,7 +291,7 @@ doc.apply(new Typesetting.Component.Paragraph(%{
 doc.apply(new Typesetting.Component.Paragraph(%{
     Tables can be put on a line by using multiple columns.
     Here is an example of 2 tables in a line.
-    Note that the width will be becoming narrow in this case,
+    Note that the width will become narrow in this case,
     and also you should control to break a page yourself if crossing pages.
 }));
 
