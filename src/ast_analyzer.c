@@ -117,6 +117,9 @@ static void make_cast_to(int ntype, kx_object_t *node)
         } else if (ntype == KX_DBL_T && ltype == KX_INT_T) {
             node->lhs = kx_gen_cast_object(node->lhs, KX_INT_T, KX_DBL_T);
             node->lhs->var_type = KX_DBL_T;
+        } else if (ntype == KX_BIG_T && ltype == KX_INT_T) {
+            node->lhs = kx_gen_cast_object(node->lhs, KX_INT_T, KX_BIG_T);
+            node->lhs->var_type = KX_BIG_T;
         }
     }
 }
@@ -670,7 +673,22 @@ LOOP_HEAD:;
         break;
     }
     case KXOP_SHL:
-    case KXOP_SHR:
+    case KXOP_SHR: {
+        int lvalue = actx->lvalue;
+        actx->lvalue = 0;
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        if (actx->in_native && node->lhs->var_type == KX_BIG_T) {
+            if (node->rhs->var_type != KX_INT_T) {
+                node->rhs = kx_gen_cast_object(node->rhs, node->rhs->var_type, KX_INT_T);
+            }
+        } else {
+            make_cast(node, node->lhs, node->rhs, actx->in_native);
+        }
+        node->var_type = node->lhs->var_type;
+        actx->lvalue = lvalue;
+        break;
+    }
     case KXOP_ADD:
     case KXOP_SUB:
     case KXOP_DIV:

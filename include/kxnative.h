@@ -42,6 +42,11 @@ enum kxn_bopecode_type {
     KXNOP_AND,
     KXNOP_OR,
     KXNOP_XOR,
+    KXNOP_SHLB,
+    KXNOP_SHRB,
+    KXNOP_ANDB,
+    KXNOP_ORB,
+    KXNOP_XORB,
 
     KXNOP_ADD,
     KXNOP_SUB,
@@ -49,6 +54,12 @@ enum kxn_bopecode_type {
     KXNOP_DIV,
     KXNOP_MOD,
     KXNOP_POW,
+    KXNOP_ADDB,
+    KXNOP_SUBB,
+    KXNOP_MULB,
+    KXNOP_DIVB,
+    KXNOP_MODB,
+    KXNOP_POWB,
     KXNOP_ADDF,
     KXNOP_SUBF,
     KXNOP_MULF,
@@ -65,6 +76,13 @@ enum kxn_bopecode_type {
     KXNOP_GE,
     KXNOP_GT,
     KXNOP_LGE,
+    KXNOP_EQEQB,
+    KXNOP_NEQB,
+    KXNOP_LEB,
+    KXNOP_LTB,
+    KXNOP_GEB,
+    KXNOP_GTB,
+    KXNOP_LGEB,
     KXNOP_EQEQF,
     KXNOP_NEQF,
     KXNOP_LEF,
@@ -192,6 +210,12 @@ typedef struct kx_native_context_ {
     kvec_t(kx_switch_t) switch_list;
 } kx_native_context_t;
 
+typedef struct kx_emb_func_info_t_ {
+    const char *name;
+    int val_type;
+    uint64_t addr;
+} kx_emb_func_info_t;
+
 #define KXLABEL(name)  (kx_label_t){ .label = name, .block = -1 }
 #define KXBLOCK(index) (kx_label_t){ .block = index }
 #define KXSWITCH() (kx_switch_t){0}
@@ -230,12 +254,6 @@ extern sljit_f64 native_math_atan2(sljit_sw *info, sljit_sw *a1);
 extern sljit_f64 native_math_pow(sljit_sw *info, sljit_sw *a1);
 extern sljit_f64 native_math_fmod(sljit_sw *info, sljit_sw *a1);
 extern sljit_f64 native_math_ldexp(sljit_sw *info, sljit_sw *a1);
-
-typedef struct emb_func_info_t_ {
-    const char *name;
-    int val_type;
-    uint64_t addr;
-} kx_emb_func_info_t;
 
 extern kx_emb_func_info_t get_emb_array_function(const char *name);
 extern kx_emb_func_info_t get_emb_string_function(const char *name);

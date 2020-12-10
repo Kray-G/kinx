@@ -17,6 +17,24 @@ int64_t kxn_print_index(sljit_sw *val)
     return 0;
 }
 
+int kx_is_bigint(BigZ bz)
+{
+    if (BzGetSign(bz) == BZ_ZERO) {
+        return 0;
+    } else if (BzGetSign(bz) == BZ_MINUS) {
+        BzCmp comp = BzCompare(bz, get_int64min_minus1());
+        if (comp == BZ_GT) {
+            return 0;
+        }
+    } else {
+        BzCmp comp = BzCompare(bz, get_int64max_plus1());
+        if (comp == BZ_LT) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc)
 {
     kx_native_funcp_t func = nfnc->native.func;
@@ -48,9 +66,20 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
                 union { sljit_sw sw; double dw; } conv = { .dw = (double)(v->value.iv) };
                 arglist[j] = conv.sw;
                 arglist[j+type_offset] = KX_DBL_T;
+            } else if (type == KX_BIG_T) {
+                BigZ bz = make_big_alive(ctx, BzFromInteger(v->value.iv));
+                arglist[j] = (sljit_sw)bz;
+                arglist[j+type_offset] = KX_BIG_T;
             } else {
                 return KXN_TYPE_MISMATCH;
             }
+            break;
+        case KX_BIG_T:
+            if (type != KX_BIG_T) {
+                return KXN_TYPE_MISMATCH;
+            }
+            arglist[j] = (sljit_sw)v->value.bz;
+            arglist[j+type_offset] = KX_BIG_T;
             break;
         case KX_DBL_T:
             if (type != KX_DBL_T) {
@@ -114,18 +143,43 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     switch (nfnc->native.ret_type) {
     case KX_INT_T: {
         int64_t v = (int64_t)func(info, arglist);
+        if (info[KXN_EXC_FLAG] != 0) {
+            goto CHECK_EXCEPTION;
+        }
         kv_shrink(ctx->stack, count);
         push_i(ctx->stack, v);
         break;
     }
+    case KX_BIG_T: {
+        BigZ bz = (BigZ)func(info, arglist);
+        if (info[KXN_EXC_FLAG] != 0) {
+            goto CHECK_EXCEPTION;
+        }
+        if (!bz) {
+            goto TYPE_MISMATCH;
+        }
+        kv_shrink(ctx->stack, count);
+        if (kx_is_bigint(bz)) {
+            push_big(ctx->stack, BzCopy(bz));
+        } else {
+            push_i(ctx->stack, BzToInteger(bz));
+        }
+        break;
+    }
     case KX_DBL_T: {
         union { sljit_sw sw; double dw; } conv = { .sw = func(info, arglist) };
+        if (info[KXN_EXC_FLAG] != 0) {
+            goto CHECK_EXCEPTION;
+        }
         kv_shrink(ctx->stack, count);
         push_d(ctx->stack, conv.dw);
         break;
     }
     case KX_STR_T: {
         kstr_t *sv = (kstr_t *)func(info, arglist);
+        if (info[KXN_EXC_FLAG] != 0) {
+            goto CHECK_EXCEPTION;
+        }
         if (!sv) {
             goto TYPE_MISMATCH;
         }
@@ -135,6 +189,9 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     }
     case KX_BIN_T: {
         kx_bin_t *bin = (kx_bin_t *)func(info, arglist);
+        if (info[KXN_EXC_FLAG] != 0) {
+            goto CHECK_EXCEPTION;
+        }
         if (!bin) {
             goto TYPE_MISMATCH;
         }
@@ -144,6 +201,9 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     }
     case KX_OBJ_T: {
         kx_obj_t *obj = (kx_obj_t *)func(info, arglist);
+        if (info[KXN_EXC_FLAG] != 0) {
+            goto CHECK_EXCEPTION;
+        }
         if (!obj) {
             goto TYPE_MISMATCH;
         }
@@ -155,10 +215,12 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
         goto TYPE_MISMATCH;
     }
 
-    if (info[KXN_EXC_FLAG] != 0) {
-        return info[KXN_EXC_CODE] ? info[KXN_EXC_CODE] : KXN_UNKNOWN_ERROR;
-    }
     return 0;
+
+CHECK_EXCEPTION:
+    kv_shrink(ctx->stack, count);
+    push_i(ctx->stack, 0);
+    return info[KXN_EXC_CODE] ? info[KXN_EXC_CODE] : KXN_UNKNOWN_ERROR;
 
 TYPE_MISMATCH:
     info[KXN_EXC_FLAG] = 1;
@@ -596,6 +658,28 @@ sljit_sw native_get_var_obj(sljit_sw *args)
 
 /* cast operation */
 
+sljit_sw native_cast_int_to_big(sljit_sw *info, int64_t i)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzFromInteger(i));
+    return (sljit_sw)bz;
+}
+
+sljit_f64 native_cast_big_to_dbl(sljit_sw *info, BigZ b)
+{
+    return (sljit_f64)BzToDouble(b);
+}
+
+sljit_sw native_cast_big_to_str(sljit_sw *info, BigZ b)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    kstr_t *str = allocate_str(ctx);
+    char *buf = BzToString(b, 10, 0);
+    ks_appendf(str, "%s", buf);
+    BzFreeString(buf);
+    return (sljit_sw)str;
+}
+
 sljit_sw native_cast_int_to_str(sljit_sw *info, int64_t i)
 {
     kx_context_t *ctx = (kx_context_t *)info[0];
@@ -618,6 +702,145 @@ sljit_sw native_cast_cstr_to_str(sljit_sw *info, const char *s)
     kstr_t *str = allocate_str(ctx);
     ks_append(str, s);
     return (sljit_sw)str;
+}
+
+/* big integer operation */
+
+sljit_sw native_big_shl_big(sljit_sw *info, BigZ b1, sljit_sw b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzAsh(b1, b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_shr_big(sljit_sw *info, BigZ b1, sljit_sw b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzAsh(b1, -b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_and_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzAnd(b1, b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_or_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzOr(b1, b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_xor_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzXor(b1, b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_add_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzAdd(b1, b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_sub_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzSubtract(b1, b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_mul_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    BigZ bz = make_big_alive(ctx, BzMultiply(b1, b2));
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_div_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    if (BzGetSign(b2) == BZ_ZERO) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
+        return 0;
+    }
+
+    BigZ r;
+    BigZ q = BzDivide(b1, b2, &r);
+    BzFree(r);
+    BigZ bz = make_big_alive(ctx, q);
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_mod_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    if (BzGetSign(b2) == BZ_ZERO) {
+        info[KXN_EXC_FLAG] = 1;
+        info[KXN_EXC_CODE] = KXN_DIVIDE_BY_ZERO;
+        return 0;
+    }
+
+    BigZ r;
+    BigZ q = BzDivide(b1, b2, &r);
+    BzFree(q);
+    BigZ bz = make_big_alive(ctx, r);
+    return (sljit_sw)bz;
+}
+
+sljit_sw native_big_eqeq_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    int tf = (BzCompare(b1, b2) == BZ_EQ);
+    return (sljit_sw)tf;
+}
+
+sljit_sw native_big_neq_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    int tf = (BzCompare(b1, b2) != BZ_EQ);
+    return (sljit_sw)tf;
+}
+
+sljit_sw native_big_lge_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    int tf = BzCompare(b1, b2);
+    return (sljit_sw)tf;
+}
+
+sljit_sw native_big_le_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    int tf = BzCompare(b1, b2);
+    return (sljit_sw)(tf == BZ_LT || tf == BZ_EQ);
+}
+
+sljit_sw native_big_lt_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    int tf = BzCompare(b1, b2);
+    return (sljit_sw)(tf == BZ_LT);
+}
+
+sljit_sw native_big_ge_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    int tf = BzCompare(b1, b2);
+    return (sljit_sw)(tf == BZ_GT || tf == BZ_EQ);
+}
+
+sljit_sw native_big_gt_big(sljit_sw *info, BigZ b1, BigZ b2)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    int tf = BzCompare(b1, b2);
+    return (sljit_sw)(tf == BZ_GT);
 }
 
 /* string operation */
