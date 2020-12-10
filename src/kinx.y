@@ -673,7 +673,6 @@ KeySpecialName
     | NEW { $$ = "new"; }
     | VAR { $$ = "var"; }
     | CONST { $$ = "const"; }
-    | NATIVE { $$ = "native"; }
     | FUNCTION { $$ = "function"; }
     | SYSFUNC { $$ = "_function"; }
     | PUBLIC { $$ = "public"; }
