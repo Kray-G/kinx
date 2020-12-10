@@ -70,6 +70,36 @@ static void natir_display_bop(kxn_code_t *code)
     case KXNOP_MOD:
         KXN_DISP_BOP("mod");
         break;
+    case KXNOP_SHLB:
+        KXN_DISP_BOP("shlb");
+        break;
+    case KXNOP_SHRB:
+        KXN_DISP_BOP("shrb");
+        break;
+    case KXNOP_ANDB:
+        KXN_DISP_BOP("andb");
+        break;
+    case KXNOP_ORB:
+        KXN_DISP_BOP("orb");
+        break;
+    case KXNOP_XORB:
+        KXN_DISP_BOP("xorb");
+        break;
+    case KXNOP_ADDB:
+        KXN_DISP_BOP("addb");
+        break;
+    case KXNOP_SUBB:
+        KXN_DISP_BOP("subb");
+        break;
+    case KXNOP_MULB:
+        KXN_DISP_BOP("mulb");
+        break;
+    case KXNOP_DIVB:
+        KXN_DISP_BOP("divb");
+        break;
+    case KXNOP_MODB:
+        KXN_DISP_BOP("modb");
+        break;
     case KXNOP_POW:
         KXN_DISP_BOP("pow");
         break;
@@ -117,6 +147,27 @@ static void natir_display_bop(kxn_code_t *code)
         break;
     case KXNOP_LGE:
         KXN_DISP_BOP("lge");
+        break;
+    case KXNOP_EQEQB:
+        KXN_DISP_BOP("eqeqb");
+        break;
+    case KXNOP_NEQB:
+        KXN_DISP_BOP("neqb");
+        break;
+    case KXNOP_LEB:
+        KXN_DISP_BOP("leb");
+        break;
+    case KXNOP_LTB:
+        KXN_DISP_BOP("ltb");
+        break;
+    case KXNOP_GEB:
+        KXN_DISP_BOP("geb");
+        break;
+    case KXNOP_GTB:
+        KXN_DISP_BOP("gtb");
+        break;
+    case KXNOP_LGEB:
+        KXN_DISP_BOP("lgeb");
         break;
     case KXNOP_EQEQF:
         KXN_DISP_BOP("eqeqf");
