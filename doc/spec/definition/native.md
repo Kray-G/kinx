@@ -672,7 +672,7 @@ var f1 = fact(1000);
 var f2 = factb(1000);
 System.println(("fact(1000)  = %d") % f1);
 System.println(("factb(1000) = %d") % f2);
-System.println("The result is ", f1 == f2 ? "same." : "different");
+System.println("The result is ", f1 == f2 ? "same." : "different.");
 ```
 
 #### Result
