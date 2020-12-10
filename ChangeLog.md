@@ -18,19 +18,22 @@
 ## V0.17.0 (Current Development Version)
 
 *   Updated
+    *   Changed a syntax for a return type of native. It becomes same as a syntax for an argument.
+        *   [OLD] native<int>
+        *   [NEW] native:int
     *   Some bug fixes and improvement.
 
 ## V0.16.1 (16th Preview Release) - 2020/12/08
 
 *   Updated
     *   Support Array of Double in native.
-    *   updated some SpecTest pages.
+    *   Updated some SpecTest pages.
     *   Some bug fixes and improvement.
 
 ## V0.15.3 (15th-3 Preview Release) - 2020/11/27
 
 *   Updated
-    *   updated some SpecTest pages.
+    *   Updated some SpecTest pages.
     *   Some bug fixes and improvement.
 
 ## V0.15.2 (15th-2 Preview Release) - 2020/10/14
