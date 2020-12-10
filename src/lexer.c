@@ -168,6 +168,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "break") == 0)          return BREAK;
         /* type */
         if (strcmp(val, "bin") == 0)            { kx_yylval.intval = KX_BIN_T; return TYPE; }
+        if (strcmp(val, "big") == 0)            { kx_yylval.intval = KX_BIG_T; return TYPE; }
         break;
     case 'c':
         if (strcmp(val, "class") == 0)          return CLASS;
