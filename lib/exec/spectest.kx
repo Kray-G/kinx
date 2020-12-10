@@ -4,7 +4,7 @@ var TestException = TestExceptionClass.create;
 
 SpecTestTemplate = {
     markdown: {
-        "topLevelFilePattern": "(README|CONTENTS)\\.md",
+        "topLevelFilePattern": "(README|CONTENTS|index)\\.md",
         "linkPattern": "\\[([^\\]]+)\\]\\s*\\(([^\\)]+\\.md)\\)",
 
         "targetNamePattern": "^#\\s+(.+)",
@@ -639,7 +639,7 @@ class SpecTest(args_) {
         @options = {};
         analyzeOptions();
         spec_ = SpecTestTemplate.markdown.extend(JSON.parse(File.load(@options.file || ".spectest")));
-        @spec.topLevelFilePattern = new Regex(spec_.topLevelFilePattern || %{README|CONTENTS)\.md});
+        @spec.topLevelFilePattern = new Regex(spec_.topLevelFilePattern || %{README|CONTENTS|index)\.md});
         @spec.linkPattern = new Regex(spec_.linkPattern);
         @spec.targetNamePattern = new Regex(spec_.targetNamePattern);
         @spec.startTestPattern = new Regex(spec_.startTestPattern);
@@ -702,11 +702,14 @@ class SpecTest(args_) {
         } else {
             Directory.walk(spec_.root, &(entry) => {
                 if (entry.extension() == ".md") {
-                    if (spec_.topLevelFilePattern && entry =~ spec_.topLevelFilePattern) {
-                        @addEntry(entry);
-                        top_ = new SpecTestEntry(id_++, entry, this);
-                        top_.setup();
-                        return false;
+                    if (@spec.topLevelFilePattern) {
+                        @spec.topLevelFilePattern.reset(entry);
+                        if (@spec.topLevelFilePattern.find()) {
+                            @addEntry(entry);
+                            top_ = new SpecTestEntry(id_++, entry, this);
+                            top_.setup();
+                            return false;
+                        }
                     }
                 }
             });

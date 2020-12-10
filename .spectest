@@ -1,5 +1,5 @@
 {
-    "root": "docs/spec",
+    "root": "docs",
 
     "testfile": "test.kx",
     "resultfile": "result.txt",
