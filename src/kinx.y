@@ -762,7 +762,7 @@ NativeKeyword
 
 NativeType_Opt
     : { $$ = (arytype_t){ .type = KX_INT_T }; }
-    | '<' TypeName '>' { $$ = $2; }
+    | ':' TypeName { $$ = $2; }
     ;
 
 AnonymousFunctionDeclExpression

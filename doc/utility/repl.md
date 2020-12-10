@@ -321,7 +321,7 @@ kinx[  0]> native fib(n) {
     [  1]>     return n if (n < 3);
     [  2]>     return fib(n-2) + fib(n-1);
     [  3]> }
-=> native<int> fib
+=> native:int fib
 
 kinx[  4]> .time on
 .time: on
