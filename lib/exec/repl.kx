@@ -881,16 +881,16 @@ class Repl {
                     g = re_.natv.group;
                     var rtyp = g[1].string || 'int';
                     var name = g[2].string;
-                    input = "var %{name}:native(%{rtyp}) = native<%{rtyp}>(%{g[3].string}) %{g[4].string};";
-                    input = appendPreCode() + input + ";return 'native<%{rtyp}> %{name}';";
+                    input = "var %{name}:native(%{rtyp}) = native:%{rtyp}(%{g[3].string}) %{g[4].string};";
+                    input = appendPreCode() + input + ";return 'native:%{rtyp} %{name}';";
                     # System.println(input);
                     r = tryEval(input);
                     replinfo_.vars[name] = {
                         id: ++cmdid_,
                         isNative: true,
-                        func: "native<%{rtyp}>(%{g[3].string}) %{g[4].string}",
+                        func: "native:%{rtyp}(%{g[3].string}) %{g[4].string}",
                         body: g[4].string,
-                        disp: 'native<%{rtyp}> %{name}(%{g[3].string})',
+                        disp: 'native:%{rtyp} %{name}(%{g[3].string})',
                         name: name,
                         type: "native(%{rtyp})",
                         args: g[3].string

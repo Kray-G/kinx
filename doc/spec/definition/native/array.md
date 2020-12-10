@@ -14,7 +14,7 @@ You can also use a multidimensional array like `int[][]`.
 #### Code
 
 ```javascript
-native<int[]> makeArray(a:int[]) {
+native:int[] makeArray(a:int[]) {
     for (var i = 0; i < 10; ++i) {
         a[i] = i;
     }
@@ -34,7 +34,7 @@ System.println(makeArray([]));
 #### Code
 
 ```javascript
-native<dbl[]> makeArray(a:dbl[]) {
+native:dbl[] makeArray(a:dbl[]) {
     for (var i = 0; i < 10; ++i) {
         a[i] = i * 0.1;
     }
@@ -54,7 +54,7 @@ System.println(makeArray([]));
 #### Code
 
 ```javascript
-native<dbl[]> makeArray(a:dbl[][]) {
+native:dbl[] makeArray(a:dbl[][]) {
     var d:dbl[] = a[0];
     for (var i = 0; i < 10; ++i) {
         d[i] = i * 0.1;
@@ -75,7 +75,7 @@ System.println(makeArray([[]]));
 #### Code
 
 ```javascript
-native<dbl[]> mapArray(a:dbl[]) {
+native:dbl[] mapArray(a:dbl[]) {
     for (var i = 0, n = a.length(); i < n; ++i) {
         a[i] = a[i] * a[i];
     }
