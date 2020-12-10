@@ -143,7 +143,8 @@ SpecTest will automatically recognize a test code in your markdown document,
 and run it and compare to the expected result.
 
 > Note that some parts of Kinx Specification documentations are still under construction.
-> 
+
+
 ```
 $ ./kinx --exec:spectest
 Test Cout = 54
