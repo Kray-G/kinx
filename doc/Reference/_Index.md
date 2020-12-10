@@ -1,6 +1,6 @@
 # Kinx Object
 
-The document size is becoming a little increased, so separated it.
+The document size became a little increased, so separated it.
 
 ## Auto-loaded Object References
 
