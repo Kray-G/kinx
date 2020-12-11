@@ -253,7 +253,6 @@ enum irop {
     KX_GT_IV0,
     KX_LGE_IV0,
 
-    KX_CASTTO,
     KX_TYPEOF,
     KX_SET_GMM, /* Set a global method missing */
     KX_CHKVAL,  /* Checking the stack top value for testing. */
