@@ -6,10 +6,10 @@
 Unicode True
 
 # Application Name
-Name "Kinx version 0.17.0 for x64"
+Name "Kinx version $$VER_MAJ.$$VER_MIN.$$VER_PAT for x64"
 
 # Installer Name to be created
-OutFile "Kinx_installer_x64.0.17.0.exe"
+OutFile "Kinx_installer_x64.$$VER_MAJ.$$VER_MIN.$$VER_PAT.exe"
 
 # Intall Directory
 InstallDir "$PROGRAMFILES64\Kinx"
@@ -70,11 +70,11 @@ Section
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"
 
   # Setup Registry
-  WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version 0.17.0 for x64"
+  WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version $$VER_MAJ.$$VER_MIN.$$VER_PAT for x64"
   WriteRegStr HKLM "${ARP}" "Publisher" "Kray-G"
-  WriteRegStr HKLM "${ARP}" "DisplayVersion" "0.17.0"
-  WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
-  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "17"
+  WriteRegStr HKLM "${ARP}" "DisplayVersion" "$$VER_MAJ.$$VER_MIN.$$VER_PAT"
+  WriteRegDWORD HKLM "${ARP}" "VersionMajor" "$$VER_MAJ"
+  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "$$VER_MIN"
   WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
   WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
 SectionEnd
@@ -99,4 +99,3 @@ Section "Uninstall"
   # Remove Registry Key
   DeleteRegKey HKLM "${ARP}"
 SectionEnd
-

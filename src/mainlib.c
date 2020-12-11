@@ -8,6 +8,7 @@
 #include <kxastobject.h>
 #include <libkinx.h>
 #include <getopt.h>
+#include <version.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define PROGNAME "kinx.exe"
@@ -15,13 +16,13 @@
 #define PROGNAME "kinx"
 #endif
 #ifndef VER_MAJ
-#define VER_MAJ 0
+#error Need VER_MAJ
 #endif
 #ifndef VER_MIN
-#define VER_MIN 16
+#error Need VER_MIN
 #endif
 #ifndef VER_PAT
-#define VER_PAT 0
+#error Need VER_PAT
 #endif
 #ifndef VER_SUFFIX
 #define VER_SUFFIX ""
