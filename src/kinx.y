@@ -30,7 +30,7 @@
 %token SYSCLASS SYSMODULE SYSFUNC
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
-%token NUL TRUE FALSE
+%token NUL TRUE FALSE AS
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS2 DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
 %token<strval> NAME
 %token<strval> STR
@@ -93,6 +93,7 @@
 %type<obj> Exponentiation
 %type<obj> RegexMatch
 %type<obj> PrefixExpression
+%type<obj> CastExpression
 %type<obj> PostfixExpression
 %type<obj> PropertyName
 %type<incdec> PostIncDec
@@ -463,7 +464,7 @@ RegexMatch
     ;
 
 PrefixExpression
-    : PostfixExpression
+    : CastExpression
     | '~' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_BNOT, $2); }
     | '!' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_NOT, $2); }
     | '+' PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_POSITIVE, $2); }
@@ -471,6 +472,11 @@ PrefixExpression
     | '*' PrefixExpression { $$ = kx_gen_uexpr_object(KXOP_CONV, $2); }
     | INC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_INC, $2); }
     | DEC PostfixExpression { $$ = kx_gen_uexpr_object(KXOP_DEC, $2); }
+    ;
+
+CastExpression
+    : PostfixExpression
+    | PostfixExpression AS TypeName { $$ = kx_gen_cast_object($1, KX_UNKNOWN_T, $3.type); }
     ;
 
 PostfixExpression
