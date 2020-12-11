@@ -689,7 +689,7 @@ class SpecTest(args_) {
                         candidate = entry;
                         return false;
                     }
-                    if (entry.filename() == @options.onlyone.filename()) {
+                    if (entry.endsWith(@options.onlyone)) {
                         candidate ??= entry;
                     }
                 }
@@ -760,12 +760,12 @@ class SpecTest(args_) {
     }
 }
 
-# try {
+try {
     var st = new SpecTest($$);
     # st.print();
     System.println("Test Cout = " + st.count());
     st.start();
     return st.progress.info.failed; // returns a failed count.
-# } catch (e) {
-#     ;
-# }
+} catch {
+    return 1;
+}

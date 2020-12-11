@@ -987,7 +987,10 @@ LOOP_HEAD:;
         node->var_type = KX_INT_T;
         break;
     case KXOP_CAST: {
-        /* do nothing */
+        analyze_ast(ctx, node->lhs, actx);
+        if (node->optional == KX_UNKNOWN_T) {
+            node->optional = node->lhs->var_type;
+        }
         break;
     }
     case KXOP_ENUM: {
