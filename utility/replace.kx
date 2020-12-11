@@ -15,7 +15,7 @@ function replace(infile, outfile) {
     System.println("[OUT]: ", outfile);
 }
 
-replace("template/installer.nsi", "installer.nsi");
+replace("template/install.nsi", "install.nsi");
 replace("template/kinx.rc", "kinx.rc");
 replace("template/kinxsh.cmd", "kinxsh.cmd");
 replace("template/version.h", "include/version.h");
