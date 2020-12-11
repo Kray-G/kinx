@@ -21,7 +21,7 @@ BEGIN
         BLOCK "041104B0"
         BEGIN
             VALUE "CompanyName",      "-"
-            VALUE "FileDescription",  "Kinx Scripting Platform"
+            VALUE "FileDescription",  "The Script Kinx"
             VALUE "FileVersion",      "0.16.0.0\0"
             VALUE "InternalName",     "Kinx\0"
             VALUE "LegalCopyright",   "Copyright (C) 2019-2020 Kray-G\0"
