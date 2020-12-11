@@ -1,5 +1,7 @@
 name: CI
 
+on: [push, pull_request]
+
 jobs:
   build-windows-x64:
     name: windows-2019-vc
