@@ -4,7 +4,10 @@
 
 *   Planned, or remaining tasks.
     *   Support OpenCV library.
-    *   Support HTTP Server library with libhttp.
+    *   Support HTTP Server library.
+    *   Support GUI library.
+    *   Support Package Manager.
+    *   Support Development Tools like Debugger, Language Server, etc.
 
 ## V1.0.0 (Planned)
 
@@ -17,7 +20,12 @@
 ## V0.17.0 (Current Development Version)
 
 *   Updated
+    *   Support `catch` without specifying an exception object.
+        *   This is like `try { ... } catch { ... }`.
+    *   Support a cast syntax in native with an `as` keyword.
+        *   Use `as` after a variable such as `var x = 10 as big`, and cast it.
     *   Support Big Integer in native.
+    *   Support Multidimensional Array in native.
     *   Changed a syntax for a return type of native. It becomes same as a syntax for an argument.
         *   [OLD] native<int>
         *   [NEW] native:int
