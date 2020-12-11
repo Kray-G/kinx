@@ -19,6 +19,19 @@ try {
 Either `catch` or `finally` can be omitted.
 If `catch` is omitted, rethrow a same exception after doing finally clause.
 
+You can also omit a variable of exception object like this.
+
+```javascript
+try {
+    // try clause
+} catch {
+    // catch clause
+    // Do not need to write an exception object if you don't use it.
+} finally {
+    // finally clause
+}
+```
+
 ### Exception Type and Message
 
 An exception type can be got via `type()` method,
@@ -164,8 +177,7 @@ function test1() {
     var val = 1;
     try {
         return val;
-    }
-    finally {
+    } finally {
         val = 2;
     }
 }
@@ -175,8 +187,7 @@ function test2() {
     s_val = 1;
     try {
         return s_val;
-    }
-    finally {
+    } finally {
         s_val = 2;
         System.print("(s_val = " + s_val + ") = ");
     }
@@ -304,4 +315,43 @@ Stack Trace Information:
         at <main-block>(test.kx:48)
 finally: main-block
 end-of-program.
+```
+
+### Example 6. Without exception object (1)
+
+#### Code
+
+```javascript
+try {
+    throw 1;
+} catch {
+    System.println("Caught an exception");
+}
+```
+
+#### Result
+
+```
+Caught an exception
+```
+
+### Example 6. Without exception object (2)
+
+#### Code
+
+```javascript
+try {
+    throw 1;
+} catch {
+    System.println("Caught an exception");
+} finally {
+    System.println("Finally");
+}
+```
+
+#### Result
+
+```
+Caught an exception
+Finally
 ```
