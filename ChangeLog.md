@@ -27,8 +27,8 @@
     *   Support Big Integer in native.
     *   Support Multidimensional Array in native.
     *   Changed a syntax for a return type of native. It becomes same as a syntax for an argument.
-        *   [OLD] native<int>
-        *   [NEW] native:int
+        *   [OLD] `native<int>`
+        *   [NEW] `native:int`
     *   Some bug fixes and improvement.
 
 ## V0.16.1 (16th Preview Release) - 2020/12/08
