@@ -2,7 +2,9 @@
 #define KX_KXNATIVE_H
 
 #define KXN_WDSZ (8)
-#define KXN_LOCALVAR_OFFSET (2)
+#define KXN_DEPTH_OFFSET       (1)
+#define KXN_RECCALLFUNC_OFFSET (2)
+#define KXN_LOCALVAR_OFFSET    (3)
 
 typedef struct sljit_label sllabel_t;
 typedef struct sljit_jump sljump_t;

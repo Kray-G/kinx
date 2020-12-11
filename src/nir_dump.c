@@ -13,6 +13,13 @@
     natir_display_op(&(code->op2)); \
 /**/
 
+static void natir_display_cast(kxn_operand_t *operand)
+{
+    if (operand->type == KXNOP_IMM) {
+        printf("%s", get_typename(operand->iv));
+    }
+}
+
 static void natir_display_op(kxn_operand_t *operand)
 {
     switch (operand->type) {
@@ -448,10 +455,11 @@ static void natir_display_code(kxn_code_t *code, int addr)
     case KXN_CAST:
         printf("%-23s ", "cast");
         natir_display_op(&(code->dst));
-        printf(" = ");
-        natir_display_op(&(code->op1));
-        printf(", ");
-        natir_display_op(&(code->op2));
+        printf(" (");
+        natir_display_cast(&(code->op2));
+        printf(" => ");
+        natir_display_cast(&(code->op1));
+        printf(")");
         break;
     case KXN_RET:
         printf("%-23s ", "ret");
