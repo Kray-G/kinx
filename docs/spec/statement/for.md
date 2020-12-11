@@ -92,7 +92,7 @@ System.println(i);
 1001
 ```
 
-### Example 3. Declation variable in scope
+### Example 3. Declaration variable in scope
 
 #### Code
 

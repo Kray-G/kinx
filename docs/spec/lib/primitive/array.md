@@ -8,7 +8,8 @@ An array itself can be inside an array, and it can be nested like `[[1,2,3],3,[2
 ### Methods
 
 There is a special object named as `Array`.
-The methods of `Array` can be used for array directly.
+The methods of `Array` can be used for an array and an object directly.
+Note that it will be used also for an object.
 
 |                Method                 |                                   Meaning                                    |
 | ------------------------------------- | ---------------------------------------------------------------------------- |
@@ -86,6 +87,16 @@ function func([a, b], c) {
     return a + b + c;
 }
 func([1, 2], 3);    // => 6
+```
+
+You can also use an object in the argument list like an array.
+See example below.
+
+```javascript
+function func({y, z}, c) {
+    return y + z + c;
+}
+func({x: 100, y: 200, z: 300}, 3);    // => 503
 ```
 
 ## Examples
@@ -200,4 +211,21 @@ System.println(func([1, 2, 3, 4], 3));
 
 ```
 9
+```
+
+### Example 7. Function argument (3)
+
+#### Code
+
+```javascript
+function func({y, z}, c) {
+    return y + z + c;
+}
+System.println(func({x: 100, y: 200, z: 300}, 3));
+```
+
+#### Result
+
+```
+503
 ```
