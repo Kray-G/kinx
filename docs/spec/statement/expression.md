@@ -104,7 +104,7 @@ When using `||` and LHS is `false`, the RHS will be evaluated.
 Compared to that, when using `??` and LHS is `null`, the RHS will be evaluated.
 
 The `false` meaning is wider than undefined,
-that is why the `??` is very useful especially when you destingish between 0 and `null`.
+that is why the `??` is very useful especially when you distinguish between 0 and `null`.
 
 Note that undefined and `null` is the same in Kinx.
 
