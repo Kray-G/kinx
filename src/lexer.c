@@ -163,6 +163,7 @@ static int get_keyword_token(const char *val)
     case 'a':
         /* type */
         if (strcmp(val, "ary") == 0)            { kx_yylval.intval = KX_ARY_T; return TYPE; }
+        if (strcmp(val, "as") == 0)             return AS;
         break;
     case 'b':
         if (strcmp(val, "break") == 0)          return BREAK;
