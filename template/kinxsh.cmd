@@ -3,6 +3,5 @@
 setlocal
 set PATH=%PATH%;C:\Program Files\Kinx\bin
 cd %TEMP%
-start "Kinx version 0.17.0 for x64"
+start "Kinx version $$VER_MAJ.$$VER_MIN.$$VER_PAT for x64"
 endlocal
-
