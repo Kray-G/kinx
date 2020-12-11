@@ -1,0 +1,21 @@
+if ($$.length() != 4) {
+    System.println("Usage: kinx utility/replace.kx <Maj> <Min> <Pat>");
+    return 1;
+}
+
+var version = [$$[1], $$[2], $$[3]];
+
+function replace(infile, outfile) {
+    var file = File.load(infile);
+    var f = file
+        .replace("$$VER_MAJ", ""+version[0])
+        .replace("$$VER_MIN", ""+version[1])
+        .replace("$$VER_PAT", ""+version[2]);
+    File.open(outfile, File.WRITE) { => _1.println(f) };
+    System.println("[OUT]: ", outfile);
+}
+
+replace("template/install.nsi", "install.nsi");
+replace("template/kinx.rc", "kinx.rc");
+replace("template/kinxsh.cmd", "kinxsh.cmd");
+replace("template/version.h", "include/version.h");
