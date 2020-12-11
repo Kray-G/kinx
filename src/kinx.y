@@ -278,6 +278,7 @@ TryCatchStatement
 
 CatchStatement_Opt
     : { $$ = NULL; }
+    | CATCH BlockStatement { $$ = kx_gen_catch_object(KXST_CATCH, "_e", $2, NULL); }
     | CATCH '(' NAME ')' BlockStatement { $$ = kx_gen_catch_object(KXST_CATCH, $3, $5, NULL); }
     ;
 
