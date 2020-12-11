@@ -15,6 +15,7 @@ extern sljit_sw native_get_var_nfunc(sljit_sw *args);
 extern sljit_sw *native_get_var_nfunc_addr(sljit_sw *args);
 
 extern sljit_sw native_cast_int_to_big(sljit_sw *info, int64_t i);
+extern sljit_sw native_cast_big_to_int(sljit_sw *info, BigZ b);
 extern sljit_f64 native_cast_big_to_dbl(sljit_sw *info, BigZ b);
 extern sljit_sw native_cast_big_to_str(sljit_sw *info, BigZ b);
 extern sljit_sw native_cast_int_to_str(sljit_sw *info, int64_t i);
@@ -67,11 +68,11 @@ extern sljit_sw native_get_var_obj(sljit_sw *args);
 #define KX_SAVED_REGMAX (6)
 #endif
 #define ARGB SLJIT_MEM1(SLJIT_SP)
-#define ARG(n) ((2 + (n) + nctx->local_vars) * KXN_WDSZ)
+#define ARG(n) ((KXN_LOCALVAR_OFFSET + (n) + nctx->local_vars) * KXN_WDSZ)
 
 #define KXN_CALL_NATIVE_V(r0, name, op1, MOV, RT, A0T, A1T, A2T, SETARG_BLK) \
     SETARG_BLK; \
-    sljit_get_local_base(nctx->C, SLJIT_R0, 0, (nctx->local_vars + 2) * KXN_WDSZ); \
+    sljit_get_local_base(nctx->C, SLJIT_R0, 0, (nctx->local_vars + KXN_LOCALVAR_OFFSET) * KXN_WDSZ); \
     sljit_emit_icall(nctx->C, SLJIT_CALL, \
         SLJIT_RET(RT) | SLJIT_ARG1(A0T) | SLJIT_ARG2(A1T) | SLJIT_ARG3(A2T), \
         SLJIT_IMM, SLJIT_FUNC_OFFSET(name)); \
@@ -1227,12 +1228,13 @@ static int natir_compile_code(kx_native_context_t *nctx, kxn_block_t *block, kxn
         break;
     case KXN_CALL:
         if (code->op1.type == KXNOP_S0) {
-            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R3, 0, SLJIT_MEM1(SLJIT_S0), 3 * KXN_WDSZ);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R3, 0, SLJIT_MEM1(SLJIT_S1), KXN_RECCALLFUNC_OFFSET * KXN_WDSZ);
         } else {
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R3, 0, KXN_R(code->op1));
         }
         sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
-        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->local_vars+1) * KXN_WDSZ, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->local_vars+KXN_DEPTH_OFFSET) * KXN_WDSZ, SLJIT_MEM1(SLJIT_S1), KXN_DEPTH_OFFSET * KXN_WDSZ);
+        sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_SP), (nctx->local_vars+KXN_RECCALLFUNC_OFFSET) * KXN_WDSZ, SLJIT_R3, 0);
         sljit_get_local_base(nctx->C, SLJIT_R1, 0, nctx->local_vars * KXN_WDSZ);
         if (code->var_type == KX_DBL_T) {
             sljit_emit_icall(nctx->C, SLJIT_CALL,
@@ -1274,6 +1276,11 @@ static int natir_compile_code(kx_native_context_t *nctx, kxn_block_t *block, kxn
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, KXN_R(code->dst));
         	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_cast_int_to_big));
+            sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_RETURN_REG, 0);
+        } else if (code->op2.iv == KX_BIG_T && code->op1.iv == KX_INT_T) {
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
+            sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, KXN_R(code->dst));
+        	sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_cast_big_to_int));
             sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_RETURN_REG, 0);
         } else if (code->op2.iv == KX_BIG_T && code->op1.iv == KX_DBL_T) {
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_S0, 0);
@@ -1392,9 +1399,9 @@ void natir_compile_function(kx_native_context_t *nctx)
     nctx->nir_argi = 0;
 
     /* check depth */
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S1), KXN_DEPTH_OFFSET * KXN_WDSZ);
     sljit_emit_op2(nctx->C, SLJIT_ADD, SLJIT_R0, 0, SLJIT_R0, 0, SLJIT_IMM, 1);
-    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S1), 1 * KXN_WDSZ, SLJIT_R0, 0);
+    sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_MEM1(SLJIT_S1), KXN_DEPTH_OFFSET * KXN_WDSZ, SLJIT_R0, 0);
     sljump_t *next = sljit_emit_cmp(nctx->C, SLJIT_LESS, SLJIT_R0, 0, SLJIT_IMM, nctx->max_call_depth);
     set_exception(nctx, 1);
     set_exception_code(nctx, KXN_TOO_DEEP_TO_CALL_FUNC);
