@@ -28,7 +28,8 @@ InstallDir "$PROGRAMFILES64\Kinx"
 !insertmacro MUI_UNPAGE_FINISH
 
 # Japanese UI
-!insertmacro MUI_LANGUAGE "Japanese"
+!insertmacro MUI_LANGUAGE "English"
+# !insertmacro MUI_LANGUAGE "Japanese"
 
 # Interface Settings
 !define MUI_ABORTWARNING
