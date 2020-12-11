@@ -53,8 +53,9 @@ int64_t call_native(kx_context_t *ctx, kx_frm_t *frmv, int count, kx_fnc_t *nfnc
     sljit_sw arglist[256] = {0};
     arglist[0] = nargs;
     arglist[1] = 0; /* depth */
+    arglist[2] = (sljit_sw)func; /* function address for recursive call */
     int type_offset = KXN_MAX_FUNC_ARGS + 1;
-    for (int i = 1, j = 2, k = 0; i <= nargs; ++i, ++j, ++k) {
+    for (int i = 1, j = 3, k = 0; i <= nargs; ++i, ++j, ++k) {
         uint8_t type = nfnc->native.arg_types[k];
         kx_val_t *v = &kv_last_by(ctx->stack, i);
         switch (v->type) {
@@ -663,6 +664,15 @@ sljit_sw native_cast_int_to_big(sljit_sw *info, int64_t i)
     kx_context_t *ctx = (kx_context_t *)info[0];
     BigZ bz = make_big_alive(ctx, BzFromInteger(i));
     return (sljit_sw)bz;
+}
+
+sljit_sw native_cast_big_to_int(sljit_sw *info, BigZ b)
+{
+    kx_context_t *ctx = (kx_context_t *)info[0];
+    if (kx_is_bigint(b)) {
+        return (sljit_sw)INT64_MAX;
+    }
+    return (sljit_sw)BzToInteger(b);
 }
 
 sljit_f64 native_cast_big_to_dbl(sljit_sw *info, BigZ b)
