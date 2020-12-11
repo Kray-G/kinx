@@ -7,7 +7,7 @@ When using `||` and LHS is `false`, the RHS will be evaluated.
 Compared to that, whe using `??` and LHS is `null`, the RHS will be evaluated.
 
 The `false` meaning is wider than undefined/null,
-that is why the `??` is very useful especially when you destingish between 0 and `null`.
+that is why the `??` is very useful especially when you distinguish between 0 and `null`.
 
 ```javascript
 var b = a ?? 0; // initializing 0 when a is uninitialized.
