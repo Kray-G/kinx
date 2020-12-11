@@ -43,6 +43,8 @@ jobs:
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           make.cmd
+      - name: Create installer
+        uses: joncloud/makensis-action@v3.4
       - name: package
         shell: pwsh
         run: Compress-Archive -Path kinx.exe,kxrepl.exe,kxtest.exe,kxkitty.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
@@ -50,7 +52,9 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: build-windows-x64
-          path: windows-x64.zip
+          path: |
+            windows-x64.zip
+            Kinx_installer_*.exe
 
   package-kitty:
     name: package-kitty
