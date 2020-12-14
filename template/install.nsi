@@ -15,6 +15,10 @@ OutFile "Kinx_installer_x64.$$VER_MAJ.$$VER_MIN.$$VER_PAT.exe"
 # Intall Directory
 InstallDir "$PROGRAMFILES64\Kinx"
 
+# Setup Some Options
+SetCompressor lzma
+XPStyle on
+
 # Installer Pages
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE LICENSE
@@ -73,7 +77,7 @@ Section
   IntFmt $0 "0x%08X" $0
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"
 
-  #Setup Environment Variable
+  # Setup Environment Variable
   WriteRegExpandStr ${ENV_HKLM} KinxPath $INSTDIR
   WriteRegExpandStr ${ENV_HKCU} KinxPath $INSTDIR
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
@@ -81,11 +85,13 @@ Section
   # Setup Registry
   WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version $$VER_MAJ.$$VER_MIN.$$VER_PAT for x64"
   WriteRegStr HKLM "${ARP}" "Publisher" "Kray-G"
+  WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\bin\kinx.exe"
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "$$VER_MAJ.$$VER_MIN.$$VER_PAT"
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "$$VER_MAJ"
   WriteRegDWORD HKLM "${ARP}" "VersionMinor" "$$VER_MIN"
   WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
-  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe" _?=$INSTDIR'
+  WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S _?=$INSTDIR'
 SectionEnd
 
 # Uninstaller
@@ -113,3 +119,12 @@ Section "Uninstall"
   # Remove Registry Key
   DeleteRegKey HKLM "${ARP}"
 SectionEnd
+
+Function .onInit
+  ${If} ${Silent}
+    ReadRegStr $R0 HKLM "${ARP}" "QuietUninstallString"
+  ${Else}
+    ReadRegStr $R0 HKLM "${ARP}" "UninstallString"
+  ${EndIf}
+  ExecWait "$R0"
+FunctionEnd
