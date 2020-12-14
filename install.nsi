@@ -94,8 +94,8 @@ Section
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
   WriteRegDWORD HKLM "${ARP}" "VersionMinor" "17"
   WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
-  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe" _?=$INSTDIR'
-  WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S _?=$INSTDIR'
+  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
 SectionEnd
 
 # Uninstaller
@@ -125,11 +125,15 @@ Section "Uninstall"
 SectionEnd
 
 Function .onInit
-  ${If} ${Silent}
-    ReadRegStr $R0 HKLM "${ARP}" "QuietUninstallString"
-  ${Else}
-    ReadRegStr $R0 HKLM "${ARP}" "UninstallString"
+  InitPluginsDir
+  ReadRegStr $R0 ${ENV_HKLM} KinxPath
+  ${If} $R0 S!= ""
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "${APPNAME} has been already installed.$\nDo you want to uninstall it before installation?" IDOK uninstOld
+    Abort
+    uninstOld:
+    CreateDirectory "$PLUGINSDIR\olduninst"
+    CopyFiles /SILENT /FILESONLY "$R0\Uninstall.exe" "$PLUGINSDIR\olduninst"
+    ExecWait '"$PLUGINSDIR\olduninst\Uninstall.exe" _?=$R0'
   ${EndIf}
-  ExecWait "$R0"
 FunctionEnd
 
