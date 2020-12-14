@@ -1,6 +1,11 @@
+# Theme
+!define MUI_ICON "template\theme\standard\installer.ico"
+!define MUI_UNICON "template\theme\standard\uninstaller.ico"
+
 # Modern UI
 !include MUI2.nsh
 !include FileFunc.nsh
+!include WinMessages.nsh
 
 # Unicode
 Unicode True
@@ -13,6 +18,10 @@ OutFile "Kinx_installer_x64.0.17.0.exe"
 
 # Intall Directory
 InstallDir "$PROGRAMFILES64\Kinx"
+
+# Setup Some Options
+SetCompressor lzma
+XPStyle on
 
 # Installer Pages
 !insertmacro MUI_PAGE_WELCOME
@@ -37,6 +46,8 @@ InstallDir "$PROGRAMFILES64\Kinx"
 # Registry Settings
 !define APPNAME "Kinx"
 !define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+!define ENV_HKLM 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+!define ENV_HKCU 'HKCU "Environment"'
 
 # Section
 Section
@@ -70,14 +81,21 @@ Section
   IntFmt $0 "0x%08X" $0
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"
 
+  # Setup Environment Variable
+  WriteRegExpandStr ${ENV_HKLM} KinxPath $INSTDIR
+  WriteRegExpandStr ${ENV_HKCU} KinxPath $INSTDIR
+  SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
+
   # Setup Registry
   WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version 0.17.0 for x64"
   WriteRegStr HKLM "${ARP}" "Publisher" "Kray-G"
+  WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\bin\kinx.exe"
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "0.17.0"
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
   WriteRegDWORD HKLM "${ARP}" "VersionMinor" "17"
   WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
-  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe" _?=$INSTDIR'
+  WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S _?=$INSTDIR'
 SectionEnd
 
 # Uninstaller
@@ -97,7 +115,21 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\Kinx\Kinx Shell.lnk"
   RMDir "$SMPROGRAMS\Kinx"
 
+  # Remove Environment Variable
+  DeleteRegValue ${ENV_HKLM} KinxPath
+  DeleteRegValue ${ENV_HKCU} KinxPath
+  SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
+
   # Remove Registry Key
   DeleteRegKey HKLM "${ARP}"
 SectionEnd
+
+Function .onInit
+  ${If} ${Silent}
+    ReadRegStr $R0 HKLM "${ARP}" "QuietUninstallString"
+  ${Else}
+    ReadRegStr $R0 HKLM "${ARP}" "UninstallString"
+  ${EndIf}
+  ExecWait "$R0"
+FunctionEnd
 
