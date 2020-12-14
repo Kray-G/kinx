@@ -20,6 +20,7 @@
 ## V0.17.0 (Current Development Version)
 
 *   Updated
+    *   Support a installer for Windows.
     *   Support `catch` without specifying an exception object.
         *   This is like `try { ... } catch { ... }`.
     *   Support a cast syntax in native with an `as` keyword.
