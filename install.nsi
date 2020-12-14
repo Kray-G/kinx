@@ -10,14 +10,17 @@
 # Unicode
 Unicode True
 
+# Version
+!define VERSION_STRING "0.17.0"
+
 # Application Name
-Name "Kinx version 0.17.0 for x64"
+Name "Kinx version ${VERSION_STRING} for x64"
 
 # Installer Name to be created
-OutFile "Kinx_installer_x64.0.17.0.exe"
+OutFile "Kinx_installer_x64.${VERSION_STRING}.exe"
 
 # Intall Directory
-InstallDir "$PROGRAMFILES64\Kinx"
+InstallDir "$PROGRAMFILES64\Kinx\${VERSION_STRING}"
 
 # Setup Some Options
 SetCompressor lzma
@@ -44,7 +47,8 @@ XPStyle on
 !define MUI_ABORTWARNING
 
 # Registry Settings
-!define APPNAME "Kinx"
+!define APPACTNAME "Kinx"
+!define APPNAME "Kinx${VERSION_STRING}"
 !define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define ENV_HKLM 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
 !define ENV_HKCU 'HKCU "Environment"'
@@ -71,8 +75,9 @@ Section
 
   # Shortcut to start menu
   CreateDirectory "$SMPROGRAMS\Kinx"
-  CreateShortcut "$SMPROGRAMS\Kinx\Kinx Shell.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
-  CreateShortcut "$SMPROGRAMS\Kinx\Kinx Repl.lnk" "$INSTDIR\bin\kxrepl.exe" ""
+  CreateDirectory "$SMPROGRAMS\Kinx\${VERSION_STRING}"
+  CreateShortcut "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Shell ${VERSION_STRING}.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
+  CreateShortcut "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Repl ${VERSION_STRING}.lnk" "$INSTDIR\bin\kxrepl.exe" ""
 
   # Shortcut to desktop
   # CreateShortcut "$DESKTOP\Kinx Shell.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
@@ -82,15 +87,15 @@ Section
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"
 
   # Setup Environment Variable
-  WriteRegExpandStr ${ENV_HKLM} KinxPath $INSTDIR
-  WriteRegExpandStr ${ENV_HKCU} KinxPath $INSTDIR
+  WriteRegExpandStr ${ENV_HKLM} KinxPath${VERSION_STRING} $INSTDIR
+  WriteRegExpandStr ${ENV_HKCU} KinxPath${VERSION_STRING} $INSTDIR
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
 
   # Setup Registry
-  WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version 0.17.0 for x64"
+  WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version ${VERSION_STRING} for x64"
   WriteRegStr HKLM "${ARP}" "Publisher" "Kray-G"
   WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\bin\kinx.exe"
-  WriteRegStr HKLM "${ARP}" "DisplayVersion" "0.17.0"
+  WriteRegStr HKLM "${ARP}" "DisplayVersion" "${VERSION_STRING}"
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
   WriteRegDWORD HKLM "${ARP}" "VersionMinor" "17"
   WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
@@ -111,13 +116,14 @@ Section "Uninstall"
   RMDir "$INSTDIR"
 
   # Delete it from start menu.
-  Delete "$SMPROGRAMS\Kinx\Kinx Repl.lnk"
-  Delete "$SMPROGRAMS\Kinx\Kinx Shell.lnk"
+  Delete "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Repl ${VERSION_STRING}.lnk"
+  Delete "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Shell ${VERSION_STRING}.lnk"
+  RMDir "$SMPROGRAMS\Kinx\${VERSION_STRING}"
   RMDir "$SMPROGRAMS\Kinx"
 
   # Remove Environment Variable
-  DeleteRegValue ${ENV_HKLM} KinxPath
-  DeleteRegValue ${ENV_HKCU} KinxPath
+  DeleteRegValue ${ENV_HKLM} KinxPath${VERSION_STRING}
+  DeleteRegValue ${ENV_HKCU} KinxPath${VERSION_STRING}
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
 
   # Remove Registry Key
@@ -126,9 +132,9 @@ SectionEnd
 
 Function .onInit
   InitPluginsDir
-  ReadRegStr $R0 ${ENV_HKLM} KinxPath
+  ReadRegStr $R0 ${ENV_HKLM} KinxPath${VERSION_STRING}
   ${If} $R0 S!= ""
-    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "${APPNAME} has been already installed.$\nDo you want to uninstall it before installation?" IDOK uninstOld
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "${APPACTNAME} ${VERSION_STRING} has been already installed.$\nDo you want to uninstall it before installation?" IDOK uninstOld
     Abort
     uninstOld:
     CreateDirectory "$PLUGINSDIR\olduninst"
