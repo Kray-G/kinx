@@ -1,6 +1,7 @@
 # Modern UI
 !include MUI2.nsh
 !include FileFunc.nsh
+!include WinMessages.nsh
 
 # Unicode
 Unicode True
@@ -37,6 +38,8 @@ InstallDir "$PROGRAMFILES64\Kinx"
 # Registry Settings
 !define APPNAME "Kinx"
 !define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+!define ENV_HKLM 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+!define ENV_HKCU 'HKCU "Environment"'
 
 # Section
 Section
@@ -70,6 +73,11 @@ Section
   IntFmt $0 "0x%08X" $0
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"
 
+  #Setup Environment Variable
+  WriteRegExpandStr ${ENV_HKLM} KinxPath $INSTDIR
+  WriteRegExpandStr ${ENV_HKCU} KinxPath $INSTDIR
+  SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
+
   # Setup Registry
   WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version 0.17.0 for x64"
   WriteRegStr HKLM "${ARP}" "Publisher" "Kray-G"
@@ -96,6 +104,11 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\Kinx\Kinx Repl.lnk"
   Delete "$SMPROGRAMS\Kinx\Kinx Shell.lnk"
   RMDir "$SMPROGRAMS\Kinx"
+
+  # Remove Environment Variable
+  DeleteRegValue ${ENV_HKLM} KinxPath
+  DeleteRegValue ${ENV_HKCU} KinxPath
+  SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
 
   # Remove Registry Key
   DeleteRegKey HKLM "${ARP}"
