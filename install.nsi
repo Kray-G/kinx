@@ -1,6 +1,8 @@
 # Theme
 !define MUI_ICON "template\theme\standard\installer.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "template\theme\standard\wizard.bmp"
 !define MUI_UNICON "template\theme\standard\uninstaller.ico"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "template\theme\standard\wizard.bmp"
 
 # Modern UI
 !include MUI2.nsh
