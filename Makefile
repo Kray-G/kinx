@@ -520,6 +520,7 @@ fileutil.o: src/fileutil.c include/dbg.h include/fileutil.h
 loadlib.o: src/loadlib.c include/dbg.h include/fileutil.h \
  include/kxthread.h
 mainlib.o: src/mainlib.c include/dbg.h include/kinx.h include/kvec.h \
+ include/version.h \
  include/ir.h include/khash.h include/klist.h include/kstr.h \
  include/bigz.h include/bign.h include/jit.h \
  include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \

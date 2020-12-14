@@ -450,7 +450,8 @@ src/lexer.obj: src/lexer.c include/dbg.h include/parser.h include/kinx.h \
 src/fileutil.obj: src/fileutil.c include/dbg.h include/fileutil.h
 src/loadlib.obj: src/loadlib.c include/dbg.h include/fileutil.h \
  include/kxthread.h
-src/main.obj: src/main.c include/dbg.h include/kinx.h include/kvec.h \
+src/mainlib.obj: src/mainlib.c include/dbg.h include/kinx.h include/kvec.h \
+ include/version.h \
  include/ir.h include/khash.h include/klist.h include/kstr.h \
  include/bigz.h include/bign.h include/jit.h \
  include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
