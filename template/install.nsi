@@ -1,3 +1,7 @@
+# Theme
+!define MUI_ICON "template\theme\standard\installer.ico"
+!define MUI_UNICON "template\theme\standard\uninstaller.ico"
+
 # Modern UI
 !include MUI2.nsh
 !include FileFunc.nsh
