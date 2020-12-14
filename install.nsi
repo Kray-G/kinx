@@ -1,3 +1,13 @@
+# Theme
+!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\orange-install.ico"
+!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\orange-uninstall.ico"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_RIGHT
+!define MUI_HEADERIMAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Header\orange-r.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "${NSISDIR}\Contrib\Graphics\Header\orange-uninstall-r.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\orange.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\orange-uninstall.bmp"
+
 # Modern UI
 !include MUI2.nsh
 !include FileFunc.nsh
@@ -14,6 +24,10 @@ OutFile "Kinx_installer_x64.0.17.0.exe"
 
 # Intall Directory
 InstallDir "$PROGRAMFILES64\Kinx"
+
+# Setup Some Options
+SetCompressor lzma
+XPStyle on
 
 # Installer Pages
 !insertmacro MUI_PAGE_WELCOME
@@ -73,7 +87,7 @@ Section
   IntFmt $0 "0x%08X" $0
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"
 
-  #Setup Environment Variable
+  # Setup Environment Variable
   WriteRegExpandStr ${ENV_HKLM} KinxPath $INSTDIR
   WriteRegExpandStr ${ENV_HKCU} KinxPath $INSTDIR
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
@@ -81,11 +95,13 @@ Section
   # Setup Registry
   WriteRegStr HKLM "${ARP}" "DisplayName" "Kinx version 0.17.0 for x64"
   WriteRegStr HKLM "${ARP}" "Publisher" "Kray-G"
+  WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\bin\kinx.exe"
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "0.17.0"
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
   WriteRegDWORD HKLM "${ARP}" "VersionMinor" "17"
   WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
-  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe" _?=$INSTDIR'
+  WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S _?=$INSTDIR'
 SectionEnd
 
 # Uninstaller
@@ -113,4 +129,13 @@ Section "Uninstall"
   # Remove Registry Key
   DeleteRegKey HKLM "${ARP}"
 SectionEnd
+
+Function .onInit
+  ${If} ${Silent}
+    ReadRegStr $R0 HKLM "${ARP}" "QuietUninstallString"
+  ${Else}
+    ReadRegStr $R0 HKLM "${ARP}" "UninstallString"
+  ${EndIf}
+  ExecWait "$R0"
+FunctionEnd
 
