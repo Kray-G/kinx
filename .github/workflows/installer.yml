@@ -29,12 +29,13 @@ jobs:
           cp -r /usr/bin/kinxlib/* $tag/lib
           tar zcvf linux-amd64.tar.gz $tag/
       - id: name
-        name: Get Name of Artifact
+        name: get artifact name
         run: |
           pathname=$(ls kinx_*.deb | head -n 1)
           artifact=$(basename $pathname)
           echo "::set-output name=pathname::${pathname}"
           echo "::set-output name=artifact::${artifact}"
+          echo ${artifact}
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
@@ -62,9 +63,10 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path kinx.exe,kxrepl.exe,kxtest.exe,kxkitty.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
       - id: name
-        name: Get Name of Artifact
+        name: get artifact name
         run: |
-          for /f "usebackq" %%I in (`dir /b Kinx_installer_*.exe`) do set artifact=%%I
+          call utility\getname.cmd
+          echo %artifact%
           echo "::set-output name=artifact::%artifact%"
       - name: upload archive
         uses: actions/upload-artifact@v1
@@ -130,22 +132,27 @@ jobs:
         job: [build-linux-amd64, build-windows-x64, build-linux-amd64-installer, build-windows-x64-installer, package-kitty]
         include:
           - job: build-linux-amd64
+            jobname: build-linux-amd64
             asset_path: linux-amd64.tar.gz
             asset_name: package_linux-amd64.tar.gz
             content_type: application/gzip
           - job: build-windows-x64
+            jobname: build-windows-amd64
             asset_path: windows-x64.zip
             asset_name: package_win64.zip
             content_type: application/zip
           - job: build-linux-amd64-installer
+            jobname: build-linux-amd64
             asset_path: ${{ needs.build-linux-amd64.outputs.artifact }}
             asset_name: ${{ needs.build-linux-amd64.outputs.artifact }}
             content_type: application/vnd.debian.binary-package
           - job: build-windows-x64-installer
+            jobname: build-windows-amd64
             asset_path: ${{ needs.build-windows-amd64.outputs.artifact }}
             asset_name: ${{ needs.build-windows-amd64.outputs.artifact }}
             content_type: application/vnd.microsoft.portable-executable
           - job: package-kitty
+            jobname: package-kitty
             asset_path: package-kitty.zip
             asset_name: package_kitty.zip
             content_type: application/zip
@@ -153,14 +160,14 @@ jobs:
       - name: download archive
         id: download_archive
         uses: actions/download-artifact@v1
-        with:
-          name: ${{ matrix.job }}
+      - name: display structure of downloaded files
+        run: ls -R
       - name: upload asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_url }}
-          asset_path: ${{ matrix.job }}/${{ matrix.asset_path }}
+          asset_path: ${{ matrix.jobname }}/${{ matrix.asset_path }}
           asset_name: ${{ matrix.asset_name }}
           asset_content_type: ${{ matrix.content_type }}
