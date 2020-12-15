@@ -148,15 +148,15 @@ jobs:
             content_type: application/zip
           - job: build-linux-amd64-installer
             jobname: build-linux-amd64
-            download_name: ${{ needs.build-linux-amd64.installer }}
-            asset_path: ${{ needs.build-linux-amd64.installer }}
-            asset_name: ${{ needs.build-linux-amd64.installer }}
+            download_name: ${{ needs.build-linux-amd64.outputs.installer }}
+            asset_path: ${{ needs.build-linux-amd64.outputs.installer }}
+            asset_name: ${{ needs.build-linux-amd64.outputs.installer }}
             content_type: application/vnd.debian.binary-package
           - job: build-windows-x64-installer
             jobname: build-windows-x64
-            download_name: ${{ needs.build-windows-x64.installer }}
-            asset_path: ${{ needs.build-windows-x64.installer }}
-            asset_name: ${{ needs.build-windows-x64.installer }}
+            download_name: ${{ needs.build-windows-x64.outputs.installer }}
+            asset_path: ${{ needs.build-windows-x64.outputs.installer }}
+            asset_name: ${{ needs.build-windows-x64.outputs.installer }}
             content_type: application/vnd.microsoft.portable-executable
           - job: package-kitty
             jobname: package-kitty
