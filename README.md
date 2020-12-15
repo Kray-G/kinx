@@ -125,6 +125,21 @@ To build, see below.
 $ make
 ```
 
+### How to Install
+
+#### Windows or Linux
+
+You can download an installer from [Releases](https://github.com/Kray-G/kinx/releases) page.
+
+##### by Scoop (for Windows users)
+
+Or you also can install by [scoop](https://scoop.sh). Type the below:
+
+```ps1
+scoop bucket add kinx https://github.com/Kray-G/kinx # only needed the first time
+scoop install kinx
+```
+
 ### How to Execute
 
 #### Usage
