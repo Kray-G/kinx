@@ -72,6 +72,9 @@ Section
   File /r /x ".gitignore" "lib\katex"
   File /r /x ".gitignore" "lib\chartjs"
 
+  SetOutPath "$INSTDIR\docs"
+  File /r /x "typesetting" "docs\licenses"
+
   # Uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
@@ -114,12 +117,13 @@ Section "Uninstall"
   # Delete Files and Directories
   RMDir /r "$INSTDIR\bin"
   RMDir "$INSTDIR\bin"
+  RMDir /r "$INSTDIR\docs"
+  RMDir "$INSTDIR\docs"
   RMDir "$INSTDIR"
 
   # Delete it from start menu.
   Delete "$SMPROGRAMS\Kinx\Kinx Repl ${VERSION_STRING}.lnk"
   Delete "$SMPROGRAMS\Kinx\Kinx Shell ${VERSION_STRING}.lnk"
-  RMDir "$SMPROGRAMS\Kinx"
   RMDir "$SMPROGRAMS\Kinx"
 
   # Remove Environment Variable
