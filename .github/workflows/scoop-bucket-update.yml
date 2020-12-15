@@ -1,0 +1,28 @@
+name: Update Scoop bucket
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  update-bucket:
+    runs-on: windows-latest
+    steps:
+      - name: install scoop
+        run: |
+          Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+          echo "$env:UserProfile\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: actions/checkout@master
+      - name: update bucket
+        run: repo\scoop\bin\checkver.ps1 -Update
+      - name: commit to master
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add bucket/*.json
+          git commit -m "update scoop bucket"
+      - name: push
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: master
