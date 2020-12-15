@@ -27,7 +27,12 @@ function replace(infile, outfile) {
         .replace("$$VER_MIN", ""+version.minor)
         .replace("$$VER_PAT", ""+version.patch);
     File.open(outfile, File.WRITE) { => _1.println(f) };
-    System.println("[OUT]: ", outfile);
+    System.println("[OUT]: %-20s with %d.%d.%d"
+        % outfile
+        % version.major
+        % version.minor
+        % version.patch
+    );
 }
 
 replace("template/install.nsi", "install.nsi");
