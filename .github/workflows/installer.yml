@@ -141,26 +141,26 @@ jobs:
             asset_name: package_linux-amd64.tar.gz
             content_type: application/gzip
           - job: build-windows-x64
-            jobname: build-windows-amd64
-            download_name: build-windows-amd64
+            jobname: build-windows-x64
+            download_name: build-windows-x64
             asset_path: windows-x64.zip
             asset_name: package_win64.zip
             content_type: application/zip
           - job: build-linux-amd64-installer
             jobname: build-linux-amd64
-            download_name: ${{ needs.build-linux-amd64.outputs.artifact }}
-            asset_path: ${{ needs.build-linux-amd64.outputs.artifact }}
-            asset_name: ${{ needs.build-linux-amd64.outputs.artifact }}
+            download_name: ${{ needs.build-linux-amd64.installer }}
+            asset_path: ${{ needs.build-linux-amd64.installer }}
+            asset_name: ${{ needs.build-linux-amd64.installer }}
             content_type: application/vnd.debian.binary-package
           - job: build-windows-x64-installer
-            jobname: build-windows-amd64
-            download_name: ${{ needs.build-windows-amd64.outputs.artifact }}
-            asset_path: ${{ needs.build-windows-amd64.outputs.artifact }}
-            asset_name: ${{ needs.build-windows-amd64.outputs.artifact }}
+            jobname: build-windows-x64
+            download_name: ${{ needs.build-windows-x64.installer }}
+            asset_path: ${{ needs.build-windows-x64.installer }}
+            asset_name: ${{ needs.build-windows-x64.installer }}
             content_type: application/vnd.microsoft.portable-executable
           - job: package-kitty
             jobname: package-kitty
-            download_name: package-kitty.zip
+            download_name: package-kitty
             asset_path: package-kitty.zip
             asset_name: package_kitty.zip
             content_type: application/zip
