@@ -13,14 +13,14 @@
 
 *   Planned
     *   Support to read/write from/to Clipboard.
-    *   User selectable installation.
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
 ## V0.17.0 (Current Development Version)
 
 *   Updated
-    *   Support an installer for Windows.
+    *   Support an installer for Linux, such as `kinx_0.17.0-0_amd64.deb`.
+    *   Support an installer for Windows, such as `Kinx_installer_x64.0.17.0.exe`.
     *   Support `catch` without specifying an exception object.
         *   This is like `try { ... } catch { ... }`.
     *   Support a cast syntax in native with an `as` keyword.
