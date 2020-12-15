@@ -64,6 +64,7 @@ jobs:
         run: Compress-Archive -Path kinx.exe,kxrepl.exe,kxtest.exe,kxkitty.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
       - id: name
         name: get artifact name
+        shell: cmd
         run: |
           call utility\getname.cmd
           echo %artifact%
