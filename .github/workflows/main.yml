@@ -8,11 +8,14 @@ jobs:
   build-linux-amd64:
     name: ubuntu-18.04-gcc
     runs-on: ubuntu-18.04
+    outputs:
+      installer: ${{ steps.name.outputs.artifact }}
     steps:
       - uses: actions/checkout@v2
       - name: build
         run: |
           make
+          sudo ./mkdeb.sh
           sudo make install
       - name: package
         run: |
@@ -27,15 +30,30 @@ jobs:
           cp /usr/bin/kxkitty $tag/kxkitty
           cp -r /usr/bin/kinxlib/* $tag/lib
           tar zcvf linux-amd64.tar.gz $tag/
+      - id: name
+        name: get artifact name
+        run: |
+          pathname=$(ls kinx_*.deb | head -n 1)
+          artifact=$(basename $pathname)
+          echo "::set-output name=pathname::${pathname}"
+          echo "::set-output name=artifact::${artifact}"
+          echo ${artifact}
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
           name: build-linux-amd64
           path: linux-amd64.tar.gz
+      - name: upload installer
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ steps.name.outputs.artifact }}
+          path: ${{ steps.name.outputs.artifact }}
 
   build-windows-x64:
     name: windows-2019-vc
     runs-on: windows-2019
+    outputs:
+      installer: ${{ steps.name.outputs.artifact }}
     steps:
       - uses: actions/checkout@v2
       - name: build
@@ -46,11 +64,25 @@ jobs:
       - name: package
         shell: pwsh
         run: Compress-Archive -Path kinx.exe,kxrepl.exe,kxtest.exe,kxkitty.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
+      - name: create installer
+        uses: joncloud/makensis-action@v3.4
+      - id: name
+        name: get artifact name
+        shell: cmd
+        run: |
+          for /f "usebackq" %%I in (`dir /b Kinx_installer_*.exe`) do set artifact=%%I
+          echo %artifact%
+          echo ::set-output name=artifact::%artifact%
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
           name: build-windows-x64
           path: windows-x64.zip
+      - name: upload installer
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ steps.name.outputs.artifact }}
+          path: ${{ steps.name.outputs.artifact }}
 
   package-kitty:
     name: package-kitty
@@ -102,17 +134,35 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job: [build-linux-amd64, build-windows-x64, package-kitty]
+        job: [build-linux-amd64, build-windows-x64, build-linux-amd64-installer, build-windows-x64-installer, package-kitty]
         include:
           - job: build-linux-amd64
+            jobname: build-linux-amd64
+            download_name: build-linux-amd64
             asset_path: linux-amd64.tar.gz
             asset_name: package_linux-amd64.tar.gz
             content_type: application/gzip
           - job: build-windows-x64
+            jobname: build-windows-x64
+            download_name: build-windows-x64
             asset_path: windows-x64.zip
             asset_name: package_win64.zip
             content_type: application/zip
+          - job: build-linux-amd64-installer
+            jobname: build-linux-amd64
+            download_name: ${{ needs.build-linux-amd64.outputs.installer }}
+            asset_path: ${{ needs.build-linux-amd64.outputs.installer }}
+            asset_name: ${{ needs.build-linux-amd64.outputs.installer }}
+            content_type: application/vnd.debian.binary-package
+          - job: build-windows-x64-installer
+            jobname: build-windows-x64
+            download_name: ${{ needs.build-windows-x64.outputs.installer }}
+            asset_path: ${{ needs.build-windows-x64.outputs.installer }}
+            asset_name: ${{ needs.build-windows-x64.outputs.installer }}
+            content_type: application/vnd.microsoft.portable-executable
           - job: package-kitty
+            jobname: package-kitty
+            download_name: package-kitty
             asset_path: package-kitty.zip
             asset_name: package_kitty.zip
             content_type: application/zip
@@ -121,13 +171,16 @@ jobs:
         id: download_archive
         uses: actions/download-artifact@v1
         with:
-          name: ${{ matrix.job }}
+          name: ${{ matrix.download_name }}
+          path: ./
+      - name: display structure of downloaded files
+        run: ls -R
       - name: upload asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_url }}
-          asset_path: ${{ matrix.job }}/${{ matrix.asset_path }}
+          asset_path: ${{ matrix.asset_path }}
           asset_name: ${{ matrix.asset_name }}
           asset_content_type: ${{ matrix.content_type }}
