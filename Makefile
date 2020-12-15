@@ -176,13 +176,15 @@ TESTCORE = \
 all: timex kinx $(SOFILES) main_kxcmd
 
 install:
-	if [ ! -d /usr/bin/kinxlib ]; then mkdir -p /usr/bin/kinxlib; fi;
+	mkdir -p /usr/bin/kinxlib/include
+	mkdir -p /usr/bin/kinxlib/docs/licenses
+	mkdir -p /usr/bin/kinxlib/exec/3rdparty
 	cp -f ./kinx /usr/bin/kinx
 	cp -f ./kxrepl /usr/bin/kxrepl
 	cp -f ./kxtest /usr/bin/kxtest
 	cp -f ./kxkitty /usr/bin/kxkitty
 	cp -rf lib/* /usr/bin/kinxlib/
-	mkdir -p /usr/bin/kinxlib/include
+	cp -f docs/licenses/LICENSE.* /usr/bin/kinxlib/docs/licenses/
 	cp -f include/libkinx.h /usr/bin/kinxlib/include/libkinx.h
 	cp -f include/fileutil.h /usr/bin/kinxlib/include/fileutil.h
 	cp -f libkx.a /usr/bin/kinxlib/
