@@ -13,6 +13,7 @@
 Unicode True
 
 # Version
+!define MAJ_VERSION "1"
 !define VERSION_STRING "$$VER_MAJ.$$VER_MIN.$$VER_PAT"
 
 # Application Name
@@ -22,7 +23,7 @@ Name "Kinx version ${VERSION_STRING} for x64"
 OutFile "Kinx_installer_x64.${VERSION_STRING}.exe"
 
 # Intall Directory
-InstallDir "$PROGRAMFILES64\Kinx\${VERSION_STRING}"
+InstallDir "$PROGRAMFILES64\Kinx\V${MAJ_VERSION}"
 
 # Setup Some Options
 SetCompressor lzma
@@ -49,8 +50,7 @@ XPStyle on
 !define MUI_ABORTWARNING
 
 # Registry Settings
-!define APPACTNAME "Kinx"
-!define APPNAME "Kinx${VERSION_STRING}"
+!define APPNAME "Kinx"
 !define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define ENV_HKLM 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
 !define ENV_HKCU 'HKCU "Environment"'
@@ -67,19 +67,21 @@ Section
   File "*.dll"
 
   SetOutPath "$INSTDIR\bin\lib"
-  File /r "lib\std"
-  File /r "lib\exec"
-  File /r "lib\katex"
-  File /r "lib\chartjs"
+  File /r /x ".gitignore" "lib\std"
+  File /r /x ".gitignore" "lib\exec"
+  File /r /x ".gitignore" "lib\katex"
+  File /r /x ".gitignore" "lib\chartjs"
+
+  SetOutPath "$INSTDIR\docs"
+  File /r /x "typesetting" "docs\licenses"
 
   # Uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
   # Shortcut to start menu
   CreateDirectory "$SMPROGRAMS\Kinx"
-  CreateDirectory "$SMPROGRAMS\Kinx\${VERSION_STRING}"
-  CreateShortcut "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Shell ${VERSION_STRING}.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
-  CreateShortcut "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Repl ${VERSION_STRING}.lnk" "$INSTDIR\bin\kxrepl.exe" ""
+  CreateShortcut "$SMPROGRAMS\Kinx\Kinx Shell ${VERSION_STRING}.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
+  CreateShortcut "$SMPROGRAMS\Kinx\Kinx Repl ${VERSION_STRING}.lnk" "$INSTDIR\bin\kxrepl.exe" ""
 
   # Shortcut to desktop
   # CreateShortcut "$DESKTOP\Kinx Shell.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
@@ -89,8 +91,8 @@ Section
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"
 
   # Setup Environment Variable
-  WriteRegExpandStr ${ENV_HKLM} KinxPath${VERSION_STRING} $INSTDIR
-  WriteRegExpandStr ${ENV_HKCU} KinxPath${VERSION_STRING} $INSTDIR
+  WriteRegExpandStr ${ENV_HKLM} KinxPath $INSTDIR
+  WriteRegExpandStr ${ENV_HKCU} KinxPath $INSTDIR
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
 
   # Setup Registry
@@ -115,17 +117,18 @@ Section "Uninstall"
   # Delete Files and Directories
   RMDir /r "$INSTDIR\bin"
   RMDir "$INSTDIR\bin"
+  RMDir /r "$INSTDIR\docs"
+  RMDir "$INSTDIR\docs"
   RMDir "$INSTDIR"
 
   # Delete it from start menu.
-  Delete "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Repl ${VERSION_STRING}.lnk"
-  Delete "$SMPROGRAMS\Kinx\${VERSION_STRING}\Kinx Shell ${VERSION_STRING}.lnk"
-  RMDir "$SMPROGRAMS\Kinx\${VERSION_STRING}"
+  Delete "$SMPROGRAMS\Kinx\Kinx Repl ${VERSION_STRING}.lnk"
+  Delete "$SMPROGRAMS\Kinx\Kinx Shell ${VERSION_STRING}.lnk"
   RMDir "$SMPROGRAMS\Kinx"
 
   # Remove Environment Variable
-  DeleteRegValue ${ENV_HKLM} KinxPath${VERSION_STRING}
-  DeleteRegValue ${ENV_HKCU} KinxPath${VERSION_STRING}
+  DeleteRegValue ${ENV_HKLM} KinxPath
+  DeleteRegValue ${ENV_HKCU} KinxPath
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=10
 
   # Remove Registry Key
@@ -134,9 +137,9 @@ SectionEnd
 
 Function .onInit
   InitPluginsDir
-  ReadRegStr $R0 ${ENV_HKLM} KinxPath${VERSION_STRING}
+  ReadRegStr $R0 ${ENV_HKLM} KinxPath
   ${If} $R0 S!= ""
-    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "${APPACTNAME} ${VERSION_STRING} has been already installed.$\nDo you want to uninstall it before installation?" IDOK uninstOld
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "${APPNAME} ${VERSION_STRING} has been already installed.$\nDo you want to uninstall it before installation?" IDOK uninstOld
     Abort
     uninstOld:
     CreateDirectory "$PLUGINSDIR\olduninst"
