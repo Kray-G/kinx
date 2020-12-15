@@ -66,9 +66,9 @@ jobs:
         name: get artifact name
         shell: cmd
         run: |
-          call utility\getname.cmd
+          for /f "usebackq" %%I in (`dir /b Kinx_installer_*.exe`) do set artifact=%%I
           echo %artifact%
-          echo "::set-output name=artifact::%artifact%"
+          echo ::set-output name=artifact::%artifact%
       - name: upload archive
         uses: actions/upload-artifact@v1
         with:
