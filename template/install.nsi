@@ -67,10 +67,10 @@ Section
   File "*.dll"
 
   SetOutPath "$INSTDIR\bin\lib"
-  File /r "lib\std"
-  File /r "lib\exec"
-  File /r "lib\katex"
-  File /r "lib\chartjs"
+  File /r /x ".gitignore" "lib\std"
+  File /r /x ".gitignore" "lib\exec"
+  File /r /x ".gitignore" "lib\katex"
+  File /r /x ".gitignore" "lib\chartjs"
 
   # Uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
