@@ -136,35 +136,30 @@ jobs:
         include:
           - job: build-linux-amd64
             jobname: build-linux-amd64
-            dirname: build-linux-amd64
             download_name: build-linux-amd64
             asset_path: linux-amd64.tar.gz
             asset_name: package_linux-amd64.tar.gz
             content_type: application/gzip
           - job: build-windows-x64
             jobname: build-windows-x64
-            dirname: build-windows-x64
             download_name: build-windows-x64
             asset_path: windows-x64.zip
             asset_name: package_win64.zip
             content_type: application/zip
           - job: build-linux-amd64-installer
             jobname: build-linux-amd64
-            dirname: .
             download_name: ${{ needs.build-linux-amd64.outputs.installer }}
             asset_path: ${{ needs.build-linux-amd64.outputs.installer }}
             asset_name: ${{ needs.build-linux-amd64.outputs.installer }}
             content_type: application/vnd.debian.binary-package
           - job: build-windows-x64-installer
             jobname: build-windows-x64
-            dirname: .
             download_name: ${{ needs.build-windows-x64.outputs.installer }}
             asset_path: ${{ needs.build-windows-x64.outputs.installer }}
             asset_name: ${{ needs.build-windows-x64.outputs.installer }}
             content_type: application/vnd.microsoft.portable-executable
           - job: package-kitty
             jobname: package-kitty
-            dirname: package-kitty
             download_name: package-kitty
             asset_path: package-kitty.zip
             asset_name: package_kitty.zip
@@ -175,6 +170,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: ${{ matrix.download_name }}
+          path: ./
       - name: display structure of downloaded files
         run: ls -R
       - name: upload asset
@@ -183,6 +179,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_url }}
-          asset_path: ${{ matrix.dirname }}/${{ matrix.asset_path }}
+          asset_path: ${{ matrix.asset_path }}
           asset_name: ${{ matrix.asset_name }}
           asset_content_type: ${{ matrix.content_type }}
