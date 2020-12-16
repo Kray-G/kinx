@@ -47,7 +47,7 @@ int init_envdata(envdata_t *env, const char *name, int scope)
         env->data[0] = 0;
         env->len = 0;
         env->name = NULL;
-        printf("init: (not found)\n", env->data);
+        printf("init: (not found)\n");
         return 1;
     } else if (size < MAX_DATA_SIZE) {
         int len = strlen(name);
