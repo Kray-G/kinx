@@ -20,6 +20,8 @@
 ## V0.18.0 (Current Development Version)
 
 *   Updated
+    *   Windows Installer will automatically add the path to the Kinx executable after installation.
+    *   Some bug fixes and improvement.
 
 ## V0.17.0 (17th Preview Release) - 2020/12/15
 
