@@ -1,5 +1,8 @@
 #!/bin/bash
 
+apt update
+apt install -y --no-install-recommends checkinstall
+
 checkinstall -D -y \
   --install=no \
   --fstrans=no \
