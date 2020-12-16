@@ -7,6 +7,7 @@
     *   Support HTTP Server library.
     *   Support GUI library.
     *   Support Package Manager.
+    *   Support Cryptography library.
     *   Support Development Tools like Debugger, Language Server, etc.
 
 ## V1.0.0 (Planned)
@@ -16,7 +17,13 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.17.0 (Current Development Version)
+## V0.18.0 (Current Development Version)
+
+*   Updated
+
+## V0.17.0 (17th Preview Release) - 2020/12/15
+
+<img align="right" src="https://github.com/Kray-G/kinx/raw/master/docs/InstallerWelcome.png" width="360px">
 
 *   Updated
     *   Support an installer for Linux, such as `kinx_0.17.0-0_amd64.deb`.
