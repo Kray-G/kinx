@@ -17,7 +17,7 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.18.0 (Current Development Version)
+## V0.17.1 (Current Development Version)
 
 *   Updated
     *   Windows Installer will automatically add the path to the Kinx executable after installation.

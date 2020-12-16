@@ -59,7 +59,6 @@ XPStyle on
 Section
   # File List
   SetOutPath "$INSTDIR\bin"
-  File "kinxsh.cmd"
   File "kinx.exe"
   File "kxrepl.exe"
   File "kxtest.exe"
