@@ -12,11 +12,13 @@ static HKEY keymap[] = { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER };
 static const char *subkeymap[] = { "System\\CurrentControlSet\\Control\\Session Manager\\Environment", "Environment" };
 
 enum {
+    ENV_UNKNOWN = -1,
     ENV_SYSTEM = 0,
     ENV_USER,
 };
 enum {
-    OP_ADD,
+    OP_UNKNOWN = -1,
+    OP_ADD = 0,
     OP_DEL,
 };
 
@@ -193,8 +195,13 @@ int main(int ac, char **av)
     }
 
     int r = 1;
-    int operation = !strcmp(av[1], "add") ? OP_ADD : OP_DEL;
-    int target = !strcmp(av[2], "system") ? ENV_SYSTEM : ENV_USER;
+    int operation = !strcmp(av[1], "add") ? OP_ADD : (!strcmp(av[1], "del") ? OP_DEL : OP_UNKNOWN);
+    int target = !strcmp(av[2], "system") ? ENV_SYSTEM : (!strcmp(av[2], "user") ? ENV_USER : ENV_UNKNOWN);
+    if (operation < 0 || target < 0) {
+        printf("Usage: addpath.exe (add|del) (system|user) path");
+        return 1;
+    }
+
     envdata_t *env = (envdata_t *)calloc(1, sizeof(envdata_t));
     if (!init_envdata(env, "Path", target)) {
         goto EXIT;
