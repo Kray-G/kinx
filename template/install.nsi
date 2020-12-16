@@ -113,8 +113,6 @@ SectionEnd
 
 # Uninstaller
 Section "Uninstall"
-  SetOutPath "$INSTDIR"
-
   ExecWait '"$INSTDIR\bin\addpath.exe" del user "$INSTDIR\bin"'
   ExecWait '"$INSTDIR\bin\addpath.exe" del system "$INSTDIR\bin"'
 
