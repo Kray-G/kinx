@@ -64,6 +64,7 @@ Section
   File "kxrepl.exe"
   File "kxtest.exe"
   File "kxkitty.exe"
+  File "addpath.exe"
   File "*.dll"
 
   SetOutPath "$INSTDIR\bin\lib"
@@ -105,11 +106,17 @@ Section
   WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
   WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
+
+  ExecWait '"$INSTDIR\bin\addpath.exe" add system "$INSTDIR\bin"'
+  ExecWait '"$INSTDIR\bin\addpath.exe" add user "$INSTDIR\bin"'
 SectionEnd
 
 # Uninstaller
 Section "Uninstall"
   SetOutPath "$INSTDIR"
+
+  ExecWait '"$INSTDIR\bin\addpath.exe" del user "$INSTDIR\bin"'
+  ExecWait '"$INSTDIR\bin\addpath.exe" del system "$INSTDIR\bin"'
 
   # Delete Uninstaller
   Delete "$INSTDIR\Uninstall.exe"
