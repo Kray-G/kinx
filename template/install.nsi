@@ -52,11 +52,15 @@ XPStyle on
 # Registry Settings
 !define APPNAME "Kinx"
 !define ARP "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+!define ARP32 "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define ENV_HKLM 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
 !define ENV_HKCU 'HKCU "Environment"'
 
 # Section
 Section
+  # Registry
+  SetRegView 64
+
   # File List
   SetOutPath "$INSTDIR\bin"
   File "kinx.exe"
@@ -80,11 +84,7 @@ Section
 
   # Shortcut to start menu
   CreateDirectory "$SMPROGRAMS\Kinx"
-  CreateShortcut "$SMPROGRAMS\Kinx\Kinx Shell ${VERSION_STRING}.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
   CreateShortcut "$SMPROGRAMS\Kinx\Kinx Repl ${VERSION_STRING}.lnk" "$INSTDIR\bin\kxrepl.exe" ""
-
-  # Shortcut to desktop
-  # CreateShortcut "$DESKTOP\Kinx Shell.lnk" "$INSTDIR\bin\kinxsh.cmd" ""
 
   ${GetSize} "$INSTDIR\bin" "/S=0K" $0 $1 $2
   IntFmt $0 "0x%08X" $0
@@ -112,6 +112,9 @@ SectionEnd
 
 # Uninstaller
 Section "Uninstall"
+  # Registry
+  SetRegView 64
+
   ExecWait '"$INSTDIR\bin\addpath.exe" del user "$INSTDIR\bin"'
   ExecWait '"$INSTDIR\bin\addpath.exe" del system "$INSTDIR\bin"'
 
@@ -127,7 +130,6 @@ Section "Uninstall"
 
   # Delete it from start menu.
   Delete "$SMPROGRAMS\Kinx\Kinx Repl ${VERSION_STRING}.lnk"
-  Delete "$SMPROGRAMS\Kinx\Kinx Shell ${VERSION_STRING}.lnk"
   RMDir "$SMPROGRAMS\Kinx"
 
   # Remove Environment Variable
@@ -140,10 +142,17 @@ Section "Uninstall"
 SectionEnd
 
 Function .onInit
+  # Registry
+  SetRegView 64
+
   InitPluginsDir
+  ReadRegStr $R1 HKLM ${ARP} DisplayVersion
+  ${If} $R1 S== ""
+    ReadRegStr $R1 HKLM ${ARP32} DisplayVersion
+  ${EndIf}
   ReadRegStr $R0 ${ENV_HKLM} KinxPath
   ${If} $R0 S!= ""
-    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "${APPNAME} ${VERSION_STRING} has been already installed.$\nDo you want to uninstall it before installation?" IDOK uninstOld
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "${APPNAME} $R1 has been already installed.$\nDo you want to uninstall it before installation?" IDOK uninstOld
     Abort
     uninstOld:
     CreateDirectory "$PLUGINSDIR\olduninst"
