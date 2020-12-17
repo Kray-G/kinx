@@ -102,7 +102,7 @@ Section
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "${VERSION_STRING}"
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "$$VER_MAJ"
   WriteRegDWORD HKLM "${ARP}" "VersionMinor" "$$VER_MIN"
-  WriteRegStr HKLM "${ARP}" "Comments" "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."
+  WriteRegStr HKLM "${ARP}" "Comments" "Have fun with programming!"
   WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
 
