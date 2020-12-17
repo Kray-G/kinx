@@ -38,5 +38,4 @@ function replace(infile, outfile) {
 replace("template/install.nsi", "install.nsi");
 replace("template/mkdeb.sh", "mkdeb.sh");
 replace("template/kinx.rc", "kinx.rc");
-replace("template/kinxsh.cmd", "kinxsh.cmd");
 replace("template/version.h", "include/version.h");
