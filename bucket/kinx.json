@@ -1,12 +1,12 @@
 {
-    "version": "0.17.0",
+    "version": "0.17.1",
     "description": "Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers.",
     "homepage": "https://github.com/Kray-G/kinx",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/Kray-G/kinx/releases/download/v0.17.0/package_win64.zip",
-            "hash": "ccc9aa1b531a116af5b3c3b4f1a6dbab5356c92d848bb6899574e7f7eebc637b"
+            "url": "https://github.com/Kray-G/kinx/releases/download/v0.17.1/package_win64.zip",
+            "hash": "efbd729beb9218e699363347d5853c0e681b128838dbb41637aa571abc663545"
         }
     },
     "bin": [
