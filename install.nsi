@@ -14,7 +14,7 @@ Unicode True
 
 # Version
 !define MAJ_VERSION "1"
-!define VERSION_STRING "0.17.0"
+!define VERSION_STRING "0.17.1"
 
 # Application Name
 Name "Kinx version ${VERSION_STRING} for x64"
@@ -59,7 +59,6 @@ XPStyle on
 Section
   # File List
   SetOutPath "$INSTDIR\bin"
-  File "kinxsh.cmd"
   File "kinx.exe"
   File "kxrepl.exe"
   File "kxtest.exe"
