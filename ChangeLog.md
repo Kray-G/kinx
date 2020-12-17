@@ -21,6 +21,7 @@
 
 *   Updated
     *   Windows Installer will automatically add the path to the Kinx executable after installation.
+    *   Added the bucket for Scoop, and it is easy to install Kinx into Windows through the Scoop manager.
     *   Some bug fixes and improvement.
 
 ## V0.17.0 (17th Preview Release) - 2020/12/15
