@@ -1,6 +1,6 @@
 /*
-    $ cl.exe /DWINMAIN /Feaddpath.exe utility\src\addpath.c Advapi32.lib User32.lib /link /SUBSYSTEM:WINDOWS
-    $ cl.exe /Feaddpathc.exe utility\src\addpath.c Advapi32.lib User32.lib
+    $ cl.exe /DWINMAIN addpath.c Advapi32.lib User32.lib /link /SUBSYSTEM:WINDOWS
+    $ cl.exe addpath.c Advapi32.lib User32.lib
 */
 
 #include <windows.h>
@@ -24,12 +24,15 @@ enum {
     OP_LIST,
 };
 
-#define MAX_DATA_SIZE (8192)
+#define TEST_DATA_SIZE (8192)
+#define MIN_DATA_SIZE (512)
+#define MAKE_DATA_SIZE(n) (((n) < MIN_DATA_SIZE ? MIN_DATA_SIZE : (n)) * 2)
 typedef struct envdata_t_ {
     int scope;
     int len;
+    int max;
     char *name;
-    char data[MAX_DATA_SIZE];
+    char *data;
 } envdata_t;
 
 #ifdef TEST
@@ -76,8 +79,10 @@ int init_envdata(envdata_t *env, const char *name, int scope)
     env->scope = scope;
 
 #ifdef TEST
+    env->data = (char *)calloc(TEST_DATA_SIZE, sizeof(char));
+    env->max = TEST_DATA_SIZE;
     int len = strlen(name);
-    env->name = (char*)calloc(len + 1, sizeof(char));
+    env->name = (char *)calloc(len + 1, sizeof(char));
     strcpy(env->name, name);
     load_test_data(env);
     printf("*** test-init: %s\n", env->data);
@@ -89,24 +94,26 @@ int init_envdata(envdata_t *env, const char *name, int scope)
     DWORD size;
     LONG status = RegQueryValueEx(subkey, name, 0, NULL, NULL, &size);
     if (ERROR_SUCCESS != status) {
+        env->data = (char *)calloc(MIN_DATA_SIZE, sizeof(char));
         env->data[0] = 0;
         env->len = 0;
+        env->max = MIN_DATA_SIZE;
         env->name = NULL;
         printf("init: (not found)\n");
-        return 1;
-    } else if (size < MAX_DATA_SIZE) {
+    } else {
         int len = strlen(name);
-        env->name = (char*)calloc(len + 1, sizeof(char));
+        env->name = (char *)calloc(len + 1, sizeof(char));
         strcpy(env->name, name);
+        env->max = MAKE_DATA_SIZE(size);
+        env->data = (char *)calloc(env->max, sizeof(char));
         RegQueryValueEx(subkey, name, 0, NULL, env->data, &size);
         env->data[size] = 0;
         env->len = (int)strlen(env->data);
         RegCloseKey(key);
         printf("init: %s\n", env->data);
-        return 1;
     }
 
-    return 0;
+    return 1;
 }
 
 void broadcast_change()
@@ -162,7 +169,7 @@ void append_path(envdata_t *env, char *text, int tlen)
     const char *subkey_name = subkeymap[env->scope];
 
     int len = strlen(text) + env->len;
-    if ((len + 3) >= MAX_DATA_SIZE) {
+    if ((len + 3) >= env->max) {
         return;
     }
     if (env->len > 0 && env->data[env->len - 1] != ';') {
@@ -332,13 +339,14 @@ int main(int ac, char **av)
             r = 0;
             break;
         default:
-            r = 1;
             break;
         }
+        free(text);
     }
 
 EXIT:
     free(env->name);
+    free(env->data);
     free(env);
     return r;
 }
