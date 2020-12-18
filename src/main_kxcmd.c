@@ -9,23 +9,43 @@ kx_realloc_t kx_realloc = NULL;
 kx_calloc_t kx_calloc = NULL;
 kx_free_t kx_free = NULL;
 
+#define MAKE_START_END_LEN(av0, start, end, len) { \
+    const char *p = av0; \
+    while (*p) { \
+        if (*p == '/' || *p == '\\') { \
+            start = p - av0 + 1; \
+        } else if (*p == '.') { \
+            end = p - av0; \
+        } \
+        ++p; \
+    } \
+    if (end <= start) { \
+        end = p - av0; \
+    } \
+    len = end - start; \
+} \
+/**/
+
+char *make_cmd_name(const char *av0)
+{
+    int start = 0, end = 0, len = 0;
+    MAKE_START_END_LEN(av0, start, end, len);
+
+    char *curpath = get_cur_path();
+    int clen = strlen(curpath);
+    char *cmdname = kx_calloc(clen + len + (1/* PATH_DELIM */ + 3/* .kx */ + 2), sizeof(char));
+    strncpy(cmdname, curpath, clen);
+    strncpy(cmdname + clen, PATH_DELIM, 1);
+    strncpy(cmdname + clen + 1, av0 + start, len);
+    strncpy(cmdname + clen + len + 1, ".kx", 3);
+    return cmdname;
+}
+
 char *make_exec_name(const char *av0)
 {
-    int start = 0, end = 0;
-    const char *p = av0;
-    while (*p) {
-        if (*p == '/' || *p == '\\') {
-            start = p - av0 + 1;
-        } else if (*p == '.') {
-            end = p - av0;
-        }
-        ++p;
-    }
-    if (end <= start) {
-        end = p - av0;
-    }
-    int len = end - start;
-    char *cmdname = kx_calloc(len + 7/* --exec: */ + 2, sizeof(char));
+    int start = 0, end = 0, len = 0;
+    MAKE_START_END_LEN(av0, start, end, len);
+    char *cmdname = kx_calloc(len + (7/* --exec: */ + 2), sizeof(char));
     strcpy(cmdname, "--exec:");
     strncpy(cmdname + 7, av0 + start, len);
     return cmdname;
@@ -41,15 +61,20 @@ int main(int ac, char **av)
     int r = 0;
     int ac1 = ac + 1;
     char **avp = kx_calloc(ac1, sizeof(char *));
+    char *cmd = make_cmd_name(av[0]);
+    if (!file_exists(cmd)) {
+        kx_free(cmd);
+        cmd = make_exec_name(av[0]);
+    }
+
+    avp[0] = av[0];
+    avp[1] = cmd;
     for (int i = 1; i < ac; ++i) {
         avp[i+1] = av[i];
     }
-    avp[0] = av[0];
-    avp[1] = make_exec_name(av[0]);
-    if (avp[1]) {
-        r = kinx_call_main(ac1, avp);
-        kx_free(avp[1]);
-    }
-    free(avp);
+    r = kinx_call_main(ac1, avp);
+    kx_free(cmd);
+    kx_free(avp);
+
     return r;
 }

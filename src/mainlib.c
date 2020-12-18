@@ -113,7 +113,10 @@ static void version(int detail)
 {
     printf(PROGNAME " version %d.%d.%d%s\n", VER_MAJ, VER_MIN, VER_PAT, VER_SUFFIX);
     if (detail) {
-        printf("platform: %s\n", sljit_get_platform_name());
+        printf("\n");
+        printf("- platform: %s\n", sljit_get_platform_name());
+        printf("- path:     %s\n", get_exe_path());
+        printf("\n");
     }
 }
 

@@ -2,6 +2,7 @@
 #define KX_FILEUTIL_H
 
 extern int file_exists(const char *p);
+extern char* get_cur_path(void);
 extern char* get_exe_path(void);
 
 #if defined(_WIN32) || defined(_WIN64)

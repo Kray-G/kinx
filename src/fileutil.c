@@ -2,6 +2,84 @@
 #include <stdio.h>
 #include <fileutil.h>
 
+int file_exists(const char *p);
+
+static char *next_path(const char *p)
+{
+    #if defined(KCC_WINDOWS)
+    const int sepch = ';';
+    #else
+    const int sepch = ':';
+    #endif
+    static int start = 0, end = 0;
+    static char path[2048] = {0};
+    if (!p || p[end] == 0) {
+        return NULL;
+    }
+    while (p[start] == sepch) {
+        ++start;
+    }
+    if (p[start] == 0) {
+        return NULL;
+    }
+    for (end = start; p[end] != sepch && p[end] != 0; ++end) {
+        ;
+    }
+    int len = end - start;
+    strncpy(path, p + start, len);
+    path[len] = 0;
+    #if defined(KCC_WINDOWS)
+    int last = path[len - 1];
+    strcpy(path + len, last == '\\' ? "kinx.shim" : "\\kinx.shim");
+    if (file_exists(path)) {
+        int set_shim_path(char *p, int len);
+        len = set_shim_path(path, len);
+    }
+    strcpy(path + len, last == '\\' ? "libkinx.dll" : "\\libkinx.dll");
+    #else
+    int last = path[len - 1];
+    strcpy(path + len, last == '/' ? "libkinx.so" : "/libkinx.so");
+    if (!file_exists(path)) {
+        strcpy(path + len, last == '/' ? "kinxlib/libkinx.so" : "/kinxlib/libkinx.so");
+    }
+    #endif
+    start = end + 1;
+    return path;
+}
+
+static void setup_actual_exe_path(char *candidate)
+{
+    static char exe_full_path[2048] = {0};
+    strncpy(exe_full_path, candidate, 2040);
+
+    #if defined(KCC_WINDOWS)
+    char *sep = strrchr(exe_full_path, '\\');
+    if (sep) *sep = 0;
+    int len = strlen(exe_full_path);
+    strcpy(exe_full_path + len, "\\libkinx.dll");
+    #else
+    char *sep = strrchr(exe_full_path, '/');
+    if (sep) *sep = 0;
+    int len = strlen(exe_full_path);
+    strcpy(exe_full_path + len, "/libkinx.so");
+    if (!file_exists(exe_full_path)) {
+        strcpy(exe_full_path + len, "/kinxlib/libkinx.so");
+    }
+    #endif
+    if (file_exists(exe_full_path)) {
+        return;
+    }
+
+    char *p = getenv("PATH");
+    while (1) {
+        char *n = next_path(p);
+        if (!n) break;
+        if (file_exists(n)) {
+            strcpy(candidate, n);
+        }
+    }
+}
+
 /*
  *  Path utilities.
  */
@@ -14,6 +92,27 @@ typedef struct kx_dir_impl_ {
     uint8_t          end;
 } kx_dir_impl_t;
 
+int set_shim_path(char *p, int len)
+{
+    FILE *fp = fopen(p, "r");
+    if (!fp) return len;
+
+    char buf[1024] = {0};
+    while (fgets(buf, 1020, fp) != NULL) {
+        char *bp = strstr(buf, "path = ");
+        if (bp) {
+            strcpy(p, bp + 7);
+            char *sep = strrchr(p, '\\');
+            if (sep) *sep = 0;
+            len = strlen(p);
+            break;
+        }
+    }
+
+    fclose(fp);
+    return len;
+}
+
 int file_exists(const char *p)
 {
     unsigned long attr = GetFileAttributes(p);
@@ -21,6 +120,15 @@ int file_exists(const char *p)
         return 0;
     }
     return 1;
+}
+
+char *get_cur_path(void)
+{
+    static char s_result[2048] = {0};
+    if (!s_result[0]) {
+        GetCurrentDirectory(2040, s_result);
+    }
+    return s_result;
 }
 
 char* get_exe_path(void)
@@ -35,6 +143,7 @@ char* get_exe_path(void)
         len = GetModuleFileNameA(NULL, exe_full_path, PATH_MAX);
         if (len > 0) {
             strncpy(s_result, exe_full_path, 2040);
+            setup_actual_exe_path(s_result);
             p = strrchr(s_result, '\\');
             if (p) *p = 0;
         }
@@ -147,6 +256,15 @@ int file_exists(const char *p)
     return stat(p, &st) == 0 ? 1 : 0;
 }
 
+char *get_cur_path(void)
+{
+    static char s_result[2048] = {0};
+    if (!s_result[0]) {
+        getcwd(s_result, 2040);
+    }
+    return s_result;
+}
+
 char* get_exe_path(void)
 {
     static char s_result[2048] = {0};
@@ -156,6 +274,7 @@ char* get_exe_path(void)
         char exe_full_path[PATH_MAX];
         readlink("/proc/self/exe", exe_full_path, PATH_MAX);
         strncpy(s_result, exe_full_path, 2040);
+        setup_actual_exe_path(s_result);
         p = strrchr(s_result, '/');
         if (p) *p = 0;
     }

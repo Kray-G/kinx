@@ -17,10 +17,15 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.17.1 (Current Development Version)
+## V0.18.0 (Current Development Version)
 
 *   Updated
-    *   Windows Installer will automatically add the path to the Kinx executable after installation.
+
+## V0.17.1 (17th-1 Preview Release) - 2020/12/17
+
+*   Updated
+    *   Windows Installer will automatically add the path to the Kinx executable
+        to the `Path` environment variable after installation.
     *   Added the bucket for Scoop, and it is easy to install Kinx into Windows through the Scoop manager.
     *   Some bug fixes and improvement.
 
