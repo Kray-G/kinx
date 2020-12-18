@@ -30,9 +30,14 @@ char *make_cmd_name(const char *av0)
 {
     int start = 0, end = 0, len = 0;
     MAKE_START_END_LEN(av0, start, end, len);
-    char *cmdname = kx_calloc(len + 3/* .kx */ + 2, sizeof(char));
-    strncpy(cmdname, av0 + start, len);
-    strcat(cmdname, ".kx");
+
+    char *curpath = get_cur_path();
+    int clen = strlen(curpath);
+    char *cmdname = kx_calloc(clen + len + (1/* PATH_DELIM */ + 3/* .kx */ + 2), sizeof(char));
+    strncpy(cmdname, curpath, clen);
+    strncpy(cmdname + clen, PATH_DELIM, 1);
+    strncpy(cmdname + clen + 1, av0 + start, len);
+    strncpy(cmdname + clen + len + 1, ".kx", 3);
     return cmdname;
 }
 
@@ -40,7 +45,7 @@ char *make_exec_name(const char *av0)
 {
     int start = 0, end = 0, len = 0;
     MAKE_START_END_LEN(av0, start, end, len);
-    char *cmdname = kx_calloc(len + 7/* --exec: */ + 2, sizeof(char));
+    char *cmdname = kx_calloc(len + (7/* --exec: */ + 2), sizeof(char));
     strcpy(cmdname, "--exec:");
     strncpy(cmdname + 7, av0 + start, len);
     return cmdname;
