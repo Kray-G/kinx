@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <fileutil.h>
 
-int file_exists(const char *p);
-
 static char *next_path(const char *p)
 {
     #if defined(KCC_WINDOWS)
@@ -32,7 +30,7 @@ static char *next_path(const char *p)
     int last = path[len - 1];
     strcpy(path + len, last == '\\' ? "kinx.shim" : "\\kinx.shim");
     if (file_exists(path)) {
-        int set_shim_path(char *p, int len);
+        static int set_shim_path(char *p, int len);
         len = set_shim_path(path, len);
     }
     strcpy(path + len, last == '\\' ? "libkinx.dll" : "\\libkinx.dll");
@@ -92,7 +90,7 @@ typedef struct kx_dir_impl_ {
     uint8_t          end;
 } kx_dir_impl_t;
 
-int set_shim_path(char *p, int len)
+static int set_shim_path(char *p, int len)
 {
     FILE *fp = fopen(p, "r");
     if (!fp) return len;
@@ -152,7 +150,7 @@ char* get_exe_path(void)
     return s_result;
 }
 
-wchar_t *kx_mb2unicode(const char *string, int32_t encoding)
+static wchar_t *kx_mb2unicode(const char *string, int32_t encoding)
 {
     wchar_t *string_wide = NULL;
     uint32_t string_wide_size = 0;
@@ -171,7 +169,7 @@ wchar_t *kx_mb2unicode(const char *string, int32_t encoding)
     return string_wide;
 }
 
-void kx_free_unicode(wchar_t **string)
+static void kx_free_unicode(wchar_t **string)
 {
     if (string != NULL) {
         kx_free(*string);
