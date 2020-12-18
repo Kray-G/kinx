@@ -130,10 +130,9 @@ void broadcast_change()
 
 char *find_text(envdata_t *env, const char *text, int txtlen)
 {
-    const char *lastpos = env->data + env->len;
     char *found = strstr(env->data, text);
     while (found != NULL) {
-        if (((found == env->data || *(found - 1) == ';') && ((found + txtlen) == lastpos || *(found + txtlen) == ';'))) {
+        if (((found == env->data || *(found - 1) == ';') && (*(found + txtlen) == '\0' || *(found + txtlen) == ';'))) {
             return found;
         }
         found = strstr(found + 1, text);
