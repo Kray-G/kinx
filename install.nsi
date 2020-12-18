@@ -14,7 +14,7 @@ Unicode True
 
 # Version
 !define MAJ_VERSION "1"
-!define VERSION_STRING "0.17.1"
+!define VERSION_STRING "0.18.0"
 
 # Application Name
 Name "Kinx version ${VERSION_STRING} for x64"
@@ -101,7 +101,7 @@ Section
   WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\bin\kinx.exe"
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "${VERSION_STRING}"
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
-  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "17"
+  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "18"
   WriteRegStr HKLM "${ARP}" "Comments" "Have fun with programming!"
   WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
