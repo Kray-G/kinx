@@ -122,6 +122,15 @@ int file_exists(const char *p)
     return 1;
 }
 
+char *get_cur_path(void)
+{
+    static char s_result[2048] = {0};
+    if (!s_result[0]) {
+        GetCurrentDirectory(2040, s_result);
+    }
+    return s_result;
+}
+
 char* get_exe_path(void)
 {
     static char s_result[2048] = {0};
@@ -245,6 +254,15 @@ int file_exists(const char *p)
 {
     struct stat st;
     return stat(p, &st) == 0 ? 1 : 0;
+}
+
+char *get_cur_path(void)
+{
+    static char s_result[2048] = {0};
+    if (!s_result[0]) {
+        getcwd(s_result, 2040);
+    }
+    return s_result;
 }
 
 char* get_exe_path(void)
