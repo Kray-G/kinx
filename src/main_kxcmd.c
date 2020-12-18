@@ -9,22 +9,27 @@ kx_realloc_t kx_realloc = NULL;
 kx_calloc_t kx_calloc = NULL;
 kx_free_t kx_free = NULL;
 
+#define MAKE_START_END_LEN(av0, start, end, len) { \
+    const char *p = av0; \
+    while (*p) { \
+        if (*p == '/' || *p == '\\') { \
+            start = p - av0 + 1; \
+        } else if (*p == '.') { \
+            end = p - av0; \
+        } \
+        ++p; \
+    } \
+    if (end <= start) { \
+        end = p - av0; \
+    } \
+    len = end - start; \
+} \
+/**/
+
 char *make_cmd_name(const char *av0)
 {
-    int start = 0, end = 0;
-    const char *p = av0;
-    while (*p) {
-        if (*p == '/' || *p == '\\') {
-            start = p - av0 + 1;
-        } else if (*p == '.') {
-            end = p - av0;
-        }
-        ++p;
-    }
-    if (end <= start) {
-        end = p - av0;
-    }
-    int len = end - start;
+    int start = 0, end = 0, len = 0;
+    MAKE_START_END_LEN(av0, start, end, len);
     char *cmdname = kx_calloc(len + 3/* .kx */ + 2, sizeof(char));
     strncpy(cmdname, av0 + start, len);
     strcat(cmdname, ".kx");
@@ -33,20 +38,8 @@ char *make_cmd_name(const char *av0)
 
 char *make_exec_name(const char *av0)
 {
-    int start = 0, end = 0;
-    const char *p = av0;
-    while (*p) {
-        if (*p == '/' || *p == '\\') {
-            start = p - av0 + 1;
-        } else if (*p == '.') {
-            end = p - av0;
-        }
-        ++p;
-    }
-    if (end <= start) {
-        end = p - av0;
-    }
-    int len = end - start;
+    int start = 0, end = 0, len = 0;
+    MAKE_START_END_LEN(av0, start, end, len);
     char *cmdname = kx_calloc(len + 7/* --exec: */ + 2, sizeof(char));
     strcpy(cmdname, "--exec:");
     strncpy(cmdname + 7, av0 + start, len);
