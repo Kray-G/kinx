@@ -1,5 +1,5 @@
 
-native quicksort_n(a:ary, first, last) {
+native quicksort_n(a:int[], first, last) {
     var i = first;
     var j = last;
     var x = a[(first + last) / 2];
@@ -17,7 +17,7 @@ native quicksort_n(a:ary, first, last) {
         quicksort_n(a, j + 1, last);
 }
 
-function quicksort_f(a:ary, first, last) {
+function quicksort_f(a:int[], first, last) {
     var i = first;
     var j = last;
     var x = a[(first + last) / 2];
