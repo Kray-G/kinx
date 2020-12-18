@@ -62,25 +62,21 @@ int main(int ac, char **av)
 
     int r = 0;
     int ac1 = ac + 1;
-    char *cmd = make_cmd_name(av[0]);
     char **avp = kx_calloc(ac1, sizeof(char *));
-    if (file_exists(cmd)) {
-        for (int i = 1; i < ac; ++i) {
-            avp[i+1] = av[i];
-        }
-        avp[0] = av[0];
-        avp[1] = cmd;
-    } else {
+    char *cmd = make_cmd_name(av[0]);
+    if (!file_exists(cmd)) {
         kx_free(cmd);
-        for (int i = 1; i < ac; ++i) {
-            avp[i+1] = av[i];
-        }
-        avp[0] = av[0];
-        avp[1] = cmd = make_exec_name(av[0]);
+        cmd = make_exec_name(av[0]);
     }
 
+    avp[0] = av[0];
+    avp[1] = cmd;
+    for (int i = 1; i < ac; ++i) {
+        avp[i+1] = av[i];
+    }
     r = kinx_call_main(ac1, avp);
     kx_free(cmd);
-    free(avp);
+    kx_free(avp);
+
     return r;
 }
