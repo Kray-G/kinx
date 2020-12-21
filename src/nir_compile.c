@@ -486,7 +486,7 @@ static int natir_compile_bop(kx_native_context_t *nctx, kxn_block_t *block, kxn_
         KXN_COMPILE_BOP_DIV(do_skip, is_next_ret, is_next_arg, SLJIT_DIV_SW, SLJIT_R0);
         break;
     case KXNOP_MOD:
-        KXN_COMPILE_BOP_DIV(do_skip, is_next_ret, is_next_arg, SLJIT_DIVMOD_SW, SLJIT_R0);
+        KXN_COMPILE_BOP_DIV(do_skip, is_next_ret, is_next_arg, SLJIT_DIVMOD_SW, SLJIT_R1);
         break;
     case KXNOP_POW:
         assert(0);
@@ -1216,13 +1216,13 @@ static int natir_compile_code(kx_native_context_t *nctx, kxn_block_t *block, kxn
         break;
     case KXN_UOP:
         do_skip = natir_compile_uop(nctx, block, code, i, is_last, is_next_ret, is_next_arg);
-        break; 
+        break;
     case KXN_0OP:
         do_skip = natir_compile_0op(nctx, code, is_last, is_next_ret, is_next_arg);
-        break; 
+        break;
     case KXN_SOP:
         natir_compile_sop(nctx, code, is_last);
-        break; 
+        break;
     case KXN_ARG:
         natir_compile_arg(nctx, code, -1);
         break;
