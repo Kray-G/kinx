@@ -71,9 +71,12 @@ static void setup_actual_exe_path(char *candidate)
     char *p = getenv("PATH");
     while (1) {
         char *n = next_path(p);
-        if (!n) break;
+        if (!n) {
+            break;
+        }
         if (file_exists(n)) {
             strcpy(candidate, n);
+            break;
         }
     }
 }
