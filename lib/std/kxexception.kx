@@ -1,5 +1,5 @@
 
- (_function() {
+(_function() {
     var excmap_ = System._globalExceptionMap();
 
     System.defineException = _function(type) {

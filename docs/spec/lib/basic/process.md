@@ -252,7 +252,7 @@ examples/fib.kx
 using Process;
 
 var [r1, w1] = new Pipe();
-var p1 = new Process([ $exepath / "kinx", "-h" ], { out: w1 }).run();
+var p1 = new Process([ $kinxpath / "kinx", "-h" ], { out: w1 }).run();
 w1.close(); // You can close it as it is no longer used
 
 var str;
