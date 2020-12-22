@@ -103,13 +103,13 @@ namespace Util {
     };
 
     var imgCounter_ = 0;
-    var exepath_ = $exepath.replace('\\', '/');
+    var kinxpath_ = $kinxpath.replace('\\', '/');
     var phantomjs_ = System.PLATFORM.endsWith("-WIN") ? "phantomjs.exe" : "phantomjs";
     var katex_, duktape_, chartjs_;
     var executable_, phantomPath_;
 
     function makePhantomjsPath() {
-        var base = [exepath_ / 'kinxlib', exepath_ / 'lib', exepath_ / 'kinxlib/lib', exepath_ / 'lib/lib', exepath_ / 'src/extlib'];
+        var base = [kinxpath_ / 'kinxlib', kinxpath_ / 'lib', kinxpath_ / 'kinxlib/lib', kinxpath_ / 'lib/lib', kinxpath_ / 'src/extlib'];
         for (var i = 0, l = base.length(); i < l; ++i) {
             phantomPath_ = base[i] / 'phantomjs';
             var path = phantomPath_ / phantomjs_;
@@ -133,7 +133,7 @@ namespace Util {
     }
 
     function loadKatex() {
-        var base = [exepath_ / 'kinxlib', exepath_ / 'lib'];
+        var base = [kinxpath_ / 'kinxlib', kinxpath_ / 'lib'];
         for (var i = 0, l = base.length(); i < l; ++i) {
             var path = base[i] / 'katex/katex.min.js';
             if (File.exists(path)) {
@@ -155,7 +155,7 @@ namespace Util {
     }
 
     function getChartjsPath() {
-        var base = [exepath_ / 'kinxlib', exepath_ / 'lib'];
+        var base = [kinxpath_ / 'kinxlib', kinxpath_ / 'lib'];
         for (var i = 0, l = base.length(); i < l; ++i) {
             var path = base[i] / 'chartjs/Chart.min.js';
             if (File.exists(path)) {
