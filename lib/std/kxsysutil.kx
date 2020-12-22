@@ -49,7 +49,7 @@ System.setSignalHookFunction(_function() {
         for (var i = 0; i < sz; ++i) {
             if (hooks[i].isFunction) {
                 var r = hooks[i](Signal.SIGINT);
-                if (r.isDefined && !r) return System.halt(); 
+                if (r.isDefined && !r) return System.halt();
                 done = 1;
             }
         }
@@ -60,7 +60,7 @@ System.setSignalHookFunction(_function() {
         for (var i = 0; i < sz; ++i) {
             if (hooks[i].isFunction) {
                 var r = hooks[i](Signal.SIGTERM);
-                if (r.isDefined && !r) return System.halt(); 
+                if (r.isDefined && !r) return System.halt();
                 done = 1;
             }
         }
@@ -73,6 +73,7 @@ System.setSignalHookFunction(_function() {
 # Some Other Utilities.
 
 $exepath = System.exepath();
+$kinxpath = System.kinxpath();
 System.PLATFORM = System.getPlatform();
 
 System.try = _function(f) {
