@@ -72,6 +72,14 @@ Array.collectConcat = Array.flatMap = _function(ary, func) {
     return ary.map(func).flatten();
 };
 
+Array.find = _function(ary, item) {
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        return i if (item == ary[i]);
+    }
+    return -1;
+};
+
 Array.findAll = Array.select = Array.filter = _function(ary, callback) {
     var ret = [];
     var len = ary.length();
