@@ -109,19 +109,19 @@ void unload_library(void *h)
 
 const char *kxlib_file_exists_no_current(const char *file)
 {
-    const char *checkfile = make_path(get_exe_path(), file);
+    const char *checkfile = make_path(get_kinx_path(), file);
     if (file_exists(checkfile)) {
         return checkfile;
     }
-    checkfile = make_path_with(get_exe_path(), "lib", file);
+    checkfile = make_path_with(get_kinx_path(), "lib", file);
     if (file_exists(checkfile)) {
         return checkfile;
     }
-    checkfile = make_path_with(get_exe_path(), "lib"PATH_DELIM"std", file);
+    checkfile = make_path_with(get_kinx_path(), "lib"PATH_DELIM"std", file);
     if (file_exists(checkfile)) {
         return checkfile;
     }
-    checkfile = make_path_with(get_exe_path(), ".."PATH_DELIM"lib", file);
+    checkfile = make_path_with(get_kinx_path(), ".."PATH_DELIM"lib", file);
     if (file_exists(checkfile)) {
         return checkfile;
     }
@@ -140,11 +140,11 @@ const char *kxlib_file_exists_no_current(const char *file)
 
 const char *kxlib_exec_file_exists(const char *file)
 {
-    const char *checkfile = make_path_with_ext(get_exe_path(), "lib"PATH_DELIM"exec", file, ".kx");
+    const char *checkfile = make_path_with_ext(get_kinx_path(), "lib"PATH_DELIM"exec", file, ".kx");
     if (file_exists(checkfile)) {
         return checkfile;
     }
-    checkfile = make_path_with_ext(get_exe_path(), "lib"PATH_DELIM"exec"PATH_DELIM"3rdparty", file, ".kx");
+    checkfile = make_path_with_ext(get_kinx_path(), "lib"PATH_DELIM"exec"PATH_DELIM"3rdparty", file, ".kx");
     if (file_exists(checkfile)) {
         return checkfile;
     }

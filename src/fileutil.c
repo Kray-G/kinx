@@ -132,7 +132,7 @@ char *get_cur_path(void)
     return s_result;
 }
 
-char* get_exe_path(void)
+char* get_kinx_path(void)
 {
     static char s_result[2048] = {0};
 
@@ -145,6 +145,26 @@ char* get_exe_path(void)
         if (len > 0) {
             strncpy(s_result, exe_full_path, 2040);
             setup_actual_exe_path(s_result);
+            p = strrchr(s_result, '\\');
+            if (p) *p = 0;
+        }
+    }
+
+    return s_result;
+}
+
+char* get_actual_exe_path(void)
+{
+    static char s_result[2048] = {0};
+
+    if (!s_result[0]) {
+        char* p;
+        int  len;
+        char exe_full_path[PATH_MAX];
+
+        len = GetModuleFileNameA(NULL, exe_full_path, PATH_MAX);
+        if (len > 0) {
+            strncpy(s_result, exe_full_path, 2040);
             p = strrchr(s_result, '\\');
             if (p) *p = 0;
         }
@@ -266,7 +286,7 @@ char *get_cur_path(void)
     return s_result;
 }
 
-char* get_exe_path(void)
+char* get_kinx_path(void)
 {
     static char s_result[2048] = {0};
 
@@ -276,6 +296,22 @@ char* get_exe_path(void)
         readlink("/proc/self/exe", exe_full_path, PATH_MAX);
         strncpy(s_result, exe_full_path, 2040);
         setup_actual_exe_path(s_result);
+        p = strrchr(s_result, '/');
+        if (p) *p = 0;
+    }
+
+    return s_result;
+}
+
+char* get_actual_exe_path(void)
+{
+    static char s_result[2048] = {0};
+
+    if (!s_result[0]) {
+        char* p;
+        char exe_full_path[PATH_MAX];
+        readlink("/proc/self/exe", exe_full_path, PATH_MAX);
+        strncpy(s_result, exe_full_path, 2040);
         p = strrchr(s_result, '/');
         if (p) *p = 0;
     }
