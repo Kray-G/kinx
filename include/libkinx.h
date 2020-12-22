@@ -102,7 +102,7 @@ static inline void *load_kinx_dll(void)
 {
     static char s_result[2048] = {0};
     if (s_result[0] == 0) {
-        const char *exepath = get_exe_path();
+        const char *exepath = get_kinx_path();
         strcpy(s_result, exepath);
         strcat(s_result, "\\libkinx.dll");
     }
@@ -131,7 +131,7 @@ static inline void *load_kinx_dll(void)
 {
     static char s_result[2048] = {0};
     if (s_result[0] == 0) {
-        const char *exepath = get_exe_path();
+        const char *exepath = get_kinx_path();
         strcpy(s_result, exepath);
         strcat(s_result, "/kinxlib/libkinx.so");
         if (!file_exists(s_result)) {
@@ -257,7 +257,7 @@ static inline int kinx_add_codef(kinx_compiler *kc, const char *fmt, ...)
     va_start(ap, fmt);
     vsnprintf(buf, 2040, fmt, ap);
     va_end(ap);
- 
+
     return kc->add_code(kc, buf);
 }
 

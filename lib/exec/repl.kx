@@ -296,20 +296,20 @@ class ReplCommand(helper_, replinfo_) {
         if (File.exists(file)) {
             filepath = file;
         }
-        if (!filepath && File.exists($exepath / 'lib' / file)) {
-            filepath = $exepath / 'lib' / file;
+        if (!filepath && File.exists($kinxpath / 'lib' / file)) {
+            filepath = $kinxpath / 'lib' / file;
         }
-        if (!filepath && File.exists($exepath / 'lib/std' / file)) {
-            filepath = $exepath / 'lib/std' / file;
+        if (!filepath && File.exists($kinxpath / 'lib/std' / file)) {
+            filepath = $kinxpath / 'lib/std' / file;
         }
-        if (!filepath && File.exists($exepath / 'kinxlib' / file)) {
-            filepath = $exepath / 'kinxlib' / file;
+        if (!filepath && File.exists($kinxpath / 'kinxlib' / file)) {
+            filepath = $kinxpath / 'kinxlib' / file;
         }
-        if (!filepath && File.exists($exepath / 'kinxlib/std' / file)) {
-            filepath = $exepath / 'kinxlib/std' / file;
+        if (!filepath && File.exists($kinxpath / 'kinxlib/std' / file)) {
+            filepath = $kinxpath / 'kinxlib/std' / file;
         }
-        if (!filepath && File.exists($exepath / '../lib' / file)) {
-            filepath = $exepath / '../lib' / file;
+        if (!filepath && File.exists($kinxpath / '../lib' / file)) {
+            filepath = $kinxpath / '../lib' / file;
         }
         if (!filepath) {
             return "File not found: " + file;
