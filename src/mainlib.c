@@ -115,7 +115,7 @@ static void version(int detail)
     if (detail) {
         printf("\n");
         printf("- platform: %s\n", sljit_get_platform_name());
-        printf("- path:     %s\n", get_exe_path());
+        printf("- path:     %s\n", get_kinx_path());
         printf("\n");
     }
 }

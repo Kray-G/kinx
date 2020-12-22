@@ -9,15 +9,15 @@ namespace Typesetting {
         fontPath_ = 'C:/Windows/Fonts';
         var path = fontPath_ / "fontmap.json";
         if (!File.exists(path)) {
-            fontPath_ = $exepath / 'fonts';
+            fontPath_ = $kinxpath / 'fonts';
             path = fontPath_ / "fontmap.json";
         }
         if (!File.exists(path)) {
-            fontPath_ = $exepath / 'lib/fonts';
+            fontPath_ = $kinxpath / 'lib/fonts';
             path = fontPath_ / "fontmap.json";
         }
         if (!File.exists(path)) {
-            fontPath_ = $exepath / 'kinxlib/fonts';
+            fontPath_ = $kinxpath / 'kinxlib/fonts';
             path = fontPath_ / "fontmap.json";
         }
         if (!File.exists(path)) {
@@ -982,7 +982,7 @@ namespace Typesetting {
                 isColMoved_ = true;
                 x_ = -1;
                 y_ = -1;
-                if (cols_ > 0) {            
+                if (cols_ > 0) {
                     curCol_ = (curCol_ + 1) % cols_;
                 }
                 if (curCol_ == 0) {
@@ -1072,7 +1072,7 @@ namespace Typesetting {
             isColMoved_ = false;
             if (y_ < bottomChk) {
                 isColMoved_ = true;
-                if (cols_ > 0) {            
+                if (cols_ > 0) {
                     curCol_ = (curCol_ + 1) % cols_;
                 }
                 var lastY = y_;
@@ -1333,7 +1333,7 @@ namespace Typesetting {
                     isColMoved_ = true;
                     x_ = -1;
                     y_ = -1;
-                    if (cols_ > 0) {            
+                    if (cols_ > 0) {
                         curCol_ = (curCol_ + 1) % cols_;
                     }
                     if (curCol_ == 0) {
