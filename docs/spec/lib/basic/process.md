@@ -1,5 +1,4 @@
-
-# Process class
+# class Process
 
 ## Overview
 
