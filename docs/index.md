@@ -194,3 +194,7 @@ Algorithm and Data structure examples are being described in the page below.
 Some special specifications.
 
 *   [String#next](spec/others/string_next.md)
+
+### Bug Fixes
+
+*   [Bug Fixes](spec/others/bugfixes.md)
