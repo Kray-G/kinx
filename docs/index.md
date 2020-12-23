@@ -134,7 +134,7 @@ but the description is included in this section because its feature is near a li
 
 #### Functions
 
-*   [eval()](spec/lib/function/eval.md) - *not documented yet*
+*   [eval()](spec/lib/function/eval.md)
 *   [DefineException()](spec/lib/function/define_exception.md) - *not documented yet*
 
 #### Standard Objects
