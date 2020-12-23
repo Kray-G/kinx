@@ -564,7 +564,7 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
         showIndent();
         system_.print("Case[%2d]: %s" % index % name);
         dotlen_ = 60 - name.length() - 6 - (indent_ * 4);
-        if (dotlen_ < 0) dotlen_ = 3; 
+        if (dotlen_ < 0) dotlen_ = 3;
     }
 
     public endTestCase(res, elapsed) {
