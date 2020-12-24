@@ -6,4 +6,5 @@ if exist "kinx.exe" (
 
 cl.exe /DWINMAIN /Feaddpath.exe utility\src\addpath.c Advapi32.lib User32.lib /link /SUBSYSTEM:WINDOWS
 cl.exe /Feaddpathc.exe utility\src\addpath.c Advapi32.lib User32.lib
+cl.exe /Feecho.exe utility\src\kecho.c
 nmake -f Makefile.msc %*
