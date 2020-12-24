@@ -2049,7 +2049,7 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *ar
     if (nctx.C->error != SLJIT_SUCCESS) {
         kx_yyerror_line_fmt("Native compilation error at %s", node->file, node->line, nctx.func_name);
     } else {
-    	code = (void*)sljit_generate_code(nctx.C);
+        code = (void*)sljit_generate_code(nctx.C);
     }
 
     kxn_func_t nf = (kxn_func_t){
