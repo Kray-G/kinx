@@ -134,7 +134,7 @@ but the description is included in this section because its feature is near a li
 
 #### Functions
 
-*   [eval()](spec/lib/function/eval.md) - *not documented yet*
+*   [eval()](spec/lib/function/eval.md)
 *   [DefineException()](spec/lib/function/define_exception.md) - *not documented yet*
 
 #### Standard Objects
@@ -194,3 +194,7 @@ Algorithm and Data structure examples are being described in the page below.
 Some special specifications.
 
 *   [String#next](spec/others/string_next.md)
+
+### Bug Fixes
+
+*   [Bug Fixes](spec/others/bugfixes.md)

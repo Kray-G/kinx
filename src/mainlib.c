@@ -171,6 +171,9 @@ DllExport int do_main(int ac, char **av)
     }
     #endif
 
+    int error_code = -1;
+    const char *filename = NULL;
+    const char *workdir = NULL;
     kx_context_t *ctx = make_context();
     g_main_thread = ctx;
     char lname[LONGNAME_MAX] = {0};
@@ -196,6 +199,14 @@ DllExport int do_main(int ac, char **av)
                 ctx->options.native_verbose = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "case-threshold")) {
                 ctx->options.case_threshold = param[0] ? strtol(param, NULL, 0) : 16;
+            } else if (!strcmp(lname, "error-code")) {
+                error_code = param[0] ? strtol(param, NULL, 0) : 0;
+            } else if (!strcmp(lname, "filename")) {
+                filename = param[0] ? const_str(ctx, param) : NULL;
+            } else if (!strcmp(lname, "workdir")) {
+                workdir = param[0] ? const_str(ctx, param) : NULL;
+            } else if (!strcmp(lname, "output-location")) {
+                ctx->options.output_location = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "exec")) {
                 if (param[0]) {
                     execname = param;
@@ -240,6 +251,11 @@ END_OF_OPT:
         ctx->options.utf8inout = 1;
     }
     #endif
+    if (workdir && file_exists(workdir)) {
+        const char *curdir = get_cur_path();
+        chdir(workdir);
+        workdir = curdir;
+    }
     kx_lexinfo.quiet = ctx->options.quiet;
     if (execname) {
         const char *execfile = kxlib_exec_file_exists(execname);
@@ -254,7 +270,7 @@ END_OF_OPT:
             goto CLEANUP;
         }
     } else if (ctx->options.src_stdin) {
-        r = eval_file(NULL, ctx);
+        r = eval_file(filename, ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
@@ -277,7 +293,7 @@ END_OF_OPT:
         goto CLEANUP;
     }
 
-    if (ctx->options.ast || ctx->options.dump || ctx->options.dot || ctx->options.syntax) {
+    if (ctx->options.ast || ctx->options.output_location || ctx->options.dump || ctx->options.dot || ctx->options.syntax) {
         if (ctx->options.ast) {
             start_display_ast(kx_ast_root);
         }
@@ -289,9 +305,11 @@ END_OF_OPT:
             ir_dot(ctx);
         }
         if (ctx->options.syntax) {
-            return g_yyerror;
+            if (error_code < 0) {
+                error_code = g_yyerror;
+            }
         }
-        return 0;
+        goto CLEANUP;
     }
 
     #if defined(_WIN32) || defined(_WIN64)
@@ -343,16 +361,25 @@ END_OF_OPT:
     tcsetattr(0, TCSANOW, &oldf);
     #endif
 CLEANUP:
+    /*  Definition information will be displayed even with errors. */
+    if (ctx->options.output_location) {
+        start_display_def_ast(kx_ast_root);
+    }
+
     g_terminated = 1;
     context_cleanup(ctx);
     free_nodes();
     pthread_mutex_destroy(&g_mutex);
     alloc_finalize();
 
+    if (workdir) {
+        chdir(workdir);
+    }
+
     #if defined(_WIN32) || defined(_WIN64)
     WSACleanup();
     #endif
-    return r;
+    return error_code >= 0 ? error_code : r;
 }
 
 /* Interfaces As a Library */

@@ -950,6 +950,69 @@ class ClassName(arg0, arg1) {
 var obj = new ClassName(1, 2);
 ```
 
+### Block
+
+Block is a scope between `{` and `}`
+The declared variable in the other scope has a different storage.
+See example below.
+
+```javascript
+var a = 10;
+{
+    var a = 100;
+    System.println(a);
+}
+System.println(a);
+```
+
+Here is the result.
+
+```
+100
+10
+```
+
+### Namespace
+
+You can use `namespace` as a namespace. A namespace is an object, and the classes or modules defined inside namespace will be assigned to a namespace object. However a constant value will **NOT** be assigned to a namaspace, so you should assign it.
+
+```javascript
+namespace N {
+    class A {
+        ...
+    }
+
+    const X = 10;
+    N.X = 100;
+
+    var a = new A(); // OK
+    ...
+}
+
+// var a = new A(); // error
+var a = new N.A();  // OK
+
+// System.println(X); // error
+System.println(N.X);  // OK
+```
+
+Namespace can be nested.
+
+```javascript
+namespace A {
+namespace B {
+
+    class X { ... }
+
+} // namespace B
+
+    var x = new B.X(); // OK
+
+} // namespace A
+
+var x = new A.B.X(); // OK
+```
+
 ## Expression
 
 ### Priority Order
@@ -1169,28 +1232,6 @@ You can also use an object lvalue style in declaration.
 ```javascript
 var obj = { xxx: 100, yyy: 200 };
 var { yyy } = obj;  // yyy = 200
-```
-
-#### Block Statement
-
-Block statement is a scope between `{` and `}`
-The declared variable in the other scope has a different storage.
-See example below.
-
-```javascript
-var a = 10;
-{
-    var a = 100;
-    System.println(a);
-}
-System.println(a);
-```
-
-Here is the result.
-
-```
-100
-10
 ```
 
 ### Flow Controls
