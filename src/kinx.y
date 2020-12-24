@@ -11,6 +11,14 @@
 #include <kxastobject.h>
 
 // #define YYDEBUG 1
+static inline void yy_restart(int token)
+{
+    kx_lexinfo.tempbuf[0] = token;
+    kx_lexinfo.tempbuf[1] = kx_lexinfo.ch;
+    kx_lexinfo.tempbuf[2] = 0;
+    kx_lexinfo.restart = kx_lexinfo.tempbuf;
+    kx_lexinfo.ch = ' ';
+}
 
 %}
 
@@ -45,6 +53,8 @@
 %type<obj> Program
 %type<obj> StatementList
 %type<obj> Statement
+%type<obj> SemicolonStatement
+%type<obj> NonSemicolonStatement
 %type<obj> BlockStatement
 %type<obj> NamespaceStatement
 %type<strval> NamespaceName
@@ -138,6 +148,7 @@
 %type<arraytype> TypeName
 %type<intval> ArrayLevel
 %type<intval> ReturnType_Opt
+%type<intval> GetLineNumber
 
 %%
 
@@ -151,23 +162,45 @@ StatementList
     ;
 
 Statement
+    : NonSemicolonStatement
+    | SemicolonStatement
+    ;
+
+NonSemicolonStatement
     : BlockStatement
     | NamespaceStatement
     | EnumStatement
     | IfStatement
     | CaseStatement
     | TryCatchStatement
-    | ReturnStatement
+    | LabelStatement
+    | LabelledStatement
+    | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
+    | error '}' { yyerrok; }
+    ;
+
+SemicolonStatement
+    : ReturnStatement
     | YieldStatement
     | ThrowStatement
     | MixinStatement
     | ExpressionStatement
     | DefinitionStatement
     | BreakStatement
-    | LabelStatement
-    | LabelledStatement
-    | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
     | error ';' { yyerrok; }
+    | error '{' { yy_restart('{'); yyerrok; }
+    | error IF { yy_restart(IF); yyerrok; }
+    | error DO { yy_restart(DO); yyerrok; }
+    | error WHILE { yy_restart(WHILE); yyerrok; }
+    | error FOR { yy_restart(FOR); yyerrok; }
+    | error TRY { yy_restart(TRY); yyerrok; }
+    | error SWITCH { yy_restart(SWITCH); yyerrok; }
+    | error CASE { yy_restart(CASE); yyerrok; }
+    | error ENUM { yy_restart(ENUM); yyerrok; }
+    | error CLASS { yy_restart(CLASS); yyerrok; }
+    | error FUNCTION { yy_restart(FUNCTION); yyerrok; }
+    | error PRIVATE { yy_restart(PRIVATE); yyerrok; }
+    | error PUBLIC { yy_restart(PUBLIC); yyerrok; }
     ;
 
 LabelledStatement
@@ -757,9 +790,9 @@ FunctionDeclStatement
     ;
 
 NormalFunctionDeclStatement
-    : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, $2, $4, $6, NULL); }
-    | SYSFUNC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, 0, $2, $4, $6, NULL); }
-    | NativeKeyword NativeType_Opt NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2.type, $2.depth, $3, $5, $7, NULL); }
+    : FUNCTION NAME GetLineNumber '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, 0, $2, $5, $7, NULL, $3); }
+    | SYSFUNC NAME GetLineNumber '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, 0, $2, $5, $7, NULL, $3); }
+    | NativeKeyword NativeType_Opt NAME GetLineNumber '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_NATIVE, $2.type, $2.depth, $3, $6, $8, NULL, $4); }
     ;
 
 NativeKeyword
@@ -782,9 +815,9 @@ AnonymousFunctionDeclExpression
     ;
 
 ClassFunctionDeclStatement
-    : PUBLIC ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PUBLIC, 0, $2, $4, $6, NULL); }
-    | PRIVATE ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PRIVATE, 0, $2, $4, $6, NULL); }
-    | PROTECTED ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_PROTECTED, 0, $2, $4, $6, NULL); }
+    : PUBLIC ClassFunctionName GetLineNumber '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PUBLIC, 0, $2, $5, $7, NULL, $3); }
+    | PRIVATE ClassFunctionName GetLineNumber '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PRIVATE, 0, $2, $5, $7, NULL, $3); }
+    | PROTECTED ClassFunctionName GetLineNumber '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PROTECTED, 0, $2, $5, $7, NULL, $3); }
     ;
 
 ClassFunctionName
@@ -793,13 +826,13 @@ ClassFunctionName
     ;
 
 ClassDeclStatement
-    : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KXFT_CLASS, 0, $2, $3, $5, $4); }
-    | SYSCLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object(KXST_SYSCLASS, KXFT_CLASS, 0, $2, $3, $5, $4); }
+    : CLASS NAME GetLineNumber ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_CLASS, KXFT_CLASS, 0, $2, $4, $6, $5, $3); }
+    | SYSCLASS NAME GetLineNumber ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_SYSCLASS, KXFT_CLASS, 0, $2, $4, $6, $5, $3); }
     ;
 
 ModuleDeclStatement
-    : MODULE NAME BlockStatement { $$ = kx_gen_func_object(KXST_CLASS, KXFT_MODULE, 0, $2, NULL, $3, NULL); }
-    | SYSMODULE NAME BlockStatement { $$ = kx_gen_func_object(KXST_SYSCLASS, KXFT_MODULE, 0, $2, NULL, $3, NULL); }
+    : MODULE NAME GetLineNumber BlockStatement { $$ = kx_gen_func_object_line(KXST_CLASS, KXFT_MODULE, 0, $2, NULL, $4, NULL, $3); }
+    | SYSMODULE NAME GetLineNumber BlockStatement { $$ = kx_gen_func_object_line(KXST_SYSCLASS, KXFT_MODULE, 0, $2, NULL, $4, NULL, $3); }
     ;
 
 Inherit_Opt
@@ -882,6 +915,10 @@ CallArgument
     : AssignExpression
     | ObjectSpecialSyntax
     | STR { $$ = kx_gen_str_object($1); }
+    ;
+
+GetLineNumber
+    : { $$ = kx_lexinfo.line; }
     ;
 
 %%

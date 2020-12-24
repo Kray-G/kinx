@@ -413,7 +413,7 @@ static int eval(kx_context_t *ctx)
     if (g_yyerror > 0) {
         return -1;
     }
-    if (ctx->options.ast) {
+    if (ctx->options.ast || ctx->options.output_location) {
         return 0;
     }
 

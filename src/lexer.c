@@ -637,14 +637,15 @@ int kx_yylex_x();
 int kx_yylex()
 {
     int ch = kx_yylex_x();
-    if (isgraph(ch)) {
-        printf("ret '%c' (kx_lexinfo.ch = %d)\n", ch, kx_lexinfo.ch);
-    } else {
+    printf("location = %s:%d(%d)\n", kx_lexinfo.file, kx_lexinfo.line, kx_lexinfo.pos);
+    // if (ch < 256 && isgraph(ch)) {
+    //     printf("ret '%c' (kx_lexinfo.ch = %d)\n", ch, kx_lexinfo.ch);
+    // } else {
         if (ch == NAME) {
             printf("NAME = %s\n", kx_yylval.strval);
         }
         printf("ret %d\n", ch);
-    }
+    // }
     return ch;
 }
 
@@ -1085,6 +1086,11 @@ HEAD_OF_YYLEX:
         goto HEAD_OF_YYLEX;
     }
     default:
+        if (kx_lexinfo.restart) {
+            int ch = kx_lexinfo.ch;
+            kx_lex_next(kx_lexinfo);
+            return ch;
+        }
         break;
     }
 
