@@ -17,6 +17,7 @@ OBJS = \
     allocutil.o \
     ast_analyzer.o \
     ast_display.o \
+    ast_defdisp.o \
     ast_gencode.o \
     ast_object.o \
     ast_native.o \
@@ -409,6 +410,12 @@ ast_display.o: src/ast_display.c include/dbg.h include/parser.h \
  include/jit.h include/../src/jit/sljitLir.h \
  include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h include/parser.tab.h
+ast_defdisp.o: src/ast_defdisp.c include/dbg.h include/parser.h \
+ include/kinx.h include/kvec.h include/ir.h include/khash.h \
+ include/klist.h include/kstr.h include/bigz.h include/bign.h \
+ include/jit.h include/../src/jit/sljitLir.h \
+ include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/parser.tab.h
 ast_gencode.o: src/ast_gencode.c include/dbg.h include/kvec.h \
  include/kinx.h include/ir.h include/khash.h include/klist.h \
  include/kstr.h include/bigz.h include/bign.h include/jit.h \
@@ -561,4 +568,4 @@ opt_jumpx.o: src/optimizer/opt_jumpx.c include/kxoptimizer.h include/kinx.h \
  include/jit.h include/../src/jit/sljitLir.h \
  include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h
- 
+

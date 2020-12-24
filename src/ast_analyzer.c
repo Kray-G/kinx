@@ -349,6 +349,7 @@ LOOP_HEAD:;
             kx_object_t *tempvar = kx_gen_var_object(name, KX_UNKNOWN_T);
             kx_object_t *assign = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object(node->var_type == KX_LARY_T ? KXOP_MKARY : KXOP_MKOBJ, node->lhs), tempvar);
             actx->func->rhs = actx->func->rhs ? kx_gen_bexpr_object(KXST_STMTLIST, assign, actx->func->rhs) : assign;
+            node->rhs = node->lhs;
             node->lhs = tempvar;
             node->value.s = name;
             node->var_type = KX_UNKNOWN_T;
@@ -469,6 +470,7 @@ LOOP_HEAD:;
         if (actx->vars) {
             kv_push(kx_object_t*, (*(actx->vars)), node);
         }
+        node->ex = sym->base;
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
         node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
@@ -590,7 +592,7 @@ LOOP_HEAD:;
             actx->decl = decl;
             break;
         }
-        // if declaration is array, same as assignment. 
+        // if declaration is array, same as assignment.
         // fall through
     }
     case KXOP_ASSIGN: {

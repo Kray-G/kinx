@@ -8,6 +8,7 @@ OBJS = \
     src/allocutil.obj \
     src/ast_analyzer.obj \
     src/ast_display.obj \
+    src/ast_defdisp.obj \
     src/ast_gencode.obj \
     src/ast_object.obj \
     src/ast_native.obj \
@@ -335,6 +336,12 @@ src/ast_analyzer.obj: src/ast_analyzer.c include/dbg.h include/parser.h \
  include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h include/parser.tab.h
 src/ast_display.obj: src/ast_display.c include/dbg.h include/parser.h \
+ include/kinx.h include/kvec.h include/ir.h include/khash.h \
+ include/klist.h include/kstr.h include/bigz.h include/bign.h \
+ include/jit.h include/../src/jit/sljitLir.h \
+ include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/parser.tab.h
+src/ast_defdisp.obj: src/ast_defdisp.c include/dbg.h include/parser.h \
  include/kinx.h include/kvec.h include/ir.h include/khash.h \
  include/klist.h include/kstr.h include/bigz.h include/bign.h \
  include/jit.h include/../src/jit/sljitLir.h \
