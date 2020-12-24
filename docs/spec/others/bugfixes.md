@@ -10,8 +10,8 @@ This section describes a testing for bug fixes.
 
 This bug's was caused by an invalid mod operation.
 
-* Issue: #17
-* Fixed: 84458603b333c6a678082ab2c17a4d730fd8c6dc
+* Issue: [#17](https://github.com/Kray-G/kinx/issues/17)
+* Fixed: [84458603b333c6a678082ab2c17a4d730fd8c6dc](https://github.com/Kray-G/kinx/commit/84458603b333c6a678082ab2c17a4d730fd8c6dc)
 * Release: **NOT Released Yet**
 
 See also an additional test code in [Basic Expressions in native](../definition/native/native_expr.md).
