@@ -86,7 +86,7 @@ try {
 #### Result
 
 ```
-Error: Can not use throw without expression outside catch clause near the test.kx:2
+Error: Can not use throw without expression outside catch clause near the <test.kx>:2
 ```
 
 ### Example 3. Rethrow in catch

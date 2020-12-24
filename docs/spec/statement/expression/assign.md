@@ -59,5 +59,5 @@ System.println(b);  // => ???
 #### Result
 
 ```
-Error: Symbol(b) is not found near the test.kx:8
+Error: Symbol(b) is not found near the <test.kx>:8
 ```

@@ -928,7 +928,7 @@ int yyerror(const char *msg)
     ++g_yyerror;
     if (!kx_lexinfo.quiet) {
         if (kx_lexinfo.file) {
-            return printf("Error: %s near the %s:%d\n", msg, kx_lexinfo.file, kx_lexinfo.line);
+            return printf("Error: %s near the <%s>:%d\n", msg, kx_lexinfo.file, kx_lexinfo.line);
         } else {
             return printf("Error: %s near the <eval>:%d\n", msg, kx_lexinfo.line);
         }
@@ -940,7 +940,7 @@ int kx_yyerror_line(const char *msg, const char* file, const int line)
 {
     ++g_yyerror;
     if (!kx_lexinfo.quiet) {
-        return printf("Error: %s near the %s:%d\n", msg, file, line);
+        return printf("Error: %s near the <%s>:%d\n", msg, file, line);
     }
     return 0;
 }
@@ -954,7 +954,7 @@ int kx_yyerror_line_fmt(const char *msg, const char* file, const int line, ...)
         va_start(list, line);
         r += vprintf(msg, list);
         va_end(list);
-        r += printf(" near the %s:%d\n", file, line);
+        r += printf(" near the <%s>:%d\n", file, line);
         return r;
     }
     return 0;
@@ -965,7 +965,7 @@ int kx_yywarning(const char *msg)
     ++g_yywarning;
     if (!kx_lexinfo.quiet) {
         if (kx_lexinfo.file) {
-            return printf("Warning: %s near the %s:%d\n", msg, kx_lexinfo.file, kx_lexinfo.line);
+            return printf("Warning: %s near the <%s>:%d\n", msg, kx_lexinfo.file, kx_lexinfo.line);
         } else {
             return printf("Warning: %s near the <eval>:%d\n", msg, kx_lexinfo.line);
         }
