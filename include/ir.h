@@ -600,6 +600,7 @@ typedef struct kx_options_ {
     int dot:1;
     int dump:1;
     int ast:1;
+    int output_location:1;
     int src_stdin:1;
     int utf8inout:1;
     int native_verbose:1;
