@@ -111,10 +111,10 @@ static int load_using_module(const char *name, int no_error)
 
         kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
         FILE *fp = fopen(file, "r");
-        setup_lexinfo(g_parse_ctx, libname, &(kx_yyin_t){
+        setup_lexinfo(g_parse_ctx, file, &(kx_yyin_t){
             .fp = fp,
             .str = NULL,
-            .file = const_str(g_parse_ctx, libname)
+            .file = const_str(g_parse_ctx, file)
         });
     }
 
