@@ -537,11 +537,15 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
         system_.print("    " * (indent ?? indent_));
     }
 
+    private newLine() {
+        system_.println("");
+    }
+
     public endTest() {
     }
 
     public startEntry(name) {
-        system_.println("");
+        newLine();
         showIndent();
         system_.println("Entry: %s" % name);
         ++indent_;
@@ -554,7 +558,6 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
     public startSuite(name) {
         showIndent();
         system_.println("Suite: %s" % name);
-        system_.println("");
         ++indent_;
     }
 
@@ -564,6 +567,7 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
 
     public startTestCase(index, name) {
         # showIndent();
+        newLine() if (index == 0);
         system_.print("  - Case[%2d]: %s" % index % name);
         dotlen_ = 60 - name.length() - (6 + (3 * 4));
         if (dotlen_ < 0) dotlen_ = 3;
