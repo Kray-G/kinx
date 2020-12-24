@@ -111,10 +111,10 @@ static int load_using_module(const char *name, int no_error)
 
         kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
         FILE *fp = fopen(file, "r");
-        setup_lexinfo(g_parse_ctx, libname, &(kx_yyin_t){
+        setup_lexinfo(g_parse_ctx, file, &(kx_yyin_t){
             .fp = fp,
             .str = NULL,
-            .file = const_str(g_parse_ctx, libname)
+            .file = const_str(g_parse_ctx, file)
         });
     }
 
@@ -637,14 +637,15 @@ int kx_yylex_x();
 int kx_yylex()
 {
     int ch = kx_yylex_x();
-    if (isgraph(ch)) {
-        printf("ret '%c' (kx_lexinfo.ch = %d)\n", ch, kx_lexinfo.ch);
-    } else {
+    printf("location = %s:%d(%d)\n", kx_lexinfo.file, kx_lexinfo.line, kx_lexinfo.pos);
+    // if (ch < 256 && isgraph(ch)) {
+    //     printf("ret '%c' (kx_lexinfo.ch = %d)\n", ch, kx_lexinfo.ch);
+    // } else {
         if (ch == NAME) {
             printf("NAME = %s\n", kx_yylval.strval);
         }
         printf("ret %d\n", ch);
-    }
+    // }
     return ch;
 }
 
@@ -1085,6 +1086,11 @@ HEAD_OF_YYLEX:
         goto HEAD_OF_YYLEX;
     }
     default:
+        if (kx_lexinfo.restart) {
+            int ch = kx_lexinfo.ch;
+            kx_lex_next(kx_lexinfo);
+            return ch;
+        }
         break;
     }
 
