@@ -145,7 +145,7 @@ a = 20;
 #### Result
 
 ```
-Error: Can not assign a value to the 'const' variable near the test.kx:2
+Error: Can not assign a value to the 'const' variable near the <test.kx>:2
 ```
 
 ### Example 6. Constant value (2)
@@ -181,7 +181,7 @@ a = 30; // error.
 #### Result
 
 ```
-Error: Can not assign a value to the 'const' variable near the test.kx:3
+Error: Can not assign a value to the 'const' variable near the <test.kx>:3
 ```
 
 ### Example 7. Constant value (4)
@@ -198,7 +198,7 @@ a = { y: 20 };
 #### Result
 
 ```
-Error: Can not assign a value to the 'const' variable near the test.kx:2
+Error: Can not assign a value to the 'const' variable near the <test.kx>:2
 ```
 
 ### Example 6. Constant value (5)
@@ -249,6 +249,6 @@ b = 20;
 #### Result
 
 ```
-Error: Can not assign a value to the 'const' variable near the test.kx:2
-Error: Can not assign a value to the 'const' variable near the test.kx:3
+Error: Can not assign a value to the 'const' variable near the <test.kx>:2
+Error: Can not assign a value to the 'const' variable near the <test.kx>:3
 ```
