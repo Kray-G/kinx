@@ -255,6 +255,7 @@ typedef struct kx_object_ {
 
     const char *file;
     uint32_t line;
+    uint32_t pos;
 
     struct kx_object_ *case_next; /* used in switch-case */
     kvec_t(int) case_src_block;  /* jump source to case */
@@ -304,6 +305,7 @@ extern void start_optimize_code(kx_context_t *ctx, int start);
 
 extern void start_analyze_ast(kx_context_t *ctx, kx_object_t *node);
 extern void start_display_ast(kx_object_t *node);
+extern void start_display_def_ast(kx_object_t *node);
 extern kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *args, int argn);
 extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module, const char *name);
 extern void ir_code_dump_one(int addr, kx_code_t *code);

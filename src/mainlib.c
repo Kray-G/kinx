@@ -205,6 +205,8 @@ DllExport int do_main(int ac, char **av)
                 filename = param[0] ? const_str(ctx, param) : NULL;
             } else if (!strcmp(lname, "workdir")) {
                 workdir = param[0] ? const_str(ctx, param) : NULL;
+            } else if (!strcmp(lname, "output-location")) {
+                ctx->options.output_location = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "exec")) {
                 if (param[0]) {
                     execname = param;
@@ -291,7 +293,7 @@ END_OF_OPT:
         goto CLEANUP;
     }
 
-    if (ctx->options.ast || ctx->options.dump || ctx->options.dot || ctx->options.syntax) {
+    if (ctx->options.ast || ctx->options.output_location || ctx->options.dump || ctx->options.dot || ctx->options.syntax) {
         if (ctx->options.ast) {
             start_display_ast(kx_ast_root);
         }
@@ -359,6 +361,11 @@ END_OF_OPT:
     tcsetattr(0, TCSANOW, &oldf);
     #endif
 CLEANUP:
+    /*  Definition information will be displayed even with errors. */
+    if (ctx->options.output_location) {
+        start_display_def_ast(kx_ast_root);
+    }
+
     g_terminated = 1;
     context_cleanup(ctx);
     free_nodes();
