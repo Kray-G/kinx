@@ -39,8 +39,8 @@ class SpecTestResult(res_) {
     public showResult(indent) {
         indent ??= 0;
         if (res_.name) {
-            showIndent(indent);
-            if(res_.isTestCase) {
+            # showIndent(indent);
+            if (res_.isTestCase) {
                 var len = res_.name.length();
                 var dotlen = len < 47 ? (50 - len - (indent * 4)) : 3;
                 var dot = dotlen * ".";
@@ -541,6 +541,7 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
     }
 
     public startEntry(name) {
+        system_.println("");
         showIndent();
         system_.println("Entry: %s" % name);
         ++indent_;
@@ -553,6 +554,7 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
     public startSuite(name) {
         showIndent();
         system_.println("Suite: %s" % name);
+        system_.println("");
         ++indent_;
     }
 
@@ -561,9 +563,9 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
     }
 
     public startTestCase(index, name) {
-        showIndent();
-        system_.print("Case[%2d]: %s" % index % name);
-        dotlen_ = 60 - name.length() - 6 - (indent_ * 4);
+        # showIndent();
+        system_.print("  - Case[%2d]: %s" % index % name);
+        dotlen_ = 60 - name.length() - (6 + (3 * 4));
         if (dotlen_ < 0) dotlen_ = 3;
     }
 
@@ -589,13 +591,13 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
             var idt = indent_ + 1;
             var seplen = 78 - (indent_ * 4);
             showIndent(idt);
-            System.println("-" * seplen);
+            system_.println("-" * seplen);
             showIndent(idt);
-            System.println("Expected: ", res.expect.replace("\n", "\n"+indentSpaces(idt, 10)));
+            system_.println("Expected: ", res.expect.replace("\n", "\n"+indentSpaces(idt, 10)));
             showIndent(idt);
-            System.println("-" * seplen);
+            system_.println("-" * seplen);
             showIndent(idt);
-            System.println("Actual:   ", res.actual.replace("\n", "\n"+indentSpaces(idt, 10)));
+            system_.println("Actual:   ", res.actual.replace("\n", "\n"+indentSpaces(idt, 10)));
         }
     }
 
