@@ -106,7 +106,7 @@ kx_object_t *kx_gen_ary_var_object(kx_object_t *node, int var_type)
     return kx_gen_obj_core(KXOP_VAR, 0, node, NULL, NULL, var_type);
 }
 
-static kx_object_t *kx_gen_var_object_line(const char *name, int var_type, int line)
+kx_object_t *kx_gen_var_object_line(const char *name, int var_type, int line)
 {
     static int counter = 0;
     if (!name) {
@@ -512,11 +512,11 @@ kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const
     if (type == KXST_NATIVE) {
         sg_native = 0;
     } else if (optional == KXFT_MODULE) {
-        lhs = kx_gen_var_object("this", KX_OBJ_T);
+        lhs = kx_gen_var_object_line("this", KX_OBJ_T, line);
     } else if (optional == KXFT_CLASS) {
         ++classid;
         rhs = kx_gen_bexpr_object(KXST_STMTLIST,
-            kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("_classid", KX_UNKNOWN_T), NULL),
+            kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("_classid", KX_UNKNOWN_T, line), NULL),
             rhs
         );
         rhs = kx_gen_bexpr_object(KXST_STMTLIST,
@@ -578,7 +578,7 @@ kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const
         rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
     }
     if (!ex && (type == KXST_CLASS || type == KXST_SYSCLASS) && optional == KXFT_CLASS) {
-        ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("this", KX_OBJ_T), kx_gen_uexpr_object(KXOP_MKOBJ, NULL));
+        ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_OBJ_T, line), kx_gen_uexpr_object(KXOP_MKOBJ, NULL));
     }
 
     const char *pname = name;
