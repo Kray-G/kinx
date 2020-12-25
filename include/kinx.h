@@ -246,7 +246,7 @@ typedef struct kx_object_ {
     int lexical;
     int index;
     int pushes;
-    int lexical_refs;
+    int refs;
     int local_vars;
     int count_args;
     int callargs_max;
