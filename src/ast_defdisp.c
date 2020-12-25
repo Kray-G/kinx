@@ -5,7 +5,9 @@
 static void print_ref(const char *type, kx_object_t *node, kx_object_t *base)
 {
     if (node->value.s && node->value.s[0] != '_') {
-        printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\n", type, node->value.s, node->file, node->line, base->file, base->line);
+        if (strcmp(node->file, base->file) != 0 || node->line != base->line) {
+            printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\n", type, node->value.s, node->file, node->line, base->file, base->line);
+        }
     }
 }
 

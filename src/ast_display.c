@@ -81,24 +81,12 @@ LOOP_HEAD:;
             printf("optimized - ");
         }
         if (node->var_type == KX_UNKNOWN_T) {
-            if (node->lexical_refs) {
-                printf("%c(var:%s) [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index, node->lexical_refs);
-            } else {
-                printf("%c(var:%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index);
-            }
+            printf("%c(var:%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->lexical, node->index);
         } else {
             if (node->refdepth > 0) {
-                if (node->lexical_refs) {
-                    printf("%c(var:%s[depth:%d]):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
-                } else {
-                    printf("%c(var:%s[depth:%d]):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
-                }
+                printf("%c(var:%s[depth:%d]):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
             } else {
-                if (node->lexical_refs) {
-                    printf("%c(var:%s):%s [%d:%d](lrefs:%d)\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index, node->lexical_refs);
-                } else {
-                    printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index);
-                }
+                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_short_typename(node->var_type), node->lexical, node->index);
             }
         }
         break;
@@ -472,7 +460,7 @@ LOOP_HEAD:;
         }
         break;
     case KXST_CLASS:      /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
-        printf("(%s: %s) [refs:%d]\n", node->optional == KXFT_CLASS ? "class" : "module", node->value.s, node->lexical_refs);
+        printf("(%s: %s) [refs:%d]\n", node->optional == KXFT_CLASS ? "class" : "module", node->value.s, node->refs);
         if (node->lhs) {
             print_indent(node, indent + 1);
             printf("(argument)\n");
@@ -493,7 +481,7 @@ LOOP_HEAD:;
             printf("(%s: %s) [refs:%d]\n",
                 node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function",
                 node->value.s,
-                node->lexical_refs);
+                node->refs);
             if (node->lhs) {
                 print_indent(node, indent + 1);
                 printf("(argument)\n");

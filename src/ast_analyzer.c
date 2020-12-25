@@ -1188,7 +1188,7 @@ LOOP_HEAD:;
         actx->lvalue = lvalue;
 
         if (actx->func) {
-            actx->func->lexical_refs = 1;
+            actx->func->refs = 1;
         }
         kx_object_t *func = actx->func;
         actx->func = node;
@@ -1285,7 +1285,7 @@ LOOP_HEAD:;
             actx->in_native = 0;
         }
         if (actx->func) {
-            actx->func->lexical_refs = 1;
+            actx->func->refs = 1;
         }
         kx_object_t *func = actx->func;
         actx->func = node;
