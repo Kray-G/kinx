@@ -18,6 +18,7 @@ extern void kx_make_regex_mode(int onoff);
 extern kx_object_t *kx_gen_special_object(int type);
 extern kx_object_t *kx_gen_adjust_array(kx_object_t *node);
 extern kx_object_t *kx_gen_ary_var_object(kx_object_t *node, int var_type);
+extern kx_object_t *kx_gen_var_object_line(const char *name, int var_type, int line);
 extern kx_object_t *kx_gen_var_object(const char *name, int var_type);
 extern kx_object_t *kx_gen_var_type_object(const char *name, arytype_t var_type, int ret_type);
 extern kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type);
