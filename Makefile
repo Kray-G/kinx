@@ -133,7 +133,10 @@ SOFILES = \
     kxpdf.so \
     kxssh.so \
     kxjit.so \
-    kxprocess.so
+    kxprocess.so \
+    libz.so \
+    libssl.so \
+    libcrypto.so
 PICOBJS = \
     bign.o \
     bigz.o \
@@ -206,14 +209,16 @@ install:
 	cp -f kxssh.so /usr/bin/kinxlib/
 	cp -f kxjit.so /usr/bin/kinxlib/
 	cp -f kxprocess.so /usr/bin/kinxlib/
-	cp -f libcrypto.so.3 /usr/bin/kinxlib/
 	cp -f libonig.so.5.0.0 /usr/bin/kinxlib/
 	ln -sf /usr/bin/kinxlib/libonig.so.5.0.0 /usr/bin/kinxlib/libonig.so.5
 	ln -sf /usr/bin/kinxlib/libonig.so.5 /usr/bin/kinxlib/libonig.so
-	cp -f libssl.so.3 /usr/bin/kinxlib/
 	cp -f libz.so.1.2.11 /usr/bin/kinxlib/
-	ln -sf /usr/bin/kinxlib/libz.so.1 /usr/bin/kinxlib/libz.so
+	cp -f libssl.so.3 /usr/bin/kinxlib/
+	cp -f libcrypto.so.3 /usr/bin/kinxlib/
 	ln -sf /usr/bin/kinxlib/libz.so.1.2.11 /usr/bin/kinxlib/libz.so.1
+	ln -sf /usr/bin/kinxlib/libz.so.1 /usr/bin/kinxlib/libz.so
+	ln -sf /usr/bin/kinxlib/libssl.so.3 /usr/bin/kinxlib/libssl.so
+	ln -sf /usr/bin/kinxlib/libcrypto.so.3 /usr/bin/kinxlib/libcrypto.so
 	rm -f /usr/bin/kinxlib/exec/3rdparty/.gitignore
 
 kitty-install:
@@ -226,7 +231,7 @@ timex:
 	$(CC) $(CFLAGS) -o timex timex.c
 
 clean:
-	rm -f $(OBJS) $(DISASM) $(SOFILES) $(PICOBJS) timex kinx myacc test main_kxcmd
+	rm -f $(OBJS) $(DISASM) *.o *.so* timex kinx myacc test main_kxcmd
 	rm -f src/optimizer.c src/opt_*.c
 
 kinx: src/main.c libkinx.so
@@ -272,7 +277,7 @@ kxregex.so: src/extlib/kxregex.c $(PICOBJS) libonig.so
 kxsqlite.so: src/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o -pthread
 
-kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so.3 libcrypto.so.3
+kxnet.so: src/extlib/kxnet.c $(PICOBJS) libssl.so libcrypto.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libcurl/x64/gcc/libcurl.a src/extlib/zip/x64/gcc/libminizip.a -pthread -ldl -Wl,-rpath,'$$ORIGIN' -L. -lz -lcrypto -lssl
 
 kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a libz.so
@@ -281,7 +286,7 @@ kxxml.so: src/extlib/kxxml.c $(PICOBJS) src/extlib/libxml2/x64/gcc/libxml2.a lib
 kxpdf.so: src/extlib/kxpdf.c $(PICOBJS) src/extlib/libharu/x64/gcc/libhpdf.a src/extlib/libharu/x64/gcc/libpng.a libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I src/extlib/libharu/include src/extlib/libharu/x64/gcc/libhpdf.a src/extlib/libharu/x64/gcc/libpng.a -Wl,-rpath,'$$ORIGIN' -lm -L. -lz
 
-kxssh.so: src/extlib/kxssh.c $(PICOBJS) libssl.so.3 libcrypto.so.3
+kxssh.so: src/extlib/kxssh.c $(PICOBJS) libssl.so libcrypto.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/libssh2/x64/gcc/libssh2.a -Wl,-rpath,'$$ORIGIN' -L. -lonig -pthread -lcrypto
 
 kxprocess.so: src/extlib/kxprocess.c $(PICOBJS)
@@ -300,11 +305,13 @@ libz.so.1.2.11: src/extlib/zip/x64/gcc/libz.so.1.2.11
 	cp -f src/extlib/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
 	chmod +x libz.so.1.2.11
 
-libssl.so.3:
+libssl.so:
 	cp -f src/extlib/openssl/x64/gcc/libssl.so.3 ./libssl.so.3
+	ln -s libssl.so.3 libssl.so
 
-libcrypto.so.3:
+libcrypto.so:
 	cp -f src/extlib/openssl/x64/gcc/libcrypto.so.3 ./libcrypto.so.3
+	ln -s libcrypto.so.3 libcrypto.so
 
 src/optimizer.c: src/optimizer/optimizer.c
 	cp -f src/optimizer/optimizer.c src/
