@@ -22,7 +22,7 @@ void opt_code_remove_jmp(kvec_pt(kx_code_t) *fixcode, int start)
     }
 }
 
-void opt_code_otimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
+void opt_code_optimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
 {
     if (!fixcode) {
         return;
