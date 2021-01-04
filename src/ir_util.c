@@ -403,12 +403,14 @@ static int eval(kx_context_t *ctx)
         fclose(kx_lexinfo.in.fp);
         kx_lexinfo.in.fp = NULL;
     }
+    if (kx_ast_root) {
+        start_optimize_ast(ctx, kx_ast_root);
+        start_analyze_ast(ctx, kx_ast_root);
+    }
     if (r != 0 || g_yyerror > 0) {
         return -1;
     }
 
-    start_optimize_ast(ctx, kx_ast_root);
-    start_analyze_ast(ctx, kx_ast_root);
     start_optimize_ast(ctx, kx_ast_root); // optimize AST again after analyzed.
     if (g_yyerror > 0) {
         return -1;
