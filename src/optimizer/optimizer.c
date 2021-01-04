@@ -9,6 +9,6 @@ void start_optimize_code(kx_context_t *ctx, int start)
 {
     kvec_pt(kx_code_t) *fixcode = &(ctx->fixcode);
     opt_code_remove_jmp(fixcode, start);
-    opt_code_otimize_jmp(fixcode, start);
+    opt_code_optimize_jmp(fixcode, start);
 }
 
