@@ -61,7 +61,7 @@ Making libraries improvement and extension is one of the main purpose of this la
 There is [Quick Reference Guide](docs/QuickReference.md).
 Please see [Quick Reference Guide](docs/QuickReference.md) for your understanding.
 
-For the detail of Kinx specification, see [Kinx Specification](docs/spec/README.md).
+For the detail of Kinx specification, see [Kinx Specification](docs/index.md).
 This document is also including **Test Codes**.
 I named this system as **SpecTest**.
 See **[SpecTest](docs/index.md)** for detail.
