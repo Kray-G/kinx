@@ -595,11 +595,22 @@ static void builtin_cleanup(kx_context_t *ctx)
     kh_destroy(nativefunc, ctx->nfuncs);
 }
 
+static void debuginfo_cleanup(kx_context_t *ctx)
+{
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        kx_location_list_t *next = breakpoints->next;
+        kx_free(breakpoints);
+        breakpoints = next;
+    }
+}
+
 void context_cleanup(kx_context_t *ctx)
 {
     gc_object_cleanup(ctx);
     module_cleanup(ctx);
     builtin_cleanup(ctx);
+    debuginfo_cleanup(ctx);
     free_string(ctx);
     kv_destroy(ctx->labels);
     kv_destroy(ctx->fixcode);
