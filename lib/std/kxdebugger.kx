@@ -1,0 +1,56 @@
+# Debugger Hook
+
+class Debugger {
+    var cmdMap_ = {
+        "h": "help",
+        "s": "stepMode",
+    };
+    private prompt(breakpoint) {
+        if (breakpoint.line > 0) {
+            System.println("Break at %s:%d" % breakpoint.file % breakpoint.line);
+        }
+        var cmdline;
+        do {
+            System.print("> ");
+            cmdline = $stdin.readLine();
+        } while (!cmdline);
+        return cmdline.split(/\s+/);
+    }
+    public help() {
+        System.println("[Command]");
+        System.println("h, help                  Display this help.");
+        System.println("s, stepMode              Set .");
+        return true;
+    }
+    public stepMode(breakpoint, args) {
+        switch (args[0]) {
+        case "on":
+            System._setDebugStepMode(true);
+            break;
+        case "off":
+            System._setDebugStepMode(false);
+            break;
+        default:
+            System._setDebugStepMode(Integer.parseInt(args[0]));
+            break;
+        }
+        return true;
+    }
+    public hook(breakpoint) {
+        var loop = true;
+        while (loop) {
+            var [ cmd, ...args ] = prompt(breakpoint);
+            if (this[cmd].isFunction) {
+                loop = this[cmd](breakpoint);
+            } else if (cmdMap_[cmd] && this[cmdMap_[cmd]].isFunction) {
+                loop = this[cmdMap_[cmd]](breakpoint, args);
+            } else {
+                loop = false;
+            }
+        }
+        return System._restartDebug();
+    }
+}
+
+System.debugger = new Debugger();
+System._setDebuggerHook(System.debugger.hook);

@@ -10,7 +10,7 @@
         int exc = 0; \
         kx_fnc_t *fn = kx_try_and(ctx, cur, v1, v2, &exc); \
         KX_EXCEPTION_CHECK("SystemException", exc); \
-        CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
+        CALL_OP_FUNCTION(fn, cur, { push_value((ctx)->stack, *v2); }); \
     } \
 } \
 /**/
@@ -25,7 +25,7 @@
         int exc = 0; \
         kx_fnc_t *fn = kx_try_and_i(ctx, cur, v1, &exc); \
         KX_EXCEPTION_CHECK("SystemException", exc); \
-        CALL_OP_FUNCTION(fn, cur, v1, { push_i((ctx)->stack, cur->value1.i); }); \
+        CALL_OP_FUNCTION(fn, cur, { push_i((ctx)->stack, cur->value1.i); }); \
     } \
 } \
 /**/
@@ -40,7 +40,7 @@
         int exc = 0; \
         kx_fnc_t *fn = kx_try_and_d(ctx, cur, v1, &exc); \
         KX_EXCEPTION_CHECK("SystemException", exc); \
-        CALL_OP_FUNCTION(fn, cur, v1, { push_d((ctx)->stack, cur->value1.d); }); \
+        CALL_OP_FUNCTION(fn, cur, { push_d((ctx)->stack, cur->value1.d); }); \
     } \
 } \
 /**/
@@ -51,7 +51,7 @@
     int exc = 0; \
     kx_fnc_t *fn = kx_try_and_s(ctx, cur, v1, &exc); \
     KX_EXCEPTION_CHECK("SystemException", exc); \
-    CALL_OP_FUNCTION(fn, cur, v1, { push_s((ctx)->stack, cur->value1.s); }); \
+    CALL_OP_FUNCTION(fn, cur, { push_s((ctx)->stack, cur->value1.s); }); \
 } \
 /**/
 
@@ -66,7 +66,7 @@
         int exc = 0; \
         kx_fnc_t *fn = kx_try_and(ctx, cur, v1, v2, &exc); \
         KX_EXCEPTION_CHECK("SystemException", exc); \
-        CALL_OP_FUNCTION(fn, cur, v1, { push_value((ctx)->stack, *v2); }); \
+        CALL_OP_FUNCTION(fn, cur, { push_value((ctx)->stack, *v2); }); \
     } \
 } \
 /**/
