@@ -207,6 +207,9 @@ DllExport int do_main(int ac, char **av)
                 workdir = param[0] ? const_str(ctx, param) : NULL;
             } else if (!strcmp(lname, "output-location")) {
                 ctx->options.output_location = param[0] ? strtol(param, NULL, 0) : 1;
+            } else if (!strcmp(lname, "debug")) {
+                ctx->options.debug_mode = param[0] ? strtol(param, NULL, 0) : 1;
+                ctx->ir_executor = ir_dbg_exec;
             } else if (!strcmp(lname, "exec")) {
                 if (param[0]) {
                     execname = param;
@@ -246,6 +249,9 @@ DllExport int do_main(int ac, char **av)
     }
 
 END_OF_OPT:
+    if (!ctx->ir_executor) {
+        ctx->ir_executor = ir_exec;
+    }
     #if defined(_WIN32) || defined(_WIN64)
     if (GetConsoleCP() == CP_UTF8) {
         ctx->options.utf8inout = 1;
@@ -355,7 +361,7 @@ END_OF_OPT:
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-    r = ir_exec(ctx);
+    r = ctx->ir_executor(ctx);
 
     #if !defined(_WIN32) && !defined(_WIN64)
     tcsetattr(0, TCSANOW, &oldf);
@@ -462,7 +468,7 @@ static int kinx_run(kinx_compiler *kc)
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-    int r = ir_exec(ctx);
+    int r = ctx->ir_executor(ctx);
     kc->timer.runtime = kinx_elapsed(&(kc->timer.v));
     return r;
 }

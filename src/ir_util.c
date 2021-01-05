@@ -593,7 +593,7 @@ int64_t run_ctx(kx_context_t *ctx, kx_context_t *parent, int ac, char **av)
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-    int64_t r = ir_exec(ctx);
+    int64_t r = ctx->ir_executor(ctx);
     if (parent) {
         kx_val_t *rv = &(ctx->retval);
         switch (rv->type) {
