@@ -406,6 +406,7 @@ static void push_vv(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana)
     kx_module_t *module = ana->module;
     kv_push(kx_code_t, get_block(module, ana->block)->code,
         ((kx_code_t){ FILELINE(ana), .op = (node->lexical == 0 ? KX_PUSHVL0 : (node->lexical == 1 ? KX_PUSHVL1 : KX_PUSHV)),
+        .varname = node->value.s,
         .value1 = { .idx = node->lexical },
         .value2 = { .idx = node->index } }));
 }
@@ -878,6 +879,7 @@ RET_AGAIN:
         }
         kv_push(kx_code_t, get_block(module, ana->block)->code,
             ((kx_code_t){ FILELINE(ana), .op = lhs->lexical == 0 ? KX_RETVL0 : (lhs->lexical == 1 ? KX_RETVL1 : KX_RETV),
+            .varname = lhs->value.s,
             .value1 = { .idx = lhs->lexical },
             .value2 = { .idx = lhs->index } }));
         break;
@@ -944,7 +946,10 @@ LOOP_HEAD:;
 
     case KXOP_VAR: {
         if (lvalue) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHLV, .value1 = { .idx = node->lexical }, .value2 = { .idx = node->index } }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_PUSHLV,
+                .varname = node->value.s,
+                .value1 = { .idx = node->lexical },
+                .value2 = { .idx = node->index } }));
         } else if (node->lhs) {
             gencode_ast_hook(ctx, node->lhs, ana, 0);
         } else {
@@ -996,7 +1001,10 @@ LOOP_HEAD:;
     case KXOP_INC: {
         KX_CANNOT_BE_LVALUE(node, "Increment operation");
         if (node->lhs->type == KXOP_VAR) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCV,
+                .varname = node->lhs->value.s,
+                .value1 = { .idx = node->lhs->lexical },
+                .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(ctx, node->lhs, ana, 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INC }));
@@ -1006,7 +1014,10 @@ LOOP_HEAD:;
     case KXOP_DEC: {
         KX_CANNOT_BE_LVALUE(node, "Decrement operation");
         if (node->lhs->type == KXOP_VAR) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DECV, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DECV,
+                .varname = node->lhs->value.s,
+                .value1 = { .idx = node->lhs->lexical },
+                .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(ctx, node->lhs, ana, 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DEC }));
@@ -1016,7 +1027,10 @@ LOOP_HEAD:;
     case KXOP_INCP: {     /* postfix */
         KX_CANNOT_BE_LVALUE(node, "Increment operation");
         if (node->lhs->type == KXOP_VAR) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCVP, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCVP,
+                .varname = node->lhs->value.s,
+                .value1 = { .idx = node->lhs->lexical },
+                .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(ctx, node->lhs, ana, 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_INCP }));
@@ -1026,7 +1040,10 @@ LOOP_HEAD:;
     case KXOP_DECP: {     /* postfix */
         KX_CANNOT_BE_LVALUE(node, "Decrement operation");
         if (node->lhs->type == KXOP_VAR) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DECVP, .value1 = { .idx = node->lhs->lexical }, .value2 = { .idx = node->lhs->index } }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DECVP,
+                .varname = node->lhs->value.s,
+                .value1 = { .idx = node->lhs->lexical },
+                .value2 = { .idx = node->lhs->index } }));
         } else {
             gencode_ast_hook(ctx, node->lhs, ana, 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DECP }));
@@ -1891,7 +1908,10 @@ LOOP_HEAD:;
     case KXST_CATCH: {    /* lhs: name: rhs: block */
         gencode_ast_hook(ctx, node->lhs, ana, 0);
         if (node->lhs && node->lhs->lhs) {
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CATCH, .value1 = { .idx = node->lhs->lhs->lexical }, .value2 = { .idx = node->lhs->lhs->index } }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_CATCH,
+                .varname = node->lhs->lhs->value.s,
+                .value1 = { .idx = node->lhs->lhs->lexical },
+                .value2 = { .idx = node->lhs->lhs->index } }));
         }
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         break;

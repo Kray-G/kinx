@@ -29,6 +29,7 @@
     &&LBL_KX_IMPORT, \
     &&LBL_KX_COENTER, \
     &&LBL_KX_ENTER, \
+    &&LBL_KX_VARNAME, \
     &&LBL_KX_CALL, \
     &&LBL_KX_CALLV, \
     &&LBL_KX_CALLVL0, \
@@ -254,7 +255,11 @@
 #endif
 #define KX_LIKELY(x)   __builtin_expect(!!(x), 1)
 #define KX_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#ifdef KX_DEBUGEXEC_CODE
+#define KX_CASE_(OPCODE) LBL_##OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_DEBUG_HOOK(); KEX_TRY_GC(); kxp_s(OPCODE); OPCODE##_CODE();
+#else
 #define KX_CASE_(OPCODE) LBL_##OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); kxp_s(OPCODE); OPCODE##_CODE();
+#endif
 #define KX_CASE_BEGIN() goto *(cur->gotolabel);
 #define KX_CASE_ERROR_END() LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;
@@ -287,7 +292,11 @@
 #define kxp_toa()
 #define KX_LIKELY(x)   (x)
 #define KX_UNLIKELY(x) (x)
+#ifdef KX_DEBUGEXEC_CODE
+#define KX_CASE_(OPCODE) case OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_DEBUG_HOOK(); KEX_TRY_GC(); OPCODE##_CODE();
+#else
 #define KX_CASE_(OPCODE) case OPCODE: /* printf("[%p:%3x] %s\n", cur, cur->i, #OPCODE); fflush(stdout); */ KEX_TRY_GC(); OPCODE##_CODE();
+#endif
 #define KX_CASE_BEGIN() while (1) { switch (cur->op)
 #define KX_CASE_ERROR_END() } LBL_KX_ERROR_END_OF_CODE: push_i((ctx)->stack, 1);
 #define KX_CASE_END() LBL_KX_END_OF_CODE: ;

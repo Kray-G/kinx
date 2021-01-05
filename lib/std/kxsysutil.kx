@@ -145,3 +145,10 @@ _class _Iconv(tocode, fromcode) {
         return System.iconvConvertStr(tocode, fromcode, input);
     }
 }
+
+# Debugger Hook
+
+System.isDebuggerMode = System._isDebuggerMode();
+if (System.isDebuggerMode) {
+    using kxdebugger;
+}
