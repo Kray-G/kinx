@@ -20,6 +20,12 @@
 ## V0.18.0 (Current Development Version)
 
 *   Updated
+    *   Introduced `$kinxpath` for Kinx installation path.
+    *   Instead, `$exepath` means an actual executable's path.
+    *   Added some features for a language server.
+        *   Added some options for the source input from STDIN.
+        *   Added displaying variable definition and reference location.
+    *   Some bug fixes and improvement.
 
 ## V0.17.1 (17th-1 Preview Release) - 2020/12/17
 
