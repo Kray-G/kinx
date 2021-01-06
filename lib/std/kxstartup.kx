@@ -75,5 +75,7 @@ const KX_KEY_CTRL_RIGHT = (0x88 << 8) | 0x12;
 const KX_KEY_CTRL_LEFT  = (0x88 << 8) | 0x13;
 
 if (System._isDebuggerMode()) {
-    File._startDebugger();
+    if (!File._startDebugger()) {
+        return 1;
+    }
 }

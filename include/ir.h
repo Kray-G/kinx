@@ -739,7 +739,6 @@ typedef struct kx_val_ {
     unsigned int has_pos:1;
     unsigned int pos:31;
     const char *method;
-    const char *varname;
     struct kx_val_ *host;
     #if defined(KX_EXEC_DEBUG)
     int frm;
@@ -759,6 +758,11 @@ KHASH_MAP_INIT_STR(prop, kx_val_t)
 #define KEX_RESTORE_VARINFO(v)
 #endif
 
+typedef struct kx_varname_ {
+    const char *name;
+} kx_varname_t;
+kvec_init_t(kx_varname_t);
+
 typedef struct kx_frm_ {
     uint8_t mark;
     uint8_t is_internal;
@@ -766,6 +770,7 @@ typedef struct kx_frm_ {
     struct kx_frm_ *prv;
     struct kx_frm_ *lex;
     kvec_t(kx_val_t) v;
+    kvec_t(kx_varname_t) varname;
     kx_code_t *caller;
 } kx_frm_t;
 kvec_init_t(kx_frm_t);
