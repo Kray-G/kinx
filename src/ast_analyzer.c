@@ -303,6 +303,41 @@ static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
     return 0;
 }
 
+static void append_typename(kx_object_t *node)
+{
+    const char *type = NULL;
+    kx_object_t *base = node;
+    if (!node->lhs || node->lhs->type != KXOP_VAR) {
+        return;
+    }
+    const char *varname = node->lhs->value.s;
+    if (strcmp(varname, "this") == 0) {
+        return;
+    }
+
+    node = node->rhs;
+    if (!node || node->type != KXOP_CALL) {
+        return;
+    }
+    node = node->lhs;
+    if (!node || node->type != KXOP_IDX) {
+        return;
+    }
+    if (!node->rhs || node->rhs->type != KXVL_STR || strcmp(node->rhs->value.s, "create") != 0) {
+        return;
+    }
+    if (node->lhs) {
+        if (node->lhs->type == KXOP_VAR) {
+            type = node->lhs->value.s;
+        } else if (node->lhs->type == KXOP_IDX && node->lhs->rhs && node->lhs->rhs->type == KXVL_STR) {
+            type = node->lhs->rhs->value.s;
+        }
+    }
+    if (type) {
+        base->lhs->typename = type;
+    }
+}
+
 static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *actx)
 {
     if (!node) {
@@ -585,6 +620,7 @@ LOOP_HEAD:;
             }
             node->var_type = node->lhs->var_type;
             node->refdepth = node->lhs->refdepth;
+            append_typename(node);
             break;
         } else if (!node->rhs) {
             // MKARY with no right hand side, just a declaration.
@@ -674,6 +710,7 @@ LOOP_HEAD:;
         }
         node->var_type = node->lhs->var_type;
         node->refdepth = node->lhs->refdepth;
+        append_typename(node);
         break;
     }
     case KXOP_SHL:

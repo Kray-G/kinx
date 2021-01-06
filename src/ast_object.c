@@ -131,6 +131,7 @@ kx_object_t *kx_gen_var_type_object(const char *name, arytype_t var_type, int re
     obj->value.s = name;
     obj->var_type = var_type.type;
     obj->refdepth = var_type.depth;
+    obj->typename = var_type.name;
     obj->ret_type = (var_type.type == KX_NFNC_T && ret_type == KX_UNKNOWN_T) ? KX_INT_T : ret_type;
     if (ret_type != KX_UNKNOWN_T) {
         if (var_type.type != KX_NFNC_T && var_type.type != KX_FNC_T) {
@@ -176,6 +177,22 @@ kx_object_t *kx_gen_str_object(const char *val)
     kx_object_t *obj = kx_gen_obj(KXVL_STR, 0, NULL, NULL, NULL);
     obj->value.s = val;
     return obj;
+}
+
+const char *kx_gen_constant_string(const char *name)
+{
+    return const_str(g_parse_ctx, name);
+}
+
+const char *kx_check_the_name(kx_object_t *obj)
+{
+    if (obj->type == KXVL_STR) {
+        return const_str(g_parse_ctx, obj->value.s);
+    }
+    if (obj->type == KXOP_VAR) {
+        return const_str(g_parse_ctx, obj->value.s);
+    }
+    return NULL;
 }
 
 kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs)
@@ -505,7 +522,7 @@ kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block,
     return obj;
 }
 
-kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line)
+static kx_object_t *kx_gen_func_object_impl(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, const char *inherit, int line)
 {
     static int classid = 0;
     static int counter = 0;
@@ -590,6 +607,9 @@ kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const
         }
     }
     kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
+    if (inherit) {
+        obj->typename = inherit;
+    }
     if (line > 0) {
         obj->line = line;
     }
@@ -666,7 +686,17 @@ kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const
     return stmt;
 }
 
+kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line)
+{
+    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ex, NULL, -1);
+}
+
+kx_object_t *kx_gen_func_object_name_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, named_stmt_t ns, int line)
+{
+    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ns.stmt, ns.name, line);
+}
+
 kx_object_t *kx_gen_func_object(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
-    return kx_gen_func_object_line(type, optional, refdepth, name, lhs, rhs, ex, -1);
+    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ex, NULL, -1);
 }
