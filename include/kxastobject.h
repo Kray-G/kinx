@@ -27,6 +27,8 @@ extern kx_object_t *kx_gen_int_object(int64_t val);
 extern kx_object_t *kx_gen_dbl_object(double val);
 extern kx_object_t *kx_gen_big_object(const char *val);
 extern kx_object_t *kx_gen_str_object(const char *val);
+extern const char *kx_gen_constant_string(const char *name);
+extern const char *kx_check_the_name(kx_object_t *obj);
 extern kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int include_end);
 extern kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl);
@@ -52,7 +54,8 @@ extern kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs);
 extern kx_object_t *kx_gen_break_object(int type, const char *name);
 extern kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs);
 extern kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *lhs, kx_object_t *ex);
-extern kx_object_t *kx_gen_func_object(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line);
+extern kx_object_t *kx_gen_func_object_name_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, named_stmt_t ns, int line);
+extern kx_object_t *kx_gen_func_object(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 
 #endif /* KX_OBJECT_H */
