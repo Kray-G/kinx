@@ -1264,14 +1264,14 @@ int Debugger_start(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         ctx->objs.debugger_prompt = Debugger_prompt; // setup this method at the startup.
     }
 
-    Debugger_prompt(args, frmv, lexv, ctx, &(kx_location_t){
+    int r = Debugger_prompt(args, frmv, lexv, ctx, &(kx_location_t){
         .file = "<startup>",
         .line = 0,
     });
 
     KX_ADJST_STACK();
     push_undef(ctx->stack);
-    return 0;
+    return r;
 }
 
 int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -2004,8 +2004,69 @@ int remove_breakpoint(const char *file, int line, kx_context_t *ctx)
     return 1;
 }
 
+static void setup_command(kstr_t *a[5], kstr_t *args)
+{
+    ks_trim(args);
+    int i = 0, l = ks_length(args), idx = 0, start = 0;
+    for ( ; i < l; ++i) {
+        const char *p = ks_string(args) + i;
+        if (*p == ' ' || *p == 0) {
+            ks_append_n(a[idx], ks_string(args) + start, i - start);
+            if (++idx >= 5) {
+                break;
+            }
+            for ( ; i < l; ++i) {
+                p = ks_string(args) + i;
+                if (*p != ' ') {
+                    break;
+                }
+            }
+            start = i;
+        }
+    }
+    if (i > start) {
+        ks_append_n(a[idx], ks_string(args) + start, i - start);
+    }
+}
+
+static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kstr_t *s)
+{
+    kstr_t *arg[5];
+    arg[0] = allocate_str(ctx);
+    arg[1] = allocate_str(ctx);
+    arg[2] = allocate_str(ctx);
+    arg[3] = allocate_str(ctx);
+    arg[4] = allocate_str(ctx);
+    setup_command(arg, s);
+    const char *cmd = ks_string(arg[0]);
+
+    if (!strcmp(cmd, "q")) {
+        *r = 0;
+        return 0;
+    }
+
+    *r = 1;
+    if (!strcmp(cmd, "n")) {
+        ctx->options.debug_step = 1;
+        return 0;
+    }
+
+    if (!strcmp(cmd, "frm")) {
+        int size = kv_size(frmv->v);
+        for (int i = 0; i < size; ++i) {
+            const char *v = kv_A(frmv->varname, i).name;
+            printf("[%2d] %s\n", i, v);
+        }
+    }
+
+    return 1;
+}
+
 int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location)
 {
+    ctx->options.debug_step = 0;
+
+    int r = 1;
     const char *file = location->file;
     int line = location->line;
     printf("Break at %s:%d\n", file, line);
@@ -2015,13 +2076,13 @@ int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
         s = readline(ctx, KXFILE_MODE_READ, 1, stdin);
         ks_trim(s);
         if (ks_length(s) > 0) {
-            break;
+            if (!do_command(&r, args, frmv, lexv, ctx, location, s)) {
+                break;
+            }
         }
     }
 
-    printf("cmdline = %s\n", ks_string(s));
-
     KX_ADJST_STACK();
     push_undef(ctx->stack);
-    return 1;
+    return r;
 }
