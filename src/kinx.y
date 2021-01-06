@@ -30,6 +30,7 @@ static inline void yy_restart(int token)
     const char    *strval;
     const uint8_t *binval;
     arytype_t     arraytype;
+    named_stmt_t  namedstmt;
 }
 
 %token ERROR
@@ -51,6 +52,7 @@ static inline void yy_restart(int token)
 %token<binval> BIN
 
 %type<obj> Program
+%type<obj> ToplevelStatementList
 %type<obj> StatementList
 %type<obj> Statement
 %type<obj> SemicolonStatement
@@ -132,7 +134,7 @@ static inline void yy_restart(int token)
 %type<obj> ClassFunctionDeclStatement
 %type<obj> ClassDeclStatement
 %type<obj> ModuleDeclStatement
-%type<obj> Inherit_Opt
+%type<namedstmt> Inherit_Opt
 %type<obj> InheritFactor
 %type<obj> ClassArgumentList_Opts
 %type<obj> ClassCallArgumentList_Opts
@@ -153,7 +155,12 @@ static inline void yy_restart(int token)
 %%
 
 Program
-    : StatementList         { kx_ast_root = kx_gen_bexpr_object(KXST_STMTLIST, $1, kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL)); }
+    : ToplevelStatementList { kx_ast_root = kx_gen_bexpr_object(KXST_STMTLIST, $1, kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL)); }
+    ;
+
+ToplevelStatementList
+    : Statement
+    | ToplevelStatementList Statement { kx_ast_root = $$ = kx_gen_stmtlist($1, $2); }
     ;
 
 StatementList
@@ -826,8 +833,8 @@ ClassFunctionName
     ;
 
 ClassDeclStatement
-    : CLASS NAME GetLineNumber ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_CLASS, KXFT_CLASS, 0, $2, $4, $6, $5, $3); }
-    | SYSCLASS NAME GetLineNumber ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_SYSCLASS, KXFT_CLASS, 0, $2, $4, $6, $5, $3); }
+    : CLASS NAME GetLineNumber ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_CLASS, KXFT_CLASS, 0, $2, $4, $6, $5, $3); }
+    | SYSCLASS NAME GetLineNumber ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_SYSCLASS, KXFT_CLASS, 0, $2, $4, $6, $5, $3); }
     ;
 
 ModuleDeclStatement
@@ -836,15 +843,19 @@ ModuleDeclStatement
     ;
 
 Inherit_Opt
-    : { $$ = NULL; }
+    : { $$ = (named_stmt_t){ .name = NULL, .stmt = NULL }; }
     | ':' GetLineNumber InheritFactor ClassCallArgumentList_Opts
         {
-            $$ = kx_gen_bexpr_object(KXST_STMTLIST,
-                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_UNKNOWN_T, $2),
-                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $3, kx_gen_str_object("create")), $4)),
-                kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("super", KX_UNKNOWN_T, $2),
-                    kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_UNKNOWN_T), kx_gen_str_object("makeSuper")), kx_gen_var_object("this", KX_UNKNOWN_T)))
-            );
+            $$ = (named_stmt_t){
+                .name = kx_check_the_name($3),
+                .stmt =
+                    kx_gen_bexpr_object(KXST_STMTLIST,
+                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_UNKNOWN_T, $2),
+                            kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $3, kx_gen_str_object("create")), $4)),
+                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("super", KX_UNKNOWN_T, $2),
+                            kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_UNKNOWN_T), kx_gen_str_object("makeSuper")), kx_gen_var_object("this", KX_UNKNOWN_T)))
+                    ),
+            };
         }
     ;
 
@@ -881,6 +892,7 @@ Argument
 TypeName
     : TYPE ArrayLevel { $$ = (arytype_t){ .type = $1, .depth = $2 }; }
     | NATIVE { $$ = (arytype_t){ .type = KX_NFNC_T }; }
+    | NAME ArrayLevel { $$ = (arytype_t){ .type = KX_OBJ_T, .depth = $2, .name = kx_gen_constant_string($1) }; }
     ;
 
 ArrayLevel

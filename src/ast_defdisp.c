@@ -14,7 +14,11 @@ static void print_ref(const char *type, kx_object_t *node, kx_object_t *base)
 static void print_define(const char *type, kx_object_t *node)
 {
     if (node->value.s && node->value.s[0] != '_') {
-        printf("#define\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+        if (node->typename) {
+            printf("#define\t%s\t%s\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, node->typename);
+        } else {
+            printf("#define\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+        }
     }
 }
 
@@ -29,41 +33,6 @@ static void print_scope_end(const char *scope, const char *name)
 {
     if (name && name[0] != '_') {
         printf("#scope\tend\t%s\n", scope);
-    }
-}
-
-static void print_new(kx_object_t *node)
-{
-    const char *type = NULL;
-    kx_object_t *base = node;
-    if (!node->lhs || node->lhs->type != KXOP_VAR) {
-        return;
-    }
-    const char *varname = node->lhs->value.s;
-    if (strcmp(varname, "this") == 0) {
-        return;
-    }
-
-    node = node->rhs;
-    if (!node || node->type != KXOP_CALL) {
-        return;
-    }
-    node = node->lhs;
-    if (!node || node->type != KXOP_IDX) {
-        return;
-    }
-    if (!node->rhs || node->rhs->type != KXVL_STR || strcmp(node->rhs->value.s, "create") != 0) {
-        return;
-    }
-    if (node->lhs) {
-        if (node->lhs->type == KXOP_VAR) {
-            type = node->lhs->value.s;
-        } else if (node->lhs->type == KXOP_IDX && node->lhs->rhs && node->lhs->rhs->type == KXVL_STR) {
-            type = node->lhs->rhs->value.s;
-        }
-    }
-    if (type) {
-        printf("#vartype\t%s\t%s\n", varname, type);
     }
 }
 
@@ -156,13 +125,11 @@ LOOP_HEAD:;
         break;
 
     case KXOP_DECL:
-        print_new(node);
         display_def_ast(node->lhs, 1);
         display_def_ast(node->rhs, 0);
         break;
     case KXOP_ASSIGN:
-        print_new(node);
-        display_def_ast(node->lhs, 1);
+        display_def_ast(node->lhs, 0);  // assignment is dealt with not definition, just a reference instead.
         display_def_ast(node->rhs, 0);
         break;
     case KXOP_SHL:
