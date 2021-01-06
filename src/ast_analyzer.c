@@ -74,7 +74,7 @@ DECL_VAR:
             // This variable is not used because it is a lvalue parameter like the 2nd of [a,,b].
             return NULL;
         }
-        kxana_symbol_t* table = &(kv_last(actx->symbols));
+        kxana_symbol_t *table = &(kv_last(actx->symbols));
         kxana_symbol_t sym = {0};
         sym.name = const_str(ctx, name);
         sym.depth = actx->depth;
@@ -88,6 +88,8 @@ DECL_VAR:
             node->var_type = KX_INT_T;  // automatically set it.
         }
         kv_push(kxana_symbol_t, table->list, sym);
+        kxana_symbol_t *functable = &(actx->func->symbols);
+        kv_push(kxana_symbol_t, functable->list, sym);
         return &kv_last(table->list);
     }
     return NULL;
@@ -1237,7 +1239,7 @@ LOOP_HEAD:;
         actx->anon_arg = anon_arg;
 
         actx->func = func;
-        node->symbols = kv_last(actx->symbols);
+        kv_destroy(kv_last(actx->symbols).list);
         kv_remove_last(actx->symbols);
         actx->depth = depth;
         actx->class_node = class_node;
@@ -1331,7 +1333,7 @@ LOOP_HEAD:;
         actx->anon_arg = anon_arg;
 
         actx->func = func;
-        node->symbols = kv_last(actx->symbols);
+        kv_destroy(kv_last(actx->symbols).list);
         kv_remove_last(actx->symbols);
         actx->depth = depth;
         actx->in_native = 0;
@@ -1360,6 +1362,9 @@ void start_analyze_ast(kx_context_t *ctx, kx_object_t *node)
     assert(sym);
     actx.decl = 0;
     analyze_ast(ctx, node, &actx);
+
+    kv_destroy(kv_last(actx.symbols).list);
+    kv_remove_last(actx.symbols);
 
     int l = kv_size(actx.symbols);
     for (int i = 0; i < l; ++i) {

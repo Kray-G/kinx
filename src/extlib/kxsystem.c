@@ -513,19 +513,6 @@ int System_setTrueFalse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
-int System_setDebuggerHook(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    kx_val_t *val = &kv_last_by(ctx->stack, 1);
-    if (val->type != KX_FNC_T) {
-        KX_ADJST_STACK();
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid function object");
-    }
-    ctx->objs.debugger_hook = val->value.fn;
-    KX_ADJST_STACK();
-    push_i(ctx->stack, 0);
-    return 0;
-}
-
 int System_exec(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *cmd = get_arg_str(1, args, ctx);
@@ -1947,23 +1934,6 @@ int System_getBreakPointList(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     return 0;
 }
 
-int System_setDebugStepMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    int tf = get_arg_int(1, args, ctx);
-    ctx->options.debug_step = tf;
-    KX_ADJST_STACK();
-    push_undef(ctx->stack);
-    return 0;
-}
-
-int System_restartDebug(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    ctx->options.debug_step_in_progress = ctx->options.debug_step;
-    KX_ADJST_STACK();
-    push_undef(ctx->stack);
-    return 0;
-}
-
 int System_addBreakpoint(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *file = get_arg_str(1, args, ctx);
@@ -2023,20 +1993,12 @@ int System_isDebuggerMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     return 0;
 }
 
-int System_isDebugStepMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    KX_ADJST_STACK();
-    push_i(ctx->stack, ctx->options.debug_mode && ctx->options.debug_step);
-    return 0;
-}
-
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "getPlatform", System_getPlatform },
     { "_globalExceptionMap", System_globalExceptionMap },
     { "_throwExceptionHook", System_throwExceptionHook },
     { "_setTrueFalse", System_setTrueFalse },
-    { "_setDebuggerHook", System_setDebuggerHook },
     { "_printStack", System_printStack },
     { "makeSuper", System_makeSuper },
     { "exec", System_exec },
@@ -2085,10 +2047,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "getBreakPointList", System_getBreakPointList },
     { "_addBreakpoint", System_addBreakpoint },
     { "_removeBreakpoint", System_removeBreakpoint },
-    { "_setDebugStepMode", System_setDebugStepMode },
-    { "_restartDebug", System_restartDebug },
     { "_isDebuggerMode", System_isDebuggerMode },
-    { "_isDebugStepMode", System_isDebugStepMode },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);

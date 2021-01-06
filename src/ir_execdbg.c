@@ -50,15 +50,15 @@
 #include "exec/code/regeq.inc"
 KX_IR_NAME_DEF();
 
-static kx_fnc_t *kx_debug_hook(kx_context_t *ctx, kx_code_t *cur);
+static int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur);
 
 #define KEX_DEBUG_HOOK() \
     if (ctx->location.line != cur->line) { \
-        kx_fnc_t *fn = kx_debug_hook(ctx, cur); \
-        if (fn) { \
-            cur = kx_goto_function(ctx, &caller, cur, fn); \
-            KX_GOTO(); \
-        } \
+        if (cur->op != KX_ENTER && cur->op != KX_COENTER && cur->op != KX_VARNAME) { \
+            if (ctx->objs.debugger_prompt && !kx_debug_hook(ctx, frmv, lexv, cur)) { \
+                goto LBL_KX_END_OF_CODE; \
+            } \
+        }\
         ctx->location.line = cur->line; \
     } \
 /**/
@@ -67,34 +67,23 @@ static kx_fnc_t *kx_debug_hook(kx_context_t *ctx, kx_code_t *cur);
 #define KX_IREXEC_IMPL_FUNCTION_NAME ir_dbg_exec_impl
 #include "ir_exec.inl"
 
-static kx_fnc_t *kx_debug_hook(kx_context_t *ctx, kx_code_t *cur)
+static int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur)
 {
     const char *cfile = cur->file;
     int cline = cur->line;
-    if (ctx->options.debug_step_in_progress) {
-        if (strcmp(ctx->location.file, cfile) != 0) {
-            ctx->location.line = cline;
-            ctx->location.file = cfile;
-            kx_obj_t *obj = allocate_obj(ctx);
-            KEX_SET_PROP_CSTR(obj, "file", cfile);
-            KEX_SET_PROP_INT(obj, "line", cline);
-            push_obj(ctx->stack, obj);
-            ctx->options.debug_step_in_progress = 0;    // make it off once.
-            return ctx->objs.debugger_hook;
-        }
+    if (ctx->options.debug_step) {
+        ctx->location.line = cline;
+        ctx->location.file = cfile;
+        return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &ctx->location);
     }
     kx_location_list_t *breakpoints = ctx->breakpoints;
     while (breakpoints) {
         if (breakpoints->location.line == cline && !strcmp(breakpoints->location.file, cfile)) {
             ctx->location.line = cline;
             ctx->location.file = cfile;
-            kx_obj_t *obj = allocate_obj(ctx);
-            KEX_SET_PROP_CSTR(obj, "file", breakpoints->location.file);
-            KEX_SET_PROP_INT(obj, "line", breakpoints->location.line);
-            push_obj(ctx->stack, obj);
-            return ctx->objs.debugger_hook;
+            return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &breakpoints->location);
         }
         breakpoints = breakpoints->next;
     }
-    return NULL;
+    return 1;
 }

@@ -12,6 +12,7 @@
 #include <jit.h>
 
 struct kx_context_;
+struct kx_location_list_;
 
 enum irop {
     KX_HALT,
@@ -583,6 +584,11 @@ typedef struct kxn_func_ {
     kx_native_funcp_t func;
 } kxn_func_t;
 
+typedef struct kx_name_list_ {
+    struct kx_name_list_ *next;
+    const char *name;
+} kx_name_list_t;
+
 struct kx_obj_;
 typedef struct kx_code_ {
     #if defined(KX_DIRECT_THREAD)
@@ -634,7 +640,7 @@ kvec_init_t(kx_block_t);
 
 KHASH_MAP_INIT_STR(label, int)
 
-typedef struct KXFT_FUNCTION_ {
+typedef struct kx_function_ {
     const char *name;
     int pushes;
     int64_t addr;
@@ -860,7 +866,6 @@ typedef struct kx_options_ {
     int exception_detail_info:1;
     int debug_mode:1;
     int debug_step:1;
-    int debug_step_in_progress:1;
     uint16_t case_threshold;
     uint16_t max_call_depth;
 } kx_options_t;
@@ -921,7 +926,7 @@ typedef struct kx_libobjs_ {
     kx_fnc_t *range_create;
     kx_fnc_t *throw_exception;
     kx_fnc_t *global_method_missing;
-    kx_fnc_t *debugger_hook;
+    int (*debugger_prompt)(int args, kx_frm_t *frmv, kx_frm_t *lexv, struct kx_context_ *ctx, struct kx_location_ *location);
 } kx_libobjs_t;
 
 typedef struct kx_location_ {
