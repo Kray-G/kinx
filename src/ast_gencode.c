@@ -1991,6 +1991,19 @@ LOOP_HEAD:;
         ana->block = block;
         int enter = kv_size(get_block(module, block)->code);
         kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_ENTER }));
+
+        if (ctx->options.debug_mode) {
+            int size = kv_size(node->symbols.list);
+            for (int j = 0; j < size; ++j) {
+                kxana_symbol_t *sym = &kv_A(node->symbols.list, j);
+                kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){
+                    FILELINE_OF(sym->base, ana), .op = KX_VARNAME,
+                    .varname = sym->name,
+                    .value2 = { .idx = sym->local_index }
+                }));
+            }
+        }
+
         gencode_spread_vars(ctx, node->lhs, ana, 0);
         if (node->ex) {
             gencode_ast_hook(ctx, node->ex, ana, 0);
@@ -2046,12 +2059,26 @@ LOOP_HEAD:;
             ((kx_code_t){ FILELINE(ana),
                 .op = node->type == KXST_COROUTINE ? KX_COENTER : KX_ENTER,
                 .is_internal = (node->optional == KXFT_SYSFUNC) }));
+
+        if (ctx->options.debug_mode) {
+            int size = kv_size(node->symbols.list);
+            for (int j = 0; j < size; ++j) {
+                kxana_symbol_t *sym = &kv_A(node->symbols.list, j);
+                kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){
+                    FILELINE_OF(sym->base, ana), .op = KX_VARNAME,
+                    .varname = sym->name,
+                    .value2 = { .idx = sym->local_index }
+                }));
+            }
+        }
+
         gencode_spread_vars(ctx, node->lhs, ana, 0);
         gencode_ast_hook(ctx, node->rhs, ana, 0);
         int pushes = count_pushes(get_function(module, cur), ana);
-        kv_A(get_block(module, block)->code, enter).value1.i = pushes + 1;
-        kv_A(get_block(module, block)->code, enter).value2.i = node->local_vars;
-        kv_A(get_block(module, block)->code, enter).count = node->count_args;
+        kx_code_t *entercode = &kv_A(get_block(module, block)->code, enter);
+        entercode->value1.i = pushes + 1;
+        entercode->value2.i = node->local_vars;
+        entercode->count = node->count_args;
         ana->block = old;
         ana->function = func;
         ana->in_try = in_try;
@@ -2227,11 +2254,25 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, k
     ana->block = block;
     int enter = kv_size(get_block(module, block)->code);
     kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_ENTER }));
+
+    if (ctx->options.debug_mode) {
+        int size = kv_size(node->symbols.list);
+        for (int j = 0; j < size; ++j) {
+            kxana_symbol_t *sym = &kv_A(node->symbols.list, j);
+            kv_push(kx_code_t, get_block(module, block)->code, ((kx_code_t){
+                FILELINE_OF(sym->base, ana), .op = KX_VARNAME,
+                .varname = sym->name,
+                .value2 = { .idx = sym->local_index }
+            }));
+        }
+    }
+
     gencode_ast_hook(ctx, node, ana, 0);
     int pushes = count_pushes(get_function(module, func), ana);
-    kv_A(get_block(module, block)->code, enter).value1.i = pushes + 1;
-    kv_A(get_block(module, block)->code, enter).value2.i = node->local_vars + 1;
-    kv_A(get_block(module, block)->code, enter).count = 1;
+    kx_code_t *entercode = &kv_A(get_block(module, block)->code, enter);
+    entercode->value1.i = pushes + 1;
+    entercode->value2.i = node->local_vars;
+    entercode->count = 1;
     append_ret_all(&(ana->module->functions), ana);
 
     if (ctx->block_index == 0) {

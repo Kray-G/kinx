@@ -832,7 +832,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
         case KX_OBJ_T:
             ++count;
             kstr_t *out = kx_format(&val);
-            if (!out) {   
+            if (!out) {
                 printf("[...]");
             } else {
                 if (!fi->is_std || ctx->options.utf8inout) {
@@ -1164,30 +1164,15 @@ int File_putch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static kstr_t *readline(kx_context_t *ctx, int mode, int is_std, FILE *fp)
 {
-    kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_FILE_GET_RPACK(fi, obj);
-    if (!fi) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
-    }
-    if (!(fi->mode & KXFILE_MODE_READ)) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
-    }
-
-    if (feof(fi->fp)) {
-        KX_ADJST_STACK();
-        push_i(ctx->stack, 0);
-        return 0;
-    }
-
     term_echo(1);
     #define BUFFER_MAX (2048)
-    int is_binary = (fi->mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
+    int is_binary = (mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
     char buffer[BUFFER_MAX] = {0};
     kstr_t *s = allocate_str(ctx);
     while (1) {
-        char *buf = fgets(buffer, BUFFER_MAX-1, fi->fp);
+        char *buf = fgets(buffer, BUFFER_MAX-1, fp);
         if (!buf) {
             break;
         }
@@ -1212,7 +1197,7 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         if (found) {
             break;
         }
-        if (feof(fi->fp)) {
+        if (feof(fp)) {
             break;
         }
     }
@@ -1220,13 +1205,35 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     term_echo(0);
 
     #if defined(_WIN32) || defined(_WIN64)
-    if (fi->is_std && !ctx->options.utf8inout) {
+    if (is_std && !ctx->options.utf8inout) {
         char *buf = conv_acp2utf8_alloc(ks_string(s));
         ks_clear(s);
         ks_append(s, buf);
         conv_free(buf);
     }
     #endif
+
+    return s;
+}
+
+int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_FILE_GET_RPACK(fi, obj);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_READ)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
+    }
+
+    if (feof(fi->fp)) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, 0);
+        return 0;
+    }
+
+    kstr_t *s = readline(ctx, fi->mode, fi->is_std, fi->fp);
 
     KX_ADJST_STACK();
     push_sv(ctx->stack, s);
@@ -1245,6 +1252,25 @@ int File_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location);
+
+int Debugger_start(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* this method will/must be called at the startup. */
+    if (!ctx->objs.debugger_prompt) {
+        ctx->objs.debugger_prompt = Debugger_prompt; // setup this method at the startup.
+    }
+
+    Debugger_prompt(args, frmv, lexv, ctx, &(kx_location_t){
+        .file = "<startup>",
+        .line = 0,
+    });
+
+    KX_ADJST_STACK();
+    push_undef(ctx->stack);
     return 0;
 }
 
@@ -1930,6 +1956,72 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "ostimeByMs", File_static_ms_time },
 
     { "scanCode", Stdin_scan_keycode },
+
+    { "_startDebugger", Debugger_start },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
+
+/**
+ * Debugger Core Logic
+ */
+
+int add_breakpoint(const char *file, int line, kx_context_t *ctx)
+{
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        if (breakpoints->location.line == line && !strcmp(breakpoints->location.file, file)) {
+            return 0;
+        }
+        breakpoints = breakpoints->next;
+    }
+
+    kx_location_list_t *loc = kx_calloc(1, sizeof(kx_location_list_t));
+    loc->location.file = kx_const_str(ctx, file);
+    loc->location.line = line;
+    loc->next = ctx->breakpoints;
+    ctx->breakpoints = loc;
+    return 1;
+}
+
+int remove_breakpoint(const char *file, int line, kx_context_t *ctx)
+{
+    kx_location_list_t *prev = NULL;
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        if (breakpoints->location.line == line && !strcmp(breakpoints->location.file, file)) {
+            if (prev) {
+                prev->next = breakpoints->next;
+            } else {
+                ctx->breakpoints = breakpoints->next;
+            }
+            kx_free(breakpoints);
+            break;
+        }
+        prev = breakpoints;
+        breakpoints = breakpoints->next;
+    }
+    return 1;
+}
+
+int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location)
+{
+    const char *file = location->file;
+    int line = location->line;
+    printf("Break at %s:%d\n", file, line);
+    kstr_t *s;
+    while (1) {
+        printf("> ");
+        s = readline(ctx, KXFILE_MODE_READ, 1, stdin);
+        ks_trim(s);
+        if (ks_length(s) > 0) {
+            break;
+        }
+    }
+
+    printf("cmdline = %s\n", ks_string(s));
+
+    KX_ADJST_STACK();
+    push_undef(ctx->stack);
+    return 1;
+}

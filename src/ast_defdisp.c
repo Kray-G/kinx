@@ -32,6 +32,41 @@ static void print_scope_end(const char *scope, const char *name)
     }
 }
 
+static void print_new(kx_object_t *node)
+{
+    const char *type = NULL;
+    kx_object_t *base = node;
+    if (!node->lhs || node->lhs->type != KXOP_VAR) {
+        return;
+    }
+    const char *varname = node->lhs->value.s;
+    if (strcmp(varname, "this") == 0) {
+        return;
+    }
+
+    node = node->rhs;
+    if (!node || node->type != KXOP_CALL) {
+        return;
+    }
+    node = node->lhs;
+    if (!node || node->type != KXOP_IDX) {
+        return;
+    }
+    if (!node->rhs || node->rhs->type != KXVL_STR || strcmp(node->rhs->value.s, "create") != 0) {
+        return;
+    }
+    if (node->lhs) {
+        if (node->lhs->type == KXOP_VAR) {
+            type = node->lhs->value.s;
+        } else if (node->lhs->type == KXOP_IDX && node->lhs->rhs && node->lhs->rhs->type == KXVL_STR) {
+            type = node->lhs->rhs->value.s;
+        }
+    }
+    if (type) {
+        printf("#vartype\t%s\t%s\n", varname, type);
+    }
+}
+
 static void display_def_ast(kx_object_t *node, int lvalue)
 {
     if (!node) {
@@ -121,10 +156,12 @@ LOOP_HEAD:;
         break;
 
     case KXOP_DECL:
+        print_new(node);
         display_def_ast(node->lhs, 1);
         display_def_ast(node->rhs, 0);
         break;
     case KXOP_ASSIGN:
+        print_new(node);
         display_def_ast(node->lhs, 1);
         display_def_ast(node->rhs, 0);
         break;
@@ -341,9 +378,9 @@ LOOP_HEAD:;
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         print_scope_start("function", node->value.s);
+        const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
+        print_define(type, node);
         if (node->optional != KXFT_SYSFUNC) {
-            const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
-            print_define(type, node);
             display_def_ast(node->lhs, 1);
             display_def_ast(node->rhs, 0);
         }
