@@ -74,7 +74,6 @@ const KX_KEY_LEFT       = (0x80 << 8) | 0x13;
 const KX_KEY_CTRL_RIGHT = (0x88 << 8) | 0x12;
 const KX_KEY_CTRL_LEFT  = (0x88 << 8) | 0x13;
 
-if (System.isDebuggerMode) {
-    # Stop before starting a user program.
-    System.debugger.hook({ file: "<startup>", line: 0 });
+if (System._isDebuggerMode()) {
+    File._startDebugger();
 }
