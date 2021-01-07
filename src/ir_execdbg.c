@@ -50,7 +50,7 @@
 #include "exec/code/regeq.inc"
 KX_IR_NAME_DEF();
 
-static int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur);
+extern int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur);
 
 #define KEX_DEBUG_HOOK() \
     if (ctx->location.line != cur->line) { \
@@ -66,24 +66,3 @@ static int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
 #define KX_IREXEC_FUNCTION_NAME ir_dbg_exec
 #define KX_IREXEC_IMPL_FUNCTION_NAME ir_dbg_exec_impl
 #include "ir_exec.inl"
-
-static int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur)
-{
-    const char *cfile = cur->file;
-    int cline = cur->line;
-    if (ctx->options.debug_step) {
-        ctx->location.line = cline;
-        ctx->location.file = cfile;
-        return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &ctx->location);
-    }
-    kx_location_list_t *breakpoints = ctx->breakpoints;
-    while (breakpoints) {
-        if (breakpoints->location.line == cline && !strcmp(breakpoints->location.file, cfile)) {
-            ctx->location.line = cline;
-            ctx->location.file = cfile;
-            return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &breakpoints->location);
-        }
-        breakpoints = breakpoints->next;
-    }
-    return 1;
-}
