@@ -1696,7 +1696,7 @@ int System_setenv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     conv_free(buf);
     ks_free(ksv);
     #else
-    setenv(conv_utf82acp_alloc(name), conv_utf82acp_alloc(value), 1);
+    setenv(name, value, 1);
     #endif
 
     KX_ADJST_STACK();
