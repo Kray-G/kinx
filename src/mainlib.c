@@ -146,6 +146,20 @@ static void get_long_option(const char *optarg, char *lname, char *param)
     }
 }
 
+static void set_script_name_to_env(const char *filename)
+{
+    #if defined(_WIN32) || defined(_WIN64)
+    kstr_t *ksv = ks_new();
+    ks_appendf(ksv, "KINX_RUN_SCRIPT=%s", filename);
+    char *buf = conv_utf82acp_alloc(ks_string(ksv));
+    _putenv(buf);
+    conv_free(buf);
+    ks_free(ksv);
+    #else
+    setenv(name, value, 1);
+    #endif
+}
+
 DllExport int do_main(int ac, char **av)
 {
     int r = 1;
@@ -270,12 +284,14 @@ END_OF_OPT:
             r = 1;
             goto CLEANUP;
         }
+        set_script_name_to_env(execfile);
         r = eval_file(alloc_string(ctx, execfile), ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
         }
     } else if (ctx->options.src_stdin) {
+        set_script_name_to_env(filename);
         r = eval_file(filename, ctx);
         if (r < 0) {
             r = 1;
@@ -288,6 +304,7 @@ END_OF_OPT:
             r = 1;
             goto CLEANUP;
         }
+        set_script_name_to_env(file);
         r = eval_file(file, ctx);
         if (r < 0) {
             r = 1;

@@ -6580,7 +6580,7 @@ kx_code_t *ir_varname(kx_frm_t *frmv, kx_code_t *cur)
 {
     int size = cur->value2.idx < 32 ? 64 : cur->value2.idx * 2;
     kv_resize_if(kx_varname_t, frmv->varname, size);
-    kv_shrinkto(frmv->varname, size);
+    kv_shrinkto(frmv->varname, cur->value2.idx + 1);
     kv_A(frmv->varname, cur->value2.idx).name = cur->varname;
     return cur->next;
 }
@@ -6589,9 +6589,13 @@ int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *
 {
     const char *cfile = cur->file;
     int cline = cur->line;
+    if (!cfile || !cline) {
+        return 1;
+    }
     if (ctx->options.debug_step) {
         ctx->location.line = cline;
         ctx->location.file = cfile;
+        ctx->location.func = cur->func;
         return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &ctx->location);
     }
     kx_location_list_t *breakpoints = ctx->breakpoints;
@@ -6599,7 +6603,8 @@ int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *
         if (breakpoints->location.line == cline && !strcmp(breakpoints->location.file, cfile)) {
             ctx->location.line = cline;
             ctx->location.file = cfile;
-            return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &breakpoints->location);
+            ctx->location.func = cur->func;
+            return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &ctx->location);
         }
         breakpoints = breakpoints->next;
     }
