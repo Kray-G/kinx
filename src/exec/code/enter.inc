@@ -114,8 +114,6 @@
 
 #define KX_VARNAME_CODE() \
 { \
-    kv_resize_if(kx_varname_t, frmv->varname, cur->value2.idx * 2);\
-    kv_A(frmv->varname, cur->value2.idx).name = cur->varname; \
-    cur = cur->next; \
+    cur = ir_varname(frmv, cur); \
 } \
 /**/

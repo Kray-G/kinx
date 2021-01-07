@@ -129,4 +129,6 @@ extern void kx_try_getarya(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_v
 extern void kx_try_str_swap(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int push);
 extern void kx_try_bin_swap(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int push);
 
+extern kx_code_t *ir_varname(kx_frm_t *frmv, kx_code_t *cur);
+
 #endif /* KX_IRUTIL_H */
