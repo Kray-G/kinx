@@ -936,6 +936,7 @@ typedef struct kx_libobjs_ {
 
 typedef struct kx_location_ {
     const char *file;
+    const char *func;
     int line;
 } kx_location_t;
 
