@@ -28,6 +28,7 @@ int _fprintf_w32(FILE* fp, const char* format, ...);
 #include <kinx.h>
 #include <kutil.h>
 #include <kxthread.h>
+#include <stdarg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
@@ -1970,6 +1971,12 @@ KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
  */
 
 #define KXDS 5
+#define KXNM 10
+#define prompt_start() _fprintf_w32(stdout, "\n\033[96m> ")
+#define prompt_end() _fprintf_w32(stdout, "\033[0m")
+#define output(fmt, ...) _fprintf_w32(stdout, fmt, __VA_ARGS__)
+#define message(fmt, ...) _fprintf_w32(stdout, "\033[32m>>> " fmt "\033[0m", __VA_ARGS__)
+#define error(fmt, ...) _fprintf_w32(stdout, "\033[33m>>> " fmt "\033[0m", __VA_ARGS__)
 
 static int is_char(kstr_t *s, char ch)
 {
@@ -1991,6 +1998,41 @@ static int is_number(kstr_t *s)
     return 1;
 }
 
+static int get_positive_array_index(kstr_t *s, int max)
+{
+    int val = 0;
+    int minus = 0;
+    const char *p = ks_string(s);
+    if (!p || !*p) {
+        return -1;
+    }
+    if (*p != '[') {
+        return -1;
+    }
+    ++p;
+    if (*p == '-') {
+        minus = 1;
+        ++p;
+    }
+    while (*p) {
+        if (*p == ']' && *(p + 1) == 0) {
+            if (minus) {
+                val = -val;
+                do {
+                    val = val + max;
+                } while (val < 0);
+            }
+            return val;
+        }
+        if (*p < '0' || '9' < *p) {
+            return -1;
+        }
+        val = val * 10 + (*p - '0');
+        ++p;
+    }
+    return -1;
+}
+
 static kx_frm_t *get_stack_frame(kx_context_t *ctx, int n)
 {
     kx_frm_t *fr = NULL;
@@ -2002,7 +2044,6 @@ static kx_frm_t *get_stack_frame(kx_context_t *ctx, int n)
                 fr = v->value.fr;
                 break;
             }
-            --n;
         }
     }
     return fr;
@@ -2032,6 +2073,20 @@ static int has_breakpoint(const char *file, int line, kx_location_list_t *breakp
     return 0;
 }
 
+static void do_command_show_breakpoints(kx_context_t *ctx)
+{
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    if (!breakpoints) {
+        message("No breakpoints.\n");
+    } else {
+        output("Breakpoints:\n");
+        while (breakpoints) {
+            output("  - <%s:%d>\n", breakpoints->location.file, breakpoints->location.line);
+            breakpoints = breakpoints->next;
+        }
+    }
+}
+
 static void add_breakpoint(const char *file, int line, kx_context_t *ctx)
 {
     kx_location_list_t *loc = kx_calloc(1, sizeof(kx_location_list_t));
@@ -2039,7 +2094,8 @@ static void add_breakpoint(const char *file, int line, kx_context_t *ctx)
     loc->location.line = line;
     loc->next = ctx->breakpoints;
     ctx->breakpoints = loc;
-    printf("--> Added the breakpoint of <%s:%d>.\n", file, line);
+    message("Added the breakpoint of <%s:%d>.\n", file, line);
+    do_command_show_breakpoints(ctx);
 }
 
 static void remove_breakpoint(const char *file, int line, kx_context_t *ctx)
@@ -2059,7 +2115,8 @@ static void remove_breakpoint(const char *file, int line, kx_context_t *ctx)
         prev = breakpoints;
         breakpoints = breakpoints->next;
     }
-    printf("--> Removed the breakpoint of <%s:%d>.\n", file, line);
+    message("Removed the breakpoint of <%s:%d>.\n", file, line);
+    do_command_show_breakpoints(ctx);
 }
 
 static void remove_breakpoint_all(kx_context_t *ctx)
@@ -2071,7 +2128,7 @@ static void remove_breakpoint_all(kx_context_t *ctx)
         breakpoints = next;
     }
     ctx->breakpoints = NULL;
-    printf("--> Removed all breakpoints.\n");
+    message("Removed all breakpoints.\n");
 }
 
 static void setup_command(kstr_t *a[KXDS], kstr_t *args)
@@ -2099,22 +2156,51 @@ static void setup_command(kstr_t *a[KXDS], kstr_t *args)
     }
 }
 
-static void split_name(kstr_t *a[KXDS], kstr_t *name)
+static int split_name(kstr_t *a[KXNM], kstr_t *name)
 {
     int i = 0, l = ks_length(name), idx = 0, start = 0;
     for ( ; i < l; ++i) {
         const char *p = ks_string(name) + i;
-        if (*p == '.' || *p == 0) {
+        if (*p == '[') {
             ks_append_n(a[idx], ks_string(name) + start, i - start);
-            if (++idx >= KXDS) {
-                break;
+            if (++idx >= KXNM) {
+                return idx;
+            }
+            while (*p == '[') {
+                start = i;
+                for ( ; i < l; ++i) {
+                    const char *n = ks_string(name) + i;
+                    if (*n == 0) {
+                        return 0;   // invalid.
+                    }
+                    if (*n == ']') {
+                        ++i;
+                        break;
+                    }
+                }
+                ks_append_n(a[idx], ks_string(name) + start, i - start);
+                if (++idx >= KXNM) {
+                    return idx;
+                }
+                p = ks_string(name) + i;
+            }
+            if (*p != '.' && *p != 0) {
+                return 0;   // invalid.
+            }
+            start = i + 1;
+        } else if (*p == '.') {
+            ks_append_n(a[idx], ks_string(name) + start, i - start);
+            if (++idx >= KXNM) {
+                return idx;
             }
             start = i + 1;
         }
     }
     if (i > start) {
-        ks_append_n(a[idx], ks_string(name) + start, i - start);
+        ks_append_n(a[idx++], ks_string(name) + start, i - start);
     }
+
+    return idx;
 }
 
 static kstr_t *get_script_name(kx_context_t *ctx)
@@ -2140,17 +2226,6 @@ static void do_command_toggle_breakpoint(kx_context_t *ctx, kx_location_t *locat
     }
 }
 
-static void do_command_show_breakpoints(kx_context_t *ctx)
-{
-    kx_location_list_t *breakpoints = ctx->breakpoints;
-    if (!breakpoints) {
-        printf("--> No breakpoints.\n");
-    } else while (breakpoints) {
-        printf(" - <%s:%d>\n", breakpoints->location.file, breakpoints->location.line);
-        breakpoints = breakpoints->next;
-    }
-}
-
 static void do_command_breakpoint(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
 {
     if (is_char(arg[1], '-')) {
@@ -2173,43 +2248,43 @@ static void do_command_frm_list(kx_frm_t *frmv)
     for (int i = 0; i < size; ++i) {
         const char *v = kv_A(frmv->varname, i).name;
         kx_val_t *v1 = &kv_A(frmv->v, i);
-        printf("  [%2d] %s", i, v);
+        output("  [%2d] %s", i, v);
         switch (v1->type) {
         case KX_INT_T:
-            printf(" = int, %"PRId64"", v1->value.iv);
+            output(" = int, %"PRId64"", v1->value.iv);
             break;
         case KX_DBL_T:
-            printf(" = dbl, %g", v1->value.dv);
+            output(" = dbl, %g", v1->value.dv);
             break;
         case KX_BIG_T:
             buf = BzToString(v1->value.bz, 10, 0);
-            printf(" = big, %s", buf);
+            output(" = big, %s", buf);
             BzFreeString(buf);
             break;
         case KX_CSTR_T:
             buf = conv_utf82acp_alloc(v1->value.pv);
-            printf(" = cstr, %s", buf);
+            output(" = cstr, %s", buf);
             conv_free(buf);
             break;
         case KX_STR_T:
             buf = conv_utf82acp_alloc(ks_string(v1->value.sv));
-            printf(" = str, %s", buf);
+            output(" = str, %s", buf);
             conv_free(buf);
             break;
         case KX_BIN_T:
-            printf(" = bin");
+            output(" = bin");
             break;
         case KX_OBJ_T:
-            printf(" = obj");
+            output(" = obj");
             break;
         case KX_FNC_T:
         case KX_BFNC_T:
-            printf(" = fnc");
+            output(" = fnc");
             break;
         default:
             break;
         }
-        printf("\n");
+        output("\n");
     }
 }
 
@@ -2226,7 +2301,7 @@ static void do_command_frm(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
             kx_val_t *v = &(kv_A((ctx)->stack, sp));
             if (v->type == KX_FRM_T) {
                 kx_frm_t *fr = v->value.fr;
-                printf(" %s stack frame (%d)\n", (*cfrm) == fr ? "[*]" : " - ", fr->id);
+                output(" %s stack frame (%d)\n", (*cfrm) == fr ? "[*]" : " - ", fr->id);
             }
         }
         return;
@@ -2254,10 +2329,89 @@ static void do_command_lex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
         return;
     }
 
-    printf(" %s stack frame (%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id);
+    output(" %s stack frame (%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id);
     int i = 0;
     for (kx_frm_t *f = frmv->lex; f; f = f->lex) {
-        printf(" %s lexical frame (%d)\n", (*cfrm) == f ? "[*]" : " - ", i++);
+        output(" %s lexical frame (%d)\n", (*cfrm) == f ? "[*]" : " - ", i++);
+    }
+}
+
+static do_command_stack_list(kx_context_t *ctx, int max)
+{
+    int i = 0;
+    int ssp = kv_size((ctx)->stack);
+    for (int sp = ssp - 1; sp > 0; --sp) {
+        if (max > 0 && ++i > max) {
+            output("    ... more\n");
+            break;
+        }
+        char *buf;
+        kx_val_t *v = &(kv_A((ctx)->stack, sp));
+        switch (v->type) {
+        case KX_UND_T:
+            output("  [%5d] null\n", sp);
+            break;
+        case KX_INT_T:
+            output("  [%5d] int, %"PRId64"\n", sp, v->value.iv);
+            break;
+        case KX_BIG_T:
+            buf = BzToString(v->value.bz, 10, 0);
+            output("  [%5d] big, %s\n", sp, buf);
+            BzFreeString(buf);
+            break;
+        case KX_DBL_T:
+            output("  [%5d] dbl, %g\n", sp, v->value.dv);
+            break;
+        case KX_CSTR_T:
+            buf = conv_utf82acp_alloc(v->value.pv);
+            output("  [%5d] cstr, %s\n", sp, buf);
+            conv_free(buf);
+            break;
+        case KX_STR_T:
+            buf = conv_utf82acp_alloc(ks_string(v->value.sv));
+            output("  [%5d] str, %s\n", sp, buf);
+            conv_free(buf);
+            break;
+        case KX_BIN_T:
+            output("  [%5d] bin, <...>\n", sp);
+            break;
+        case KX_OBJ_T:
+            output("  [%5d] object/array\n", sp);
+            break;
+        case KX_FNC_T:
+            output("  [%5d] function, %s\n", sp, v->value.fn->jp->func);
+            break;
+        case KX_FRM_T:
+            output("  [%5d] frm, var:%d\n", sp, (int)kv_size(v->value.fr->v));
+            break;
+        case KX_BFNC_T:
+            output("  [%5d] built-in function\n", sp);
+            break;
+        case KX_NFNC_T:
+            output("  [%5d] native, %s\n", sp, v->value.fn->native.name);
+            break;
+        case KX_ADDR_T:
+            if (v->value.jp) {
+                output("  [%5d] address, ret -> %s\n", sp, v->value.jp->func);
+            } else {
+                output("  [%5d] address, ret -> <end>\n", sp);
+            }
+            break;
+        case KX_ANY_T:
+            output("  [%5d] any object\n", sp);
+            break;
+        default:
+            ;
+        }
+    }
+}
+
+static void do_command_stack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (ks_length(arg[1]) == 0) {
+        do_command_stack_list(ctx, 10);
+    } else if (!strcmp(ks_string(arg[1]), "all")) {
+        do_command_stack_list(ctx, -1);
     }
 }
 
@@ -2284,30 +2438,169 @@ static kx_val_t *get_variable_by_name(kx_frm_t *frmv, kstr_t *nm[KXDS])
     for (int i = 0; i < size; ++i) {
         const char *v = kv_A(frmv->varname, i).name;
         if (!strcmp(v, base)) {
-            kx_val_t *val = &kv_A(frmv->v, i);
+            return &kv_A(frmv->v, i);
         }
     }
     return NULL;
 }
 
+static void show_variable_info(kx_val_t *v, int recursive)
+{
+    char *buf;
+    switch (v->type) {
+    case KX_UND_T:
+        output("  --> null\n");
+        break;
+    case KX_INT_T:
+        output("  --> int, %"PRId64"\n", v->value.iv);
+        break;
+    case KX_BIG_T:
+        buf = BzToString(v->value.bz, 10, 0);
+        output("  --> big, %s\n", buf);
+        BzFreeString(buf);
+        break;
+    case KX_DBL_T:
+        output("  --> dbl, %g\n", v->value.dv);
+        break;
+    case KX_CSTR_T:
+        buf = conv_utf82acp_alloc(v->value.pv);
+        output("  --> cstr, %s\n", buf);
+        conv_free(buf);
+        break;
+    case KX_STR_T:
+        buf = conv_utf82acp_alloc(ks_string(v->value.sv));
+        output("  --> str, %s\n", buf);
+        conv_free(buf);
+        break;
+    case KX_BIN_T:
+        output("  --> bin, <...>\n");
+        break;
+    case KX_OBJ_T: {
+        kx_obj_t *obj = v->value.ov;
+        output("  --> object/array\n");
+        if (recursive) {
+            int sz = kv_size(obj->ary);
+            for (int i = 0; i < sz; ++i) {
+                kx_val_t *vp = &kv_A(obj->ary, i);
+                output("    [%d]", i);
+                show_variable_info(vp, 0);
+            }
+            for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
+                if (kh_exist(obj->prop, k)) {
+                    kx_val_t *vp = &kh_value(obj->prop, k);
+                    const char *key = kh_key(obj->prop, k);
+                    output("    .%s", key);
+                    show_variable_info(vp, 0);
+                }
+            }
+        }
+        break;
+    }
+    case KX_FNC_T:
+        output("  --> function, %s\n", v->value.fn->jp->func);
+        break;
+    case KX_BFNC_T:
+        output("  --> built-in function\n");
+        break;
+    case KX_NFNC_T:
+        output("  --> native, %s\n", v->value.fn->native.name);
+        break;
+    case KX_ANY_T:
+        output("  --> <any object>\n");
+        break;
+    default:
+        ;
+    }
+}
+
+static kx_val_t *get_object_property(kx_val_t *val, kstr_t *nm[KXNM], int nms)
+{
+    for (int i = 1; i < nms; ++i) {
+        if (val->type != KX_OBJ_T) {
+            return NULL; // invalid.
+        }
+        kx_val_t *nextv = NULL;
+        int max = kv_size(val->value.ov->ary);
+        int index = get_positive_array_index(nm[i], max);
+        if (index >= 0) {
+            nextv = &kv_A(val->value.ov->ary, index);
+        } else {
+            KEX_GET_PROP(nextv, val->value.ov, ks_string(nm[i]));
+        }
+        if (!nextv) {
+            return NULL; // not found.
+        }
+        val = nextv;
+    }
+    return val;
+}
+
+static void set_value_to_variable(const char *name, kx_val_t *val, kstr_t *value, const char *type)
+{
+    if (type[0] == 'i') {
+        int64_t v = strtoll(ks_string(value), NULL, 0);
+        val->type = KX_INT_T;
+        val->value.iv = v;
+        message("Set %"PRId64", to the variable(%s)\n", v, name);
+        show_variable_info(val, 0);
+    } else if (type[0] == 'd') {
+        double v = strtod(ks_string(value), NULL);
+        val->type = KX_DBL_T;
+        val->value.dv = v;
+        message("Set %g, to the variable(%s)\n", v, name);
+        show_variable_info(val, 0);
+    } else if (type[0] == 's') {
+        val->type = KX_STR_T;
+        val->value.sv = value;
+        message("Set \"%s\", to the variable(%s)\n", ks_string(value), name);
+        show_variable_info(val, 0);
+    } else {
+        error("Invalid type(%s), the type should be 'i', 'd', or 's'.\n", type);
+    }
+}
+
 static void do_command_variable_set(kx_context_t *ctx, kx_frm_t *frmv, kstr_t *name, kstr_t *value, kstr_t *type)
 {
-    kstr_t *nm[KXDS];
-    for (int i = 0; i < KXDS; ++i) {
+    kstr_t *nm[KXNM];
+    for (int i = 0; i < KXNM; ++i) {
         nm[i] = allocate_str(ctx);
     }
-    split_name(nm, name);
+    int nms = split_name(nm, name);
     kx_val_t *val = get_variable_by_name(frmv, nm);
+    if (!val) {
+        return;
+    }
+    if (nms > 1) {
+        val = get_object_property(val, nm, nms);
+        if (!val) {
+            return; // not found.
+        }
+    }
+    set_value_to_variable(ks_string(name), val, value, ks_string(type));
 }
 
 static void do_command_variable_show(kx_context_t *ctx, kx_frm_t *frmv, kstr_t *name)
 {
-    kstr_t *nm[KXDS];
-    for (int i = 0; i < KXDS; ++i) {
+    kstr_t *nm[KXNM];
+    for (int i = 0; i < KXNM; ++i) {
         nm[i] = allocate_str(ctx);
     }
-    split_name(nm, name);
+    int nms = split_name(nm, name);
+    if (nms <= 0) {
+        return;
+    }
     kx_val_t *val = get_variable_by_name(frmv, nm);
+    if (!val) {
+        return;
+    }
+
+    if (nms > 1) {
+        val = get_object_property(val, nm, nms);
+        if (!val) {
+            return; // not found.
+        }
+    }
+    show_variable_info(val, 1);
 }
 
 static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
@@ -2315,13 +2608,11 @@ static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     if (ks_length(arg[1]) == 0) {
         do_command_frm_list(*cfrm);  /* Show the variables in the current frame. */
     } else if (ks_length(arg[2]) > 0) {
-        if (ks_length(arg[3]) > 0) {
-            // Set the value to the variable.
-            do_command_variable_set(ctx, *cfrm, arg[2], arg[3], arg[4]);
-        } else {
-            // Show details of the variable.
-            do_command_variable_show(ctx, *cfrm, arg[2]);
-        }
+        // Set the value to the variable.
+        do_command_variable_set(ctx, *cfrm, arg[1], arg[2], arg[3]);
+    } else {
+        // Show details of the variable.
+        do_command_variable_show(ctx, *cfrm, arg[1]);
     }
 }
 
@@ -2335,14 +2626,14 @@ static const char *funcname(const char *func)
 
 static void do_command_callstack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
 {
-    printf("  [%5d] %s (%s:%d)\n", frmv->id, funcname(location->func), location->file, location->line);
+    output("  [%5d] %s (%s:%d)\n", frmv->id, funcname(location->func), location->file, location->line);
     int ssp = kv_size((ctx)->stack);
     for (int sp = ssp - 1; sp > 0; --sp) {
         kx_val_t *v = &(kv_A((ctx)->stack, sp));
         if (v->type == KX_FRM_T) {
             kx_frm_t *fr = v->value.fr;
             if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
-                printf("  [%5d] %s (%s:%d)\n", fr->prv ? fr->prv->id : 0, funcname(fr->caller->func), fr->caller->file, fr->caller->line);
+                output("  [%5d] %s (%s:%d)\n", fr->prv ? fr->prv->id : 0, funcname(fr->caller->func), fr->caller->file, fr->caller->line);
             }
         }
     }
@@ -2350,40 +2641,40 @@ static void do_command_callstack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
 
 static void usage(void)
 {
-    printf("Kinx Debugger version 0.1.0\n");
-    printf("\n");
-    printf("[Common]\n");
-    printf("  h, help               Display this help.\n");
-    printf("\n");
-    printf("[Flow]\n");
-    printf("  n                     Run to the next line.\n");
-    printf("  r                     Run to the next breakpoint.\n");
-    printf("  b                     Show breakpoints.\n");
-    printf("  b [L]                 Toggle the breakpoint to the line [L].\n");
-    printf("  b -                   Remove all breakpoints.\n");
-    printf("\n");
-    printf("[Frames]\n");
-    printf("  cs                    Show the call stack.\n");
-    printf("  f                     Show the frame list on the stack.\n");
-    printf("  l                     Show the lexical frame list.\n");
-    printf("  mv [f|l] [N]          Move the current frame to the specified frame.\n");
-    printf("\n");
-    printf("[Stack]\n");
-    printf("  s                     Show the stack with the first 10 entries.\n");
-    printf("  s all                 Show the stack all.\n");
-    printf("\n");
-    printf("[Veriables]\n");
-    printf("  v                     Show the variables in the current frame.\n");
-    printf("  f [N]                 Show the variables of [N]th frame on the stack.\n");
-    printf("  l [N]                 Show the variables of [N]th lexical frame.\n");
-    printf("  v [Name]              Show details of the variable in the current frame.\n");
-    printf("  v [Name] [Val] [Type] Set the value to the variable in the current frame.\n");
-    printf("                        Name: Variable name, or with property name.\n");
-    printf("                              ex) name, name.prop\n");
-    printf("                        Type: i ... int\n");
-    printf("                              d ... dbl\n");
-    printf("                              s ... str\n");
-    printf("\n");
+    output("Kinx Debugger version 0.1.0\n");
+    output("\n");
+    output("[Common]\n");
+    output("  h, help               Display this help.\n");
+    output("\n");
+    output("[Flow]\n");
+    output("  n                     Run to the next line.\n");
+    output("  r                     Run to the next breakpoint.\n");
+    output("  b                     Show breakpoints.\n");
+    output("  b [L]                 Toggle the breakpoint to the line [L].\n");
+    output("  b -                   Remove all breakpoints.\n");
+    output("\n");
+    output("[Frames]\n");
+    output("  cs                    Show the call stack.\n");
+    output("  f                     Show the frame list on the stack.\n");
+    output("  l                     Show the lexical frame list.\n");
+    output("  mv [f|l] [N]          Move the current frame to the specified frame.\n");
+    output("\n");
+    output("[Stack]\n");
+    output("  s                     Show the stack with the first 10 entries.\n");
+    output("  s all                 Show the stack all.\n");
+    output("\n");
+    output("[Veriables]\n");
+    output("  v                     Show the variables in the current frame.\n");
+    output("  f [N]                 Show the variables of [N]th frame on the stack.\n");
+    output("  l [N]                 Show the variables of [N]th lexical frame.\n");
+    output("  v [Name]              Show details of the variable in the current frame.\n");
+    output("  v [Name] [Val] [Type] Set the value to the variable in the current frame.\n");
+    output("                        Name: Variable name, or with property name.\n");
+    output("                              ex) name, name.prop\n");
+    output("                        Type: i ... int\n");
+    output("                              d ... dbl\n");
+    output("                              s ... str\n");
+    output("\n");
 }
 
 static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *s)
@@ -2404,10 +2695,12 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         ctx->options.debug_step = 1;
         *r = 1;
         return 0;   // Debugger Prompt Loop end
-    } else if (!strcmp(cmd, "v")) {
-        do_command_variable(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "h") || !strcmp(cmd, "help")) {
         usage();
+    } else if (!strcmp(cmd, "s")) {
+        do_command_stack(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "v")) {
+        do_command_variable(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "b")) {
         do_command_breakpoint(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "f")) {
@@ -2439,12 +2732,13 @@ int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
     ctx->options.debug_step = 0;
 
     int r = 1;
-    printf("Break at %s:%d\n", file, line);
+    message("Break at %s:%d\n", file, line);
     kx_frm_t *cfrm = frmv;
     kstr_t *s;
     while (1) {
-        printf("> ");
+        prompt_start();
         s = readline(ctx, KXFILE_MODE_READ, 1, stdin);
+        prompt_end();
         ks_trim(s);
         if (ks_length(s) > 0) {
             if (!do_command(&r, args, frmv, lexv, ctx, location, &cfrm, s)) {
