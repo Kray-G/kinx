@@ -364,6 +364,9 @@ static void gc_sweep(kx_context_t *ctx)
             kl_remove_next(frm, ctx->alloc.frm_alive, prevfrm, &v);
             kv_push(kx_frm_t*, ctx->alloc.frm_dead, v);
             kv_zero(kx_val_t, v->v);
+            if (ctx->options.debug_mode) {
+                kv_shrinkto(v->varname, 0);
+            }
             v->is_internal = 0;
         }
     }
