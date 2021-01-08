@@ -15,6 +15,7 @@ kinx
 timex
 myacc
 /benchmark
+/bench
 src/parser.c
 include/parser.tab.h
 timeit.dat

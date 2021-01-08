@@ -74,7 +74,7 @@ DECL_VAR:
             // This variable is not used because it is a lvalue parameter like the 2nd of [a,,b].
             return NULL;
         }
-        kxana_symbol_t* table = &(kv_last(actx->symbols));
+        kxana_symbol_t *table = &(kv_last(actx->symbols));
         kxana_symbol_t sym = {0};
         sym.name = const_str(ctx, name);
         sym.depth = actx->depth;
@@ -88,6 +88,8 @@ DECL_VAR:
             node->var_type = KX_INT_T;  // automatically set it.
         }
         kv_push(kxana_symbol_t, table->list, sym);
+        kxana_symbol_t *functable = &(actx->func->symbols);
+        kv_push(kxana_symbol_t, functable->list, sym);
         return &kv_last(table->list);
     }
     return NULL;
@@ -301,6 +303,41 @@ static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
     return 0;
 }
 
+static void append_typename(kx_object_t *node)
+{
+    const char *type = NULL;
+    kx_object_t *base = node;
+    if (!node->lhs || node->lhs->type != KXOP_VAR) {
+        return;
+    }
+    const char *varname = node->lhs->value.s;
+    if (strcmp(varname, "this") == 0) {
+        return;
+    }
+
+    node = node->rhs;
+    if (!node || node->type != KXOP_CALL) {
+        return;
+    }
+    node = node->lhs;
+    if (!node || node->type != KXOP_IDX) {
+        return;
+    }
+    if (!node->rhs || node->rhs->type != KXVL_STR || strcmp(node->rhs->value.s, "create") != 0) {
+        return;
+    }
+    if (node->lhs) {
+        if (node->lhs->type == KXOP_VAR) {
+            type = node->lhs->value.s;
+        } else if (node->lhs->type == KXOP_IDX && node->lhs->rhs && node->lhs->rhs->type == KXVL_STR) {
+            type = node->lhs->rhs->value.s;
+        }
+    }
+    if (type) {
+        base->lhs->typename = type;
+    }
+}
+
 static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *actx)
 {
     if (!node) {
@@ -308,6 +345,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
     }
 
 LOOP_HEAD:;
+    kx_set_location_info(node->file, node->line);
     kx_object_t *parent = actx->parent;
     actx->parent = node;
     node->lvalue = actx->decl || actx->lvalue;
@@ -583,6 +621,7 @@ LOOP_HEAD:;
             }
             node->var_type = node->lhs->var_type;
             node->refdepth = node->lhs->refdepth;
+            append_typename(node);
             break;
         } else if (!node->rhs) {
             // MKARY with no right hand side, just a declaration.
@@ -672,6 +711,7 @@ LOOP_HEAD:;
         }
         node->var_type = node->lhs->var_type;
         node->refdepth = node->lhs->refdepth;
+        append_typename(node);
         break;
     }
     case KXOP_SHL:
@@ -1237,7 +1277,7 @@ LOOP_HEAD:;
         actx->anon_arg = anon_arg;
 
         actx->func = func;
-        node->symbols = kv_last(actx->symbols);
+        kv_destroy(kv_last(actx->symbols).list);
         kv_remove_last(actx->symbols);
         actx->depth = depth;
         actx->class_node = class_node;
@@ -1331,7 +1371,7 @@ LOOP_HEAD:;
         actx->anon_arg = anon_arg;
 
         actx->func = func;
-        node->symbols = kv_last(actx->symbols);
+        kv_destroy(kv_last(actx->symbols).list);
         kv_remove_last(actx->symbols);
         actx->depth = depth;
         actx->in_native = 0;
@@ -1360,6 +1400,9 @@ void start_analyze_ast(kx_context_t *ctx, kx_object_t *node)
     assert(sym);
     actx.decl = 0;
     analyze_ast(ctx, node, &actx);
+
+    kv_destroy(kv_last(actx.symbols).list);
+    kv_remove_last(actx.symbols);
 
     int l = kv_size(actx.symbols);
     for (int i = 0; i < l; ++i) {

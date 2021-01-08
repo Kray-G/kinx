@@ -364,6 +364,9 @@ static void gc_sweep(kx_context_t *ctx)
             kl_remove_next(frm, ctx->alloc.frm_alive, prevfrm, &v);
             kv_push(kx_frm_t*, ctx->alloc.frm_dead, v);
             kv_zero(kx_val_t, v->v);
+            if (ctx->options.debug_mode) {
+                kv_shrinkto(v->varname, 0);
+            }
             v->is_internal = 0;
         }
     }
@@ -595,11 +598,28 @@ static void builtin_cleanup(kx_context_t *ctx)
     kh_destroy(nativefunc, ctx->nfuncs);
 }
 
+static void debuginfo_cleanup(kx_context_t *ctx)
+{
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        kx_location_list_t *next = breakpoints->next;
+        kx_free(breakpoints);
+        breakpoints = next;
+    }
+    kx_location_list_t *locations = ctx->locations;
+    while (locations) {
+        kx_location_list_t *next = locations->next;
+        kx_free(locations);
+        locations = next;
+    }
+}
+
 void context_cleanup(kx_context_t *ctx)
 {
     gc_object_cleanup(ctx);
     module_cleanup(ctx);
     builtin_cleanup(ctx);
+    debuginfo_cleanup(ctx);
     free_string(ctx);
     kv_destroy(ctx->labels);
     kv_destroy(ctx->fixcode);

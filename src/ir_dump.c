@@ -154,6 +154,9 @@ void ir_code_dump_one(int addr, kx_code_t *code)
     case KX_ENTER:
         printf("%-23s %"PRId64", vars(%"PRId64"), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
         break;
+    case KX_VARNAME:
+        printf("%-23s %s, %s", "varname", gen_varloc_local(code), code->varname);
+        break;
     case KX_CALL:
         printf("%-23s %d", "call", code->count);
         break;

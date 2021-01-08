@@ -251,6 +251,9 @@ int ir_code_dot_one(kx_code_t *code, kx_code_t *next)
     case KX_ENTER:
         printf("%s %"PRId64", vars(%"PRId64"), args(%d)", "enter", code->value1.i, code->value2.i, code->count);
         break;
+    case KX_VARNAME:
+        printf("%s %s, %s", "call", gen_varloc_local(code), code->varname);
+        break;
     case KX_CALL:
         printf("%s %d", "call", code->count);
         break;
