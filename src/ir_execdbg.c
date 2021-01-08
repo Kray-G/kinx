@@ -53,13 +53,13 @@ KX_IR_NAME_DEF();
 extern int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur);
 
 #define KEX_DEBUG_HOOK() \
-    if (ctx->location.line != cur->line) { \
+    if (ctx->current_line != cur->line) { \
         if (cur->op != KX_ENTER && cur->op != KX_COENTER && cur->op != KX_VARNAME) { \
             if (ctx->objs.debugger_prompt && !kx_debug_hook(ctx, frmv, lexv, cur)) { \
                 goto LBL_KX_END_OF_CODE; \
             } \
         }\
-        ctx->location.line = cur->line; \
+        ctx->current_line = cur->line; \
     } \
 /**/
 

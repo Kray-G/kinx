@@ -694,7 +694,8 @@ HEAD_OF_YYLEX:
             ++kx_lexinfo.inner.brcount;
         }
         kx_lex_next(kx_lexinfo);
-        return '{';
+        kx_yylval.intval = kx_lexinfo.line;
+        return LBBR;
     case '}':
         if (kx_lexinfo.inner.brcount > 0) {
             --kx_lexinfo.inner.brcount;
@@ -709,9 +710,20 @@ HEAD_OF_YYLEX:
             }
         }
         kx_lex_next(kx_lexinfo);
-        return '}';
-    case '[':
-    case ']':
+        kx_yylval.intval = kx_lexinfo.line;
+        return RBBR;
+    case '[': {
+        int ch = kx_lexinfo.ch;
+        kx_lex_next(kx_lexinfo);
+        kx_yylval.intval = kx_lexinfo.line;
+        return LMBR;
+    }
+    case ']': {
+        int ch = kx_lexinfo.ch;
+        kx_lex_next(kx_lexinfo);
+        kx_yylval.intval = kx_lexinfo.line;
+        return RMBR;
+    }
     case '(':
     case ')':
     case ':':
