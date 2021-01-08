@@ -1978,8 +1978,11 @@ KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
 #define output_bsource_l(l, line) _fprintf_w32(stdout, "\033[31m*%4d:\033[0m %s", l, line)
 #define output_xsource_l(l, line) _fprintf_w32(stdout, "\033[1m %4d:\033[0m \033[93m%s\033[0m", l, line)
 #define output_bxsource_l(l, line) _fprintf_w32(stdout, "\033[91m*%4d:\033[0m \033[93m%s\033[0m", l, line)
+#define output1(str) _fprintf_w32(stdout, "%s", str)
 #define output(fmt, ...) _fprintf_w32(stdout, fmt, __VA_ARGS__)
+#define message1(str) _fprintf_w32(stdout, "\033[32m>>> %s\033[0m", str)
 #define message(fmt, ...) _fprintf_w32(stdout, "\033[32m>>> " fmt "\033[0m", __VA_ARGS__)
+#define error1(str) _fprintf_w32(stdout, "\033[33m>>> Error: %s\033[0m", str)
 #define error(fmt, ...) _fprintf_w32(stdout, "\033[33m>>> Error: " fmt "\033[0m", __VA_ARGS__)
 
 static int is_char(kstr_t *s, char ch)
@@ -2110,9 +2113,9 @@ static void do_command_show_breakpoints(kx_context_t *ctx)
 {
     kx_location_list_t *breakpoints = ctx->breakpoints;
     if (!breakpoints) {
-        message("No breakpoints.\n");
+        message1("No breakpoints.\n");
     } else {
-        output("Breakpoints:\n");
+        output1("Breakpoints:\n");
         while (breakpoints) {
             output("  - <%s:%d>\n", breakpoints->location.file, breakpoints->location.line);
             breakpoints = breakpoints->next;
@@ -2161,7 +2164,7 @@ static void remove_breakpoint_all(kx_context_t *ctx)
         breakpoints = next;
     }
     ctx->breakpoints = NULL;
-    message("Removed all breakpoints.\n");
+    message1("Removed all breakpoints.\n");
 }
 
 static void setup_command(kstr_t *a[KXDS], kstr_t *args)
@@ -2350,19 +2353,19 @@ static void do_command_frm_list(kx_context_t *ctx, kx_frm_t *frmv)
             conv_free(buf);
             break;
         case KX_BIN_T:
-            output(" = bin");
+            output1(" = bin");
             break;
         case KX_OBJ_T:
-            output(" = obj");
+            output1(" = obj");
             break;
         case KX_FNC_T:
         case KX_BFNC_T:
-            output(" = fnc");
+            output1(" = fnc");
             break;
         default:
             break;
         }
-        output("\n");
+        output1("\n");
     }
 }
 
@@ -2420,7 +2423,7 @@ static do_command_stack_list(kx_context_t *ctx, int max)
     int ssp = kv_size((ctx)->stack);
     for (int sp = ssp - 1; sp > 0; --sp) {
         if (max > 0 && ++i > max) {
-            output("    ... more\n");
+            output1("    ... more\n");
             break;
         }
         char *buf;
@@ -2527,7 +2530,7 @@ static void show_variable_info(kx_val_t *v, int recursive)
     char *buf;
     switch (v->type) {
     case KX_UND_T:
-        output("  --> null\n");
+        output1("  --> null\n");
         break;
     case KX_INT_T:
         output("  --> int, %"PRId64"\n", v->value.iv);
@@ -2551,11 +2554,11 @@ static void show_variable_info(kx_val_t *v, int recursive)
         conv_free(buf);
         break;
     case KX_BIN_T:
-        output("  --> bin, <...>\n");
+        output1("  --> bin, <...>\n");
         break;
     case KX_OBJ_T: {
         kx_obj_t *obj = v->value.ov;
-        output("  --> object/array\n");
+        output1("  --> object/array\n");
         if (recursive) {
             int sz = kv_size(obj->ary);
             for (int i = 0; i < sz; ++i) {
@@ -2578,13 +2581,13 @@ static void show_variable_info(kx_val_t *v, int recursive)
         output("  --> function, %s\n", v->value.fn->jp->func);
         break;
     case KX_BFNC_T:
-        output("  --> built-in function\n");
+        output1("  --> built-in function\n");
         break;
     case KX_NFNC_T:
         output("  --> native, %s\n", v->value.fn->native.name);
         break;
     case KX_ANY_T:
-        output("  --> <any object>\n");
+        output1("  --> <any object>\n");
         break;
     default:
         ;
@@ -2755,44 +2758,44 @@ static void do_command_sourcecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
 
 static void usage(void)
 {
-    output("Kinx Debugger version 0.1.0\n");
-    output("\n");
-    output("[Common]\n");
-    output("  h, help               Display this help.\n");
-    output("\n");
-    output("[Flow]\n");
-    output("  n                     Run to the next line.\n");
-    output("  r                     Run to the next breakpoint.\n");
-    output("  b                     Show breakpoints.\n");
-    output("  b [L]                 Toggle the breakpoint to the line [L].\n");
-    output("  b -                   Remove all breakpoints.\n");
-    output("\n");
-    output("[Frames]\n");
-    output("  cs                    Show the call stack.\n");
-    output("  f                     Show the frame list on the stack.\n");
-    output("  l                     Show the lexical frame list.\n");
-    output("  mv [f|l] [N]          Move the current frame to the specified frame.\n");
-    output("\n");
-    output("[Stack]\n");
-    output("  s                     Show the stack with the first 10 entries.\n");
-    output("  s all                 Show the stack all.\n");
-    output("\n");
-    output("[Veriables]\n");
-    output("  v                     Show the variables in the current frame.\n");
-    output("  f [N]                 Show the variables of [N]th frame on the stack.\n");
-    output("  l [N]                 Show the variables of [N]th lexical frame.\n");
-    output("  v [Name]              Show details of the variable in the current frame.\n");
-    output("  v [Name] [Val] [Type] Set the value to the variable in the current frame.\n");
-    output("                        Name: Variable name with index or property name.\n");
-    output("                              ex) name, name.prop[1].next\n");
-    output("                        Type: i ... int\n");
-    output("                              d ... dbl\n");
-    output("                              s ... str\n");
-    output("                              * auto detect if not specified.\n");
-    output("\n");
-    output("[Source Code]\n");
-    output("  sc                    Show the source code.\n");
-    output("\n");
+    output1("Kinx Debugger version 0.1.0\n");
+    output1("\n");
+    output1("[Common]\n");
+    output1("  h, help               Display this help.\n");
+    output1("\n");
+    output1("[Flow]\n");
+    output1("  n                     Run to the next line.\n");
+    output1("  r                     Run to the next breakpoint.\n");
+    output1("  b                     Show breakpoints.\n");
+    output1("  b [L]                 Toggle the breakpoint to the line [L].\n");
+    output1("  b -                   Remove all breakpoints.\n");
+    output1("\n");
+    output1("[Frames]\n");
+    output1("  cs                    Show the call stack.\n");
+    output1("  f                     Show the frame list on the stack.\n");
+    output1("  l                     Show the lexical frame list.\n");
+    output1("  mv [f|l] [N]          Move the current frame to the specified frame.\n");
+    output1("\n");
+    output1("[Stack]\n");
+    output1("  s                     Show the stack with the first 10 entries.\n");
+    output1("  s all                 Show the stack all.\n");
+    output1("\n");
+    output1("[Veriables]\n");
+    output1("  v                     Show the variables in the current frame.\n");
+    output1("  f [N]                 Show the variables of [N]th frame on the stack.\n");
+    output1("  l [N]                 Show the variables of [N]th lexical frame.\n");
+    output1("  v [Name]              Show details of the variable in the current frame.\n");
+    output1("  v [Name] [Val] [Type] Set the value to the variable in the current frame.\n");
+    output1("                        Name: Variable name with index or property name.\n");
+    output1("                              ex) name, name.prop[1].next\n");
+    output1("                        Type: i ... int\n");
+    output1("                              d ... dbl\n");
+    output1("                              s ... str\n");
+    output1("                              * auto detect if not specified.\n");
+    output1("\n");
+    output1("[Source Code]\n");
+    output1("  sc                    Show the source code.\n");
+    output1("\n");
 }
 
 static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *s)
