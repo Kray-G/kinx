@@ -2417,7 +2417,7 @@ static void do_command_lex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     }
 }
 
-static do_command_stack_list(kx_context_t *ctx, int max)
+static void do_command_stack_list(kx_context_t *ctx, int max)
 {
     int i = 0;
     int ssp = kv_size((ctx)->stack);
