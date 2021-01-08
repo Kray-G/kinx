@@ -345,6 +345,7 @@ static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *a
     }
 
 LOOP_HEAD:;
+    kx_set_location_info(node->file, node->line);
     kx_object_t *parent = actx->parent;
     actx->parent = node;
     node->lvalue = actx->decl || actx->lvalue;

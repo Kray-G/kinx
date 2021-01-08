@@ -606,6 +606,12 @@ static void debuginfo_cleanup(kx_context_t *ctx)
         kx_free(breakpoints);
         breakpoints = next;
     }
+    kx_location_list_t *locations = ctx->locations;
+    while (locations) {
+        kx_location_list_t *next = locations->next;
+        kx_free(locations);
+        locations = next;
+    }
 }
 
 void context_cleanup(kx_context_t *ctx)
