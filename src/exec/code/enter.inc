@@ -111,3 +111,9 @@
         ssize, stack, cur->is_internal, args, cur->count, cur->value2.i); \
 } \
 /**/
+
+#define KX_VARNAME_CODE() \
+{ \
+    cur = ir_varname(frmv, cur); \
+} \
+/**/
