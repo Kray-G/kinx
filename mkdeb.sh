@@ -9,7 +9,7 @@ checkinstall -D -y \
   --nodoc \
   --reset-uids=yes \
   --pkgname=kinx \
-  --pkgversion="0.18.1" \
+  --pkgversion="0.19.0" \
   --pkgrelease="0" \
   --pkggroup="kinx" \
   --arch=amd64 \
