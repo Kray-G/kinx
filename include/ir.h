@@ -12,7 +12,6 @@
 #include <jit.h>
 
 struct kx_context_;
-struct kx_location_list_;
 
 enum irop {
     KX_HALT,
@@ -268,6 +267,7 @@ static const char *kx_opname[] = { \
     "KX_DUP", \
     "KX_IMPORT", \
 \
+    "KX_COENTER", \
     "KX_ENTER", \
     "KX_VARNAME", \
     "KX_CALL", \
@@ -339,6 +339,9 @@ static const char *kx_opname[] = { \
     "KX_INCVX", \
     "KX_DECVX", \
 \
+    "KX_MKRANGE", \
+    "KX_MKRANGEI", \
+    "KX_MKRANGES", \
     "KX_MKBIN", \
     "KX_MKARY", \
     "KX_DUPARY", \
@@ -502,11 +505,7 @@ static const char *kx_opname[] = { \
     "KX_TYPEOF", \
     "KX_SET_GMM", \
     "KX_CHKVAL", \
-\
-    "GC-TIME", \
-    "OTHERS", \
-\
-    "KX_OPEND" \
+    "KX_OPEND", \
 }; \
 /**/
 
@@ -917,6 +916,17 @@ typedef struct kx_allocators_ {
     kvec_pt(kx_val_t) val_dead;
 } kx_allocators_t;
 
+typedef struct kx_location_ {
+    const char *file;
+    const char *func;
+    int line;
+} kx_location_t;
+
+typedef struct kx_location_list_ {
+    struct kx_location_list_ *next;
+    kx_location_t location;
+} kx_location_list_t;
+
 typedef struct kx_libobjs_ {
     kx_obj_t *strlib;
     kx_obj_t *binlib;
@@ -931,19 +941,8 @@ typedef struct kx_libobjs_ {
     kx_fnc_t *range_create;
     kx_fnc_t *throw_exception;
     kx_fnc_t *global_method_missing;
-    int (*debugger_prompt)(int args, kx_frm_t *frmv, kx_frm_t *lexv, struct kx_context_ *ctx, struct kx_location_ *location);
+    int (*debugger_prompt)(int args, kx_frm_t *frmv, kx_frm_t *lexv, struct kx_context_ *ctx, kx_location_t *location);
 } kx_libobjs_t;
-
-typedef struct kx_location_ {
-    const char *file;
-    const char *func;
-    int line;
-} kx_location_t;
-
-typedef struct kx_location_list_ {
-    struct kx_location_list_ *next;
-    kx_location_t location;
-} kx_location_list_t;
 
 typedef struct kx_context_ {
     kx_frm_t *frmv;
@@ -971,7 +970,8 @@ typedef struct kx_context_ {
     kx_signal_t signal;
 
     kx_location_list_t *breakpoints;
-    kx_location_t location;
+    kx_location_list_t *locations;
+    int current_line;
     int64_t (*ir_executor)(struct kx_context_ *ctx);
 } kx_context_t;
 

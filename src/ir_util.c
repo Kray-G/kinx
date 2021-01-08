@@ -6592,19 +6592,43 @@ int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *
     if (!cfile || !cline) {
         return 1;
     }
+
+    // This is started when reaching at a different line even whenever the file is not same.
+
+    // First, looking for the location info of the same file.
+    kx_location_t *location = NULL;
+    for (kx_location_list_t *l = ctx->locations; l != NULL; l = l->next) {
+        if (!strcmp(l->location.file, cfile)) {
+            location = &l->location;
+            break;
+        }
+    }
+
+    // if not found, creates a new info for the file and sets the location info.
+    if (!location) {
+        kx_location_list_t *newloc = (kx_location_list_t *)kx_calloc(1, sizeof(kx_location_list_t));
+        newloc->location.file = cfile;
+        newloc->location.line = 0;
+        newloc->location.func = cur->func;
+        newloc->next = ctx->locations;
+        ctx->locations = newloc;
+        location = &(newloc->location);
+    }
+    if (location->line == cline) {
+        // returns if it is the same line at the same file.
+        return 1;
+    }
+
+    // debugger will start with a breakpoint when the line is different from the previous check.
+    location->line = cline;
+    location->func = cur->func;
     if (ctx->options.debug_step) {
-        ctx->location.line = cline;
-        ctx->location.file = cfile;
-        ctx->location.func = cur->func;
-        return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &ctx->location);
+        return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, location);
     }
     kx_location_list_t *breakpoints = ctx->breakpoints;
     while (breakpoints) {
         if (breakpoints->location.line == cline && !strcmp(breakpoints->location.file, cfile)) {
-            ctx->location.line = cline;
-            ctx->location.file = cfile;
-            ctx->location.func = cur->func;
-            return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, &ctx->location);
+            return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, location);
         }
         breakpoints = breakpoints->next;
     }
