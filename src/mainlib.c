@@ -156,7 +156,7 @@ static void set_script_name_to_env(const char *filename)
     conv_free(buf);
     ks_free(ksv);
     #else
-    setenv(name, value, 1);
+    setenv("KINX_RUN_SCRIPT", filename, 1);
     #endif
 }
 
