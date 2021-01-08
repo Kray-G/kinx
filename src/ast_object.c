@@ -65,6 +65,12 @@ static const char *kx_gen_name(const char *base, int counter)
     return const_str(g_parse_ctx, buf);
 }
 
+void kx_set_location_info(const char *file, int line)
+{
+    kx_lexinfo.file = file;
+    kx_lexinfo.line = line;
+}
+
 kx_object_t *kx_gen_obj_core(int type, int optional, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int var_type)
 {
     kx_object_t *obj = kx_obj_alloc();
@@ -358,6 +364,13 @@ kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t
 kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs)
 {
     return kx_gen_obj(type, 0, lhs, NULL, NULL);
+}
+
+kx_object_t *kx_gen_uexpr_object_line(int type, kx_object_t *lhs, int line)
+{
+    kx_object_t *obj = kx_gen_obj(type, 0, lhs, NULL, NULL);
+    obj->line = line;
+    return obj;
 }
 
 kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t)
