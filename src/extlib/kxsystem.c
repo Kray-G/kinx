@@ -1696,7 +1696,7 @@ int System_setenv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     conv_free(buf);
     ks_free(ksv);
     #else
-    setenv(conv_utf82acp_alloc(name), conv_utf82acp_alloc(value), 1);
+    setenv(name, value, 1);
     #endif
 
     KX_ADJST_STACK();
@@ -1918,6 +1918,81 @@ int System_createDuktape(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     return 0;
 }
 
+int System_getBreakPointList(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = allocate_obj(ctx);
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        kx_obj_t *el = allocate_obj(ctx);
+        KEX_SET_PROP_CSTR(el, "file", breakpoints->location.file);
+        KEX_SET_PROP_INT(el, "line", breakpoints->location.line);
+        KEX_PUSH_ARRAY_OBJ(obj, el);
+        breakpoints = breakpoints->next;
+    }
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int System_addBreakpoint(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *file = get_arg_str(1, args, ctx);
+    int line = get_arg_int(2, args, ctx);
+
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        if (breakpoints->location.line == line && !strcmp(breakpoints->location.file, file)) {
+            KX_ADJST_STACK();
+            push_undef(ctx->stack);
+            return 0;
+        }
+        breakpoints = breakpoints->next;
+    }
+
+    kx_location_list_t *loc = kx_calloc(1, sizeof(kx_location_list_t));
+    loc->location.file = kx_const_str(ctx, file);
+    loc->location.line = line;
+    loc->next = ctx->breakpoints;
+    ctx->breakpoints = loc;
+
+    KX_ADJST_STACK();
+    push_undef(ctx->stack);
+    return 0;
+}
+
+int System_removeBreakpoint(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *file = get_arg_str(1, args, ctx);
+    int line = get_arg_int(2, args, ctx);
+
+    kx_location_list_t *prev = NULL;
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        if (breakpoints->location.line == line && !strcmp(breakpoints->location.file, file)) {
+            if (prev) {
+                prev->next = breakpoints->next;
+            } else {
+                ctx->breakpoints = breakpoints->next;
+            }
+            kx_free(breakpoints);
+            break;
+        }
+        prev = breakpoints;
+        breakpoints = breakpoints->next;
+    }
+
+    KX_ADJST_STACK();
+    push_undef(ctx->stack);
+    return 0;
+}
+
+int System_isDebuggerMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    KX_ADJST_STACK();
+    push_i(ctx->stack, ctx->options.debug_mode);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "halt", System_halt },
     { "getPlatform", System_getPlatform },
@@ -1968,7 +2043,11 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "callCFunction", System_callCFunction },
     { "iconvConvertStr", System_iconvstr },
     { "iconvConvertBin", System_iconvbin },
-    { "createDuktape", System_createDuktape }
+    { "createDuktape", System_createDuktape },
+    { "getBreakPointList", System_getBreakPointList },
+    { "_addBreakpoint", System_addBreakpoint },
+    { "_removeBreakpoint", System_removeBreakpoint },
+    { "_isDebuggerMode", System_isDebuggerMode },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);

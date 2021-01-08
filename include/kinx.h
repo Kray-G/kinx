@@ -235,6 +235,7 @@ typedef struct kx_object_ {
     int ret_type;
     int optional;
     int refdepth;
+    const char *typename;
     union {
         int64_t     i;
         double      d;
@@ -314,6 +315,7 @@ extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
 extern void ir_fix_code(kx_context_t *ctx, int start);
 extern int64_t ir_exec(kx_context_t *ctx);
+extern int64_t ir_dbg_exec(kx_context_t *ctx);
 extern void native_dump(unsigned char *bytes, int size);
 
 /* for import library */
