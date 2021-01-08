@@ -9,7 +9,7 @@ namespace Typesetting {
     *
     * Licensed under the new BSD License.
     * Copyright 2009-2010, Bram Stein
-    * Copyright 2020,      Kray-G modified for Kinx
+    * Copyright 2020-2021, Kray-G modified for Kinx
     * All rights reserved.
     */
     class Linebreak(nodes, lines, settings) {
