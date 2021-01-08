@@ -2,10 +2,10 @@
 
 KINXICO ICON DISCARDABLE "kinxi.ico"
 
-VS_VERSION_INFO    VERSIONINFO 
+VS_VERSION_INFO    VERSIONINFO
 FILEVERSION        $$VER_MAJ,$$VER_MIN,$$VER_PAT,0
 PRODUCTVERSION     $$VER_MAJ,$$VER_MIN,$$VER_PAT,0
-FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK 
+FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK
 FILEFLAGS          0x00000000L
 FILEOS             VOS__WINDOWS32
 FILETYPE           VFT_APP
@@ -24,10 +24,10 @@ BEGIN
             VALUE "FileDescription",  "The Script Kinx"
             VALUE "FileVersion",      "$$VER_MAJ.$$VER_MIN.$$VER_PAT.0\0"
             VALUE "InternalName",     "Kinx\0"
-            VALUE "LegalCopyright",   "Copyright (C) 2019-2020 Kray-G\0"
+            VALUE "LegalCopyright",   "Copyright (C) 2019-2021 Kray-G\0"
             VALUE "OriginalFilename", "kinx.exe\0"
             VALUE "ProductName",      "Kinx\0"
             VALUE "ProductVersion",   "$$VER_MAJ.$$VER_MIN.$$VER_PAT.0\0"
-        END 
+        END
     END
 END
