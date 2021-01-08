@@ -146,6 +146,20 @@ static void get_long_option(const char *optarg, char *lname, char *param)
     }
 }
 
+static void set_script_name_to_env(const char *filename)
+{
+    #if defined(_WIN32) || defined(_WIN64)
+    kstr_t *ksv = ks_new();
+    ks_appendf(ksv, "KINX_RUN_SCRIPT=%s", filename);
+    char *buf = conv_utf82acp_alloc(ks_string(ksv));
+    _putenv(buf);
+    conv_free(buf);
+    ks_free(ksv);
+    #else
+    setenv("KINX_RUN_SCRIPT", filename, 1);
+    #endif
+}
+
 DllExport int do_main(int ac, char **av)
 {
     int r = 1;
@@ -207,6 +221,9 @@ DllExport int do_main(int ac, char **av)
                 workdir = param[0] ? const_str(ctx, param) : NULL;
             } else if (!strcmp(lname, "output-location")) {
                 ctx->options.output_location = param[0] ? strtol(param, NULL, 0) : 1;
+            } else if (!strcmp(lname, "debug")) {
+                ctx->options.debug_mode = param[0] ? strtol(param, NULL, 0) : 1;
+                ctx->ir_executor = ir_dbg_exec;
             } else if (!strcmp(lname, "exec")) {
                 if (param[0]) {
                     execname = param;
@@ -246,6 +263,9 @@ DllExport int do_main(int ac, char **av)
     }
 
 END_OF_OPT:
+    if (!ctx->ir_executor) {
+        ctx->ir_executor = ir_exec;
+    }
     #if defined(_WIN32) || defined(_WIN64)
     if (GetConsoleCP() == CP_UTF8) {
         ctx->options.utf8inout = 1;
@@ -264,12 +284,14 @@ END_OF_OPT:
             r = 1;
             goto CLEANUP;
         }
+        set_script_name_to_env(execfile);
         r = eval_file(alloc_string(ctx, execfile), ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
         }
     } else if (ctx->options.src_stdin) {
+        set_script_name_to_env(filename);
         r = eval_file(filename, ctx);
         if (r < 0) {
             r = 1;
@@ -282,6 +304,7 @@ END_OF_OPT:
             r = 1;
             goto CLEANUP;
         }
+        set_script_name_to_env(file);
         r = eval_file(file, ctx);
         if (r < 0) {
             r = 1;
@@ -355,7 +378,7 @@ END_OF_OPT:
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-    r = ir_exec(ctx);
+    r = ctx->ir_executor(ctx);
 
     #if !defined(_WIN32) && !defined(_WIN64)
     tcsetattr(0, TCSANOW, &oldf);
@@ -462,7 +485,7 @@ static int kinx_run(kinx_compiler *kc)
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-    int r = ir_exec(ctx);
+    int r = ctx->ir_executor(ctx);
     kc->timer.runtime = kinx_elapsed(&(kc->timer.v));
     return r;
 }

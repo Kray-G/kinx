@@ -14,7 +14,11 @@ static void print_ref(const char *type, kx_object_t *node, kx_object_t *base)
 static void print_define(const char *type, kx_object_t *node)
 {
     if (node->value.s && node->value.s[0] != '_') {
-        printf("#define\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+        if (node->typename) {
+            printf("#define\t%s\t%s\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, node->typename);
+        } else {
+            printf("#define\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+        }
     }
 }
 
@@ -125,7 +129,7 @@ LOOP_HEAD:;
         display_def_ast(node->rhs, 0);
         break;
     case KXOP_ASSIGN:
-        display_def_ast(node->lhs, 1);
+        display_def_ast(node->lhs, 0);  // assignment is dealt with not definition, just a reference instead.
         display_def_ast(node->rhs, 0);
         break;
     case KXOP_SHL:
@@ -341,9 +345,9 @@ LOOP_HEAD:;
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         print_scope_start("function", node->value.s);
+        const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
+        print_define(type, node);
         if (node->optional != KXFT_SYSFUNC) {
-            const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
-            print_define(type, node);
             display_def_ast(node->lhs, 1);
             display_def_ast(node->rhs, 0);
         }

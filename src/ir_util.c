@@ -403,12 +403,14 @@ static int eval(kx_context_t *ctx)
         fclose(kx_lexinfo.in.fp);
         kx_lexinfo.in.fp = NULL;
     }
+    if (kx_ast_root) {
+        start_optimize_ast(ctx, kx_ast_root);
+        start_analyze_ast(ctx, kx_ast_root);
+    }
     if (r != 0 || g_yyerror > 0) {
         return -1;
     }
 
-    start_optimize_ast(ctx, kx_ast_root);
-    start_analyze_ast(ctx, kx_ast_root);
     start_optimize_ast(ctx, kx_ast_root); // optimize AST again after analyzed.
     if (g_yyerror > 0) {
         return -1;
@@ -591,7 +593,7 @@ int64_t run_ctx(kx_context_t *ctx, kx_context_t *parent, int ac, char **av)
     push_f(ctx->stack, kv_head(ctx->fixcode), NULL);
     push_i(ctx->stack, 1);
     push_adr(ctx->stack, NULL);
-    int64_t r = ir_exec(ctx);
+    int64_t r = ctx->ir_executor(ctx);
     if (parent) {
         kx_val_t *rv = &(ctx->retval);
         switch (rv->type) {
@@ -6574,3 +6576,61 @@ void kx_try_bin_swap(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *
     }
 }
 
+kx_code_t *ir_varname(kx_frm_t *frmv, kx_code_t *cur)
+{
+    int size = cur->value2.idx < 32 ? 64 : cur->value2.idx * 2;
+    kv_resize_if(kx_varname_t, frmv->varname, size);
+    kv_shrinkto(frmv->varname, cur->value2.idx + 1);
+    kv_A(frmv->varname, cur->value2.idx).name = cur->varname;
+    return cur->next;
+}
+
+int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur)
+{
+    const char *cfile = cur->file;
+    int cline = cur->line;
+    if (!cfile || !cline) {
+        return 1;
+    }
+
+    // This is started when reaching at a different line even whenever the file is not same.
+
+    // First, looking for the location info of the same file.
+    kx_location_t *location = NULL;
+    for (kx_location_list_t *l = ctx->locations; l != NULL; l = l->next) {
+        if (!strcmp(l->location.file, cfile)) {
+            location = &l->location;
+            break;
+        }
+    }
+
+    // if not found, creates a new info for the file and sets the location info.
+    if (!location) {
+        kx_location_list_t *newloc = (kx_location_list_t *)kx_calloc(1, sizeof(kx_location_list_t));
+        newloc->location.file = cfile;
+        newloc->location.line = 0;
+        newloc->location.func = cur->func;
+        newloc->next = ctx->locations;
+        ctx->locations = newloc;
+        location = &(newloc->location);
+    }
+    if (location->line == cline) {
+        // returns if it is the same line at the same file.
+        return 1;
+    }
+
+    // debugger will start with a breakpoint when the line is different from the previous check.
+    location->line = cline;
+    location->func = cur->func;
+    if (ctx->options.debug_step) {
+        return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, location);
+    }
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        if (breakpoints->location.line == cline && !strcmp(breakpoints->location.file, cfile)) {
+            return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, location);
+        }
+        breakpoints = breakpoints->next;
+    }
+    return 1;
+}

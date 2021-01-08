@@ -28,6 +28,7 @@ int _fprintf_w32(FILE* fp, const char* format, ...);
 #include <kinx.h>
 #include <kutil.h>
 #include <kxthread.h>
+#include <stdarg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
@@ -832,7 +833,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
         case KX_OBJ_T:
             ++count;
             kstr_t *out = kx_format(&val);
-            if (!out) {   
+            if (!out) {
                 printf("[...]");
             } else {
                 if (!fi->is_std || ctx->options.utf8inout) {
@@ -1164,30 +1165,15 @@ int File_putch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+static kstr_t *readline(kx_context_t *ctx, int mode, int is_std, FILE *fp)
 {
-    kx_obj_t *obj = get_arg_obj(1, args, ctx);
-    KX_FILE_GET_RPACK(fi, obj);
-    if (!fi) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
-    }
-    if (!(fi->mode & KXFILE_MODE_READ)) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
-    }
-
-    if (feof(fi->fp)) {
-        KX_ADJST_STACK();
-        push_i(ctx->stack, 0);
-        return 0;
-    }
-
     term_echo(1);
     #define BUFFER_MAX (2048)
-    int is_binary = (fi->mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
+    int is_binary = (mode & KXFILE_MODE_BINARY) == KXFILE_MODE_BINARY;
     char buffer[BUFFER_MAX] = {0};
     kstr_t *s = allocate_str(ctx);
     while (1) {
-        char *buf = fgets(buffer, BUFFER_MAX-1, fi->fp);
+        char *buf = fgets(buffer, BUFFER_MAX-1, fp);
         if (!buf) {
             break;
         }
@@ -1212,7 +1198,7 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         if (found) {
             break;
         }
-        if (feof(fi->fp)) {
+        if (feof(fp)) {
             break;
         }
     }
@@ -1220,13 +1206,35 @@ int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     term_echo(0);
 
     #if defined(_WIN32) || defined(_WIN64)
-    if (fi->is_std && !ctx->options.utf8inout) {
+    if (is_std && !ctx->options.utf8inout) {
         char *buf = conv_acp2utf8_alloc(ks_string(s));
         ks_clear(s);
         ks_append(s, buf);
         conv_free(buf);
     }
     #endif
+
+    return s;
+}
+
+int File_readline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_FILE_GET_RPACK(fi, obj);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_READ)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
+    }
+
+    if (feof(fi->fp)) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, 0);
+        return 0;
+    }
+
+    kstr_t *s = readline(ctx, fi->mode, fi->is_std, fi->fp);
 
     KX_ADJST_STACK();
     push_sv(ctx->stack, s);
@@ -1245,6 +1253,28 @@ int File_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location);
+
+int Debugger_start(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    /* this method will/must be called at the startup. */
+    if (!ctx->objs.debugger_prompt) {
+        ctx->objs.debugger_prompt = Debugger_prompt; // setup this method at the startup.
+    }
+
+    const char *file = get_arg_str(1, args, ctx);
+    int line = get_arg_int(2, args, ctx);
+
+    int r = Debugger_prompt(args, frmv, lexv, ctx, &(kx_location_t){
+        .file = file,
+        .line = line,
+    });
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
     return 0;
 }
 
@@ -1930,6 +1960,918 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "ostimeByMs", File_static_ms_time },
 
     { "scanCode", Stdin_scan_keycode },
+
+    { "_startDebugger", Debugger_start },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
+
+/**
+ * Debugger Core Logic
+ */
+
+#define KXDS 5
+#define KXNM 10
+#define prompt_start() _fprintf_w32(stdout, "\n\033[96m> ")
+#define prompt_end() _fprintf_w32(stdout, "\033[0m")
+#define output_source_l(l, line) _fprintf_w32(stdout, "\033[90m %4d:\033[0m %s", l, line)
+#define output_bsource_l(l, line) _fprintf_w32(stdout, "\033[31m*%4d:\033[0m %s", l, line)
+#define output_xsource_l(l, line) _fprintf_w32(stdout, "\033[1m %4d:\033[0m \033[93m%s\033[0m", l, line)
+#define output_bxsource_l(l, line) _fprintf_w32(stdout, "\033[91m*%4d:\033[0m \033[93m%s\033[0m", l, line)
+#define output1(str) _fprintf_w32(stdout, "%s", str)
+#define output(fmt, ...) _fprintf_w32(stdout, fmt, __VA_ARGS__)
+#define message1(str) _fprintf_w32(stdout, "\033[32m>>> %s\033[0m", str)
+#define message(fmt, ...) _fprintf_w32(stdout, "\033[32m>>> " fmt "\033[0m", __VA_ARGS__)
+#define error1(str) _fprintf_w32(stdout, "\033[33m>>> Error: %s\033[0m", str)
+#define error(fmt, ...) _fprintf_w32(stdout, "\033[33m>>> Error: " fmt "\033[0m", __VA_ARGS__)
+
+static int is_char(kstr_t *s, char ch)
+{
+    return ks_length(s) == 1 && ks_string(s)[0] == ch;
+}
+
+static int is_number(kstr_t *s)
+{
+    const char *p = ks_string(s);
+    if (!p || !*p) {
+        return 0;
+    }
+    if (*p == '-') {
+        ++p;
+    }
+    while (*p) {
+        if (*p < '0' || '9' < *p) {
+            return 0;
+        }
+        ++p;
+    }
+    return 1;
+}
+
+static int is_double(kstr_t *s)
+{
+    const char *p = ks_string(s);
+    if (!p || !*p) {
+        return 0;
+    }
+    if (*p == '-') {
+        ++p;
+    }
+    int dot = 0;
+    while (*p) {
+        if (*p == '.') {
+            if (++dot > 1) {
+                break;
+            }
+            ++p;
+            continue;
+        }
+        if (*p < '0' || '9' < *p) {
+            return 0;
+        }
+        ++p;
+    }
+    return 1;
+}
+
+static int get_positive_array_index(kstr_t *s, int max)
+{
+    int val = 0;
+    int minus = 0;
+    const char *p = ks_string(s);
+    if (!p || !*p) {
+        return -1;
+    }
+    if (*p != '[') {
+        return -1;
+    }
+    ++p;
+    if (*p == '-') {
+        minus = 1;
+        ++p;
+    }
+    while (*p) {
+        if (*p == ']' && *(p + 1) == 0) {
+            if (minus) {
+                val = -val;
+                do {
+                    val = val + max;
+                } while (val < 0);
+            }
+            return val;
+        }
+        if (*p < '0' || '9' < *p) {
+            return -1;
+        }
+        val = val * 10 + (*p - '0');
+        ++p;
+    }
+    return -1;
+}
+
+static kx_frm_t *get_stack_frame(kx_context_t *ctx, int n)
+{
+    kx_frm_t *fr = NULL;
+    int ssp = kv_size((ctx)->stack);
+    for (int sp = 1; sp < ssp; ++sp) {
+        kx_val_t *v = &(kv_A((ctx)->stack, sp));
+        if (v->type == KX_FRM_T) {
+            if (v->value.fr->id == n) {
+                fr = v->value.fr;
+                break;
+            }
+        }
+    }
+    return fr;
+}
+
+static kx_frm_t *get_lexical_frame(kx_frm_t *frmv, int n)
+{
+    if (n < 0) {
+        return NULL;
+    }
+    kx_frm_t *f = frmv->lex;
+    while (f && n) {
+        f = f->lex;
+        --n;
+    }
+    return f;
+}
+
+static int has_breakpoint(const char *file, int line, kx_location_list_t *breakpoints)
+{
+    while (breakpoints) {
+        if (breakpoints->location.line == line && !strcmp(breakpoints->location.file, file)) {
+            return 1;
+        }
+        breakpoints = breakpoints->next;
+    }
+    return 0;
+}
+
+static void do_command_show_breakpoints(kx_context_t *ctx)
+{
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    if (!breakpoints) {
+        message1("No breakpoints.\n");
+    } else {
+        output1("Breakpoints:\n");
+        while (breakpoints) {
+            output("  - <%s:%d>\n", breakpoints->location.file, breakpoints->location.line);
+            breakpoints = breakpoints->next;
+        }
+    }
+}
+
+static void add_breakpoint(const char *file, int line, kx_context_t *ctx)
+{
+    kx_location_list_t *loc = kx_calloc(1, sizeof(kx_location_list_t));
+    loc->location.file = kx_const_str(ctx, file);
+    loc->location.line = line;
+    loc->next = ctx->breakpoints;
+    ctx->breakpoints = loc;
+    message("Added the breakpoint of <%s:%d>.\n", file, line);
+    do_command_show_breakpoints(ctx);
+}
+
+static void remove_breakpoint(const char *file, int line, kx_context_t *ctx)
+{
+    kx_location_list_t *prev = NULL;
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        if (breakpoints->location.line == line && !strcmp(breakpoints->location.file, file)) {
+            if (prev) {
+                prev->next = breakpoints->next;
+            } else {
+                ctx->breakpoints = breakpoints->next;
+            }
+            kx_free(breakpoints);
+            break;
+        }
+        prev = breakpoints;
+        breakpoints = breakpoints->next;
+    }
+    message("Removed the breakpoint of <%s:%d>.\n", file, line);
+    do_command_show_breakpoints(ctx);
+}
+
+static void remove_breakpoint_all(kx_context_t *ctx)
+{
+    kx_location_list_t *breakpoints = ctx->breakpoints;
+    while (breakpoints) {
+        kx_location_list_t *next = breakpoints->next;
+        kx_free(breakpoints);
+        breakpoints = next;
+    }
+    ctx->breakpoints = NULL;
+    message1("Removed all breakpoints.\n");
+}
+
+static void setup_command(kstr_t *a[KXDS], kstr_t *args)
+{
+    ks_trim(args);
+    int i = 0, l = ks_length(args), idx = 0, start = 0;
+    for ( ; i < l; ++i) {
+        const char *p = ks_string(args) + i;
+        if ('a' <= *p && *p <= 'z' && '0' <= *(p+1) && *(p+1) <= '9') {
+            ++i;
+            ks_append_n(a[idx], ks_string(args) + start, i - start);
+            if (++idx >= KXDS) {
+                break;
+            }
+            start = i;
+            --i;
+            continue;
+        }
+        if (*p == ' ' || *p == 0) {
+            ks_append_n(a[idx], ks_string(args) + start, i - start);
+            if (++idx >= KXDS) {
+                break;
+            }
+            for ( ; i < l; ++i) {
+                p = ks_string(args) + i;
+                if (*p != ' ') {
+                    break;
+                }
+            }
+            start = i;
+        }
+    }
+    if (i > start) {
+        ks_append_n(a[idx], ks_string(args) + start, i - start);
+    }
+}
+
+static int split_name(kstr_t *a[KXNM], kstr_t *name)
+{
+    int i = 0, l = ks_length(name), idx = 0, start = 0;
+    for ( ; i < l; ++i) {
+        const char *p = ks_string(name) + i;
+        if (*p == '[') {
+            ks_append_n(a[idx], ks_string(name) + start, i - start);
+            if (++idx >= KXNM) {
+                return idx;
+            }
+            while (*p == '[') {
+                start = i;
+                for ( ; i < l; ++i) {
+                    const char *n = ks_string(name) + i;
+                    if (*n == 0) {
+                        return 0;   // invalid.
+                    }
+                    if (*n == ']') {
+                        ++i;
+                        break;
+                    }
+                }
+                ks_append_n(a[idx], ks_string(name) + start, i - start);
+                if (++idx >= KXNM) {
+                    return idx;
+                }
+                p = ks_string(name) + i;
+            }
+            if (*p != '.' && *p != 0) {
+                return 0;   // invalid.
+            }
+            start = i + 1;
+        } else if (*p == '.') {
+            ks_append_n(a[idx], ks_string(name) + start, i - start);
+            if (++idx >= KXNM) {
+                return idx;
+            }
+            start = i + 1;
+        }
+    }
+    if (i > start) {
+        ks_append_n(a[idx++], ks_string(name) + start, i - start);
+    }
+
+    return idx;
+}
+
+static kstr_t *get_script_name(kx_context_t *ctx)
+{
+    kstr_t *sv = allocate_str(ctx);
+    char *buf = conv_acp2utf8_alloc(getenv("KINX_RUN_SCRIPT"));
+    ks_append(sv, buf);
+    conv_free(buf);
+    return sv;
+}
+
+static void do_command_toggle_breakpoint(kx_context_t *ctx, kx_location_t *location, kstr_t *arg[KXDS])
+{
+    if (is_number(arg[1])) {
+        const char *scriptname = location->file;
+        int line = (int)strtol(ks_string(arg[1]), NULL, 0);
+        if (has_breakpoint(scriptname, line, ctx->breakpoints)) {
+            remove_breakpoint(scriptname, line, ctx);
+        } else {
+            add_breakpoint(scriptname, line, ctx);
+        }
+    }
+}
+
+static void do_command_breakpoint(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (is_char(arg[1], '-')) {
+        remove_breakpoint_all(ctx);
+    } else if (is_number(arg[1])) {
+        do_command_toggle_breakpoint(ctx, location, arg);
+    } else {
+        do_command_show_breakpoints(ctx);
+    }
+}
+
+static kstr_t *sanitize_ws(kx_context_t *ctx, const char *p)
+{
+    kstr_t *ns = allocate_str(ctx);
+    if (!p) {
+        return ns;
+    }
+    for ( ; *p; ++p) {
+        if (*p == '\r') {
+            continue;
+        }
+        if (*p == '\n') {
+            ks_append(ns, "\\");
+            ks_append(ns, "n");
+            continue;
+        }
+        if (*p == '\\') {
+            ks_append(ns, "\\");
+            ks_append(ns, "\\");
+            continue;
+        }
+        if (*p == '"') {
+            ks_append(ns, "\\");
+            ks_append(ns, "\"");
+            continue;
+        }
+        if (*p == '\t') {
+            ks_append(ns, "\\");
+            ks_append(ns, "t");
+            continue;
+        }
+        char buf[2] = { *p, 0 };
+        ks_append(ns, buf);
+    }
+    return ns;
+}
+
+static void do_command_frm_list(kx_context_t *ctx, kx_frm_t *frmv)
+{
+    if (!frmv) {
+        return;
+    }
+
+    char *buf;
+    int size = kv_size(frmv->varname);
+    for (int i = 0; i < size; ++i) {
+        const char *v = kv_A(frmv->varname, i).name;
+        kx_val_t *v1 = &kv_A(frmv->v, i);
+        output("  [%2d] %s", i, v);
+        switch (v1->type) {
+        case KX_INT_T:
+            output(" = int, %"PRId64"", v1->value.iv);
+            break;
+        case KX_DBL_T:
+            output(" = dbl, %g", v1->value.dv);
+            break;
+        case KX_BIG_T:
+            buf = BzToString(v1->value.bz, 10, 0);
+            output(" = big, %s", buf);
+            BzFreeString(buf);
+            break;
+        case KX_CSTR_T:
+            buf = conv_utf82acp_alloc(ks_string(sanitize_ws(ctx, v1->value.pv)));
+            output(" = cstr, \"%s\"", buf);
+            conv_free(buf);
+            break;
+        case KX_STR_T:
+            buf = conv_utf82acp_alloc(ks_string(sanitize_ws(ctx, ks_string(v1->value.sv))));
+            output(" = str, \"%s\"", buf);
+            conv_free(buf);
+            break;
+        case KX_BIN_T:
+            output1(" = bin");
+            break;
+        case KX_OBJ_T:
+            output1(" = obj");
+            break;
+        case KX_FNC_T:
+        case KX_BFNC_T:
+            output1(" = fnc");
+            break;
+        default:
+            break;
+        }
+        output1("\n");
+    }
+}
+
+static void do_command_frm(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (is_char(arg[1], '.')) {
+        do_command_frm_list(ctx, *cfrm);
+        return;
+    }
+
+    if (!is_number(arg[1])) {
+        int ssp = kv_size((ctx)->stack);
+        for (int sp = ssp - 1; sp > 0; --sp) {
+            kx_val_t *v = &(kv_A((ctx)->stack, sp));
+            if (v->type == KX_FRM_T) {
+                kx_frm_t *fr = v->value.fr;
+                output(" %s stack frame (%d)\n", (*cfrm) == fr ? "[*]" : " - ", fr->id);
+            }
+        }
+        return;
+    }
+
+    int frm = (int)strtol(ks_string(arg[1]), NULL, 0);
+    if (frm < 0) {
+        return;
+    }
+
+    kx_frm_t *fr = get_stack_frame(ctx, frm);
+    if (fr) {
+        do_command_frm_list(ctx, fr);
+    }
+}
+
+static void do_command_lex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (is_number(arg[1])) {
+        int lex = (int)strtol(ks_string(arg[1]), NULL, 0);
+        kx_frm_t *f = get_lexical_frame(frmv, lex);
+        if (f) {
+            do_command_frm_list(ctx, f);
+        }
+        return;
+    }
+
+    output(" %s stack frame (%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id);
+    int i = 0;
+    for (kx_frm_t *f = frmv->lex; f; f = f->lex) {
+        output(" %s lexical frame (%d)\n", (*cfrm) == f ? "[*]" : " - ", i++);
+    }
+}
+
+static void do_command_stack_list(kx_context_t *ctx, int max)
+{
+    int i = 0;
+    int ssp = kv_size((ctx)->stack);
+    for (int sp = ssp - 1; sp > 0; --sp) {
+        if (max > 0 && ++i > max) {
+            output1("    ... more\n");
+            break;
+        }
+        char *buf;
+        kx_val_t *v = &(kv_A((ctx)->stack, sp));
+        switch (v->type) {
+        case KX_UND_T:
+            output("  [%5d] null\n", sp);
+            break;
+        case KX_INT_T:
+            output("  [%5d] int, %"PRId64"\n", sp, v->value.iv);
+            break;
+        case KX_BIG_T:
+            buf = BzToString(v->value.bz, 10, 0);
+            output("  [%5d] big, %s\n", sp, buf);
+            BzFreeString(buf);
+            break;
+        case KX_DBL_T:
+            output("  [%5d] dbl, %g\n", sp, v->value.dv);
+            break;
+        case KX_CSTR_T:
+            buf = conv_utf82acp_alloc(v->value.pv);
+            output("  [%5d] cstr, %s\n", sp, buf);
+            conv_free(buf);
+            break;
+        case KX_STR_T:
+            buf = conv_utf82acp_alloc(ks_string(v->value.sv));
+            output("  [%5d] str, %s\n", sp, buf);
+            conv_free(buf);
+            break;
+        case KX_BIN_T:
+            output("  [%5d] bin, <...>\n", sp);
+            break;
+        case KX_OBJ_T:
+            output("  [%5d] object/array\n", sp);
+            break;
+        case KX_FNC_T:
+            output("  [%5d] function, %s\n", sp, v->value.fn->jp->func);
+            break;
+        case KX_FRM_T:
+            output("  [%5d] frm, var:%d\n", sp, (int)kv_size(v->value.fr->v));
+            break;
+        case KX_BFNC_T:
+            output("  [%5d] built-in function\n", sp);
+            break;
+        case KX_NFNC_T:
+            output("  [%5d] native, %s\n", sp, v->value.fn->native.name);
+            break;
+        case KX_ADDR_T:
+            if (v->value.jp) {
+                output("  [%5d] address, ret -> %s\n", sp, v->value.jp->func);
+            } else {
+                output("  [%5d] address, ret -> <end>\n", sp);
+            }
+            break;
+        case KX_ANY_T:
+            output("  [%5d] any object\n", sp);
+            break;
+        default:
+            ;
+        }
+    }
+}
+
+static void do_command_stack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (ks_length(arg[1]) == 0) {
+        do_command_stack_list(ctx, 10);
+    } else if (!strcmp(ks_string(arg[1]), "all")) {
+        do_command_stack_list(ctx, -1);
+    }
+}
+
+static void do_command_move_frame(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (is_number(arg[2])) {
+        int n = (int)strtol(ks_string(arg[2]), NULL, 0);
+        kx_frm_t *fr = NULL;
+        if (is_char(arg[1], 'f')) {
+            fr = get_stack_frame(ctx, n);
+        } else if (is_char(arg[1], 'l')) {
+            fr = get_lexical_frame(frmv, n);
+        }
+        if (fr) {
+            *cfrm = fr;
+        }
+    }
+}
+
+static kx_val_t *get_variable_by_name(kx_frm_t *frmv, kstr_t *nm[KXDS])
+{
+    const char *base = ks_string(nm[0]);
+    int size = kv_size(frmv->varname);
+    for (int i = 0; i < size; ++i) {
+        const char *v = kv_A(frmv->varname, i).name;
+        if (!strcmp(v, base)) {
+            return &kv_A(frmv->v, i);
+        }
+    }
+    return NULL;
+}
+
+static void show_variable_info(kx_val_t *v, int recursive)
+{
+    char *buf;
+    switch (v->type) {
+    case KX_UND_T:
+        output1("  --> null\n");
+        break;
+    case KX_INT_T:
+        output("  --> int, %"PRId64"\n", v->value.iv);
+        break;
+    case KX_BIG_T:
+        buf = BzToString(v->value.bz, 10, 0);
+        output("  --> big, %s\n", buf);
+        BzFreeString(buf);
+        break;
+    case KX_DBL_T:
+        output("  --> dbl, %g\n", v->value.dv);
+        break;
+    case KX_CSTR_T:
+        buf = conv_utf82acp_alloc(v->value.pv);
+        output("  --> cstr, %s\n", buf);
+        conv_free(buf);
+        break;
+    case KX_STR_T:
+        buf = conv_utf82acp_alloc(ks_string(v->value.sv));
+        output("  --> str, %s\n", buf);
+        conv_free(buf);
+        break;
+    case KX_BIN_T:
+        output1("  --> bin, <...>\n");
+        break;
+    case KX_OBJ_T: {
+        kx_obj_t *obj = v->value.ov;
+        output1("  --> object/array\n");
+        if (recursive) {
+            int sz = kv_size(obj->ary);
+            for (int i = 0; i < sz; ++i) {
+                kx_val_t *vp = &kv_A(obj->ary, i);
+                output("    [%d]", i);
+                show_variable_info(vp, 0);
+            }
+            for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
+                if (kh_exist(obj->prop, k)) {
+                    kx_val_t *vp = &kh_value(obj->prop, k);
+                    const char *key = kh_key(obj->prop, k);
+                    output("    .%s", key);
+                    show_variable_info(vp, 0);
+                }
+            }
+        }
+        break;
+    }
+    case KX_FNC_T:
+        output("  --> function, %s\n", v->value.fn->jp->func);
+        break;
+    case KX_BFNC_T:
+        output1("  --> built-in function\n");
+        break;
+    case KX_NFNC_T:
+        output("  --> native, %s\n", v->value.fn->native.name);
+        break;
+    case KX_ANY_T:
+        output1("  --> <any object>\n");
+        break;
+    default:
+        ;
+    }
+}
+
+static kx_val_t *get_object_property(kx_val_t *val, kstr_t *nm[KXNM], int nms)
+{
+    for (int i = 1; i < nms; ++i) {
+        if (val->type != KX_OBJ_T) {
+            return NULL; // invalid.
+        }
+        kx_val_t *nextv = NULL;
+        int max = kv_size(val->value.ov->ary);
+        int index = get_positive_array_index(nm[i], max);
+        if (index >= 0) {
+            nextv = &kv_A(val->value.ov->ary, index);
+        } else {
+            KEX_GET_PROP(nextv, val->value.ov, ks_string(nm[i]));
+        }
+        if (!nextv) {
+            return NULL; // not found.
+        }
+        val = nextv;
+    }
+    return val;
+}
+
+static void set_value_to_variable(const char *name, kx_val_t *val, kstr_t *value, const char *type)
+{
+    if (!type || !type[0]) {
+        if (is_number(value)) {
+            type = "i";
+        } else if (is_double(value)) {
+            type = "d";
+        } else {
+            type = "s";
+        }
+    }
+    if (type[0] == 'i') {
+        int64_t v = strtoll(ks_string(value), NULL, 0);
+        val->type = KX_INT_T;
+        val->value.iv = v;
+        message("Set %"PRId64", to the variable(%s)\n", v, name);
+        show_variable_info(val, 0);
+    } else if (type[0] == 'd') {
+        double v = strtod(ks_string(value), NULL);
+        val->type = KX_DBL_T;
+        val->value.dv = v;
+        message("Set %g, to the variable(%s)\n", v, name);
+        show_variable_info(val, 0);
+    } else if (type[0] == 's') {
+        val->type = KX_STR_T;
+        val->value.sv = value;
+        message("Set \"%s\", to the variable(%s)\n", ks_string(value), name);
+        show_variable_info(val, 0);
+    }
+}
+
+static void do_command_variable_set(kx_context_t *ctx, kx_frm_t *frmv, kstr_t *name, kstr_t *value, kstr_t *type)
+{
+    kstr_t *nm[KXNM];
+    for (int i = 0; i < KXNM; ++i) {
+        nm[i] = allocate_str(ctx);
+    }
+    int nms = split_name(nm, name);
+    kx_val_t *val = get_variable_by_name(frmv, nm);
+    if (!val) {
+        error("Variable(%s) not found\n", ks_string(name));
+        return;
+    }
+    if (nms > 1) {
+        val = get_object_property(val, nm, nms);
+        if (!val) {
+            error("Variable(%s) do not have a specified property.\n", ks_string(nm[0]));
+            return; // not found.
+        }
+    }
+    set_value_to_variable(ks_string(name), val, value, ks_string(type));
+}
+
+static void do_command_variable_show(kx_context_t *ctx, kx_frm_t *frmv, kstr_t *name)
+{
+    kstr_t *nm[KXNM];
+    for (int i = 0; i < KXNM; ++i) {
+        nm[i] = allocate_str(ctx);
+    }
+    int nms = split_name(nm, name);
+    if (nms <= 0) {
+        return;
+    }
+    kx_val_t *val = get_variable_by_name(frmv, nm);
+    if (!val) {
+        error("Variable(%s) not found\n", ks_string(name));
+        return;
+    }
+
+    if (nms > 1) {
+        val = get_object_property(val, nm, nms);
+        if (!val) {
+            error("Variable(%s) do not have a specified property.\n", ks_string(nm[0]));
+            return; // not found.
+        }
+    }
+    show_variable_info(val, 1);
+}
+
+static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (ks_length(arg[1]) == 0) {
+        do_command_frm_list(ctx, *cfrm);  /* Show the variables in the current frame. */
+    } else if (ks_length(arg[2]) > 0) {
+        // Set the value to the variable.
+        do_command_variable_set(ctx, *cfrm, arg[1], arg[2], arg[3]);
+    } else {
+        // Show details of the variable.
+        do_command_variable_show(ctx, *cfrm, arg[1]);
+    }
+}
+
+static const char *funcname(const char *func)
+{
+    if (!func || !strcmp(func, "_main1")) {
+        return "<main-block>";
+    }
+    return func;
+}
+
+static void do_command_callstack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    output("  [%5d] %s (%s:%d)\n", frmv->id, funcname(location->func), location->file, location->line);
+    int ssp = kv_size((ctx)->stack);
+    for (int sp = ssp - 1; sp > 0; --sp) {
+        kx_val_t *v = &(kv_A((ctx)->stack, sp));
+        if (v->type == KX_FRM_T) {
+            kx_frm_t *fr = v->value.fr;
+            if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
+                output("  [%5d] %s (%s:%d)\n", fr->prv ? fr->prv->id : 0, funcname(fr->caller->func), fr->caller->file, fr->caller->line);
+            }
+        }
+    }
+}
+
+static void do_command_sourcecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    const char *file = location->file;
+    FILE *fp = fopen(file, "r");
+    if (!fp) {
+        error("Can't open the file(%s).\n", file);
+        return;
+    }
+
+    int l = 0, line = location->line;
+    char buf[2048] = {0};
+    while (fgets(buf, 2040, fp)) {
+        ++l;
+        int b = has_breakpoint(file, l, ctx->breakpoints);
+        if (l == line) {
+            if (b) output_bxsource_l(l, buf);
+            else   output_xsource_l(l, buf);
+        } else {
+            if (b) output_bsource_l(l, buf);
+            else   output_source_l(l, buf);
+        }
+    }
+    fclose(fp);
+}
+
+static void usage(void)
+{
+    output1("Kinx Debugger version 0.1.0\n");
+    output1("\n");
+    output1("[Common]\n");
+    output1("  h, help               Display this help.\n");
+    output1("\n");
+    output1("[Flow]\n");
+    output1("  n                     Run to the next line.\n");
+    output1("  r                     Run to the next breakpoint.\n");
+    output1("  b                     Show breakpoints.\n");
+    output1("  b [L]                 Toggle the breakpoint to the line [L].\n");
+    output1("  b -                   Remove all breakpoints.\n");
+    output1("\n");
+    output1("[Frames]\n");
+    output1("  cs                    Show the call stack.\n");
+    output1("  f                     Show the frame list on the stack.\n");
+    output1("  l                     Show the lexical frame list.\n");
+    output1("  mv [f|l] [N]          Move the current frame to the specified frame.\n");
+    output1("\n");
+    output1("[Stack]\n");
+    output1("  s                     Show the stack with the first 10 entries.\n");
+    output1("  s all                 Show the stack all.\n");
+    output1("\n");
+    output1("[Veriables]\n");
+    output1("  v                     Show the variables in the current frame.\n");
+    output1("  f [N]                 Show the variables of [N]th frame on the stack.\n");
+    output1("  l [N]                 Show the variables of [N]th lexical frame.\n");
+    output1("  v [Name]              Show details of the variable in the current frame.\n");
+    output1("  v [Name] [Val] [Type] Set the value to the variable in the current frame.\n");
+    output1("                        Name: Variable name with index or property name.\n");
+    output1("                              ex) name, name.prop[1].next\n");
+    output1("                        Type: i ... int\n");
+    output1("                              d ... dbl\n");
+    output1("                              s ... str\n");
+    output1("                              * auto detect if not specified.\n");
+    output1("\n");
+    output1("[Source Code]\n");
+    output1("  sc                    Show the source code.\n");
+    output1("\n");
+}
+
+static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *s)
+{
+    kstr_t *arg[KXDS];
+    for (int i = 0; i < KXDS; ++i) {
+        arg[i] = allocate_str(ctx);
+    }
+    setup_command(arg, s);
+    const char *cmd = ks_string(arg[0]);
+
+    if (!strcmp(cmd, "q")) {
+        *r = 0;     // Terminate the Program
+        return 0;   // Debugger Prompt Loop end
+    }
+
+    if (!strcmp(cmd, "n")) {
+        ctx->options.debug_step = 1;
+        *r = 1;
+        return 0;   // Debugger Prompt Loop end
+    } else if (!strcmp(cmd, "h") || !strcmp(cmd, "help")) {
+        usage();
+    } else if (!strcmp(cmd, "s")) {
+        do_command_stack(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "v")) {
+        do_command_variable(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "b")) {
+        do_command_breakpoint(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "f")) {
+        do_command_frm(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "l")) {
+        do_command_lex(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "mv")) {
+        do_command_move_frame(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "cs")) {
+        do_command_callstack(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "sc")) {
+        do_command_sourcecode(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "r")) {
+        *r = 1;     // Restart the Program
+        return 0;   // Debugger Prompt Loop end
+    }
+
+    return 1;   // Continue the Debugger
+}
+
+int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location)
+{
+    const char *file = location->file;
+    int line = location->line;
+    if (line == 0) {
+        /* Ignore when the line was not set.  */
+        return 1;
+    }
+    if (line < 0) {
+        line = 0;
+    }
+
+    /* Reset once. */
+    ctx->options.debug_step = 0;
+
+    int r = 1;
+    message("Break at %s:%d\n", file, line);
+    kx_frm_t *cfrm = frmv;
+    kstr_t *s;
+    while (1) {
+        prompt_start();
+        s = readline(ctx, KXFILE_MODE_READ, 1, stdin);
+        prompt_end();
+        ks_trim(s);
+        if (ks_length(s) > 0) {
+            if (!do_command(&r, args, frmv, lexv, ctx, location, &cfrm, s)) {
+                break;
+            }
+        }
+    }
+
+    return r;
+}

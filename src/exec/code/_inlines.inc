@@ -74,7 +74,7 @@ extern kx_code_t *kx_goto_function(kx_context_t *ctx, kx_code_t **caller, kx_cod
 } \
 /**/
 
-#define CALL_OP_FUNCTION(fn, cur, v1, arg2) \
+#define CALL_OP_FUNCTION(fn, cur, arg2) \
     if (fn) { \
         kv_remove_last((ctx)->stack); \
         arg2; \
