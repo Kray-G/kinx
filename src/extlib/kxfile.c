@@ -2618,7 +2618,7 @@ static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
 
 static const char *funcname(const char *func)
 {
-    if (!strcmp(func, "_main1")) {
+    if (!func || !strcmp(func, "_main1")) {
         return "<main-block>";
     }
     return func;
