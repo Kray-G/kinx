@@ -73,3 +73,9 @@ const KX_KEY_RIGHT      = (0x80 << 8) | 0x12;
 const KX_KEY_LEFT       = (0x80 << 8) | 0x13;
 const KX_KEY_CTRL_RIGHT = (0x88 << 8) | 0x12;
 const KX_KEY_CTRL_LEFT  = (0x88 << 8) | 0x13;
+
+if (System._isDebuggerMode()) {
+    if (!File._startDebugger($env.KINX_RUN_SCRIPT, -1)) {
+        return 1;
+    }
+}

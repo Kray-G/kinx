@@ -27,6 +27,7 @@ OBJS = \
     global.o \
     ir_dump.o \
     ir_dot.o \
+    ir_execdbg.o \
     ir_exec.o \
     ir_fix.o \
     ir_util.o \
@@ -388,6 +389,7 @@ src/ir_aotcore.o: src/ir_aotcore.c $(SLJIT_DEP)
 	./timex $(CC) -c $(CFLAGS) -o $@ src/ir_aotcore.c
 
 src/ir_exec.c: include/ir.h include/kinx.h $(IR_EXEC_DEP)
+src/ir_execdbg.c: include/ir.h include/kinx.h $(IR_EXEC_DEP)
 
 depend: $(DEPFILE)
 
@@ -452,6 +454,25 @@ ir_dump.o: src/ir_dump.c include/dbg.h include/kvec.h include/kinx.h \
  include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
  include/../src/jit/sljitConfigInternal.h
 ir_exec.o: src/ir_exec.c include/dbg.h include/kvec.h include/kstr.h \
+ include/kinx.h include/ir.h include/khash.h include/klist.h \
+ include/bigz.h include/bign.h include/jit.h \
+ include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \
+ include/../src/jit/sljitConfigInternal.h include/kxexec.h \
+ src/exec/code/_except.inc src/exec/code/_inlines.inc \
+ src/exec/code/haltnop.inc src/exec/code/enter.inc src/exec/code/call.inc \
+ src/exec/code/ret.inc src/exec/code/throw.inc src/exec/code/catch.inc \
+ src/exec/code/jmp.inc src/exec/code/push.inc src/exec/code/pop.inc \
+ src/exec/code/store.inc src/exec/code/bnot.inc src/exec/code/not.inc \
+ src/exec/code/neg.inc src/exec/code/inc.inc src/exec/code/dec.inc \
+ src/exec/code/mkary.inc src/exec/code/append.inc src/exec/code/apply.inc \
+ src/exec/code/add.inc src/exec/code/sub.inc src/exec/code/pow.inc \
+ src/exec/code/mul.inc src/exec/code/div.inc src/exec/code/mod.inc \
+ src/exec/code/and.inc src/exec/code/or.inc src/exec/code/xor.inc \
+ src/exec/code/shl.inc src/exec/code/shr.inc src/exec/code/eqeq.inc \
+ src/exec/code/neq.inc src/exec/code/le.inc src/exec/code/lt.inc \
+ src/exec/code/ge.inc src/exec/code/gt.inc src/exec/code/lge.inc \
+ src/exec/code/regeq.inc
+ir_execdbg.o: src/ir_execdbg.c include/dbg.h include/kvec.h include/kstr.h \
  include/kinx.h include/ir.h include/khash.h include/klist.h \
  include/bigz.h include/bign.h include/jit.h \
  include/../src/jit/sljitLir.h include/../src/jit/sljitConfig.h \

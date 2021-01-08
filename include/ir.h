@@ -21,6 +21,7 @@ enum irop {
 
     KX_COENTER,
     KX_ENTER,
+    KX_VARNAME,
     KX_CALL,
     KX_CALLV,
     KX_CALLVL0,
@@ -259,6 +260,255 @@ enum irop {
     KX_OPEND
 };
 
+#define KX_IR_NAME_DEF() \
+static const char *kx_opname[] = { \
+    "KX_HALT", \
+    "KX_NOP", \
+    "KX_DUP", \
+    "KX_IMPORT", \
+\
+    "KX_COENTER", \
+    "KX_ENTER", \
+    "KX_VARNAME", \
+    "KX_CALL", \
+    "KX_CALLV", \
+    "KX_CALLVL0", \
+    "KX_CALLVL1", \
+    "KX_CALLS", \
+\
+    "KX_RET", \
+    "KX_RETI", \
+    "KX_RETD", \
+    "KX_RETS", \
+    "KX_RETB", \
+    "KX_RETV", \
+    "KX_RETVL0", \
+    "KX_RETVL1", \
+    "KX_RET_NULL", \
+    "KX_RET_NV", \
+    "KX_YIELD", \
+\
+    "KX_THROW", \
+    "KX_THROWA", \
+    "KX_THROWE", \
+\
+    "KX_CATCH", \
+\
+    "KX_JMP", \
+    "KX_JZ", \
+    "KX_JNZ", \
+    "KX_JMPTBL", \
+\
+    "KX_PUSHI", \
+    "KX_PUSHD", \
+    "KX_PUSHS", \
+    "KX_PUSHB", \
+    "KX_PUSHF", \
+    "KX_PUSHNF", \
+    "KX_PUSHV", \
+    "KX_PUSHLV", \
+    "KX_PUSHVL0", \
+    "KX_PUSHVL1", \
+    "KX_PUSH_NULL", \
+    "KX_PUSH_TRUE", \
+    "KX_PUSH_FALSE", \
+    "KX_PUSH_REGEX", \
+    "KX_PUSH_C", \
+    "KX_SPREAD", \
+\
+    "KX_POP_C", \
+    "KX_POP", \
+\
+    "KX_STORE", \
+    "KX_STOREV", \
+    "KX_STOREX", \
+    "KX_STOREVX", \
+\
+    "KX_BNOT", \
+    "KX_NOT", \
+    "KX_NEG", \
+\
+    "KX_INC", \
+    "KX_DEC", \
+    "KX_INCV", \
+    "KX_DECV", \
+    "KX_INCP", \
+    "KX_DECP", \
+    "KX_INCVP", \
+    "KX_DECVP", \
+    "KX_INCVX", \
+    "KX_DECVX", \
+\
+    "KX_MKRANGE", \
+    "KX_MKRANGEI", \
+    "KX_MKRANGES", \
+    "KX_MKBIN", \
+    "KX_MKARY", \
+    "KX_DUPARY", \
+    "KX_SWAP", \
+    "KX_SWAPX", \
+    "KX_GETOBJV", \
+    "KX_GETARYV", \
+    "KX_GETARYA", \
+    "KX_APPLYV", \
+    "KX_APPLYL", \
+    "KX_APPLYVI", \
+    "KX_APPLYLI", \
+    "KX_APPLYVS", \
+    "KX_APPLYLS", \
+\
+    "KX_APPENDK", \
+    "KX_APPEND", \
+    "KX_APPENDI", \
+    "KX_APPENDD", \
+    "KX_APPENDS", \
+    "KX_APPENDV", \
+    "KX_APPENDA", \
+\
+    "KX_ADD", \
+    "KX_ADDI", \
+    "KX_ADDD", \
+    "KX_ADDS", \
+    "KX_ADDV", \
+\
+    "KX_SUB", \
+    "KX_SUBI", \
+    "KX_SUBD", \
+    "KX_SUBS", \
+    "KX_SUBV", \
+\
+    "KX_POW", \
+\
+    "KX_MUL", \
+    "KX_MULI", \
+    "KX_MULD", \
+    "KX_MULS", \
+    "KX_MULV", \
+\
+    "KX_DIV", \
+    "KX_DIVI", \
+    "KX_DIVD", \
+    "KX_DIVS", \
+    "KX_DIVV", \
+\
+    "KX_MOD", \
+    "KX_MODI", \
+    "KX_MODD", \
+    "KX_MODS", \
+    "KX_MODV", \
+\
+    "KX_AND", \
+    "KX_ANDI", \
+    "KX_ANDD", \
+    "KX_ANDS", \
+    "KX_ANDV", \
+\
+    "KX_OR", \
+    "KX_ORI", \
+    "KX_ORD", \
+    "KX_ORS", \
+    "KX_ORV", \
+\
+    "KX_XOR", \
+    "KX_XORI", \
+    "KX_XORD", \
+    "KX_XORS", \
+    "KX_XORV", \
+\
+    "KX_SHL", \
+    "KX_SHLI", \
+    "KX_SHLD", \
+    "KX_SHLS", \
+    "KX_SHLV", \
+\
+    "KX_SHR", \
+    "KX_SHRI", \
+    "KX_SHRD", \
+    "KX_SHRS", \
+    "KX_SHRV", \
+\
+    "KX_EQEQ", \
+    "KX_EQEQI", \
+    "KX_EQEQD", \
+    "KX_EQEQS", \
+    "KX_EQEQV", \
+\
+    "KX_NEQ", \
+    "KX_NEQI", \
+    "KX_NEQD", \
+    "KX_NEQS", \
+    "KX_NEQV", \
+\
+    "KX_LE", \
+    "KX_LEI", \
+    "KX_LED", \
+    "KX_LES", \
+    "KX_LEV", \
+\
+    "KX_LT", \
+    "KX_LTI", \
+    "KX_LTD", \
+    "KX_LTS", \
+    "KX_LTV", \
+\
+    "KX_GE", \
+    "KX_GEI", \
+    "KX_GED", \
+    "KX_GES", \
+    "KX_GEV", \
+\
+    "KX_GT", \
+    "KX_GTI", \
+    "KX_GTD", \
+    "KX_GTS", \
+    "KX_GTV", \
+\
+    "KX_LGE", \
+    "KX_LGEI", \
+    "KX_LGED", \
+    "KX_LGES", \
+    "KX_LGEV", \
+\
+    "KX_REGEQ", \
+    "KX_REGNE", \
+\
+    "KX_EQEQ_V0V0", \
+    "KX_NEQ_V0V0", \
+    "KX_LE_V0V0", \
+    "KX_LT_V0V0", \
+    "KX_GE_V0V0", \
+    "KX_GT_V0V0", \
+    "KX_LGE_V0V0", \
+\
+    "KX_ADD_V0I", \
+    "KX_SUB_V0I", \
+    "KX_MUL_V0I", \
+    "KX_DIV_V0I", \
+    "KX_MOD_V0I", \
+\
+    "KX_EQEQ_V0I", \
+    "KX_NEQ_V0I", \
+    "KX_LE_V0I", \
+    "KX_LT_V0I", \
+    "KX_GE_V0I", \
+    "KX_GT_V0I", \
+    "KX_LGE_V0I", \
+\
+    "KX_EQEQ_IV0", \
+    "KX_NEQ_IV0", \
+    "KX_LE_IV0", \
+    "KX_LT_IV0", \
+    "KX_GE_IV0", \
+    "KX_GT_IV0", \
+    "KX_LGE_IV0", \
+\
+    "KX_TYPEOF", \
+    "KX_SET_GMM", \
+    "KX_CHKVAL", \
+    "KX_OPEND", \
+}; \
+/**/
+
 /*
     Code Generator.
 */
@@ -333,6 +583,11 @@ typedef struct kxn_func_ {
     kx_native_funcp_t func;
 } kxn_func_t;
 
+typedef struct kx_name_list_ {
+    struct kx_name_list_ *next;
+    const char *name;
+} kx_name_list_t;
+
 struct kx_obj_;
 typedef struct kx_code_ {
     #if defined(KX_DIRECT_THREAD)
@@ -355,6 +610,7 @@ typedef struct kx_code_ {
     } value1, value2;
     const char *file;
     const char *func;
+    const char *varname;
     uint32_t line;
     uint8_t is_internal;
 } kx_code_t;
@@ -383,7 +639,7 @@ kvec_init_t(kx_block_t);
 
 KHASH_MAP_INIT_STR(label, int)
 
-typedef struct KXFT_FUNCTION_ {
+typedef struct kx_function_ {
     const char *name;
     int pushes;
     int64_t addr;
@@ -501,6 +757,11 @@ KHASH_MAP_INIT_STR(prop, kx_val_t)
 #define KEX_RESTORE_VARINFO(v)
 #endif
 
+typedef struct kx_varname_ {
+    const char *name;
+} kx_varname_t;
+kvec_init_t(kx_varname_t);
+
 typedef struct kx_frm_ {
     uint8_t mark;
     uint8_t is_internal;
@@ -508,6 +769,7 @@ typedef struct kx_frm_ {
     struct kx_frm_ *prv;
     struct kx_frm_ *lex;
     kvec_t(kx_val_t) v;
+    kvec_t(kx_varname_t) varname;
     kx_code_t *caller;
 } kx_frm_t;
 kvec_init_t(kx_frm_t);
@@ -606,6 +868,8 @@ typedef struct kx_options_ {
     int native_verbose:1;
     int with_native:1;  /* dump with native */
     int exception_detail_info:1;
+    int debug_mode:1;
+    int debug_step:1;
     uint16_t case_threshold;
     uint16_t max_call_depth;
 } kx_options_t;
@@ -652,6 +916,17 @@ typedef struct kx_allocators_ {
     kvec_pt(kx_val_t) val_dead;
 } kx_allocators_t;
 
+typedef struct kx_location_ {
+    const char *file;
+    const char *func;
+    int line;
+} kx_location_t;
+
+typedef struct kx_location_list_ {
+    struct kx_location_list_ *next;
+    kx_location_t location;
+} kx_location_list_t;
+
 typedef struct kx_libobjs_ {
     kx_obj_t *strlib;
     kx_obj_t *binlib;
@@ -666,6 +941,7 @@ typedef struct kx_libobjs_ {
     kx_fnc_t *range_create;
     kx_fnc_t *throw_exception;
     kx_fnc_t *global_method_missing;
+    int (*debugger_prompt)(int args, kx_frm_t *frmv, kx_frm_t *lexv, struct kx_context_ *ctx, kx_location_t *location);
 } kx_libobjs_t;
 
 typedef struct kx_context_ {
@@ -692,6 +968,11 @@ typedef struct kx_context_ {
     kx_val_t retval;
     kx_string_manager_t str_mgr;
     kx_signal_t signal;
+
+    kx_location_list_t *breakpoints;
+    kx_location_list_t *locations;
+    int current_line;
+    int64_t (*ir_executor)(struct kx_context_ *ctx);
 } kx_context_t;
 
 #if defined(KX_EXEC_DEBUG)
