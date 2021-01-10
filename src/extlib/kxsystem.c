@@ -1504,7 +1504,7 @@ int System_mktime(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KEX_GET_PROP_INT(hour,   obj, "hour",   "SystemException", "Invalid datetime value");
         KEX_GET_PROP_INT(minute, obj, "minute", "SystemException", "Invalid datetime value");
         KEX_GET_PROP_INT(second, obj, "second", "SystemException", "Invalid datetime value");
-        struct tm tval;
+        struct tm tval = {0};
         tval.tm_year = year - 1900;
         tval.tm_mon = month - 1;
         tval.tm_mday = day;
@@ -1522,7 +1522,7 @@ int System_mktime(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         int hour = get_arg_int(4, args, ctx);
         int minute = get_arg_int(5, args, ctx);
         int second = get_arg_int(6, args, ctx);
-        struct tm tval;
+        struct tm tval = {0};
         tval.tm_year = year - 1900;
         tval.tm_mon = month - 1;
         tval.tm_mday = day;
@@ -1545,7 +1545,7 @@ int System_localtime(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     }
 
     time_t t = get_arg_int(1, args, ctx);
-    struct tm tval;
+    struct tm tval = {0};
     #if defined(_WIN32) && !defined(__CYGWIN__)
     localtime_s(&tval, &t);
     #else
