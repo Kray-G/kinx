@@ -1,9 +1,9 @@
+#include <dbg.h>
 #include <inttypes.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kutil.h>
 #include <kxthread.h>
-#include <dbg.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 

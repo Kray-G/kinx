@@ -1,6 +1,6 @@
+#include <dbg.h>
 #include <stdio.h>
 #include <fileutil.h>
-#include <dbg.h>
 
 static char *next_path(const char *p)
 {

@@ -1,4 +1,5 @@
 #define KX_LIB_DLL
+#include <dbg.h>
 #include <stdio.h>
 #include <kinx.h>
 #include <kxthread.h>
@@ -8,7 +9,6 @@
 #include <libkinx.h>
 #include <getopt.h>
 #include <version.h>
-#include <dbg.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define PROGNAME "kinx.exe"

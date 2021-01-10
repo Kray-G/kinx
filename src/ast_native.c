@@ -1,9 +1,9 @@
+#include <dbg.h>
 #include <assert.h>
 #include <inttypes.h>
 #include <kinx.h>
 #include <kxnative.h>
 #include <jit.h>
-#include <dbg.h>
 
 #define KXN_ISOBJ(x) (((x) == KX_OBJ_T) || ((x) == KX_ARY_T))
 

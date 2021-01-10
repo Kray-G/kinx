@@ -1,6 +1,6 @@
+#include <dbg.h>
 #include <inttypes.h>
 #include <parser.h>
-#include <dbg.h>
 
 static void print_ref(const char *type, kx_object_t *node, kx_object_t *base)
 {

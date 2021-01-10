@@ -1,4 +1,5 @@
 #define KX_LIB_DLL
+#include <dbg.h>
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -14,7 +15,6 @@
 #define KX_NO_INCLUDE_PARSER_TAB_H
 #include <kxastobject.h>
 #include <libkinx.h>
-#include <dbg.h>
 
 extern int kx_value_true(kx_context_t *ctx, kx_val_t *v);
 
