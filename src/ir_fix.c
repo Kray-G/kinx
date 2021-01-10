@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <kvec.h>
 #include <ir.h>
-#include <>
 
 static void ir_fix_jmp(kvec_t(uint32_t) *labels, kx_block_t *block, kx_module_t *module)
 {
