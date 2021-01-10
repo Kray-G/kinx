@@ -148,6 +148,9 @@ static void get_long_option(const char *optarg, char *lname, char *param)
 
 static void set_script_name_to_env(const char *filename)
 {
+    if (!filename) {
+        filename = "(unknown)";
+    }
     #if defined(_WIN32) || defined(_WIN64)
     kstr_t *ksv = ks_new();
     ks_appendf(ksv, "KINX_RUN_SCRIPT=%s", filename);
