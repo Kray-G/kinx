@@ -1,4 +1,3 @@
-#include <dbg.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <time.h>
@@ -10,6 +9,7 @@
 #include <kxthread.h>
 #include <kxiconv.h>
 #include "kc-json/dist/kc-json.h"
+#include <dbg.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define KX_WIN_NAMED_MUTEX
