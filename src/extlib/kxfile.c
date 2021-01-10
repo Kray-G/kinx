@@ -2091,11 +2091,13 @@ static kx_frm_t *get_lexical_frame(kx_frm_t *frmv, int n)
         return NULL;
     }
     kx_frm_t *f = frmv->lex;
-    while (f && n) {
+    while (f) {
+        if (f->id == n) {
+            return f;
+        }
         f = f->lex;
-        --n;
     }
-    return f;
+    return NULL;
 }
 
 static int has_breakpoint(const char *file, int line, kx_location_list_t *breakpoints)
@@ -2258,6 +2260,14 @@ static kstr_t *get_script_name(kx_context_t *ctx)
     return sv;
 }
 
+static const char *get_funcname(const char *func)
+{
+    if (!func || !strcmp(func, "_main1")) {
+        return "<main-block>";
+    }
+    return func;
+}
+
 static void do_command_toggle_breakpoint(kx_context_t *ctx, kx_location_t *location, kstr_t *arg[KXDS])
 {
     if (is_number(arg[1])) {
@@ -2377,12 +2387,15 @@ static void do_command_frm(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     }
 
     if (!is_number(arg[1])) {
+        output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id, get_funcname(location->func), location->file, location->line);
         int ssp = kv_size((ctx)->stack);
         for (int sp = ssp - 1; sp > 0; --sp) {
             kx_val_t *v = &(kv_A((ctx)->stack, sp));
             if (v->type == KX_FRM_T) {
                 kx_frm_t *fr = v->value.fr;
-                output(" %s stack frame (%d)\n", (*cfrm) == fr ? "[*]" : " - ", fr->id);
+                if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
+                    output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == fr->prv ? "[*]" : " - ", fr->prv ? fr->prv->id : 0, get_funcname(fr->caller->func), fr->caller->file, fr->caller->line);
+                }
             }
         }
         return;
@@ -2410,10 +2423,9 @@ static void do_command_lex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
         return;
     }
 
-    output(" %s stack frame (%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id);
-    int i = 0;
+    output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id, get_funcname(location->func), location->file, location->line);
     for (kx_frm_t *f = frmv->lex; f; f = f->lex) {
-        output(" %s lexical frame (%d)\n", (*cfrm) == f ? "[*]" : " - ", i++);
+        output(" %s [%4d] lexical frame\n", (*cfrm) == f ? "[*]" : " - ", f->id);
     }
 }
 
@@ -2708,29 +2720,6 @@ static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     }
 }
 
-static const char *funcname(const char *func)
-{
-    if (!func || !strcmp(func, "_main1")) {
-        return "<main-block>";
-    }
-    return func;
-}
-
-static void do_command_callstack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
-{
-    output("  [%5d] %s (%s:%d)\n", frmv->id, funcname(location->func), location->file, location->line);
-    int ssp = kv_size((ctx)->stack);
-    for (int sp = ssp - 1; sp > 0; --sp) {
-        kx_val_t *v = &(kv_A((ctx)->stack, sp));
-        if (v->type == KX_FRM_T) {
-            kx_frm_t *fr = v->value.fr;
-            if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
-                output("  [%5d] %s (%s:%d)\n", fr->prv ? fr->prv->id : 0, funcname(fr->caller->func), fr->caller->file, fr->caller->line);
-            }
-        }
-    }
-}
-
 static void do_command_sourcecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
 {
     const char *file = location->file;
@@ -2771,7 +2760,6 @@ static void usage(void)
     output1("  b -                   Remove all breakpoints.\n");
     output1("\n");
     output1("[Frames]\n");
-    output1("  cs                    Show the call stack.\n");
     output1("  f                     Show the frame list on the stack.\n");
     output1("  l                     Show the lexical frame list.\n");
     output1("  mv [f|l] [N]          Move the current frame to the specified frame.\n");
@@ -2794,7 +2782,7 @@ static void usage(void)
     output1("                              * auto detect if not specified.\n");
     output1("\n");
     output1("[Source Code]\n");
-    output1("  sc                    Show the source code.\n");
+    output1("  c                    Show the source code.\n");
     output1("\n");
 }
 
@@ -2830,9 +2818,7 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         do_command_lex(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "mv")) {
         do_command_move_frame(args, frmv, lexv, ctx, location, cfrm, arg);
-    } else if (!strcmp(cmd, "cs")) {
-        do_command_callstack(args, frmv, lexv, ctx, location, cfrm, arg);
-    } else if (!strcmp(cmd, "sc")) {
+    } else if (!strcmp(cmd, "c")) {
         do_command_sourcecode(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "r")) {
         *r = 1;     // Restart the Program
@@ -2851,7 +2837,7 @@ int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
         return 1;
     }
     if (line < 0) {
-        line = 0;
+        line = location->line = 0;
     }
 
     /* Reset once. */
