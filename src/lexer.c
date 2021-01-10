@@ -99,8 +99,8 @@ static int load_using_module(const char *name, int no_error)
         snprintf(libname, 255, "%s.kx", name);
         if (!(file = kxlib_file_exists(libname))) {
             if (!no_error) {
-                char buf[256] = {0};
-                snprintf(buf, 255, "File not found(%s)", libname);
+                char buf[512] = {0};
+                snprintf(buf, 511, "File not found(%s)", libname);
                 kx_yywarning(buf);
             }
             while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
