@@ -146,11 +146,8 @@ static void get_long_option(const char *optarg, char *lname, char *param)
     }
 }
 
-static void set_script_name_to_env(const char *filename)
+static void setup_run_environment(const char *filename)
 {
-    if (!filename) {
-        filename = "(unknown)";
-    }
     #if defined(_WIN32) || defined(_WIN64)
     kstr_t *ksv = ks_new();
     ks_appendf(ksv, "KINX_RUN_SCRIPT=%s", filename);
@@ -287,14 +284,15 @@ END_OF_OPT:
             r = 1;
             goto CLEANUP;
         }
-        set_script_name_to_env(execfile);
+        setup_run_environment(execfile);
         r = eval_file(alloc_string(ctx, execfile), ctx);
         if (r < 0) {
             r = 1;
             goto CLEANUP;
         }
     } else if (ctx->options.src_stdin) {
-        set_script_name_to_env(filename);
+        if (!filename) filename = "(unknown)";
+        setup_run_environment(filename);
         r = eval_file(filename, ctx);
         if (r < 0) {
             r = 1;
@@ -307,7 +305,7 @@ END_OF_OPT:
             r = 1;
             goto CLEANUP;
         }
-        set_script_name_to_env(file);
+        setup_run_environment(file);
         r = eval_file(file, ctx);
         if (r < 0) {
             r = 1;
