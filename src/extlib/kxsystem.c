@@ -1494,42 +1494,48 @@ if (obj) { \
 int System_mktime(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     time_t t = 0;
-    if (args == 0) {
-        t = time(NULL);
-    } else if (args == 1) {
-        kx_obj_t *obj = get_arg_obj(1, args, ctx);
-        KEX_GET_PROP_INT(year,   obj, "year",   "SystemException", "Invalid datetime value");
-        KEX_GET_PROP_INT(month,  obj, "month",  "SystemException", "Invalid datetime value");
-        KEX_GET_PROP_INT(day,    obj, "day",    "SystemException", "Invalid datetime value");
-        KEX_GET_PROP_INT(hour,   obj, "hour",   "SystemException", "Invalid datetime value");
-        KEX_GET_PROP_INT(minute, obj, "minute", "SystemException", "Invalid datetime value");
-        KEX_GET_PROP_INT(second, obj, "second", "SystemException", "Invalid datetime value");
-        struct tm tval;
-        tval.tm_year = year - 1900;
-        tval.tm_mon = month - 1;
-        tval.tm_mday = day;
-        tval.tm_hour = hour;
-        tval.tm_min = minute;
-        tval.tm_sec = second;
-        t = mktime(&tval);
-    } else if (args < 6) {
-        KX_ADJST_STACK();
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Too few arguments");
-    } else {
-        int year = get_arg_int(1, args, ctx);
-        int month = get_arg_int(2, args, ctx);
-        int day = get_arg_int(3, args, ctx);
-        int hour = get_arg_int(4, args, ctx);
-        int minute = get_arg_int(5, args, ctx);
-        int second = get_arg_int(6, args, ctx);
-        struct tm tval;
-        tval.tm_year = year - 1900;
-        tval.tm_mon = month - 1;
-        tval.tm_mday = day;
-        tval.tm_hour = hour;
-        tval.tm_min = minute;
-        tval.tm_sec = second;
-        t = mktime(&tval);
+    for (int i = 0; i < 5; ++i) {
+        if (args == 0) {
+            t = time(NULL);
+        } else if (args == 1) {
+            kx_obj_t *obj = get_arg_obj(1, args, ctx);
+            KEX_GET_PROP_INT(year,   obj, "year",   "SystemException", "Invalid datetime value");
+            KEX_GET_PROP_INT(month,  obj, "month",  "SystemException", "Invalid datetime value");
+            KEX_GET_PROP_INT(day,    obj, "day",    "SystemException", "Invalid datetime value");
+            KEX_GET_PROP_INT(hour,   obj, "hour",   "SystemException", "Invalid datetime value");
+            KEX_GET_PROP_INT(minute, obj, "minute", "SystemException", "Invalid datetime value");
+            KEX_GET_PROP_INT(second, obj, "second", "SystemException", "Invalid datetime value");
+            struct tm tval;
+            tval.tm_year = year - 1900;
+            tval.tm_mon = month - 1;
+            tval.tm_mday = day;
+            tval.tm_hour = hour;
+            tval.tm_min = minute;
+            tval.tm_sec = second;
+            t = mktime(&tval);
+        } else if (args < 6) {
+            KX_ADJST_STACK();
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Too few arguments");
+        } else {
+            int year = get_arg_int(1, args, ctx);
+            int month = get_arg_int(2, args, ctx);
+            int day = get_arg_int(3, args, ctx);
+            int hour = get_arg_int(4, args, ctx);
+            int minute = get_arg_int(5, args, ctx);
+            int second = get_arg_int(6, args, ctx);
+            struct tm tval;
+            tval.tm_year = year - 1900;
+            tval.tm_mon = month - 1;
+            tval.tm_mday = day;
+            tval.tm_hour = hour;
+            tval.tm_min = minute;
+            tval.tm_sec = second;
+            t = mktime(&tval);
+        }
+        if (t >= 0) {
+            break;
+        }
+        sleep_ms(ctx, 100);
     }
 
     KX_ADJST_STACK();
