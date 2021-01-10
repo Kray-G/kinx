@@ -17,13 +17,7 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.19.0 (Current Development Version)
-
-*   Updated
-    *   Added some features to use a language server.
-    *   Added a debugger mode for debugging.
-
-## V0.18.0 (18th Preview Release) - 2020/12/28
+## V0.18.0 (Current Development Version)
 
 *   Updated
     *   Introduced `$kinxpath` for Kinx installation path.

@@ -1,6 +1,7 @@
 #ifndef KX_IR_H
 #define KX_IR_H
 
+#include <dbg.h>
 #include <stdint.h>
 #include <kvec.h>
 #include <khash.h>
@@ -9,7 +10,6 @@
 #include <bigz.h>
 #include <bigz.h>
 #include <jit.h>
-#include <dbg.h>
 
 struct kx_context_;
 

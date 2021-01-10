@@ -2,12 +2,12 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
+#include <dbg.h>
 #include <ctype.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
 #include <kxnet.h>
-#include <dbg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
