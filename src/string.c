@@ -1,9 +1,9 @@
-#include <dbg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <khash.h>
 #include <string.h>
 #include <ir.h>
+#include <dbg.h>
 
 const char *alloc_string(kx_context_t *ctx, const char *str)
 {

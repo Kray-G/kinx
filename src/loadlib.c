@@ -1,7 +1,7 @@
-#include <dbg.h>
 #include <stdio.h>
 #include <fileutil.h>
 #include <kxthread.h>
+#include <dbg.h>
 
 extern const char *kxlib_file_exists(const char *file);
 extern const char *kxlib_file_exists_no_current(const char *file);

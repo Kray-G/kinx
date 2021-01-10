@@ -1,10 +1,10 @@
-#include <dbg.h>
 #include <string.h>
 #include <assert.h>
 #include <parser.h>
 #include <kvec.h>
 #include <khash.h>
 #include <kxastobject.h>
+#include <dbg.h>
 
 #define KX_ENV_VAR ("$env")
 #define KXN_ISOBJ(x) (((x) == KX_OBJ_T) || ((x) == KX_ARY_T))

@@ -1,5 +1,5 @@
-#include <dbg.h>
 #include <ir.h>
+#include <dbg.h>
 
 kx_obj_t *init_object(kx_obj_t *o)
 {

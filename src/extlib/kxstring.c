@@ -1,4 +1,3 @@
-#include <dbg.h>
 #include <string.h>
 #include <ctype.h>
 #define KX_DLL
@@ -6,6 +5,7 @@
 #include <kutil.h>
 #include <kxutf8.h>
 #include <kxthread.h>
+#include <dbg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 

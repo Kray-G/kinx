@@ -1,4 +1,3 @@
-#include <dbg.h>
 #include <inttypes.h>
 #include <sys/stat.h>
 #include "zip/include/mz.h"
@@ -8,6 +7,7 @@
 #include "zip/include/mz_strm_split.h"
 #include "zip/include/mz_zip.h"
 #include "zip/include/mz_zip_rw.h"
+#include <dbg.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <stdio.h>
