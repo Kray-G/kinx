@@ -7,6 +7,7 @@
 #include "zip/include/mz_strm_split.h"
 #include "zip/include/mz_zip.h"
 #include "zip/include/mz_zip_rw.h"
+#include <dbg.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <stdio.h>
@@ -28,7 +29,6 @@ int _fprintf_w32(FILE* fp, const char* format, ...);
 #include <kutil.h>
 #include <kxthread.h>
 #include <stdarg.h>
-#include <dbg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
