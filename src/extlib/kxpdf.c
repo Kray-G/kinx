@@ -1,10 +1,10 @@
 
-#include <dbg.h>
 #include <inttypes.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
 #include "libharu/include/hpdf.h"
+#include <dbg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
