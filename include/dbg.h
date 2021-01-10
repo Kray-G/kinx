@@ -6,6 +6,7 @@
 #define SIZEOF_VOID_P 8
 
 #include <stdlib.h>
+#if 0
 #define malloc use_kx_malloc
 #define realloc use_kx_realloc
 #define calloc use_kx_calloc
@@ -14,6 +15,7 @@
 #define strndup use_kx_strndup
 #define strdupa dont_use_strdupa
 #define strndupa dont_use_strndupa
+#endif
 
 struct kx_context_;
 typedef void *(*kx_malloc_t)(size_t size);

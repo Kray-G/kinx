@@ -79,6 +79,8 @@
 #include <stdlib.h>
 #if defined(_WIN64) || defined(HAVE_STDINT_H)
 #include <stdint.h>
+#else
+#include <inttypes.h>
 #endif
 #include <stdio.h>
 #include <string.h>
