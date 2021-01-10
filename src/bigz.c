@@ -75,7 +75,6 @@
 #endif
 /** @endcond */
 
-#include <dbg.h>
 #include <stdlib.h>
 #if defined(_WIN64) || defined(HAVE_STDINT_H)
 #include <stdint.h>
@@ -86,6 +85,7 @@
 #include <float.h>
 
 #include "bigz.h"
+#include <dbg.h>
 
 /** @cond */
 #define BzMaxInt(a, b)          (((a) < (b)) ? (b) : (a))

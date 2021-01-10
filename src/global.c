@@ -1,6 +1,6 @@
-#include <dbg.h>
 #include <kinx.h>
 #include <kxthread.h>
+#include <dbg.h>
 
 /* used in parsing, parsing phase is not reentrant. */
 kx_lexinfo_t kx_lexinfo = {0};

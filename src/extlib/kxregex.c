@@ -1,8 +1,8 @@
-#include <dbg.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
 #include <ctype.h>
+#include <dbg.h>
 
 // #define dbgin() printf("--> %s:%d\n", __FILE__, __LINE__);
 #define dbgin()

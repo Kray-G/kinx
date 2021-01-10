@@ -1,8 +1,8 @@
-#include <dbg.h>
 #include <assert.h>
 #include <inttypes.h>
 #include <kinx.h>
 #include <kxnative.h>
+#include <dbg.h>
 
 #define KXN_DISP_BOP(name) \
     printf("%-23s ", name); \

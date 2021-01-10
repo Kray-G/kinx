@@ -1,12 +1,12 @@
 #include "libssh2/include/libssh2.h"
 #include "libssh2/include/libssh2_config.h"
 #include "onig/src/oniguruma.h"
-#include <dbg.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
 #include <kxnet.h>
 #include <kutil.h>
+#include <dbg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 
