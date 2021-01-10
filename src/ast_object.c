@@ -1,7 +1,7 @@
+#include <dbg.h>
 #include <stdlib.h>
 #include <kinx.h>
 #include <kxastobject.h>
-#include <dbg.h>
 
 static int sg_native = 0; /* use this for ... something? */
 static int sg_enum_counter = 0;

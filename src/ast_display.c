@@ -1,6 +1,6 @@
+#include <dbg.h>
 #include <inttypes.h>
 #include <parser.h>
-#include <dbg.h>
 
 static inline const char *get_short_typename(int type)
 {

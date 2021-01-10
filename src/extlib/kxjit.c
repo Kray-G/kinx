@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <assert.h>
 #include <inttypes.h>
 #define KX_DLL
@@ -7,7 +8,6 @@
 #ifndef _WIN32
 #include <sys/mman.h>
 #endif
-#include <dbg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 

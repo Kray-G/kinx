@@ -1,3 +1,4 @@
+#include <dbg.h>
 #include <stdio.h>
 #include <math.h>
 #include <inttypes.h>
@@ -6,7 +7,6 @@
 #include <kinx.h>
 #include <kxirutil.h>
 #include <kxexec.h>
-#include <dbg.h>
 
 #include "exec/code/_except.inc"
 #include "exec/code/_inlines.inc"
