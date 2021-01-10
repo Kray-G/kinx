@@ -1,8 +1,8 @@
-#include <dbg.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include <kvec.h>
 #include <kinx.h>
+#include <dbg.h>
 
 #define KXFT_FUNCTION_INDENT  ""
 #define KX_BLOCK_INDENT     "  "

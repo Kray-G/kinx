@@ -1,4 +1,3 @@
-#include <dbg.h>
 #include <stdio.h>
 #include <math.h>
 #include <inttypes.h>
@@ -8,6 +7,7 @@
 #include <kxirutil.h>
 #define KX_DEBUGEXEC_CODE 1
 #include <kxexec.h>
+#include <dbg.h>
 
 #include "exec/code/_except.inc"
 #include "exec/code/_inlines.inc"
