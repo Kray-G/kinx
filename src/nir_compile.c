@@ -1,8 +1,8 @@
+#include <dbg.h>
 #include <assert.h>
 #include <kinx.h>
 #include <kxnative.h>
 #include <math.h>
-#include <dbg.h>
 
 /* extern functions */
 extern int64_t kxn_print_val(sljit_sw val);

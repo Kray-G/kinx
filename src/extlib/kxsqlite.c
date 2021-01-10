@@ -1,8 +1,8 @@
+#include <dbg.h>
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
 #include "sqlite/sqlite3.h"
-#include <dbg.h>
 
 KX_DECL_MEM_ALLOCATORS();
 

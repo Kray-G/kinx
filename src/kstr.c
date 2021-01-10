@@ -4,13 +4,13 @@
 // Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
 //
 
+#include <dbg.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <kstr.h>
-#include <dbg.h>
 
 // TODO: shared with reference counting
 // TODO: linked list for append/prepend etc
