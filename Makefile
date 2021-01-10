@@ -6,15 +6,11 @@ SRCDIR = $(CURDIR)$(.CURDIR)
 DEPFILE	= Makefile.dep
 
 CC = gcc
-GCCV8 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 8)
 #CFLAGS = -DKX_PROFILE -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -Iinclude -O2 \
 	 -fno-crossjumping -Wno-unused-result -Wno-missing-braces -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
 CFLAGS = -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -Iinclude -O2 \
 	 -fno-crossjumping -Wno-trigraphs -Wno-unused-result -Wno-missing-braces \
 	 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
-ifeq "$(GCCV8)" "1"
-        CFLAGS += -mshstk
-endif
 OBJS = \
     allocator.o \
     alloccore.o \
