@@ -317,6 +317,7 @@ onig.dll:
 test-core: $(OBJS)
 
 .c.obj:
+	@echo --- %TIME% started... $<
 	timex $(CC) /c $(CFLAGS) /Fo$*.obj /Fa$*.s $<
 
 src/allocator.obj: src/allocator.c include/dbg.h include/kinx.h include/kvec.h \
