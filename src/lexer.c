@@ -984,7 +984,18 @@ HEAD_OF_YYLEX:
         }
         kx_strbuf[pos] = 0;
         kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
-        return get_keyword_token(kx_strbuf);
+        int token = get_keyword_token(kx_strbuf);
+        switch (token) {
+        case CLASS: case SYSCLASS: case MODULE:case SYSMODULE:
+        case PUBLIC: case PRIVATE: case PROTECTED:
+        case NATIVE: case FUNCTION: case SYSFUNC:
+        case COROUTINE:
+            kx_yylval.intval = kx_lexinfo.line;
+            break;
+        default:
+            ; /* do nothing. */
+        }
+        return token;
 
     case '0':
         is_zero = 1;
