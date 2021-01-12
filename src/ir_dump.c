@@ -488,7 +488,11 @@ static void ir_function_dump(int llen, kx_module_t *module, kvec_t(uint32_t) *la
     }
 
     printf("\n");
-    printf(KXFT_FUNCTION_INDENT "%s:\n", func->name);
+    if (func->end > 0) {
+        printf(KXFT_FUNCTION_INDENT "%s: %s(%d - %d)\n", func->name, func->file, func->start, func->end);
+    } else {
+        printf(KXFT_FUNCTION_INDENT "%s:\n", func->name);
+    }
     int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
         int block = kv_A(func->block, i);
