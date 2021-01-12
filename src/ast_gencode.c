@@ -126,11 +126,11 @@ static const kx_block_t kx_empty_block = {0};
 static const kx_function_t kx_empty_func = {0};
 static void gencode_ast(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana, int lvalue);
 
-static int new_function(kx_analyze_t *ana)
+static int new_function(kx_analyze_t *ana, kx_object_t *node)
 {
     int i = kv_size(ana->module->functions);
     kv_push(int, ana->fidxlist, i);
-    kx_function_t func = {0};
+    kx_function_t func = { .file = node->file, .start = node->line, .end = node->line2 };
     func.label = kh_init(label);
     kv_push(kx_function_t, ana->module->functions, func);
     return i;
@@ -1982,7 +1982,7 @@ LOOP_HEAD:;
         ana->in_try = 0;
         int func = kv_last(ana->fidxlist);
         int classname = ana->classname;
-        int cur = new_function(ana);
+        int cur = new_function(ana, node);
         ana->function = cur;
         ana->classname = cur;
         get_function(module, cur)->name = const_str(ctx, node->value.s);
@@ -2046,7 +2046,7 @@ LOOP_HEAD:;
         int in_try = ana->in_try;
         ana->in_try = 0;
         int func = kv_last(ana->fidxlist);
-        int cur = new_function(ana);
+        int cur = new_function(ana, node);
         ana->function = node->func = cur;
         get_function(module, cur)->name = ana->classname > 0
             ? const_str2(ctx, get_function(module, ana->classname)->name, node->value.s)
@@ -2239,7 +2239,7 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, k
 
     int startup = 0, startb = 0;
     if (ctx->block_index == 0) {
-        startup = new_function(ana);
+        startup = new_function(ana, node);
         get_function(module, startup)->name = alloc_string(ctx, "_startup");
         startb = new_block_hook(ana);
 
@@ -2247,7 +2247,7 @@ kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, k
         kv_push(kx_code_t, get_block(module, startb)->code, ((kx_code_t){ FILELINE(ana), .op = KX_HALT }));
     }
 
-    int func = new_function(ana);
+    int func = new_function(ana, node);
     ana->function = func;
     get_function(module, func)->name = const_str(ctx, name);
     int block = new_block_hook(ana);
