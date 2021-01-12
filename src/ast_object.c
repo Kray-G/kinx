@@ -623,6 +623,7 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, int refdepth
     if (inherit) {
         obj->typename = inherit;
     }
+    obj->line2 = obj->line;
     if (line > 0) {
         obj->line = line;
     }
@@ -701,7 +702,7 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, int refdepth
 
 kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line)
 {
-    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ex, NULL, -1);
+    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ex, NULL, line);
 }
 
 kx_object_t *kx_gen_func_object_name_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, named_stmt_t ns, int line)
