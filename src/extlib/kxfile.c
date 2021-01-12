@@ -1970,6 +1970,10 @@ KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
  * Debugger Core Logic
  */
 
+typedef enum {
+    CK_WHITESPACE, CK_NUMBER, CK_ALPHABET, CK_SYMBOL
+} kx_charkind_t;
+
 #define KXDS 5
 #define KXNM 10
 #define prompt_start() _fprintf_w32(stdout, "\n\033[96m> ")
@@ -2032,6 +2036,46 @@ static int is_double(kstr_t *s)
         ++p;
     }
     return 1;
+}
+
+static kx_charkind_t get_char_kind(const char *p, const char *prv)
+{
+    if (*p == ' ') {
+        return CK_WHITESPACE;
+    } else if (('a' <= *p && *p <= 'z') || *p == '.' || *p == '[' || *p == ']') {
+        return CK_ALPHABET;
+    } else if ('0' <= *p && *p <= '9') {
+        return (prv && *prv == '[') ? CK_ALPHABET : CK_NUMBER;
+    }
+    return CK_SYMBOL;
+}
+
+static void setup_command(kstr_t *a[KXDS], kstr_t *args)
+{
+    ks_trim(args);
+    int i = 0, l = ks_length(args), idx = 0, start = 0;
+    while (i < l) {
+        const char *p = ks_string(args) + i;
+        const char *n = p;
+        kx_charkind_t kind = get_char_kind(p, NULL);
+        for ( ; i < l; ++i) {
+            const char *prv = n;
+            n = ks_string(args) + i;
+            kx_charkind_t next = get_char_kind(n, prv);
+            if (*n == ' ' || *n == 0 || kind != next) {
+                break;
+            }
+        }
+        ks_append_n(a[idx], ks_string(args) + start, i - start);
+        if (idx++ >= KXDS) {
+            break;
+        }
+        while (*n == ' ') {
+            ++i;
+            ++n;
+        }
+        start = i;
+    }
 }
 
 static int get_positive_array_index(kstr_t *s, int max)
@@ -2169,41 +2213,6 @@ static void remove_breakpoint_all(kx_context_t *ctx)
     message1("Removed all breakpoints.\n");
 }
 
-static void setup_command(kstr_t *a[KXDS], kstr_t *args)
-{
-    ks_trim(args);
-    int i = 0, l = ks_length(args), idx = 0, start = 0;
-    for ( ; i < l; ++i) {
-        const char *p = ks_string(args) + i;
-        if ('a' <= *p && *p <= 'z' && '0' <= *(p+1) && *(p+1) <= '9') {
-            ++i;
-            ks_append_n(a[idx], ks_string(args) + start, i - start);
-            if (++idx >= KXDS) {
-                break;
-            }
-            start = i;
-            --i;
-            continue;
-        }
-        if (*p == ' ' || *p == 0) {
-            ks_append_n(a[idx], ks_string(args) + start, i - start);
-            if (++idx >= KXDS) {
-                break;
-            }
-            for ( ; i < l; ++i) {
-                p = ks_string(args) + i;
-                if (*p != ' ') {
-                    break;
-                }
-            }
-            start = i;
-        }
-    }
-    if (i > start) {
-        ks_append_n(a[idx], ks_string(args) + start, i - start);
-    }
-}
-
 static int split_name(kstr_t *a[KXNM], kstr_t *name)
 {
     int i = 0, l = ks_length(name), idx = 0, start = 0;
@@ -2266,6 +2275,31 @@ static const char *get_funcname(const char *func)
         return "<main-block>";
     }
     return func;
+}
+
+static kx_location_t get_frame_location(kx_context_t *ctx, kx_frm_t *frmv, kx_location_t *location)
+{
+    kx_location_t loc = *location;
+
+    kx_frm_t *prv = NULL;
+    int ssp = kv_size((ctx)->stack);
+    for (int sp = ssp - 1; sp > 0; --sp) {
+        kx_val_t *v = &(kv_A((ctx)->stack, sp));
+        if (v->type == KX_FRM_T) {
+            kx_frm_t *fr = v->value.fr;
+            if (fr->caller) {
+                if (frmv == fr) {
+                    loc.file = fr->caller->file;
+                    loc.line = fr->caller->line;
+                    loc.func = fr->caller->func;
+                    break;
+                }
+                prv = fr;
+            }
+        }
+    }
+
+    return loc;
 }
 
 static void do_command_toggle_breakpoint(kx_context_t *ctx, kx_location_t *location, kstr_t *arg[KXDS])
@@ -2386,33 +2420,44 @@ static void do_command_frm(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
         return;
     }
 
-    if (!is_number(arg[1])) {
-        output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id, get_funcname(location->func), location->file, location->line);
-        int ssp = kv_size((ctx)->stack);
-        for (int sp = ssp - 1; sp > 0; --sp) {
-            kx_val_t *v = &(kv_A((ctx)->stack, sp));
-            if (v->type == KX_FRM_T) {
-                kx_frm_t *fr = v->value.fr;
-                if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
-                    output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == fr->prv ? "[*]" : " - ", fr->prv ? fr->prv->id : 0, get_funcname(fr->caller->func), fr->caller->file, fr->caller->line);
-                }
+    output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id, get_funcname(location->func), location->file, location->line);
+    int ssp = kv_size((ctx)->stack);
+    for (int sp = ssp - 1; sp > 0; --sp) {
+        kx_val_t *v = &(kv_A((ctx)->stack, sp));
+        if (v->type == KX_FRM_T) {
+            kx_frm_t *fr = v->value.fr;
+            if (fr->caller && (!fr->prv || !fr->prv->is_internal)) {
+                output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == fr->prv ? "[*]" : " - ", fr->prv ? fr->prv->id : 0, get_funcname(fr->caller->func), fr->caller->file, fr->caller->line);
             }
         }
-        return;
     }
+}
 
-    int frm = (int)strtol(ks_string(arg[1]), NULL, 0);
-    if (frm < 0) {
-        return;
-    }
+static void do_command_frm_var(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    if (is_number(arg[1])) {
+        int frm = (int)strtol(ks_string(arg[1]), NULL, 0);
+        if (frm < 0) {
+            return;
+        }
 
-    kx_frm_t *fr = get_stack_frame(ctx, frm);
-    if (fr) {
-        do_command_frm_list(ctx, fr);
+        kx_frm_t *fr = get_stack_frame(ctx, frm);
+        if (fr) {
+            do_command_frm_list(ctx, fr);
+        }
     }
 }
 
 static void do_command_lex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    kx_location_t loc = get_frame_location(ctx, *cfrm, location);
+    output(" [*] [%4d] %s (%s:%d)\n", (*cfrm)->id, get_funcname(loc.func), loc.file, loc.line);
+    for (kx_frm_t *f = (*cfrm)->lex; f; f = f->lex) {
+        output(" %s [%4d] lexical frame\n", (*cfrm) == f ? "[*]" : " - ", f->id);
+    }
+}
+
+static void do_command_lex_var(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
 {
     if (is_number(arg[1])) {
         int lex = (int)strtol(ks_string(arg[1]), NULL, 0);
@@ -2420,12 +2465,6 @@ static void do_command_lex(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
         if (f) {
             do_command_frm_list(ctx, f);
         }
-        return;
-    }
-
-    output(" %s [%4d] %s (%s:%d)\n", (*cfrm) == frmv ? "[*]" : " - ", frmv->id, get_funcname(location->func), location->file, location->line);
-    for (kx_frm_t *f = frmv->lex; f; f = f->lex) {
-        output(" %s [%4d] lexical frame\n", (*cfrm) == f ? "[*]" : " - ", f->id);
     }
 }
 
@@ -2510,12 +2549,18 @@ static void do_command_stack(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
 
 static void do_command_move_frame(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
 {
-    if (is_number(arg[2])) {
-        int n = (int)strtol(ks_string(arg[2]), NULL, 0);
+    int n = -1;
+    if (is_number(arg[1])) {
+        n = (int)strtol(ks_string(arg[1]), NULL, 0);
+    }
+    if (is_char(arg[1], '-')) {
+        n = frmv->id;
+    }
+    if (n >= 0) {
         kx_frm_t *fr = NULL;
-        if (is_char(arg[1], 'f')) {
+        if (!strcmp(ks_string(arg[0]), "mf")) {
             fr = get_stack_frame(ctx, n);
-        } else if (is_char(arg[1], 'l')) {
+        } else if (!strcmp(ks_string(arg[0]), "ml")) {
             fr = get_lexical_frame(frmv, n);
         }
         if (fr) {
@@ -2720,19 +2765,67 @@ static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     }
 }
 
+static kx_function_t *get_function_info(kx_context_t *ctx, kx_location_t *location, int list)
+{
+    const char *cfunc = location->func;
+    const char *cfile = location->file;
+    int cline = location->line;
+    int cfunclines = -1;
+    kx_function_t *candidate = NULL;
+    int mlen = kv_size(ctx->module);
+    for (int mi = 0; mi < mlen; ++mi) {
+        kx_module_t *module = &kv_A(ctx->module, mi);
+        int flen = kv_size(*(module->funclist));
+        for (int fi = 0; fi < flen; ++fi) {
+            kx_function_t *func = &kv_A(*(module->funclist), fi);
+            if (list) {
+                if (func->start <= func->end) {
+                    printf(" - %s - %s(%d - %d)\n", func->name, func->file, func->start, func->end);
+                }
+            }
+            if (func->name && cfunc && !strcmp(func->name, cfunc) && !strcmp(func->file, cfile)) {
+                int funclines = func->end - func->start;
+                if (funclines < cfunclines || cfunclines < 0) {
+                    candidate = func;
+                }
+            }
+        }
+    }
+    return candidate;
+}
+
 static void do_command_sourcecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
 {
+    if (!strcmp(ks_string(arg[1]), "list")) {
+        (void)get_function_info(ctx, location, 1);
+        return;
+    }
+
     const char *file = location->file;
     FILE *fp = fopen(file, "r");
     if (!fp) {
         error("Can't open the file(%s).\n", file);
         return;
     }
+    int start = 0, end = 0;
+    if (strcmp(ks_string(arg[1]), "all") != 0) {
+        kx_function_t *func = get_function_info(ctx, location, 0);
+        if (func) {
+            start = func->start;
+            end = func->end;
+        }
+    }
 
     int l = 0, line = location->line;
     char buf[2048] = {0};
     while (fgets(buf, 2040, fp)) {
         ++l;
+        if (l < start) {
+            continue;
+        }
+        if (end < l && 0 < end) {
+            break;
+        }
         int b = has_breakpoint(file, l, ctx->breakpoints);
         if (l == line) {
             if (b) output_bxsource_l(l, buf);
@@ -2743,6 +2836,53 @@ static void do_command_sourcecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
         }
     }
     fclose(fp);
+}
+
+static void do_command_dumpecode_block(kx_context_t *ctx, kx_block_t *block)
+{
+    int len = kv_size(block->code);
+    output(".L%d\n", block->index);
+    for (int i = 0; i < len; ++i) {
+        kx_code_t *code = &kv_A(block->code, i);
+        ctx->ir_dumpcode(code->i, code);
+    }
+}
+
+static void do_command_dumpecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    const char *cfunc = location->func;
+    const char *cfile = location->file;
+    int cline = location->line;
+    int cfunclines = -1;
+    kx_function_t *func = NULL;
+    kx_module_t *module = NULL;
+    int mlen = kv_size(ctx->module);
+    for (int mi = 0; mi < mlen; ++mi) {
+        kx_module_t *m = &kv_A(ctx->module, mi);
+        int flen = kv_size(*(m->funclist));
+        for (int fi = 0; fi < flen; ++fi) {
+            kx_function_t *f = &kv_A(*(m->funclist), fi);
+            if (f->name && cfunc && !strcmp(f->name, cfunc) && !strcmp(f->file, cfile)) {
+                int funclines = f->end - f->start;
+                if (funclines < cfunclines || cfunclines < 0) {
+                    func = f;
+                    module = m;
+                }
+            }
+        }
+    }
+    if (func && module) {
+        if (func->end > 0) {
+            output("%s: %s(%d - %d)\n", func->name, func->file, func->start, func->end);
+        } else {
+            output("%s:\n", func->name);
+        }
+        int len = kv_size(func->block);
+        for (int i = 0; i < len; ++i) {
+            int block = kv_A(func->block, i);
+            do_command_dumpecode_block(ctx, &kv_A(module->blocks, block));
+        }
+    }
 }
 
 static void usage(void)
@@ -2760,29 +2900,32 @@ static void usage(void)
     output1("  b -                   Remove all breakpoints.\n");
     output1("\n");
     output1("[Frames]\n");
-    output1("  f                     Show the frame list on the stack.\n");
-    output1("  l                     Show the lexical frame list.\n");
-    output1("  mv [f|l] [N]          Move the current frame to the specified frame.\n");
+    output1("  f                     Show a frame list on the stack.\n");
+    output1("  l                     Show a lexical frame list of a current frame.\n");
+    output1("  mf [N]                Move a current frame to the specified stack frame.\n");
+    output1("  ml [N]                Move a current frame to the specified lexical frame.\n");
     output1("\n");
     output1("[Stack]\n");
     output1("  s                     Show the stack with the first 10 entries.\n");
     output1("  s all                 Show the stack all.\n");
     output1("\n");
     output1("[Veriables]\n");
-    output1("  v                     Show the variables in the current frame.\n");
-    output1("  f [N]                 Show the variables of [N]th frame on the stack.\n");
-    output1("  l [N]                 Show the variables of [N]th lexical frame.\n");
-    output1("  v [Name]              Show details of the variable in the current frame.\n");
-    output1("  v [Name] [Val] [Type] Set the value to the variable in the current frame.\n");
+    output1("  v                     Show variables in a current frame.\n");
+    output1("  vf [N]                Show variables of [N]th frame on the stack.\n");
+    output1("  vl [N]                Show variables of [N]th lexical frame.\n");
+    output1("  v [Name]              Show details of a variable in a current frame.\n");
+    output1("  v [Name] [Val] [Type] Set the value to a variable in a current frame.\n");
     output1("                        Name: Variable name with index or property name.\n");
     output1("                              ex) name, name.prop[1].next\n");
     output1("                        Type: i ... int\n");
     output1("                              d ... dbl\n");
     output1("                              s ... str\n");
-    output1("                              * auto detect if not specified.\n");
+    output1("                              * auto detect by [Val] if not specified.\n");
     output1("\n");
     output1("[Source Code]\n");
-    output1("  c                    Show the source code.\n");
+    output1("  c                     Show a source code of a current function.\n");
+    output1("  c all                 Show all of a current source code.\n");
+    output1("  d                     Dump a source code of a current function.\n");
     output1("\n");
 }
 
@@ -2816,10 +2959,16 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         do_command_frm(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "l")) {
         do_command_lex(args, frmv, lexv, ctx, location, cfrm, arg);
-    } else if (!strcmp(cmd, "mv")) {
+    } else if (!strcmp(cmd, "vf")) {
+        do_command_frm_var(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "vl")) {
+        do_command_lex_var(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "mf") || !strcmp(cmd, "ml")) {
         do_command_move_frame(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "c")) {
         do_command_sourcecode(args, frmv, lexv, ctx, location, cfrm, arg);
+    } else if (!strcmp(cmd, "d")) {
+        do_command_dumpcode(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "r")) {
         *r = 1;     // Restart the Program
         return 0;   // Debugger Prompt Loop end
@@ -2844,7 +2993,11 @@ int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
     ctx->options.debug_step = 0;
 
     int r = 1;
-    message("Break at %s:%d\n", file, line);
+    if (line > 0) {
+        message("Break at %s:%d\n", file, line);
+    } else {
+        message("Break before starting at %s\n", file);
+    }
     kx_frm_t *cfrm = frmv;
     kstr_t *s;
     while (1) {

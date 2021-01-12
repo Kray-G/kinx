@@ -91,6 +91,7 @@ kx_context_t *make_context(void)
     init_allocation(ctx);
     ctx->options.case_threshold = 16;
     ctx->options.max_call_depth = 1024;
+    ctx->ir_dumpcode = ir_code_dump_one;
     return ctx;
 }
 
