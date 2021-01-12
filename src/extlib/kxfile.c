@@ -2838,17 +2838,54 @@ static void do_command_sourcecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     fclose(fp);
 }
 
-static void do_command_dumpecode_block(kx_context_t *ctx, kx_block_t *block)
+static void do_command_dumpecode_block(kx_context_t *ctx, const char *file, kx_function_t *func, kx_block_t *block, int is_main)
 {
-    int len = kv_size(block->code);
-    output(".L%d\n", block->index);
-    for (int i = 0; i < len; ++i) {
-        kx_code_t *code = &kv_A(block->code, i);
-        ctx->ir_dumpcode(code->i, code);
+    if (block) {
+        int len = kv_size(block->code);
+        if (len == 0) {
+            return;
+        }
+        kx_code_t *code0 = &kv_A(block->code, 0);
+        if (is_main && code0 && strcmp(code0->file, file) != 0) {
+            return;
+        }
+        output(".L%d\n", block->index);
+        for (int i = 0; i < len; ++i) {
+            kx_code_t *code = &kv_A(block->code, i);
+            if (is_main) {
+                if (code && code->op != KX_VARNAME && (code->op == KX_ENTER || (code->file && !strcmp(code->file, file)))) {
+                    ctx->ir_dumpcode(code->i, code);
+                }
+            } else {
+                if (code && code->op != KX_VARNAME) {
+                    ctx->ir_dumpcode(code->i, code);
+                }
+            }
+        }
     }
 }
 
-static void do_command_dumpecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+static void output_funcname(kx_function_t *func)
+{
+    if (func->end > 0) {
+        output("\n%s: %s(%d - %d)\n", func->name, func->file, func->start, func->end);
+    } else {
+        output("\n%s:\n", func->name);
+    }
+}
+
+static void do_command_dumpecode_func(kx_context_t *ctx, const char *cfile, kx_module_t *module, kx_function_t *func)
+{
+    output_funcname(func);
+    int is_main = !strcmp(func->name, "_main1");
+    int len = kv_size(func->block);
+    for (int i = 0; i < len; ++i) {
+        int block = kv_A(func->block, i);
+        do_command_dumpecode_block(ctx, cfile, func, &kv_A(module->blocks, block), is_main);
+    }
+}
+
+static void do_command_dumpcode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
 {
     const char *cfunc = location->func;
     const char *cfile = location->file;
@@ -2872,15 +2909,21 @@ static void do_command_dumpecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_co
         }
     }
     if (func && module) {
-        if (func->end > 0) {
-            output("%s: %s(%d - %d)\n", func->name, func->file, func->start, func->end);
-        } else {
-            output("%s:\n", func->name);
-        }
-        int len = kv_size(func->block);
-        for (int i = 0; i < len; ++i) {
-            int block = kv_A(func->block, i);
-            do_command_dumpecode_block(ctx, &kv_A(module->blocks, block));
+        do_command_dumpecode_func(ctx, cfile, module, func);
+    } else {
+        for (int mi = 0; mi < mlen; ++mi) {
+            module = &kv_A(ctx->module, mi);
+            if (!module || !module->funclist) {
+                continue;
+            }
+            int flen = kv_size(*(module->funclist));
+            for (int fi = 0; fi < flen; ++fi) {
+                func = &kv_A(*(module->funclist), fi);
+                if (!func || func->is_internal) {
+                    continue;
+                }
+                do_command_dumpecode_func(ctx, cfile, module, func);
+            }
         }
     }
 }
@@ -2925,7 +2968,7 @@ static void usage(void)
     output1("[Source Code]\n");
     output1("  c                     Show a source code of a current function.\n");
     output1("  c all                 Show all of a current source code.\n");
-    output1("  d                     Dump a source code of a current function.\n");
+    output1("  d                     Dump an IR code of a current function.\n");
     output1("\n");
 }
 
