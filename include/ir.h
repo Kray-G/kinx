@@ -646,6 +646,8 @@ typedef struct kx_function_ {
     uint8_t is_internal;
     kvec_t(int) block;
     khash_t(label) *label;
+    const char *file;
+    int start, end;
 } kx_function_t;
 kvec_init_t(kx_function_t);
 
@@ -973,6 +975,7 @@ typedef struct kx_context_ {
     kx_location_list_t *locations;
     int current_line;
     int64_t (*ir_executor)(struct kx_context_ *ctx);
+    void (*ir_dumpcode)(int addr, kx_code_t *code);
 } kx_context_t;
 
 #if defined(KX_EXEC_DEBUG)
