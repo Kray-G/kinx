@@ -52,70 +52,73 @@ typedef enum {
 #define error(fmt, ...) _fprintf_w32(stdout, "\033[33m>>> Error: " fmt "\033[0m", __VA_ARGS__)
 
 #define BUFFER_MAX (2048)
-#define HISTORY_PREV(i) ((i + BUFFER_MAX - 1) % BUFFER_MAX)
-#define HISTORY_NEXT(i) ((i + 1) % BUFFER_MAX)
 #define BUFFER_LMT (2000)
+#define HISTORY_MAX (128)
+#define HISTORY_PREV(i) ((i + HISTORY_MAX - 1) % HISTORY_MAX)
+#define HISTORY_NEXT(i) ((i + 1) % HISTORY_MAX)
 
-static int history_pos = 0;
-static kstr_t *history[BUFFER_MAX] = {0};
+static int sg_history_pos = 0;
+static kstr_t *sg_history[HISTORY_MAX] = {0};
+static kstr_t *sg_empty_str;
 
 void kx_debugger_init(void)
 {
-    // do nothing.
+    sg_empty_str = ks_new();
 }
 
 void kx_debugger_fin(void)
 {
-    for (int i = 0; i < BUFFER_MAX; ++i) {
-        if (history[i]) {
-            ks_free(history[i]);
+    for (int i = 0; i < HISTORY_MAX; ++i) {
+        if (sg_history[i]) {
+            ks_free(sg_history[i]);
         }
     }
+    ks_free(sg_empty_str);
 }
 
 static void add_history(const char *line)
 {
-    if (!history[history_pos]) {
-        history[history_pos] = ks_new();
+    if (!sg_history[sg_history_pos]) {
+        sg_history[sg_history_pos] = ks_new();
     } else {
-        ks_clear(history[history_pos]);
+        ks_clear(sg_history[sg_history_pos]);
     }
-    ks_append(history[history_pos], line);
-    history_pos = HISTORY_NEXT(history_pos);
+    ks_append(sg_history[sg_history_pos], line);
+    sg_history_pos = HISTORY_NEXT(sg_history_pos);
 }
 
-static const char *get_history_prev(unsigned int *hpos)
+static kstr_t *get_history_prev(unsigned int *hpos)
 {
     *hpos = HISTORY_PREV(*hpos);
-    if (!history[*hpos]) {
+    if (!sg_history[*hpos]) {
         int e = *hpos;
         *hpos = HISTORY_PREV(*hpos);
         while (*hpos != e) {
-            if (history[*hpos]) {
-                return ks_string(history[*hpos]);
+            if (sg_history[*hpos]) {
+                return sg_history[*hpos];
             }
             *hpos = HISTORY_PREV(*hpos);
         }
-        return "";
+        return sg_empty_str;
     }
-    return ks_string(history[*hpos]);
+    return sg_history[*hpos];
 }
 
-static const char *get_history_next(unsigned int *hpos)
+static kstr_t *get_history_next(unsigned int *hpos)
 {
     *hpos = HISTORY_NEXT(*hpos);
-    if (!history[*hpos]) {
+    if (!sg_history[*hpos]) {
         int e = *hpos;
         *hpos = HISTORY_NEXT(*hpos);
         while (*hpos != e) {
-            if (history[*hpos]) {
-                return ks_string(history[*hpos]);
+            if (sg_history[*hpos]) {
+                return sg_history[*hpos];
             }
             *hpos = HISTORY_NEXT(*hpos);
         }
-        return "";
+        return sg_empty_str;
     }
-    return ks_string(history[*hpos]);
+    return sg_history[*hpos];
 }
 
 static int get_width(const char *p)
@@ -220,7 +223,7 @@ static int insert_ch(kx_context_t *ctx, char *buffer, int pos, int ch)
 
 static kstr_t *prompt(kx_context_t *ctx)
 {
-    int hpos = history_pos;
+    int hpos = sg_history_pos;
     int width = 0;
     int pos = 0;
     char buffer[BUFFER_MAX] = {0};
@@ -250,14 +253,16 @@ static kstr_t *prompt(kx_context_t *ctx)
         }
         switch (ch) {
         case KX_KEY_ENTER:
-            add_history(buffer);
+            if (buffer[0] != '!') {
+                add_history(buffer);
+            }
             goto END_OF_INPUT;
         case KX_KEY_UP:
-            strcpy(buffer, get_history_prev(&hpos));
+            strcpy(buffer, ks_string(get_history_prev(&hpos)));
             pos = strlen(buffer);
             continue;
         case KX_KEY_DOWN:
-            strcpy(buffer, get_history_next(&hpos));
+            strcpy(buffer, ks_string(get_history_next(&hpos)));
             pos = strlen(buffer);
             continue;
         case KX_KEY_BS:
@@ -286,8 +291,6 @@ END_OF_INPUT:
 
     return s;
 }
-#undef BUFFER_LMT
-#undef BUFFER_MAX
 
 static int is_char(kstr_t *s, char ch)
 {
@@ -338,13 +341,54 @@ static int is_double(kstr_t *s)
     return 1;
 }
 
+static void do_command_show_history(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
+{
+    int idx = 0;
+    int hpos = sg_history_pos;
+    for (int i = 0; i < HISTORY_MAX; ++i) {
+        kstr_t *s = sg_history[hpos];
+        if (s && ks_length(s) > 0) {
+            char *buf = conv_utf82acp_alloc(ks_string(s));
+            output(" [%4d] %s\n", idx++, buf);
+            conv_free(buf);
+        }
+        hpos = HISTORY_NEXT(hpos);
+    }
+}
+
+static kstr_t *do_command_get_command(int sidx)
+{
+    if (sidx < 0) {
+        kstr_t *s = NULL;
+        int hpos = sg_history_pos;
+        do {
+            s = get_history_prev(&hpos);
+        } while (++sidx < 0);
+        return s;
+    }
+
+    int idx = 0;
+    int hpos = sg_history_pos;
+    for (int i = 0; i < HISTORY_MAX; ++i) {
+        kstr_t *s = sg_history[hpos];
+        if (s && ks_length(s) > 0) {
+            if (idx == sidx) {
+                return s;
+            }
+            ++idx;
+        }
+        hpos = HISTORY_NEXT(hpos);
+    }
+    return NULL;
+}
+
 static kx_charkind_t get_char_kind(const char *p, int in_alphabet)
 {
     if (*p == ' ') {
         return CK_WHITESPACE;
-    } else if (('a' <= *p && *p <= 'z') || *p == '.' || *p == '[' || *p == ']') {
+    } else if (('a' <= *p && *p <= 'z') || *p == '!' || *p == '.' || *p == '[' || *p == ']') {
         return CK_ALPHABET;
-    } else if ('0' <= *p && *p <= '9') {
+    } else if (*p == '-' || ('0' <= *p && *p <= '9')) {
         return in_alphabet ? CK_ALPHABET : CK_NUMBER;
     }
     return CK_SYMBOL;
@@ -797,12 +841,12 @@ static void do_command_stack_list(kx_context_t *ctx, int max)
             output("  [%5d] dbl, %g\n", sp, v->value.dv);
             break;
         case KX_CSTR_T:
-            buf = conv_utf82acp_alloc(v->value.pv);
+            buf = conv_utf82acp_alloc(ks_string(sanitize_ws(ctx, v->value.pv)));
             output("  [%5d] cstr, %s\n", sp, buf);
             conv_free(buf);
             break;
         case KX_STR_T:
-            buf = conv_utf82acp_alloc(ks_string(v->value.sv));
+            buf = conv_utf82acp_alloc(ks_string(sanitize_ws(ctx, ks_string(v->value.sv))));
             output("  [%5d] str, %s\n", sp, buf);
             conv_free(buf);
             break;
@@ -884,7 +928,7 @@ static kx_val_t *get_variable_by_name(kx_frm_t *frmv, kstr_t *nm[KXDS])
     return NULL;
 }
 
-static void show_variable_info(kx_val_t *v, int recursive)
+static void show_variable_info(kx_context_t *ctx, kx_val_t *v, int recursive)
 {
     char *buf;
     switch (v->type) {
@@ -903,12 +947,12 @@ static void show_variable_info(kx_val_t *v, int recursive)
         output("  --> dbl, %g\n", v->value.dv);
         break;
     case KX_CSTR_T:
-        buf = conv_utf82acp_alloc(v->value.pv);
+        buf = conv_utf82acp_alloc(ks_string(sanitize_ws(ctx, v->value.pv)));
         output("  --> cstr, %s\n", buf);
         conv_free(buf);
         break;
     case KX_STR_T:
-        buf = conv_utf82acp_alloc(ks_string(v->value.sv));
+        buf = conv_utf82acp_alloc(ks_string(sanitize_ws(ctx, ks_string(v->value.sv))));
         output("  --> str, %s\n", buf);
         conv_free(buf);
         break;
@@ -923,14 +967,14 @@ static void show_variable_info(kx_val_t *v, int recursive)
             for (int i = 0; i < sz; ++i) {
                 kx_val_t *vp = &kv_A(obj->ary, i);
                 output("    [%d]", i);
-                show_variable_info(vp, 0);
+                show_variable_info(ctx, vp, 0);
             }
             for (khint_t k = 0; k < kh_end(obj->prop); ++k) {
                 if (kh_exist(obj->prop, k)) {
                     kx_val_t *vp = &kh_value(obj->prop, k);
                     const char *key = kh_key(obj->prop, k);
                     output("    .%s", key);
-                    show_variable_info(vp, 0);
+                    show_variable_info(ctx, vp, 0);
                 }
             }
         }
@@ -975,7 +1019,7 @@ static kx_val_t *get_object_property(kx_val_t *val, kstr_t *nm[KXNM], int nms)
     return val;
 }
 
-static void set_value_to_variable(const char *name, kx_val_t *val, kstr_t *value, const char *type)
+static void set_value_to_variable(kx_context_t *ctx, const char *name, kx_val_t *val, kstr_t *value, const char *type)
 {
     if (!type || !type[0]) {
         if (is_number(value)) {
@@ -991,20 +1035,20 @@ static void set_value_to_variable(const char *name, kx_val_t *val, kstr_t *value
         val->type = KX_INT_T;
         val->value.iv = v;
         message("Set %"PRId64", to the variable(%s)\n", v, name);
-        show_variable_info(val, 0);
+        show_variable_info(ctx, val, 0);
     } else if (type[0] == 'd') {
         double v = strtod(ks_string(value), NULL);
         val->type = KX_DBL_T;
         val->value.dv = v;
         message("Set %g, to the variable(%s)\n", v, name);
-        show_variable_info(val, 0);
+        show_variable_info(ctx, val, 0);
     } else if (type[0] == 's') {
         val->type = KX_STR_T;
         val->value.sv = value;
         char *buf = conv_utf82acp_alloc(ks_string(value));
         message("Set \"%s\", to the variable(%s)\n", buf, name);
         conv_free(buf);
-        show_variable_info(val, 0);
+        show_variable_info(ctx, val, 0);
     }
 }
 
@@ -1027,7 +1071,7 @@ static void do_command_variable_set(kx_context_t *ctx, kx_frm_t *frmv, kstr_t *n
             return; // not found.
         }
     }
-    set_value_to_variable(ks_string(name), val, value, ks_string(type));
+    set_value_to_variable(ctx, ks_string(name), val, value, ks_string(type));
 }
 
 static void do_command_variable_show(kx_context_t *ctx, kx_frm_t *frmv, kstr_t *name)
@@ -1053,7 +1097,7 @@ static void do_command_variable_show(kx_context_t *ctx, kx_frm_t *frmv, kstr_t *
             return; // not found.
         }
     }
-    show_variable_info(val, 1);
+    show_variable_info(ctx, val, 1);
 }
 
 static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *arg[KXDS])
@@ -1247,6 +1291,8 @@ static void usage(void)
     output1("\n");
     output1("[Common]\n");
     output1("  h, help               Display this help.\n");
+    output1("  !, history            Display a command history.\n");
+    output1("  ! [N]                 Do the [N]th command in history.\n");
     output1("\n");
     output1("[Flow]\n");
     output1("  n                     Run until the next line by step-in.\n");
@@ -1293,6 +1339,13 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     for (int i = 0; i < KXDS; ++i) {
         arg[i] = allocate_str(ctx);
     }
+
+    int loop = 0;
+SETUP_COMMAND:
+    if (loop > 5) {
+        error1("Detected a history loop, enter command again.\n");
+        return 1;
+    }
     setup_command(arg, s);
     const char *cmd = ks_string(arg[0]);
     if (*cmd == 0) {
@@ -1302,6 +1355,31 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     if (!strcmp(cmd, "q")) {
         *r = 0;     // Terminate the Program
         return 0;   // Debugger Prompt Loop end
+    }
+
+    if ((!strcmp(cmd, "!") && is_number(arg[1])) || !strcmp(cmd, "!!")) {
+        int sidx = 0;
+        if (!strcmp(cmd, "!!")) {
+            sidx = -1;
+        } else {
+            sidx = (int)strtol(ks_string(arg[1]), NULL, 0);
+        }
+        kstr_t *ns = do_command_get_command(sidx);
+        if (!ns) {
+            char *buf = conv_utf82acp_alloc(ks_string(s));
+            error("Could not find a command in history: %s\n", buf);
+            conv_free(buf);
+            return 1;
+        }
+        for (int i = 0; i < KXDS; ++i) {
+            ks_clear(arg[i]);
+        }
+        s = ns;
+        char *buf = conv_utf82acp_alloc(ks_string(s));
+        message("Command: %s\n", buf);
+        conv_free(buf);
+        ++loop;
+        goto SETUP_COMMAND;
     }
 
     if (!strcmp(cmd, "n")) {
@@ -1316,6 +1394,8 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         return 0;   // Debugger Prompt Loop end
     } else if (!strcmp(cmd, "h") || !strcmp(cmd, "help")) {
         usage();
+    } else if (!strcmp(cmd, "!") || !strcmp(cmd, "history")) {
+        do_command_show_history(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "s")) {
         do_command_stack(args, frmv, lexv, ctx, location, cfrm, arg);
     } else if (!strcmp(cmd, "v")) {
@@ -1340,7 +1420,9 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         *r = 1;     // Restart the Program
         return 0;   // Debugger Prompt Loop end
     } else {
-        error("Unknown command: '%s'\n", ks_string(s));
+        char *buf = conv_utf82acp_alloc(ks_string(s));
+        error("Unknown command: '%s'\n", buf);
+        conv_free(buf);
     }
 
     return 1;   // Continue the Debugger
