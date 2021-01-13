@@ -31,22 +31,29 @@ $ kinx --debug script.kx
 
 ### Debugger Commands
 
-| Category  |    Command    |                Meaning                 |               Section               |
-| --------- | ------------- | -------------------------------------- | ----------------------------------- |
-| Common    | `h` or `help` | Display the help.                      | &#8594; [Help](#help)               |
-| Flow      | `n`           | Run to the next line.                  |                                     |
-|           | `r`           | Run to the next breakpoint.            |                                     |
-|           | `b`           | Show breakpoints.                      | &#8594; [Breakpoints](#breakpoints) |
-|           | `b [L]`       | Toggle the breakpoint to the line [L]. | &#8594; [Breakpoints](#breakpoints) |
-|           | `b -`         | Remove all breakpoints.                | &#8594; [Breakpoints](#breakpoints) |
-| Frames    | `f`           |                                        |                                     |
-|           | `l`           |                                        |                                     |
-|           | `mf [N]`      |                                        |                                     |
-|           | `ml [N]`      |                                        |                                     |
-| Variables | `v`           |                                        |                                     |
-|           | `vf [N]`      |                                        |                                     |
-|           | `vl [N]`      |                                        |                                     |
-| Stack     | `s`           |                                        |                                     |
+|  Category   |         Command         |                       Meaning                        |               Section               |
+| ----------- | ----------------------- | ---------------------------------------------------- | ----------------------------------- |
+| Common      | `h` or `help`           | Display the help.                                    | &#8594; [Help](#help)               |
+| Flow        | `n`                     | Run to the next line.                                |                                     |
+|             | `r`                     | Run to the next breakpoint.                          |                                     |
+|             | `b`                     | Show breakpoints.                                    | &#8594; [Breakpoints](#breakpoints) |
+|             | `b [L]`                 | Toggle the breakpoint to the line [L].               | &#8594; [Breakpoints](#breakpoints) |
+|             | `b -`                   | Remove all breakpoints.                              | &#8594; [Breakpoints](#breakpoints) |
+| Frames      | `f`                     | Show a frame list on the stack.                      |                                     |
+|             | `l`                     | Show a lexical frame list of a current frame.        |                                     |
+|             | `mf [N]`                | Move a current frame to the specified stack frame.   |                                     |
+|             | `ml [N]`                | Move a current frame to the specified lexical frame. |                                     |
+| Variables   | `v`                     | Show variables in a current frame.                   |                                     |
+|             | `vf [N]`                | Show variables of `[N]`th frame on the stack.        |                                     |
+|             | `vl [N]`                | Show variables of `[N]`th lexical frame.             |                                     |
+|             | `v [Name]`              | Show details of a variable in a current frame.       |                                     |
+|             | `v [Name] [Val] [Type]` | Set a value to a variable in a current frame.        |                                     |
+| Stack       | `s`                     | Show the stack with the first 10 entries.            |                                     |
+|             | `s all`                 | Show the stack all.                                  |                                     |
+| Source Code | `c`                     | Show a source code of a current function.            |                                     |
+|             | `c all`                 | Show all of a current source code.                   |                                     |
+|             | `d`                     | Dump an IR code of a current function.               |                                     |
+|             | `d all`                 | Dump an IR code of a current source code.            |                                     |
 
 ## Features
 
@@ -55,15 +62,18 @@ $ kinx --debug script.kx
 Use the command of `h`.
 
 ```
-> h
 Kinx Debugger version 0.1.0
 
 [Common]
   h, help               Display this help.
+  !, history            Display a command history.
+  !!                    Do the previous command in history.
+  ! [N]                 Do the [N]th command in history.
 
 [Flow]
-  n                     Run to the next line.
-  r                     Run to the next breakpoint.
+  n                     Run until the next line by step-in.
+  nn                    Run until the next line by step-out.
+  r                     Run until the next breakpoint.
   b                     Show breakpoints.
   b [L]                 Toggle the breakpoint to the line [L].
   b -                   Remove all breakpoints.
@@ -95,6 +105,7 @@ Kinx Debugger version 0.1.0
   c                     Show a source code of a current function.
   c all                 Show all of a current source code.
   d                     Dump an IR code of a current function.
+  d all                 Dump an IR code of a current source code.
 ```
 
 ### Breakpoints
