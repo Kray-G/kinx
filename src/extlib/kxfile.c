@@ -2770,6 +2770,9 @@ static void do_command_variable(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
 static kx_function_t *get_function_info(kx_context_t *ctx, kx_location_t *location, int list)
 {
     const char *cfunc = location->func;
+    if (!cfunc || !strcmp(cfunc, "_main1")) {
+        return NULL;
+    }
     const char *cfile = location->file;
     int cline = location->line;
     int cfunclines = -1;
@@ -2870,9 +2873,9 @@ static void do_command_dumpecode_block(kx_context_t *ctx, const char *file, kx_f
 static void output_funcname(kx_function_t *func)
 {
     if (func->end > 0) {
-        output("\n%s: %s(%d - %d)\n", func->name, func->file, func->start, func->end);
+        output("%s: %s(%d - %d)\n", func->name, func->file, func->start, func->end);
     } else {
-        output("\n%s:\n", func->name);
+        output("%s:\n", func->name);
     }
 }
 
@@ -2892,27 +2895,32 @@ static void do_command_dumpcode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     const char *cfunc = location->func;
     const char *cfile = location->file;
     int cline = location->line;
-    int cfunclines = -1;
     kx_function_t *func = NULL;
     kx_module_t *module = NULL;
     int mlen = kv_size(ctx->module);
-    for (int mi = 0; mi < mlen; ++mi) {
-        kx_module_t *m = &kv_A(ctx->module, mi);
-        int flen = kv_size(*(m->funclist));
-        for (int fi = 0; fi < flen; ++fi) {
-            kx_function_t *f = &kv_A(*(m->funclist), fi);
-            if (f->name && cfunc && !strcmp(f->name, cfunc) && !strcmp(f->file, cfile)) {
-                int funclines = f->end - f->start;
-                if (funclines < cfunclines || cfunclines < 0) {
-                    func = f;
-                    module = m;
+
+    if (strcmp(ks_string(arg[1]), "all") != 0) {
+        int cfunclines = -1;
+        for (int mi = 0; mi < mlen; ++mi) {
+            kx_module_t *m = &kv_A(ctx->module, mi);
+            int flen = kv_size(*(m->funclist));
+            for (int fi = 0; fi < flen; ++fi) {
+                kx_function_t *f = &kv_A(*(m->funclist), fi);
+                if (f->name && cfunc && !strcmp(f->name, cfunc) && !strcmp(f->file, cfile)) {
+                    int funclines = f->end - f->start;
+                    if (funclines < cfunclines || cfunclines < 0) {
+                        func = f;
+                        module = m;
+                    }
                 }
             }
         }
     }
+
     if (func && module) {
         do_command_dumpecode_func(ctx, cfile, module, func);
     } else {
+        int output = 0;
         for (int mi = 0; mi < mlen; ++mi) {
             module = &kv_A(ctx->module, mi);
             if (!module || !module->funclist) {
@@ -2921,9 +2929,10 @@ static void do_command_dumpcode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
             int flen = kv_size(*(module->funclist));
             for (int fi = 0; fi < flen; ++fi) {
                 func = &kv_A(*(module->funclist), fi);
-                if (!func || func->is_internal) {
+                if (!func || func->is_internal || !strcmp(func->name, "_startup")) {
                     continue;
                 }
+                if (output++ > 0) output1("\n");
                 do_command_dumpecode_func(ctx, cfile, module, func);
             }
         }
@@ -2938,8 +2947,9 @@ static void usage(void)
     output1("  h, help               Display this help.\n");
     output1("\n");
     output1("[Flow]\n");
-    output1("  n                     Run to the next line.\n");
-    output1("  r                     Run to the next breakpoint.\n");
+    output1("  n                     Run until the next line by step-in.\n");
+    output1("  nn                    Run until the next line by step-out.\n");
+    output1("  r                     Run until the next breakpoint.\n");
     output1("  b                     Show breakpoints.\n");
     output1("  b [L]                 Toggle the breakpoint to the line [L].\n");
     output1("  b -                   Remove all breakpoints.\n");
@@ -2971,6 +2981,7 @@ static void usage(void)
     output1("  c                     Show a source code of a current function.\n");
     output1("  c all                 Show all of a current source code.\n");
     output1("  d                     Dump an IR code of a current function.\n");
+    output1("  d all                 Dump an IR code of a current source code.\n");
     output1("\n");
 }
 
@@ -2989,6 +3000,12 @@ static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
     }
 
     if (!strcmp(cmd, "n")) {
+        ctx->options.debug_step = 1;
+        *r = 1;
+        return 0;   // Debugger Prompt Loop end
+    } else if (!strcmp(cmd, "nn")) {
+        // Step out.
+        ctx->stepout_file = location->file;
         ctx->options.debug_step = 1;
         *r = 1;
         return 0;   // Debugger Prompt Loop end
@@ -3036,6 +3053,7 @@ int Debugger_prompt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
 
     /* Reset once. */
     ctx->options.debug_step = 0;
+    ctx->stepout_file = NULL;
 
     int r = 1;
     if (line > 0) {
