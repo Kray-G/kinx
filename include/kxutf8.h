@@ -5,7 +5,7 @@
 extern const char g_utf8bytes[256]; /* format.c */
 static inline const char *east_asian_width_code(int64_t c);
 
-#define utf8_length(c) (utf8bytes[c & 0xff])
+#define utf8_length(c) (g_utf8bytes[c & 0xff])
 #define is_utf8_trail(c) (0x80 <= (c) && (c) <= 0xbf)
 
 static inline uint64_t surrogatepair2codepoint(uint64_t h, uint64_t l)
@@ -13,7 +13,7 @@ static inline uint64_t surrogatepair2codepoint(uint64_t h, uint64_t l)
     return (h - 0xD800) * 0x400 + (l - 0xDC00) + 0x10000;
 }
 
-static inline unsigned char *codepoint2utf8(unsigned char buf[], uint64_t cp) 
+static inline unsigned char *codepoint2utf8(unsigned char buf[], uint64_t cp)
 {
     if (cp < 0x80) {
         buf[0] = cp;

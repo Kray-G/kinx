@@ -971,8 +971,10 @@ typedef struct kx_context_ {
     kx_string_manager_t str_mgr;
     kx_signal_t signal;
 
+    /* For debugger */
     kx_location_list_t *breakpoints;
     kx_location_list_t *locations;
+    const char *stepout_file;
     int current_line;
     int64_t (*ir_executor)(struct kx_context_ *ctx);
     void (*ir_dumpcode)(int addr, kx_code_t *code);
