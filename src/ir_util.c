@@ -6587,6 +6587,10 @@ kx_code_t *ir_varname(kx_frm_t *frmv, kx_code_t *cur)
 
 int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur)
 {
+    if (ctx != g_main_thread) {
+        return 1;
+    }
+
     const char *cfile = cur->file;
     int cline = cur->line;
     if (!cfile || !cline) {
@@ -6619,10 +6623,16 @@ int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *
         return 1;
     }
 
-    // debugger will start with a breakpoint when the line is different from the previous check.
     location->line = cline;
     location->func = cur->func;
+    // debugger will start with a breakpoint when the line is different from the previous check.
     if (ctx->options.debug_step) {
+        if (ctx->stepout_file) {
+            if (!strcmp(ctx->stepout_file, cfile)) {
+                return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, location);
+            }
+            return 1;   /* cancel */
+        }
         return ctx->objs.debugger_prompt(0, frmv, lexv, ctx, location);
     }
     kx_location_list_t *breakpoints = ctx->breakpoints;
