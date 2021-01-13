@@ -1292,6 +1292,7 @@ static void usage(void)
     output1("[Common]\n");
     output1("  h, help               Display this help.\n");
     output1("  !, history            Display a command history.\n");
+    output1("  !!                    Do the previous command in history.\n");
     output1("  ! [N]                 Do the [N]th command in history.\n");
     output1("\n");
     output1("[Flow]\n");
@@ -1330,7 +1331,6 @@ static void usage(void)
     output1("  c all                 Show all of a current source code.\n");
     output1("  d                     Dump an IR code of a current function.\n");
     output1("  d all                 Dump an IR code of a current source code.\n");
-    output1("\n");
 }
 
 static int do_command(int *r, int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, kx_location_t *location, kx_frm_t **cfrm, kstr_t *s)
