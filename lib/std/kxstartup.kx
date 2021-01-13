@@ -1,5 +1,5 @@
 const STDIN, STDOUT, STDERR, $exepath, $kinxpath;
-const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Duktape;
+const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Duktape, Debugger;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass, SocketExceptionClass;
@@ -20,6 +20,7 @@ var Xml, Net;
     Xml = _import('kxxml');
     Net = _import('kxnet');
     SQLite = _import('kxsqlite');
+    Debugger = _import('kxdebugger');
     using kxisolate;
     using kxexception;
     using kxsqlite;
@@ -75,7 +76,7 @@ const KX_KEY_CTRL_RIGHT = (0x88 << 8) | 0x12;
 const KX_KEY_CTRL_LEFT  = (0x88 << 8) | 0x13;
 
 if (System._isDebuggerMode()) {
-    if (!File._startDebugger($env.KINX_RUN_SCRIPT, -1)) {
+    if (!Debugger._startDebugger($env.KINX_RUN_SCRIPT, -1)) {
         return 1;
     }
 }
