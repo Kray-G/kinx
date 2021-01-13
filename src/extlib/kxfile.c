@@ -2038,14 +2038,14 @@ static int is_double(kstr_t *s)
     return 1;
 }
 
-static kx_charkind_t get_char_kind(const char *p, const char *prv)
+static kx_charkind_t get_char_kind(const char *p, int in_alphabet)
 {
     if (*p == ' ') {
         return CK_WHITESPACE;
     } else if (('a' <= *p && *p <= 'z') || *p == '.' || *p == '[' || *p == ']') {
         return CK_ALPHABET;
     } else if ('0' <= *p && *p <= '9') {
-        return (prv && *prv == '[') ? CK_ALPHABET : CK_NUMBER;
+        return in_alphabet ? CK_ALPHABET : CK_NUMBER;
     }
     return CK_SYMBOL;
 }
@@ -2057,11 +2057,13 @@ static void setup_command(kstr_t *a[KXDS], kstr_t *args)
     while (i < l) {
         const char *p = ks_string(args) + i;
         const char *n = p;
-        kx_charkind_t kind = get_char_kind(p, NULL);
+        kx_charkind_t kind = get_char_kind(p, 0);
+        int in_alphabet = 0;
         for ( ; i < l; ++i) {
-            const char *prv = n;
             n = ks_string(args) + i;
-            kx_charkind_t next = get_char_kind(n, prv);
+            if (*n == '[')      in_alphabet = 1;
+            else if (*n == ']') in_alphabet = 0;
+            kx_charkind_t next = get_char_kind(n, in_alphabet);
             if (*n == ' ' || *n == 0 || kind != next) {
                 break;
             }
