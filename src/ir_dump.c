@@ -1,8 +1,16 @@
 #include <dbg.h>
 #include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
 #include <kvec.h>
 #include <kinx.h>
+#if defined(_WIN32) || defined(_WIN64)
+#define STRICMP(s1, s2) stricmp(s1, s2)
+int _fprintf_w32(FILE* fp, const char* format, ...);
+#else
+#define STRICMP(s1, s2) strcasecmp(s1, s2)
+# define _fprintf_w32(...) fprintf(__VA_ARGS__)
+#endif
 
 #define KXFT_FUNCTION_INDENT  ""
 #define KX_BLOCK_INDENT     "  "
@@ -123,7 +131,7 @@ static void print_dupary(kx_obj_t *obj)
     }
 }
 
-void ir_code_dump_one(int addr, kx_code_t *code)
+void ir_code_dump_one(int addr, kx_code_t *code, kx_location_t *location)
 {
     if (!code) {
         return;
@@ -132,11 +140,20 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         return;
     }
 
+    int highlight = (location && code->file && location->line == code->line && !strcmp(location->file, code->file)) ? 1 : 0;
+    if (location) {
+        _fprintf_w32(stdout, highlight ? "\033[97m" : "\033[90m");
+    }
     if (addr >= 0) {
         printf("%8x:   ", addr);
     } else {
         printf(KX_CODE_INDENT);
     }
+    if (location) {
+        _fprintf_w32(stdout, "\033[0m");
+        _fprintf_w32(stdout, highlight ? "\033[93m" : "\033[37m");
+    }
+
     switch (code->op) {
     case KX_HALT:
         printf("halt");
@@ -458,12 +475,16 @@ void ir_code_dump_one(int addr, kx_code_t *code)
         printf("(((unknown)))");
         break;
     }
+
+    if (location) {
+        _fprintf_w32(stdout, "\033[0m");
+    }
     printf("\n");
 }
 
 static void ir_code_dump(int blockadr, int i, kx_code_t *code)
 {
-    ir_code_dump_one(blockadr >= 0 ? (blockadr+i) : -1, code);
+    ir_code_dump_one(blockadr >= 0 ? (blockadr+i) : -1, code, NULL);
 }
 
 static void ir_block_dump(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
