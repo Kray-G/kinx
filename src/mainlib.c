@@ -263,9 +263,6 @@ DllExport int do_main(int ac, char **av)
     }
 
 END_OF_OPT:
-    if (!ctx->ir_executor) {
-        ctx->ir_executor = ir_exec;
-    }
     #if defined(_WIN32) || defined(_WIN64)
     if (GetConsoleCP() == CP_UTF8) {
         ctx->options.utf8inout = 1;

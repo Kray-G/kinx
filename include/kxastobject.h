@@ -51,6 +51,7 @@ extern kx_object_t *kx_gen_regex_object(const char *pattern, int eq);
 extern kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_texpr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
 extern kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
+extern kx_object_t *kx_gen_stmt_object_line(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line);
 extern kx_object_t *kx_gen_modifier(kx_object_t *modifier, kx_object_t *stmt);
 extern kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs);
 extern kx_object_t *kx_gen_break_object(int type, const char *name);
