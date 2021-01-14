@@ -498,6 +498,13 @@ kx_object_t *kx_gen_stmt_object(int type, kx_object_t *lhs, kx_object_t *rhs, kx
     return kx_gen_obj(type, 0, lhs, rhs, ex);
 }
 
+kx_object_t *kx_gen_stmt_object_line(int type, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line)
+{
+    kx_object_t *obj = kx_gen_obj(type, 0, lhs, rhs, ex);
+    obj->line = line;
+    return obj;
+}
+
 kx_object_t *kx_gen_modifier(kx_object_t *modifier, kx_object_t *stmt)
 {
     if (modifier) {
