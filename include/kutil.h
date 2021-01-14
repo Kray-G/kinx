@@ -2,10 +2,13 @@
 #define KX_KUTIL_H
 
 #include <ctype.h>
-#include <kinx.h>
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <stdio.h>
 #include <windows.h>
+#define STRICMP(s1, s2) stricmp(s1, s2)
+int _fprintf_w32(FILE* fp, const char* format, ...);
+
 typedef struct timer_ {
     LARGE_INTEGER freq;
     LARGE_INTEGER start;
@@ -15,10 +18,17 @@ static inline void term_echo(int on)
     // dummy.
 }
 #else
-#include <termios.h>
-#include <sys/time.h>
+#include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/resource.h>
+#include <fcntl.h>
+#include <termios.h>
+#define STRICMP(s1, s2) strcasecmp(s1, s2)
+#define _fprintf_w32(...) fprintf(__VA_ARGS__)
+
 typedef struct timer_ {
     struct timeval s;
 } systemtimer_t;
@@ -34,6 +44,7 @@ static inline void term_echo(int on)
     tcsetattr(0, TCSANOW, &newf);
 }
 #endif
+#include <kinx.h>
 
 static inline void sleep_ms(kx_context_t *ctx, int msec)
 {
