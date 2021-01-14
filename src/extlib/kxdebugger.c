@@ -1189,13 +1189,14 @@ static void do_command_sourcecode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_c
     fclose(fp);
 }
 
-static void do_command_dumpecode_block(kx_context_t *ctx, const char *file, kx_function_t *func, kx_block_t *block, int is_main)
+static void do_command_dumpecode_block(kx_context_t *ctx, kx_function_t *func, kx_block_t *block, kx_location_t *location, int is_main)
 {
     if (block) {
         int len = kv_size(block->code);
         if (len == 0) {
             return;
         }
+        const char *file = location->file;
         kx_code_t *code0 = &kv_A(block->code, 0);
         if (is_main && code0 && strcmp(code0->file, file) != 0) {
             return;
@@ -1205,11 +1206,11 @@ static void do_command_dumpecode_block(kx_context_t *ctx, const char *file, kx_f
             kx_code_t *code = &kv_A(block->code, i);
             if (is_main) {
                 if (code && code->op != KX_VARNAME && (code->op == KX_ENTER || (code->file && !strcmp(code->file, file)))) {
-                    ctx->ir_dumpcode(code->i, code);
+                    ctx->ir_dumpcode(code->i, code, location);
                 }
             } else {
                 if (code && code->op != KX_VARNAME) {
-                    ctx->ir_dumpcode(code->i, code);
+                    ctx->ir_dumpcode(code->i, code, location);
                 }
             }
         }
@@ -1225,14 +1226,14 @@ static void output_funcname(kx_function_t *func)
     }
 }
 
-static void do_command_dumpecode_func(kx_context_t *ctx, const char *cfile, kx_module_t *module, kx_function_t *func)
+static void do_command_dumpecode_func(kx_context_t *ctx, kx_module_t *module, kx_function_t *func, kx_location_t *location)
 {
     output_funcname(func);
     int is_main = !strcmp(func->name, "_main1");
     int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
         int block = kv_A(func->block, i);
-        do_command_dumpecode_block(ctx, cfile, func, &kv_A(module->blocks, block), is_main);
+        do_command_dumpecode_block(ctx, func, &kv_A(module->blocks, block), location, is_main);
     }
 }
 
@@ -1264,7 +1265,7 @@ static void do_command_dumpcode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     }
 
     if (func && module) {
-        do_command_dumpecode_func(ctx, cfile, module, func);
+        do_command_dumpecode_func(ctx, module, func, location);
     } else {
         int output = 0;
         for (int mi = 0; mi < mlen; ++mi) {
@@ -1279,7 +1280,7 @@ static void do_command_dumpcode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
                     continue;
                 }
                 if (output++ > 0) output1("\n");
-                do_command_dumpecode_func(ctx, cfile, module, func);
+                do_command_dumpecode_func(ctx, module, func, location);
             }
         }
     }
