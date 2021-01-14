@@ -130,6 +130,7 @@ SOFILES = \
     kxdouble.so \
     kxarray.so \
     kxfile.so \
+    kxdebugger.so \
     kxmath.so \
     kxregex.so \
     kxsqlite.so \
@@ -202,6 +203,7 @@ install:
 	cp -f kxbinary.so /usr/bin/kinxlib/
 	cp -f kxdouble.so /usr/bin/kinxlib/
 	cp -f kxfile.so /usr/bin/kinxlib/
+	cp -f kxdebugger.so /usr/bin/kinxlib/
 	cp -f kxinteger.so /usr/bin/kinxlib/
 	cp -f kxmath.so /usr/bin/kinxlib/
 	cp -f kxnet.so /usr/bin/kinxlib/
@@ -272,6 +274,9 @@ kxarray.so: src/extlib/kxarray.c $(PICOBJS)
 
 kxfile.so: src/extlib/kxfile.c $(PICOBJS) libz.so
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) src/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+
+kxdebugger.so: src/extlib/kxdebugger.c $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN'
 
 kxmath.so: src/extlib/kxmath.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -lm
