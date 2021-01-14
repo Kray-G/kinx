@@ -977,7 +977,7 @@ typedef struct kx_context_ {
     const char *stepout_file;
     int current_line;
     int64_t (*ir_executor)(struct kx_context_ *ctx);
-    void (*ir_dumpcode)(int addr, kx_code_t *code);
+    void (*ir_dumpcode)(int addr, kx_code_t *code, kx_location_t *location);
 } kx_context_t;
 
 #if defined(KX_EXEC_DEBUG)
