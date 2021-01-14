@@ -268,7 +268,7 @@ static kstr_t *prompt(kx_context_t *ctx)
         pos = insert_ch(ctx, buffer, pos, ch);
     }
 
-END_OF_INPUT:
+END_OF_INPUT:;
     kstr_t *s = allocate_str(ctx);
     ks_append(s, buffer);
     printf("\n");
