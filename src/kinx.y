@@ -338,7 +338,7 @@ BreakStatement
     ;
 
 ReturnStatement
-    : RETURN AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_stmt_object(KXST_RET, $2, NULL, NULL)); }
+    : RETURN GetLineNumber AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($4, kx_gen_stmt_object_line(KXST_RET, $3, NULL, NULL, $2)); }
     | SYSRET_NV ';' { $$ = kx_gen_stmt_object(KXST_SYSRET_NV, NULL, NULL, NULL); }
     ;
 

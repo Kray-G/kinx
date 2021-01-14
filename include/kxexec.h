@@ -2,7 +2,7 @@
 #define KX_KXEXEC_H
 
 #if defined(KX_EXEC_DEBUG)
-#define KX_CASE_(OPCODE) case OPCODE: printf("--------\n"); fflush(stdout); ir_code_dump_one(cur->i, cur); \
+#define KX_CASE_(OPCODE) case OPCODE: printf("--------\n"); fflush(stdout); ir_code_dump_one(cur->i, cur, NULL); \
                             printf("gc-start.\n"); fflush(stdout); KEX_TRY_GC(); printf("gc-done.\n"); fflush(stdout); \
                             OPCODE##_CODE(); \
                             print_stack(ctx, frmv, lexv); printf("goto next.\n");  fflush(stdout);
