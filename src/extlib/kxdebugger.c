@@ -1,22 +1,6 @@
 #include <dbg.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <stdio.h>
-#include <windows.h>
-#define STRICMP(s1, s2) stricmp(s1, s2)
-int _fprintf_w32(FILE* fp, const char* format, ...);
-#else
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <termios.h>
-#define STRICMP(s1, s2) strcasecmp(s1, s2)
-# define _fprintf_w32(...) fprintf(__VA_ARGS__)
-#endif
 #define KX_DLL
 #include <kinx.h>
 #include <kutil.h>
