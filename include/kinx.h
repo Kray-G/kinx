@@ -309,7 +309,7 @@ extern void start_display_ast(kx_object_t *node);
 extern void start_display_def_ast(kx_object_t *node);
 extern kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *args, int argn);
 extern kvec_t(kx_function_t) *start_gencode_ast(kx_object_t *node, kx_context_t *ctx, kx_module_t *module, const char *name);
-extern void ir_code_dump_one(int addr, kx_code_t *code);
+extern void ir_code_dump_one(int addr, kx_code_t *code, kx_location_t *location);
 extern void ir_dot(kx_context_t *ctx);
 extern void ir_dump(kx_context_t *ctx);
 extern void ir_dump_fixed_code(kvec_pt(kx_code_t) *fixcode);
@@ -317,6 +317,8 @@ extern void ir_fix_code(kx_context_t *ctx, int start);
 extern int64_t ir_exec(kx_context_t *ctx);
 extern int64_t ir_dbg_exec(kx_context_t *ctx);
 extern void native_dump(unsigned char *bytes, int size);
+
+#define KX_DUMP_FILE_LINE_MARK 0x01
 
 /* for import library */
 

@@ -120,6 +120,7 @@ SOFILES = \
     kxdouble.dll \
     kxarray.dll \
     kxfile.dll \
+    kxdebugger.dll \
     kxmath.dll \
     kxregex.dll \
     kxssh.dll \
@@ -227,6 +228,9 @@ kxarray.dll: src/extlib/kxarray.c $(PICOBJS)
 
 kxfile.dll: src/extlib/kxfile.c $(PICOBJS) src/extlib/ansicolor/ansicolor_w32.obj src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxfile.c $(PICOBJS) src/extlib/ansicolor/ansicolor_w32.obj src/extlib/zip/x64/vs2017/minizip.lib src/extlib/zip/x64/vs2017/zlib.lib user32.lib advapi32.lib
+
+kxdebugger.dll: src/extlib/kxdebugger.c $(PICOBJS) src/extlib/ansicolor/ansicolor_w32.obj
+	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxdebugger.c $(PICOBJS) src/extlib/ansicolor/ansicolor_w32.obj user32.lib advapi32.lib
 
 kxprocess.dll: src/extlib/kxprocess.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ src/extlib/kxprocess.c $(PICOBJS)
