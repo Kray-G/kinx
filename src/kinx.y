@@ -130,6 +130,7 @@ static inline void yy_restart(int token)
 %type<obj> VarDeclStatement
 %type<obj> DeclAssignExpressionList
 %type<obj> DeclAssignExpression
+%type<obj> DeclAssignRightHandSide
 %type<intval> NativeKeyword
 %type<obj> FunctionDeclStatement
 %type<obj> NormalFunctionDeclStatement
@@ -788,10 +789,15 @@ DeclAssignExpressionList
 DeclAssignExpression
     : VarName { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
-    | VarName '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
-    | VarName ':' TypeName ReturnType_Opt '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
-    | LMBR ArrayItemList RMBR '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1), $5); }
-    | LBBR ArrayItemList RBBR '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1), $5); }
+    | VarName '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
+    | VarName ':' TypeName ReturnType_Opt '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
+    | LMBR ArrayItemList RMBR '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1), $5); }
+    | LBBR ArrayItemList RBBR '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1), $5); }
+    ;
+
+DeclAssignRightHandSide
+    : AssignRightHandSide
+    | DeclAssignRightHandSide '=' AssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_ASSIGN, $1, $3); }
     ;
 
 FunctionDeclStatement

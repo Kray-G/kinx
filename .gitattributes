@@ -1,5 +1,5 @@
-# workaround for Kinx highlight
-*.kx          text linguist-language=CoffeeScript
+# Kinx highlight is currently not supported but...
+*.kx          text linguist-language=Kinx
 .spectest     text linguist-language=JSON linguist-detectable
 
 # exclude files in directories below from github stats
