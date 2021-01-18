@@ -47,11 +47,12 @@ $ kinx --debug script.kx
 |  Category   |         Command         |                       Meaning                        |                        Section                        |
 | ----------- | ----------------------- | ---------------------------------------------------- | ----------------------------------------------------- |
 | Common      | `h` or `help`           | Display the help.                                    | &#8594; [Help](#help)                                 |
-|             | `!` or `history`        | Display a command history.                           | &#8594;                                               |
-|             | `!!`                    | Do the previous command in history.                  | &#8594;                                               |
-|             | `! [N]`                 | Do the [N]th command in history.                     | &#8594;                                               |
-| Flow        | `n`                     | Run to the next line.                                | &#8594;                                               |
-|             | `r`                     | Run to the next breakpoint.                          | &#8594;                                               |
+|             | `!` or `history`        | Display a command history.                           | &#8594; [History](#history)                           |
+|             | `!!`                    | Do the previous command in history.                  | &#8594; [History](#history)                           |
+|             | `! [N]`                 | Do the [N]th command in history.                     | &#8594; [History](#history)                           |
+| Flow        | `n`                     | Run to the next line by step-in.                     | &#8594; [Stpwise Execution](#stepwise-execution)      |
+|             | `nn`                    | Run to the next line by step-out.                    | &#8594; [Stpwise Execution](#stepwise-execution)      |
+|             | `r`                     | Run to the next breakpoint.                          | &#8594; [Stpwise Execution](#stepwise-execution)      |
 |             | `b`                     | Show breakpoints.                                    | &#8594; [Breakpoints](#breakpoints)                   |
 |             | `b [L]`                 | Toggle the breakpoint to the line [L].               | &#8594; [Breakpoints](#breakpoints)                   |
 |             | `b -`                   | Remove all breakpoints.                              | &#8594; [Breakpoints](#breakpoints)                   |
@@ -64,12 +65,27 @@ $ kinx --debug script.kx
 |             | `vl [N]`                | Show variables of `[N]`th lexical frame.             | &#8594; [Frames and Variables](#frames-and-variables) |
 |             | `v [Name]`              | Show details of a variable in a current frame.       | &#8594; [Frames and Variables](#frames-and-variables) |
 |             | `v [Name] [Val] [Type]` | Set a value to a variable in a current frame.        | &#8594; [Frames and Variables](#frames-and-variables) |
-| Stack       | `s`                     | Show the stack with the first 10 entries.            | &#8594;                                               |
-|             | `s all`                 | Show the stack all.                                  | &#8594;                                               |
-| Source Code | `c`                     | Show a source code of a current function.            | &#8594;                                               |
-|             | `c all`                 | Show all of a current source code.                   | &#8594;                                               |
-|             | `d`                     | Dump an IR code of a current function.               | &#8594;                                               |
-|             | `d all`                 | Dump an IR code of a current source code.            | &#8594;                                               |
+| Stack       | `s`                     | Show the stack with the first 10 entries.            | &#8594; [Stack](#stack)                               |
+|             | `s all`                 | Show the stack all.                                  | &#8594; [Stack](#stack)                               |
+| Source Code | `c`                     | Show a source code of a current function.            | &#8594; [Source Code](#source-code)                   |
+|             | `c all`                 | Show all of a current source code.                   | &#8594; [Source Code](#source-code)                   |
+|             | `d`                     | Dump an IR code of a current function.               | &#8594; [Source Code](#source-code)                   |
+|             | `d all`                 | Dump an IR code of a current source code.            | &#8594; [Source Code](#source-code)                   |
+
+The command and a number parameter of an argument can be connected. See example below.
+
+```
+> b 3
+>>> Added the breakpoint of <examples/fib.kx:3>.
+Breakpoints:
+  - <examples/fib.kx:3>
+
+> b3
+>>> Removed the breakpoint of <examples/fib.kx:3>.
+>>> No breakpoints.
+```
+
+The command `b` and the number `3` can be written as 1 word like `b3`.
 
 ## Features
 
@@ -291,7 +307,7 @@ You should specify a frame number shown by the command `l`.
  [*] [   4] fib (examples\fib.kx:3)
 ```
 
-### `v`
+#### `v`
 
 The command shows variables of the current frame.
 
@@ -300,7 +316,7 @@ The command shows variables of the current frame.
   [ 0] n = int, 16
 ```
 
-### `vf [N]`
+#### `vf [N]`
 
 The command `vf` shows a variable list which the frame number [N] on the stack holds.
 By this, you do not have to change a current frame to see the variables held in a frame.
@@ -329,7 +345,7 @@ By this, you do not have to change a current frame to see the variables held in 
   [ 0] n = int, 22
 ```
 
-### `vl [N]`
+#### `vl [N]`
 
 The command `vl` shows a variable list which the frame number [N] on lexical frames holds.
 By this, you do not have to change a current frame to see the variables held in a frame.
@@ -350,7 +366,7 @@ By this, you do not have to change a current frame to see the variables held in 
 In the above example's case, `vf 4` and `vl 4` is the same meaning because the frame number 4 is also on the stack.
 But sometimes, a lexical frame is not on the stack. This `vl` command is useful in that case.
 
-### `v [Name]`
+#### `v [Name]`
 
 If you use `[Name]` with the command `v`, you can see inside of the variable.
 See example below, and you can see the property name and array index is available in the `[Name]`.
@@ -443,7 +459,7 @@ Breakpoints:
   --> int, 1000
 ```
 
-### `v [Name] [Val] [Type]`
+#### `v [Name] [Val] [Type]`
 
 By adding `[Name] [Val] [Type]` to the command `v`,
 you can set a new value to the variable on the fly.
@@ -468,8 +484,364 @@ After changing the value and running it again,
 the displayed number has been also changed.
 This means that changing the value has been successful.
 
+### Stack
+
+#### `s`
+
+The command `s` shows only 10 entries from the stack top.
+Here is the example when it is a recursive call by `fib.kx`.
+
+```
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+
+> f
+ [*] [  44] fib (examples/fib.kx:3)
+  -  [  39] fib (examples/fib.kx:3)
+  -  [  34] fib (examples/fib.kx:3)
+  -  [  29] fib (examples/fib.kx:3)
+  -  [  24] fib (examples/fib.kx:3)
+  -  [  19] fib (examples/fib.kx:3)
+  -  [  14] fib (examples/fib.kx:3)
+  -  [   9] fib (examples/fib.kx:3)
+  -  [   4] <main-block> (examples/fib.kx:6)
+
+> s
+  [   44] frm, var:1
+  [   43] address, ret -> fib
+  [   42] int, 1
+  [   41] function, fib
+  [   40] int, 20
+  [   39] frm, var:1
+  [   38] address, ret -> fib
+  [   37] int, 1
+  [   36] function, fib
+  [   35] int, 22
+    ... more
+```
+
+#### `s all`
+
+The command `s all` shows all entries on the stack.
+
+```
+> s all
+  [   44] frm, var:1
+  [   43] address, ret -> fib
+  [   42] int, 1
+  [   41] function, fib
+  [   40] int, 20
+  [   39] frm, var:1
+  [   38] address, ret -> fib
+  [   37] int, 1
+  [   36] function, fib
+  [   35] int, 22
+  [   34] frm, var:1
+  [   33] address, ret -> fib
+  [   32] int, 1
+  [   31] function, fib
+  [   30] int, 24
+  [   29] frm, var:1
+  [   28] address, ret -> fib
+  [   27] int, 1
+  [   26] function, fib
+  [   25] int, 26
+  [   24] frm, var:1
+  [   23] address, ret -> fib
+  [   22] int, 1
+  [   21] function, fib
+  [   20] int, 28
+  [   19] frm, var:1
+  [   18] address, ret -> fib
+  [   17] int, 1
+  [   16] function, fib
+  [   15] int, 30
+  [   14] frm, var:1
+  [   13] address, ret -> fib
+  [   12] int, 1
+  [   11] function, fib
+  [   10] int, 32
+  [    9] frm, var:1
+  [    8] address, ret -> _main1
+  [    7] int, 1
+  [    6] function, fib
+  [    5] int, 34
+  [    4] frm, var:64
+  [    3] address, ret -> <end>
+  [    2] int, 1
+  [    1] function, _startup
+```
+
 ### Source Code
+
+The source code view is following features.
+
+* Show breakpoints with the asterisk at the head of line.
+* The current line is highlighted.
+
+Here is the image.
+
+![Highlight](images/debugger_d.png)
+
+Note that the highlight will not be shown in examples, because of Markdown, but there is the image of a highlight example at the top of this page.
+
+#### `c`
+
+Show the running source code by the command `c`.
+Normally, the command `c` shows the code only in the current function.
+
+
+```
+$ kinx --debug examples/fib.kx
+>>> Break before starting at examples/fib.kx
+
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+    3:     return fib(n-2) + fib(n-1);
+    4: }
+    5:
+    6: System.println("fib(34) = ", fib(34));
+
+> b 3
+>>> Added the breakpoint of <examples/fib.kx:3>.
+Breakpoints:
+  - <examples/fib.kx:3>
+
+> b 6
+>>> Added the breakpoint of <examples/fib.kx:6>.
+Breakpoints:
+  - <examples/fib.kx:6>
+  - <examples/fib.kx:3>
+
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+    5:
+*   6: System.println("fib(34) = ", fib(34));
+
+> r
+>>> Break at examples/fib.kx:6
+
+> r
+>>> Break at examples/fib.kx:3
+
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+```
+
+#### `c all`
+
+The command `c all` shows the code in the current file.
+See the example below.
+
+```
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+
+> c all
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+    5:
+*   6: System.println("fib(34) = ", fib(34));
+```
+
+#### `d`
+
+`d` is the command corresponding to `c` and `d` shows an IR dump for a current function instead of the source code.
+
+```
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+    3:     return fib(n-2) + fib(n-1);
+    4: }
+
+> d
+fib: examples/fib.kx(1 - 4)
+.L2282
+    2ebb:   enter                   19, vars(1), args(1)
+.L2283
+    2ebd:   lt_v0i                  $0(0), 3
+    2ebe:   jz                      .L2285(2ec0)
+.L2284
+    2ebf:   retvl0                  $0(0)
+.L2285
+    2ec0:   sub_v0i                 $0(0), 2
+    2ec1:   callvl1                 $1(63), 1
+    2ec2:   sub_v0i                 $0(0), 1
+    2ec3:   callvl1                 $1(63), 1
+    2ec4:   add
+    2ec5:   ret
+    2ec6:   halt
+```
+
+#### `d all`
+
+`d all` is the command corresponding to `c all` and `d all` shows an IR dump for a current source code.
+
+```
+> d all
+_main1:
+.L2
+       2:   enter                   71, vars(64), args(1)
+.L2281
+      53:   pushf                   fib => .L2282(2ebb)
+      54:   storevx                 $0(63)
+      55:   pushi                   34
+      56:   callvl0                 $0(63), 1
+      57:   pushs                   "fib(34) = "
+      58:   pushvl0                 $0(6)
+      59:   calls                   "println", 2
+      5a:   pop
+      5b:   ret                     null
+
+fib: examples/fib.kx(1 - 4)
+.L2282
+    2ebb:   enter                   19, vars(1), args(1)
+.L2283
+    2ebd:   lt_v0i                  $0(0), 3
+    2ebe:   jz                      .L2285(2ec0)
+.L2284
+    2ebf:   retvl0                  $0(0)
+.L2285
+    2ec0:   sub_v0i                 $0(0), 2
+    2ec1:   callvl1                 $1(63), 1
+    2ec2:   sub_v0i                 $0(0), 1
+    2ec3:   callvl1                 $1(63), 1
+    2ec4:   add
+    2ec5:   ret
+    2ec6:   halt
+```
 
 ### Stepwise Execution
 
-## Examples
+#### `n`
+
+The command `n` will run the program to the next line by step-in mode.
+Therefore it will move into another file when calling a function in another file.
+
+```
+$ kinx --debug examples/fib.kx
+>>> Break before starting at examples/fib.kx
+
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+    3:     return fib(n-2) + fib(n-1);
+    4: }
+    5:
+    6: System.println("fib(34) = ", fib(34));
+
+> n
+>>> Break at examples/fib.kx:1
+
+> n
+>>> Break at examples/fib.kx:6
+
+> n
+>>> Break at examples/fib.kx:2
+
+> n
+>>> Break at examples/fib.kx:3
+```
+
+#### `nn`
+
+The command `n` will run the program to the next line by step-out mode.
+Therefore it will **NOT** move into another file even when calling a function in another file.
+
+#### `r`
+
+The command `r` will run the program to the next breakpoint.
+If there is no breakpoint, it will run to the end of the program.
+
+### History
+
+#### `!` or `history`
+
+Either the command `!` and `history` has same functionality and it shows a history.
+The difference between those is that the `!` command itself is not recorded into a history but `history` command is recorded.
+
+```
+> !
+ [   0] b 6
+ [   1] r
+ [   2] b 3
+ [   3] r
+ [   4] b -
+ [   5] b 6
+ [   6] c
+ [   7] c all
+ [   8] r
+ [   9] n
+ [  10] c
+
+> history
+ [   0] b 6
+ [   1] r
+ [   2] b 3
+ [   3] r
+ [   4] b -
+ [   5] b 6
+ [   6] c
+ [   7] c all
+ [   8] r
+ [   9] n
+ [  10] c
+ [  11] history
+```
+
+#### `!!`
+
+The command `!!` will do the right previous command in a history.
+
+```
+> c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+
+> !!
+>>> Command: c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+```
+
+#### `! [N]`
+
+The command `! [N]` means to execute the command of `[N]`th entry in a history.
+
+```
+> !
+ [   0] b 3
+ [   1] r
+ [   2] c
+ [   3] r
+ [   4] r
+ [   5] r
+ [   6] r
+
+> ! 2
+>>> Command: c
+    1: function fib(n) {
+    2:     if (n < 3) return n;
+*   3:     return fib(n-2) + fib(n-1);
+    4: }
+```
