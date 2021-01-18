@@ -84,30 +84,6 @@ jobs:
           name: ${{ steps.name.outputs.artifact }}
           path: ${{ steps.name.outputs.artifact }}
 
-  package-kitty:
-    name: package-kitty
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-      - name: build
-        run: |
-          sudo make kitty-install
-      - name: package
-        run: |
-          ref='${{ github.ref }}'
-          tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
-
-          mkdir -p $tag/lib/fonts
-          mkdir -p $tag/lib/phantomjs
-          cp -r /usr/bin/kinxlib/fonts/* $tag/lib/fonts
-          cp -r /usr/bin/kinxlib/lib/phantomjs/* $tag/lib/phantomjs
-          zip -r package-kitty.zip $tag/
-      - name: upload archive
-        uses: actions/upload-artifact@v1
-        with:
-          name: package-kitty
-          path: package-kitty.zip
-
   release:
     name: release
     runs-on: ubuntu-latest
@@ -130,11 +106,10 @@ jobs:
       - release
       - build-linux-amd64
       - build-windows-x64
-      - package-kitty
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job: [build-linux-amd64, build-windows-x64, build-linux-amd64-installer, build-windows-x64-installer, package-kitty]
+        job: [build-linux-amd64, build-windows-x64, build-linux-amd64-installer, build-windows-x64-installer]
         include:
           - job: build-linux-amd64
             jobname: build-linux-amd64
@@ -160,12 +135,6 @@ jobs:
             asset_path: ${{ needs.build-windows-x64.outputs.installer }}
             asset_name: ${{ needs.build-windows-x64.outputs.installer }}
             content_type: application/vnd.microsoft.portable-executable
-          - job: package-kitty
-            jobname: package-kitty
-            download_name: package-kitty
-            asset_path: package-kitty.zip
-            asset_name: package_kitty.zip
-            content_type: application/zip
     steps:
       - name: download archive
         id: download_archive
