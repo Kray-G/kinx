@@ -10,10 +10,10 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 
 ## Topics
 
-* <strong>Preview Release is now available!</strong> See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
-* Now the Kinx is supporting the platform of x86-64 Windows and Linux only,  because of no environment.
-  *  If you are interested in other platforms, please check [here](#how-to-support-a-platform).
-*  See [ChangeLog.md](ChangeLog.md) to the history of this project.
+* **Preview Release 0.19.0 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+* Now the Kinx is supporting the platform of **x86-64 Windows and Linux only**,  because I have no environment.
+  *  If you are interested in other platforms, **please check [here](#how-to-support-a-platform)**.
+*  **See [ChangeLog.md](ChangeLog.md)** to the history of this project.
 
 ## Introduction
 
@@ -142,7 +142,7 @@ $ make
 If anyone wants to support some other platform, the followings have to be done.
 
 1. Now `utliity/kmyacc` is prepared only for x86-64 Windows and Linux.
-    * About this, I am going to prepare and commit directly the generated parser file by yacc in the near future.
+    * About this, I did commit directly the generated parser file by yacc. Use those files directly in Makefile.
 2. There are some dependent libraries in this repo. I think it is not a good way but I am doing so for convenience. Those libraries are put under `src/extlib` folder. Some are located it as a source code but some are located as a pre-built component. Currently there are 6 projects which is prepared as a pre-built component such as  libcurl, libharu, libssh2, libxml2, openssl, and zip(minizip).
     * Create a folder for the target platform and prebuilding and putting a library under that folder each library.
     * Prepare a Makefile for the target platform to compile with above libraries.
