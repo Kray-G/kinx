@@ -1,12 +1,19 @@
 <p align="right">
     <img src="https://github.com/Kray-G/kinx/workflows/Unit%20Test/badge.svg?branch=master"/>
-    <img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat"/>
+    <img src="http://img.shields.io/badge/Platform-Currently_x86--64_only-brightgreen.svg?style=flat"/>
+    <img src="http://img.shields.io/badge/License-MIT-blue.svg?style=flat"/>
 </p>
 <p align="center"><img src="docs/kinxlogo.png" height="84px" /></p>
 <p align="center">
-<strong>Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
 Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers.
 </p>
+
+## Topics
+
+* <strong>Preview Release is now available!</strong> See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+* Now the Kinx is supporting the platform of x86-64 Windows and Linux only,  because of no environment.
+  *  If you are interested in other platforms, please check [here](#how-to-support-a-platform).
+*  See [ChangeLog.md](ChangeLog.md) to the history of this project.
 
 ## Introduction
 
@@ -100,7 +107,7 @@ If you agree, or if you don't agree, anyway push the star.
 ### Supported Platforms
 
 Currently this project supports x86-64 Windows and Linux only.
-I really want a contributor to support any other platforms.
+I really want someone to support any other platforms if possible because I do not have any other platform environment.
 Please see detail [here](#how-to-support-a-platform)
 
 ### How to Build
