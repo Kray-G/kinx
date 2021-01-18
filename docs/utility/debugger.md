@@ -33,11 +33,10 @@ You can use the following keys to edit a command text to debug your program.
 ### Run the Script with Debugger
 
 Run it with `--debug` option, and the script will automatically be stopped before your code.
-By the way, the line number of the starting point is '0' but it is no sense.
 
 ```
 $ kinx --debug script.kx
->>> Break at script.kx:0
+>>> Break before starting at script.kx
 
 > 
 ```
