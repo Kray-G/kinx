@@ -226,12 +226,6 @@ install:
 	ln -sf /usr/bin/kinxlib/libcrypto.so.3 /usr/bin/kinxlib/libcrypto.so
 	rm -f /usr/bin/kinxlib/exec/3rdparty/.gitignore
 
-kitty-install:
-	if [ ! -d /usr/bin/kinxlib/fonts ]; then mkdir -p /usr/bin/kinxlib/fonts; fi;
-	if [ ! -d /usr/bin/kinxlib/lib/phantomjs ]; then mkdir -p /usr/bin/kinxlib/lib/phantomjs; fi;
-	cp -rf ./fonts/* /usr/bin/kinxlib/fonts
-	cp -rf ./src/extlib/phantomjs/* /usr/bin/kinxlib/lib/phantomjs
-
 timex:
 	$(CC) $(CFLAGS) -o timex timex.c
 
