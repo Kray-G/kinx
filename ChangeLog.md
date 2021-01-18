@@ -8,7 +8,6 @@
     *   Support GUI library.
     *   Support Package Manager.
     *   Support Cryptography library.
-    *   Support Development Tools like Debugger, Language Server, etc.
 
 ## V1.0.0 (Planned)
 
@@ -22,6 +21,12 @@
 *   Updated
     *   Added some features to use a language server.
     *   Added a debugger mode for debugging.
+        *   Please see the [debugger document](docs/utility/debugger.md) to know how to use it.
+    *   Removed KiTyy files to reduce a repository size.
+        *   KiTTy needs a lot of big files like a font.
+        *   KiTTy was moved to https://github.com/Kray-G/kinx-tiny-typesetting.
+    *   Updated Copyright.
+    *   Some bug fixes and improvement.
 
 ## V0.18.0 (18th Preview Release) - 2020/12/28
 
@@ -73,8 +78,6 @@
     *   Some bug fixes and improvement.
 
 ## V0.15.2 (15th-2 Preview Release) - 2020/10/14
-
-<img align="right" src="https://github.com/Kray-G/kinx/raw/master/examples/typesetting/title_book_en.png" width="300px">
 
 * Updated
     * Some bug fixes for Typesetting Library.
