@@ -5,9 +5,15 @@
 </p>
 <p align="center"><img src="docs/kinxlogo.png" height="84px" /></p>
 <p align="center">
-<strong>Preview Release is now available! See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.</strong><br />
 Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers.
 </p>
+
+## Topics
+
+* <strong>Preview Release is now available!</strong> See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+* Now the Kinx is supporting the platform of x86-64 Windows and Linux only,  because of no environment.
+  *  If you are interested in other platforms, please check [here](#how-to-support-a-platform).
+*  See [ChangeLog.md](ChangeLog.md) to the history of this project.
 
 ## Introduction
 
