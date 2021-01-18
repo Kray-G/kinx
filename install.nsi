@@ -66,7 +66,6 @@ Section
   File "kinx.exe"
   File "kxrepl.exe"
   File "kxtest.exe"
-  File "kxkitty.exe"
   File "addpath.exe"
   File "*.dll"
 
