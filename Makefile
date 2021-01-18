@@ -191,7 +191,6 @@ install:
 	cp -f ./kinx /usr/bin/kinx
 	cp -f ./kxrepl /usr/bin/kxrepl
 	cp -f ./kxtest /usr/bin/kxtest
-	cp -f ./kxkitty /usr/bin/kxkitty
 	cp -rf lib/* /usr/bin/kinxlib/
 	cp -f docs/licenses/LICENSE.* /usr/bin/kinxlib/docs/licenses/
 	cp -f include/libkinx.h /usr/bin/kinxlib/include/libkinx.h
