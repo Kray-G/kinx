@@ -51,7 +51,6 @@ Kinx is including useful libraries below in the standard package as **All-In-One
 * **Regular Expression** ... Regular expression is of course supported.
 * **Parser Combinator** ... Exactly original implementation of Parser Combinator named as `Parsek` like `Parsec`.
 * **PDF** ... PDF core library based on HaruPDF.
-* **Typesetting** ... Simple and Tiny Typesetting library by PDF core library. See the [User's Guide](examples/typesetting/KiTTy_en.md) ([PDF](examples/typesetting/KiTTy_en.pdf)).
 * **JIT** ... JIT library for various platforms by an abstracted assembler library.
 
 Making libraries improvement and extension is one of the main purpose of this language.
@@ -98,6 +97,12 @@ If you agree, or if you don't agree, anyway push the star.
 
 ## Getting Started
 
+### Supported Platforms
+
+Currently this project supports x86-64 Windows and Linux only.
+I really want a contributor to support any other platforms.
+Please see detail [here](#how-to-support-a-platform)
+
 ### How to Build
 
 > **IMPORTANT**  
@@ -124,6 +129,16 @@ To build, see below.
 ```
 $ make
 ```
+
+#### How to Support a Platform
+
+If anyone wants to support some other platform, the followings have to be done.
+
+1. Now `utliity/kmyacc` is prepared only for x86-64 Windows and Linux.
+    * About this, I am going to prepare and commit directly the generated parser file by yacc in the near future.
+2. There are some dependent libraries in this repo. I think it is not a good way but I am doing so for convenience. Those libraries are put under `src/extlib` folder. Some are located it as a source code but some are located as a pre-built component. Currently there are 6 projects which is prepared as a pre-built component such as  libcurl, libharu, libssh2, libxml2, openssl, and zip(minizip).
+    * Create a folder for the target platform and prebuilding and putting a library under that folder each library.
+    * Prepare a Makefile for the target platform to compile with above libraries.
 
 ### How to Install
 
@@ -166,7 +181,8 @@ Here is current available options.
 | `-c`                      | Check the syntax only without any executions.                                       |
 | `-q`                      | Do quiet mode without displaying warning & error, and exit code 0 means successful. |
 |                           |                                                                                     |
-| `--dot`                   | Display the dump by .dot format.                                                    |
+| `--debug`                 | Debugger mode and run with a debugger.                                              |
+| `--dot`                   | Output the dump by .dot format.                                                     |
 | `--with-native`           | Dump compiled code of a native function. Use with `-d`.                             |
 | `--native-call-max-depth` | Specify the max depth to call a native function. 1024 by default.                   |
 | `--case-threshold`        | Specify the max interval between case's integer value. 16 by default.               |
@@ -267,7 +283,7 @@ See [REPL](docs/utility/repl.md) for details.
 
 Have fun with it!
 
-<p align="center"><img src="docs/utility/repl.gif" width="90%" /></p>
+<p align="center"><img src="docs/utility/images/repl.gif" width="90%" /></p>
 
 ### Output with Dot
 
@@ -342,11 +358,6 @@ Simple HTTP Get client is also [`http.kx`](examples/http.kx) in example folder.
 
 Note that OpenSSL is also included.
 OpenSSL version is 3.0.0, which is not released officially but means the license is Apache 2.0.
-
-### Namespace
-
-Namespace is now available.
-See the example of [examples/namespacex.kx](examples/namespacex.kx)
 
 ### eval
 
