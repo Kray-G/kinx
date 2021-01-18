@@ -14,7 +14,7 @@ Unicode True
 
 # Version
 !define MAJ_VERSION "1"
-!define VERSION_STRING "0.19.0"
+!define VERSION_STRING "0.19.3"
 
 # Application Name
 Name "Kinx version ${VERSION_STRING} for x64"
