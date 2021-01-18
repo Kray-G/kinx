@@ -73,8 +73,6 @@ Section
   SetOutPath "$INSTDIR\bin\lib"
   File /r /x ".gitignore" "lib\std"
   File /r /x ".gitignore" "lib\exec"
-  File /r /x ".gitignore" "lib\katex"
-  File /r /x ".gitignore" "lib\chartjs"
 
   SetOutPath "$INSTDIR\docs"
   File /r /x "typesetting" "docs\licenses"
