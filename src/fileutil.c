@@ -139,7 +139,7 @@ char* get_kinx_path(void)
     if (!s_result[0]) {
         char* p;
         int  len;
-        char exe_full_path[PATH_MAX];
+        char exe_full_path[PATH_MAX] = {0};
 
         len = GetModuleFileNameA(NULL, exe_full_path, PATH_MAX);
         if (len > 0) {
@@ -160,7 +160,7 @@ char* get_actual_exe_path(void)
     if (!s_result[0]) {
         char* p;
         int  len;
-        char exe_full_path[PATH_MAX];
+        char exe_full_path[PATH_MAX] = {0};
 
         len = GetModuleFileNameA(NULL, exe_full_path, PATH_MAX);
         if (len > 0) {
@@ -292,7 +292,7 @@ char* get_kinx_path(void)
 
     if (!s_result[0]) {
         char* p;
-        char exe_full_path[PATH_MAX];
+        char exe_full_path[PATH_MAX] = {0};
         readlink("/proc/self/exe", exe_full_path, PATH_MAX);
         strncpy(s_result, exe_full_path, 2040);
         setup_actual_exe_path(s_result);
@@ -309,7 +309,7 @@ char* get_actual_exe_path(void)
 
     if (!s_result[0]) {
         char* p;
-        char exe_full_path[PATH_MAX];
+        char exe_full_path[PATH_MAX] = {0};
         readlink("/proc/self/exe", exe_full_path, PATH_MAX);
         strncpy(s_result, exe_full_path, 2040);
         p = strrchr(s_result, '/');
