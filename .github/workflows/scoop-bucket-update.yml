@@ -1,8 +1,10 @@
 name: Update Scoop bucket
 
 on:
-  push:
-    tags: ['v*']
+  release:
+    types: [published]
+  workflow_dispatch:
+    branches: [master]
 
 jobs:
   update-bucket:
