@@ -157,7 +157,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [DateTime](spec/lib/basic/datetime.md) - *not documented yet*
 *   [Process](spec/lib/basic/process.md)
 *   [JSON](spec/lib/basic/json.md) - *not documented yet*
-*   [Xml](spec/lib/basic/xml.md) - *not documented yet*
+*   [Xml](spec/lib/basic/xml.md)
 *   [Zip](spec/lib/basic/zip.md)
 *   [SQLite](spec/lib/basic/sqlite.md) - *not documented yet*
 *   [JIT](spec/lib/basic/jit.md)
