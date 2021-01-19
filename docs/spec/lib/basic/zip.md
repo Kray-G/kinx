@@ -200,8 +200,8 @@ var text = zip.find("README.md")
 #### Code
 
 ```javascript
-File.remove("TEST.md");
-File.remove("zipfile.zip");
+File.remove("TEST.md") if (File.exists("TEST.md"));
+File.remove("zipfile.zip") if (File.exists("zipfile.zip"));
 
 var zip = new Zip("zipfile.zip", File.READ|File.WRITE);
 zip.setPassword("password");
