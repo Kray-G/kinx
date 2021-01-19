@@ -36,6 +36,7 @@ This Kinx is a script language for people who want C-like syntax.
 *   **Isolate** object to control native threads **without GIL** (Global Interpreter Lock).
 *   Including useful libraries as **All-In-One**. See details below.
 *   **[REPL](docs/utility/repl.md)** is provided by default.
+*   **[Debugger](docs/utility/debugger.md)** is available and embedded in Kinx. Use the option `--debug` and you can run a script with debugger.
 *   Useful Testing System named as **[SpecTest](docs/index.md)**. It is designed to not only for Kinx but also for any other products.
 
 #### Standard Libraries
@@ -291,6 +292,19 @@ See [REPL](docs/utility/repl.md) for details.
 Have fun with it!
 
 <p align="center"><img src="docs/utility/images/repl.gif" width="90%" /></p>
+
+### Debugger
+
+Debugger is now available. Run with the `--debug` option.
+
+```
+$ ./kinx --debug script.kx
+```
+
+Here is a sample screen shot.
+See [Kinx Debugger](docs/utility/debugger.md) for details.
+
+<p align="center"><img src="docs/utility/images/debugger.png" width="90%" /></p>
 
 ### Output with Dot
 
