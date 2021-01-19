@@ -11,7 +11,6 @@
     },
     "bin": [
         "kinx.exe",
-        "kxkitty.exe",
         "kxrepl.exe",
         "kxtest.exe"
     ],
