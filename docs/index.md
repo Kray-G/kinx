@@ -148,7 +148,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 
 *   [System](spec/lib/basic/system.md) - *not documented yet*
 *   [Iconv](spec/lib/basic/iconv.md)
-*   [Math](spec/lib/basic/math.md) - *not documented yet*
+*   [Math](spec/lib/basic/imath.md)
 *   [File](spec/lib/basic/file.md) - *not documented yet*
 *   [Directory](spec/lib/basic/directory.md) - *not documented yet*
 *   [Regex](spec/lib/basic/regex.md) - *not documented yet*
@@ -158,7 +158,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Process](spec/lib/basic/process.md)
 *   [JSON](spec/lib/basic/json.md) - *not documented yet*
 *   [Xml](spec/lib/basic/xml.md) - *not documented yet*
-*   [Zip](spec/lib/basic/zip.md) - *not documented yet*
+*   [Zip](spec/lib/basic/zip.md)
 *   [SQLite](spec/lib/basic/sqlite.md) - *not documented yet*
 *   [JIT](spec/lib/basic/jit.md)
 *   [Parsek](spec/lib/basic/parsek.md) - *not documented yet*
