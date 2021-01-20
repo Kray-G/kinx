@@ -37,9 +37,11 @@ Directory.recursiveWalk("src") { &(name)
 #### Code
 
 ```
+var result = [];
 Directory.walk("template/theme/standard") { &(name)
-    System.println(name);
+    result.push(name);
 };
+result.sort().each { System.println(_1); };
 ```
 
 #### Result
@@ -58,9 +60,11 @@ template/theme/standard/wizard.bmp
 #### Code
 
 ```
+var result = [];
 Directory.walk("template/theme") { &(name)
-    System.println(name);
+    result.push(name);
 };
+result.sort().each { System.println(_1); };
 ```
 
 #### Result
@@ -74,9 +78,11 @@ template/theme/standard
 #### Code
 
 ```
+var result = [];
 Directory.recursiveWalk("template/theme") { &(name)
-    System.println(name);
+    result.push(name);
 };
+result.sort().each { System.println(_1); };
 ```
 
 #### Result
