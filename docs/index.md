@@ -149,8 +149,8 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [System](spec/lib/basic/system.md) - *not documented yet*
 *   [Iconv](spec/lib/basic/iconv.md)
 *   [Math](spec/lib/basic/imath.md)
-*   [File](spec/lib/basic/file.md) - *not documented yet*
-*   [Directory](spec/lib/basic/directory.md) - *not documented yet*
+*   [File](spec/lib/basic/file.md)
+*   [Directory](spec/lib/basic/directory.md)
 *   [Regex](spec/lib/basic/regex.md) - *not documented yet*
 *   [Enumerable](spec/lib/basic/enumerable.md)
 *   [Range](spec/lib/basic/range.md)
