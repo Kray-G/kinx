@@ -122,7 +122,7 @@ static const char *get_mode(int mode, char mode_str[4])
     int readf = (mode & KXFILE_MODE_READ) == KXFILE_MODE_READ;
     int writef = (mode & KXFILE_MODE_WRITE) == KXFILE_MODE_WRITE;
     int pos = 1;
-    if (readf && writef) {
+    if (readf && writef && !appendf) {
         mode_str[0] = 'w';
         mode_str[1] = '+';
         ++pos;
