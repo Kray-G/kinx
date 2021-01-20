@@ -1,4 +1,4 @@
-# Math
+# class Math
 
 ## Overview
 
