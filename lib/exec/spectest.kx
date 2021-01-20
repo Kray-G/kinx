@@ -54,8 +54,8 @@ class SpecTestResult(res_) {
                     % sec
                     % m10);
                 if (res_.failed) {
-                    var idt = indent + 1;
-                    var seplen = 78 - (indent * 4);
+                    var idt = 1;
+                    var seplen = 72 - (0 * 4);
                     showIndent(idt);
                     System.println("-" * seplen);
                     showIndent(idt);
@@ -592,8 +592,8 @@ class SpecTestProgressDetail(system_) : SpecTestProgress(system_) {
         }
         ++(@info.done);
         if (res.failed) {
-            var idt = indent_ + 1;
-            var seplen = 78 - (indent_ * 4);
+            var idt = 1;
+            var seplen = 72 - (0 * 4);
             showIndent(idt);
             system_.println("-" * seplen);
             showIndent(idt);
