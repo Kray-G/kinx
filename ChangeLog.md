@@ -16,7 +16,13 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.19.0 (Current Development Version)
+## V0.20.0 (Current Development Version)
+
+*   Updated
+    *   Added the same directory of a current parsing file to a search path for `using`.
+    *   Some bug fixes and improvement.
+
+## V0.19.3 (19th Preview Release) - 2021/01/19
 
 *   Updated
     *   Added some features to use a language server.
