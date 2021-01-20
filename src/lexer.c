@@ -15,6 +15,17 @@ static int g_regexmode = 0;
 static const char *varname = NULL;
 static const char *modulename = NULL;
 
+static const char *parent_path(const char *str)
+{
+    static char buf[2048] = {0};
+    strcpy(buf, str);
+    char *sep = strrchr(buf, PATH_DELCH);
+    if (sep) {
+        *sep = 0;
+    }
+    return buf;
+}
+
 static inline const char* make_path(const char* base, const char* name)
 {
     static char buf[4096] = {0};
@@ -98,15 +109,19 @@ static int load_using_module(const char *name, int no_error)
     } else {
         snprintf(libname, 255, "%s.kx", name);
         if (!(file = kxlib_file_exists(libname))) {
-            if (!no_error) {
-                char buf[512] = {0};
-                snprintf(buf, 511, "File not found(%s)", libname);
-                kx_yywarning(buf);
+            /* Retrying to search the file in the same directory. */
+            snprintf(libname, 255, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
+            if (!(file = kxlib_file_exists(libname))) {
+                if (!no_error) {
+                    char buf[512] = {0};
+                    snprintf(buf, 511, "File not found(%s)", libname);
+                    kx_yywarning(buf);
+                }
+                while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
+                    kx_lex_next(kx_lexinfo);
+                }
+                return no_error ? ';' : ERROR;
             }
-            while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
-                kx_lex_next(kx_lexinfo);
-            }
-            return no_error ? ';' : ERROR;
         }
 
         kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
