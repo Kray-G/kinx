@@ -99,7 +99,7 @@ function FileOpen(filename, attr, func) {
 #### Code
 
 ```
-File.mkdir("TEMPTESTDIR");
+File.mkdir("TEMPTESTDIR") if (!File.exists("TEMPTESTDIR"));
 System.println(File.isDirectory("TEMPTESTDIR"));
 ```
 
@@ -114,6 +114,7 @@ System.println(File.isDirectory("TEMPTESTDIR"));
 #### Code
 
 ```
+File.remove("TEMPTESTDIR2") if (File.exists("TEMPTESTDIR2"));
 File.rename("TEMPTESTDIR", "TEMPTESTDIR2");
 System.println(File.exists("TEMPTESTDIR"));
 System.println(File.exists("TEMPTESTDIR2"));
@@ -190,15 +191,12 @@ File.open("TEMPTESTDIR2/test.txt", File.READ|File.TEXT) { &(f)
 System.println(File.exists("TEMPTESTDIR2/test.txt"));
 File.remove("TEMPTESTDIR2/test.txt");
 System.println(File.exists("TEMPTESTDIR2/test.txt"));
-File.remove("TEMPTESTDIR2");
-System.println(File.exists("TEMPTESTDIR2"));
 ```
 
 #### Result
 
 ```
 1
-0
 0
 ```
 
