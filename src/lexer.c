@@ -107,10 +107,12 @@ static int load_using_module(const char *name, int no_error)
             return kx_yylex();
         }
     } else {
-        snprintf(libname, 255, "%s.kx", name);
-        if (!(file = kxlib_file_exists(libname))) {
-            /* Retrying to search the file in the same directory. */
-            snprintf(libname, 255, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
+        /* Trying to search the file in the same directory first. */
+        snprintf(libname, 255, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
+        if (file_exists(libname)) {
+            file = libname;
+        } else {
+            snprintf(libname, 255, "%s.kx", name);
             if (!(file = kxlib_file_exists(libname))) {
                 if (!no_error) {
                     char buf[512] = {0};

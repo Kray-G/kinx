@@ -6,6 +6,7 @@
 #include <kxirutil.h>
 #define KX_NO_INCLUDE_PARSER_TAB_H
 #include <kxastobject.h>
+#define KX_NO_DECLARATION_ALLOCATORS
 #include <libkinx.h>
 #include <getopt.h>
 #include <version.h>
@@ -54,11 +55,11 @@ BOOL WINAPI kx_signal_handler(DWORD type)
         break;
 
     case CTRL_CLOSE_EVENT:
-    	return FALSE;
+        return FALSE;
     case CTRL_LOGOFF_EVENT:
-    	return FALSE;
+        return FALSE;
     case CTRL_SHUTDOWN_EVENT:
-    	return FALSE;
+        return FALSE;
     }
 
 	return TRUE;
@@ -98,6 +99,7 @@ static void usage(void)
     printf("    -i      Input source code from stdin.\n");
     printf("    -v, --version\n");
     printf("            Display the version number. --version shows also a detail.\n");
+    printf("    --debug Run the script with a debugger mode.\n");
     printf("    --dot   Display the dump by .dot format.\n");
     printf("    --exec:spectest\n");
     printf("            Run SpecTest based on .spectest file under the current directory.\n");
@@ -657,6 +659,7 @@ kinx_compiler *kinx_create_compiler_with_context(void* h, kx_context_t *ctx)
         kc->is_main_context = 1;
         g_main_thread = ctx;
     }
+    kc->add_argument(kc, "kinx-scipt");
     return kc;
 }
 
