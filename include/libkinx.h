@@ -28,6 +28,22 @@ typedef struct libkx_systemtimer_ {
 } libkx_systemtimer_t;
 #endif
 
+typedef void *(*kx_malloc_t)(size_t size);
+typedef void *(*kx_realloc_t)(void *p, size_t size);
+typedef void *(*kx_calloc_t)(size_t count, size_t size);
+typedef void (*kx_free_t)(void *p);
+#ifndef KX_NO_DECLARATION_ALLOCATORS
+kx_malloc_t kx_malloc = NULL;
+kx_realloc_t kx_realloc = NULL;
+kx_calloc_t kx_calloc = NULL;
+kx_free_t kx_free = NULL;
+#else
+extern kx_malloc_t kx_malloc;
+extern kx_realloc_t kx_realloc;
+extern kx_calloc_t kx_calloc;
+extern kx_free_t kx_free;
+#endif
+
 #define KX_LIB_MAX_ARGS (32)
 
 struct kinx_compiler_;
@@ -100,6 +116,12 @@ static inline double kinx_elapsed(libkx_systemtimer_t *v)
 }
 static inline void *load_kinx_dll(void)
 {
+    if (!kx_malloc) {
+        kx_malloc = malloc;
+        kx_calloc = calloc;
+        kx_realloc = realloc;
+        kx_free = free;
+    }
     static char s_result[2048] = {0};
     if (s_result[0] == 0) {
         const char *exepath = get_kinx_path();
@@ -129,6 +151,12 @@ static inline double kinx_elapsed(libkx_systemtimer_t *v)
 }
 static inline void *load_kinx_dll(void)
 {
+    if (!kx_malloc) {
+        kx_malloc = malloc;
+        kx_calloc = calloc;
+        kx_realloc = realloc;
+        kx_free = free;
+    }
     static char s_result[2048] = {0};
     if (s_result[0] == 0) {
         const char *exepath = get_kinx_path();
@@ -174,10 +202,13 @@ enum irexec {
     KX_NFNC_T,
     KX_ADDR_T,
     KX_ANY_T,
+    KX_NUM_T,       /* isInteger || isDouble || isBigInteger */
     KX_SPR_T,       /* spread-specified varable */
     KX_COR_T,       /* coroutine start */
     KX_ARY_T,       /* used only with typeof */
     KX_DEF_T,       /* used only with typeof */
+    KX_LARY_T,      /* l-value array argument */
+    KX_LOBJ_T,      /* l-value object argument */
 };
 
 static inline int kinx_call_main(int ac, char **av)

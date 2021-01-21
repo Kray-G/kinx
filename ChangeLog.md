@@ -19,7 +19,8 @@
 ## V0.20.0 (Current Development Version)
 
 *   Updated
-    *   Added the same directory of a current parsing file to a search path for `using`.
+    *   Added the same directory as a current parsing file to a search path for `using`.
+    *   Introduced `File#getUtf8Char()` to get directly UTF8 character from a File object including `$stdin`.
     *   Some bug fixes and improvement.
 
 ## V0.19.3 (19th Preview Release) - 2021/01/19
