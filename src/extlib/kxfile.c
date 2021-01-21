@@ -13,6 +13,7 @@
 #include <kinx.h>
 #include <kutil.h>
 #include <kxthread.h>
+#include <kxutf8.h>
 #include <stdarg.h>
 
 KX_DECL_MEM_ALLOCATORS();
@@ -828,6 +829,72 @@ int File_getchi(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int File_getUtf8Char(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_FILE_GET_RPACK(fi, obj);
+    if (!fi) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
+    }
+    if (!(fi->mode & KXFILE_MODE_READ)) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Read Mode");
+    }
+    if (feof(fi->fp)) {
+        KX_ADJST_STACK();
+        push_i(ctx->stack, EOF);
+        return 0;
+    }
+
+    int ch = 0;
+    if (fi->is_std) {
+        while (1) {
+            volatile uint8_t signal = ctx->signal.signal_received;
+            if (signal) {
+                KX_ADJST_STACK();
+                push_i(ctx->stack, 0);
+                return 0;
+            }
+            ch = kx_scan_keycode(ctx);
+            if (ch == 0) {
+                continue;
+            }
+            if (ch == 0x03) {
+                ctx->signal.signal_received = 1;
+                ctx->signal.sigint_count++;
+                KX_ADJST_STACK();
+                push_i(ctx->stack, 0);
+                return 0;
+            }
+            if (ch < 0) {
+                KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid Input");
+            }
+            break;
+        }
+    } else {
+        ch = fgetc(fi->fp);
+        if (ch == EOF) {
+            KX_ADJST_STACK();
+            push_i(ctx->stack, EOF);
+            return 0;
+        }
+    }
+
+    char buf[8] = { ch };
+    int u8len = utf8_length(ch);
+    if (u8len > 1) {
+        int pos = 0;
+        while (--u8len) {
+            buf[++pos] = fi->is_std ? kx_scan_keycode(ctx) : fgetc(fi->fp);
+        }
+    }
+    kstr_t *s = allocate_str(ctx);
+    ks_append(s, buf);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, s);
+    return 0;
+}
+
 int File_putch(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -974,6 +1041,7 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_METHOD("peek", obj, File_peek);
     KEX_SET_METHOD("getch", obj, File_getch);
     KEX_SET_METHOD("geti", obj, File_getchi);
+    KEX_SET_METHOD("getUtf8Char", obj, File_getUtf8Char);
     KEX_SET_METHOD("putch", obj, File_putch);
     KEX_SET_METHOD("printImpl", obj, File_print);
     KEX_SET_METHOD("printlnImpl", obj, File_println);
