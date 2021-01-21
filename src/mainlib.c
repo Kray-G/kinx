@@ -659,6 +659,7 @@ kinx_compiler *kinx_create_compiler_with_context(void* h, kx_context_t *ctx)
         kc->is_main_context = 1;
         g_main_thread = ctx;
     }
+    kc->add_argument(kc, "kinx-scipt");
     return kc;
 }
 
