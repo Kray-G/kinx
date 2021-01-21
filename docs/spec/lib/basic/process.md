@@ -283,6 +283,7 @@ Main options:
     -i      Input source code from stdin.
     -v, --version
             Display the version number. --version shows also a detail.
+    --debug Run the script with a debugger mode.
     --dot   Display the dump by .dot format.
     --exec:spectest
             Run SpecTest based on .spectest file under the current directory.
