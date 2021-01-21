@@ -230,7 +230,7 @@ static kstr_t *prompt(kx_context_t *ctx)
             buffer[0] = 0;
             break;
         }
-        if (ch < -1) {
+        if (ch < 0) {
             buffer[0] = 'q';
             buffer[1] = 0;
             break;
