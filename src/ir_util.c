@@ -14,6 +14,7 @@
 #include <kxirutil.h>
 #define KX_NO_INCLUDE_PARSER_TAB_H
 #include <kxastobject.h>
+#define KX_NO_DECLARATION_ALLOCATORS
 #include <libkinx.h>
 
 extern int kx_value_true(kx_context_t *ctx, kx_val_t *v);
