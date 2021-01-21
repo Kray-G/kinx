@@ -1,14 +1,5 @@
 #include <libkinx.h>
 
-typedef void *(*kx_malloc_t)(size_t size);
-typedef void *(*kx_realloc_t)(void *p, size_t size);
-typedef void *(*kx_calloc_t)(size_t count, size_t size);
-typedef void (*kx_free_t)(void *p);
-kx_malloc_t kx_malloc = NULL;
-kx_realloc_t kx_realloc = NULL;
-kx_calloc_t kx_calloc = NULL;
-kx_free_t kx_free = NULL;
-
 #define MAKE_START_END_LEN(av0, start, end, len) { \
     const char *p = av0; \
     while (*p) { \
