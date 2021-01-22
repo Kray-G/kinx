@@ -38,7 +38,7 @@ Directory.recursiveWalk("src") { &(name)
 
 ```
 var result = [];
-Directory.walk("template/theme/standard") { &(name)
+Directory.walk("build/template/theme/standard") { &(name)
     result.push(name);
 };
 result.sort().each { System.println(_1); };
@@ -47,12 +47,12 @@ result.sort().each { System.println(_1); };
 #### Result
 
 ```
-template/theme/standard/installer.ico
-template/theme/standard/installer.png
-template/theme/standard/uninstaller.ico
-template/theme/standard/uninstaller.png
-template/theme/standard/wizard-uninst.bmp
-template/theme/standard/wizard.bmp
+build/template/theme/standard/installer.ico
+build/template/theme/standard/installer.png
+build/template/theme/standard/uninstaller.ico
+build/template/theme/standard/uninstaller.png
+build/template/theme/standard/wizard-uninst.bmp
+build/template/theme/standard/wizard.bmp
 ```
 
 ### Example 2. Display files (2) by `walk`
@@ -61,7 +61,7 @@ template/theme/standard/wizard.bmp
 
 ```
 var result = [];
-Directory.walk("template/theme") { &(name)
+Directory.walk("build/template/theme") { &(name)
     result.push(name);
 };
 result.sort().each { System.println(_1); };
@@ -70,7 +70,7 @@ result.sort().each { System.println(_1); };
 #### Result
 
 ```
-template/theme/standard
+build/template/theme/standard
 ```
 
 ### Example 3. Display files by `recursiveWalk`
@@ -79,7 +79,7 @@ template/theme/standard
 
 ```
 var result = [];
-Directory.recursiveWalk("template/theme") { &(name)
+Directory.recursiveWalk("build/template/theme") { &(name)
     result.push(name);
 };
 result.sort().each { System.println(_1); };
@@ -88,11 +88,11 @@ result.sort().each { System.println(_1); };
 #### Result
 
 ```
-template/theme/standard
-template/theme/standard/installer.ico
-template/theme/standard/installer.png
-template/theme/standard/uninstaller.ico
-template/theme/standard/uninstaller.png
-template/theme/standard/wizard-uninst.bmp
-template/theme/standard/wizard.bmp
+build/template/theme/standard
+build/template/theme/standard/installer.ico
+build/template/theme/standard/installer.png
+build/template/theme/standard/uninstaller.ico
+build/template/theme/standard/uninstaller.png
+build/template/theme/standard/wizard-uninst.bmp
+build/template/theme/standard/wizard.bmp
 ```
