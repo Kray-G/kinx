@@ -99,16 +99,16 @@ LOOP_HEAD:;
         display_def_ast(node->lhs, 0);
         break;
     case KXOP_INC:
-        display_def_ast(node->lhs, 1);
+        display_def_ast(node->lhs, 0);
         break;
     case KXOP_DEC:
-        display_def_ast(node->lhs, 1);
+        display_def_ast(node->lhs, 0);
         break;
     case KXOP_INCP:       /* postfix */
-        display_def_ast(node->lhs, 1);
+        display_def_ast(node->lhs, 0);
         break;
     case KXOP_DECP:       /* postfix */
-        display_def_ast(node->lhs, 1);
+        display_def_ast(node->lhs, 0);
         break;
     case KXOP_MKRANGE:
         display_def_ast(node->lhs, 0);
@@ -331,7 +331,6 @@ LOOP_HEAD:;
         display_def_ast(node->rhs, 0);
         break;
     case KXST_SYSCLASS:
-        break;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         const char *scope = node->optional == KXFT_CLASS ? "class" : "module";
         print_scope_start(scope, node->value.s);
