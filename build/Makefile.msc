@@ -182,8 +182,9 @@ lib: $(SOFILES)
 
 yacc:
 	pushd .. && build\utility\kmyacc.exe -v -d -m build/utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y && popd
-	move /y ..\kx.tab.c $(SRCDIR)/parser.c
-	move /y ..\kx.tab.h $(INCDIR)/parser.tab.h
+	move /y ..\kx.tab.c $(SRCDIR)\parser.c
+	move /y ..\kx.tab.h $(INCDIR)\parser.tab.h
+	move /y ..\kx.output .\kx.output
 
 timex:
 	$(CC) $(CFLAGS) /Fetimex utility/src/timex.c
@@ -191,7 +192,8 @@ timex:
 clean:
 	del /S /Q *.obj *.exp *.s
 	del /Q *.dll
-	del kx.output timex.exe kinx.exe test.exe
+	del /Q ../kx.output timex.exe kinx.exe test.exe
+	del /Q ../*.exe ../*.dll
 
 kinx: $(SRCDIR)/main.c $(INCDIR)/libkinx.h libkinx.dll $(RCFILE)
 	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map $(SRCDIR)/main.c $(SRCDIR)/fileutil.obj $(RCFILE)
@@ -295,10 +297,13 @@ sqlite3.obj:
 	copy /y $(SRCDIR)\extlib\sqlite\sqlite3.obj .
 
 $(SRCDIR)/parser.c: ../kx.tab.c
-	move /y ..\kx.tab.c $(SRCDIR)/parser.c
+	move /y ..\kx.tab.c $(SRCDIR)\parser.c
 
 $(INCDIR)/parser.tab.h: ../kx.tab.h
-	move /y ..\kx.tab.h $(INCDIR)/parser.tab.h
+	move /y ..\kx.tab.h $(INCDIR)\parser.tab.h
+
+kx.output: ../kx.tab.h
+	move /y ..\kx.output .\kx.output
 
 ../kx.tab.c: $(SRCDIR)/kinx.y
 	pushd .. && build\utility\kmyacc.exe -v -d -m build/utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y && popd
