@@ -1310,8 +1310,10 @@ LOOP_HEAD:;
                     actx->class_node->init = node;
                 }
             }
-            if (actx->class_node && actx->class_node->type  == KXST_SYSCLASS) {
-                node->optional = KXFT_SYSFUNC;
+            if (!ctx->options.output_location) {
+                if (actx->class_node && actx->class_node->type  == KXST_SYSCLASS) {
+                    node->optional = KXFT_SYSFUNC;
+                }
             }
         }
 
