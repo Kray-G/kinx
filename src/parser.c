@@ -1,4 +1,4 @@
-#line 1 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 1 "build/utility/kmyacc.c.parser"
 /* -*-c-*-  Prototype file of KM-yacc parser for C.
  *
  * Written by MORI Koichiro
@@ -30,14 +30,14 @@ static inline void yy_restart(int token)
     kx_lexinfo.ch = ' ';
 }
 
-#line 14 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 14 "build/utility/kmyacc.c.parser"
 
-#line 20 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 20 "build/utility/kmyacc.c.parser"
 
-#line 24 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 24 "build/utility/kmyacc.c.parser"
 
 /* declarations */
-#line 28 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 28 "build/utility/kmyacc.c.parser"
 typedef union
 {
     kx_object_t   *obj;
@@ -49,9 +49,9 @@ typedef union
     arytype_t     arraytype;
     named_stmt_t  namedstmt;
 }
-#line 30 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 30 "build/utility/kmyacc.c.parser"
 YYSTYPE;
-#line 38 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 38 "build/utility/kmyacc.c.parser"
 extern YYSTYPE kx_yylval;
 
 #define YYERRTOK 256
@@ -147,16 +147,16 @@ extern YYSTYPE kx_yylval;
 #define RMBR 346
 #define DBL 347
 #define BIN 348
-#line 44 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 44 "build/utility/kmyacc.c.parser"
 
 /* -p option */
-#line 47 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 47 "build/utility/kmyacc.c.parser"
 #define yyparse kx_yyparse
 #define yylex kx_yylex
 #define yyerror kx_yyerror
 #define yylval kx_yylval
 #define yydebug kx_yydebug
-#line 53 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 53 "build/utility/kmyacc.c.parser"
 
 
 #ifndef YYMAXDEPTH
@@ -245,7 +245,7 @@ int kx_yywarning(const char *msg)
     }
     return 0;
 }
-#line 91 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 91 "build/utility/kmyacc.c.parser"
 
 
 #if !YYDEBUG
@@ -383,7 +383,7 @@ static char *yyterminals[] = {
   "'~'",
   "'!'",
   "'@'"
-#line 119 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 119 "build/utility/kmyacc.c.parser"
   , "???"
 };
 
@@ -826,7 +826,7 @@ static char *yyproduction[] = {
   "CallArgument : ObjectSpecialSyntax",
   "CallArgument : STR",
   "GetLineNumber : /* empty */"
-#line 124 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 124 "build/utility/kmyacc.c.parser"
 };
 
 /* Traditional Debug Mode */
@@ -902,7 +902,7 @@ static char yytranslate[] = {
    61,   62,   63,   64,   65,   66,   67,   68,   69,   70,
    71,   72,   73,   74,   75,   76,   77,   78,   79,   80,
    81,   82,   83,   84,   85,   86,   87,   88,  110
-#line 165 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 165 "build/utility/kmyacc.c.parser"
 };
 
 #define YYBADCH 110
@@ -1044,7 +1044,7 @@ static short yyaction[] = {
     0,    0,    0,-32766,    0,    0,    0,    0,    0,    0,
     0,    0,-32766,    0,    0,-32766,-32766,    0,    0,-32766,
 -32766
-#line 174 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 174 "build/utility/kmyacc.c.parser"
 };
 #define YYLAST 1321
 
@@ -1182,7 +1182,7 @@ static char yycheck[] = {
    -1,   -1,   -1,   91,   -1,   -1,   -1,   -1,   -1,   -1,
    -1,   -1,  100,   -1,   -1,  103,  104,   -1,   -1,  107,
   108
-#line 179 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 179 "build/utility/kmyacc.c.parser"
 };
 
 static short yybase[] = {
@@ -1262,7 +1262,7 @@ static short yybase[] = {
   595,  502,  502,  502,  502,  650,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,  485,  502,    0,  502,
   502,  502
-#line 183 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 183 "build/utility/kmyacc.c.parser"
 };
 #define YY2TBLSTATE 271
 
@@ -1316,7 +1316,7 @@ static short yydefault[] = {
 32767,32767,32767,32767,   75,32767,32767,  374,  373,32767,
 32767,32767,  372,  389,32767,32767,32767,  437,  363,  363,
   437
-#line 188 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 188 "build/utility/kmyacc.c.parser"
 };
 
 static short yygoto[] = {
@@ -1359,7 +1359,7 @@ static short yygoto[] = {
     0,  378,    0,    0,  382,  383,    0,    0,  390,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
   186,  429,    0,    0,  185,    0,    0,    0,  187
-#line 192 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 192 "build/utility/kmyacc.c.parser"
 };
 #define YYGLAST 389
 
@@ -1403,7 +1403,7 @@ static char yygcheck[] = {
    -1,   30,   -1,   -1,   30,   30,   -1,   -1,   30,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
    37,   30,   -1,   -1,   37,   -1,   -1,   -1,   37
-#line 197 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 197 "build/utility/kmyacc.c.parser"
 };
 
 static short yygbase[] = {
@@ -1418,7 +1418,7 @@ static short yygbase[] = {
     0,    0,    0,    0,    0,    0,  -60,    0,  -53,    0,
  -152,    0,  -62,    0,   -7,  -17,    0,  -30,  -46,  129,
   -35,  -13, -153,  -23,    0, -171
-#line 201 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 201 "build/utility/kmyacc.c.parser"
 };
 
 static short yygdefault[] = {
@@ -1433,7 +1433,7 @@ static short yygdefault[] = {
   539,  858,  611,  859,  540,  541,  306,  220,  299,  883,
   396,  397,  892,  669,  691,  416,  417,  911,  249,  662,
   446,  458,   64,  403,   50,  295
-#line 205 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 205 "build/utility/kmyacc.c.parser"
 };
 
 static char yylhs[] = {
@@ -1481,7 +1481,7 @@ static char yylhs[] = {
    90,   91,   91,   92,   92,   92,   92,   92,   99,   99,
    99,  100,  100,  100,  101,  101,   89,   89,   95,   95,
    96,   96,   96,   96,   97,   97,   97,  102
-#line 209 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 209 "build/utility/kmyacc.c.parser"
 };
 
 static char yylen[] = {
@@ -1529,10 +1529,10 @@ static char yylen[] = {
     1,    1,    3,    1,    4,    3,    3,    2,    2,    1,
     2,    0,    2,    3,    0,    3,    0,    3,    0,    1,
     1,    2,    3,    4,    1,    1,    1,    0
-#line 213 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 213 "build/utility/kmyacc.c.parser"
 };
 
-#line 235 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 235 "build/utility/kmyacc.c.parser"
 
 #define YYSTATES 818
 #define YYNLSTATES 481
@@ -1678,7 +1678,7 @@ int yyparse(YYPARSE_ARG)
         yyl = yylen[yyn];
         yyval = yyasp[1-yyl];
         YYTRACE_REDUCE(yyn);
-#line 384 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 384 "build/utility/kmyacc.c.parser"
         switch(yyn) {
         case 1:
 #line 162 "src/kinx.y"
@@ -2801,9 +2801,9 @@ int yyparse(YYPARSE_ARG)
         case 437:
 #line 942 "src/kinx.y"
 { yyval.intval = kx_lexinfo.line; } break;
-#line 389 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 389 "build/utility/kmyacc.c.parser"
         }
-#line 391 "C:/Git/hub/kinx/utility/kmyacc.c.parser"
+#line 391 "build/utility/kmyacc.c.parser"
 
         /* Goto - shift nonterminal */
         yyasp -= yyl;
