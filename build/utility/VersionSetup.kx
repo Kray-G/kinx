@@ -3,7 +3,7 @@ var Args;
 if ($$.length() == 2) {
     Args = $$[1].split('.');
 } else if ($$.length() == 4) {
-    Args = [$$[1], $$[2], $$[3]];    
+    Args = [$$[1], $$[2], $$[3]];
 } else {
     System.println("Usage: kinx utility/%s <Maj>.<Min>.<Pat>" % $$[0].filename());
     return 1;
@@ -35,7 +35,7 @@ function replace(infile, outfile) {
     );
 }
 
-replace("template/install.nsi", "install.nsi");
+replace("template/install.nsi", "../install.nsi");
 replace("template/mkdeb.sh", "mkdeb.sh");
 replace("template/kinx.rc", "kinx.rc");
-replace("template/version.h", "include/version.h");
+replace("template/version.h", "../include/version.h");
