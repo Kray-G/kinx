@@ -1,12 +1,17 @@
 @echo off
+pushd build
+call make.cmd %*
+if ERRORLEVEL 1 goto END
+if "%1"=="" goto COPY
+if "%1"=="all" goto COPY
+if "%1"=="rebuild" goto COPY
+goto END
 
-if "%1" == "" (
-    if exist "kinx.exe" (
-        kinx.exe utility\VersionSetup.kx 0.19.3
-    )
-    cl.exe /DWINMAIN /Feaddpath.exe utility\src\addpath.c Advapi32.lib User32.lib /link /SUBSYSTEM:WINDOWS
-    cl.exe /Feaddpathc.exe utility\src\addpath.c Advapi32.lib User32.lib
-    cl.exe /Feecho.exe utility\src\kecho.c
-)
+:COPY
+copy /y kinx.exe ..
+copy /y kxrepl.exe ..
+copy /y kxtest.exe ..
+copy /y *.dll ..
 
-nmake -f Makefile.msc %*
+:END
+popd
