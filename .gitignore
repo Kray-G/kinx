@@ -31,7 +31,9 @@ kx.tab.c
 kx.tab.h
 package_win64.zip
 temp*
-!/template
+TEMP*
+!/build/template
+!/build/utility/kmyacc*
 src/opt*.c
 /KiTTy_jp.json
 /KiTTy_jp.pdf

@@ -1,0 +1,41 @@
+
+var Args;
+if ($$.length() == 2) {
+    Args = $$[1].split('.');
+} else if ($$.length() == 4) {
+    Args = [$$[1], $$[2], $$[3]];    
+} else {
+    System.println("Usage: kinx utility/%s <Maj>.<Min>.<Pat>" % $$[0].filename());
+    return 1;
+}
+
+var version = {
+    major: Args[0],
+    minor: Args[1],
+    patch: Args[2],
+};
+System.println("Setup the version to: %d.%d.%d"
+    % version.major
+    % version.minor
+    % version.patch
+);
+
+function replace(infile, outfile) {
+    var file = File.load(infile);
+    var f = file
+        .replace("$$VER_MAJ", ""+version.major)
+        .replace("$$VER_MIN", ""+version.minor)
+        .replace("$$VER_PAT", ""+version.patch);
+    File.open(outfile, File.WRITE) { => _1.println(f) };
+    System.println("[OUT]: %-20s with %d.%d.%d"
+        % outfile
+        % version.major
+        % version.minor
+        % version.patch
+    );
+}
+
+replace("template/install.nsi", "install.nsi");
+replace("template/mkdeb.sh", "mkdeb.sh");
+replace("template/kinx.rc", "kinx.rc");
+replace("template/version.h", "include/version.h");
