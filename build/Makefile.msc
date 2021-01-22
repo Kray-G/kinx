@@ -1,0 +1,510 @@
+SRCDIR = ../src
+INCDIR = ../include
+CC = cl
+RC = rc
+CFLAGS = /nologo /O2 /MT /I$(INCDIR) /I$(SRCDIR)/jit /DYYMALLOC=kx_malloc /DYYFREE=kx_free
+OBJS = \
+    $(SRCDIR)/allocator.obj \
+    $(SRCDIR)/alloccore.obj \
+    $(SRCDIR)/allocutil.obj \
+    $(SRCDIR)/ast_analyzer.obj \
+    $(SRCDIR)/ast_display.obj \
+    $(SRCDIR)/ast_defdisp.obj \
+    $(SRCDIR)/ast_gencode.obj \
+    $(SRCDIR)/ast_object.obj \
+    $(SRCDIR)/ast_native.obj \
+    $(SRCDIR)/bign.obj \
+    $(SRCDIR)/bigz.obj \
+    $(SRCDIR)/getopt.obj \
+    $(SRCDIR)/global.obj \
+    $(SRCDIR)/ir_dump.obj \
+    $(SRCDIR)/ir_dot.obj \
+    $(SRCDIR)/ir_execdbg.obj \
+    $(SRCDIR)/ir_exec.obj \
+    $(SRCDIR)/ir_fix.obj \
+    $(SRCDIR)/ir_util.obj \
+    $(SRCDIR)/ir_aotcore.obj \
+    $(SRCDIR)/ir_aotdump.obj \
+    $(SRCDIR)/ir_natutil.obj \
+    $(SRCDIR)/jit_util.obj \
+    $(SRCDIR)/nir_compile.obj \
+    $(SRCDIR)/nir_dump.obj \
+    $(SRCDIR)/nir_dot.obj \
+    $(SRCDIR)/kstr.obj \
+    $(SRCDIR)/lexer.obj \
+    $(SRCDIR)/fileutil.obj \
+    $(SRCDIR)/loadlib.obj \
+    $(SRCDIR)/mainlib.obj \
+    $(SRCDIR)/parser.obj \
+    $(SRCDIR)/format.obj \
+    $(SRCDIR)/string.obj \
+    $(SRCDIR)/optimizer/optimizer.obj \
+    $(SRCDIR)/optimizer/opt_cfold.obj \
+    $(SRCDIR)/optimizer/opt_jumpx.obj \
+    $(SRCDIR)/extlib/winiconv/winiconv.obj \
+    $(SRCDIR)/extlib/duktape/duktape.obj \
+    $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj \
+    $(SRCDIR)/extlib/kc-json/dist/kc-json.obj
+SLJIT_DEP = \
+    $(SRCDIR)/jit/sljitConfig.h \
+    $(SRCDIR)/jit/sljitConfigInternal.h \
+    $(SRCDIR)/jit/sljitExecAllocator.c \
+    $(SRCDIR)/jit/sljitLir.c \
+    $(SRCDIR)/jit/sljitLir.h \
+    $(SRCDIR)/jit/sljitNativeARM_32.c \
+    $(SRCDIR)/jit/sljitNativeARM_64.c \
+    $(SRCDIR)/jit/sljitNativeARM_T2_32.c \
+    $(SRCDIR)/jit/sljitNativeMIPS_32.c \
+    $(SRCDIR)/jit/sljitNativeMIPS_64.c \
+    $(SRCDIR)/jit/sljitNativeMIPS_common.c \
+    $(SRCDIR)/jit/sljitNativePPC_32.c \
+    $(SRCDIR)/jit/sljitNativePPC_64.c \
+    $(SRCDIR)/jit/sljitNativePPC_common.c \
+    $(SRCDIR)/jit/sljitNativeSPARC_32.c \
+    $(SRCDIR)/jit/sljitNativeSPARC_common.c \
+    $(SRCDIR)/jit/sljitNativeTILEGX-encoder.c \
+    $(SRCDIR)/jit/sljitNativeTILEGX_64.c \
+    $(SRCDIR)/jit/sljitNativeX86_32.c \
+    $(SRCDIR)/jit/sljitNativeX86_64.c \
+    $(SRCDIR)/jit/sljitNativeX86_common.c \
+    $(SRCDIR)/jit/sljitProtExecAllocator.c \
+    $(SRCDIR)/jit/sljitUtils.c
+IR_EXEC_DEP = \
+    $(SRCDIR)/exec/code/_except.inc \
+    $(SRCDIR)/exec/code/_inlines.inc \
+    $(SRCDIR)/exec/code/add.inc \
+    $(SRCDIR)/exec/code/and.inc \
+    $(SRCDIR)/exec/code/append.inc \
+    $(SRCDIR)/exec/code/apply.inc \
+    $(SRCDIR)/exec/code/call.inc \
+    $(SRCDIR)/exec/code/catch.inc \
+    $(SRCDIR)/exec/code/dec.inc \
+    $(SRCDIR)/exec/code/div.inc \
+    $(SRCDIR)/exec/code/enter.inc \
+    $(SRCDIR)/exec/code/eqeq.inc \
+    $(SRCDIR)/exec/code/ge.inc \
+    $(SRCDIR)/exec/code/gt.inc \
+    $(SRCDIR)/exec/code/haltnop.inc \
+    $(SRCDIR)/exec/code/inc.inc \
+    $(SRCDIR)/exec/code/jmp.inc \
+    $(SRCDIR)/exec/code/le.inc \
+    $(SRCDIR)/exec/code/lge.inc \
+    $(SRCDIR)/exec/code/lt.inc \
+    $(SRCDIR)/exec/code/mkary.inc \
+    $(SRCDIR)/exec/code/mod.inc \
+    $(SRCDIR)/exec/code/mul.inc \
+    $(SRCDIR)/exec/code/neg.inc \
+    $(SRCDIR)/exec/code/neq.inc \
+    $(SRCDIR)/exec/code/not.inc \
+    $(SRCDIR)/exec/code/or.inc \
+    $(SRCDIR)/exec/code/pop.inc \
+    $(SRCDIR)/exec/code/push.inc \
+    $(SRCDIR)/exec/code/ret.inc \
+    $(SRCDIR)/exec/code/shl.inc \
+    $(SRCDIR)/exec/code/shr.inc \
+    $(SRCDIR)/exec/code/store.inc \
+    $(SRCDIR)/exec/code/sub.inc \
+    $(SRCDIR)/exec/code/throw.inc \
+    $(SRCDIR)/exec/code/xor.inc
+DISASM = \
+    $(SRCDIR)/disasm-x64/libudis86/decode.obj \
+    $(SRCDIR)/disasm-x64/libudis86/itab.obj \
+    $(SRCDIR)/disasm-x64/libudis86/syn-att.obj \
+    $(SRCDIR)/disasm-x64/libudis86/syn-intel.obj \
+    $(SRCDIR)/disasm-x64/libudis86/syn.obj \
+    $(SRCDIR)/disasm-x64/libudis86/udis86.obj
+SOFILES = \
+    kxsystem.dll \
+    kxstring.dll \
+    kxbinary.dll \
+    kxinteger.dll \
+    kxdouble.dll \
+    kxarray.dll \
+    kxfile.dll \
+    kxdebugger.dll \
+    kxmath.dll \
+    kxregex.dll \
+    kxssh.dll \
+    kxsqlite.dll \
+    kxnet.dll \
+    kxxml.dll \
+    kxjit.dll \
+    kxpdf.dll \
+    kxprocess.dll
+PICOBJS = \
+    $(SRCDIR)/bign.obj \
+    $(SRCDIR)/bigz.obj \
+    $(SRCDIR)/allocutil.obj \
+    $(SRCDIR)/fileutil.obj \
+    $(SRCDIR)/format.obj \
+    $(SRCDIR)/kstr.obj
+TESTCORE = \
+    apply \
+    append \
+    add \
+    sub \
+    mul \
+    div \
+    mod \
+    shl \
+    shr \
+    inc \
+    dec \
+    lt \
+    le \
+    lge \
+    gt \
+    ge \
+    eqeq \
+    neq \
+    and \
+    or \
+    xor \
+    neg \
+    not \
+    push \
+    store \
+    call \
+    mkary \
+    ret \
+    haltnop \
+    trycatch \
+    fib
+RCFILE = \
+    kinx.res
+
+.SUFFIXES :
+.SUFFIXES : .c .obj
+
+all: timex kinx zlib.dll libxml2.dll libssh2.dll libssl-3.dll libcrypto-3.dll $(SOFILES) main_kxcmd
+
+lib: $(SOFILES)
+
+yacc:
+	utility\kmyacc.exe -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy $(SRCDIR)/kinx.y
+	move /y kx.tab.c $(SRCDIR)/parser.c
+	move /y kx.tab.h $(INCDIR)/parser.tab.h
+
+timex:
+	$(CC) $(CFLAGS) /Fetimex utility/timex.c
+
+clean:
+	del /S /Q *.obj *.exp *.s
+	del /Q *.dll
+	del kx.output timex.exe kinx.exe test.exe
+
+kinx: $(SRCDIR)/main.c $(INCDIR)/libkinx.h libkinx.dll $(RCFILE)
+	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map $(SRCDIR)/main.c $(SRCDIR)/fileutil.obj $(RCFILE)
+
+main_kxcmd: $(SRCDIR)/main_kxcmd.c $(INCDIR)/libkinx.h libkinx.dll $(RCFILE)
+	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map $(SRCDIR)/main_kxcmd.c $(SRCDIR)/fileutil.obj $(RCFILE)
+	copy /y main_kxcmd.exe kxrepl.exe
+	copy /y main_kxcmd.exe kxtest.exe
+
+libkinx.dll: $(SRCDIR)/parser.c $(INCDIR)/parser.tab.h onig.dll $(OBJS) $(DISASM)
+	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM) ws2_32.lib
+	lib.exe /OUT:kx.lib src\fileutil.obj
+
+kinx.res: kinx.rc
+	$(RC) kinx.rc
+
+kxsystem.dll: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsystem.c $(PICOBJS) $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj
+
+kxstring.dll: $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
+
+kxbinary.dll: $(SRCDIR)/extlib/kxbinary.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxbinary.c $(PICOBJS)
+
+kxinteger.dll: $(SRCDIR)/extlib/kxinteger.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxinteger.c $(PICOBJS)
+
+kxdouble.dll: $(SRCDIR)/extlib/kxdouble.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxdouble.c $(PICOBJS)
+
+kxarray.dll: $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
+
+kxfile.dll: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj $(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj $(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib user32.lib advapi32.lib
+
+kxdebugger.dll: $(SRCDIR)/extlib/kxdebugger.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxdebugger.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj user32.lib advapi32.lib
+
+kxprocess.dll: $(SRCDIR)/extlib/kxprocess.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxprocess.c $(PICOBJS)
+
+kxmath.dll: $(SRCDIR)/extlib/kxmath.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxmath.c $(PICOBJS)
+
+kxregex.dll: $(SRCDIR)/extlib/kxregex.c $(PICOBJS) onig.dll
+	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkxregex.map /Fakxregex.s $(SRCDIR)/extlib/kxregex.c $(PICOBJS) onig.lib
+
+kxssh.dll: $(SRCDIR)/extlib/kxssh.c $(PICOBJS) onig.dll
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxssh.c $(PICOBJS) onig.lib $(SRCDIR)/extlib/libssh2/x64/vs2017/libssh2.lib ws2_32.lib
+
+kxsqlite.dll: $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
+
+kxnet.dll: $(SRCDIR)/extlib/kxnet.c $(PICOBJS) libssl-3.dll libcrypto-3.dll
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxnet.c $(PICOBJS) \
+		src\extlib\libcurl\x64\vs2017\libcurl_a.lib \
+		src\extlib\openssl\x64\vs2017\libssl.lib \
+		src\extlib\openssl\x64\vs2017\libcrypto.lib \
+		src\extlib\zip\x64\vs2017\zlib.lib
+
+kxxml.dll: $(SRCDIR)/extlib/kxxml.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libxml2/$(INCDIR)/libxml2 /Fe$@ $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libxml2/x64/vs2017/libxml2.lib
+
+kxjit.dll: $(SRCDIR)/extlib/kxjit.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxjit.c $(PICOBJS) $(SRCDIR)/ir_aotcore.obj $(SRCDIR)/disasm-x64/libudis86/*.obj
+
+kxpdf.dll: $(SRCDIR)/extlib/kxpdf.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libharu/$(INCDIR) /Fe$@ $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libharu/x64/vs2017/libhpdf.lib $(SRCDIR)/extlib/libharu/x64/vs2017/zlib_a.lib $(SRCDIR)/extlib/libharu/x64/vs2017/libpng.lib
+
+zlib.dll: $(SRCDIR)/extlib/zip/x64/vs2017/zlib.dll
+	copy /y src\extlib\zip\x64\vs2017\zlib.dll zlib.dll
+
+libxml2.dll:
+	copy /y src\extlib\libxml2\x64\vs2017\libxml2.dll libxml2.dll
+
+libssh2.dll:
+	copy /y src\extlib\libssh2\x64\vs2017\libssh2.dll libssh2.dll
+
+libssl-3.dll:
+	copy /y src\extlib\openssl\x64\vs2017\libssl-3.dll libssl-3.dll
+
+libcrypto-3.dll:
+	copy /y src\extlib\openssl\x64\vs2017\libcrypto-3.dll libcrypto-3.dll
+
+zip/x64/vs2017/minizip.lib:
+	echo Build minizip.lib first.
+
+$(SRCDIR)/extlib/zip/x64/vs2017/zlib.dll:
+	echo Build minizip.lib first.
+
+$(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib:
+	echo Build minizip.lib first.
+
+$(SRCDIR)/extlib/kc-json/dist/kc-json.obj:
+	cd src\extlib\kc-json
+	nmake -f Makefile.msc all
+	cd ..\..\..
+
+sqlite3.obj:
+	cd src\extlib\sqlite
+	$(CC) /O2 /MT /c sqlite3.c
+	copy /y sqlite3.obj ..\..\..
+	cd ..\..\..
+
+$(SRCDIR)/parser.c: kx.tab.c
+	move /y kx.tab.c $(SRCDIR)/parser.c
+
+$(INCDIR)/parser.tab.h: kx.tab.h
+	move /y kx.tab.h $(INCDIR)/parser.tab.h
+
+kx.tab.c: utility\kmyacc.exe
+	utility\kmyacc.exe -v -d -b kx -p kx_yy $(SRCDIR)/kinx.y
+
+kx.tab.h: utility\kmyacc.exe
+	utility\kmyacc.exe -v -d -b kx -p kx_yy $(SRCDIR)/kinx.y
+
+onig.dll:
+	cd src\extlib\onig
+	call make_win64.bat
+	copy /y onig.lib ..\..\..
+	copy /y onig.dll ..\..\..
+	copy /y onig_s.lib ..\..\..
+	cd ..\..\..
+
+test-core: $(OBJS)
+
+.c.obj:
+	@echo --- %TIME% started... $<
+	timex $(CC) /c $(CFLAGS) /Fo$*.obj /Fa$*.s $<
+
+$(SRCDIR)/allocator.obj: $(SRCDIR)/allocator.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
+ $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/alloccore.obj: $(SRCDIR)/alloccore.c
+$(SRCDIR)/allocutil.obj: $(SRCDIR)/allocutil.c $(INCDIR)/dbg.h $(INCDIR)/ir.h $(INCDIR)/kvec.h \
+ $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h \
+ $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/ast_analyzer.obj: $(SRCDIR)/ast_analyzer.c $(INCDIR)/dbg.h $(INCDIR)/parser.h \
+ $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h \
+ $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
+ $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+$(SRCDIR)/ast_display.obj: $(SRCDIR)/ast_display.c $(INCDIR)/dbg.h $(INCDIR)/parser.h \
+ $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h \
+ $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
+ $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+$(SRCDIR)/ast_defdisp.obj: $(SRCDIR)/ast_defdisp.c $(INCDIR)/dbg.h $(INCDIR)/parser.h \
+ $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h \
+ $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
+ $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+$(SRCDIR)/ast_gencode.obj: $(SRCDIR)/ast_gencode.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h \
+ $(INCDIR)/kinx.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/ast_object.obj: $(SRCDIR)/ast_object.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h \
+ $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/ast_native.obj: $(SRCDIR)/ast_native.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h \
+ $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
+$(SRCDIR)/bign.obj: $(SRCDIR)/bign.c $(INCDIR)/dbg.h $(INCDIR)/bign.h
+$(SRCDIR)/bigz.obj: $(SRCDIR)/bigz.c $(INCDIR)/dbg.h $(INCDIR)/bigz.h $(INCDIR)/bign.h
+$(SRCDIR)/getopt.obj: $(SRCDIR)/getopt.c $(INCDIR)/dbg.h $(INCDIR)/getopt.h
+$(SRCDIR)/global.obj: $(SRCDIR)/global.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
+ $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxthread.h
+$(SRCDIR)/ir_dump.obj: $(SRCDIR)/ir_dump.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/kinx.h \
+ $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/ir_exec.obj: $(SRCDIR)/ir_exec.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/kstr.h \
+ $(INCDIR)/kinx.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/kxexec.h \
+ $(SRCDIR)/exec/code/_except.inc $(SRCDIR)/exec/code/_inlines.inc \
+ $(SRCDIR)/exec/code/haltnop.inc $(SRCDIR)/exec/code/enter.inc $(SRCDIR)/exec/code/call.inc \
+ $(SRCDIR)/exec/code/ret.inc $(SRCDIR)/exec/code/throw.inc $(SRCDIR)/exec/code/catch.inc \
+ $(SRCDIR)/exec/code/jmp.inc $(SRCDIR)/exec/code/push.inc $(SRCDIR)/exec/code/pop.inc \
+ $(SRCDIR)/exec/code/store.inc $(SRCDIR)/exec/code/bnot.inc $(SRCDIR)/exec/code/not.inc \
+ $(SRCDIR)/exec/code/neg.inc $(SRCDIR)/exec/code/inc.inc $(SRCDIR)/exec/code/dec.inc \
+ $(SRCDIR)/exec/code/mkary.inc $(SRCDIR)/exec/code/append.inc $(SRCDIR)/exec/code/apply.inc \
+ $(SRCDIR)/exec/code/add.inc $(SRCDIR)/exec/code/sub.inc $(SRCDIR)/exec/code/pow.inc \
+ $(SRCDIR)/exec/code/mul.inc $(SRCDIR)/exec/code/div.inc $(SRCDIR)/exec/code/mod.inc \
+ $(SRCDIR)/exec/code/and.inc $(SRCDIR)/exec/code/or.inc $(SRCDIR)/exec/code/xor.inc \
+ $(SRCDIR)/exec/code/shl.inc $(SRCDIR)/exec/code/shr.inc $(SRCDIR)/exec/code/eqeq.inc \
+ $(SRCDIR)/exec/code/neq.inc $(SRCDIR)/exec/code/le.inc $(SRCDIR)/exec/code/lt.inc \
+ $(SRCDIR)/exec/code/ge.inc $(SRCDIR)/exec/code/gt.inc $(SRCDIR)/exec/code/lge.inc \
+ $(SRCDIR)/exec/code/regeq.inc
+$(SRCDIR)/ir_execdbg.obj: $(SRCDIR)/ir_execdbg.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/kstr.h \
+ $(INCDIR)/kinx.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/kxexec.h \
+ $(SRCDIR)/exec/code/_except.inc $(SRCDIR)/exec/code/_inlines.inc \
+ $(SRCDIR)/exec/code/haltnop.inc $(SRCDIR)/exec/code/enter.inc $(SRCDIR)/exec/code/call.inc \
+ $(SRCDIR)/exec/code/ret.inc $(SRCDIR)/exec/code/throw.inc $(SRCDIR)/exec/code/catch.inc \
+ $(SRCDIR)/exec/code/jmp.inc $(SRCDIR)/exec/code/push.inc $(SRCDIR)/exec/code/pop.inc \
+ $(SRCDIR)/exec/code/store.inc $(SRCDIR)/exec/code/bnot.inc $(SRCDIR)/exec/code/not.inc \
+ $(SRCDIR)/exec/code/neg.inc $(SRCDIR)/exec/code/inc.inc $(SRCDIR)/exec/code/dec.inc \
+ $(SRCDIR)/exec/code/mkary.inc $(SRCDIR)/exec/code/append.inc $(SRCDIR)/exec/code/apply.inc \
+ $(SRCDIR)/exec/code/add.inc $(SRCDIR)/exec/code/sub.inc $(SRCDIR)/exec/code/pow.inc \
+ $(SRCDIR)/exec/code/mul.inc $(SRCDIR)/exec/code/div.inc $(SRCDIR)/exec/code/mod.inc \
+ $(SRCDIR)/exec/code/and.inc $(SRCDIR)/exec/code/or.inc $(SRCDIR)/exec/code/xor.inc \
+ $(SRCDIR)/exec/code/shl.inc $(SRCDIR)/exec/code/shr.inc $(SRCDIR)/exec/code/eqeq.inc \
+ $(SRCDIR)/exec/code/neq.inc $(SRCDIR)/exec/code/le.inc $(SRCDIR)/exec/code/lt.inc \
+ $(SRCDIR)/exec/code/ge.inc $(SRCDIR)/exec/code/gt.inc $(SRCDIR)/exec/code/lge.inc \
+ $(SRCDIR)/exec/code/regeq.inc
+$(SRCDIR)/ir_fix.obj: $(SRCDIR)/ir_fix.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/ir.h \
+ $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h \
+ $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/ir_util.obj: $(SRCDIR)/ir_util.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/kstr.h \
+ $(INCDIR)/kinx.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxexec.h \
+ $(INCDIR)/kxthread.h $(SRCDIR)/exec/code/_inlines.inc
+$(SRCDIR)/ir_aotcore.obj: $(SRCDIR)/ir_aotcore.c $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(SRCDIR)/jit/sljitLir.c \
+ $(SRCDIR)/jit/sljitLir.h $(SRCDIR)/jit/sljitUtils.c $(SRCDIR)/jit/sljitExecAllocator.c \
+ $(SRCDIR)/jit/sljitNativeX86_common.c $(SRCDIR)/jit/sljitNativeX86_64.c
+$(SRCDIR)/ir_aotdump.obj: $(SRCDIR)/ir_aotdump.c $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(SRCDIR)/disasm/disas.h \
+ $(SRCDIR)/disasm/arch/x86/x86load.h $(SRCDIR)/disasm/arch/x86/../../common/file.h \
+ $(SRCDIR)/disasm/arch/x86/../../common/trie.h \
+ $(SRCDIR)/disasm/arch/x86/../../common/table.h $(SRCDIR)/disasm/arch/x86/x86.h \
+ $(SRCDIR)/disasm/arch/x86/../../dis.h \
+ $(SRCDIR)/disasm/arch/x86/../../common/common.h \
+ $(SRCDIR)/disasm/arch/x86/../../common/common.h \
+ $(SRCDIR)/disasm/arch/x86/x86strings.h $(SRCDIR)/disasm/arch/x86/x86load.h \
+ $(SRCDIR)/disasm/arch/x86/x86asm.h $(SRCDIR)/disasm/arch/x86/x86.h \
+ $(SRCDIR)/disasm/arch/mips/mload.h $(SRCDIR)/disasm/arch/mips/../../common/file.h \
+ $(SRCDIR)/disasm/arch/mips/../../common/trie.h \
+ $(SRCDIR)/disasm/arch/mips/../../common/table.h $(SRCDIR)/disasm/arch/mips/mips.h \
+ $(SRCDIR)/disasm/arch/mips/../../common/common.h \
+ $(SRCDIR)/disasm/arch/mips/../../dis.h $(SRCDIR)/disasm/arch/mips/mload.h \
+ $(SRCDIR)/disasm/arch/mips/mstrings.h $(SRCDIR)/disasm/arch/arm/aload.h \
+ $(SRCDIR)/disasm/arch/arm/../../common/file.h \
+ $(SRCDIR)/disasm/arch/arm/../../common/trie.h \
+ $(SRCDIR)/disasm/arch/arm/../../common/table.h $(SRCDIR)/disasm/arch/arm/arm.h \
+ $(SRCDIR)/disasm/arch/arm/aload.h $(SRCDIR)/disasm/arch/arm/astrings.h \
+ $(SRCDIR)/disasm/arch/arm/../../common/common.h \
+ $(SRCDIR)/disasm/arch/arm/../../dis.h $(SRCDIR)/disasm/dis.h $(SRCDIR)/disasm/dss.h \
+ $(SRCDIR)/disasm/common/table.h $(SRCDIR)/disasm/lex.h $(SRCDIR)/disasm/sym.h \
+ $(SRCDIR)/disasm/common/trie.h
+$(SRCDIR)/ir_natutil.obj: $(SRCDIR)/ir_natutil.c $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h \
+ $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/nir_compile.obj: $(SRCDIR)/nir_compile.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h \
+ $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
+$(SRCDIR)/nir_dump.obj: $(SRCDIR)/nir_dump.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
+ $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
+$(SRCDIR)/kstr.obj: $(SRCDIR)/kstr.c $(INCDIR)/dbg.h $(INCDIR)/kstr.h
+$(SRCDIR)/lexer.obj: $(SRCDIR)/lexer.c $(INCDIR)/dbg.h $(INCDIR)/parser.h $(INCDIR)/kinx.h \
+ $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
+ $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+$(SRCDIR)/fileutil.obj: $(SRCDIR)/fileutil.c $(INCDIR)/dbg.h $(INCDIR)/fileutil.h
+$(SRCDIR)/loadlib.obj: $(SRCDIR)/loadlib.c $(INCDIR)/dbg.h $(INCDIR)/fileutil.h \
+ $(INCDIR)/kxthread.h
+$(SRCDIR)/mainlib.obj: $(SRCDIR)/mainlib.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
+ $(INCDIR)/version.h \
+ $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxthread.h \
+ $(INCDIR)/getopt.h
+$(SRCDIR)/parser.obj: $(SRCDIR)/parser.c $(INCDIR)/kvec.h $(INCDIR)/kinx.h $(INCDIR)/ir.h \
+ $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/format.obj: $(SRCDIR)/format.c $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h \
+ $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
+ $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/string.obj: $(SRCDIR)/string.c $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/ir.h \
+ $(INCDIR)/kvec.h $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h \
+ $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+$(SRCDIR)/optimizer/optimizer.obj: $(SRCDIR)/optimizer/optimizer.c $(INCDIR)/kxoptimizer.h $(INCDIR)/kinx.h \
+ $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/dbg.h $(INCDIR)/khash.h \
+ $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
+ $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
+ $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
