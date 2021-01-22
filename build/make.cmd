@@ -9,4 +9,17 @@ if "%1" == "" (
     cl.exe /Feecho.exe utility\src\kecho.c
 )
 
+if "%1" == "rebuild" goto REBUILD
 nmake -f Makefile.msc %*
+if ERRORLEVEL 1 goto ERROR
+goto END
+
+:REBUILD
+nmake -f Makefile.msc clean all
+if ERRORLEVEL 1 goto ERROR
+
+:END
+exit /b 0
+
+:ERROR
+exit /b 1
