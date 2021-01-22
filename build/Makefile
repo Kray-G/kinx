@@ -307,7 +307,7 @@ libonig.so:
 	autoreconf -vfi; \
 	./configure --with-pic; \
 	make; \
-	cp -f $(SRCDIR)/.libs/libonig.so.5.0.0 $(CDIR);
+	cp -f src/.libs/libonig.so.5.0.0 $(CDIR);
 	ln -s libonig.so.5.0.0 libonig.so.5; \
 	ln -s libonig.so.5 libonig.so;
 
