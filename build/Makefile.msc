@@ -1,4 +1,4 @@
-SRCDIR = ../src
+SRCDIR = ..\src
 INCDIR = ../include
 CC = cl
 RC = rc
@@ -181,12 +181,12 @@ all: timex kinx zlib.dll libxml2.dll libssh2.dll libssl-3.dll libcrypto-3.dll $(
 lib: $(SOFILES)
 
 yacc:
-	utility\kmyacc.exe -v -d -m utility/kmyacc.c.parser -b kx -p kx_yy $(SRCDIR)/kinx.y
-	move /y kx.tab.c $(SRCDIR)/parser.c
-	move /y kx.tab.h $(INCDIR)/parser.tab.h
+	pushd .. && build\utility\kmyacc.exe -v -d -m build/utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y && popd
+	move /y ..\kx.tab.c $(SRCDIR)/parser.c
+	move /y ..\kx.tab.h $(INCDIR)/parser.tab.h
 
 timex:
-	$(CC) $(CFLAGS) /Fetimex utility/timex.c
+	$(CC) $(CFLAGS) /Fetimex utility/src/timex.c
 
 clean:
 	del /S /Q *.obj *.exp *.s
@@ -203,7 +203,7 @@ main_kxcmd: $(SRCDIR)/main_kxcmd.c $(INCDIR)/libkinx.h libkinx.dll $(RCFILE)
 
 libkinx.dll: $(SRCDIR)/parser.c $(INCDIR)/parser.tab.h onig.dll $(OBJS) $(DISASM)
 	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkinxdll.map $(OBJS) $(DISASM) ws2_32.lib
-	lib.exe /OUT:kx.lib src\fileutil.obj
+	lib.exe /OUT:kx.lib $(SRCDIR)\fileutil.obj
 
 kinx.res: kinx.rc
 	$(RC) kinx.rc
@@ -249,34 +249,34 @@ kxsqlite.dll: $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 
 kxnet.dll: $(SRCDIR)/extlib/kxnet.c $(PICOBJS) libssl-3.dll libcrypto-3.dll
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxnet.c $(PICOBJS) \
-		src\extlib\libcurl\x64\vs2017\libcurl_a.lib \
-		src\extlib\openssl\x64\vs2017\libssl.lib \
-		src\extlib\openssl\x64\vs2017\libcrypto.lib \
-		src\extlib\zip\x64\vs2017\zlib.lib
+		$(SRCDIR)\extlib\libcurl\x64\vs2017\libcurl_a.lib \
+		$(SRCDIR)\extlib\openssl\x64\vs2017\libssl.lib \
+		$(SRCDIR)\extlib\openssl\x64\vs2017\libcrypto.lib \
+		$(SRCDIR)\extlib\zip\x64\vs2017\zlib.lib
 
 kxxml.dll: $(SRCDIR)/extlib/kxxml.c $(PICOBJS)
-	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libxml2/$(INCDIR)/libxml2 /Fe$@ $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libxml2/x64/vs2017/libxml2.lib
+	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libxml2/include/libxml2 /Fe$@ $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libxml2/x64/vs2017/libxml2.lib
 
 kxjit.dll: $(SRCDIR)/extlib/kxjit.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxjit.c $(PICOBJS) $(SRCDIR)/ir_aotcore.obj $(SRCDIR)/disasm-x64/libudis86/*.obj
 
 kxpdf.dll: $(SRCDIR)/extlib/kxpdf.c $(PICOBJS)
-	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libharu/$(INCDIR) /Fe$@ $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libharu/x64/vs2017/libhpdf.lib $(SRCDIR)/extlib/libharu/x64/vs2017/zlib_a.lib $(SRCDIR)/extlib/libharu/x64/vs2017/libpng.lib
+	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libharu/include /Fe$@ $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libharu/x64/vs2017/libhpdf.lib $(SRCDIR)/extlib/libharu/x64/vs2017/zlib_a.lib $(SRCDIR)/extlib/libharu/x64/vs2017/libpng.lib
 
 zlib.dll: $(SRCDIR)/extlib/zip/x64/vs2017/zlib.dll
-	copy /y src\extlib\zip\x64\vs2017\zlib.dll zlib.dll
+	copy /y $(SRCDIR)\extlib\zip\x64\vs2017\zlib.dll zlib.dll
 
 libxml2.dll:
-	copy /y src\extlib\libxml2\x64\vs2017\libxml2.dll libxml2.dll
+	copy /y $(SRCDIR)\extlib\libxml2\x64\vs2017\libxml2.dll libxml2.dll
 
 libssh2.dll:
-	copy /y src\extlib\libssh2\x64\vs2017\libssh2.dll libssh2.dll
+	copy /y $(SRCDIR)\extlib\libssh2\x64\vs2017\libssh2.dll libssh2.dll
 
 libssl-3.dll:
-	copy /y src\extlib\openssl\x64\vs2017\libssl-3.dll libssl-3.dll
+	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libssl-3.dll libssl-3.dll
 
 libcrypto-3.dll:
-	copy /y src\extlib\openssl\x64\vs2017\libcrypto-3.dll libcrypto-3.dll
+	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libcrypto-3.dll libcrypto-3.dll
 
 zip/x64/vs2017/minizip.lib:
 	echo Build minizip.lib first.
@@ -288,35 +288,29 @@ $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib:
 	echo Build minizip.lib first.
 
 $(SRCDIR)/extlib/kc-json/dist/kc-json.obj:
-	cd src\extlib\kc-json
-	nmake -f Makefile.msc all
-	cd ..\..\..
+	pushd $(SRCDIR)\extlib\kc-json && nmake -f Makefile.msc all && popd
 
 sqlite3.obj:
-	cd src\extlib\sqlite
-	$(CC) /O2 /MT /c sqlite3.c
-	copy /y sqlite3.obj ..\..\..
-	cd ..\..\..
+	pushd $(SRCDIR)\extlib\sqlite && $(CC) /O2 /MT /c sqlite3.c && popd
+	copy /y $(SRCDIR)\extlib\sqlite\sqlite3.obj .
 
-$(SRCDIR)/parser.c: kx.tab.c
-	move /y kx.tab.c $(SRCDIR)/parser.c
+$(SRCDIR)/parser.c: ../kx.tab.c
+	move /y ..\kx.tab.c $(SRCDIR)/parser.c
 
-$(INCDIR)/parser.tab.h: kx.tab.h
-	move /y kx.tab.h $(INCDIR)/parser.tab.h
+$(INCDIR)/parser.tab.h: ../kx.tab.h
+	move /y ..\kx.tab.h $(INCDIR)/parser.tab.h
 
-kx.tab.c: utility\kmyacc.exe
-	utility\kmyacc.exe -v -d -b kx -p kx_yy $(SRCDIR)/kinx.y
+../kx.tab.c: $(SRCDIR)/kinx.y
+	pushd .. && build\utility\kmyacc.exe -v -d -m build/utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y && popd
 
-kx.tab.h: utility\kmyacc.exe
-	utility\kmyacc.exe -v -d -b kx -p kx_yy $(SRCDIR)/kinx.y
+../kx.tab.h: $(SRCDIR)/kinx.y
+	pushd .. && build\utility\kmyacc.exe -v -d -m build/utility/kmyacc.c.parser -b kx -p kx_yy src/kinx.y && popd
 
 onig.dll:
-	cd src\extlib\onig
-	call make_win64.bat
-	copy /y onig.lib ..\..\..
-	copy /y onig.dll ..\..\..
-	copy /y onig_s.lib ..\..\..
-	cd ..\..\..
+	pushd $(SRCDIR)\extlib\onig && call make_win64.bat && popd
+	copy /y $(SRCDIR)\extlib\onig\onig.lib .
+	copy /y $(SRCDIR)\extlib\onig\onig.dll .
+	copy /y $(SRCDIR)\extlib\onig\onig_s.lib .
 
 test-core: $(OBJS)
 
@@ -327,60 +321,60 @@ test-core: $(OBJS)
 $(SRCDIR)/allocator.obj: $(SRCDIR)/allocator.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
  $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/alloccore.obj: $(SRCDIR)/alloccore.c
 $(SRCDIR)/allocutil.obj: $(SRCDIR)/allocutil.c $(INCDIR)/dbg.h $(INCDIR)/ir.h $(INCDIR)/kvec.h \
  $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h \
- $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../src/jit/sljitLir.h \
+ $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/ast_analyzer.obj: $(SRCDIR)/ast_analyzer.c $(INCDIR)/dbg.h $(INCDIR)/parser.h \
  $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h \
  $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
- $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+ $(INCDIR)/jit.h $(INCDIR)/../src/jit/sljitLir.h \
+ $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
 $(SRCDIR)/ast_display.obj: $(SRCDIR)/ast_display.c $(INCDIR)/dbg.h $(INCDIR)/parser.h \
  $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h \
  $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
- $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+ $(INCDIR)/jit.h $(INCDIR)/../src/jit/sljitLir.h \
+ $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
 $(SRCDIR)/ast_defdisp.obj: $(SRCDIR)/ast_defdisp.c $(INCDIR)/dbg.h $(INCDIR)/parser.h \
  $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h \
  $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
- $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+ $(INCDIR)/jit.h $(INCDIR)/../src/jit/sljitLir.h \
+ $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
 $(SRCDIR)/ast_gencode.obj: $(SRCDIR)/ast_gencode.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h \
  $(INCDIR)/kinx.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
  $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/ast_object.obj: $(SRCDIR)/ast_object.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h \
  $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
  $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/ast_native.obj: $(SRCDIR)/ast_native.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h \
  $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
  $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
 $(SRCDIR)/bign.obj: $(SRCDIR)/bign.c $(INCDIR)/dbg.h $(INCDIR)/bign.h
 $(SRCDIR)/bigz.obj: $(SRCDIR)/bigz.c $(INCDIR)/dbg.h $(INCDIR)/bigz.h $(INCDIR)/bign.h
 $(SRCDIR)/getopt.obj: $(SRCDIR)/getopt.c $(INCDIR)/dbg.h $(INCDIR)/getopt.h
 $(SRCDIR)/global.obj: $(SRCDIR)/global.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
  $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxthread.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/kxthread.h
 $(SRCDIR)/ir_dump.obj: $(SRCDIR)/ir_dump.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/kinx.h \
  $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/ir_exec.obj: $(SRCDIR)/ir_exec.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/kstr.h \
  $(INCDIR)/kinx.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/kxexec.h \
@@ -417,23 +411,23 @@ $(SRCDIR)/ir_execdbg.obj: $(SRCDIR)/ir_execdbg.c $(INCDIR)/dbg.h $(INCDIR)/kvec.
  $(SRCDIR)/exec/code/regeq.inc
 $(SRCDIR)/ir_fix.obj: $(SRCDIR)/ir_fix.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/ir.h \
  $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h \
- $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../src/jit/sljitLir.h \
+ $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/ir_util.obj: $(SRCDIR)/ir_util.c $(INCDIR)/dbg.h $(INCDIR)/kvec.h $(INCDIR)/kstr.h \
  $(INCDIR)/kinx.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxexec.h \
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/kxexec.h \
  $(INCDIR)/kxthread.h $(SRCDIR)/exec/code/_inlines.inc
 $(SRCDIR)/ir_aotcore.obj: $(SRCDIR)/ir_aotcore.c $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(SRCDIR)/jit/sljitLir.c \
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(SRCDIR)/jit/sljitLir.c \
  $(SRCDIR)/jit/sljitLir.h $(SRCDIR)/jit/sljitUtils.c $(SRCDIR)/jit/sljitExecAllocator.c \
  $(SRCDIR)/jit/sljitNativeX86_common.c $(SRCDIR)/jit/sljitNativeX86_64.c
 $(SRCDIR)/ir_aotdump.obj: $(SRCDIR)/ir_aotdump.c $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(SRCDIR)/disasm/disas.h \
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(SRCDIR)/disasm/disas.h \
  $(SRCDIR)/disasm/arch/x86/x86load.h $(SRCDIR)/disasm/arch/x86/../../common/file.h \
  $(SRCDIR)/disasm/arch/x86/../../common/trie.h \
  $(SRCDIR)/disasm/arch/x86/../../common/table.h $(SRCDIR)/disasm/arch/x86/x86.h \
@@ -459,24 +453,24 @@ $(SRCDIR)/ir_aotdump.obj: $(SRCDIR)/ir_aotdump.c $(INCDIR)/jit.h \
 $(SRCDIR)/ir_natutil.obj: $(SRCDIR)/ir_natutil.c $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h \
  $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/nir_compile.obj: $(SRCDIR)/nir_compile.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h \
  $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
  $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
 $(SRCDIR)/nir_dump.obj: $(SRCDIR)/nir_dump.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
  $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/kxnative.h
 $(SRCDIR)/kstr.obj: $(SRCDIR)/kstr.c $(INCDIR)/dbg.h $(INCDIR)/kstr.h
 $(SRCDIR)/lexer.obj: $(SRCDIR)/lexer.c $(INCDIR)/dbg.h $(INCDIR)/parser.h $(INCDIR)/kinx.h \
  $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h \
  $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/parser.tab.h
 $(SRCDIR)/fileutil.obj: $(SRCDIR)/fileutil.c $(INCDIR)/dbg.h $(INCDIR)/fileutil.h
 $(SRCDIR)/loadlib.obj: $(SRCDIR)/loadlib.c $(INCDIR)/dbg.h $(INCDIR)/fileutil.h \
  $(INCDIR)/kxthread.h
@@ -484,27 +478,27 @@ $(SRCDIR)/mainlib.obj: $(SRCDIR)/mainlib.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(IN
  $(INCDIR)/version.h \
  $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h $(INCDIR)/kxthread.h \
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h $(INCDIR)/kxthread.h \
  $(INCDIR)/getopt.h
 $(SRCDIR)/parser.obj: $(SRCDIR)/parser.c $(INCDIR)/kvec.h $(INCDIR)/kinx.h $(INCDIR)/ir.h \
  $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/format.obj: $(SRCDIR)/format.c $(INCDIR)/kinx.h $(INCDIR)/kvec.h $(INCDIR)/ir.h \
  $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/../src/jit/sljitLir.h $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/string.obj: $(SRCDIR)/string.c $(INCDIR)/dbg.h $(INCDIR)/khash.h $(INCDIR)/ir.h \
  $(INCDIR)/kvec.h $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h \
- $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/bign.h $(INCDIR)/jit.h $(INCDIR)/../src/jit/sljitLir.h \
+ $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
 $(SRCDIR)/optimizer/optimizer.obj: $(SRCDIR)/optimizer/optimizer.c $(INCDIR)/kxoptimizer.h $(INCDIR)/kinx.h \
  $(INCDIR)/kvec.h $(INCDIR)/ir.h $(INCDIR)/dbg.h $(INCDIR)/khash.h \
  $(INCDIR)/klist.h $(INCDIR)/kstr.h $(INCDIR)/bigz.h $(INCDIR)/bign.h \
- $(INCDIR)/jit.h $(INCDIR)/../$(SRCDIR)/jit/sljitLir.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfig.h \
- $(INCDIR)/../$(SRCDIR)/jit/sljitConfigInternal.h
+ $(INCDIR)/jit.h $(INCDIR)/../src/jit/sljitLir.h \
+ $(INCDIR)/../src/jit/sljitConfig.h \
+ $(INCDIR)/../src/jit/sljitConfigInternal.h
