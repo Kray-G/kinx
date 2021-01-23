@@ -38,3 +38,10 @@ src/opt*.c
 /KiTTy_jp.json
 /KiTTy_jp.pdf
 /memo.*
+/kinx
+/kxrepl
+/kxtest
+/*.so*
+/TEST.md
+/*.deb
+/build
