@@ -18,6 +18,7 @@ jobs:
           make
           sudo ./mkdeb.sh
           sudo make install
+          mv -f kinx_*.deb ../
           cd ..
       - name: package
         run: |
