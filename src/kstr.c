@@ -302,7 +302,7 @@ ks_replace_char(kstr_t *self, char s, char d) {
 void
 ks_trim_left(kstr_t *self) {
   int c;
-  while ((c = *self->data) && isspace(c)) {
+  while ((c = *self->data) && (-1 <= c && c <= 255) && isspace(c)) {
     ++self->data;
   }
 }
@@ -315,7 +315,7 @@ void
 ks_trim_right(kstr_t *self) {
   int c;
   size_t i = ks_length(self) - 1;
-  while ((c = self->data[i]) && isspace(c)) {
+  while ((c = self->data[i]) && (-1 <= c && c <= 255) && isspace(c)) {
     self->data[i--] = 0;
   }
 }
