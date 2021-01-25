@@ -188,6 +188,7 @@ kvec_init_t(kx_switch_t);
 
 #define KNX_MAX_REG (64)
 typedef struct kx_native_context_ {
+    kx_context_t *ctx;
     struct sljit_compiler *C;
     const char *func_name;
     int local_vars;
