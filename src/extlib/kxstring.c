@@ -452,18 +452,16 @@ int String_stem(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
+        int start = 0;
         if (pos >= 0) {
-            ks_append(sv, str + pos + 1);
-        } else {
-            ks_append(sv, str);
+            start += pos + 1;
+        }
+        int next = string_find_last_of_impl(str + start, ".");
+        if (next >= 0) {
+            ks_append_n(sv, str + start, next);
         }
         KX_ADJST_STACK();
-        pos = string_find_last_of_impl(ks_string(sv), ".");
-        if (pos >= 0) {
-            ks_append_n(sv, str, pos);
-        }
         push_sv(ctx->stack, sv);
         return 0;
     }
@@ -476,7 +474,6 @@ int String_filename(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
         if (pos >= 0) {
             KX_ADJST_STACK();
@@ -498,7 +495,6 @@ int String_extension(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
         if (pos >= 0) {
             ks_append(sv, str + pos + 1);
@@ -526,7 +522,6 @@ int String_parentPath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
         if (pos >= 0) {
             KX_ADJST_STACK();
