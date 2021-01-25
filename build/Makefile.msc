@@ -190,10 +190,10 @@ timex:
 	$(CC) $(CFLAGS) /Fetimex utility/src/timex.c
 
 clean:
-	del /S /Q *.obj *.exp *.s
+	pushd .. && del /S /Q *.obj *.exp *.s && popd
+	pushd .. && del /Q *.dll *.exe *.dll kx.output && popd
 	del /Q *.dll
-	del /Q ../kx.output timex.exe kinx.exe test.exe
-	del /Q ../*.exe ../*.dll
+	del /Q timex.exe kinx.exe test.exe
 
 kinx: $(SRCDIR)/main.c $(INCDIR)/libkinx.h libkinx.dll $(RCFILE)
 	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map $(SRCDIR)/main.c $(SRCDIR)/fileutil.obj $(RCFILE)

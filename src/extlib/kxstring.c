@@ -7,6 +7,8 @@
 #include <kxutf8.h>
 #include <kxthread.h>
 
+#define ISALNUM(n) ((-1 <= n && n <= 255) ? isalnum(n) : 0)
+
 KX_DECL_MEM_ALLOCATORS();
 
 int String_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -450,18 +452,16 @@ int String_stem(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
+        int start = 0;
         if (pos >= 0) {
-            ks_append(sv, str + pos + 1);
-        } else {
-            ks_append(sv, str);
+            start += pos + 1;
+        }
+        int next = string_find_last_of_impl(str + start, ".");
+        if (next >= 0) {
+            ks_append_n(sv, str + start, next);
         }
         KX_ADJST_STACK();
-        pos = string_find_last_of_impl(ks_string(sv), ".");
-        if (pos >= 0) {
-            sv = ks_slice(sv, 0, pos);
-        }
         push_sv(ctx->stack, sv);
         return 0;
     }
@@ -474,7 +474,6 @@ int String_filename(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
         if (pos >= 0) {
             KX_ADJST_STACK();
@@ -496,7 +495,6 @@ int String_extension(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
         if (pos >= 0) {
             ks_append(sv, str + pos + 1);
@@ -524,12 +522,10 @@ int String_parentPath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     const char *str = get_arg_str(1, args, ctx);
     if (str) {
         kstr_t *sv = allocate_str(ctx);
-        int len = strlen(str);
         int pos = string_find_last_of_impl(str, "\\/");
         if (pos >= 0) {
             KX_ADJST_STACK();
-            ks_append(sv, str);
-            sv = ks_slice(sv, 0, pos);
+            ks_append_n(sv, str, pos);
             push_sv(ctx->stack, sv);
             return 0;
         }
@@ -664,11 +660,11 @@ int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     int hchar = str[0];
-    int other = !isalnum(hchar);
+    int other = !ISALNUM(hchar);
     int alnum = 0;
     int len = strlen(str);
     for (int i = (other ? 1 : 0); i < len; ++i) {
-        if (isalnum(str[i])) {
+        if (ISALNUM(str[i])) {
             ++alnum;
         }
     }
@@ -711,7 +707,7 @@ int String_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             } else if (ch == 0xFF) {
                 bin[i] = 0;
                 prv = 1;
-            } else if (isalnum(ch)) {
+            } else if (ISALNUM(ch)) {
                 if (prv) {
                     bin[i] = ch + 1;
                 } else {
@@ -778,15 +774,16 @@ int String_toUpperLower(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     while (i < s) {
         p[i] = str[i];
         ++i;
-    } 
+    }
     while (i < e) {
-        p[i] = f(str[i]);
+        int v = str[i];
+        p[i] = (-1 <= v && v <= 255) ? f(v) : v;
         ++i;
     }
     while (i < len) {
         p[i] = str[i];
         ++i;
-    } 
+    }
 
     kstr_t *sv = allocate_str(ctx);
     ks_append(sv, p);

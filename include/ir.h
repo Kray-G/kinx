@@ -568,6 +568,7 @@ default: \
 } \
 /**/
 
+kvec_init_t(double);
 kvec_init_t(int);
 kvec_init_t(uint32_t);
 struct kx_object_;
@@ -962,6 +963,7 @@ typedef struct kx_context_ {
 
     int block_index;
     int spread_additional;
+    kvec_t(double) dvalues;
     kvec_t(uint32_t) labels;
     kvec_t(kx_regex_t) regex;
     kvec_t(kx_module_t) module;
