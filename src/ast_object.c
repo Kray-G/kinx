@@ -31,6 +31,8 @@ void free_nodes(void)
         obj = next;
     }
     kx_obj_mgr = NULL;
+    kv_destroy(ns_stack);
+    kv_init(ns_stack);
 }
 
 void kx_make_native_mode(void)

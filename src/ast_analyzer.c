@@ -1272,6 +1272,7 @@ LOOP_HEAD:;
         if (node->local_vars < node->count_args) {
             node->local_vars = node->count_args;
         }
+        kv_destroy(*(actx->vars));
         kx_free(actx->vars);
         actx->vars = vars;
         actx->anon_arg = anon_arg;
@@ -1368,6 +1369,7 @@ LOOP_HEAD:;
         if (node->local_vars < node->count_args) {
             node->local_vars = node->count_args;
         }
+        kv_destroy(*(actx->vars));
         kx_free(actx->vars);
         actx->vars = vars;
         actx->anon_arg = anon_arg;
