@@ -536,6 +536,7 @@ kx_context_t *compile_code(const char *code, int exc_in_err)
                 return NULL;
             }
         } else {
+            context_cleanup(ctx);
             return NULL;
         }
     }
@@ -659,6 +660,7 @@ void thread_free(void *pp)
     if (p->r) {
         pthread_join(p->r, NULL);
     }
+    kx_free(p);
 }
 
 int System_threadIsRunning(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -701,8 +703,10 @@ int System_joinThread(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
         kx_thread_pack_t *p = (kx_thread_pack_t *)(val->value.av->p);
         if (p->r) {
             pthread_join(p->r, NULL);
+            p->r = 0;
             ret = p->value;
         }
+        thread_free(val->value.av->p);
         val->value.av->p = NULL;
     }
     KX_ADJST_STACK();
