@@ -1674,7 +1674,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kv_destroy(sw->expr_case_list);
         kv_destroy(sw->ival_case_list);
         kv_remove_last(nctx->switch_list);
-       break;
+        break;
     }
     case KXST_CASE: {  /* lhs: cond */
         int clen = kv_size(KXNBLK(nctx)->code);
@@ -1972,6 +1972,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         nctx->block = gen_kxn_block(nctx);
         nativejit_ast(nctx, node->rhs, 0);
         do_native_finally_all(nctx);
+        kv_destroy(*(nctx->finallies));
         kx_free(nctx->finallies);
         nctx->finallies = finallies;
         break;
@@ -2028,7 +2029,7 @@ void native_dump_temp(unsigned char *f, const char *name, int size)
 
 kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *args, int argn)
 {
-    kx_native_context_t nctx = {0};
+    kx_native_context_t nctx = { .ctx = ctx };
     if (node->type != KXST_NATIVE) {
         return (kxn_func_t){ .func = 0 };
     }
@@ -2069,7 +2070,12 @@ kxn_func_t start_nativejit_ast(kx_context_t *ctx, kx_object_t *node, uint8_t *ar
         }
     }
 
-	sljit_free_compiler(nctx.C);
+    sljit_free_compiler(nctx.C);
+
+    int blocklen = kv_size(nctx.block_list);
+    for (int i = 0; i < blocklen; ++i) {
+        kv_destroy((kv_A(nctx.block_list, i)).code);
+    }
     kv_destroy(nctx.block_list);
     kv_destroy(nctx.continue_list);
     kv_destroy(nctx.break_list);

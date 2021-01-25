@@ -329,7 +329,9 @@ int File_static_load(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     if (!fi) {
         KX_THROW_BLTIN_EXCEPTION("FileException", static_format("File open failed: %s", strerror(errno)));
     }
-    return File_load_impl(args, ctx, fi, 1);
+    int r = File_load_impl(args, ctx, fi, 1);
+    free_fileinfo(fi);
+    return r;
 }
 
 /*
