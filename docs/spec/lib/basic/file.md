@@ -99,6 +99,9 @@ function FileOpen(filename, attr, func) {
 #### Code
 
 ```
+System.try({ => File.remove("TEMPTESTDIR") }).retry(5, 250).else() if (File.exists("TEMPTESTDIR"));
+System.try({ => File.remove("TEMPTESTDIR2") }).retry(5, 250).else() if (File.exists("TEMPTESTDIR2"));
+
 File.mkdir("TEMPTESTDIR") if (!File.exists("TEMPTESTDIR"));
 System.println(File.isDirectory("TEMPTESTDIR"));
 ```
@@ -191,12 +194,16 @@ File.open("TEMPTESTDIR2/test.txt", File.READ|File.TEXT) { &(f)
 System.println(File.exists("TEMPTESTDIR2/test.txt"));
 File.remove("TEMPTESTDIR2/test.txt");
 System.println(File.exists("TEMPTESTDIR2/test.txt"));
+
+System.try({ => File.remove("TEMPTESTDIR2") }).retry(5, 250).else();
+System.println(File.exists("TEMPTESTDIR2"));
 ```
 
 #### Result
 
 ```
 1
+0
 0
 ```
 
