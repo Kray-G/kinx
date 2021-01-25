@@ -8,6 +8,7 @@ if "%1"=="rebuild" goto COPY
 goto END
 
 :COPY
+copy /y echo.exe ..
 copy /y kinx.exe ..
 copy /y kxrepl.exe ..
 copy /y kxtest.exe ..

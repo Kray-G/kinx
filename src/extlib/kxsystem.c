@@ -336,6 +336,11 @@ static void system_finalize(void)
     pthread_cond_destroy(&g_system_cond);
     pthread_mutex_destroy(&g_system_mtx);
     free_shared_string();
+
+    kh_destroy(value_map, g_value_map);
+    kh_destroy(mutex_map, g_mutex_map);
+    kh_destroy(named_mutex_map, g_named_mutex_map);
+    kh_destroy(cond_map, g_cond_map);
 }
 
 static inline kx_val_t mk_json_object(kx_context_t *ctx, json_object_t *j)
