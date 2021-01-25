@@ -658,6 +658,7 @@ void thread_free(void *pp)
     kx_thread_pack_t *p = (kx_thread_pack_t *)pp;
     if (p->r) {
         pthread_join(p->r, NULL);
+        kx_free(p);
     }
 }
 
