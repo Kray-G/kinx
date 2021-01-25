@@ -201,6 +201,7 @@ static void gc_mark_fnc(kx_fnc_t *c)
         gc_mark_frm(c->lex);
     }
     gc_mark_val(&(c->val));
+    gc_mark_val(&(c->push));
 }
 
 static void gc_mark_frm(kx_frm_t *c)
