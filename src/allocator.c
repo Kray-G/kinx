@@ -56,10 +56,12 @@ void init_allocation(kx_context_t *ctx)
     for (int i = 0; i < KX_INIT_FRM_COUNT; ++i) {
         kv_A(ctx->alloc.frm_dead, i) = (kx_frm_t *)kx_calloc(1, sizeof(kx_frm_t));
     }
+    kv_shrinkto(ctx->alloc.frm_dead, KX_INIT_FRM_COUNT);
     kv_resize(kx_fnc_t*, ctx->alloc.fnc_dead, KX_INIT_FNC_COUNT);
     for (int i = 0; i < KX_INIT_FNC_COUNT; ++i) {
         kv_A(ctx->alloc.fnc_dead, i) = (kx_fnc_t *)kx_calloc(1, sizeof(kx_fnc_t));
     }
+    kv_shrinkto(ctx->alloc.fnc_dead, KX_INIT_FNC_COUNT);
 }
 
 kx_context_t *make_context(void)
@@ -472,11 +474,14 @@ static void gc_object_cleanup(kx_context_t *ctx)
     }
     kliter_t(fnc) *pfnc;
     for (pfnc = kl_begin(ctx->alloc.fnc_alive); pfnc != kl_end(ctx->alloc.fnc_alive); pfnc = kl_next(pfnc)) {
-        kx_free(kl_val(pfnc));
+        kx_fnc_t *fnc = kl_val(pfnc);
+        kv_destroy(fnc->stack);
+        kx_free(fnc);
     }
     kliter_t(frm) *pfrm;
     for (pfrm = kl_begin(ctx->alloc.frm_alive); pfrm != kl_end(ctx->alloc.frm_alive); pfrm = kl_next(pfrm)) {
         kx_frm_t *frm = kl_val(pfrm);
+        kv_destroy(frm->varname);
         kv_destroy(frm->v);
         kx_free(frm);
     }
@@ -514,11 +519,14 @@ static void gc_object_cleanup(kx_context_t *ctx)
     }
     l = kv_size(ctx->alloc.fnc_dead);
     for (i = 0; i < l; ++i) {
-        kx_free(kv_A(ctx->alloc.fnc_dead, i));
+        kx_fnc_t *fnc = kv_A(ctx->alloc.fnc_dead, i);
+        kv_destroy(fnc->stack);
+        kx_free(fnc);
     }
     l = kv_size(ctx->alloc.frm_dead);
     for (i = 0; i < l; ++i) {
         kx_frm_t *frm = kv_A(ctx->alloc.frm_dead, i);
+        kv_destroy(frm->varname);
         kv_destroy(frm->v);
         kx_free(frm);
     }
@@ -623,6 +631,7 @@ void context_cleanup(kx_context_t *ctx)
     builtin_cleanup(ctx);
     debuginfo_cleanup(ctx);
     free_string(ctx);
+    kv_destroy(ctx->dvalues);
     kv_destroy(ctx->labels);
     kv_destroy(ctx->fixcode);
     kv_destroy(ctx->regex);

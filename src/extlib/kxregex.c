@@ -74,9 +74,7 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     KEX_SET_PROP_CSTR(obj, "source", str);
-    if (r->source) {
-        kx_free(r->source);
-    }
+    kx_free(r->source);
     r->source = kx_calloc(strlen(str) + 2, sizeof(char));
     strcpy(r->source, str);
     r->start = 0;
@@ -235,7 +233,7 @@ int Regex_splitOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     kx_obj_t *res = allocate_obj(ctx);
     kstr_t *sv = allocate_str(ctx);
 
-    while (index < len) {        
+    while (index < len) {
         onig_region_clear(r->region);
         int rx = onig_search(r->reg, str + index, end, str + index, end, r->region, ONIG_OPTION_NONE);
         if (rx == ONIG_MISMATCH) {
@@ -327,7 +325,7 @@ int Regex_replaceOf(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     const unsigned char *end = str + len;
     kstr_t *sv = allocate_str(ctx);
 
-    while (index < len) {        
+    while (index < len) {
         onig_region_clear(r->region);
         int rx = onig_search(r->reg, str + index, end, str + index, end, r->region, ONIG_OPTION_NONE);
         if (rx == ONIG_MISMATCH) {
