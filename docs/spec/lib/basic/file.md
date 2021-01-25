@@ -194,16 +194,12 @@ File.open("TEMPTESTDIR2/test.txt", File.READ|File.TEXT) { &(f)
 System.println(File.exists("TEMPTESTDIR2/test.txt"));
 File.remove("TEMPTESTDIR2/test.txt");
 System.println(File.exists("TEMPTESTDIR2/test.txt"));
-
-System.try({ => File.remove("TEMPTESTDIR2") }).retry(5, 250).else();
-System.println(File.exists("TEMPTESTDIR2"));
 ```
 
 #### Result
 
 ```
 1
-0
 0
 ```
 
