@@ -41,6 +41,7 @@ static int64_t KX_IREXEC_IMPL_FUNCTION_NAME(kvec_pt(kx_code_t) *fixcode, kx_cont
     KX_CASE_(KX_THROW) { KX_GOTO(); }
     KX_CASE_(KX_THROWA) { KX_GOTO(); }
     KX_CASE_(KX_THROWE) { KX_GOTO(); }
+    KX_CASE_(KX_THROWIFZ) { KX_GOTO(); }
 
     KX_CASE_(KX_CATCH) { KX_GOTO(); }
 
@@ -106,6 +107,12 @@ static int64_t KX_IREXEC_IMPL_FUNCTION_NAME(kvec_pt(kx_code_t) *fixcode, kx_cont
     KX_CASE_(KX_APPLYLI) { KX_GOTO(); }
     KX_CASE_(KX_APPLYVS) { KX_GOTO(); }
     KX_CASE_(KX_APPLYLS) { KX_GOTO(); }
+    KX_CASE_(KX_MATCHAI) { KX_GOTO(); }
+    KX_CASE_(KX_MATCHAD) { KX_GOTO(); }
+    KX_CASE_(KX_MATCHAS) { KX_GOTO(); }
+    KX_CASE_(KX_MATCHOI) { KX_GOTO(); }
+    KX_CASE_(KX_MATCHOD) { KX_GOTO(); }
+    KX_CASE_(KX_MATCHOS) { KX_GOTO(); }
 
     KX_CASE_(KX_APPENDK) { KX_GOTO(); }
     KX_CASE_(KX_APPEND) { KX_GOTO(); }
