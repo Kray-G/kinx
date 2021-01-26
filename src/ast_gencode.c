@@ -385,7 +385,7 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHAI, .value1.i = index, .value2.i = node->value.i }));
             if (jmp < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
-                    .value1.s = "NoMatchingPatternException", .value2.s = "Pattern not matched" }));
+                    .value1.s = alloc_string(ctx, "NoMatchingPatternException"), .value2.s = alloc_string(ctx, "Pattern not matched") }));
             } else {
                 KX_NEW_NEXT_BLK_JMP(module, ana, next);
             }
@@ -394,14 +394,14 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHAD, .value1.i = index, .value2.d = node->value.d }));
             if (jmp < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
-                    .value1.s = "NoMatchingPatternException", .value2.s = "Pattern not matched" }));
+                    .value1.s = alloc_string(ctx, "NoMatchingPatternException"), .value2.s = alloc_string(ctx, "Pattern not matched") }));
             }
             break;
         case KXVL_STR:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHAS, .value1.i = index, .value2.s = node->value.s }));
             if (jmp < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
-                    .value1.s = "NoMatchingPatternException", .value2.s = "Pattern not matched" }));
+                    .value1.s = alloc_string(ctx, "NoMatchingPatternException"), .value2.s = alloc_string(ctx, "Pattern not matched") }));
             } else {
                 KX_NEW_NEXT_BLK_JMP(module, ana, next);
             }
@@ -449,7 +449,7 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHOI, .value1.s = key, .value2.i = value->value.i }));
             if (jmp < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
-                    .value1.s = "NoMatchingPatternException", .value2.s = "Pattern not matched" }));
+                    .value1.s = alloc_string(ctx, "NoMatchingPatternException"), .value2.s = alloc_string(ctx, "Pattern not matched") }));
             } else {
                 KX_NEW_NEXT_BLK_JMP(module, ana, next);
             }
@@ -458,14 +458,14 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHOD, .value1.s = key, .value2.d = value->value.d }));
             if (jmp < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
-                    .value1.s = "NoMatchingPatternException", .value2.s = "Pattern not matched" }));
+                    .value1.s = alloc_string(ctx, "NoMatchingPatternException"), .value2.s = alloc_string(ctx, "Pattern not matched") }));
             }
             break;
         case KXVL_STR:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHOS, .value1.s = key, .value2.s = value->value.s }));
             if (jmp < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
-                    .value1.s = "NoMatchingPatternException", .value2.s = "Pattern not matched" }));
+                    .value1.s = alloc_string(ctx, "NoMatchingPatternException"), .value2.s = alloc_string(ctx, "Pattern not matched") }));
             } else {
                 KX_NEW_NEXT_BLK_JMP(module, ana, next);
             }
