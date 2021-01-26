@@ -217,6 +217,9 @@ void ir_code_dump_one(int addr, kx_code_t *code, kx_location_t *location)
     case KX_THROWE:
         printf("%-23s %s", "throw", "(stack-top)");
         break;
+    case KX_THROWIFZ:
+        printf("%-23s %s", "throwifz", code->value1.s);
+        break;
     case KX_CATCH:
         printf("%-23s %s", "catch", gen_varloc(code));
         break;
@@ -419,6 +422,25 @@ void ir_code_dump_one(int addr, kx_code_t *code, kx_location_t *location)
     case KX_APPLYLS:
         printf("%-23s \"%s\"", "applyls", code->value1.s);
         break;
+    case KX_MATCHAI:
+        printf("%-23s %"PRId64", value: %"PRId64, "matchai", code->value1.i, code->value2.i);
+        break;
+    case KX_MATCHAD:
+        printf("%-23s %"PRId64", value: %f", "matchad", code->value1.i, code->value2.d);
+        break;
+    case KX_MATCHAS:
+        printf("%-23s %"PRId64", value: \"%s\"", "matchas", code->value1.i, code->value2.s);
+        break;
+    case KX_MATCHOI:
+        printf("%-23s .%s, value: %"PRId64, "matchoi", code->value1.s, code->value2.i);
+        break;
+    case KX_MATCHOD:
+        printf("%-23s .%s, value: %f", "matchod", code->value1.s, code->value2.d);
+        break;
+    case KX_MATCHOS:
+        printf("%-23s .%s, value: \"%s\"", "matchos", code->value1.s, code->value2.s);
+        break;
+
     case KX_APPENDK:
         printf("%-23s \"%s\"", "appendk", code->value1.s);
         break;
