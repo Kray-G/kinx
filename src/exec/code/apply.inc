@@ -418,7 +418,9 @@ do { \
     } \
     kx_val_t *val = NULL; \
     KEX_GET_ARRAY_ITEM(val, lv->value.ov, cur->value1.i); \
-    if (val->type == KX_INT_T) { \
+    if (!val) { \
+        push_i((ctx)->stack, 0); \
+    } else if (val->type == KX_INT_T) { \
         push_i((ctx)->stack, val->value.iv == cur->value2.i); \
     } else if (val->type == KX_DBL_T) { \
         push_i((ctx)->stack, fabs(val->value.dv - cur->value2.i) < DBL_EPSILON); \
@@ -438,7 +440,9 @@ do { \
     } \
     kx_val_t *val = NULL; \
     KEX_GET_ARRAY_ITEM(val, lv->value.ov, cur->value1.i); \
-    if (val->type == KX_INT_T) { \
+    if (!val) { \
+        push_i((ctx)->stack, 0); \
+    } else if (val->type == KX_INT_T) { \
         push_i((ctx)->stack, fabs(val->value.dv - cur->value2.d) < DBL_EPSILON); \
     } else if (val->type == KX_DBL_T) { \
         push_i((ctx)->stack, fabs(val->value.dv - cur->value2.d) < DBL_EPSILON); \
@@ -458,7 +462,9 @@ do { \
     } \
     kx_val_t *val = NULL; \
     KEX_GET_ARRAY_ITEM(val, lv->value.ov, cur->value1.i); \
-    if (val->type == KX_CSTR_T) { \
+    if (!val) { \
+        push_i((ctx)->stack, 0); \
+    } else if (val->type == KX_CSTR_T) { \
         push_i((ctx)->stack, !strcmp(val->value.pv, cur->value2.s)); \
     } else if (val->type == KX_STR_T) { \
         push_i((ctx)->stack, !strcmp(ks_string(val->value.sv), cur->value2.s)); \
@@ -478,7 +484,9 @@ do { \
     } \
     kx_val_t *val = NULL; \
     KEX_GET_PROP(val, lv->value.ov, cur->value1.s); \
-    if (val->type == KX_INT_T) { \
+    if (!val) { \
+        push_i((ctx)->stack, 0); \
+    } else if (val->type == KX_INT_T) { \
         push_i((ctx)->stack, val->value.iv == cur->value2.i); \
     } else if (val->type == KX_DBL_T) { \
         push_i((ctx)->stack, fabs(val->value.dv - cur->value2.i) < DBL_EPSILON); \
@@ -498,7 +506,9 @@ do { \
     } \
     kx_val_t *val = NULL; \
     KEX_GET_PROP(val, lv->value.ov, cur->value1.s); \
-    if (val->type == KX_INT_T) { \
+    if (!val) { \
+        push_i((ctx)->stack, 0); \
+    } else if (val->type == KX_INT_T) { \
         push_i((ctx)->stack, fabs(val->value.dv - cur->value2.d) < DBL_EPSILON); \
     } else if (val->type == KX_DBL_T) { \
         push_i((ctx)->stack, fabs(val->value.dv - cur->value2.d) < DBL_EPSILON); \
@@ -518,7 +528,9 @@ do { \
     } \
     kx_val_t *val = NULL; \
     KEX_GET_PROP(val, lv->value.ov, cur->value1.s); \
-    if (val->type == KX_CSTR_T) { \
+    if (!val) { \
+        push_i((ctx)->stack, 0); \
+    } else if (val->type == KX_CSTR_T) { \
         push_i((ctx)->stack, !strcmp(val->value.pv, cur->value2.s)); \
     } else if (val->type == KX_STR_T) { \
         push_i((ctx)->stack, !strcmp(ks_string(val->value.sv), cur->value2.s)); \
