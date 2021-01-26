@@ -43,6 +43,7 @@ enum irop {
     KX_THROW,
     KX_THROWA,
     KX_THROWE,
+    KX_THROWIFZ,
 
     KX_CATCH,
 
@@ -108,6 +109,12 @@ enum irop {
     KX_APPLYLI,
     KX_APPLYVS,
     KX_APPLYLS,
+    KX_MATCHAI,
+    KX_MATCHAD,
+    KX_MATCHAS,
+    KX_MATCHOI,
+    KX_MATCHOD,
+    KX_MATCHOS,
 
     KX_APPENDK,
     KX_APPEND,
@@ -291,6 +298,7 @@ static const char *kx_opname[] = { \
     "KX_THROW", \
     "KX_THROWA", \
     "KX_THROWE", \
+    "KX_THROWIFZ", \
 \
     "KX_CATCH", \
 \
@@ -356,6 +364,12 @@ static const char *kx_opname[] = { \
     "KX_APPLYLI", \
     "KX_APPLYVS", \
     "KX_APPLYLS", \
+    "KX_MATCHAI", \
+    "KX_MATCHAD", \
+    "KX_MATCHAS", \
+    "KX_MATCHOI", \
+    "KX_MATCHOD", \
+    "KX_MATCHOS", \
 \
     "KX_APPENDK", \
     "KX_APPEND", \
@@ -669,6 +683,7 @@ typedef struct kx_analyze_ {
     int contblock; /* inside continue block if exists */
     int pushes;
     int in_try;
+    int unmatch_exc;
     int start_index;
     kx_module_t *module;
     kvec_t(int) fidxlist;

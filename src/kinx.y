@@ -119,6 +119,7 @@ static inline void yy_restart(int token)
 %type<strval> RegexString
 %type<obj> ArrayItemList
 %type<obj> ArrayItemListCore
+%type<obj> ArrayItemListCoreRight
 %type<obj> CommaList
 %type<obj> AssignExpressionList
 %type<obj> AssignExpressionObjList
@@ -127,6 +128,7 @@ static inline void yy_restart(int token)
 %type<strval> VarName
 %type<strval> KeySpecialName
 %type<strval> ClassFunctionName
+%type<strval> ClassFunctionSpecialName
 %type<obj> VarDeclStatement
 %type<obj> DeclAssignExpressionList
 %type<obj> DeclAssignExpression
@@ -674,10 +676,27 @@ CommaList
 
 ArrayItemListCore
     : AssignExpression
+    | NAME ':' ArrayItemListCoreRight { $$ = kx_gen_keyvalue_object($1, $3); }
+    | KeySpecialName ':' ArrayItemListCoreRight { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemListCore ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
     | ArrayItemListCore ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | ArrayItemListCore ',' NAME ':' ArrayItemListCoreRight { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_keyvalue_object($3, $5)); }
+    | ArrayItemListCore ',' KeySpecialName ':' ArrayItemListCoreRight { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_keyvalue_object($3, $5)); }
     | ArrayItemListCore ',' DOTS3 AssignRightHandSide { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
+    ;
+
+ArrayItemListCoreRight
+    : INT { $$ = kx_gen_int_object($1); }
+    | DBL { $$ = kx_gen_dbl_object($1); }
+    | BIGINT { $$ = kx_gen_big_object($1); }
+    | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
+    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
+    | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
+    | SRCFILE { $$ = kx_gen_str_object($1); }
+    | LMBR ArrayItemList RMBR { $$ = kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1); }
+    | LBBR ArrayItemList RBBR { $$ = kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1); }
     ;
 
 AssignExpressionList
@@ -708,6 +727,42 @@ KeyValue
     ;
 
 KeySpecialName
+    : IF { $$ = "if"; }
+    | ELSE { $$ = "else"; }
+    | WHILE { $$ = "while"; }
+    | DO { $$ = "do"; }
+    | FOR { $$ = "for"; }
+    | IN { $$ = "in"; }
+    | TRY { $$ = "try"; }
+    | CATCH { $$ = "catch"; }
+    | FINALLY { $$ = "finally"; }
+    | BREAK { $$ = "break"; }
+    | CONTINUE { $$ = "continue"; }
+    | SWITCH { $$ = "switch"; }
+    | CASE { $$ = "case"; }
+    | NEW { $$ = "new"; }
+    | VAR { $$ = "var"; }
+    | CONST { $$ = "const"; }
+    | FUNCTION { $$ = "function"; }
+    | SYSFUNC { $$ = "_function"; }
+    | PUBLIC { $$ = "public"; }
+    | PRIVATE { $$ = "private"; }
+    | PROTECTED { $$ = "protectd"; }
+    | CLASS { $$ = "class"; }
+    | MODULE { $$ = "module"; }
+    | RETURN { $$ = "return"; }
+    | YIELD { $$ = "yield"; }
+    | THROW { $$ = "throw"; }
+    | NUL { $$ = "null"; }
+    | TRUE { $$ = "true"; }
+    | FALSE { $$ = "false"; }
+    | IMPORT { $$ = "import"; }
+    | USING { $$ = "using"; }
+    | TYPE { $$ = kx_gen_typestr_object($1); }
+    | TYPEOF { $$ = kx_gen_typeofstr_object($1); }
+    ;
+
+ClassFunctionSpecialName
     : IF { $$ = "if"; }
     | ELSE { $$ = "else"; }
     | WHILE { $$ = "while"; }
@@ -838,7 +893,7 @@ ClassFunctionDeclStatement
 
 ClassFunctionName
     : NAME
-    | KeySpecialName
+    | ClassFunctionSpecialName
     ;
 
 ClassDeclStatement
