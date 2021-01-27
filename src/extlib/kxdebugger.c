@@ -1182,14 +1182,14 @@ static void do_command_dumpecode_block(kx_context_t *ctx, kx_function_t *func, k
         }
         const char *file = location->file;
         kx_code_t *code0 = &kv_A(block->code, 0);
-        if (is_main && code0 && strcmp(code0->file, file) != 0) {
+        if (is_main && code0 && code0->file && strcmp(code0->file, file) != 0) {
             return;
         }
         output(".L%d\n", block->index);
         for (int i = 0; i < len; ++i) {
             kx_code_t *code = &kv_A(block->code, i);
             if (is_main) {
-                if (code && code->op != KX_VARNAME && (code->op == KX_ENTER || (code->file && !strcmp(code->file, file)))) {
+                if (code && code->op != KX_VARNAME && (code->op == KX_ENTER || (!code->file || !strcmp(code->file, file)))) {
                     ctx->ir_dumpcode(code->i, code, location);
                 }
             } else {
