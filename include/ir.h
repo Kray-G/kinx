@@ -43,6 +43,7 @@ enum irop {
     KX_THROW,
     KX_THROWA,
     KX_THROWE,
+    KX_THROWIFZ,
 
     KX_CATCH,
 
@@ -108,6 +109,12 @@ enum irop {
     KX_APPLYLI,
     KX_APPLYVS,
     KX_APPLYLS,
+    KX_MATCHAI,
+    KX_MATCHAD,
+    KX_MATCHAS,
+    KX_MATCHOI,
+    KX_MATCHOD,
+    KX_MATCHOS,
 
     KX_APPENDK,
     KX_APPEND,
@@ -291,6 +298,7 @@ static const char *kx_opname[] = { \
     "KX_THROW", \
     "KX_THROWA", \
     "KX_THROWE", \
+    "KX_THROWIFZ", \
 \
     "KX_CATCH", \
 \
@@ -356,6 +364,12 @@ static const char *kx_opname[] = { \
     "KX_APPLYLI", \
     "KX_APPLYVS", \
     "KX_APPLYLS", \
+    "KX_MATCHAI", \
+    "KX_MATCHAD", \
+    "KX_MATCHAS", \
+    "KX_MATCHOI", \
+    "KX_MATCHOD", \
+    "KX_MATCHOS", \
 \
     "KX_APPENDK", \
     "KX_APPEND", \
@@ -659,7 +673,7 @@ typedef struct kx_module_ {
 } kx_module_t;
 kvec_init_t(kx_module_t);
 
-typedef kvec_nt(struct kx_object_*) kx_finally_vec_t;
+typedef kvec_nt(struct kx_object_*) kx_object_vec_t;
 typedef struct kx_analyze_ {
     int classname;
     int function;
@@ -672,7 +686,8 @@ typedef struct kx_analyze_ {
     int start_index;
     kx_module_t *module;
     kvec_t(int) fidxlist;
-    kx_finally_vec_t *finallies;
+    kx_object_vec_t *finallies;
+    kx_object_vec_t caseexprs;
 } kx_analyze_t;
 
 #define get_function(module, i) (&kv_A(module->functions, i))
