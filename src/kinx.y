@@ -404,17 +404,22 @@ WhenClauseList
     ;
 
 WhenClause
-    : WHEN ArrayItemListCoreRight Modifier_Opt ':' WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
+    : WHEN ArrayItemListCoreRight Modifier_Opt Colon_Opt WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
     ;
 
 CaseElseClause
     : /* empty */ { $$ = NULL; }
-    | ELSE ':' WhenClauseBody { $$ = kx_gen_stmtlist($3, kx_gen_break_object(KXST_BREAK, NULL)); }
+    | ELSE Colon_Opt WhenClauseBody { $$ = kx_gen_stmtlist($3, kx_gen_break_object(KXST_BREAK, NULL)); }
     ;
 
 WhenClauseBody
     : BlockStatement { $$ = kx_gen_bexpr_object(KXOP_CALL, kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $1, NULL), NULL); }
     | TernaryExpression
+    ;
+
+Colon_Opt
+    : /* empty */
+    | ':'
     ;
 
 AssignExpression
@@ -726,7 +731,7 @@ ArrayItemListCoreRight
     | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
-    | SRCFILE { $$ = kx_gen_str_object($1); }
+    | '(' STR ')' { $$ = kx_gen_str_object($2); }
     | LMBR ArrayItemList RMBR { $$ = kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1); }
     | LBBR ArrayItemList RBBR { $$ = kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1); }
     ;
