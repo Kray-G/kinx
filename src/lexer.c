@@ -272,6 +272,7 @@ static int get_keyword_token(const char *val)
         break;
     case 'w':
         if (strcmp(val, "while") == 0)          return WHILE;
+        if (strcmp(val, "when") == 0)           return WHEN;
         break;
     case 'y':
         if (strcmp(val, "yield") == 0)          return YIELD;
