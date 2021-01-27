@@ -49,6 +49,7 @@
     &&LBL_KX_THROW, \
     &&LBL_KX_THROWA, \
     &&LBL_KX_THROWE, \
+    &&LBL_KX_THROWIFZ, \
     &&LBL_KX_CATCH, \
     &&LBL_KX_JMP, \
     &&LBL_KX_JZ, \
@@ -106,6 +107,12 @@
     &&LBL_KX_APPLYLI, \
     &&LBL_KX_APPLYVS, \
     &&LBL_KX_APPLYLS, \
+    &&LBL_KX_MATCHAI, \
+    &&LBL_KX_MATCHAD, \
+    &&LBL_KX_MATCHAS, \
+    &&LBL_KX_MATCHOI, \
+    &&LBL_KX_MATCHOD, \
+    &&LBL_KX_MATCHOS, \
     &&LBL_KX_APPENDK, \
     &&LBL_KX_APPEND, \
     &&LBL_KX_APPENDI, \
