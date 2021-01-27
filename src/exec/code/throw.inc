@@ -46,3 +46,14 @@
     lexv = e->lexv; \
 } \
 /**/
+
+#define KX_THROWIFZ_CODE() \
+{ \
+    KEX_POP_STACK_TOP(v1); \
+    if (v1->type == KX_INT_T && v1->value.iv == 0) { \
+        THROW_SYSTEM_EXCEPTION(cur->value1.s, cur->value2.s); \
+    } else { \
+        cur = cur->next; \
+    } \
+} \
+/**/

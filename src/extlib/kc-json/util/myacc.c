@@ -1044,10 +1044,10 @@ getdecls()
 			fprintf(fout, "#line %d \"%s\"\n", lineno, replace_sep(srca));
 		s = cpycode();
 		fprintf(fout, replace_yy("typedef union %s " SMYY "union;\n"), s);
-		fprintf(fout, replace_yy("#define " LGYY "STYPE " SMYY "union\n"));
+		fprintf(fout, "%s", replace_yy("#define " LGYY "STYPE " SMYY "union\n"));
 		if (fhdr) {
 			fprintf(fhdr, replace_yy("typedef union %s " SMYY "union;\n"), s);
-			fprintf(fhdr, replace_yy("#define " LGYY "STYPE " SMYY "union\n"));
+			fprintf(fhdr, "%s", replace_yy("#define " LGYY "STYPE " SMYY "union\n"));
 		}
 		free(s);
 		doty = 1;
@@ -1222,7 +1222,7 @@ actout(Rule *r)
 	case '$':
 		c = *p++;
 		if (c == '$') {
-			fprintf(fout, replace_yy(SMYY "val"));
+			fprintf(fout, "%s", replace_yy(SMYY "val"));
 			if (doty) {
 				ty = is[r->lhs].type;
 				if (!ty[0]) {
