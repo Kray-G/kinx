@@ -221,6 +221,11 @@ kx_object_t *kx_gen_range_object(kx_object_t *lhs, kx_object_t *end, int exclude
     return kx_gen_obj(KXOP_MKRANGE, exclude_end, lhs, end, NULL);
 }
 
+kx_object_t *kx_gen_case_when_object(kx_object_t *decl, kx_object_t *expr, kx_object_t *modifier)
+{
+    return kx_gen_obj(KXOP_WHEN, 0, decl, kx_gen_stmtlist(expr, kx_gen_break_object(KXST_BREAK, NULL)), modifier);
+}
+
 kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl)
 {
     kx_object_t *base = kx_gen_bexpr_object(KXST_STMTLIST,
@@ -488,6 +493,11 @@ kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
     }
     p->rhs = kx_gen_bexpr_object(type, p->rhs, rhs);
     return lhs;
+}
+
+kx_object_t *kx_gen_case_expr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+{
+    return kx_gen_obj(KXOP_CASE, 0, kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(NULL, KX_UNKNOWN_T), lhs), rhs, ex);
 }
 
 kx_object_t *kx_gen_texpr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)

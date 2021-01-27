@@ -140,7 +140,7 @@ void ir_code_dump_one(int addr, kx_code_t *code, kx_location_t *location)
         return;
     }
 
-    int highlight = (location && code->file && location->line == code->line && !strcmp(location->file, code->file)) ? 1 : 0;
+    int highlight = (location && location->line == code->line && location->file && code->file && !strcmp(location->file, code->file)) ? 1 : 0;
     if (location) {
         _fprintf_w32(stdout, highlight ? "\033[97m" : "\033[90m");
     }
@@ -217,28 +217,55 @@ void ir_code_dump_one(int addr, kx_code_t *code, kx_location_t *location)
     case KX_THROWE:
         printf("%-23s %s", "throw", "(stack-top)");
         break;
+    case KX_THROWIFZ:
+        printf("%-23s %s", "throwifz", code->value1.s);
+        break;
     case KX_CATCH:
         printf("%-23s %s", "catch", gen_varloc(code));
         break;
     case KX_JMP:
         if (code->addr > 0) {
-            printf("%-23s .L%"PRId64"(%x)", code->value2.i ? "jmpx" : "jmp", code->value1.i, code->addr);
+            if (code->value2.i > 0) {
+                printf("%-23s .L%"PRId64"(%x) - [%"PRId64"]", "jmpx", code->value1.i, code->addr, code->value2.i);
+            } else {
+                printf("%-23s .L%"PRId64"(%x)", "jmp", code->value1.i, code->addr);
+            }
         } else {
-            printf("%-23s .L%"PRId64, code->value2.i ? "jmpx" : "jmp", code->value1.i);
+            if (code->value2.i > 0) {
+                printf("%-23s .L%"PRId64" - [%"PRId64"]", "jmpx", code->value1.i, code->value2.i);
+            } else {
+                printf("%-23s .L%"PRId64"", "jmp", code->value1.i);
+            }
         }
         break;
     case KX_JZ:
         if (code->addr > 0) {
-            printf("%-23s .L%"PRId64"(%x)", code->value2.i ? "jzx" : "jz", code->value1.i, code->addr);
+            if (code->value2.i > 0) {
+                printf("%-23s .L%"PRId64"(%x) - [%"PRId64"]", "jzx", code->value1.i, code->addr, code->value2.i);
+            } else {
+                printf("%-23s .L%"PRId64"(%x)", "jz", code->value1.i, code->addr);
+            }
         } else {
-            printf("%-23s .L%"PRId64, code->value2.i ? "jzx" : "jz", code->value1.i);
+            if (code->value2.i > 0) {
+                printf("%-23s .L%"PRId64" - [%"PRId64"]", "jzx", code->value1.i, code->value2.i);
+            } else {
+                printf("%-23s .L%"PRId64"", "jz", code->value1.i);
+            }
         }
         break;
     case KX_JNZ:
         if (code->addr > 0) {
-            printf("%-23s .L%"PRId64"(%x)", code->value2.i ? "jnzx" : "jnz", code->value1.i, code->addr);
+            if (code->value2.i > 0) {
+                printf("%-23s .L%"PRId64"(%x) - [%"PRId64"]", "jnzx", code->value1.i, code->addr, code->value2.i);
+            } else {
+                printf("%-23s .L%"PRId64"(%x)", "jnz", code->value1.i, code->addr);
+            }
         } else {
-            printf("%-23s .L%"PRId64, code->value2.i ? "jnzx" : "jnz", code->value1.i);
+            if (code->value2.i > 0) {
+                printf("%-23s .L%"PRId64" - [%"PRId64"]", "jnzx", code->value1.i, code->value2.i);
+            } else {
+                printf("%-23s .L%"PRId64"", "jnz", code->value1.i);
+            }
         }
         break;
     case KX_JMPTBL:
@@ -419,6 +446,25 @@ void ir_code_dump_one(int addr, kx_code_t *code, kx_location_t *location)
     case KX_APPLYLS:
         printf("%-23s \"%s\"", "applyls", code->value1.s);
         break;
+    case KX_MATCHAI:
+        printf("%-23s %"PRId64", value: %"PRId64, "matchai", code->value1.i, code->value2.i);
+        break;
+    case KX_MATCHAD:
+        printf("%-23s %"PRId64", value: %f", "matchad", code->value1.i, code->value2.d);
+        break;
+    case KX_MATCHAS:
+        printf("%-23s %"PRId64", value: \"%s\"", "matchas", code->value1.i, code->value2.s);
+        break;
+    case KX_MATCHOI:
+        printf("%-23s .%s, value: %"PRId64, "matchoi", code->value1.s, code->value2.i);
+        break;
+    case KX_MATCHOD:
+        printf("%-23s .%s, value: %f", "matchod", code->value1.s, code->value2.d);
+        break;
+    case KX_MATCHOS:
+        printf("%-23s .%s, value: \"%s\"", "matchos", code->value1.s, code->value2.s);
+        break;
+
     case KX_APPENDK:
         printf("%-23s \"%s\"", "appendk", code->value1.s);
         break;
