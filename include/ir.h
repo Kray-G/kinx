@@ -673,7 +673,7 @@ typedef struct kx_module_ {
 } kx_module_t;
 kvec_init_t(kx_module_t);
 
-typedef kvec_nt(struct kx_object_*) kx_finally_vec_t;
+typedef kvec_nt(struct kx_object_*) kx_object_vec_t;
 typedef struct kx_analyze_ {
     int classname;
     int function;
@@ -683,11 +683,11 @@ typedef struct kx_analyze_ {
     int contblock; /* inside continue block if exists */
     int pushes;
     int in_try;
-    int unmatch_exc;
     int start_index;
     kx_module_t *module;
     kvec_t(int) fidxlist;
-    kx_finally_vec_t *finallies;
+    kx_object_vec_t *finallies;
+    kx_object_vec_t caseexprs;
 } kx_analyze_t;
 
 #define get_function(module, i) (&kv_A(module->functions, i))
