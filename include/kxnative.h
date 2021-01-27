@@ -205,7 +205,7 @@ typedef struct kx_native_context_ {
     int in_trycount;
     int in_finally;
     int reg_holder[KNX_MAX_REG];
-    kx_finally_vec_t *finallies;
+    kx_object_vec_t *finallies;
     kvec_t(kxn_block_t) block_list;
     kvec_t(kx_label_t) continue_list;
     kvec_t(kx_label_t) break_list;
