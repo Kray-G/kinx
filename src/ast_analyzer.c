@@ -1050,6 +1050,21 @@ LOOP_HEAD:;
         break;
     }
 
+    case KXOP_CASE: {
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        break;
+    }
+    case KXOP_WHEN: {
+        int decl = actx->decl;
+        actx->decl = 1;
+        analyze_ast(ctx, node->lhs, actx);
+        actx->decl = decl;
+        analyze_ast(ctx, node->rhs, actx);
+        analyze_ast(ctx, node->ex, actx);
+        break;
+    }
+
     case KXOP_TER: {
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);

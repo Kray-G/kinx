@@ -248,6 +248,16 @@ LOOP_HEAD:;
         display_def_ast(node->lhs, lvalue);
         break;
 
+    case KXOP_CASE:
+        display_def_ast(node->lhs, 0);
+        display_def_ast(node->rhs, 0);
+        break;
+    case KXOP_WHEN:
+        display_def_ast(node->lhs, 0);
+        display_def_ast(node->rhs, 0);
+        display_def_ast(node->ex, 0);
+        break;
+
     case KXOP_TER:
         display_def_ast(node->lhs, 0);
         display_def_ast(node->rhs, 0);
