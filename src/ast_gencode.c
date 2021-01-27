@@ -350,6 +350,13 @@ static void apply_array(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana)
     }
 }
 
+#define KX_NEW_BLK(module, ana) \
+if (code_size(module, ana) > 0) { \
+    int next = new_block_hook(ana); \
+    get_block(module, ana->block)->tf[0] = next; \
+    ana->block = next; \
+} \
+/**/
 #define KX_NEW_NEXT_BLK_JMP(module, ana, jmp) \
 if (code_size(module, ana) > 0) { \
     int next = new_block_hook(ana); \
@@ -379,42 +386,70 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
     if (node->type == KXOP_SPREAD) {
         gencode_ast_hook(ctx, node->lhs, ana, 1);
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYA, .value1.i = index }));\
+    } else if (node->type == KXOP_KEYVALUE) {
+        kx_yyerror_line("Cannot use a key value parameter in array", node->file, node->line);
     } else {
+        int jmpblk = jmp < 0 ? -1 : get_block(module, jmp)->index;
         switch (node->type) {
         case KXVL_INT:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHAI, .value1.i = index, .value2.i = node->value.i }));
-            if (jmp < 0) {
+            if (jmpblk < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
                     .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
             } else {
-                KX_NEW_NEXT_BLK_JMP(module, ana, next);
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
             }
             break;
         case KXVL_DBL:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHAD, .value1.i = index, .value2.d = node->value.d }));
-            if (jmp < 0) {
+            if (jmpblk < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
                     .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
+            } else {
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
             }
             break;
         case KXVL_STR:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHAS, .value1.i = index, .value2.s = node->value.s }));
-            if (jmp < 0) {
+            if (jmpblk < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
                     .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
             } else {
-                KX_NEW_NEXT_BLK_JMP(module, ana, next);
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
             }
             break;
         case KXOP_MKARY:
-            index = apply_getval(ctx, node->lhs, ana, jmp, index);
-            index = apply_getval(ctx, node->rhs, ana, jmp, index);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVI, .value1.i = index }));
+            int idx = apply_getval(ctx, node->lhs, ana, jmp, 0);
+            (void)apply_getval(ctx, node->rhs, ana, jmp, idx);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
             break;
         case KXOP_MKOBJ:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVI, .value1.i = index }));
             apply_getvals(ctx, node->lhs, ana, jmp);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
+            break;
+        case KXOP_MKRANGE:
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVI, .value1.i = index }));
+            gencode_ast_hook(ctx, node, ana, 0);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_EQEQ }));
+            if (jmpblk < 0) {
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
+                    .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
+            } else {
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JNZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
+            }
             break;
         default:
             if (!(node->type == KXOP_VAR && node->var_type == KX_UND_T)) {
@@ -442,39 +477,48 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
     if (node->type == KXOP_SPREAD) {
         kx_yyerror_line("Cannot use a spread/rest operator for object", node->file, node->line);
     } else if (node->type == KXOP_KEYVALUE) {
+        int jmpblk = jmp < 0 ? -1 : get_block(module, jmp)->index;
         const char *key = node->value.s;
         kx_object_t *value = node->lhs;
         switch (value->type) {
         case KXVL_INT:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHOI, .value1.s = key, .value2.i = value->value.i }));
-            if (jmp < 0) {
+            if (jmpblk < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
                     .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
             } else {
-                KX_NEW_NEXT_BLK_JMP(module, ana, next);
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
             }
             break;
         case KXVL_DBL:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHOD, .value1.s = key, .value2.d = value->value.d }));
-            if (jmp < 0) {
+            if (jmpblk < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
                     .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
+            } else {
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
             }
             break;
         case KXVL_STR:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHOS, .value1.s = key, .value2.s = value->value.s }));
-            if (jmp < 0) {
+            if (jmpblk < 0) {
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
                     .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
             } else {
-                KX_NEW_NEXT_BLK_JMP(module, ana, next);
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
             }
             break;
         case KXOP_MKARY: {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVS, .value1.s = key }));
-            int index = apply_getval(ctx, value->lhs, ana, jmp, 0);
-            (void)apply_getval(ctx, value->rhs, ana, jmp, index);
+            int idx = apply_getval(ctx, value->lhs, ana, jmp, 0);
+            (void)apply_getval(ctx, value->rhs, ana, jmp, idx);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
             break;
         }
@@ -483,6 +527,20 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVS, .value1.s = key }));
             apply_getvals(ctx, value->lhs, ana, jmp);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
+            break;
+        case KXOP_MKRANGE:
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVS, .value1.s = key }));
+            gencode_ast_hook(ctx, value, ana, 0);
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_EQEQ }));
+            if (jmpblk < 0) {
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWIFZ,
+                    .value1.s = const_str(ctx, "NoMatchingPatternException"), .value2.s = const_str(ctx, "Pattern not matched") }));
+            } else {
+                // TODO: rolling back of stack is needed before jmp if it is inside nested array or object.
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ .op = KX_JNZ, .value1.i = jmpblk, .value2.i = 1 /* POP before JMP */ }));
+                KX_NEW_BLK(module, ana);
+            }
             break;
         default:
             if (node->lhs->type != KXOP_VAR) {
@@ -545,13 +603,6 @@ typedef struct kx_case_info_ {
     } else { \
         KX_CASE_TO_DEFAULT(info, module, ana, jmpcmd); \
     } \
-/**/
-#define KX_NEW_BLK(module, ana) \
-if (code_size(module, ana) > 0) { \
-    int next = new_block_hook(ana); \
-    get_block(module, ana->block)->tf[0] = next; \
-    ana->block = next; \
-} \
 /**/
 
 static void gen_jmp_search_case_block(kx_context_t *ctx, kx_analyze_t *ana, kx_case_info_t *info, kx_objvec_t *case_block, int len, int checked)
