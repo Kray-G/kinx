@@ -33,7 +33,7 @@ void opt_code_optimize_jmp(kvec_pt(kx_code_t) *fixcode, int start)
         kx_code_t *code = kv_A(*fixcode, i);
         if (code->op == KX_JZ || code->op == KX_JNZ) {
             kx_code_t *next = kv_A(*fixcode, i+1);
-            if (next->op == KX_JMP && code->addr == (i+2)) {
+            if (next->op == KX_JMP && code->addr == (i+2) && code->value2.i == next->value2.i) {
                 code->op = code->op == KX_JZ ? KX_JNZ : KX_JZ;
                 code->addr = next->addr;
                 code->value1.i = next->value1.i;
