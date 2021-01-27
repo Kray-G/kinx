@@ -10,8 +10,19 @@ jobs:
       - name: install
         run: |
           cd build
-          make
+          make clean all
+          rm -f /usr/bin/kinx
+          rm -f /usr/bin/kxrepl
+          rm -f /usr/bin/kxtest
+          rm -rf /usr/bin/kinxlib
           sudo make install
           cd ..
       - name: run test
-        run: kinx --exec:spectest -v
+        run: |
+          echo `pwd`
+          ls -lha
+          echo kinx
+          ls -lha /usr/bin/kinx
+          ls -lha /usr/bin/kx*
+          ls -lha /usr/bin/kinxlib/*
+          kinx --exec:spectest -v
