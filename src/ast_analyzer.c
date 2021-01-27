@@ -1051,8 +1051,17 @@ LOOP_HEAD:;
     }
 
     case KXOP_CASE: {
+        // case has a scope.
+        ++actx->depth;
+        kxana_symbol_t* table = &(kv_last(actx->symbols));
+        int size = kv_size(table->list);
+
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
+        analyze_ast(ctx, node->ex, actx);
+
+        kv_shrinkto(table->list, size);
+        --actx->depth;
         break;
     }
     case KXOP_WHEN: {
