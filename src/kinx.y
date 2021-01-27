@@ -34,7 +34,7 @@ static inline void yy_restart(int token)
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT ENUM
+%token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN ENUM
 %token NEW VAR CONST RETURN THROW YIELD MIXIN
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
@@ -157,6 +157,11 @@ static inline void yy_restart(int token)
 %type<intval> ArrayLevel
 %type<intval> ReturnType_Opt
 %type<intval> GetLineNumber
+%type<obj> CaseWhenExpression
+%type<obj> WhenClauseList
+%type<obj> WhenClause
+%type<obj> CaseElseClause
+%type<obj> WhenClauseBody
 
 %%
 
@@ -376,6 +381,7 @@ ExpressionStatement
 AssignExpression_Opt
     : { $$ = kx_gen_stmt_object(KXST_EXPR, NULL, NULL, NULL); }
     | AssignExpression Modifier_Opt { $$ = kx_gen_modifier($2, kx_gen_stmt_object(KXST_EXPR, $1, NULL, NULL)); }
+    | CASE AssignExpression WhenClauseList CaseElseClause { $$ = kx_gen_stmt_object(KXST_EXPR, kx_gen_case_expr_object($2, $3, $4), NULL, NULL); }
     ;
 
 AssignExpressionList_Opt
@@ -386,6 +392,29 @@ AssignExpressionList_Opt
 Modifier_Opt
     : { $$ = NULL; }
     | IF '(' AssignExpressionList ')' { $$ = kx_gen_stmt_object(KXST_IF, $3, NULL, NULL); }
+    ;
+
+CaseWhenExpression
+    : CASE AssignExpression WhenClauseList CaseElseClause { $$ = kx_gen_case_expr_object($2, $3, $4); }
+    ;
+
+WhenClauseList
+    : WhenClause
+    | WhenClauseList WhenClause { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $2); }
+    ;
+
+WhenClause
+    : WHEN ArrayItemListCoreRight Modifier_Opt ':' WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
+    ;
+
+CaseElseClause
+    : /* empty */ { $$ = NULL; }
+    | ELSE ':' WhenClauseBody { $$ = kx_gen_stmtlist($3, kx_gen_break_object(KXST_BREAK, NULL)); }
+    ;
+
+WhenClauseBody
+    : BlockStatement { $$ = kx_gen_bexpr_object(KXOP_CALL, kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $1, NULL), NULL); }
+    | TernaryExpression
     ;
 
 AssignExpression
@@ -409,6 +438,7 @@ AssignExpression
 AssignRightHandSide
     : TernaryExpression
     | ObjectSpecialSyntax
+    | CaseWhenExpression
     ;
 
 ObjectSpecialSyntax
@@ -572,6 +602,7 @@ Factor
     | '.' PropertyName { $$ = $2; }
     | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }
     | '(' AssignExpression ')' { $$ = $2; }
+    | '(' CaseWhenExpression ')' { $$ = $2; }
     | '(' ObjectSpecialSyntax ')' { $$ = $2; }
     | '(' STR ')' { $$ = kx_gen_str_object($2); }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
@@ -599,6 +630,7 @@ PropertyName
     | CONTINUE { $$ = kx_gen_str_object("continue"); }
     | SWITCH { $$ = kx_gen_str_object("switch"); }
     | CASE { $$ = kx_gen_str_object("case"); }
+    | WHEN { $$ = kx_gen_str_object("when"); }
     | DEFAULT { $$ = kx_gen_str_object("default"); }
     | NEW { $$ = kx_gen_str_object("new"); }
     | VAR { $$ = kx_gen_str_object("var"); }
@@ -740,6 +772,7 @@ KeySpecialName
     | CONTINUE { $$ = "continue"; }
     | SWITCH { $$ = "switch"; }
     | CASE { $$ = "case"; }
+    | WHEN { $$ = "when"; }
     | NEW { $$ = "new"; }
     | VAR { $$ = "var"; }
     | CONST { $$ = "const"; }
@@ -776,6 +809,7 @@ ClassFunctionSpecialName
     | CONTINUE { $$ = "continue"; }
     | SWITCH { $$ = "switch"; }
     | CASE { $$ = "case"; }
+    | WHEN { $$ = "when"; }
     | NEW { $$ = "new"; }
     | VAR { $$ = "var"; }
     | CONST { $$ = "const"; }

@@ -1453,6 +1453,14 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
     }
+    case KXOP_CASE: {
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
+    }
+    case KXOP_WHEN: {
+        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        break;
+    }
 
     case KXOP_TER: {
         int cond = gen_kxn_block(nctx);
@@ -1963,8 +1971,8 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
-        kx_finally_vec_t *finallies = nctx->finallies;
-        nctx->finallies = (kx_finally_vec_t *)kx_calloc(1, sizeof(kx_finally_vec_t));
+        kx_object_vec_t *finallies = nctx->finallies;
+        nctx->finallies = (kx_object_vec_t *)kx_calloc(1, sizeof(kx_object_vec_t));
         nctx->in_finally = 0;
         nctx->func_name = node->value.s;
         nctx->local_vars = node->local_vars;

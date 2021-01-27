@@ -306,6 +306,22 @@ LOOP_HEAD:;
         display_ast(node->lhs, indent + 1, 0);
         break;
 
+    case KXOP_CASE:
+        printf("(case-when)\n");
+        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->rhs, indent + 1, 0);
+        break;
+    case KXOP_WHEN:
+        printf("(when)\n");
+        display_ast(node->lhs, indent + 1, 0);
+        if (node->ex) {
+            print_indent(node, indent + 1);
+            printf("(if)\n");
+            display_ast(node->ex, indent + 2, 0);
+        }
+        display_ast(node->rhs, indent + 1, 0);
+        break;
+
     case KXOP_TER:
         printf("(?:)\n");
         display_ast(node->lhs, indent + 1, 0);
