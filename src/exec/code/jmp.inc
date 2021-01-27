@@ -1,6 +1,11 @@
 #define KX_JMP_CODE() \
 { \
-    if (cur->value2.i) kv_remove_last(ctx->stack); \
+    if (cur->value2.i > 0) { \
+        int l = cur->value2.i; \
+        while (l--) { \
+            kv_remove_last(ctx->stack); \
+        } \
+    } \
     cur = cur->jmp; \
 } \
 /**/
@@ -10,7 +15,12 @@
     KEX_POP_STACK_TOP(v); \
     int tf = (KX_LIKELY((v)->type == KX_INT_T) ? (v)->value.iv : kx_value_true(ctx, v)); \
     if (tf) { \
-        if (cur->value2.i) kv_remove_last(ctx->stack); \
+        if (cur->value2.i > 0) { \
+            int l = cur->value2.i; \
+            while (l--) { \
+                kv_remove_last(ctx->stack); \
+            } \
+        } \
         cur = cur->jmp; \
     } else { \
         cur = cur->next; \
@@ -23,7 +33,12 @@
     KEX_POP_STACK_TOP(v); \
     int tf = (KX_LIKELY((v)->type == KX_INT_T) ? (v)->value.iv : kx_value_true(ctx, v)); \
     if (!tf) { \
-        if (cur->value2.i) kv_remove_last(ctx->stack); \
+        if (cur->value2.i > 0) { \
+            int l = cur->value2.i; \
+            while (l--) { \
+                kv_remove_last(ctx->stack); \
+            } \
+        } \
         cur = cur->jmp; \
     } else { \
         cur = cur->next; \

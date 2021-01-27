@@ -168,6 +168,8 @@ enum opecode {
     KXOP_ENUM,
     KXOP_SPREAD,
     KXOP_CBBLOCK,
+    KXOP_CASE,
+    KXOP_WHEN,
 
     /* ternary expression */
     KXOP_TER,
