@@ -16,8 +16,9 @@ Otherwise, compiler will use it as declared there.
 ### Array & Object Assignment
 
 You can use the style of an array or object in assignment.
-The following three styles are available.
-Note that it is different from a function argument, and Object Key Style is not available.
+The following two styles are available.
+Note that Object Key Style is not available.
+It is different from a function argument or declaration.
 
 * Array Style ... each item in the array will be assigned to a variable in the order.
 * Object Style ... each value will be assigned to the variable bound to each key.
