@@ -45,8 +45,8 @@ a = 20; // error.
 
 ### Destructuring assignment
 
-Destructuring assignment is supported and spread/rest operator is also available.
-But destructuring assignment for Object is not supported.
+Destructuring assignment is supported and a spread/rest operator is also available.
+But a spread/rest operator of destructuring assignment for Object is not supported.
 
 ```javascript
 var [a, ...b] = [10, 20, 30];
@@ -61,8 +61,6 @@ const [a, ...b] = [10, 20, 30];
 a = 10; // error.
 ```
 
-### Array & Object Assignment
-
 You can use the style of an array or object in assignment.
 The following three styles are available.
 
@@ -73,7 +71,7 @@ The following three styles are available.
 Here is an example.
 
 ```javascript
-var [a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+var [a, b, , ...c] = [1, 2, 3, 4, 5, 6];  // 3rd parameter is skipped.
 var { x, y } = { x: 20, y: { a: 30, b: 300 } };
 var { x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
 
