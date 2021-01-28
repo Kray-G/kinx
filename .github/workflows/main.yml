@@ -26,7 +26,7 @@ jobs:
           tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
 
           mkdir -p $tag/lib
-          cp ./utility/install.sh $tag/install.sh
+          cp ./build/utility/install.sh $tag/install.sh
           cp /usr/bin/kinx $tag/kinx
           cp /usr/bin/kxrepl $tag/kxrepl
           cp /usr/bin/kxtest $tag/kxtest
