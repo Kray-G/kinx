@@ -160,6 +160,9 @@ static inline void yy_restart(int token)
 %type<obj> CaseWhenExpression
 %type<obj> WhenClauseList
 %type<obj> WhenClause
+%type<obj> WhenConditionRange
+%type<obj> WhenPostfixExpression
+%type<obj> WhenCondition
 %type<obj> CaseElseClause
 %type<obj> WhenClauseBody
 
@@ -347,6 +350,7 @@ BreakStatement
 
 ReturnStatement
     : RETURN GetLineNumber AssignExpressionList_Opt Modifier_Opt ';' { $$ = kx_gen_modifier($4, kx_gen_stmt_object_line(KXST_RET, $3, NULL, NULL, $2)); }
+    | RETURN GetLineNumber CaseWhenExpression Modifier_Opt ';' { $$ = kx_gen_modifier($4, kx_gen_stmt_object_line(KXST_RET, $3, NULL, NULL, $2)); }
     | SYSRET_NV ';' { $$ = kx_gen_stmt_object(KXST_SYSRET_NV, NULL, NULL, NULL); }
     ;
 
@@ -356,8 +360,10 @@ YieldStatement
 
 YieldExpression
     : YIELD AssignExpression { $$ = kx_gen_uexpr_object(KXOP_YIELD, $2); }
+    | YIELD CaseWhenExpression { $$ = kx_gen_uexpr_object(KXOP_YIELD, $2); }
     | YIELD { $$ = kx_gen_uexpr_object(KXOP_YIELD, kx_gen_special_object(KXVL_NULL)); }
     | AssignExpression '=' YIELD AssignExpression { $$ = $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_uexpr_object(KXOP_YIELD, $4)); }
+    | AssignExpression '=' YIELD CaseWhenExpression { $$ = $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_uexpr_object(KXOP_YIELD, $4)); }
     | AssignExpression '=' YIELD { $$ = $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_uexpr_object(KXOP_YIELD, kx_gen_special_object(KXVL_NULL))); }
     ;
 
@@ -404,7 +410,38 @@ WhenClauseList
     ;
 
 WhenClause
-    : WHEN ArrayItemListCoreRight Modifier_Opt Colon_Opt WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
+    : WHEN WhenConditionRange Modifier_Opt Colon_Opt WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
+    ;
+
+WhenConditionRange
+    : WhenPostfixExpression
+    | LMBR ArrayItemList RMBR { $$ = kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1); }
+    | LBBR ArrayItemList RBBR { $$ = kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1); }
+    | WhenPostfixExpression DOTS2 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 0); }
+    | WhenPostfixExpression DOTS2 WhenPostfixExpression { $$ = kx_gen_range_object($1, $3, 0); }
+    | WhenPostfixExpression DOTS3 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 1); }
+    | WhenPostfixExpression DOTS3 WhenPostfixExpression { $$ = kx_gen_range_object($1, $3, 1); }
+    ;
+
+WhenPostfixExpression
+    : WhenCondition
+    | WhenPostfixExpression PostIncDec { $$ = kx_gen_uexpr_object($2, $1); }
+    | WhenPostfixExpression LMBR AssignExpression RMBR { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | WhenPostfixExpression '.' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, $1, $3); }
+    | WhenPostfixExpression '.' TYPEOF { $$ = kx_gen_typeof_object($1, $3); }
+    | WhenPostfixExpression '(' CallArgumentList_Opts ')' { $$ = kx_gen_bexpr_object(KXOP_CALL, $1, $3); }
+    ;
+
+WhenCondition
+    : INT { $$ = kx_gen_int_object($1); }
+    | DBL { $$ = kx_gen_dbl_object($1); }
+    | BIGINT { $$ = kx_gen_big_object($1); }
+    | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
+    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
+    | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
+    | '(' STR ')' { $$ = kx_gen_str_object($2); }
+    | '(' AssignExpression ')' { $$ = $2; }
     ;
 
 CaseElseClause
