@@ -97,7 +97,7 @@ var x = (case y when 1: 1 when 2: 2) + 3;
 System.println(x);  // => 4
 ```
 
-### Fall Through
+### No Fallthrough
 
 No fallthrough mechanism in `case-when`.
 Just one condition is selected and do it.

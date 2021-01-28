@@ -42,7 +42,7 @@ System.println("fib(34) = ", fib(34));  // fib(34) = 9227465
 
 ### Arguments
 
-You can use the style of an array or object in arguments.
+You can use the style of an array or object in arguments, which is same as declaration statement.
 The following three styles are available.
 
 * Array Style ... each item in the array will be assigned to a variable in the order.
@@ -80,7 +80,7 @@ y = 100
 
 #### Pattern Matching
 
-As this is same as assignment, the pattern matching is available also in an argument.
+As this is same as assignment and declaration, the pattern matching is available also in an argument.
 If a part of variables is a literal, it will be checked if the same value.
 And if matching a pattern is failed, the exdeption of `NoMatchingPatternException` will be raised.
 
