@@ -4535,9 +4535,7 @@ kx_fnc_t *kx_try_mul_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         int64_t v1val = (v1)->value.iv; \
         int64_t v2val = (val); \
         if (v1val == INT64_MIN && v2val == -1) { \
-            BigZ bi = BzFromString("8000000000000000", 16, BZ_UNTIL_END); \
-            BzSetSign(bi, BZ_PLUS); \
-            (v1)->value.bz = make_big_alive(ctx, bi); \
+            (v1)->value.bz = make_big_alive(ctx, BzCopy(get_int64max_plus1())); \
             (v1)->type = KX_BIG_T; \
         } else if (v1val % (v2val > 0 ? v2val : -v2val) == 0) { \
             (v1)->value.iv /= v2val; \
