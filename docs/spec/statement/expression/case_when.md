@@ -102,7 +102,7 @@ System.println(x);  // => 4
 No fallthrough mechanism in `case-when`.
 Just one condition is selected and do it.
 If not matching to any cases, it selects `else` clause.
-And if no `else` clause, the exdeption of `NoMatchingPatternException` will be raised.
+And if no `else` clause, the exception of `NoMatchingPatternException` will be raised.
 
 ```javascript
 function example(y) {
