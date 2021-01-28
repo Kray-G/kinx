@@ -13,7 +13,7 @@ You can use a variable without declaration, but the scope depends on the situati
 If there is a declaration in outer scope, compiler will refer it.
 Otherwise, compiler will use it as declared there.
 
-### Array & Object Assignment
+### Destructuring assignment
 
 You can use the style of an array or object in assignment.
 The following two styles are available.
