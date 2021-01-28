@@ -13,6 +13,90 @@ You can use a variable without declaration, but the scope depends on the situati
 If there is a declaration in outer scope, compiler will refer it.
 Otherwise, compiler will use it as declared there.
 
+### Array & Object Assignment
+
+You can use the style of an array or object in assignment.
+The following two styles are available.
+Note that Object Key Style is not available.
+It is different from a function argument or declaration.
+
+* Array Style ... each item in the array will be assigned to a variable in the order.
+* Object Style ... each value will be assigned to the variable bound to each key.
+
+Here is an example.
+
+```javascript
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+{ x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
+
+System.println("a = ", a);
+System.println("b = ", b);
+System.println("c = ", c);
+System.println("d = ", d);
+System.println("e = ", e);
+System.println("f = ", f);
+```
+
+Here is the result.
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+f = 300
+```
+
+#### Pattern Matching
+
+When it is an assignment expresison, the pattern matching is available.
+If a part of variables is a literal, it will be checked if the same value.
+And if matching a pattern is failed, the exdeption of `NoMatchingPatternException` will be raised.
+
+Here is an example.
+
+```javascript
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+{ x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 300 } };
+
+System.println("a = ", a);
+System.println("b = ", b);
+System.println("c = ", c);
+System.println("d = ", d);
+System.println("e = ", e);
+
+// => .y.b requires 300, but it is 3 in actual.
+{ x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 3 } };
+```
+
+Here is the result.
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at <main-block>(test.kx:11)
+```
+
+##### Range in Pattern Matching
+
+If you write a Range in a pattern, it will check inside that Range.
+
+Here is an example.
+
+```javascript
+[1..10, b] = [1, 100];  // b => 100
+[1..10, b] = [2, 100];  // b => 100
+[1..10, b] = [9, 100];  // b => 100
+[1..10, b] = [11, 100]; // NoMatchingPatternException will occur.
+```
+
 ## Examples
 
 ### Example 1. Scope (1)
@@ -60,4 +144,90 @@ System.println(b);  // => ???
 
 ```
 Error: Symbol(b) is not found near the <test.kx>:8
+```
+
+### Example 3. Array & Object Style
+
+#### Code
+
+```javascript
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+{ x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
+
+System.println("a = ", a);
+System.println("b = ", b);
+System.println("c = ", c);
+System.println("d = ", d);
+System.println("e = ", e);
+System.println("f = ", f);
+```
+
+#### Result
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+f = 300
+```
+
+### Example 4. Pattern Matching
+
+#### Code
+
+```javascript
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+{ x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 300 } };
+
+System.println("a = ", a);
+System.println("b = ", b);
+System.println("c = ", c);
+System.println("d = ", d);
+System.println("e = ", e);
+
+// => .y.b requires 300, but it is 3 in actual.
+{ x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 3 } };
+```
+
+#### Result
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at <main-block>(test.kx:11)
+```
+
+### Example 5. Range in Pattern
+
+#### Code
+
+```javascript
+[1..10, b] = [1, 100];  // b => 100
+[1..10, c] = [2, 100];  // c => 100
+[1..10, d] = [9, 100];  // d => 100
+System.println("b = ", b);
+System.println("c = ", c);
+System.println("d = ", d);
+
+[1..10, b] = [11, 100]; // NoMatchingPatternException will occur.
+```
+
+#### Result
+
+```
+b = 100
+c = 100
+d = 100
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at <main-block>(test.kx:8)
 ```
