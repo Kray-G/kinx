@@ -40,6 +40,83 @@ function fib(n) {
 System.println("fib(34) = ", fib(34));  // fib(34) = 9227465
 ```
 
+### Arguments
+
+You can use the style of an array or object in arguments.
+The following three styles are available.
+
+* Array Style ... each item in the array will be assigned to a variable in the order.
+* Object Key Style ... the value according to a key name will be assigned to the variable of the same name as the key.
+* Object Style ... each value will be assigned to the variable bound to each key.
+
+Here is an example.
+
+```javascript
+function func([a, b, , ...c], { x, y }, { x: d, y: { a: e, b: f } }) {
+    System.println("a = ", a);
+    System.println("b = ", b);
+    System.println("c = ", c);
+    System.println("d = ", d);
+    System.println("e = ", e);
+    System.println("f = ", f);
+    System.println("x = ", x);
+    System.println("y = ", y);
+}
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 300 } });
+```
+
+Here is the result.
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+f = 300
+x = 10
+y = 100
+```
+
+#### Pattern Matching
+
+As this is same as assignment, the pattern matching is available also in an argument.
+If a part of variables is a literal, it will be checked if the same value.
+And if matching a pattern is failed, the exdeption of `NoMatchingPatternException` will be raised.
+
+Here is an example.
+
+```javascript
+function func([a, b, , ...c], { x, y }, { x: d, y: { a: e, b: 300 } }) {
+    System.println("a = ", a);
+    System.println("b = ", b);
+    System.println("c = ", c);
+    System.println("d = ", d);
+    System.println("e = ", e);
+    System.println("x = ", x);
+    System.println("y = ", y);
+}
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 300 } });
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 3 } });
+```
+
+Here is the result.
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+x = 10
+y = 100
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at function func(test.kx:1)
+        at <main-block>(test.kx:11)
+```
+
 ### Anonymous Function
 
 Here is the example of anonymous function.
@@ -335,4 +412,70 @@ Stack Trace Information:
         at <main-block>(test.kx:27)
 b = 102
 c = 999
+```
+
+### Example 11. Array & Object Style
+
+#### Code
+
+```javascript
+function func([a, b, , ...c], { x, y }, { x: d, y: { a: e, b: f } }) {
+    System.println("a = ", a);
+    System.println("b = ", b);
+    System.println("c = ", c);
+    System.println("d = ", d);
+    System.println("e = ", e);
+    System.println("f = ", f);
+    System.println("x = ", x);
+    System.println("y = ", y);
+}
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 300 } });
+```
+
+#### Result
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+f = 300
+x = 10
+y = 100
+```
+
+### Example 12. Pattern Matching
+
+#### Code
+
+```javascript
+function func([a, b, , ...c], { x, y }, { x: d, y: { a: e, b: 300 } }) {
+    System.println("a = ", a);
+    System.println("b = ", b);
+    System.println("c = ", c);
+    System.println("d = ", d);
+    System.println("e = ", e);
+    System.println("x = ", x);
+    System.println("y = ", y);
+}
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 300 } });
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 3 } });
+```
+
+#### Result
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+x = 10
+y = 100
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at function func(test.kx:1)
+        at <main-block>(test.kx:11)
 ```
