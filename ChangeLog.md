@@ -21,9 +21,11 @@
 *   Updated
     *   Added the same directory as a current parsing file to a search path for `using`.
     *   Introduced `File#getUtf8Char()` to get directly UTF8 character from a File object including `$stdin`.
-    *   Supported a different variable name from an object key in assignment syntax.
+    *   Introduced newly `case-when` expression for trial.
+        *   See [case-when](docs/spec/statement/expression/case_when.md) for details.
+    *   Supported a different variable name from an object key in assignment, declaration, and function arguments.
         *   `var { x: a, y: b } = { x: 10, y: 100 }` means `a = 10, b = 100`.
-    *   Supported a pattern matching syntax in assignment.
+    *   Supported a pattern matching syntax in assignment, declaration, and function arguments.
         *   `var { x: a, y: 100 } = { x: 10, y: m }` means `a = 10` if `m == 100`, otherwise an exception occurs.
     *   Relocation of build environment.
         *   Created a `build` directory and moved files needed at building to the `build` directory.
