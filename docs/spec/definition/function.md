@@ -42,7 +42,7 @@ System.println("fib(34) = ", fib(34));  // fib(34) = 9227465
 
 ### Arguments
 
-You can use the style of an array or object in arguments, which is same as declaration statement.
+You can use a destructuring assignment style in arguments, which is same as declaration statement.
 The following three styles are available.
 
 * Array Style ... each item in the array will be assigned to a variable in the order.
