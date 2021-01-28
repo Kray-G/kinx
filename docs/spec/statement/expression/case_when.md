@@ -453,3 +453,57 @@ Stack Trace Information:
         at function test(test.kx:9)
         at <main-block>(test.kx:14)
 ```
+
+### Example 9. DateTime
+
+#### Code
+
+```javascript
+using DateTime;
+
+function func(n) {
+    case n
+    when (DateTime("2000/1/1")..DateTime("2000/1/5")) {
+        System.print("range 1 - ");
+        System.println(n);
+    } when (DateTime("2000/1/6")...DateTime("2000/1/10")) {
+        System.print("range 2 - ");
+        System.println(n);
+    } when (DateTime("2000/1/11")..) {
+        System.print("range 3 - ");
+        System.println(n);
+    } else {
+        System.print("not matched - ");
+        System.println(n);
+    };
+}
+
+(DateTime("1999/12/30")..DateTime("2000/1/20")).each { => func(_1) };
+```
+
+#### Result
+
+```
+not matched - 1999/12/30 00:00:00
+not matched - 1999/12/31 00:00:00
+range 1 - 2000/01/01 00:00:00
+range 1 - 2000/01/02 00:00:00
+range 1 - 2000/01/03 00:00:00
+range 1 - 2000/01/04 00:00:00
+range 1 - 2000/01/05 00:00:00
+range 2 - 2000/01/06 00:00:00
+range 2 - 2000/01/07 00:00:00
+range 2 - 2000/01/08 00:00:00
+range 2 - 2000/01/09 00:00:00
+not matched - 2000/01/10 00:00:00
+range 3 - 2000/01/11 00:00:00
+range 3 - 2000/01/12 00:00:00
+range 3 - 2000/01/13 00:00:00
+range 3 - 2000/01/14 00:00:00
+range 3 - 2000/01/15 00:00:00
+range 3 - 2000/01/16 00:00:00
+range 3 - 2000/01/17 00:00:00
+range 3 - 2000/01/18 00:00:00
+range 3 - 2000/01/19 00:00:00
+range 3 - 2000/01/20 00:00:00
+```
