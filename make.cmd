@@ -13,6 +13,7 @@ copy /y kinx.exe ..
 copy /y kxrepl.exe ..
 copy /y kxtest.exe ..
 copy /y addpath.exe ..
+copy /y kx.lib ..
 copy /y *.dll ..
 
 :END
