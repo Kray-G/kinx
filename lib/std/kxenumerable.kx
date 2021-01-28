@@ -641,16 +641,18 @@ _class _Range(start_, end_, excludeEnd_) {
         return Integer.parseInt((end + start_) * (end - start_ + 1) / 2);
     }
     public ==(rhs) {
-        if (comp(start_, rhs) > 0) {
+        if (start_.isDefined && comp(start_, rhs) > 0) {
             return false;
         }
-        if (excludeEnd_) {
-            if (comp(end_, rhs) <= 0) {
-                return false;
-            }
-        } else {
-            if (comp(end_, rhs) < 0) {
-                return false;
+        if (end_.isDefined) {
+            if (excludeEnd_) {
+                if (comp(end_, rhs) <= 0) {
+                    return false;
+                }
+            } else {
+                if (comp(end_, rhs) < 0) {
+                    return false;
+                }
             }
         }
         return true;
