@@ -37,6 +37,21 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
             datetime_ = System.localtime(unixtime_);
         }
     }
+    public ==(rhs) {
+        if (rhs.isRange) {
+            return rhs == this;
+        }
+        if (rhs.isDateTime) {
+            return datetime_ == rhs.datetime();
+        }
+        return false;
+    }
+    public <=>(rhs) {
+        if (rhs.isDateTime) {
+            return rhs.datetime() - datetime_;
+        }
+        return false;
+    }
     public toString() {
         return ("%04d/%02d/%02d %02d:%02d:%02d"
             % datetime_.year % datetime_.month % datetime_.day % datetime_.hour % datetime_.minute % datetime_.second
