@@ -4,9 +4,13 @@
     int64_t v2val = (val); \
     if (v1val == 0 || v2val == 0) { \
         (v1)->value.iv = 0; \
-    } else if (v1val == INT64_MIN && v2val == -1) { \
-        (v1)->value.bz = make_big_alive(ctx, BzCopy(get_int64max_plus1())); \
-        (v1)->type = KX_BIG_T; \
+    } else if (v2val == -1) { \
+        if (v1val == INT64_MIN) { \
+            (v1)->value.bz = make_big_alive(ctx, BzCopy(get_int64max_plus1())); \
+            (v1)->type = KX_BIG_T; \
+        } else { \
+            (v1)->value.iv = -(v1)->value.iv; \
+        } \
     } else if ((v1val > 0 && v2val > 0) || (v1val < 0 && v2val < 0)) { \
         if (v1val > (INT64_MAX)/v2val) { \
             BigZ b2 = BzFromInteger(v2val); \
