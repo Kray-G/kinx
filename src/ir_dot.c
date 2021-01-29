@@ -297,17 +297,33 @@ int ir_code_dot_one(kx_code_t *code, kx_code_t *next)
     case KX_THROWE:
         printf("%s %s", "throw", "(stack-top)");
         break;
+    case KX_THROWIFZ:
+        printf("%s %s", "throwifz", code->value1.s);
+        break;
+
     case KX_CATCH:
         printf("%s %s", "catch", gen_varloc(code));
         break;
     case KX_JMP:
-        printf("%s \\.L%"PRId64, code->value2.i ? "jmpx" : "jmp", code->value1.i);
+        if (code->value2.i) {
+            printf("%s(%"PRId64") \\.L%"PRId64, "jmpx", code->value2.i, code->value1.i);
+        } else {
+            printf("%s \\.L%"PRId64, "jmp", code->value1.i);
+        }
         break;
     case KX_JZ:
-        printf("%s \\.L%"PRId64, code->value2.i ? "jzx" : "jz", code->value1.i);
+        if (code->value2.i) {
+            printf("%s(%"PRId64") \\.L%"PRId64, "jzx", code->value2.i, code->value1.i);
+        } else {
+            printf("%s \\.L%"PRId64, "jz", code->value1.i);
+        }
         break;
     case KX_JNZ:
-        printf("%s \\.L%"PRId64, code->value2.i ? "jnzx" : "jnz", code->value1.i);
+        if (code->value2.i) {
+            printf("%s(%"PRId64") \\.L%"PRId64, "jnzx", code->value2.i, code->value1.i);
+        } else {
+            printf("%s \\.L%"PRId64, "jnz", code->value1.i);
+        }
         break;
     case KX_JMPTBL:
         printf("%s", "jmptbl");
@@ -483,6 +499,25 @@ int ir_code_dot_one(kx_code_t *code, kx_code_t *next)
     case KX_APPLYLS:
         printf("%s \\\"%s\\\"", "applyls", kx_sanitize(code->value1.s));
         break;
+    case KX_MATCHAI:
+        printf("%s %"PRId64" == %"PRId64, "matchai", code->value1.i, code->value2.i);
+        break;
+    case KX_MATCHAD:
+        printf("%s %"PRId64" == %f", "matchad", code->value1.i, code->value2.d);
+        break;
+    case KX_MATCHAS:
+        printf("%s %"PRId64" == \"%s\"", "matchas", code->value1.i, code->value2.s);
+        break;
+    case KX_MATCHOI:
+        printf("%s [.%s] == %"PRId64, "matchoi", code->value1.s, code->value2.i);
+        break;
+    case KX_MATCHOD:
+        printf("%s [.%s] == %f", "matchod", code->value1.s, code->value2.d);
+        break;
+    case KX_MATCHOS:
+        printf("%s [.%s] == \"%s\"", "matchos", code->value1.s, code->value2.s);
+        break;
+
     case KX_APPENDK:
         printf("%s \\\"%s\\\"", "appendk", kx_sanitize(code->value1.s));
         break;
