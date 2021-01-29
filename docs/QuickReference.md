@@ -1039,7 +1039,8 @@ The order of upside of the list is higher.
 |  15   | Logical OR    | <code>&#124;&#124;</code>                                                                                     | left to right |
 |  16   | Logical UNDEF | `??`                                                                                                          | left to right |
 |  17   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | right to left |
-|  18   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
+|  18   | Case When     | `case-when`                                                                                                   | left to right |
+|  19   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
 
 ### Pattern-Matching operator
 
@@ -1119,6 +1120,44 @@ sample(1, 2, 3, 4, 5);
     // a3 = [3, 4, 5]
 ```
 
+And you can directly use a destructuring assignment in a function argument.
+See below for example.
+
+```javascript
+function func([a, b, , ...c], { x, y }, { x: d, y: { a: e, b: f } }) {
+    System.println("a = ", a);  // => a = 1
+    System.println("b = ", b);  // => b = 2
+    System.println("c = ", c);  // => c = [4, 5, 6]
+    System.println("d = ", d);  // => d = 20
+    System.println("e = ", e);  // => e = 30
+    System.println("f = ", f);  // => f = 300
+    System.println("x = ", x);  // => x = 10
+    System.println("y = ", y);  // => y = 100
+}
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 300 } });
+```
+
+In this case, the object pattern matching is also available.
+Here is an example.
+
+```javascript
+function func([a, b, , ...c], { x, y }, { x: d, y: { a: e, b: 300 } }) {
+    System.println("a = ", a);
+    System.println("b = ", b);
+    System.println("c = ", c);
+    System.println("d = ", d);
+    System.println("e = ", e);
+    System.println("x = ", x);
+    System.println("y = ", y);
+}
+
+// This is a good case, this shows the same result a above example.
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 300 } });
+
+// NoMathcingPatternException will occur because the last `b` is not matched.
+func([1, 2, 3, 4, 5, 6], { x: 10, y: 100 }, { x: 20, y: { a: 30, b: 3 } });
+```
+
 #### Arguments in Function Call
 
 You can write a variable name following `...` in a function call.
@@ -1140,9 +1179,7 @@ sample(...a, ...[3, 4, 5]);
 
 #### Destructuring Assignment
 
-Only for array, you can use destructuring assignment as below.
-In this case, you can **NOT** use `var` for declaration.
-Just write an array structure in the left hand side.
+You can use a destructuring assignment as below.
 Here is the sample below.
 
 ```javascript
@@ -1154,6 +1191,64 @@ function makeArray(...a1) {
     // a = 100
     // b = 200
     // c = [300, 400, 500]
+```
+
+The following two styles are available.
+Note that it is different from a declaration statement.
+In a declaration statement, you can use three styles.
+See the section of [Declaration Statement](#declaration-statement) for details.
+
+* Array Style ... each item in the array will be assigned to a variable in the order.
+* Object Style ... each value will be assigned to the variable bound to each key.
+
+Here is an example.
+
+```javascript
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];  // 3rd parameter is skipped.
+{ x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
+
+// a = 1
+// b = 2
+// c = [4, 5, 6]
+// d = 20
+// e = 30
+// f = 300
+```
+
+##### Pattern Matching Assignment
+
+The pattern matching is available in assignment.
+If a part of variables is a literal, it will be checked if the same value.
+And if matching a pattern is failed, the exdeption of `NoMatchingPatternException` will be raised.
+
+Here is an example.
+
+```javascript
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+{ x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 300 } };
+
+System.println("a = ", a);
+System.println("b = ", b);
+System.println("c = ", c);
+System.println("d = ", d);
+System.println("e = ", e);
+
+// => .y.b requires 300, but it is 3 in actual.
+{ x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 3 } };
+```
+
+Here is the result.
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at <main-block>(test.kx:11)
 ```
 
 #### Spreading Object
@@ -1210,6 +1305,72 @@ System.println(test(101));  // 101
 System.println(test(100));  // 1000
 ```
 
+##### `case-when` expression
+
+The `case-when` expression is introduced since the version 0.20.0.
+`case-when` is an expression which is different from `switch-case`.
+
+In the `case-when`, only one value is selected and it will be the value of expression.
+Here is the simple example.
+
+```javascript
+function example(y) {
+    var x = case y
+        when 1: 1
+        when 2: 20
+        when 3: 300
+        when 4: 4000
+        when 5: {
+            return 50000;
+                // this is an automatically called internal function,
+                // so 50000 will be returned to the case expression itself
+                // and it is just assigned to the variable `x`.
+        }
+        else: -1    // otherwise.
+    ;
+    return x + 1;
+}
+```
+
+At the `when`, the condition is checked by the object pattern matching like declaration.
+For example, see below.
+
+```javascript
+var obj = { x: 10, y: 20, z: { a: 100, b: 200 } };
+case obj
+when { x: vx, y: vy, z: { a: 100, b: 2000 } }: {
+    // not matched because `.b` is a different value.
+    System.println("Pattern 1 - %d %d" % vx % vy);
+}
+when { x: vx, y: vy, z: { a: 100, b: 200 } }: {
+    System.println("Pattern 2 - %d %d" % vx % vy);
+};
+```
+
+Here is the result.
+
+```
+Pattern 2 - 10 20
+```
+
+And also, you can use `if-modifier` to check an additional condition of the case.
+
+```javascript
+var v = 15;
+var y = 20;
+case y
+when 1..10:         System.println(y)
+when m if (m == v): System.println(m*2)
+when m:             System.println(m*10)    // matched to any value.
+;
+```
+
+You can see the following result.
+
+```
+200
+```
+
 #### Declaration Statement
 
 Declaration statement is a declaration of variables.
@@ -1231,7 +1392,31 @@ You can also use an object lvalue style in declaration.
 
 ```javascript
 var obj = { xxx: 100, yyy: 200 };
-var { yyy } = obj;  // yyy = 200
+var { yyy } = obj;     // yyy = 200
+var { yyy: y } = obj;  // y = 200
+```
+
+Totally, the following tree styles are available.
+
+* Array Style ... each item in the array will be assigned to a variable in the order.
+* Object Key Style ... the value according to a key name will be assigned to the variable of the same name as the key.
+* Object Style ... each value will be assigned to the variable bound to each key.
+
+Here is an example.
+
+```javascript
+var [a, b, , ...c] = [1, 2, 3, 4, 5, 6];  // 3rd parameter is skipped.
+var { x, y } = { x: 20, y: { a: 30, b: 300 } };
+var { x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
+
+// a = 1
+// b = 2
+// c = [4, 5, 6]
+// d = 20
+// e = 30
+// f = 300
+// x = 20
+// y = {"a":30,"b":300}
 ```
 
 ### Flow Controls
