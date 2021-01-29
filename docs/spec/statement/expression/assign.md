@@ -16,17 +16,17 @@ Otherwise, compiler will use it as declared there.
 ### Destructuring assignment
 
 You can use the style of an array or object in assignment.
-The following two styles are available.
-Note that Object Key Style is not available.
-It is different from a function argument or declaration.
+The following three styles are available.
 
 * Array Style ... each item in the array will be assigned to a variable in the order.
+* Object Key Style ... the value according to a key name will be assigned to the variable of the same name as the key.
 * Object Style ... each value will be assigned to the variable bound to each key.
 
 Here is an example.
 
 ```javascript
-[a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];  // 3rd parameter is skipped.
+{ x, y } = { x: 20, y: { a: 30, b: 300 } };
 { x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
 
 System.println("a = ", a);
@@ -35,6 +35,8 @@ System.println("c = ", c);
 System.println("d = ", d);
 System.println("e = ", e);
 System.println("f = ", f);
+System.println("x = ", x);
+System.println("y = ", y);
 ```
 
 Here is the result.
@@ -46,6 +48,8 @@ c = [4, 5, 6]
 d = 20
 e = 30
 f = 300
+x = 20
+y = {"a":30,"b":300}
 ```
 
 #### Pattern Matching
@@ -58,6 +62,7 @@ Here is an example.
 
 ```javascript
 [a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+{ x, y } = { x: 20, y: { a: 30, b: 300 } };
 { x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 300 } };
 
 System.println("a = ", a);
@@ -65,6 +70,8 @@ System.println("b = ", b);
 System.println("c = ", c);
 System.println("d = ", d);
 System.println("e = ", e);
+System.println("x = ", x);
+System.println("y = ", y);
 
 // => .y.b requires 300, but it is 3 in actual.
 { x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 3 } };
@@ -78,10 +85,12 @@ b = 2
 c = [4, 5, 6]
 d = 20
 e = 30
+x = 20
+y = {"a":30,"b":300}
 Uncaught exception: No one catch the exception.
 NoMatchingPatternException: Pattern not matched
 Stack Trace Information:
-        at <main-block>(test.kx:11)
+        at <main-block>(test.kx:14)
 ```
 
 ##### Range in Pattern Matching
@@ -151,7 +160,8 @@ Error: Symbol(b) is not found near the <test.kx>:8
 #### Code
 
 ```javascript
-[a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+[a, b, , ...c] = [1, 2, 3, 4, 5, 6];  // 3rd parameter is skipped.
+{ x, y } = { x: 20, y: { a: 30, b: 300 } };
 { x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
 
 System.println("a = ", a);
@@ -160,6 +170,8 @@ System.println("c = ", c);
 System.println("d = ", d);
 System.println("e = ", e);
 System.println("f = ", f);
+System.println("x = ", x);
+System.println("y = ", y);
 ```
 
 #### Result
@@ -171,6 +183,8 @@ c = [4, 5, 6]
 d = 20
 e = 30
 f = 300
+x = 20
+y = {"a":30,"b":300}
 ```
 
 ### Example 4. Pattern Matching
@@ -179,6 +193,7 @@ f = 300
 
 ```javascript
 [a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+{ x, y } = { x: 20, y: { a: 30, b: 300 } };
 { x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 300 } };
 
 System.println("a = ", a);
@@ -186,6 +201,8 @@ System.println("b = ", b);
 System.println("c = ", c);
 System.println("d = ", d);
 System.println("e = ", e);
+System.println("x = ", x);
+System.println("y = ", y);
 
 // => .y.b requires 300, but it is 3 in actual.
 { x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 3 } };
@@ -199,10 +216,12 @@ b = 2
 c = [4, 5, 6]
 d = 20
 e = 30
+x = 20
+y = {"a":30,"b":300}
 Uncaught exception: No one catch the exception.
 NoMatchingPatternException: Pattern not matched
 Stack Trace Information:
-        at <main-block>(test.kx:11)
+        at <main-block>(test.kx:14)
 ```
 
 ### Example 5. Range in Pattern
