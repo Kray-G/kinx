@@ -1685,7 +1685,6 @@ LOOP_HEAD:;
             apply_getvals(ctx, cond->lhs, ana, next, 1);
             add_pop(ana);
             break;
-        // case KXOP_MKRANGE:
         default:
             gencode_ast_hook(ctx, cond, ana, 0);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_EQEQ }));
