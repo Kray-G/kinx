@@ -1332,7 +1332,7 @@ function example(y) {
 }
 ```
 
-At the `when`, the condition is checked by the object pattern matching like declaration.
+At the `when`, the condition is checked by the object pattern matching like [declaration statement](#declaration-statement).
 For example, see below.
 
 ```javascript
@@ -1359,9 +1359,10 @@ And also, you can use `if-modifier` to check an additional condition of the case
 var v = 15;
 var y = 20;
 case y
-when 1..10:         System.println(y)
-when m if (m == v): System.println(m*2)
-when m:             System.println(m*10)    // matched to any value.
+when 1..10:         System.println(y)       // Range is aavilable with `when`.
+when m if (m == v): System.println(m*2)     // m is always matched,
+                                            // but failed because of m != v.
+when m:             System.println(m*10)    // m is matched to any value.
 ;
 ```
 
@@ -1417,6 +1418,45 @@ var { x: d, y: { a: e, b: f } } = { x: 20, y: { a: 30, b: 300 } };
 // f = 300
 // x = 20
 // y = {"a":30,"b":300}
+```
+
+The pattern matching is available also in a declaration statement.
+If a part of variables is a literal, it will be checked if the same value.
+And if matching a pattern is failed, the exdeption of `NoMatchingPatternException` will be raised.
+
+Here is an example.
+
+```javascript
+var [a, b, , ...c] = [1, 2, 3, 4, 5, 6];
+var { x, y } = { x: 20, y: { a: 30, b: 300 } };
+var { x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 300 } };
+
+System.println("a = ", a);
+System.println("b = ", b);
+System.println("c = ", c);
+System.println("d = ", d);
+System.println("e = ", e);
+System.println("x = ", x);
+System.println("y = ", y);
+
+// => .y.b requires 300, but it is 3 in actual.
+var { x: d, y: { a: e, b: 300 } } = { x: 20, y: { a: 30, b: 3 } };
+```
+
+Here is the result.
+
+```
+a = 1
+b = 2
+c = [4, 5, 6]
+d = 20
+e = 30
+x = 20
+y = {"a":30,"b":300}
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at <main-block>(test.kx:14)
 ```
 
 ### Flow Controls
