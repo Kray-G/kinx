@@ -607,9 +607,6 @@ static void ir_block_jmp_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *blo
     int jmp = 1;
     int clen = kv_size(block->code);
     if (clen == 0) {
-        if (next) {
-            printf("\tL%d:s -> L%d:n;\n", block->index, next->index);
-        }
         return;
     }
     int lasti = clen - 1;
@@ -670,12 +667,28 @@ static void ir_function_dot(int llen, kx_module_t *module, kvec_t(uint32_t) *lab
     int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
         int block = kv_A(func->block, i);
-        ir_block_dot(llen, labels, get_block(module, block));
+        kx_block_t *bcode = get_block(module, block);
+        if (kv_size(bcode->code) > 0) {
+            ir_block_dot(llen, labels, get_block(module, block));
+        }
     }
+    int last = len - 1;
     for (int i = 0; i < len; ++i) {
         int block = kv_A(func->block, i);
-        kx_block_t *next = i < (len-1) ? get_block(module, kv_A(func->block, i+1)) : NULL;
-        ir_block_jmp_dot(llen, labels, get_block(module, block), next);
+        kx_block_t *bcode = get_block(module, block);
+        if (kv_size(bcode->code) == 0) {
+            continue;
+        }
+        kx_block_t *next = i < last ? get_block(module, kv_A(func->block, i+1)) : NULL;
+        if (next && kv_size(next->code) == 0) {
+            for (int j = i + 1; j < last; ++j) {
+                next = j < last ? get_block(module, kv_A(func->block, j+1)) : NULL;
+                if (!next || kv_size(next->code) > 0) {
+                    break;
+                }
+            }
+        }
+        ir_block_jmp_dot(llen, labels, bcode, next);
     }
     printf("}\n");
 }
