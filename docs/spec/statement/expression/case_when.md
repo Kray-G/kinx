@@ -151,8 +151,7 @@ when { x: vx, y: vy, z: { a: 100, b: 2000 } }: {
 }
 when { x: vx, y: vy, z: { a: 100, b: 200 } }: {
     System.println("Pattern 2 - %d %d" % vx % vy);
-}
-;
+};
 ```
 
 Here is a result.
