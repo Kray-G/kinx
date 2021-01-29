@@ -16,7 +16,14 @@
     *   Documentation & SpecTest complete.
     *   Full documenting by SpecTest.
 
-## V0.20.0 (Current Development Version)
+## V0.21.0 (Current Development Version)
+
+*   Updated
+    *   Supported an assignment with an object key style.
+        *   `{ x, y } = { x: 10, y: 100 }` means `x = 10, y = 100`.
+    *   Some bug fixes and improvement.
+
+## V0.20.0 (20th Preview Release) - 2021/01/29
 
 *   Updated
     *   Added the same directory as a current parsing file to a search path for `using`.
