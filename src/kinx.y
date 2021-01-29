@@ -441,6 +441,7 @@ WhenCondition
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | '(' STR ')' { $$ = kx_gen_str_object($2); }
     | '(' AssignExpression ')' { $$ = $2; }
+    | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     ;
 
 CaseElseClause
