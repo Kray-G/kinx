@@ -1685,14 +1685,12 @@ LOOP_HEAD:;
             apply_getvals(ctx, cond->lhs, ana, next, 1);
             add_pop(ana);
             break;
-        case KXOP_MKRANGE:
+        // case KXOP_MKRANGE:
+        default:
             gencode_ast_hook(ctx, cond, ana, 0);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_EQEQ }));
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_JZ, .value1.i = jmpblk }));
             KX_NEW_BLK(module, ana);
-            break;
-        default:
-            kx_yyerror_line("Unsupported when condition expression", node->file, node->line);
             break;
         }
         if (node->ex) {
