@@ -19,11 +19,8 @@
 ## V0.21.0 (Current Development Version)
 
 *   Updated
-    *   Supported an assignment with an object key style.
-        *   `{ x, y } = { x: 10, y: 100 }` means `x = 10, y = 100`.
-    *   Some bug fixes and improvement.
 
-## V0.20.0 (20th Preview Release) - 2021/01/29
+## V0.20.1 (20th Preview Release) - 2021/01/29
 
 *   Updated
     *   Added the same directory as a current parsing file to a search path for `using`.
@@ -34,6 +31,8 @@
         *   `var { x: a, y: b } = { x: 10, y: 100 }` means `a = 10, b = 100`.
     *   Supported a pattern matching syntax in assignment, declaration, and function arguments.
         *   `var { x: a, y: 100 } = { x: 10, y: m }` means `a = 10` if `m == 100`, otherwise an exception occurs.
+    *   Supported an object key style also with an assignment.
+        *   `{ x, y } = { x: 10, y: 100 }` means `x = 10, y = 100`.
     *   Relocation of build environment.
         *   Created a `build` directory and moved files needed at building to the `build` directory.
     *   Some bug fixes and improvement.
