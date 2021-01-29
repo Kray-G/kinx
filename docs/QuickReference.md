@@ -1196,6 +1196,7 @@ function makeArray(...a1) {
 The following three styles are available.
 
 * Array Style ... each item in the array will be assigned to a variable in the order.
+* Object Key Style ... the value according to a key name will be assigned to the variable of the same name as the key.
 * Object Style ... each value will be assigned to the variable bound to each key.
 
 Here is an example.
