@@ -148,8 +148,7 @@ var obj = { x: 10, y: 20, z: { a: 100, b: 200 } };
 case obj
 when { x: vx, y: vy, z: { a: 100, b: 2000 } }: {
     System.println("Pattern 1 - %d %d" % vx % vy);
-}
-when { x: vx, y: vy, z: { a: 100, b: 200 } }: {
+} when { x: vx, y: vy, z: { a: 100, b: 200 } }: {
     System.println("Pattern 2 - %d %d" % vx % vy);
 };
 ```
@@ -306,11 +305,9 @@ var obj = { x: 10, y: 20, z: { a: 100, b: 200 } };
 case obj
 when { x: vx, y: vy, z: { a: 100, b: 2000 } }: {
     System.println("Pattern 1 - %d %d" % vx % vy);
-}
-when { x: vx, y: vy, z: { a: 100, b: 200 } }: {
+} when { x: vx, y: vy, z: { a: 100, b: 200 } }: {
     System.println("Pattern 2 - %d %d" % vx % vy);
-}
-;
+};
 ```
 
 #### Result
@@ -339,122 +336,7 @@ when m: System.println(m*10)    // matched to any value.
 200
 ```
 
-### Example 6. Various Example (1)
-
-#### Code
-
-```javascript
-function test(y, m, n) {
-    return case y
-        when 1:
-            1
-        when 2..10:
-            10
-        when v if (v == m):
-            v + 42
-        when v if (v == n):
-            v + 58
-        else:
-            -1
-    ;
-}
-System.println(test(-1));
-System.println(test(1));
-System.println(test(2));
-System.println(test(5));
-System.println(test(10));
-System.println(test(100, 100, 2));
-System.println(test(200, 1, 200));
-```
-
-#### Result
-
-```
--1
-1
-10
-10
-10
-142
-258
-```
-
-### Example 7. Various Example (2)
-
-#### Code
-
-```javascript
-function test([y, z, i, j, k, x]) {
-    var val = case [y, z, i, j, k]
-        when [1, ...a]:
-            a[2]
-        when [2..10, a, b]:
-            a + b + 10
-        when [v, m, ...n] if (10 < v && v <= 20):
-            v + m + n[0] + 42
-        when [v, 50, ...a] if (v == x):
-            v + 58
-        else:
-            -1
-    ;
-    return val;
-}
-System.println(test([1, 2, 3, 4, 5, 6]));
-System.println(test([2, 2, 3, 4, 5, 6]));
-System.println(test([10, 12, 13, 14, 15, 16]));
-System.println(test([11, 12, 13, 14, 15, 16]));
-System.println(test([50, 50, 13, 14, 15, 50]));
-System.println(test([50, 50, 13, 14, 15, 51]));
-System.println(test([50, 51, 13, 14, 15, 50]));
-```
-
-#### Result
-
-```
-4
-15
-35
-78
-108
--1
--1
-```
-
-### Example 8. Various Example (3)
-
-#### Code
-
-```javascript
-function test(m, obj) {
-    return case obj
-        when { x: 5, y: y, sub: z } if (y == m):
-            { => y }()
-        when { x: 6, y: y, sub: { a: 1, b: b, c: c} }:
-            y + b + c
-        when { x: 10, y: y, sub: z }:
-            z
-    ;
-}
-System.println(test(20, { x: 5, y: 20, sub: { a: 1, b: 2, c: 3 } }));
-System.println(test(20, { x: 6, y: 10, sub: { a: 1, b: 2, c: 3 } }));
-System.println(test(20, { x: 10, y: 10, sub: { a: 1, b: 2, c: 3 } }));
-System.println(test(10, { x: 5, y: 20, sub: { a: 1, b: 2, c: 3 } }));
-```
-
-#### Result
-
-```
-20
-15
-{"a":1,"b":2,"c":3}
-Uncaught exception: No one catch the exception.
-NoMatchingPatternException: Pattern not matched
-Stack Trace Information:
-        at function test(test.kx:9)
-        at <main-block>(test.kx:14)
-```
-
-### Example 9. DateTime
+### Example 6. DateTime
 
 #### Code
 
@@ -506,4 +388,149 @@ range 3 - 2000/01/17 00:00:00
 range 3 - 2000/01/18 00:00:00
 range 3 - 2000/01/19 00:00:00
 range 3 - 2000/01/20 00:00:00
+```
+
+### Example 7. Various Example (1)
+
+#### Code
+
+```javascript
+function test(y, m, n) {
+    return case y
+        when 1:
+            1
+        when 2..10:
+            10
+        when v if (v == m):
+            v + 42
+        when v if (v == n):
+            v + 58
+        else:
+            -1
+    ;
+}
+System.println(test(-1));
+System.println(test(1));
+System.println(test(2));
+System.println(test(5));
+System.println(test(10));
+System.println(test(100, 100, 2));
+System.println(test(200, 1, 200));
+```
+
+#### Result
+
+```
+-1
+1
+10
+10
+10
+142
+258
+```
+
+### Example 8. Various Example (2)
+
+#### Code
+
+```javascript
+function test([y, z, i, j, k, x]) {
+    var val = case [y, z, i, j, k]
+        when [1, ...a]:
+            a[2]
+        when [2..10, a, b]:
+            a + b + 10
+        when [v, m, ...n] if (10 < v && v <= 20):
+            v + m + n[0] + 42
+        when [v, 50, ...a] if (v == x):
+            v + 58
+        else:
+            -1
+    ;
+    return val;
+}
+System.println(test([1, 2, 3, 4, 5, 6]));
+System.println(test([2, 2, 3, 4, 5, 6]));
+System.println(test([10, 12, 13, 14, 15, 16]));
+System.println(test([11, 12, 13, 14, 15, 16]));
+System.println(test([50, 50, 13, 14, 15, 50]));
+System.println(test([50, 50, 13, 14, 15, 51]));
+System.println(test([50, 51, 13, 14, 15, 50]));
+```
+
+#### Result
+
+```
+4
+15
+35
+78
+108
+-1
+-1
+```
+
+### Example 9. Various Example (3)
+
+#### Code
+
+```javascript
+function test(m, obj) {
+    return case obj
+        when { x: 5, y: y, sub: z } if (y == m):
+            { => y }()
+        when { x: 6, y: y, sub: { a: 1, b: b, c: c} }:
+            y + b + c
+        when { x: 10, y: y, sub: z }:
+            z
+    ;
+}
+System.println(test(20, { x: 5, y: 20, sub: { a: 1, b: 2, c: 3 } }));
+System.println(test(20, { x: 6, y: 10, sub: { a: 1, b: 2, c: 3 } }));
+System.println(test(20, { x: 10, y: 10, sub: { a: 1, b: 2, c: 3 } }));
+System.println(test(10, { x: 5, y: 20, sub: { a: 1, b: 2, c: 3 } }));
+```
+
+#### Result
+
+```
+20
+15
+{"a":1,"b":2,"c":3}
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at function test(test.kx:9)
+        at <main-block>(test.kx:14)
+```
+
+### Example 10. Various Example (4)
+
+#### Code
+
+```javascript
+json = %{
+    {
+        "name": "Alice",
+        "age": 30,
+        "children": [
+            {
+                "name": "Bob",
+                "age": 2
+            }
+        ]
+    }
+};
+
+case JSON.parse(json)
+when {name: "Alice", children: [{name: "Bob", age: age}]} {
+    System.println(age);
+};
+```
+
+#### Result
+
+```
+2
 ```
