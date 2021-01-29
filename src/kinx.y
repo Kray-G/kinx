@@ -119,7 +119,6 @@ static inline void yy_restart(int token)
 %type<strval> RegexString
 %type<obj> ArrayItemList
 %type<obj> ArrayItemListCore
-%type<obj> ArrayItemListCoreRight
 %type<obj> CommaList
 %type<obj> AssignExpressionList
 %type<obj> AssignExpressionObjList
@@ -323,7 +322,7 @@ ForStatement
 
 ForInVariable
     : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | LMBR ArrayItemList RMBR { $$ = kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1); }
+    | Array
     ;
 
 TryCatchStatement
@@ -415,8 +414,8 @@ WhenClause
 
 WhenConditionRange
     : WhenPostfixExpression
-    | LMBR ArrayItemList RMBR { $$ = kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1); }
-    | LBBR ArrayItemList RBBR { $$ = kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1); }
+    | Array
+    | Object
     | WhenPostfixExpression DOTS2 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 0); }
     | WhenPostfixExpression DOTS2 WhenPostfixExpression { $$ = kx_gen_range_object($1, $3, 0); }
     | WhenPostfixExpression DOTS3 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 1); }
@@ -750,27 +749,10 @@ CommaList
 
 ArrayItemListCore
     : AssignExpression
-    | NAME ':' ArrayItemListCoreRight { $$ = kx_gen_keyvalue_object($1, $3); }
-    | KeySpecialName ':' ArrayItemListCoreRight { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemListCore ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
     | ArrayItemListCore ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
-    | ArrayItemListCore ',' NAME ':' ArrayItemListCoreRight { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_keyvalue_object($3, $5)); }
-    | ArrayItemListCore ',' KeySpecialName ':' ArrayItemListCoreRight { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_keyvalue_object($3, $5)); }
     | ArrayItemListCore ',' DOTS3 AssignRightHandSide { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
-    ;
-
-ArrayItemListCoreRight
-    : INT { $$ = kx_gen_int_object($1); }
-    | DBL { $$ = kx_gen_dbl_object($1); }
-    | BIGINT { $$ = kx_gen_big_object($1); }
-    | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
-    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
-    | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
-    | '(' STR ')' { $$ = kx_gen_str_object($2); }
-    | LMBR ArrayItemList RMBR { $$ = kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1); }
-    | LBBR ArrayItemList RBBR { $$ = kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1); }
     ;
 
 AssignExpressionList
@@ -798,6 +780,7 @@ KeyValue
     | KeySpecialName ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | KeySpecialName ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
+    | NAME { $$ = kx_gen_keyvalue_object($1, kx_gen_var_object($1, KX_UNKNOWN_T)); }
     ;
 
 KeySpecialName
@@ -922,8 +905,8 @@ DeclAssignExpression
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
     | VarName '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
     | VarName ':' TypeName ReturnType_Opt '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
-    | LMBR ArrayItemList RMBR '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object_line(KXOP_MKARY, $2, $1), $5); }
-    | LBBR ArrayItemList RBBR '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_uexpr_object_line(KXOP_MKOBJ, $2, $1), $5); }
+    | Array '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, $1, $3); }
+    | Object '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, $1, $3); }
     ;
 
 DeclAssignRightHandSide
@@ -1024,8 +1007,8 @@ ArgumentList
 Argument
     : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_var_type_object($1, $3, $4); }
-    | LMBR ArrayItemList RMBR { $$ = kx_gen_ary_var_object($2, KX_LARY_T); }
-    | LBBR ArrayItemList RBBR { $$ = kx_gen_ary_var_object($2, KX_LOBJ_T); }
+    | Array { $$ = kx_gen_ary_var_object($1->lhs, KX_LARY_T); }
+    | Object { $$ = kx_gen_ary_var_object($1->lhs, KX_LOBJ_T); }
     | DOTS3 VarName { $$ = kx_gen_var_object($2, KX_SPR_T); }
     ;
 

@@ -1701,7 +1701,9 @@ LOOP_HEAD:;
             KX_NEW_BLK(module, ana);
         }
         gencode_ast_hook(ctx, node->rhs, ana, 0);
-        get_block(module, ana->block)->tf[0] = next;
+        if (code_size(module, ana) > 0) {
+            get_block(module, ana->block)->tf[0] = next;
+        }
         ana->block = next;
         break;
     }
