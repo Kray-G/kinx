@@ -181,9 +181,10 @@ That is why, you can use `if-modifier` to check if `y` equals `v`.
 var v = 15;
 var y = 20;
 case y
-when 1..10: System.println(y)
-when m if (m == v): System.println(m*2)
-when m: System.println(m*10)    // matched to any value.
+when 1..10:         System.println(y)
+when m if (m == v): System.println(m*2)     // m is always matched,
+                                            // but failed because of m != v.
+when m:             System.println(m*10)    // m is matched to any value.
 ;
 ```
 
