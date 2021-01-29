@@ -297,17 +297,33 @@ int ir_code_dot_one(kx_code_t *code, kx_code_t *next)
     case KX_THROWE:
         printf("%s %s", "throw", "(stack-top)");
         break;
+    case KX_THROWIFZ:
+        printf("%s %s", "throwifz", code->value1.s);
+        break;
+
     case KX_CATCH:
         printf("%s %s", "catch", gen_varloc(code));
         break;
     case KX_JMP:
-        printf("%s \\.L%"PRId64, code->value2.i ? "jmpx" : "jmp", code->value1.i);
+        if (code->value2.i) {
+            printf("%s(%"PRId64") \\.L%"PRId64, "jmpx", code->value2.i, code->value1.i);
+        } else {
+            printf("%s \\.L%"PRId64, "jmp", code->value1.i);
+        }
         break;
     case KX_JZ:
-        printf("%s \\.L%"PRId64, code->value2.i ? "jzx" : "jz", code->value1.i);
+        if (code->value2.i) {
+            printf("%s(%"PRId64") \\.L%"PRId64, "jzx", code->value2.i, code->value1.i);
+        } else {
+            printf("%s \\.L%"PRId64, "jz", code->value1.i);
+        }
         break;
     case KX_JNZ:
-        printf("%s \\.L%"PRId64, code->value2.i ? "jnzx" : "jnz", code->value1.i);
+        if (code->value2.i) {
+            printf("%s(%"PRId64") \\.L%"PRId64, "jnzx", code->value2.i, code->value1.i);
+        } else {
+            printf("%s \\.L%"PRId64, "jnz", code->value1.i);
+        }
         break;
     case KX_JMPTBL:
         printf("%s", "jmptbl");
@@ -483,6 +499,25 @@ int ir_code_dot_one(kx_code_t *code, kx_code_t *next)
     case KX_APPLYLS:
         printf("%s \\\"%s\\\"", "applyls", kx_sanitize(code->value1.s));
         break;
+    case KX_MATCHAI:
+        printf("%s %"PRId64" == %"PRId64, "matchai", code->value1.i, code->value2.i);
+        break;
+    case KX_MATCHAD:
+        printf("%s %"PRId64" == %f", "matchad", code->value1.i, code->value2.d);
+        break;
+    case KX_MATCHAS:
+        printf("%s %"PRId64" == \"%s\"", "matchas", code->value1.i, code->value2.s);
+        break;
+    case KX_MATCHOI:
+        printf("%s [.%s] == %"PRId64, "matchoi", code->value1.s, code->value2.i);
+        break;
+    case KX_MATCHOD:
+        printf("%s [.%s] == %f", "matchod", code->value1.s, code->value2.d);
+        break;
+    case KX_MATCHOS:
+        printf("%s [.%s] == \"%s\"", "matchos", code->value1.s, code->value2.s);
+        break;
+
     case KX_APPENDK:
         printf("%s \\\"%s\\\"", "appendk", kx_sanitize(code->value1.s));
         break;
@@ -572,9 +607,6 @@ static void ir_block_jmp_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *blo
     int jmp = 1;
     int clen = kv_size(block->code);
     if (clen == 0) {
-        if (next) {
-            printf("\tL%d:s -> L%d:n;\n", block->index, next->index);
-        }
         return;
     }
     int lasti = clen - 1;
@@ -635,12 +667,28 @@ static void ir_function_dot(int llen, kx_module_t *module, kvec_t(uint32_t) *lab
     int len = kv_size(func->block);
     for (int i = 0; i < len; ++i) {
         int block = kv_A(func->block, i);
-        ir_block_dot(llen, labels, get_block(module, block));
+        kx_block_t *bcode = get_block(module, block);
+        if (kv_size(bcode->code) > 0) {
+            ir_block_dot(llen, labels, get_block(module, block));
+        }
     }
+    int last = len - 1;
     for (int i = 0; i < len; ++i) {
         int block = kv_A(func->block, i);
-        kx_block_t *next = i < (len-1) ? get_block(module, kv_A(func->block, i+1)) : NULL;
-        ir_block_jmp_dot(llen, labels, get_block(module, block), next);
+        kx_block_t *bcode = get_block(module, block);
+        if (kv_size(bcode->code) == 0) {
+            continue;
+        }
+        kx_block_t *next = i < last ? get_block(module, kv_A(func->block, i+1)) : NULL;
+        if (next && kv_size(next->code) == 0) {
+            for (int j = i + 1; j < last; ++j) {
+                next = j < last ? get_block(module, kv_A(func->block, j+1)) : NULL;
+                if (!next || kv_size(next->code) > 0) {
+                    break;
+                }
+            }
+        }
+        ir_block_jmp_dot(llen, labels, bcode, next);
     }
     printf("}\n");
 }
