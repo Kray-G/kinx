@@ -776,8 +776,7 @@ KeyValue
     | KeySpecialName ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
     | KeySpecialName ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
-    | NAME { $$ = kx_gen_keyvalue_object($1, kx_gen_var_object($1, KX_UNKNOWN_T)); }
-    | KeySpecialName { $$ = kx_gen_keyvalue_object($1, kx_gen_var_object($1, KX_UNKNOWN_T)); }
+    | VarName { $$ = kx_gen_keyvalue_object($1, kx_gen_var_object($1, KX_UNKNOWN_T)); }
     ;
 
 KeySpecialName
