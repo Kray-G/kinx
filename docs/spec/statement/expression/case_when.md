@@ -239,6 +239,40 @@ test(3);
 test(10);
 ```
 
+### Function Call in When Clause
+
+You can put a simple function object in `when` clause.
+Here is an example below.
+
+```javascript
+function test(n) {
+    case n
+    when { => _1.isInteger }: System.println("%d is Integer" % n)
+    when { => _1.isDouble }:  System.println("%f is Double" % n)
+    when { => _1.isString }:  System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
+Note that you should wrap it by `(` and `)` if you want to put an anonymous function which is not a above way.
+Otherwise it will cause a compile error.
+
+```javascript
+function test(n) {
+    case n
+    when (&() => _1.isInteger): System.println("%d is Integer" % n)
+    when (&() => _1.isDouble):  System.println("%f is Double" % n)
+    when (&() => _1.isString):  System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
 ## Examples
 
 ### Example 1. Normal Case
@@ -699,4 +733,29 @@ when {name: "Alice", children: [{name: "Bob", age: age}]} {
 
 ```
 2
+```
+
+### Example 14. Various Example (6)
+
+#### Code
+
+```javascript
+function test(n) {
+    case n
+    when { => _1.isInteger }: System.println("%d is Integer" % n)
+    when { => _1.isDouble }:  System.println("%f is Double" % n)
+    when { => _1.isString }:  System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
+#### Result
+
+```
+10 is Integer
+10.000000 is Double
+10.0 is String
 ```
