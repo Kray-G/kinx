@@ -668,7 +668,7 @@ LOOP_HEAD:;
             if (node->lhs && node->lhs->type == KXOP_VAR) {
                 kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
                 if (sym && sym->optional == KXDC_CONST) {
-                    kx_yyerror_line("Can not assign a value to the 'const' variable", node->file, node->line);
+                    kx_yyerror_line("Can not assign a value to the 'const' variable", node->lhs->file, node->lhs->line);
                     break;
                 }
             }
@@ -1065,10 +1065,38 @@ LOOP_HEAD:;
         break;
     }
     case KXOP_WHEN: {
-        int decl = actx->decl;
-        actx->decl = 1;
-        analyze_ast(ctx, node->lhs, actx);
-        actx->decl = decl;
+        kvec_pt(kx_object_t) stack;
+        kv_init(stack);
+        kv_push(kx_object_t*, stack, node->lhs);
+        while (kv_size(stack) > 0) {
+            kx_object_t *cond = kv_pop(stack);
+            if (cond->type == KXST_EXPRLIST) {
+                kv_push(kx_object_t*, stack, cond->rhs);
+                kv_push(kx_object_t*, stack, cond->lhs);
+                continue;
+            }
+            if (cond->type == KXOP_MKOBJ || cond->type == KXOP_MKARY) {
+                kv_push(kx_object_t*, stack, cond->lhs);
+                continue;
+            }
+            if (cond->type == KXOP_KEYVALUE) {
+                kv_push(kx_object_t*, stack, cond->lhs);
+                continue;
+            }
+            if (cond->type == KXOP_VAR && cond->optional != KXDC_CONST) {
+                kxana_symbol_t *sym = search_symbol_table(ctx, cond, cond->value.s, actx);
+                if (sym && sym->optional == KXDC_CONST) {
+                    kx_yyerror_line("Can not assign a value to the 'const' variable", cond->file, cond->line);
+                    break;
+                }
+            }
+            int lvalue = actx->lvalue;
+            actx->lvalue = 1;
+            analyze_ast(ctx, cond, actx);
+            actx->lvalue = lvalue;
+        }
+        kv_destroy(stack);
+
         analyze_ast(ctx, node->rhs, actx);
         analyze_ast(ctx, node->ex, actx);
         break;
