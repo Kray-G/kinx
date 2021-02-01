@@ -454,8 +454,17 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             break;
         default:
             if (!(node->type == KXOP_VAR && node->var_type == KX_UND_T)) {
-                gencode_ast_hook(ctx, node, ana, 1);
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYV, .value1.i = index }));
+                // KXDC_CONST means with a pin operator.
+                if (node->optional == KXDC_CONST) {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVI, .value1.i = index }));
+                    gencode_ast_hook(ctx, node, ana, 0);
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_EQEQ }));
+                    KX_CHECK_PATTERN_JMP(jmpblk, nested);
+                } else {
+                    gencode_ast_hook(ctx, node, ana, 1);
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYV, .value1.i = index }));
+                }
             }
             break;
         }
@@ -537,8 +546,13 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
             KX_CHECK_PATTERN_JMP(jmpblk, nested);
             break;
         default:
-            if (node->lhs->type != KXOP_VAR) {
-                kx_yyerror_line("The variable is needed in object assignment", node->file, node->line);
+            // KXDC_CONST means with a pin operator.
+            if (node->optional == KXDC_CONST) {
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVS, .value1.s = key }));
+                gencode_ast_hook(ctx, value, ana, 0);
+                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_EQEQ }));
+                KX_CHECK_PATTERN_JMP(jmpblk, nested);
             } else {
                 gencode_ast_hook(ctx, node->lhs, ana, 1);
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETOBJV, .value1.s = key }));
@@ -1668,15 +1682,6 @@ LOOP_HEAD:;
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_JZ, .value1.i = jmpblk }));
             KX_NEW_BLK(module, ana);
             break;
-        case KXOP_VAR:
-            gencode_ast_hook(ctx, cond, ana, 1);
-            if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHLV) {
-                last_op(ana) = KX_STOREV;
-            } else {
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
-            }
-            add_pop(ana);
-            break;
         case KXOP_MKARY:
             apply_getval(ctx, cond->lhs, ana, next, 0, 1);
             add_pop(ana);
@@ -1685,6 +1690,20 @@ LOOP_HEAD:;
             apply_getvals(ctx, cond->lhs, ana, next, 1);
             add_pop(ana);
             break;
+        case KXOP_IDX:
+        case KXOP_VAR:
+            // KXDC_CONST means with a pin operator.
+            if (cond->optional != KXDC_CONST) {
+                gencode_ast_hook(ctx, cond, ana, 1);
+                if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHLV) {
+                    last_op(ana) = KX_STOREV;
+                } else {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_STORE }));
+                }
+                add_pop(ana);
+                break;
+            }
+            // fallthrough
         default:
             // This includes the case of KXOP_MKRANGE.
             gencode_ast_hook(ctx, cond, ana, 0);
