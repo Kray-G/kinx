@@ -668,7 +668,7 @@ LOOP_HEAD:;
             if (node->lhs && node->lhs->type == KXOP_VAR) {
                 kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
                 if (sym && sym->optional == KXDC_CONST) {
-                    kx_yyerror_line("Can not assign a value to the 'const' variable", node->file, node->line);
+                    kx_yyerror_line("Can not assign a value to the 'const' variable", node->lhs->file, node->lhs->line);
                     break;
                 }
             }
@@ -1065,10 +1065,17 @@ LOOP_HEAD:;
         break;
     }
     case KXOP_WHEN: {
-        int decl = actx->decl;
-        actx->decl = 1;
+        if (node->lhs && node->lhs->type == KXOP_VAR && node->lhs->optional != KXDC_CONST) {
+            kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
+            if (sym && sym->optional == KXDC_CONST) {
+                kx_yyerror_line("Can not assign a value to the 'const' variable", node->lhs->file, node->lhs->line);
+                break;
+            }
+        }
+        int lvalue = actx->lvalue;
+        actx->lvalue = 1;
         analyze_ast(ctx, node->lhs, actx);
-        actx->decl = decl;
+        actx->lvalue = lvalue;
         analyze_ast(ctx, node->rhs, actx);
         analyze_ast(ctx, node->ex, actx);
         break;
