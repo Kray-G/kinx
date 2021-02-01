@@ -6,7 +6,7 @@ Kinx has a JIT Compiler Library to use JIT easily.
 
 ### using Jit
 
-JIT Library is not a embedded library, so you should load it by `using`.
+JIT Library is not an embedded library, so you should load it by `using`.
 
 ```javascript
 using Jit;
