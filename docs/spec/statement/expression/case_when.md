@@ -483,6 +483,8 @@ function test([y, z, i, j, k, x]) {
             a[2]
         when [2..10, a, b]:
             a + b + 10
+        when [2..10, a, b, _, _]:
+            a + b + 10
         when [v, m, ...n] if (10 < v && v <= 20):
             v + m + n[0] + 42
         when [v, 50, ...a] if (v == x):
@@ -518,6 +520,47 @@ System.println(test([50, 51, 13, 14, 15, 50]));
 #### Code
 
 ```javascript
+function test([y, z, i, j, k, x]) {
+    var val = case [y, z, i, j, k]
+        when [1, ...a]:
+            a[2]
+        when [v, m, ...n] if (10 < v && v <= 20):
+            v + m + n[0] + 42
+        when [v, 50, ...a] if (v == x):
+            v + 58
+        when [2..10, a, b, ...x]:
+            a + b + 10
+        else:
+            -1
+    ;
+    return val;
+}
+System.println(test([1, 2, 3, 4, 5, 6]));
+System.println(test([2, 2, 3, 4, 5, 6]));
+System.println(test([10, 12, 13, 14, 15, 16]));
+System.println(test([11, 12, 13, 14, 15, 16]));
+System.println(test([50, 50, 13, 14, 15, 50]));
+System.println(test([50, 50, 13, 14, 15, 51]));
+System.println(test([50, 51, 13, 14, 15, 50]));
+```
+
+#### Result
+
+```
+4
+15
+35
+78
+108
+-1
+-1
+```
+
+### Example 11. Various Example (4)
+
+#### Code
+
+```javascript
 function test(m, obj) {
     return case obj
         when { x: 5, y: y, sub: z } if (y == m):
@@ -547,7 +590,7 @@ Stack Trace Information:
         at <main-block>(test.kx:14)
 ```
 
-### Example 11. Various Example (4)
+### Example 12. Various Example (5)
 
 #### Code
 
