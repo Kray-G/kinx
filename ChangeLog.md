@@ -19,6 +19,10 @@
 ## V0.21.0 (Current Development Version)
 
 *   Updated
+    *   Updated `case-when` features.
+        *   Supported `^` as a pin operator.
+        *   Supported an lvalue of array with index at `when` condition.
+        *   Supported `||` operator for multiple conditions at `when` condition.
 
 ## V0.20.1 (20th Preview Release) - 2021/01/29
 
