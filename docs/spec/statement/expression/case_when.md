@@ -107,12 +107,12 @@ And if no `else` clause, the exception of `NoMatchingPatternException` will be r
 ```javascript
 function example(y) {
     return case y
-        when 0 0
-        when 1 1
-        when 2 20
-        when 3 300
-        when 4 4000
-        when 5 {
+        when 0: 0
+        when 1: 1
+        when 2: 20
+        when 3: 300
+        when 4: 4000
+        when 5: {
             return 50000;
         }
         // no else clause...
@@ -159,9 +159,9 @@ Here is a result.
 Pattern 2 - 10 20
 ```
 
-### If Modifier
+### Pin Operator
 
-As `case-when` uses a pattern matching, you can use `if-modifier` for the value check.
+As `case-when` uses a pattern matching, you can use `^` as a pin operator for the value check.
 
 ```javascript
 var y = 20;
@@ -174,7 +174,29 @@ when v: System.println(v*2)
 ;
 ```
 
-That is why, you can use `if-modifier` to check if `y` equals `v`.
+That is why, you can use `^` as a pin operator to check if `y` equals `v`.
+
+```javascript
+var v = 15;
+var y = 20;
+case y
+when 1..10: System.println(y)
+when ^v:    System.println(v*2)     // v is not an lvalue, just check it.
+when v:     System.println(v*10)    // v is matched to any value.
+;
+```
+
+It will show the result below.
+
+```
+200
+```
+
+### If Modifier
+
+Instead of a pin operator, you can also use `if-modifier` for the value check.
+
+Here is an example of `if-modifier` to check if `y` equals `v`.
 
 ```javascript
 var v = 15;
@@ -265,12 +287,12 @@ function example(y) {
 ```javascript
 function example(y) {
     return case y
-        when 0 0
-        when 1 1
-        when 2 20
-        when 3 300
-        when 4 4000
-        when 5 {
+        when 0: 0
+        when 1: 1
+        when 2: 20
+        when 3: 300
+        when 4: 4000
+        when 5: {
             return 50000;
         }
         // no else clause...
@@ -316,7 +338,27 @@ when { x: vx, y: vy, z: { a: 100, b: 2000 } }: {
 Pattern 2 - 10 20
 ```
 
-### Example 5. If Modifier
+### Example 5. Pin Operator
+
+#### Code
+
+```javascript
+var v = 15;
+var y = 20;
+case y
+when 1..10: System.println(y)
+when ^v: System.println(v*2)
+when v: System.println(v*10)    // matched to any value.
+;
+```
+
+#### Result
+
+```
+200
+```
+
+### Example 6. If Modifier
 
 #### Code
 
@@ -336,7 +378,7 @@ when m: System.println(m*10)    // matched to any value.
 200
 ```
 
-### Example 6. DateTime
+### Example 7. DateTime
 
 #### Code
 
@@ -390,7 +432,7 @@ range 3 - 2000/01/19 00:00:00
 range 3 - 2000/01/20 00:00:00
 ```
 
-### Example 7. Various Example (1)
+### Example 8. Various Example (1)
 
 #### Code
 
@@ -430,7 +472,7 @@ System.println(test(200, 1, 200));
 258
 ```
 
-### Example 8. Various Example (2)
+### Example 9. Various Example (2)
 
 #### Code
 
@@ -471,7 +513,7 @@ System.println(test([50, 51, 13, 14, 15, 50]));
 -1
 ```
 
-### Example 9. Various Example (3)
+### Example 10. Various Example (3)
 
 #### Code
 
@@ -505,7 +547,7 @@ Stack Trace Information:
         at <main-block>(test.kx:14)
 ```
 
-### Example 10. Various Example (4)
+### Example 11. Various Example (4)
 
 #### Code
 
