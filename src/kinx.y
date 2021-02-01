@@ -471,6 +471,7 @@ WhenPostfixExpression
 
 WhenCondition
     : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | SimpleFuncCallFactor
     | '(' AssignExpression ')' { $$ = $2; }
     | INT { $$ = kx_gen_int_object($1); }
     | DBL { $$ = kx_gen_dbl_object($1); }
