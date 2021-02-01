@@ -41,8 +41,6 @@
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));\
             }\
         }\
-    } else { \
-        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP })); \
     }\
 /**/
 #define KX_DEF_BINCHKCMD(CMD) \
@@ -1716,11 +1714,11 @@ LOOP_HEAD:;
             case KXOP_MKARY:
                 if (last || exblk < 0) {
                     apply_getval(ctx, cond->lhs, ana, next, 0, 1);
-                    add_pop(ana);
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP })); \
                 } else {
                     int nc = new_block_hook(ana);
                     apply_getval(ctx, cond->lhs, ana, nc, 0, 1);
-                    add_pop(ana);
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP })); \
                     get_block(module, ana->block)->tf[0] = exblk;
                     ana->block = nc;
                 }
@@ -1728,11 +1726,11 @@ LOOP_HEAD:;
             case KXOP_MKOBJ: {
                 if (last || exblk < 0) {
                     apply_getvals(ctx, cond->lhs, ana, next, 1);
-                    add_pop(ana);
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP })); \
                 } else {
                     int nc = new_block_hook(ana);
                     apply_getvals(ctx, cond->lhs, ana, nc, 1);
-                    add_pop(ana);
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP })); \
                     get_block(module, ana->block)->tf[0] = exblk;
                     ana->block = nc;
                 }
