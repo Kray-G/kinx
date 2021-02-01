@@ -167,7 +167,6 @@ using DateTime;
 function test(dt) {
     System.println("=> ", dt);
     System.println("    isLeapYear  = ", dt.isLeapYear());
-    System.println("    unixtime    = ", dt.unixtime());
     System.println("    datetime    = ", dt.datetime());
     System.println("    year        = ", dt.year());
     System.println("    month       = ", dt.month());
@@ -193,7 +192,6 @@ function test(dt) {
 ```
 => 2020/01/01 00:00:00
     isLeapYear  = 1
-    unixtime    = 1577804400
     datetime    = {"day":1,"hour":0,"minute":0,"month":1,"second":0,"weekday":3,"year":2020}
     year        = 2020
     month       = 1
@@ -211,7 +209,6 @@ function test(dt) {
     isSaturday  = 0
 => 2020/01/02 00:00:00
     isLeapYear  = 1
-    unixtime    = 1577890800
     datetime    = {"day":2,"hour":0,"minute":0,"month":1,"second":0,"weekday":4,"year":2020}
     year        = 2020
     month       = 1
@@ -229,7 +226,6 @@ function test(dt) {
     isSaturday  = 0
 => 2020/01/03 00:00:00
     isLeapYear  = 1
-    unixtime    = 1577977200
     datetime    = {"day":3,"hour":0,"minute":0,"month":1,"second":0,"weekday":5,"year":2020}
     year        = 2020
     month       = 1
@@ -256,7 +252,6 @@ using DateTime;
 function test(dt) {
     System.println("=> ", dt);
     System.println("    isLeapYear  = ", dt.isLeapYear());
-    System.println("    unixtime    = ", dt.unixtime());
     System.println("    datetime    = ", dt.datetime());
     System.println("    year        = ", dt.year());
     System.println("    month       = ", dt.month());
@@ -282,7 +277,6 @@ function test(dt) {
 ```
 => 2021/01/01 00:00:00
     isLeapYear  = 0
-    unixtime    = 1609426800
     datetime    = {"day":1,"hour":0,"minute":0,"month":1,"second":0,"weekday":5,"year":2021}
     year        = 2021
     month       = 1
@@ -300,7 +294,6 @@ function test(dt) {
     isSaturday  = 0
 => 2021/01/02 00:00:00
     isLeapYear  = 0
-    unixtime    = 1609513200
     datetime    = {"day":2,"hour":0,"minute":0,"month":1,"second":0,"weekday":6,"year":2021}
     year        = 2021
     month       = 1
@@ -318,7 +311,6 @@ function test(dt) {
     isSaturday  = 1
 => 2021/01/03 00:00:00
     isLeapYear  = 0
-    unixtime    = 1609599600
     datetime    = {"day":3,"hour":0,"minute":0,"month":1,"second":0,"weekday":0,"year":2021}
     year        = 2021
     month       = 1
