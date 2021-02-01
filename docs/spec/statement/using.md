@@ -5,7 +5,7 @@
 `using` is used to load an external library.
 As some of standard library is not loaded automatically, you have to load it before using it.
 
-For example, [DateTime](../basic/datetime.md) has to be loaded before using it if you want to use `DateTime` object.
+For example, [DateTime](../lib/basic/datetime.md) has to be loaded before using it if you want to use `DateTime` object.
 
 ```javascript
 using DateTime;
