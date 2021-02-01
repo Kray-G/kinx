@@ -435,6 +435,9 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         case KXOP_MKARY:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVI, .value1.i = index }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_ARY_T } }));
+            KX_CHECK_PATTERN_JMP(jmpblk, nested+1);
             int idx = apply_getval(ctx, node->lhs, ana, jmp, 0, nested + 1);
             (void)apply_getval(ctx, node->rhs, ana, jmp, idx, nested + 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
@@ -442,6 +445,9 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         case KXOP_MKOBJ:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVI, .value1.i = index }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_OBJ_T } }));
+            KX_CHECK_PATTERN_JMP(jmpblk, nested+1);
             apply_getvals(ctx, node->lhs, ana, jmp, nested + 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
             break;
@@ -453,12 +459,6 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
             KX_CHECK_PATTERN_JMP(jmpblk, nested);
             break;
         default:
-            if (node->type == KXOP_VAR) {
-                kxana_symbol_t *sym = node->ex;
-                if (sym && sym->optional == KXDC_CONST) {
-                    kx_yyerror_line("Can not assign a value to the 'const' variable", node->file, node->line);
-                }
-            }
             if (!(node->type == KXOP_VAR && node->var_type == KX_UND_T)) {
                 // KXDC_CONST means with a pin operator.
                 if (node->optional == KXDC_CONST) {
@@ -533,6 +533,9 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
         case KXOP_MKARY: {
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVS, .value1.s = key }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_ARY_T } }));
+            KX_CHECK_PATTERN_JMP(jmpblk, nested+1);
             int idx = apply_getval(ctx, value->lhs, ana, jmp, 0, nested + 1);
             (void)apply_getval(ctx, value->rhs, ana, jmp, idx, nested + 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
@@ -541,6 +544,9 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
         case KXOP_MKOBJ:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPLYVS, .value1.s = key }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_DUP }));
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_TYPEOF, .value1 = { .i = KX_OBJ_T } }));
+            KX_CHECK_PATTERN_JMP(jmpblk, nested+1);
             apply_getvals(ctx, value->lhs, ana, jmp, nested + 1);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));
             break;
