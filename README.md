@@ -97,7 +97,7 @@ Sharing the definition of **C Style Syntax**, it is below.
 *   **Fall through** in switch case.
     *   There are pros and cons anyway.
     *   But a C programmer will feel it to continue to the next when there is no `break`.
-    *   I will wait for any proposals about this anytime.
+    *   If you want to do it without `break`, you can use **[case-when](docs/spec/statement/expression/case_when.md)** instead for that purpose.
 *   etc.
 
 For example that is C, C++, Java, JavaScript, C#, and so on.
