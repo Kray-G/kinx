@@ -270,10 +270,6 @@ static void add_const(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *dec
 
 static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
 {
-    if (actx->in_case_when) {
-        return 0;
-    }
-
     #define KX_ANON_CASE(c, i) \
     case c: \
         node->var_type = actx->in_native ? KX_INT_T : KX_UNKNOWN_T; \
@@ -284,7 +280,7 @@ static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
     /**/
     const char *name = node->value.s;
     if (name && name[0] == '_') {
-        if (name[1] == 0) {
+        if (!actx->in_case_when && name[1] == 0) {
             node->var_type = actx->in_native ? KX_INT_T : KX_UNKNOWN_T;
             node->lexical = 0;
             node->index = actx->anon_arg++;
