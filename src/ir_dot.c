@@ -602,7 +602,33 @@ static void ir_block_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *block)
     printf("}\"];\n");
 }
 
-static void ir_block_jmp_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *block, kx_block_t *next)
+static int get_block_number(kx_module_t *module, kx_function_t *func, int nexti, int blks)
+{
+    int pos = 0;
+    kx_block_t *next = NULL;
+    for (int i = 0; i < blks; ++i) {
+        kx_block_t *nextblk = get_block(module, kv_A(func->block, i));
+        if (nextblk->index == nexti) {
+            next = nextblk;
+            pos = i;
+            break;
+        }
+    }
+    if (next) {
+        if (kv_size(next->code) == 0) {
+            for (int j = pos + 1; j < blks; ++j) {
+                next = j < blks ? get_block(module, kv_A(func->block, j)) : NULL;
+                if (!next || kv_size(next->code) > 0) {
+                    break;
+                }
+            }
+        }
+        return next->index;
+    }
+    return -1;
+}
+
+static void ir_block_jmp_dot(int llen, kx_module_t *module, kvec_t(uint32_t) *labels, kx_function_t *func, kx_block_t *block, kx_block_t *next, int blks)
 {
     int jmp = 1;
     int clen = kv_size(block->code);
@@ -629,16 +655,16 @@ static void ir_block_jmp_dot(int llen, kvec_t(uint32_t) *labels, kx_block_t *blo
         case KX_THROWE:
             break;
         case KX_JMP:
-            printf("\tL%d:s -> L%"PRId64":n;\n", block->index, last->value1.i);
+            printf("\tL%d:s -> L%d:n;\n", block->index, get_block_number(module, func, last->value1.i, blks));
             break;
         case KX_JZ:
-            printf("\tL%d:s -> L%"PRId64":n;\n", block->index, last->value1.i);
+            printf("\tL%d:s -> L%d:n;\n", block->index, get_block_number(module, func, last->value1.i, blks));
             if (i == lasti && next) {
                 printf("\tL%d:s -> L%d:n;\n", block->index, next->index);
             }
             break;
         case KX_JNZ:
-            printf("\tL%d:s -> L%"PRId64":n;\n", block->index, last->value1.i);
+            printf("\tL%d:s -> L%d:n;\n", block->index, get_block_number(module, func, last->value1.i, blks));
             if (i == lasti && next) {
                 printf("\tL%d:s -> L%d:n;\n", block->index, next->index);
             }
@@ -688,7 +714,7 @@ static void ir_function_dot(int llen, kx_module_t *module, kvec_t(uint32_t) *lab
                 }
             }
         }
-        ir_block_jmp_dot(llen, labels, bcode, next);
+        ir_block_jmp_dot(llen, module, labels, func, bcode, next, len);
     }
     printf("}\n");
 }
