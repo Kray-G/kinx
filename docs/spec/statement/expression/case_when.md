@@ -209,6 +209,70 @@ when m:             System.println(m*10)    // m is matched to any value.
 ;
 ```
 
+### Alternative Pattern
+
+You can put multiple conditions in `when` clause.
+This is called as an alternative pattern.
+The pattern should be separated by `||` which is same as a logical OR operator.
+This separator of `||` is also a shortcut operator which is same as a logical OR operator.
+
+Here is a simple example of this.
+
+```javascript
+case n
+when 1 || 2 || 3: System.println(n)
+;
+```
+
+Of course you can also use it for an array or object.
+
+```javascript
+function test(n) {
+    case [n]
+    when [1] || [2] || [3]: System.println(n)
+    when [v]: System.println(v)
+    ;
+}
+test(1);
+test(2);
+test(3);
+test(10);
+```
+
+### Function Call in When Clause
+
+You can put a simple function object in `when` clause.
+Here is an example below.
+
+```javascript
+function test(n) {
+    case n
+    when { => _1.isInteger }: System.println("%d is Integer" % n)
+    when { => _1.isDouble }:  System.println("%f is Double" % n)
+    when { => _1.isString }:  System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
+Note that you should wrap it by `(` and `)` if you want to put an anonymous function which is not a above way.
+Otherwise it will cause a compile error.
+
+```javascript
+function test(n) {
+    case n
+    when (&() => _1.isInteger): System.println("%d is Integer" % n)
+    when (&() => _1.isDouble):  System.println("%f is Double" % n)
+    when (&() => _1.isString):  System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
 ## Examples
 
 ### Example 1. Normal Case
@@ -432,7 +496,58 @@ range 3 - 2000/01/19 00:00:00
 range 3 - 2000/01/20 00:00:00
 ```
 
-### Example 8. Various Example (1)
+### Example 8. Alternative Pattern
+
+#### Code
+
+```javascript
+var v = 18;
+function func(n) {
+    case n
+    when 1 || 2 || 3 {
+        System.print("range 1 - ");
+        System.println(n);
+    } when 4 || ^v {
+        System.print("range 2 - ");
+        System.println(n);
+    } when 5..7 || 10...15 {
+        System.print("range 3 - ");
+        System.println(n);
+    } else {
+        System.print("not matched - ");
+        System.println(n);
+    };
+}
+
+20.times().each { => func(_1) };
+```
+
+#### Result
+
+```
+not matched - 0
+range 1 - 1
+range 1 - 2
+range 1 - 3
+range 2 - 4
+range 3 - 5
+range 3 - 6
+range 3 - 7
+not matched - 8
+not matched - 9
+range 3 - 10
+range 3 - 11
+range 3 - 12
+range 3 - 13
+range 3 - 14
+not matched - 15
+not matched - 16
+not matched - 17
+range 2 - 18
+not matched - 19
+```
+
+### Example 9. Various Example (1)
 
 #### Code
 
@@ -472,7 +587,7 @@ System.println(test(200, 1, 200));
 258
 ```
 
-### Example 9. Various Example (2)
+### Example 10. Various Example (2)
 
 #### Code
 
@@ -482,6 +597,8 @@ function test([y, z, i, j, k, x]) {
         when [1, ...a]:
             a[2]
         when [2..10, a, b]:
+            a + b + 10
+        when [2..10, a, b, _, _]:
             a + b + 10
         when [v, m, ...n] if (10 < v && v <= 20):
             v + m + n[0] + 42
@@ -513,7 +630,48 @@ System.println(test([50, 51, 13, 14, 15, 50]));
 -1
 ```
 
-### Example 10. Various Example (3)
+### Example 11. Various Example (3)
+
+#### Code
+
+```javascript
+function test([y, z, i, j, k, x]) {
+    var val = case [y, z, i, j, k]
+        when [1, ...a]:
+            a[2]
+        when [v, m, ...n] if (10 < v && v <= 20):
+            v + m + n[0] + 42
+        when [v, 50, ...a] if (v == x):
+            v + 58
+        when [2..10, a, b, ...x]:
+            a + b + 10
+        else:
+            -1
+    ;
+    return val;
+}
+System.println(test([1, 2, 3, 4, 5, 6]));
+System.println(test([2, 2, 3, 4, 5, 6]));
+System.println(test([10, 12, 13, 14, 15, 16]));
+System.println(test([11, 12, 13, 14, 15, 16]));
+System.println(test([50, 50, 13, 14, 15, 50]));
+System.println(test([50, 50, 13, 14, 15, 51]));
+System.println(test([50, 51, 13, 14, 15, 50]));
+```
+
+#### Result
+
+```
+4
+15
+35
+78
+108
+-1
+-1
+```
+
+### Example 12. Various Example (4)
 
 #### Code
 
@@ -547,7 +705,7 @@ Stack Trace Information:
         at <main-block>(test.kx:14)
 ```
 
-### Example 11. Various Example (4)
+### Example 13. Various Example (5)
 
 #### Code
 
@@ -575,4 +733,29 @@ when {name: "Alice", children: [{name: "Bob", age: age}]} {
 
 ```
 2
+```
+
+### Example 14. Various Example (6)
+
+#### Code
+
+```javascript
+function test(n) {
+    case n
+    when { => _1.isInteger }: System.println("%d is Integer" % n)
+    when { => _1.isDouble }:  System.println("%f is Double" % n)
+    when { => _1.isString }:  System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
+#### Result
+
+```
+10 is Integer
+10.000000 is Double
+10.0 is String
 ```
