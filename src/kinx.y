@@ -124,6 +124,7 @@ static inline void yy_restart(int token)
 %type<obj> AssignExpressionObjList
 %type<obj> KeyValueList
 %type<obj> KeyValue
+%type<obj> ValueOfKeyValue
 %type<strval> VarName
 %type<strval> KeySpecialName
 %type<strval> ClassFunctionName
@@ -444,6 +445,7 @@ WhenClause
 
 WhenConditionRange
     : WhenPostfixExpression
+    | '^' WhenPostfixExpression { $$ = $2; $$->optional = KXDC_CONST; }
     | Array
     | Object
     | WhenPostfixExpression DOTS2 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 0); }
@@ -462,15 +464,15 @@ WhenPostfixExpression
     ;
 
 WhenCondition
-    : INT { $$ = kx_gen_int_object($1); }
+    : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    | '(' AssignExpression ')' { $$ = $2; }
+    | INT { $$ = kx_gen_int_object($1); }
     | DBL { $$ = kx_gen_dbl_object($1); }
     | BIGINT { $$ = kx_gen_big_object($1); }
     | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
-    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | '(' STR ')' { $$ = kx_gen_str_object($2); }
-    | '(' AssignExpression ')' { $$ = $2; }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
     ;
 
@@ -745,6 +747,7 @@ CommaList
 
 ArrayItemListCore
     : AssignExpression
+    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_CONST; }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemListCore ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
     | ArrayItemListCore ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
@@ -769,14 +772,17 @@ KeyValueList
     ;
 
 KeyValue
-    : '(' STR ')' ':' AssignExpression { $$ = kx_gen_keyvalue_object($2, $5); }
-    | '(' STR ')' ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($2, $5); }
-    | NAME ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
-    | NAME ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($1, $3); }
-    | KeySpecialName ':' AssignExpression { $$ = kx_gen_keyvalue_object($1, $3); }
-    | KeySpecialName ':' ObjectSpecialSyntax { $$ = kx_gen_keyvalue_object($1, $3); }
+    : '(' STR ')' ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($2, $5); }
+    | NAME ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
+    | KeySpecialName ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
     | VarName { $$ = kx_gen_keyvalue_object($1, kx_gen_var_object($1, KX_UNKNOWN_T)); }
+    ;
+
+ValueOfKeyValue
+    : AssignExpression
+    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_CONST; }
+    | ObjectSpecialSyntax
     ;
 
 KeySpecialName
