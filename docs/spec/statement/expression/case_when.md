@@ -209,6 +209,36 @@ when m:             System.println(m*10)    // m is matched to any value.
 ;
 ```
 
+### Alternative Pattern
+
+You can put multiple conditions in `when` clause.
+This is called as an alternative pattern.
+The pattern should be separated by `||` which is same as a logical OR operator.
+This separator of `||` is also a shortcut operator which is same as a logical OR operator.
+
+Here is a simple example of this.
+
+```javascript
+case n
+when 1 || 2 || 3: System.println(n)
+;
+```
+
+Of course you can also use it for an array or object.
+
+```javascript
+function test(n) {
+    case [n]
+    when [1] || [2] || [3]: System.println(n)
+    when [v]: System.println(v)
+    ;
+}
+test(1);
+test(2);
+test(3);
+test(10);
+```
+
 ## Examples
 
 ### Example 1. Normal Case
