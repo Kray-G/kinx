@@ -22,6 +22,7 @@ typedef struct kxana_context_ {
     int class_id;
     int arg_index;
     int anon_arg;
+    int in_case_when;
     kx_object_t *parent;
     kx_object_t *class_node;
     kx_object_t *func;
@@ -269,6 +270,10 @@ static void add_const(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *dec
 
 static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
 {
+    if (actx->in_case_when) {
+        return 0;
+    }
+
     #define KX_ANON_CASE(c, i) \
     case c: \
         node->var_type = actx->in_native ? KX_INT_T : KX_UNKNOWN_T; \
@@ -1056,9 +1061,12 @@ LOOP_HEAD:;
         kxana_symbol_t* table = &(kv_last(actx->symbols));
         int size = kv_size(table->list);
 
+        int in_case_when = actx->in_case_when;
+        actx->in_case_when = 1;
         analyze_ast(ctx, node->lhs, actx);
         analyze_ast(ctx, node->rhs, actx);
         analyze_ast(ctx, node->ex, actx);
+        actx->in_case_when = in_case_when;
 
         kv_shrinkto(table->list, size);
         --actx->depth;
