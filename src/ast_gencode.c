@@ -41,6 +41,8 @@
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));\
             }\
         }\
+    } else { \
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP })); \
     }\
 /**/
 #define KX_DEF_BINCHKCMD(CMD) \
