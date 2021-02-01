@@ -22,7 +22,10 @@
     *   Updated `case-when` features.
         *   Supported `^` as a pin operator.
         *   Supported an lvalue of array with index at `when` condition.
-        *   Supported `||` operator for multiple conditions at `when` condition.
+        *   Supported `||` operator for multiple conditions called as alternative pattern at `when` condition.
+        *   Supported putting a function object to check the result by function call at `when` condition.
+        *   Changed to make it error when the length of array is mismatched.
+        *   `_` means to ignore binding a value at `when` condition.
 
 ## V0.20.1 (20th Preview Release) - 2021/01/29
 
