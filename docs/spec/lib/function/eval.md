@@ -2,11 +2,12 @@
 
 ## Overview
 
-### function `eval`
+`eval` is used to execute the code on the fly.
+The string has an `eval` method and directly to call it as below.
 
-
-#### Use `eval` for String
-
+```
+"System.println(100);".eval();
+```
 
 ## Examples
 
