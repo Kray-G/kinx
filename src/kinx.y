@@ -160,6 +160,7 @@ static inline void yy_restart(int token)
 %type<obj> CaseWhenExpression
 %type<obj> WhenClauseList
 %type<obj> WhenClause
+%type<obj> WhenConditionRangeList
 %type<obj> WhenConditionRange
 %type<obj> WhenPostfixExpression
 %type<obj> WhenCondition
@@ -440,7 +441,12 @@ WhenClauseList
     ;
 
 WhenClause
-    : WHEN WhenConditionRange Modifier_Opt Colon_Opt WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
+    : WHEN WhenConditionRangeList Modifier_Opt Colon_Opt WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
+    ;
+
+WhenConditionRangeList
+    : WhenConditionRange
+    | WhenConditionRangeList LOR WhenConditionRange { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
     ;
 
 WhenConditionRange
