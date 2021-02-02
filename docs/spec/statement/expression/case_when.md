@@ -376,7 +376,11 @@ function example(y) {
         // no else clause...
     ;
 }
-7.times { => System.println(example(_)) };
+
+function test(n) {
+    System.println(example(n));
+}
+7.times().each(test);
 ```
 
 #### Result
@@ -392,8 +396,8 @@ Uncaught exception: No one catch the exception.
 NoMatchingPatternException: Pattern not matched
 Stack Trace Information:
         at function example(test.kx:12)
-        at function __test_14___anonymous_func228(test.kx:14)
-        at <main-block>(test.kx:14)
+        at function test(test.kx:16)
+        at <main-block>(test.kx:18)
 ```
 
 ### Example 4. Pattern Matching
