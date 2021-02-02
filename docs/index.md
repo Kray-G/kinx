@@ -149,6 +149,7 @@ Basic objects are the list of components usually used in many products.
 The functionality is very simple but powerful, so a lot of developpers will use those naturally.
 
 *   [System](spec/lib/basic/system.md)
+*   [Getopt](spec/lib/basic/getopt.md) - *not documented yet*
 *   [Iconv](spec/lib/basic/iconv.md)
 *   [Math](spec/lib/basic/imath.md)
 *   [File](spec/lib/basic/file.md)
@@ -158,7 +159,8 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Range](spec/lib/basic/range.md)
 *   [DateTime](spec/lib/basic/datetime.md)
 *   [Process](spec/lib/basic/process.md)
-*   [JSON](spec/lib/basic/json.md) - *not documented yet*
+*   [JSON](spec/lib/basic/json.md)
+*   [CSV/TSV](spec/lib/basic/csv_tsv.md)
 *   [Xml](spec/lib/basic/xml.md)
 *   [Zip](spec/lib/basic/zip.md)
 *   [SQLite](spec/lib/basic/sqlite.md) - *not documented yet*
