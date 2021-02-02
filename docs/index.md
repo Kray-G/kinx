@@ -179,11 +179,7 @@ I strongly want **contributers**. How about you?
 
 ##### Exception Objects
 
-*   [SystemException](spec/lib/exception/system.md) - *not documented yet*
-*   [FileException](spec/lib/exception/file.md) - *not documented yet*
-*   [RegexException](spec/lib/exception/regex.md) - *not documented yet*
-*   [XmlException](spec/lib/exception/xml.md) - *not documented yet*
-*   [RuntimeException](spec/lib/exception/runtime.md) - *not documented yet*
+*   [Exception](spec/lib/primitive/exception.md)
 
 #### Algorithm and Data Structure
 
