@@ -1999,12 +1999,12 @@ int System_isDebuggerMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 }
 
 static kx_bltin_def_t kx_bltin_info[] = {
-    { "halt", System_halt },
-    { "getPlatform", System_getPlatform },
+    { "_halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
     { "_throwExceptionHook", System_throwExceptionHook },
     { "_setTrueFalse", System_setTrueFalse },
     { "_printStack", System_printStack },
+    { "getPlatform", System_getPlatform },
     { "makeSuper", System_makeSuper },
     { "exec", System_exec },
     { "abort", System_abort },
