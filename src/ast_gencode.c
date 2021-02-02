@@ -1736,7 +1736,9 @@ LOOP_HEAD:;
                     apply_getval(ctx, cond->lhs, ana, next, 0, 1);
                     kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_POP }));
                     get_block(module, curblk)->tf[1] = next;
-                    get_block(module, chklen_block)->tf[1] = next;
+                    if (chklen_block > 0) {
+                        get_block(module, chklen_block)->tf[1] = next;
+                    }
                 } else {
                     int nc = new_block_hook(ana);
                     apply_getval(ctx, cond->lhs, ana, nc, 0, 1);
