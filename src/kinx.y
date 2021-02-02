@@ -83,6 +83,7 @@ static inline void yy_restart(int token)
 %type<obj> MixinModuleList
 %type<obj> ExpressionStatement
 %type<obj> Modifier_Opt
+%type<obj> Modifier
 %type<obj> BreakStatement
 %type<obj> LabelStatement
 %type<obj> LabelledStatement
@@ -163,9 +164,11 @@ static inline void yy_restart(int token)
 %type<obj> WhenConditionRangeList
 %type<obj> WhenConditionRange
 %type<obj> WhenPostfixExpression
+%type<obj> WhenAnonymousFunctionDeclExpression
 %type<obj> WhenCondition
 %type<obj> CaseElseClause
 %type<obj> WhenClauseBody
+%type<obj> WhenClauseBodyBlock
 
 %%
 
@@ -175,12 +178,12 @@ Program
 
 ToplevelStatementList
     : Statement
-    | ToplevelStatementList Statement { kx_ast_root = $$ = kx_gen_stmtlist($1, $2); }
+    | ToplevelStatementList Statement { kx_ast_root = $$ = ($2 == NULL ? $1 : kx_gen_stmtlist($1, $2)); }
     ;
 
 StatementList
     : Statement
-    | StatementList Statement { $$ = kx_gen_stmtlist($1, $2); }
+    | StatementList Statement { $$ = ($2 == NULL ? $1 : kx_gen_stmtlist($1, $2)); }
     ;
 
 Statement
@@ -198,7 +201,7 @@ NonSemicolonStatement
     | LabelStatement
     | LabelledStatement
     | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
-    | error RBBR { yyerrok; }
+    | error RBBR { yyerrok; $$ = NULL; }
     ;
 
 SemicolonStatement
@@ -209,20 +212,20 @@ SemicolonStatement
     | ExpressionStatement
     | DefinitionStatement
     | BreakStatement
-    | error ';' { yyerrok; }
-    | error LBBR { yy_restart(LBBR); yyerrok; }
-    | error IF { yy_restart(IF); yyerrok; }
-    | error DO { yy_restart(DO); yyerrok; }
-    | error WHILE { yy_restart(WHILE); yyerrok; }
-    | error FOR { yy_restart(FOR); yyerrok; }
-    | error TRY { yy_restart(TRY); yyerrok; }
-    | error SWITCH { yy_restart(SWITCH); yyerrok; }
-    | error CASE { yy_restart(CASE); yyerrok; }
-    | error ENUM { yy_restart(ENUM); yyerrok; }
-    | error CLASS { yy_restart(CLASS); yyerrok; }
-    | error FUNCTION { yy_restart(FUNCTION); yyerrok; }
-    | error PRIVATE { yy_restart(PRIVATE); yyerrok; }
-    | error PUBLIC { yy_restart(PUBLIC); yyerrok; }
+    | error ';'      {                       yyerrok; $$ = NULL; }
+    | error LBBR     { yy_restart(LBBR);     yyerrok; $$ = NULL; }
+    | error IF       { yy_restart(IF);       yyerrok; $$ = NULL; }
+    | error DO       { yy_restart(DO);       yyerrok; $$ = NULL; }
+    | error WHILE    { yy_restart(WHILE);    yyerrok; $$ = NULL; }
+    | error FOR      { yy_restart(FOR);      yyerrok; $$ = NULL; }
+    | error TRY      { yy_restart(TRY);      yyerrok; $$ = NULL; }
+    | error SWITCH   { yy_restart(SWITCH);   yyerrok; $$ = NULL; }
+    | error CASE     { yy_restart(CASE);     yyerrok; $$ = NULL; }
+    | error ENUM     { yy_restart(ENUM);     yyerrok; $$ = NULL; }
+    | error CLASS    { yy_restart(CLASS);    yyerrok; $$ = NULL; }
+    | error FUNCTION { yy_restart(FUNCTION); yyerrok; $$ = NULL; }
+    | error PRIVATE  { yy_restart(PRIVATE);  yyerrok; $$ = NULL; }
+    | error PUBLIC   { yy_restart(PUBLIC);   yyerrok; $$ = NULL; }
     ;
 
 LabelledStatement
@@ -394,7 +397,11 @@ AssignExpressionList_Opt
 
 Modifier_Opt
     : { $$ = NULL; }
-    | IF '(' AssignExpressionList ')' { $$ = kx_gen_stmt_object(KXST_IF, $3, NULL, NULL); }
+    | Modifier
+    ;
+
+Modifier
+    : IF '(' AssignExpressionList ')' { $$ = kx_gen_stmt_object(KXST_IF, $3, NULL, NULL); }
     ;
 
 AssignExpression
@@ -441,23 +448,40 @@ WhenClauseList
     ;
 
 WhenClause
-    : WHEN WhenConditionRangeList Modifier_Opt Colon_Opt WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
+    : WHEN WhenConditionRangeList ':' WhenClauseBody { $$ = kx_gen_case_when_object($2, $4, NULL); }
+    | WHEN WhenConditionRangeList WhenClauseBodyBlock { $$ = kx_gen_case_when_object($2, $3, NULL); }
+    | WHEN WhenConditionRangeList Modifier Colon_Opt WhenClauseBody { $$ = kx_gen_case_when_object($2, $5, $3); }
     ;
 
 WhenConditionRangeList
     : WhenConditionRange
+    | WhenConditionRangeList '|' WhenConditionRange { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
     | WhenConditionRangeList LOR WhenConditionRange { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
     ;
 
 WhenConditionRange
-    : WhenPostfixExpression
+    : WhenAnonymousFunctionDeclExpression
+    | WhenPostfixExpression
     | '^' WhenPostfixExpression { $$ = $2; $$->optional = KXDC_CONST; }
     | Array
     | Object
+    | SimpleFuncCallFactor
+    | '.' PropertyName { $$ = kx_gen_prop_func_object($2); }
+    | '.' TYPEOF { $$ = kx_gen_typeprop_func_object($2); }
     | WhenPostfixExpression DOTS2 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 0); }
     | WhenPostfixExpression DOTS2 WhenPostfixExpression { $$ = kx_gen_range_object($1, $3, 0); }
     | WhenPostfixExpression DOTS3 { $$ = kx_gen_range_object($1, kx_gen_special_object(KXVL_NULL), 1); }
     | WhenPostfixExpression DOTS3 WhenPostfixExpression { $$ = kx_gen_range_object($1, $3, 1); }
+    ;
+
+/* `&() => expr` style will cause conflict, then you should wrap `(` and `)` such as `(&() => expr)`. */
+WhenAnonymousFunctionDeclExpression
+    : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $3, $5, NULL, $1); }
+    | SYSFUNC '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, 0, NULL, $3, $5, NULL, $1); }
+    | COROUTINE '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_COROUTINE, KXFT_SYSFUNC, 0, NULL, $3, $5, NULL, $1); }
+    | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2.type, $2.depth, NULL, $4, $6, NULL); }
+    | '&' '(' ArgumentList_Opts ')' DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $3, $6, NULL); }
+    | '&' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $2, NULL); }
     ;
 
 WhenPostfixExpression
@@ -471,7 +495,6 @@ WhenPostfixExpression
 
 WhenCondition
     : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
-    | SimpleFuncCallFactor
     | '(' AssignExpression ')' { $$ = $2; }
     | INT { $$ = kx_gen_int_object($1); }
     | DBL { $$ = kx_gen_dbl_object($1); }
@@ -489,8 +512,12 @@ CaseElseClause
     ;
 
 WhenClauseBody
-    : BlockStatement { $$ = kx_gen_bexpr_object(KXOP_CALL, kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $1, NULL), NULL); }
+    : WhenClauseBodyBlock
     | TernaryExpression
+    ;
+
+WhenClauseBodyBlock
+    : BlockStatement { $$ = kx_gen_bexpr_object(KXOP_CALL, kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $1, NULL), NULL); }
     ;
 
 Colon_Opt
@@ -641,17 +668,18 @@ Factor
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | SRCFILE { $$ = kx_gen_str_object($1); }
-    | Array
     | Binary
+    | Array
     | Object
-    | SimpleFuncCallFactor
     | Regex
-    | '.' PropertyName { $$ = $2; }
+    | SimpleFuncCallFactor
     | IMPORT '(' '(' STR ')' ')' { $$ = kx_gen_import_object($4); }
     | '(' AssignExpression ')' { $$ = $2; }
     | '(' ObjectSpecialSyntax ')' { $$ = $2; }
     | '(' STR ')' { $$ = kx_gen_str_object($2); }
     | NEW Factor { $$ = kx_gen_bexpr_object(KXOP_IDX, $2, kx_gen_str_object("create")); }
+    | '.' PropertyName { $$ = kx_gen_prop_func_object($2); }
+    | '.' TYPEOF { $$ = kx_gen_typeprop_func_object($2); }
     | '@' PropertyName { $$ = kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
     | '@' TYPEOF { $$ = kx_gen_typeof_object(kx_gen_var_object("this", KX_UNKNOWN_T), $2); }
     ;
@@ -663,6 +691,7 @@ VarName
 
 PropertyName
     : NAME { $$ = kx_gen_str_object($1); }
+    | TYPE { $$ = kx_gen_str_object(kx_gen_typestr_object($1)); }
     | IF { $$ = kx_gen_str_object("if"); }
     | ELSE { $$ = kx_gen_str_object("else"); }
     | WHILE { $$ = kx_gen_str_object("while"); }
@@ -697,7 +726,6 @@ PropertyName
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
     | USING { $$ = kx_gen_str_object("using"); }
-    | TYPE { $$ = kx_gen_str_object(kx_gen_typestr_object($1)); }
     | SHL { $$ = kx_gen_str_object("<<"); }
     | SHR { $$ = kx_gen_str_object(">>"); }
     | EQEQ { $$ = kx_gen_str_object("=="); }

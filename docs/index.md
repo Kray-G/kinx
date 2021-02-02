@@ -148,7 +148,7 @@ Here are provided objects as a Kinx Standard.
 Basic objects are the list of components usually used in many products.
 The functionality is very simple but powerful, so a lot of developpers will use those naturally.
 
-*   [System](spec/lib/basic/system.md) - *not documented yet*
+*   [System](spec/lib/basic/system.md)
 *   [Iconv](spec/lib/basic/iconv.md)
 *   [Math](spec/lib/basic/imath.md)
 *   [File](spec/lib/basic/file.md)
@@ -156,7 +156,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Regex](spec/lib/basic/regex.md) - *not documented yet*
 *   [Enumerable](spec/lib/basic/enumerable.md)
 *   [Range](spec/lib/basic/range.md)
-*   [DateTime](spec/lib/basic/datetime.md) - *not documented yet*
+*   [DateTime](spec/lib/basic/datetime.md)
 *   [Process](spec/lib/basic/process.md)
 *   [JSON](spec/lib/basic/json.md) - *not documented yet*
 *   [Xml](spec/lib/basic/xml.md)
