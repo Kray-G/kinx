@@ -1820,58 +1820,58 @@ int yyparse(YYPARSE_ARG)
 { kx_ast_root = kx_gen_bexpr_object(KXST_STMTLIST, YYASP(1-1).obj, kx_gen_stmt_object(KXST_RET, NULL, NULL, NULL)); } break;
         case 3:
 #line 178 "src/kinx.y"
-{ kx_ast_root = yyval.obj = kx_gen_stmtlist(YYASP(1-2).obj, YYASP(2-2).obj); } break;
+{ kx_ast_root = yyval.obj = (YYASP(2-2).obj == NULL ? YYASP(1-2).obj : kx_gen_stmtlist(YYASP(1-2).obj, YYASP(2-2).obj)); } break;
         case 5:
 #line 183 "src/kinx.y"
-{ yyval.obj = kx_gen_stmtlist(YYASP(1-2).obj, YYASP(2-2).obj); } break;
+{ yyval.obj = (YYASP(2-2).obj == NULL ? YYASP(1-2).obj : kx_gen_stmtlist(YYASP(1-2).obj, YYASP(2-2).obj)); } break;
         case 16:
 #line 200 "src/kinx.y"
 { yyval.obj = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object(YYASP(3-6).strval, KX_UNKNOWN_T), kx_gen_import_object(YYASP(5-6).strval)); } break;
         case 17:
 #line 201 "src/kinx.y"
-{ yyerrok; } break;
+{ yyerrok; yyval.obj = NULL; } break;
         case 25:
 #line 212 "src/kinx.y"
-{ yyerrok; } break;
+{                       yyerrok; yyval.obj = NULL; } break;
         case 26:
 #line 213 "src/kinx.y"
-{ yy_restart(LBBR); yyerrok; } break;
+{ yy_restart(LBBR);     yyerrok; yyval.obj = NULL; } break;
         case 27:
 #line 214 "src/kinx.y"
-{ yy_restart(IF); yyerrok; } break;
+{ yy_restart(IF);       yyerrok; yyval.obj = NULL; } break;
         case 28:
 #line 215 "src/kinx.y"
-{ yy_restart(DO); yyerrok; } break;
+{ yy_restart(DO);       yyerrok; yyval.obj = NULL; } break;
         case 29:
 #line 216 "src/kinx.y"
-{ yy_restart(WHILE); yyerrok; } break;
+{ yy_restart(WHILE);    yyerrok; yyval.obj = NULL; } break;
         case 30:
 #line 217 "src/kinx.y"
-{ yy_restart(FOR); yyerrok; } break;
+{ yy_restart(FOR);      yyerrok; yyval.obj = NULL; } break;
         case 31:
 #line 218 "src/kinx.y"
-{ yy_restart(TRY); yyerrok; } break;
+{ yy_restart(TRY);      yyerrok; yyval.obj = NULL; } break;
         case 32:
 #line 219 "src/kinx.y"
-{ yy_restart(SWITCH); yyerrok; } break;
+{ yy_restart(SWITCH);   yyerrok; yyval.obj = NULL; } break;
         case 33:
 #line 220 "src/kinx.y"
-{ yy_restart(CASE); yyerrok; } break;
+{ yy_restart(CASE);     yyerrok; yyval.obj = NULL; } break;
         case 34:
 #line 221 "src/kinx.y"
-{ yy_restart(ENUM); yyerrok; } break;
+{ yy_restart(ENUM);     yyerrok; yyval.obj = NULL; } break;
         case 35:
 #line 222 "src/kinx.y"
-{ yy_restart(CLASS); yyerrok; } break;
+{ yy_restart(CLASS);    yyerrok; yyval.obj = NULL; } break;
         case 36:
 #line 223 "src/kinx.y"
-{ yy_restart(FUNCTION); yyerrok; } break;
+{ yy_restart(FUNCTION); yyerrok; yyval.obj = NULL; } break;
         case 37:
 #line 224 "src/kinx.y"
-{ yy_restart(PRIVATE); yyerrok; } break;
+{ yy_restart(PRIVATE);  yyerrok; yyval.obj = NULL; } break;
         case 38:
 #line 225 "src/kinx.y"
-{ yy_restart(PUBLIC); yyerrok; } break;
+{ yy_restart(PUBLIC);   yyerrok; yyval.obj = NULL; } break;
         case 43:
 #line 236 "src/kinx.y"
 { yyval.obj = NULL; } break;
