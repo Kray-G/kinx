@@ -156,7 +156,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Regex](spec/lib/basic/regex.md) - *not documented yet*
 *   [Enumerable](spec/lib/basic/enumerable.md)
 *   [Range](spec/lib/basic/range.md)
-*   [DateTime](spec/lib/basic/datetime.md) - *not documented yet*
+*   [DateTime](spec/lib/basic/datetime.md)
 *   [Process](spec/lib/basic/process.md)
 *   [JSON](spec/lib/basic/json.md) - *not documented yet*
 *   [Xml](spec/lib/basic/xml.md)
