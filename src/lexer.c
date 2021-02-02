@@ -506,7 +506,7 @@ static int kx_lex_make_string(char quote)
         if (move_next) {
             kx_lex_next(kx_lexinfo);
         }
-    } while (kx_lexinfo.ch > 0 && kx_lexinfo.ch != quote);
+    } while (kx_lexinfo.ch != 0 && kx_lexinfo.ch != quote);
 
     if (pos > 0) {
         kx_strbuf[pos] = 0;
@@ -934,7 +934,7 @@ HEAD_OF_YYLEX:
         }
         if (kx_lexinfo.ch == '/') {
             kx_lex_next(kx_lexinfo);
-            while (kx_lexinfo.ch > 0 && kx_lexinfo.ch != '\n') {
+            while (kx_lexinfo.ch != 0 && kx_lexinfo.ch != '\n') {
                 kx_lex_next(kx_lexinfo);
             }
             kx_lex_next(kx_lexinfo);
@@ -1120,7 +1120,7 @@ HEAD_OF_YYLEX:
         break;
     case '#': {
         kx_lex_next(kx_lexinfo);
-        while (kx_lexinfo.ch > 0 && kx_lexinfo.ch != '\n') {
+        while (kx_lexinfo.ch != 0 && kx_lexinfo.ch != '\n') {
             kx_lex_next(kx_lexinfo);
         }
         kx_lex_next(kx_lexinfo);
