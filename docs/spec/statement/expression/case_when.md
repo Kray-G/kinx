@@ -53,23 +53,30 @@ This code shows the following result.
 
 #### Without Colon
 
-You do not have to use the colon `:`, and using it is only for an appearance.
+You can omit the colon `:` when the `when` body is a block, there is a modifier, or it is `else` clause.
+This example uses an `if-modifier` and a pattern matching by `v`,
+but a modifier and a pattern matching will be described later.
 
 ```javascript
 function example(y) {
     var x = case y
-        when 1 1
-        when 2 20
-        when 3 300
-        when 4 4000
+        when 1: 1
+        when 2: 20
+        when 3: 300
+        when 4: 4000
         when 5 {
             return 50000;
         }
+        when v if (v == 6) {
+            return 600000;
+        }
+        when v if (v == 7)
+            7000000
         else -1
     ;
     return x + 1;
 }
-7.times { => System.println(example(_)) };
+9.times { => System.println(example(_)) };
 ```
 
 This will also show the same result above.
@@ -213,14 +220,14 @@ when m:             System.println(m*10)    // m is matched to any value.
 
 You can put multiple conditions in `when` clause.
 This is called as an alternative pattern.
-The pattern should be separated by `||` which is same as a logical OR operator.
-This separator of `||` is also a shortcut operator which is same as a logical OR operator.
+The pattern should be separated by `|`.
+This separator of `|` is a kind of a shortcut operator, and the condition will be never evaluated after that if it is matched.
 
 Here is a simple example of this.
 
 ```javascript
 case n
-when 1 || 2 || 3: System.println(n)
+when 1 | 2 | 3: System.println(n)
 ;
 ```
 
@@ -229,7 +236,7 @@ Of course you can also use it for an array or object.
 ```javascript
 function test(n) {
     case [n]
-    when [1] || [2] || [3]: System.println(n)
+    when [1] | [2] | [3]: System.println(n)
     when [v]: System.println(v)
     ;
 }
@@ -257,7 +264,7 @@ test(10.0);
 test("10.0");
 ```
 
-Note that you should wrap it by `(` and `)` if you want to put an anonymous function which is not a above way.
+Note that you should wrap it by `(` and `)` if you want to put an anonymous function which body is an expression.
 Otherwise it will cause a compile error.
 
 ```javascript
@@ -318,18 +325,23 @@ function example(y) {
 ```javascript
 function example(y) {
     var x = case y
-        when 1 1
-        when 2 20
-        when 3 300
-        when 4 4000
+        when 1: 1
+        when 2: 20
+        when 3: 300
+        when 4: 4000
         when 5 {
             return 50000;
         }
+        when v if (v == 6) {
+            return 600000;
+        }
+        when v if (v == 7)
+            7000000
         else -1
     ;
     return x + 1;
 }
-7.times { => System.println(example(_)) };
+9.times { => System.println(example(_)) };
 ```
 
 #### Result
@@ -341,6 +353,8 @@ function example(y) {
 301
 4001
 50001
+600001
+7000001
 0
 ```
 
@@ -362,7 +376,11 @@ function example(y) {
         // no else clause...
     ;
 }
-7.times { => System.println(example(_)) };
+
+function test(n) {
+    System.println(example(n));
+}
+7.times().each(test);
 ```
 
 #### Result
@@ -378,8 +396,8 @@ Uncaught exception: No one catch the exception.
 NoMatchingPatternException: Pattern not matched
 Stack Trace Information:
         at function example(test.kx:12)
-        at function __test_14___anonymous_func228(test.kx:14)
-        at <main-block>(test.kx:14)
+        at function test(test.kx:16)
+        at <main-block>(test.kx:18)
 ```
 
 ### Example 4. Pattern Matching
@@ -504,13 +522,13 @@ range 3 - 2000/01/20 00:00:00
 var v = 18;
 function func(n) {
     case n
-    when 1 || 2 || 3 {
+    when 1 | 2 | 3 {
         System.print("range 1 - ");
         System.println(n);
-    } when 4 || ^v {
+    } when 4 | ^v {
         System.print("range 2 - ");
         System.println(n);
-    } when 5..7 || 10...15 {
+    } when 5..7 | 10...15 {
         System.print("range 3 - ");
         System.println(n);
     } else {
@@ -724,7 +742,7 @@ json = %{
 };
 
 case JSON.parse(json)
-when {name: "Alice", children: [{name: "Bob", age: age}]} {
+when {name: "Alice", children: [{name: "Bob", age: age}]}: {
     System.println(age);
 };
 ```
