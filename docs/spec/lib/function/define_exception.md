@@ -1,4 +1,4 @@
-# defineException
+# defineException function
 
 ## Overview
 
