@@ -26,6 +26,13 @@ SpecTestTemplate = {
     },
 };
 
+function normalizeEntryPath(entry) {
+    while (entry.find("/../") >= 0) {
+        entry = entry.replace(/[^\/]+\/\.\.\//, "");
+    }
+    return entry;
+}
+
 class SpecTestResult(res_) {
 
     private indentSpaces(indent, add) {
@@ -392,6 +399,7 @@ class SpecTestEntry(id_, entry_, spectest_) {
         if (!spectest_.options.onlyone || spectest_.options.doChildren) {
             var entries = [];
             @link.each(_function(mdfile) {
+                mdfile = normalizeEntryPath(mdfile);
                 var e = @addEntry(mdfile);
                 if (e) {
                     # Setup it later because the order by written it in document is more natural.
@@ -668,16 +676,12 @@ class SpecTest(args_) {
         @root = spec_.root;
     }
 
-    private normalize(entry) {
-        return entry.replace(/[^\/]+\/\.\.\//, "");
-    }
-
     public isEntried(entry) {
-        return @target[normalize(entry)];
+        return @target[normalizeEntryPath(entry)];
     }
 
     public addEntry(entry) {
-        @target[normalize(entry)] = true;
+        @target[normalizeEntryPath(entry)] = true;
     }
 
     public analyze() {
@@ -706,7 +710,7 @@ class SpecTest(args_) {
             });
             if (candidate) {
                 @addEntry(candidate);
-                top_ = new SpecTestEntry(id_++, candidate, this);
+                top_ = new SpecTestEntry(id_++, normalizeEntryPath(candidate), this);
                 top_.setup();
             }
         } else {
@@ -716,7 +720,7 @@ class SpecTest(args_) {
                         @spec.topLevelFilePattern.reset(entry);
                         if (@spec.topLevelFilePattern.find()) {
                             @addEntry(entry);
-                            top_ = new SpecTestEntry(id_++, entry, this);
+                            top_ = new SpecTestEntry(id_++, normalizeEntryPath(entry), this);
                             top_.setup();
                             return false;
                         }
