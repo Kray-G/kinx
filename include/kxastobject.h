@@ -62,5 +62,7 @@ extern kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t 
 extern kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line);
 extern kx_object_t *kx_gen_func_object_name_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, named_stmt_t ns, int line);
 extern kx_object_t *kx_gen_func_object(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex);
+extern kx_object_t *kx_gen_prop_func_object(kx_object_t *nameobj);
+extern kx_object_t *kx_gen_typeprop_func_object(int type);
 
 #endif /* KX_OBJECT_H */
