@@ -23,9 +23,9 @@
         *   This is changed to another feature.
         *   Newly `.abc` is a function object which means `{ => _1.abc.isFunction ? _1.abc() : _1.abc }`.
         *   And also `.is***` like `.isFunction` to check a type is a function object which means `{ => _1.is*** }`.
-        *   This feature is assumed to be used for the purpose below.
-            *   Using as a call back method for methods of Array such as `Array#map`, `Array#filter`, and so on.
-            *   Using as a function object placed at a `when` clause in `case-when`.
+        *   This feature will care for the purpose below.
+            *   As a call back method for methods of Array such as `Array#map`, `Array#filter`, and so on.
+            *   As a function object placed at a `when` clause in `case-when`.
     *   Updated `case-when` features.
         *   Supported `^` as a pin operator.
         *   Supported an lvalue of array with index at `when` condition.
@@ -33,6 +33,7 @@
         *   Supported putting a function object to check the result by function call at `when` condition.
         *   Changed to make it error when the length of array is mismatched.
         *   `_` means to ignore binding a value at `when` condition.
+    *   Some bug fixes and improvements.
 
 ## V0.20.1 (20th Preview Release) - 2021/01/29
 
@@ -49,7 +50,7 @@
         *   `{ x, y } = { x: 10, y: 100 }` means `x = 10, y = 100`.
     *   Relocation of build environment.
         *   Created a `build` directory and moved files needed at building to the `build` directory.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.19.3 (19th Preview Release) - 2021/01/19
 
@@ -61,7 +62,7 @@
         *   KiTTy needs a lot of big files like a font.
         *   KiTTy was moved to https://github.com/Kray-G/kinx-tiny-typesetting.
     *   Updated Copyright.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.18.0 (18th Preview Release) - 2020/12/28
 
@@ -71,7 +72,7 @@
     *   Added some features for a language server.
         *   Added some options for the source input from STDIN.
         *   Added displaying variable definition and reference location.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.17.1 (17th-1 Preview Release) - 2020/12/17
 
@@ -79,7 +80,7 @@
     *   Windows Installer will automatically add the path to the Kinx executable
         to the `Path` environment variable after installation.
     *   Added the bucket for Scoop, and it is easy to install Kinx into Windows through the Scoop manager.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.17.0 (17th Preview Release) - 2020/12/15
 
@@ -97,20 +98,20 @@
     *   Changed a syntax for a return type of native. It becomes same as a syntax for an argument.
         *   [OLD] `native<int>`
         *   [NEW] `native:int`
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.16.1 (16th Preview Release) - 2020/12/08
 
 *   Updated
     *   Support Array of Double in native.
     *   Updated some SpecTest pages.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.15.3 (15th-3 Preview Release) - 2020/11/27
 
 *   Updated
     *   Updated some SpecTest pages.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.15.2 (15th-2 Preview Release) - 2020/10/14
 
@@ -132,7 +133,7 @@
     *   Added a small Markdown Parser.
     *   Integrated `kc-json` to this project.
     *   Supported loading multiple libraries by `using`.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.14.0 (14th Preview Release) - 2020/08/24
 
@@ -142,7 +143,7 @@
     *   Supported `"\uXXXX"` and `"\u{CodePoint}"` as Unicode Code Point in a string literal.
     *   Supported a TCP/UDP socket library.
     *   Support PDF library with libHaru.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.13.1 (13th Preview Release) - 2020/07/19
 
@@ -155,7 +156,7 @@
     *   Supported `String.escapeHtml`.
     *   Supported utf8 in `Parsek#oneOf`.
     *   Added a CLI support of kinx content.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.12.0 (12th Preview Release) - 2020/07/10
 
@@ -181,13 +182,13 @@
             System.println([key, value]);
         };
         ```
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.11.0 (11th Preview Release) - 2020/07/03
 
 *   Updated
     *   Supported a Parser Combinator Library named as `Parsek`.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.10.0 (10th Preview Release) - 2020/06/26
 
@@ -208,7 +209,7 @@
     *   Supported the option of `--version` to show the detail of the version.
     *   Supported the option of `-c` for compiling only to check the syntax.
     *   Supported the option of `-q` for quiet mode.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.9.2 (9th Preview Release) - 2020/06/03
 
@@ -223,7 +224,7 @@
     *   Supported REPL (Read-Eval-Print Loop) with updated below.
         *   Auto-complete by `[TAB]` key.
         *   Moving by word with Ctrl + arrow left/right.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.8.1 (8th Preview Release) - 2020/05/26
 
@@ -235,7 +236,7 @@
     *   Supported `System.getopt()`.
     *   Supported Escape Sequence with `\e`, `\033`, or `\x1b` even with Windows.
     *   Supported a part of REPL (Read-Eval-Print Loop), but it is not a full version.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.7.1 (7th Preview Release) - 2020/05/15
 
@@ -250,7 +251,7 @@
     *   Supported some optimizations.
     *   Supported `System.gc()` to perform GC forcely.
     *   Supported a Database class for easier to use than a SQLite class.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.6.0 (6th Preview Release) - 2020/05/01
 
@@ -271,7 +272,7 @@ Updates from v0.5.2.
         *   `Array#collectConcat` for `Array#flatMap`.
         *   `Array#inject` for `Array#reduce`.
         *   `Array#select`, `Array#findAll` for `Array#filter`.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.5.2 (5th Preview Release) - 2020/04/20
 
@@ -286,7 +287,7 @@ Updates from v0.4.1.
     *   Supported a spread operator for String like `<..."abc">` or `[..."abc"]`.
     *   Supported the option of `binary` with true/false for `Zip#extract`.
     *   Supported applying a Range object to the index for String, Binary, and Array.
-    *   Some bug fixes and improvement.
+    *   Some bug fixes and improvements.
 
 ## V0.4.1 (4th Preview Release) - 2020/04/13
 
