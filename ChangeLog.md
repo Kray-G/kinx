@@ -19,10 +19,17 @@
 ## V0.21.0 (Current Development Version)
 
 *   Updated
+    *   Obsoleted a dot style of string literal like `.abc` which means `"abc"`.
+        *   This is changed to another feature.
+        *   Newly `.abc` is a function object which means `{ => _1.abc.isFunction ? _1.abc() : _1.abc }`.
+        *   And also `.is***` like `.isFunction` to check a type is a function object which means `{ => _1.is*** }`.
+        *   This feature is assumed to be used for the purpose below.
+            *   Using as a call back method for methods of Array such as `Array#map`, `Array#filter`, and so on.
+            *   Using as a function object placed at a `when` clause in `case-when`.
     *   Updated `case-when` features.
         *   Supported `^` as a pin operator.
         *   Supported an lvalue of array with index at `when` condition.
-        *   Supported `||` operator for multiple conditions called as alternative pattern at `when` condition.
+        *   Supported `|` operator for multiple conditions called as alternative pattern at `when` condition.
         *   Supported putting a function object to check the result by function call at `when` condition.
         *   Changed to make it error when the length of array is mismatched.
         *   `_` means to ignore binding a value at `when` condition.
@@ -222,7 +229,8 @@
 
 *   Updated
     *   Updated some of native code output.
-    *   Supported a dot style of string literal like `.abc` means `"abc"`.
+    *   ~~Supported a dot style of string literal like `.abc` which means `"abc"`~~.
+        *   Obsoleted this feature at 0.21.0.
     *   Supported Process library.
     *   Supported `System.getopt()`.
     *   Supported Escape Sequence with `\e`, `\033`, or `\x1b` even with Windows.
