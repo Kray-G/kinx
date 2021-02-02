@@ -668,12 +668,16 @@ class SpecTest(args_) {
         @root = spec_.root;
     }
 
+    private normalize(entry) {
+        return entry.replace(/[^\/]+\/\.\.\//, "");
+    }
+
     public isEntried(entry) {
-        return @target[entry];
+        return @target[normalize(entry)];
     }
 
     public addEntry(entry) {
-        @target[entry] = true;
+        @target[normalize(entry)] = true;
     }
 
     public analyze() {
