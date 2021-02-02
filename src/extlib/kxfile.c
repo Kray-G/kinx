@@ -468,7 +468,11 @@ int File_static_unlink(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     if (!target) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Needs the file name to unlink");
     }
+    #if defined(_WIN32) || defined(_WIN64)
     int32_t r = mz_os_unlink(target);
+    #else
+    int32_t r = remove(target);
+    #endif
     if (r != MZ_OK) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to unlink");
     }
