@@ -175,12 +175,12 @@ Program
 
 ToplevelStatementList
     : Statement
-    | ToplevelStatementList Statement { kx_ast_root = $$ = kx_gen_stmtlist($1, $2); }
+    | ToplevelStatementList Statement { kx_ast_root = $$ = ($2 == NULL ? $1 : kx_gen_stmtlist($1, $2)); }
     ;
 
 StatementList
     : Statement
-    | StatementList Statement { $$ = kx_gen_stmtlist($1, $2); }
+    | StatementList Statement { $$ = ($2 == NULL ? $1 : kx_gen_stmtlist($1, $2)); }
     ;
 
 Statement
@@ -198,7 +198,7 @@ NonSemicolonStatement
     | LabelStatement
     | LabelledStatement
     | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
-    | error RBBR { yyerrok; }
+    | error RBBR { yyerrok; $$ = NULL; }
     ;
 
 SemicolonStatement
@@ -209,20 +209,20 @@ SemicolonStatement
     | ExpressionStatement
     | DefinitionStatement
     | BreakStatement
-    | error ';' { yyerrok; }
-    | error LBBR { yy_restart(LBBR); yyerrok; }
-    | error IF { yy_restart(IF); yyerrok; }
-    | error DO { yy_restart(DO); yyerrok; }
-    | error WHILE { yy_restart(WHILE); yyerrok; }
-    | error FOR { yy_restart(FOR); yyerrok; }
-    | error TRY { yy_restart(TRY); yyerrok; }
-    | error SWITCH { yy_restart(SWITCH); yyerrok; }
-    | error CASE { yy_restart(CASE); yyerrok; }
-    | error ENUM { yy_restart(ENUM); yyerrok; }
-    | error CLASS { yy_restart(CLASS); yyerrok; }
-    | error FUNCTION { yy_restart(FUNCTION); yyerrok; }
-    | error PRIVATE { yy_restart(PRIVATE); yyerrok; }
-    | error PUBLIC { yy_restart(PUBLIC); yyerrok; }
+    | error ';'      {                       yyerrok; $$ = NULL; }
+    | error LBBR     { yy_restart(LBBR);     yyerrok; $$ = NULL; }
+    | error IF       { yy_restart(IF);       yyerrok; $$ = NULL; }
+    | error DO       { yy_restart(DO);       yyerrok; $$ = NULL; }
+    | error WHILE    { yy_restart(WHILE);    yyerrok; $$ = NULL; }
+    | error FOR      { yy_restart(FOR);      yyerrok; $$ = NULL; }
+    | error TRY      { yy_restart(TRY);      yyerrok; $$ = NULL; }
+    | error SWITCH   { yy_restart(SWITCH);   yyerrok; $$ = NULL; }
+    | error CASE     { yy_restart(CASE);     yyerrok; $$ = NULL; }
+    | error ENUM     { yy_restart(ENUM);     yyerrok; $$ = NULL; }
+    | error CLASS    { yy_restart(CLASS);    yyerrok; $$ = NULL; }
+    | error FUNCTION { yy_restart(FUNCTION); yyerrok; $$ = NULL; }
+    | error PRIVATE  { yy_restart(PRIVATE);  yyerrok; $$ = NULL; }
+    | error PUBLIC   { yy_restart(PUBLIC);   yyerrok; $$ = NULL; }
     ;
 
 LabelledStatement
