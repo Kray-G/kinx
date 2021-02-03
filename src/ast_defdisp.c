@@ -68,7 +68,7 @@ LOOP_HEAD:;
         if (!node->rhs) {
             if (lvalue) {
                 if (node->value.s && node->value.s[0] != '_') {
-                    print_define("var", node);
+                    print_define(node->optional == KXDC_CONST ? "const" : "var", node);
                 }
             } else {
                 if (node->ex) {
