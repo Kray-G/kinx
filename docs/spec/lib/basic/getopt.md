@@ -3,11 +3,14 @@
 
 ## Overview
 
+This is Getopt. It is simple but useful.
+There are a lot of styles for analyzing arguments, and `getopt` is one of those and has a long history.
+Now `getopt` is still active and surviving.
+
 ### How to use
 
 Look at an example below. You put it in the while condition part,
-and specify the array of argument, the option string,
-and the object for long options.
+and specify the array of argument, the option string, and the object for long options.
 You can omit to specify the object for long options.
 
 ```javascript
