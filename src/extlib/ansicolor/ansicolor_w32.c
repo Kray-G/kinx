@@ -332,7 +332,7 @@ retry:
             else if (v[i] == 22)
               attr &= ~FOREGROUND_INTENSITY;
             else if (v[i] == 24)
-              attr &= ~FOREGROUND_INTENSITY;
+              attr &= ~COMMON_LVB_UNDERSCORE;
             else if (v[i] == 25)
               attr &= ~FOREGROUND_INTENSITY;
             else if (v[i] == 27)
@@ -619,6 +619,7 @@ retry:
         ptr++;
       } while (*ptr && *ptr != '\033');
       if (i > 0) {
+        buf[i] = 0;
         fprintf(fp, "%s", buf);
       }
     }
