@@ -623,8 +623,10 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         case KX_CSTR_T:
             ++count;
-            if (!fi->is_std || ctx->options.utf8inout) {
+            if (!fi->is_std) {
                 fprintf(fi->fp, "%s", val.value.pv);
+            } else if (ctx->options.utf8inout) {
+                _fprintf_w32(fi->fp, "%s", val.value.pv);
             } else {
                 buf = conv_utf82acp_alloc(val.value.pv);
                 _fprintf_w32(fi->fp, "%s", buf);
@@ -633,8 +635,10 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             break;
         case KX_STR_T:
             ++count;
-            if (!fi->is_std || ctx->options.utf8inout) {
+            if (!fi->is_std) {
                 fprintf(fi->fp, "%s", ks_string(val.value.sv));
+            } else if (ctx->options.utf8inout) {
+                _fprintf_w32(fi->fp, "%s", ks_string(val.value.sv));
             } else {
                 buf = conv_utf82acp_alloc(ks_string(val.value.sv));
                 _fprintf_w32(fi->fp, "%s", buf);
@@ -651,8 +655,10 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
             if (!out) {
                 printf("[...]");
             } else {
-                if (!fi->is_std || ctx->options.utf8inout) {
+                if (!fi->is_std) {
                     fprintf(fi->fp, "%s", ks_string(out));
+                } else if (ctx->options.utf8inout) {
+                    _fprintf_w32(fi->fp, "%s", ks_string(out));
                 } else {
                     buf = conv_utf82acp_alloc(ks_string(out));
                     _fprintf_w32(fi->fp, "%s", buf);
