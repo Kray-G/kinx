@@ -5,7 +5,7 @@
 
 `yield` statement is near `return` statement,
 but a function will be continued from the next statement of `yield` when calling again after returning back from a function by `yield`.
-This mechanism is provided as [Fiber](statement/fiber.md).
+This mechanism is provided as [Fiber](../definition/fiber.md).
 
 ```javascript
 var fiber = new Fiber(&{
