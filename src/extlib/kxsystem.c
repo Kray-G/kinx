@@ -808,7 +808,7 @@ static int System_convType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     case KX_CSTR_T: {
         kx_obj_t *obj = allocate_obj(ctx);
         for (const char *p = val.value.pv; *p; ++p) {
-            KEX_PUSH_ARRAY_INT(obj, (int)*p);
+            KEX_PUSH_ARRAY_INT(obj, (int)(*p & 0xff));
         }
         push_obj(ctx->stack, obj);
         break;
@@ -816,7 +816,7 @@ static int System_convType(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
     case KX_STR_T: {
         kx_obj_t *obj = allocate_obj(ctx);
         for (const char *p = ks_string(val.value.sv); *p; ++p) {
-            KEX_PUSH_ARRAY_INT(obj, (int)*p);
+            KEX_PUSH_ARRAY_INT(obj, (int)(*p & 0xff));
         }
         push_obj(ctx->stack, obj);
         break;
