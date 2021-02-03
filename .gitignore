@@ -14,6 +14,7 @@
 kinx
 timex
 myacc
+/.vscode
 /benchmark
 /bench
 timeit.dat
