@@ -627,7 +627,7 @@ PrefixExpression
 
 CastExpression
     : PostfixExpression
-    | PostfixExpression AS TypeName { $$ = kx_gen_cast_object($1, KX_UNKNOWN_T, $3.type); }
+    | PostfixExpression AS TypeName { $$ = kx_gen_cast_object($1, KX_UNKNOWN_T, $3); }
     ;
 
 PostfixExpression
@@ -811,7 +811,7 @@ KeyValue
     | NAME ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
     | KeySpecialName ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
-    | VarName { $$ = kx_gen_keyvalue_object($1, kx_gen_var_object($1, KX_UNKNOWN_T)); }
+    | CastExpression { $$ = kx_gen_keyvalue_shorthand($1); }
     ;
 
 ValueOfKeyValue

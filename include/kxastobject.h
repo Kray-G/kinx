@@ -24,6 +24,7 @@ extern kx_object_t *kx_gen_var_object(const char *name, int var_type);
 extern kx_object_t *kx_gen_var_type_object(const char *name, arytype_t var_type, int ret_type);
 extern kx_object_t *kx_gen_typeof_object(kx_object_t *lhs, int type);
 extern kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value);
+extern kx_object_t *kx_gen_keyvalue_shorthand(kx_object_t *name);
 extern kx_object_t *kx_gen_int_object(int64_t val);
 extern kx_object_t *kx_gen_dbl_object(double val);
 extern kx_object_t *kx_gen_big_object(const char *val);
@@ -41,7 +42,7 @@ extern kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_o
 extern const char *kx_gen_namespace_name_object(const char *name);
 extern kx_object_t *kx_gen_uexpr_object(int type, kx_object_t *lhs);
 extern kx_object_t *kx_gen_uexpr_object_line(int type, kx_object_t *lhs, int line);
-extern kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t);
+extern kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, arytype_t t);
 extern kx_object_t *kx_add_const(kx_object_t *node);
 extern kx_object_t *kx_gen_enum_object(const char *name);
 extern kx_object_t *kx_gen_enum_object_with(const char *name, int val);
