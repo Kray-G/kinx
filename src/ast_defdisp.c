@@ -264,8 +264,12 @@ LOOP_HEAD:;
             }
         }
         break;
-    case KXOP_KEYVALUE:
-        if (node->lhs->type == KXOP_VAR && !strcmp(node->value.s, node->lhs->value.s) && node->pos == node->lhs->pos) {
+    case KXOP_KEYVALUE: {
+        kx_object_t *value = node->lhs;
+        if (value->type == KXOP_CAST) {
+            value = value->lhs;
+        }
+        if (value->type == KXOP_VAR && !strcmp(node->value.s, value->value.s) && node->pos == node->lhs->pos) {
             print_ref("key-same", node, NULL);
             display_def_ast(node->lhs, lvalue);
         } else {
@@ -273,6 +277,7 @@ LOOP_HEAD:;
             display_def_ast(node->lhs, lvalue);
         }
         break;
+    }
 
     case KXOP_BNOT:
         display_def_ast(node->lhs, 0);
