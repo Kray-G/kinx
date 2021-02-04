@@ -33,6 +33,8 @@
         *   Supported putting a function object to check the result by function call at `when` condition.
         *   Changed to make it error when the length of array is mismatched.
         *   `_` means to ignore binding a value at `when` condition.
+    *   Updated for a language server.
+        *   Updated an output for type system.
     *   Some bug fixes and improvements.
 
 ## V0.20.1 (20th Preview Release) - 2021/01/29

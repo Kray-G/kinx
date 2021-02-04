@@ -387,7 +387,9 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
         index = apply_getval(ctx, node->rhs, ana, jmp, index, nested);
         return index;
     }
-
+    if (node->type == KXOP_CAST) {
+        return apply_getval(ctx, node->lhs, ana, jmp, index, nested);
+    }
     if (node->type == KXOP_KEYVALUE) {
         kx_yyerror_line("Cannot use a key-value pair in array item", node->file, node->line);
         return index;
@@ -499,6 +501,9 @@ static void apply_getvals(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *an
         int jmpblk = jmp < 0 ? -1 : get_block(module, jmp)->index;
         const char *key = node->value.s;
         kx_object_t *value = node->lhs;
+        if (value->type == KXOP_CAST) {
+            value = value->lhs;
+        }
         switch (value->type) {
         case KXVL_INT:
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_MATCHOI, .value1.s = key, .value2.i = value->value.i }));
@@ -1600,7 +1605,7 @@ LOOP_HEAD:;
     }
     case KXOP_CAST: {
         /* do nothing */
-        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        gencode_ast_hook(ctx, node->lhs, ana, lvalue);
         break;
     }
     case KXOP_ENUM: {
@@ -1669,6 +1674,11 @@ LOOP_HEAD:;
             cond = kv_pop(stack);
             if (cond->type == KXST_EXPRLIST) {
                 kv_push(kx_object_t*, stack, cond->rhs);
+                kv_push(kx_object_t*, stack, cond->lhs);
+                continue;
+            }
+            if (cond->type == KXOP_CAST) {
+printf("%s:%d, type = %d\n", __FILE__, __LINE__, node->type);
                 kv_push(kx_object_t*, stack, cond->lhs);
                 continue;
             }
