@@ -87,8 +87,8 @@ static int print_call_args(kx_object_t *node, int index)
     }
 
     if (node->type == KXST_EXPRLIST) {
-        index = print_call_args(node->lhs, index);
-        return print_call_args(node->rhs, index);
+        index = print_call_args(node->rhs, index);  // rhs first.
+        return print_call_args(node->lhs, index);
     }
 
     const char *typename = get_node_typename(node);
@@ -98,15 +98,16 @@ static int print_call_args(kx_object_t *node, int index)
 
 static void print_call_info(kx_object_t *node)
 {
-    if (node->lhs->type == KXOP_VAR) {
-        printf("#call\t%s\n", node->lhs->value.s);
+    kx_object_t *n = node->lhs;
+    if (n->type == KXOP_VAR) {
+        printf("#call\t%s\t%s\t%d\t%d\n", n->value.s, n->file, n->line, n->pos);
         print_call_args(node->rhs, 0);
-    } else if (node->lhs->type == KXOP_IDX) {
-        kx_object_t *base = node->lhs->lhs;
-        kx_object_t *prop = node->lhs->rhs;
+    } else if (n->type == KXOP_IDX) {
+        kx_object_t *base = n->lhs;
+        kx_object_t *prop = n->rhs;
         if (base->type == KXOP_VAR && prop->type == KXVL_STR) {
             if (!strcmp(prop->value.s, "create")) {
-                printf("#call\t%s\n", base->value.s);
+                printf("#call\t%s\t%s\t%d\t%d\n", base->value.s, base->file, base->line, base->pos);
                 print_call_args(node->rhs, 0);
             }
         }
@@ -171,7 +172,8 @@ static void print_type_ary(kx_object_t *node)
         print_objtype(node);
     } else {
         const char *name = get_node_typename(node);
-        printf("{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d}", name ? name : "any", get_sym_name(node), node->line);
+        printf("{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos\":%d}",
+            name ? name : "any", get_sym_name(node), node->line, node->pos);
     }
 }
 
@@ -190,11 +192,13 @@ static void print_type_obj(kx_object_t *node)
         return;
     }
 
-    if (node->lhs->type == KXOP_MKARY || node->lhs->type == KXOP_MKOBJ) {
-        print_objtype(node->lhs);
+    kx_object_t *lhs = node->lhs;
+    if (lhs->type == KXOP_MKARY || lhs->type == KXOP_MKOBJ) {
+        print_objtype(lhs);
     } else {
-        const char *name = get_node_typename(node->lhs);
-        printf("\"%s\":{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d}", node->value.s, name ? name : "any", get_sym_name(node->lhs), node->lhs->line);
+        const char *name = get_node_typename(lhs);
+        printf("\"%s\":{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos\":%d}",
+            node->value.s, name ? name : "any", get_sym_name(lhs), lhs->line, lhs->pos);
     }
 }
 
