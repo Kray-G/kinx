@@ -25,6 +25,11 @@ static inline const char *get_short_typename(int type)
     return "unknown";
 }
 
+static inline const char *get_cast_typename(kx_object_t *node)
+{
+    return node->typename ? node->typename : get_short_typename(node->value.i);
+}
+
 static void print_indent(kx_object_t *node, int indent)
 {
     while (indent--) {
@@ -92,7 +97,7 @@ LOOP_HEAD:;
         break;
     case KXOP_KEYVALUE:
         printf("(key:%s)\n", node->value.s);
-        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
 
     case KXOP_BNOT:
@@ -142,11 +147,11 @@ LOOP_HEAD:;
         break;
     case KXOP_MKARY:
         printf("(make-array):%s\n", get_short_typename(node->var_type));
-        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
     case KXOP_MKOBJ:
         printf("(make-object):%s\n", get_short_typename(node->var_type));
-        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
 
     case KXOP_DECL:
@@ -298,8 +303,8 @@ LOOP_HEAD:;
         printf("(enum value) %s = %d\n", node->value.s, node->optional);
         break;
     case KXOP_CAST:
-        printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_short_typename(node->value.i));
-        display_ast(node->lhs, indent + 1, 0);
+        printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_cast_typename(node));
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
     case KXOP_SPREAD:
         printf("(spread)\n");
@@ -355,8 +360,8 @@ LOOP_HEAD:;
         display_ast(node->rhs, indent, 0);
         break;
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
-        display_ast(node->lhs, indent, 0);
-        display_ast(node->rhs, indent, 0);
+        display_ast(node->lhs, indent, lvalue);
+        display_ast(node->rhs, indent, lvalue);
         break;
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
         display_ast(node->lhs, indent, 0);
