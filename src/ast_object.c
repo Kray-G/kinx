@@ -85,6 +85,7 @@ kx_object_t *kx_gen_obj_core(int type, int optional, kx_object_t *lhs, kx_object
     obj->optional = optional;
     obj->file = const_str(g_parse_ctx, kx_lexinfo.file);
     obj->line = kx_lexinfo.line;
+    obj->pos = kx_lexinfo.pos;
     return obj;
 }
 
@@ -166,6 +167,22 @@ kx_object_t *kx_gen_keyvalue_object(const char *key, kx_object_t *value)
     return obj;
 }
 
+kx_object_t *kx_gen_keyvalue_shorthand(kx_object_t *name)
+{
+    if (name->type == KXOP_VAR) {
+        kx_object_t *obj = kx_gen_obj(KXOP_KEYVALUE, 0, name, NULL, NULL);
+        obj->value.s = name->value.s;
+        return obj;
+    } else if (name->type == KXOP_CAST && name->lhs->type == KXOP_VAR) {
+        kx_object_t *obj = kx_gen_obj(KXOP_KEYVALUE, 0, name, NULL, NULL);
+        obj->value.s = name->lhs->value.s;
+        return obj;
+    }
+
+    kx_yyerror_line("Short hand style name should be a variable", name->file, name->line);
+    return name;
+}
+
 kx_object_t *kx_gen_int_object(int64_t val)
 {
     kx_object_t *obj = kx_gen_obj(KXVL_INT, 0, NULL, NULL, NULL);
@@ -205,6 +222,9 @@ const char *kx_check_the_name(kx_object_t *obj)
 
 kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs)
 {
+    if (!lhs) {
+        return rhs;
+    }
     if (lhs->type != KXST_STMTLIST) {
         return kx_gen_bexpr_object(KXST_STMTLIST, lhs, rhs);
     }
@@ -380,12 +400,13 @@ kx_object_t *kx_gen_uexpr_object_line(int type, kx_object_t *lhs, int line)
     return obj;
 }
 
-kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, int t)
+kx_object_t *kx_gen_cast_object(kx_object_t *lhs, int f, arytype_t t)
 {
     kx_object_t *obj = kx_gen_obj(KXOP_CAST, 0, lhs, NULL, NULL);
     obj->optional = f;
-    obj->value.i = t;
-    obj->var_type = t;
+    obj->value.i = t.type;
+    obj->var_type = t.type;
+    obj->typename = t.name;
     return obj;
 }
 
@@ -470,6 +491,9 @@ kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
             lhs->rhs = rhs;
             return kx_gen_obj(type, 0, lhs, create, NULL);
         }
+    }
+    if (!lhs) {
+        return rhs;
     }
     if (type == KXOP_POW && lhs->rhs) {
         kx_object_t *p = lhs;
