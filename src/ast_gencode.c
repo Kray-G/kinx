@@ -1600,7 +1600,7 @@ LOOP_HEAD:;
     }
     case KXOP_CAST: {
         /* do nothing */
-        gencode_ast_hook(ctx, node->lhs, ana, 0);
+        gencode_ast_hook(ctx, node->lhs, ana, lvalue);
         break;
     }
     case KXOP_ENUM: {

@@ -1362,6 +1362,7 @@ LOOP_HEAD:;
                 actx->lvalue = 1;
                 kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
                 assert(sym);
+                sym->base->var_type = KX_FNC_T;
                 actx->lvalue = lvalue;
                 if (actx->class_node && !strcmp(node->value.s, "initialize")) {
                     actx->class_node->init = node;
