@@ -3,6 +3,7 @@
 #include <parser.h>
 
 static void display_def_ast(kx_object_t *node, int lvalue);
+static void print_objtype(kx_object_t *obj);
 
 static const char *get_var_typename(int t)
 {
@@ -23,18 +24,33 @@ static const char *get_var_typename(int t)
     return NULL;
 }
 
+static const char *get_node_typename(kx_object_t *node)
+{
+    if (node->typename) {
+        return node->typename;
+    }
+    if (node->ex && node->ex->typename) {
+        return node->ex->typename;
+    }
+    return get_var_typename(node->var_type);
+}
+
 static void print_ref(const char *type, kx_object_t *node, kx_object_t *base)
 {
     if (node->value.s && node->value.s[0] != '_') {
-        if (base && base->typename) {
-            printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, base->typename);
-        } else {
-            const char *typename = get_var_typename(node->var_type);
-            if (typename) {
-                printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, typename);
+        if (base) {
+            if (base->typename) {
+                printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, base->typename);
             } else {
-                printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\n", type, node->value.s, node->file, node->line, base->file, base->line);
+                const char *typename = get_node_typename(node);
+                if (typename) {
+                    printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, typename);
+                } else {
+                    printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\n", type, node->value.s, node->file, node->line, base->file, base->line);
+                }
             }
+        } else {
+            printf("#ref\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
         }
     }
 }
@@ -64,34 +80,145 @@ static void print_scope_end(const char *scope, const char *name)
     }
 }
 
-static int display_args(kx_object_t *node, int index, int def)
+static int print_call_args(kx_object_t *node, int index)
 {
     if (!node) {
         return index;
     }
 
     if (node->type == KXST_EXPRLIST) {
-        index = display_args(node->lhs, index, def);
-        return display_args(node->rhs, index, def);
+        index = print_call_args(node->lhs, index);
+        return print_call_args(node->rhs, index);
+    }
+
+    const char *typename = get_node_typename(node);
+    printf("#arg\t%d\t%s\n", index, typename ? typename : "-");
+    return index + 1;
+}
+
+static void print_call_info(kx_object_t *node)
+{
+    if (node->lhs->type == KXOP_VAR) {
+        printf("#call\t%s\n", node->lhs->value.s);
+        print_call_args(node->rhs, 0);
+    } else if (node->lhs->type == KXOP_IDX) {
+        kx_object_t *base = node->lhs->lhs;
+        kx_object_t *prop = node->lhs->rhs;
+        if (base->type == KXOP_VAR && prop->type == KXVL_STR) {
+            if (!strcmp(prop->value.s, "create")) {
+                printf("#call\t%s\n", base->value.s);
+                print_call_args(node->rhs, 0);
+            }
+        }
+    }
+}
+
+static int print_def_args(kx_object_t *node, int index, int def)
+{
+    if (!node) {
+        return index;
+    }
+
+    if (node->type == KXST_EXPRLIST) {
+        index = print_def_args(node->lhs, index, def);
+        return print_def_args(node->rhs, index, def);
     }
 
     switch (node->type) {
     case KXOP_VAR:
-        if (node->typename) {
-            printf("#arg\t%d\t%s\n", index, node->typename);
-        } else {
-            const char *typename = get_var_typename(node->var_type);
-            if (!typename && def > 0) {
-                typename = get_var_typename(def);
-            }
-            printf("#arg\t%d\t%s\n", index, typename ? typename : "-");
+        const char *typename = get_node_typename(node);
+        if (!typename && def > 0) {
+            typename = get_var_typename(def);
         }
+        printf("#arg\t%d\t%s\n", index, typename ? typename : "-");
         break;
     default:
-        printf("#arg\t%d\t-\n", index);
+        printf("#arg\t%d\t%s\n", index, node->typename ? node->typename : "-");
         break;
     }
     return index + 1;
+}
+
+static const char *get_sym_name(kx_object_t *node)
+{
+    switch (node->type) {
+    case KXOP_VAR:
+        return node->value.s;
+    case KXOP_CAST:
+        return get_sym_name(node->lhs);
+    default:
+        ;
+    }
+    return "";
+}
+
+static void print_type_ary(kx_object_t *node)
+{
+    if (!node) {
+        return;
+    }
+
+    if (node->type == KXST_EXPRLIST) {
+        print_type_ary(node->lhs);
+        if (node->rhs) {
+            printf(",");
+            print_type_ary(node->rhs);
+        }
+        return;
+    }
+
+    if (node->type == KXOP_MKARY || node->type == KXOP_MKOBJ) {
+        print_objtype(node);
+    } else {
+        const char *name = get_node_typename(node);
+        printf("{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d}", name ? name : "any", get_sym_name(node), node->line);
+    }
+}
+
+static void print_type_obj(kx_object_t *node)
+{
+    if (!node) {
+        return;
+    }
+
+    if (node->type == KXST_EXPRLIST) {
+        print_type_obj(node->lhs);
+        if (node->rhs) {
+            printf(",");
+            print_type_obj(node->rhs);
+        }
+        return;
+    }
+
+    if (node->lhs->type == KXOP_MKARY || node->lhs->type == KXOP_MKOBJ) {
+        print_objtype(node->lhs);
+    } else {
+        const char *name = get_node_typename(node->lhs);
+        printf("\"%s\":{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d}", node->value.s, name ? name : "any", get_sym_name(node->lhs), node->lhs->line);
+    }
+}
+
+static void print_objtype(kx_object_t *obj)
+{
+    if (obj->type == KXOP_MKARY) {
+        printf("[");
+        print_type_ary(obj->lhs);
+        printf("]");
+    } else if (obj->type == KXOP_MKOBJ) {
+        printf("{");
+        print_type_obj(obj->lhs);
+        printf("}");
+    }
+}
+
+static void print_objchk(kx_object_t *n1, kx_object_t *n2)
+{
+    printf("#typechk1\t");
+    print_objtype(n1);
+    printf("\n");
+    printf("#typechk2\t");
+    print_objtype(n2);
+    printf("\n");
 }
 
 static void display_def_ast(kx_object_t *node, int lvalue)
@@ -138,7 +265,13 @@ LOOP_HEAD:;
         }
         break;
     case KXOP_KEYVALUE:
-        display_def_ast(node->lhs, lvalue);
+        if (node->lhs->type == KXOP_VAR && !strcmp(node->value.s, node->lhs->value.s) && node->pos == node->lhs->pos) {
+            print_ref("key-same", node, NULL);
+            display_def_ast(node->lhs, lvalue);
+        } else {
+            print_ref("key", node, NULL);
+            display_def_ast(node->lhs, lvalue);
+        }
         break;
 
     case KXOP_BNOT:
@@ -191,6 +324,11 @@ LOOP_HEAD:;
         int lv = (node->lhs && node->lhs->type == KXOP_VAR) ? 0 : 1;
         display_def_ast(node->lhs, lv);
         display_def_ast(node->rhs, 0);
+        if (node->lhs && node->rhs) {
+            if ((node->lhs->type == KXOP_MKARY && node->rhs->type == KXOP_MKARY) || (node->lhs->type == KXOP_MKOBJ && node->rhs->type == KXOP_MKOBJ)) {
+                print_objchk(node->lhs, node->rhs);
+            }
+        }
         break;
     }
     case KXOP_SHL:
@@ -293,6 +431,7 @@ LOOP_HEAD:;
         display_def_ast(node->rhs, 0);
         break;
     case KXOP_CALL:
+        print_call_info(node);
         display_def_ast(node->lhs, 0);
         display_def_ast(node->rhs, 0);
         break;
@@ -405,7 +544,7 @@ LOOP_HEAD:;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         const char *scope = node->optional == KXFT_CLASS ? "class" : "module";
         print_scope_start(scope, node->value.s);
-        display_args(node->lhs, 0, -1);
+        print_def_args(node->lhs, 0, -1);
         print_define(scope, node);
         display_def_ast(node->lhs, 1);
         display_def_ast(node->ex, 0);
@@ -416,7 +555,7 @@ LOOP_HEAD:;
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         print_scope_start("function", node->value.s);
-        display_args(node->lhs, 0, -1);
+        print_def_args(node->lhs, 0, -1);
         const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
         print_define(type, node);
         if (node->optional != KXFT_SYSFUNC) {
@@ -427,7 +566,7 @@ LOOP_HEAD:;
         break;
     case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         print_scope_start("function", node->value.s);
-        display_args(node->lhs, 0, KX_INT_T);
+        print_def_args(node->lhs, 0, KX_INT_T);
         print_define("native", node);
         display_def_ast(node->lhs, 1);
         display_def_ast(node->rhs, 0);

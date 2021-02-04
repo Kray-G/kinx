@@ -25,6 +25,11 @@ static inline const char *get_short_typename(int type)
     return "unknown";
 }
 
+static inline const char *get_cast_typename(kx_object_t *node)
+{
+    return node->typename ? node->typename : get_short_typename(node->value.i);
+}
+
 static void print_indent(kx_object_t *node, int indent)
 {
     while (indent--) {
@@ -298,7 +303,7 @@ LOOP_HEAD:;
         printf("(enum value) %s = %d\n", node->value.s, node->optional);
         break;
     case KXOP_CAST:
-        printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_short_typename(node->value.i));
+        printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_cast_typename(node));
         display_ast(node->lhs, indent + 1, lvalue);
         break;
     case KXOP_SPREAD:
