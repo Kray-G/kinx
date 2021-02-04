@@ -811,7 +811,7 @@ KeyValue
     | NAME ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
     | KeySpecialName ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
-    | CastExpression { $$ = kx_gen_keyvalue_object_cast($1); }
+    | CastExpression { $$ = kx_gen_keyvalue_shorthand($1); }
     ;
 
 ValueOfKeyValue

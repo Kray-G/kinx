@@ -2811,7 +2811,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, YYASP(2-2).obj)); } break;
         case 360:
 #line 814 "src/kinx.y"
-{ yyval.obj = kx_gen_keyvalue_object_cast(YYASP(1-1).obj); } break;
+{ yyval.obj = kx_gen_keyvalue_shorthand(YYASP(1-1).obj); } break;
         case 362:
 #line 819 "src/kinx.y"
 { yyval.obj = YYASP(2-2).obj; yyval.obj->optional = KXDC_CONST; } break;
