@@ -126,13 +126,14 @@ static int print_def_args(kx_object_t *node, int index, int def)
     }
 
     switch (node->type) {
-    case KXOP_VAR:
+    case KXOP_VAR: {
         const char *typename = get_node_typename(node);
         if (!typename && def > 0) {
             typename = get_var_typename(def);
         }
         printf("#arg\t%d\t%s\n", index, typename ? typename : "-");
         break;
+    }
     default:
         printf("#arg\t%d\t%s\n", index, node->typename ? node->typename : "-");
         break;
