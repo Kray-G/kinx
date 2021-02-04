@@ -126,6 +126,10 @@ kx_object_t *kx_gen_var_object_line(const char *name, int var_type, int line)
     if (line > 0) {
         obj->line = line;
     }
+    obj->pos -= strlen(name);
+    if (obj->pos < 1) {
+        obj->pos = 1;
+    }
     return obj;
 }
 
