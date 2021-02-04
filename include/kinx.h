@@ -259,6 +259,7 @@ typedef struct kx_object_ {
     const char *file;
     uint32_t line;
     uint32_t line2;
+    uint32_t pos;
 
     struct kx_object_ *case_next; /* used in switch-case */
     kvec_t(int) case_src_block;  /* jump source to case */
