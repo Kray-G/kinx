@@ -172,6 +172,9 @@ static void print_type_ary(kx_object_t *node)
     if (node->type == KXOP_MKARY || node->type == KXOP_MKOBJ) {
         print_objtype(node);
     } else {
+        if (node->type == KXOP_CAST) {
+            node = node->lhs;
+        }
         const char *name = get_node_typename(node);
         printf("{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos\":%d}",
             name ? name : "any", get_sym_name(node), node->line, node->pos);
@@ -197,6 +200,9 @@ static void print_type_obj(kx_object_t *node)
     if (lhs->type == KXOP_MKARY || lhs->type == KXOP_MKOBJ) {
         print_objtype(lhs);
     } else {
+        if (lhs->type == KXOP_CAST) {
+            lhs = lhs->lhs;
+        }
         const char *name = get_node_typename(lhs);
         printf("\"%s\":{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos\":%d}",
             node->value.s, name ? name : "any", get_sym_name(lhs), lhs->line, lhs->pos);
