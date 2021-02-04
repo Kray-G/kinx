@@ -2,10 +2,40 @@
 #include <inttypes.h>
 #include <parser.h>
 
+static void display_def_ast(kx_object_t *node, int lvalue);
+
+static const char *get_var_typename(int t)
+{
+    switch (t) {
+    case KX_UND_T:  return "null";
+    case KX_INT_T:  return "int";
+    case KX_BIG_T:  return "big";
+    case KX_NUM_T:  return "num";
+    case KX_DBL_T:  return "dbl";
+    case KX_STR_T:  return "str";
+    case KX_BIN_T:  return "bin";
+    case KX_ARY_T:  return "ary";
+    case KX_OBJ_T:  return "obj";
+    case KX_FNC_T:  return "Function";
+    case KX_BFNC_T:  return "Function";
+    case KX_NFNC_T:  return "Function";
+    }
+    return NULL;
+}
+
 static void print_ref(const char *type, kx_object_t *node, kx_object_t *base)
 {
     if (node->value.s && node->value.s[0] != '_') {
-        printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\n", type, node->value.s, node->file, node->line, base->file, base->line);
+        if (base && base->typename) {
+            printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, base->typename);
+        } else {
+            const char *typename = get_var_typename(node->var_type);
+            if (typename) {
+                printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, typename);
+            } else {
+                printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\n", type, node->value.s, node->file, node->line, base->file, base->line);
+            }
+        }
     }
 }
 
@@ -32,6 +62,36 @@ static void print_scope_end(const char *scope, const char *name)
     if (name && name[0] != '_') {
         printf("#scope\tend\t%s\n", scope);
     }
+}
+
+static int display_args(kx_object_t *node, int index, int def)
+{
+    if (!node) {
+        return index;
+    }
+
+    if (node->type == KXST_EXPRLIST) {
+        index = display_args(node->lhs, index, def);
+        return display_args(node->rhs, index, def);
+    }
+
+    switch (node->type) {
+    case KXOP_VAR:
+        if (node->typename) {
+            printf("#arg\t%d\t%s\n", index, node->typename);
+        } else {
+            const char *typename = get_var_typename(node->var_type);
+            if (!typename && def > 0) {
+                typename = get_var_typename(def);
+            }
+            printf("#arg\t%d\t%s\n", index, typename ? typename : "-");
+        }
+        break;
+    default:
+        printf("#arg\t%d\t-\n", index);
+        break;
+    }
+    return index + 1;
 }
 
 static void display_def_ast(kx_object_t *node, int lvalue)
@@ -78,7 +138,7 @@ LOOP_HEAD:;
         }
         break;
     case KXOP_KEYVALUE:
-        display_def_ast(node->lhs, 0);
+        display_def_ast(node->lhs, lvalue);
         break;
 
     case KXOP_BNOT:
@@ -126,10 +186,13 @@ LOOP_HEAD:;
         display_def_ast(node->lhs, 1);
         display_def_ast(node->rhs, 0);
         break;
-    case KXOP_ASSIGN:
-        display_def_ast(node->lhs, 0);  // assignment is dealt with not definition, just a reference instead.
+    case KXOP_ASSIGN: {
+        // assignment is dealt with not definition for variable, just a reference instead.
+        int lv = (node->lhs && node->lhs->type == KXOP_VAR) ? 0 : 1;
+        display_def_ast(node->lhs, lv);
         display_def_ast(node->rhs, 0);
         break;
+    }
     case KXOP_SHL:
         display_def_ast(node->lhs, 0);
         display_def_ast(node->rhs, 0);
@@ -240,7 +303,7 @@ LOOP_HEAD:;
     case KXOP_ENUM:
         break;
     case KXOP_CAST:
-        display_def_ast(node->lhs, 0);
+        display_def_ast(node->lhs, lvalue);
         break;
     case KXOP_SPREAD:
         display_def_ast(node->lhs, lvalue);
@@ -342,6 +405,7 @@ LOOP_HEAD:;
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         const char *scope = node->optional == KXFT_CLASS ? "class" : "module";
         print_scope_start(scope, node->value.s);
+        display_args(node->lhs, 0, -1);
         print_define(scope, node);
         display_def_ast(node->lhs, 1);
         display_def_ast(node->ex, 0);
@@ -352,6 +416,7 @@ LOOP_HEAD:;
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
         print_scope_start("function", node->value.s);
+        display_args(node->lhs, 0, -1);
         const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
         print_define(type, node);
         if (node->optional != KXFT_SYSFUNC) {
@@ -362,6 +427,7 @@ LOOP_HEAD:;
         break;
     case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         print_scope_start("function", node->value.s);
+        display_args(node->lhs, 0, KX_INT_T);
         print_define("native", node);
         display_def_ast(node->lhs, 1);
         display_def_ast(node->rhs, 0);

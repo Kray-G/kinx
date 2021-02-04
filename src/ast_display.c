@@ -92,7 +92,7 @@ LOOP_HEAD:;
         break;
     case KXOP_KEYVALUE:
         printf("(key:%s)\n", node->value.s);
-        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
 
     case KXOP_BNOT:
@@ -142,11 +142,11 @@ LOOP_HEAD:;
         break;
     case KXOP_MKARY:
         printf("(make-array):%s\n", get_short_typename(node->var_type));
-        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
     case KXOP_MKOBJ:
         printf("(make-object):%s\n", get_short_typename(node->var_type));
-        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
 
     case KXOP_DECL:
@@ -299,7 +299,7 @@ LOOP_HEAD:;
         break;
     case KXOP_CAST:
         printf("(cast) from %s to %s\n", get_short_typename(node->optional), get_short_typename(node->value.i));
-        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->lhs, indent + 1, lvalue);
         break;
     case KXOP_SPREAD:
         printf("(spread)\n");
@@ -355,8 +355,8 @@ LOOP_HEAD:;
         display_ast(node->rhs, indent, 0);
         break;
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
-        display_ast(node->lhs, indent, 0);
-        display_ast(node->rhs, indent, 0);
+        display_ast(node->lhs, indent, lvalue);
+        display_ast(node->rhs, indent, lvalue);
         break;
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
         display_ast(node->lhs, indent, 0);
