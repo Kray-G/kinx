@@ -97,7 +97,7 @@ static int print_call_args(defdisp_context_t *dctx, kx_object_t *node, int index
     }
 
     const char *typename = get_node_typename(dctx, node);
-    printf("#arg\t%d\t%s\n", index, typename ? typename : "-");
+    printf("#callarg\t%d\t%s\n", index, typename ? typename : "-");
     return index + 1;
 }
 
@@ -108,6 +108,7 @@ static void print_call_info(defdisp_context_t *dctx, kx_object_t *node)
         kx_object_t *b = n->ex ? n->ex : n;
         printf("#call\t%s\t%s\t%d\t%s\t%d\n", n->value.s, n->file, n->line, b->file, b->line);
         print_call_args(dctx, node->rhs, 0);
+        printf("#callend\n");
     } else if (n->type == KXOP_IDX) {
         kx_object_t *base = n->lhs;
         kx_object_t *prop = n->rhs;
@@ -116,6 +117,7 @@ static void print_call_info(defdisp_context_t *dctx, kx_object_t *node)
                 kx_object_t *b = base->ex ? base->ex : base;
                 printf("#call\t%s\t%s\t%d\t%s\t%d\n", base->value.s, base->file, base->line, b->file, b->line);
                 print_call_args(dctx, node->rhs, 0);
+                printf("#callend\n");
             }
         }
     }
