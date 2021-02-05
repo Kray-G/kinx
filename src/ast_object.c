@@ -85,7 +85,7 @@ kx_object_t *kx_gen_obj_core(int type, int optional, kx_object_t *lhs, kx_object
     obj->optional = optional;
     obj->file = const_str(g_parse_ctx, kx_lexinfo.file);
     obj->line = kx_lexinfo.line;
-    obj->pos = kx_lexinfo.pos;
+    obj->pos1 = kx_lexinfo.pos;
     return obj;
 }
 
@@ -115,7 +115,7 @@ kx_object_t *kx_gen_ary_var_object(kx_object_t *node, int var_type)
     return kx_gen_obj_core(KXOP_VAR, 0, node, NULL, NULL, var_type);
 }
 
-kx_object_t *kx_gen_var_object_line(const char *name, int var_type, int line)
+kx_object_t *kx_gen_var_object_line_pos(const char *name, int var_type, int line, int pos1, int pos2)
 {
     static int counter = 0;
     if (!name) {
@@ -126,22 +126,27 @@ kx_object_t *kx_gen_var_object_line(const char *name, int var_type, int line)
     if (line > 0) {
         obj->line = line;
     }
-    obj->pos -= strlen(name);
-    if (obj->pos < 1) {
-        obj->pos = 1;
+    if (pos1 > 0 && pos2 > 0) {
+        obj->pos1 = pos1;
+        obj->pos2 = pos1;
     }
     return obj;
 }
 
-kx_object_t *kx_gen_var_object(const char *name, int var_type)
+kx_object_t *kx_gen_var_object_line(const char *name, int var_type, int line)
 {
-    return kx_gen_var_object_line(name, var_type, -1);
+    return kx_gen_var_object_line_pos(name, var_type, line, -1, -1);
 }
 
-kx_object_t *kx_gen_var_type_object(const char *name, arytype_t var_type, int ret_type)
+kx_object_t *kx_gen_var_object(const char *name, int var_type)
+{
+    return kx_gen_var_object_line_pos(name, var_type, -1, -1, -1);
+}
+
+kx_object_t *kx_gen_var_type_object(kx_object_t *typevar, arytype_t var_type, int ret_type)
 {
     kx_object_t *obj = kx_gen_obj(KXOP_VAR, 0, NULL, NULL, NULL);
-    obj->value.s = name;
+    obj->value.s = typevar->value.s;
     obj->var_type = var_type.type;
     obj->refdepth = var_type.depth;
     obj->typename = var_type.name;
@@ -575,9 +580,9 @@ kx_object_t *kx_gen_label_object(int type, const char *name, kx_object_t *lhs)
     return obj;
 }
 
-kx_object_t *kx_gen_catch_object(int type, const char *name, kx_object_t *block, kx_object_t *ex)
+kx_object_t *kx_gen_catch_object(int type, kx_object_t *namevar, kx_object_t *block, kx_object_t *ex)
 {
-    kx_object_t *decl = kx_gen_bassign_object(KXOP_DECL, kx_gen_var_object(name, KX_UNKNOWN_T), NULL);
+    kx_object_t *decl = kx_gen_bassign_object(KXOP_DECL, namevar, NULL);
     kx_object_t *obj = kx_gen_obj(type, 0, decl, block, ex);
     return obj;
 }
