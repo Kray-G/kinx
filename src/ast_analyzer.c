@@ -9,6 +9,8 @@
 #define KX_ENV_VAR ("$env")
 #define KXN_ISOBJ(x) (((x) == KX_OBJ_T) || ((x) == KX_ARY_T))
 
+static void propagate_typename(kx_object_t *lhs, kx_object_t *rhs);
+
 KHASH_MAP_INIT_STR(enum_value, int)
 typedef khash_t(enum_value) *enum_map_t;
 kvec_init_t(enum_map_t);
@@ -336,6 +338,116 @@ static void append_typename(kx_object_t *node)
     }
     if (type) {
         base->lhs->typename = type;
+    }
+}
+
+static const char *get_node_typename(kx_object_t *node)
+{
+    if (node->typename) {
+        return node->typename;
+    }
+    if (node->ex && node->ex->typename) {
+        return node->ex->typename;
+    }
+    return NULL;
+}
+
+static void propagate_ary_typename(kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (!lhs || !rhs) {
+        return;
+    }
+
+    if (lhs->type == KXST_EXPRLIST) {
+        if (rhs->type != KXST_EXPRLIST) {
+            return;
+        }
+        propagate_ary_typename(lhs->lhs, rhs->lhs);
+        if (lhs->rhs && rhs->rhs) {
+            propagate_ary_typename(lhs->rhs, rhs->rhs);
+        }
+        return;
+    }
+
+    if (lhs->type == KXOP_MKARY || lhs->type == KXOP_MKOBJ) {
+        if (lhs->type != rhs->type) {
+            return;
+        }
+        propagate_typename(lhs, rhs);
+    } else {
+        if (lhs->type == KXOP_CAST) {
+            lhs = lhs->lhs;
+        }
+        if (rhs->type == KXOP_CAST) {
+            rhs = rhs->lhs;
+        }
+        if (lhs->var_type == KX_UNKNOWN_T) {
+            const char *name = get_node_typename(lhs);
+            if (!name) {
+                name = get_node_typename(rhs);
+                if (name) {
+                    lhs->typename = name;
+                } else {
+                    lhs->var_type = rhs->var_type;
+                }
+            }
+        }
+    }
+}
+
+static void propagate_obj_typename(kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (!lhs || !rhs) {
+        return;
+    }
+
+    if (lhs->type == KXST_EXPRLIST) {
+        if (rhs->type != KXST_EXPRLIST) {
+            return;
+        }
+        propagate_obj_typename(lhs->lhs, rhs->lhs);
+        if (lhs->rhs && rhs->rhs) {
+            propagate_obj_typename(lhs->rhs, rhs->rhs);
+        }
+        return;
+    }
+
+    kx_object_t *llhs = lhs->lhs;
+    kx_object_t *rlhs = rhs->lhs;
+    if (llhs->type == KXOP_MKARY || llhs->type == KXOP_MKOBJ) {
+        if (llhs->type != rlhs->type) {
+            return;
+        }
+        propagate_typename(llhs, rlhs);
+    } else {
+        if (llhs->type == KXOP_CAST) {
+            llhs = llhs->lhs;
+        }
+        if (rlhs->type == KXOP_CAST) {
+            rlhs = rlhs->lhs;
+        }
+        if (llhs->var_type == KX_UNKNOWN_T) {
+            const char *name = get_node_typename(llhs);
+            if (!name) {
+                name = get_node_typename(rlhs);
+                if (name) {
+                    llhs->typename = name;
+                } else {
+                    llhs->var_type = rlhs->var_type;
+                }
+            }
+        }
+    }
+}
+
+static void propagate_typename(kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (lhs && rhs) {
+        if (lhs->type == KXOP_MKARY && rhs->type == KXOP_MKARY) {
+            propagate_ary_typename(lhs->lhs, rhs->lhs);
+        } else if (lhs->type == KXOP_MKOBJ && rhs->type == KXOP_MKOBJ) {
+            propagate_obj_typename(lhs->lhs, rhs->lhs);
+        }
     }
 }
 
@@ -717,6 +829,11 @@ LOOP_HEAD:;
         node->typename = node->lhs->typename;
         node->refdepth = node->lhs->refdepth;
         append_typename(node);
+        if (node->lhs && node->rhs) {
+            if ((node->lhs->type == KXOP_MKARY && node->rhs->type == KXOP_MKARY) || (node->lhs->type == KXOP_MKOBJ && node->rhs->type == KXOP_MKOBJ)) {
+                propagate_typename(node->lhs, node->rhs);
+            }
+        }
         break;
     }
     case KXOP_SHL:
@@ -1017,7 +1134,7 @@ LOOP_HEAD:;
                     kx_yyerror_line("Can not call a non-native function from native function", node->file, node->line);
                 }
             }
-            node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->ret_type : node->lhs->var_type;
+            node->var_type = (node->lhs->var_type == KX_FNC_T || node->lhs->var_type == KX_NFNC_T || node->lhs->var_type == KX_BFNC_T) ? node->lhs->ret_type : node->lhs->var_type;
             if (node->lhs->var_type == KX_NFNC_T && node->lhs->ret_type == KX_UNKNOWN_T) {
                 kx_yyerror_line("Can not call a native function without returning type", node->file, node->line);
             }

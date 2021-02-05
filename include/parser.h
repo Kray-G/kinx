@@ -5,6 +5,12 @@
 #include <stdint.h>
 #include <kinx.h>
 
+typedef struct name_t_ {
+    const char *name;
+    int line;
+    int pos1;
+    int pos2;
+} name_t;
 typedef struct arytype_t_ {
     int type;
     int depth;

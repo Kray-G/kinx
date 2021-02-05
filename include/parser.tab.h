@@ -8,6 +8,7 @@ typedef union
     const uint8_t *binval;
     arytype_t     arraytype;
     named_stmt_t  namedstmt;
+    name_t        strinfo;  /* NAME with location */
 }
 YYSTYPE;
 extern YYSTYPE kx_yylval;
