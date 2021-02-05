@@ -1134,7 +1134,7 @@ LOOP_HEAD:;
                     kx_yyerror_line("Can not call a non-native function from native function", node->file, node->line);
                 }
             }
-            node->var_type = node->lhs->var_type == KX_NFNC_T ? node->lhs->ret_type : node->lhs->var_type;
+            node->var_type = (node->lhs->var_type == KX_FNC_T || node->lhs->var_type == KX_NFNC_T || node->lhs->var_type == KX_BFNC_T) ? node->lhs->ret_type : node->lhs->var_type;
             if (node->lhs->var_type == KX_NFNC_T && node->lhs->ret_type == KX_UNKNOWN_T) {
                 kx_yyerror_line("Can not call a native function without returning type", node->file, node->line);
             }
