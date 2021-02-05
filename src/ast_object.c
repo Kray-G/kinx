@@ -181,10 +181,12 @@ kx_object_t *kx_gen_keyvalue_shorthand(kx_object_t *name)
     if (name->type == KXOP_VAR) {
         kx_object_t *obj = kx_gen_obj(KXOP_KEYVALUE, 0, name, NULL, NULL);
         obj->value.s = name->value.s;
+        obj->pos1 = name->pos1;
         return obj;
     } else if (name->type == KXOP_CAST && name->lhs->type == KXOP_VAR) {
         kx_object_t *obj = kx_gen_obj(KXOP_KEYVALUE, 0, name, NULL, NULL);
         obj->value.s = name->lhs->value.s;
+        obj->pos1 = name->lhs->pos1 = name->pos1;
         return obj;
     }
 
