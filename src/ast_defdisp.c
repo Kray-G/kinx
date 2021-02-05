@@ -18,7 +18,8 @@ static const char *get_var_typename(defdisp_context_t *dctx, int t)
     case KX_BIG_T:  return "big";
     case KX_NUM_T:  return "num";
     case KX_DBL_T:  return dctx->in_native ? "dbl" : "Double";
-    case KX_STR_T:  return dctx->in_native ? "str" : "String";
+    case KX_STR_T:  /* fallthrough */
+    case KX_CSTR_T: return dctx->in_native ? "str" : "String";
     case KX_BIN_T:  return dctx->in_native ? "bin" : "Binary";
     case KX_ARY_T:  return "ary";
     case KX_OBJ_T:  return "obj";
@@ -107,7 +108,7 @@ static void print_call_info(defdisp_context_t *dctx, kx_object_t *node)
     kx_object_t *n = node->lhs;
     if (n->type == KXOP_VAR) {
         kx_object_t *b = n->ex ? n->ex : n;
-        printf("#call\t%s\t%s\t%d\t%s\t%d\n", n->value.s, n->file, n->line, b->file, b->line);
+        printf("#call\t%s\t%s\t%d\t%s\t%d\t%d\n", n->value.s, n->file, n->line, b->file, b->line, n->pos1);
         print_call_args(dctx, node->rhs, 0);
         printf("#callend\n");
     } else if (n->type == KXOP_IDX) {
@@ -116,9 +117,17 @@ static void print_call_info(defdisp_context_t *dctx, kx_object_t *node)
         if (base->type == KXOP_VAR && prop->type == KXVL_STR) {
             if (!strcmp(prop->value.s, "create")) {
                 kx_object_t *b = base->ex ? base->ex : base;
-                printf("#call\t%s\t%s\t%d\t%s\t%d\n", base->value.s, base->file, base->line, b->file, b->line);
+                printf("#call\t%s#%s\t%s\t%d\t%s\t%d\t%d\n", base->value.s, base->value.s, base->file, base->line, b->file, b->line, base->pos1);
                 print_call_args(dctx, node->rhs, 0);
                 printf("#callend\n");
+            } else {
+                const char *typename = get_node_typename(dctx, base);
+                if (typename) {
+                    kx_object_t *b = base->ex ? base->ex : base;
+                    printf("#call\t%s#%s\t%s\t%d\t%s\t%d\t%d\n", typename, prop->value.s, base->file, base->line, b->file, b->line, base->pos1);
+                    print_call_args(dctx, node->rhs, 0);
+                    printf("#callend\n");
+                }
             }
         }
     }
