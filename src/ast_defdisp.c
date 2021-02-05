@@ -3,6 +3,7 @@
 #include <parser.h>
 
 typedef struct defdisp_context_t_ {
+    int in_sysclass;
     int in_native;
 } defdisp_context_t;
 
@@ -577,9 +578,11 @@ LOOP_HEAD:;
         print_scope_start(scope, node->value.s);
         print_def_args(dctx, node->lhs, 0, -1);
         print_define(dctx, scope, node);
+        dctx->in_sysclass = node->type == KXST_SYSCLASS;
         display_def_ast(dctx, node->lhs, 1);
         display_def_ast(dctx, node->ex, 0);
         display_def_ast(dctx, node->rhs, 0);
+        dctx->in_sysclass = 0;
         print_scope_end(scope, node->value.s);
         break;
     }
@@ -589,7 +592,7 @@ LOOP_HEAD:;
         print_def_args(dctx, node->lhs, 0, -1);
         const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
         print_define(dctx, type, node);
-        if (node->optional != KXFT_SYSFUNC) {
+        if (node->optional != KXFT_SYSFUNC && !dctx->in_sysclass) {
             display_def_ast(dctx, node->lhs, 1);
             display_def_ast(dctx, node->rhs, 0);
         }
