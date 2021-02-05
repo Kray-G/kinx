@@ -128,7 +128,7 @@ kx_object_t *kx_gen_var_object_line_pos(const char *name, int var_type, int line
     }
     if (pos1 > 0 && pos2 > 0) {
         obj->pos1 = pos1;
-        obj->pos2 = pos1;
+        obj->pos2 = pos2;
     }
     return obj;
 }
