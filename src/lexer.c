@@ -705,6 +705,7 @@ HEAD_OF_YYLEX:
         return '(';
     }
 
+    int lexpos = kx_lexinfo.pos;
     int pos = 0, is_zero = 0;
     switch (kx_lexinfo.ch) {
     case '{':
@@ -1010,8 +1011,15 @@ HEAD_OF_YYLEX:
         case COROUTINE:
             kx_yylval.intval = kx_lexinfo.line;
             break;
+        case NAME:
+            // Commented out because offsetof(YYSTYPE, strval) == offsetof(YYSTYPE, strinfo.name)
+            //  kx_yylval.strinfo.name = const_str(g_parse_ctx, kx_strbuf);
+            kx_yylval.strinfo.line = kx_lexinfo.line;
+            kx_yylval.strinfo.pos1 = lexpos - 1;
+            kx_yylval.strinfo.pos2 = kx_lexinfo.pos - 1;
+            break;
         default:
-            ; /* do nothing. */
+            break;
         }
         return token;
 

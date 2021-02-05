@@ -100,14 +100,14 @@ static void print_call_info(kx_object_t *node)
 {
     kx_object_t *n = node->lhs;
     if (n->type == KXOP_VAR) {
-        printf("#call\t%s\t%s\t%d\t%d\n", n->value.s, n->file, n->line, n->pos);
+        printf("#call\t%s\t%s\t%d\n", n->value.s, n->file, n->line);
         print_call_args(node->rhs, 0);
     } else if (n->type == KXOP_IDX) {
         kx_object_t *base = n->lhs;
         kx_object_t *prop = n->rhs;
         if (base->type == KXOP_VAR && prop->type == KXVL_STR) {
             if (!strcmp(prop->value.s, "create")) {
-                printf("#call\t%s\t%s\t%d\t%d\n", base->value.s, base->file, base->line, base->pos);
+                printf("#call\t%s\t%s\t%d\n", base->value.s, base->file, base->line);
                 print_call_args(node->rhs, 0);
             }
         }
@@ -176,8 +176,8 @@ static void print_type_ary(kx_object_t *node)
             node = node->lhs;
         }
         const char *name = get_node_typename(node);
-        printf("{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos\":%d}",
-            name ? name : "any", get_sym_name(node), node->line, node->pos);
+        printf("{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos1\":%d,\"pos2\":%d}",
+            name ? name : "any", get_sym_name(node), node->line, node->pos1, node->pos2);
     }
 }
 
@@ -204,8 +204,8 @@ static void print_type_obj(kx_object_t *node)
             lhs = lhs->lhs;
         }
         const char *name = get_node_typename(lhs);
-        printf("\"%s\":{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos\":%d}",
-            node->value.s, name ? name : "any", get_sym_name(lhs), lhs->line, lhs->pos);
+        printf("\"%s\":{\"type\":\"%s\",\"symbol\":\"%s\",\"line\":%d,\"pos1\":%d,\"pos2\":%d}",
+            node->value.s, name ? name : "any", get_sym_name(lhs), lhs->line, lhs->pos1, lhs->pos2);
     }
 }
 
@@ -280,7 +280,7 @@ LOOP_HEAD:;
         if (value->type == KXOP_CAST) {
             value = value->lhs;
         }
-        if (value->type == KXOP_VAR && !strcmp(node->value.s, value->value.s) && node->pos == node->lhs->pos) {
+        if (value->type == KXOP_VAR && !strcmp(node->value.s, value->value.s) && node->pos1 == node->lhs->pos1) {
             print_ref("key-same", node, NULL);
             display_def_ast(node->lhs, lvalue);
         } else {
