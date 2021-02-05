@@ -31,6 +31,7 @@ static inline void yy_restart(int token)
     const uint8_t *binval;
     arytype_t     arraytype;
     named_stmt_t  namedstmt;
+    name_t        strinfo;  /* NAME with location */
 }
 
 %token ERROR
@@ -41,7 +42,7 @@ static inline void yy_restart(int token)
 %token NUL TRUE FALSE AS
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS2 DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
 %token<intval> CLASS SYSCLASS MODULE SYSMODULE NATIVE FUNCTION SYSFUNC PUBLIC PRIVATE PROTECTED COROUTINE
-%token<strval> NAME
+%token<strinfo> NAME
 %token<strval> STR
 %token<strval> SRCFILE
 %token<strval> BIGINT
@@ -74,6 +75,7 @@ static inline void yy_restart(int token)
 %type<obj> ForInVariable
 %type<obj> TryCatchStatement
 %type<obj> CatchStatement_Opt
+%type<obj> CatchVariable
 %type<obj> FinallyStatement_Opt
 %type<obj> ReturnStatement
 %type<obj> YieldStatement
@@ -126,7 +128,7 @@ static inline void yy_restart(int token)
 %type<obj> KeyValueList
 %type<obj> KeyValue
 %type<obj> ValueOfKeyValue
-%type<strval> VarName
+%type<obj> VarName
 %type<strval> KeySpecialName
 %type<strval> ClassFunctionName
 %type<strval> ClassFunctionSpecialName
@@ -200,7 +202,7 @@ NonSemicolonStatement
     | TryCatchStatement
     | LabelStatement
     | LabelledStatement
-    | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3, KX_UNKNOWN_T), kx_gen_import_object($5)); }
+    | IMPORT VAR NAME '=' STR ';' { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($3.name, KX_UNKNOWN_T), kx_gen_import_object($5)); }
     | error RBBR { yyerrok; $$ = NULL; }
     ;
 
@@ -248,7 +250,7 @@ NamespaceStatement
     ;
 
 NamespaceName
-    : NAME { $$ = kx_gen_namespace_name_object($1); }
+    : NAME { $$ = kx_gen_namespace_name_object($1.name); }
     ;
 
 EnumStatement
@@ -256,12 +258,12 @@ EnumStatement
     ;
 
 EnumList
-    : NAME { $$ = kx_gen_enum_object($1); }
-    | NAME '=' INT { $$ = kx_gen_enum_object_with($1, $3); }
-    | NAME '=' '-' INT { $$ = kx_gen_enum_object_with($1, -$4); }
-    | EnumList ',' NAME { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object($3)); }
-    | EnumList ',' NAME '=' INT { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object_with($3, $5)); }
-    | EnumList ',' NAME '=' '-' INT { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object_with($3, -$6)); }
+    : NAME { $$ = kx_gen_enum_object($1.name); }
+    | NAME '=' INT { $$ = kx_gen_enum_object_with($1.name, $3); }
+    | NAME '=' '-' INT { $$ = kx_gen_enum_object_with($1.name, -$4); }
+    | EnumList ',' NAME { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object($3.name)); }
+    | EnumList ',' NAME '=' INT { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object_with($3.name, $5)); }
+    | EnumList ',' NAME '=' '-' INT { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_enum_object_with($3.name, -$6)); }
     ;
 
 DefinitionStatement
@@ -272,7 +274,7 @@ DefinitionStatement
     ;
 
 LabelStatement
-    : NAME ':' LabelledStatement { $$ = kx_gen_label_object(KXST_LABEL, $1, $3); }
+    : NAME ':' LabelledStatement { $$ = kx_gen_label_object(KXST_LABEL, $1.name, $3); }
     ;
 
 IfStatement
@@ -326,7 +328,7 @@ ForStatement
     ;
 
 ForInVariable
-    : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    : VarName
     | Array
     ;
 
@@ -336,8 +338,12 @@ TryCatchStatement
 
 CatchStatement_Opt
     : { $$ = NULL; }
-    | CATCH BlockStatement { $$ = kx_gen_catch_object(KXST_CATCH, "_e", $2, NULL); }
-    | CATCH '(' NAME ')' BlockStatement { $$ = kx_gen_catch_object(KXST_CATCH, $3, $5, NULL); }
+    | CATCH CatchVariable BlockStatement { $$ = kx_gen_catch_object(KXST_CATCH, $2, $3, NULL); }
+    ;
+
+CatchVariable
+    : /* empty */  { $$ = kx_gen_var_object("_e", KX_UNKNOWN_T); }
+    | '(' NAME ')' { $$ = kx_gen_var_object_line_pos($2.name, KX_UNKNOWN_T, $2.line, $2.pos1, $2.pos2); }
     ;
 
 FinallyStatement_Opt
@@ -347,9 +353,9 @@ FinallyStatement_Opt
 
 BreakStatement
     : BREAK Modifier_Opt ';' { $$ = kx_gen_modifier($2, kx_gen_break_object(KXST_BREAK, NULL)); }
-    | BREAK NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_BREAK, $2)); }
+    | BREAK NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_BREAK, $2.name)); }
     | CONTINUE Modifier_Opt ';' { $$ = kx_gen_modifier($2, kx_gen_break_object(KXST_CONTINUE, NULL)); }
-    | CONTINUE NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_CONTINUE, $2)); }
+    | CONTINUE NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_CONTINUE, $2.name)); }
     ;
 
 ReturnStatement
@@ -377,8 +383,8 @@ MixinStatement
     ;
 
 MixinModuleList
-    : NAME { $$ = kx_gen_stmt_object(KXST_MIXIN, NULL, kx_gen_var_object($1, KX_OBJ_T), NULL); }
-    | MixinModuleList ',' NAME { $$ = kx_gen_stmt_object(KXST_MIXIN, $1, kx_gen_var_object($3, KX_OBJ_T), NULL); }
+    : NAME { $$ = kx_gen_stmt_object(KXST_MIXIN, NULL, kx_gen_var_object_line_pos($1.name, KX_OBJ_T, $1.line, $1.pos1, $1.pos2), NULL); }
+    | MixinModuleList ',' NAME { $$ = kx_gen_stmt_object(KXST_MIXIN, $1, kx_gen_var_object_line_pos($3.name, KX_OBJ_T, $3.line, $3.pos1, $3.pos2), NULL); }
     ;
 
 ExpressionStatement
@@ -494,7 +500,7 @@ WhenPostfixExpression
     ;
 
 WhenCondition
-    : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    : VarName
     | '(' AssignExpression ')' { $$ = $2; }
     | INT { $$ = kx_gen_int_object($1); }
     | DBL { $$ = kx_gen_dbl_object($1); }
@@ -664,10 +670,10 @@ Factor
     | DBL { $$ = kx_gen_dbl_object($1); }
     | BIGINT { $$ = kx_gen_big_object($1); }
     | NUL { $$ = kx_gen_special_object(KXVL_NULL); }
-    | VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
     | TRUE { $$ = kx_gen_special_object(KXVL_TRUE); }
     | FALSE { $$ = kx_gen_special_object(KXVL_FALSE); }
     | SRCFILE { $$ = kx_gen_str_object($1); }
+    | VarName
     | Binary
     | Array
     | Object
@@ -685,12 +691,12 @@ Factor
     ;
 
 VarName
-    : NAME { $$ = $1; }
-    | TYPE { $$ = kx_gen_typestr_object($1); }
+    : NAME { $$ = kx_gen_var_object_line_pos($1.name, KX_UNKNOWN_T, $1.line, $1.pos1, $1.pos2); }
+    | TYPE { $$ = kx_gen_var_object(kx_gen_typestr_object($1), KX_UNKNOWN_T); }
     ;
 
 PropertyName
-    : NAME { $$ = kx_gen_str_object($1); }
+    : NAME { $$ = kx_gen_str_object($1.name); }
     | TYPE { $$ = kx_gen_str_object(kx_gen_typestr_object($1)); }
     | IF { $$ = kx_gen_str_object("if"); }
     | ELSE { $$ = kx_gen_str_object("else"); }
@@ -808,7 +814,7 @@ KeyValueList
 
 KeyValue
     : '(' STR ')' ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($2, $5); }
-    | NAME ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
+    | NAME ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1.name, $3); }
     | KeySpecialName ':' ValueOfKeyValue { $$ = kx_gen_keyvalue_object($1, $3); }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_keyvalue_object(NULL, kx_gen_uexpr_object(KXOP_SPREAD, $2)); }
     | CastExpression { $$ = kx_gen_keyvalue_shorthand($1); }
@@ -938,9 +944,9 @@ DeclAssignExpressionList
     ;
 
 DeclAssignExpression
-    : VarName { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), NULL); }
+    : VarName { $$ = kx_gen_bexpr_object(KXOP_DECL, $1, NULL); }
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), NULL); }
-    | VarName '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object($1, KX_UNKNOWN_T), $3); }
+    | VarName '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, $1, $3); }
     | VarName ':' TypeName ReturnType_Opt '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_type_object($1, $3, $4), $6); }
     | Array '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, $1, $3); }
     | Object '=' DeclAssignRightHandSide { $$ = kx_gen_bexpr_object(KXOP_DECL, $1, $3); }
@@ -957,9 +963,9 @@ FunctionDeclStatement
     ;
 
 NormalFunctionDeclStatement
-    : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, 0, $2, $4, $6, NULL, $1); }
-    | SYSFUNC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, 0, $2, $4, $6, NULL, $1); }
-    | NativeKeyword NativeType_Opt NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_NATIVE, $2.type, $2.depth, $3, $5, $7, NULL, $1); }
+    : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, 0, $2.name, $4, $6, NULL, $1); }
+    | SYSFUNC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, 0, $2.name, $4, $6, NULL, $1); }
+    | NativeKeyword NativeType_Opt NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_NATIVE, $2.type, $2.depth, $3.name, $5, $7, NULL, $1); }
     ;
 
 NativeKeyword
@@ -988,18 +994,18 @@ ClassFunctionDeclStatement
     ;
 
 ClassFunctionName
-    : NAME
+    : NAME { $$ = $1.name; }
     | ClassFunctionSpecialName
     ;
 
 ClassDeclStatement
-    : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_CLASS, KXFT_CLASS, 0, $2, $3, $5, $4, $1); }
-    | SYSCLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_SYSCLASS, KXFT_CLASS, 0, $2, $3, $5, $4, $1); }
+    : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_CLASS, KXFT_CLASS, 0, $2.name, $3, $5, $4, $1); }
+    | SYSCLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_SYSCLASS, KXFT_CLASS, 0, $2.name, $3, $5, $4, $1); }
     ;
 
 ModuleDeclStatement
-    : MODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_CLASS, KXFT_MODULE, 0, $2, NULL, $3, NULL, $1); }
-    | SYSMODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_SYSCLASS, KXFT_MODULE, 0, $2, NULL, $3, NULL, $1); }
+    : MODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_CLASS, KXFT_MODULE, 0, $2.name, NULL, $3, NULL, $1); }
+    | SYSMODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_SYSCLASS, KXFT_MODULE, 0, $2.name, NULL, $3, NULL, $1); }
     ;
 
 Inherit_Opt
@@ -1042,17 +1048,17 @@ ArgumentList
     ;
 
 Argument
-    : VarName { $$ = kx_gen_var_object($1, KX_UNKNOWN_T); }
+    : VarName
     | VarName ':' TypeName ReturnType_Opt { $$ = kx_gen_var_type_object($1, $3, $4); }
     | Array { $$ = kx_gen_ary_var_object($1->lhs, KX_LARY_T); }
     | Object { $$ = kx_gen_ary_var_object($1->lhs, KX_LOBJ_T); }
-    | DOTS3 VarName { $$ = kx_gen_var_object($2, KX_SPR_T); }
+    | DOTS3 VarName { $2->var_type = KX_SPR_T; $$ = $2; }
     ;
 
 TypeName
     : TYPE ArrayLevel { $$ = (arytype_t){ .type = $1, .depth = $2 }; }
     | NATIVE { $$ = (arytype_t){ .type = KX_NFNC_T }; }
-    | NAME ArrayLevel { $$ = (arytype_t){ .type = KX_OBJ_T, .depth = $2, .name = kx_gen_constant_string($1) }; }
+    | NAME ArrayLevel { $$ = (arytype_t){ .type = KX_OBJ_T, .depth = $2, .name = kx_gen_constant_string($1.name) }; }
     ;
 
 ArrayLevel
