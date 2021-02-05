@@ -198,6 +198,7 @@ static void print_type_obj(kx_object_t *node)
 
     kx_object_t *lhs = node->lhs;
     if (lhs->type == KXOP_MKARY || lhs->type == KXOP_MKOBJ) {
+        printf("\"%s\":", node->value.s);
         print_objtype(lhs);
     } else {
         if (lhs->type == KXOP_CAST) {
