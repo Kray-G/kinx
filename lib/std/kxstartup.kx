@@ -61,6 +61,11 @@ var Xml, Net;
     STDERR = $stderr;
     System.print = _function(...arg) { return $stdout.print(...arg); };
     System.println = _function(...arg) { return $stdout.println(...arg); };
+    $exepath = System.exepath();
+    $kinxpath = System.kinxpath();
+    True = System._setTrueFalse(1, new _BooleanClass(true));
+    False = System._setTrueFalse(0, new _BooleanClass(false));
+    SystemTimer.create = System.SystemTimer_create;
 })();
 
 const KX_KEY_ESC        = 0x1b;
