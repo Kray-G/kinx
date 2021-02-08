@@ -35,16 +35,16 @@ Integer value can be also put instead of `dbl`, it will be automatically casted 
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.acos(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.acos();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.acos(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.acos();
 }
 var r1 = Math.acos(0.8);
@@ -69,16 +69,16 @@ System.println("%g, should be %g" % calc4(0) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.asin(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.asin();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.asin(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.asin();
 }
 var r1 = Math.asin(0.8);
@@ -103,16 +103,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.atan(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.atan();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.atan(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.atan();
 }
 var r1 = Math.atan(0.8);
@@ -137,16 +137,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.atan2(n, 0.9);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.atan2(0.9);
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.atan2(n, 1);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.atan2(1);
 }
 var r1 = Math.atan2(0.8, 0.9);
@@ -171,16 +171,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.cos(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.cos();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.cos(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.cos();
 }
 var r1 = Math.cos(0.8);
@@ -205,16 +205,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.sin(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.sin();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.sin(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.sin();
 }
 var r1 = Math.sin(0.8);
@@ -239,16 +239,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.tan(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.tan();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.tan(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.tan();
 }
 var r1 = Math.tan(0.8);
@@ -273,16 +273,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.cosh(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.cosh();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.cosh(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.cosh();
 }
 var r1 = Math.cosh(0.8);
@@ -307,16 +307,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.sinh(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.sinh();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.sinh(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.sinh();
 }
 var r1 = Math.sinh(0.8);
@@ -341,16 +341,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.tanh(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.tanh();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.tanh(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.tanh();
 }
 var r1 = Math.tanh(0.8);
@@ -375,16 +375,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.exp(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.exp();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.exp(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.exp();
 }
 var r1 = Math.exp(0.8);
@@ -409,16 +409,16 @@ System.println("%g, should be %g" % calc4(1) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.ldexp(n, 10.0);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.ldexp(10.0);
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.ldexp(n, 10);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.ldexp(10);
 }
 var r1 = Math.ldexp(2.1, 10.0);
@@ -443,16 +443,16 @@ System.println("%g, should be %g" % calc4(2) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.log(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.log();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.log(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.log();
 }
 var r1 = Math.log(0.8);
@@ -477,16 +477,16 @@ System.println("%g, should be %g" % calc4(10) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.log10(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.log10();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.log10(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.log10();
 }
 var r1 = Math.log10(0.8);
@@ -511,16 +511,16 @@ System.println("%g, should be %g" % calc4(100) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.pow(n, 10.0);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.pow(10.0);
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.pow(n, 10);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.pow(10);
 }
 var r1 = Math.pow(2.1, 10.0);
@@ -545,16 +545,16 @@ System.println("%g, should be %g" % calc4(2) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.sqrt(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.sqrt();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.sqrt(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.sqrt();
 }
 var r1 = Math.sqrt(0.8);
@@ -579,16 +579,16 @@ System.println("%g, should be %g" % calc4(100) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.abs(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.abs();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.abs(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.abs();
 }
 var r1 = Math.abs(-0.8);
@@ -613,16 +613,16 @@ System.println("%g, should be %g" % calc4(100) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.ceil(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.ceil();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.ceil(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.ceil();
 }
 var r1 = Math.ceil(0.8);
@@ -647,16 +647,16 @@ System.println("%g, should be %g" % calc4(100) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.floor(n);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.floor();
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.floor(n);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.floor();
 }
 var r1 = Math.floor(2.8);
@@ -681,16 +681,16 @@ System.println("%g, should be %g" % calc4(100) % r2);
 #### Code
 
 ```javascript
-native:dbl calc1(n:dbl) {
+native calc1(n:dbl):dbl {
     return Math.fmod(n, 10.0);
 }
-native:dbl calc2(n:dbl) {
+native calc2(n:dbl):dbl {
     return n.fmod(10.0);
 }
-native:dbl calc3(n) {
+native calc3(n):dbl {
     return Math.fmod(n, 10);
 }
-native:dbl calc4(n) {
+native calc4(n):dbl {
     return n.fmod(10);
 }
 var r1 = Math.fmod(202.1, 10.0);
