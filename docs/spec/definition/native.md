@@ -69,13 +69,14 @@ Especially, see below for examples of `Math` functions.
 
 * [Math functions](native/math.md)
 
-### Supported Switch-Case
+### Supported Switch-Case/When
 
-Switch-Case is now supported in native function.
+Switch-Case/When is now supported in native function.
 But the case label should be an integer type.
-See below for examples of Switch-Case in native.
+See below for examples of Switch-Case/When in native.
 
 * [Switch-Case in Native](native/switch_case.md)
+* [Switch-When in Native](native/switch_when.md)
 
 ### Supported Array
 

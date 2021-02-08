@@ -1,13 +1,13 @@
-# Switch-Case in Native
+# Switch-When in Native
 
 ## Overview
 
-Switch-Case is supported only with integer label in native function.
+Switch-When is supported only with integer label in native function.
 The label should be integer but also it can be the expression with the type of integer.
 
 ## Examples
 
-### Example 1. Switch-case in native
+### Example 1. Switch-When in native
 
 #### Code
 
@@ -16,39 +16,29 @@ var y = 19;
 native f(a, x) {
     var b = 0;
     switch (a) {
-    case 1:
+    when 1:
         b = a;
-        break;
-    case 5:
+    when 5:
         b = a;
-        break;
-    default:
+    else:
         b = 100;
-        break;
-    case 4:
+    when 4:
         b = a;
-        break;
-    case 3:
+    when 3:
         b = a;
-        break;
-    case 8:
+    when 8:
         b = 10;
-        break;
-    case 9:
+    when 9:
         b = a;
-        break;
-    case x:
+    when x:
         b = 1000;
-        break;
-    case y:
+    when y:
         b = 10000;
-        break;
-    case y+1:
+    when y+1:
         b = 100000;
-        /* fallthrough */
-    case x+3:
+        fallthrough;
+    when x+3:
         b += 1000000;
-        break;
     }
     return b;
 }
