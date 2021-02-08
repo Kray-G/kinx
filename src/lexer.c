@@ -210,6 +210,7 @@ static int get_keyword_token(const char *val)
         if (strcmp(val, "for") == 0)            return FOR;
         if (strcmp(val, "finally") == 0)        return FINALLY;
         if (strcmp(val, "false") == 0)          return FALSE;
+        if (strcmp(val, "fallthrough") == 0)    return FALLTHROUGH;
         break;
     case 'i':
         if (strcmp(val, "if") == 0)             return IF;
