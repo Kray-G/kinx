@@ -75,8 +75,6 @@ System.halt = _function() {
 
 # Some Other Utilities.
 
-$exepath = System.exepath();
-$kinxpath = System.kinxpath();
 System.PLATFORM = System.getPlatform();
 
 System.try = _function(f) {
@@ -107,14 +105,6 @@ _class _BooleanClass(tf) {
         return tf ? 'true' : 'false';
     }
 }
-
-# To use JSON.parse().
-True = System._setTrueFalse(1, new _BooleanClass(true));
-False = System._setTrueFalse(0, new _BooleanClass(false));
-
-SystemTimer = {
-    create: System.SystemTimer_create
-};
 
 # Clib is the library to use C program from Kinx.
 
