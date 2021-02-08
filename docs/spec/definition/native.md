@@ -43,8 +43,8 @@ It is very fast but there are some limitations.
     *   For `int[]` and `dbl[]`
         *   It is currently just supported as an array of integer or double.
     *   For `native`.
-        *   `native` function's return type is shown like `native:int`.
-        *   Even in this case, you can omit `:int` like just `native` and automatically make it `int`.
+        *   `native` function's return type is shown like `native funcname(arg):int`.
+        *   Even in this case, you can omit `:int` as the type of a return value and automatically make it `int`.
 *   For function call.
     *   Can not call a script function. Only can call a native function.
 *   For statement and expression.
@@ -216,7 +216,7 @@ do_while(10000) = 50005000
 
 ```javascript
 var b = 1.7;
-native:dbl test(a:dbl) {
+native test(a:dbl):dbl {
     return a + b;
 }
 System.println(test(1.5));
@@ -667,7 +667,7 @@ function fact(n) {
     return n * fact(n - 1);
 }
 
-native:big factb(n:big) {
+native factb(n:big):big {
     if (n <= 1) {
         return 1;
     }

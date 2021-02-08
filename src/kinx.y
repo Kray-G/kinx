@@ -155,6 +155,7 @@ static inline void yy_restart(int token)
 %type<obj> CallArgumentList_Opts
 %type<obj> CallArgumentList
 %type<obj> CallArgument
+%type<arraytype> FunctionType_Opt
 %type<arraytype> NativeType_Opt
 %type<arraytype> TypeName
 %type<intval> ArrayLevel
@@ -482,12 +483,12 @@ WhenConditionRange
 
 /* `&() => expr` style will cause conflict, then you should wrap `(` and `)` such as `(&() => expr)`. */
 WhenAnonymousFunctionDeclExpression
-    : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $3, $5, NULL, $1); }
-    | SYSFUNC '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, 0, NULL, $3, $5, NULL, $1); }
-    | COROUTINE '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_COROUTINE, KXFT_SYSFUNC, 0, NULL, $3, $5, NULL, $1); }
-    | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2.type, $2.depth, NULL, $4, $6, NULL); }
-    | '&' '(' ArgumentList_Opts ')' DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $3, $6, NULL); }
-    | '&' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $2, NULL); }
+    : FUNCTION '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, $6, NULL, $1); }
+    | SYSFUNC '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, $5, NULL, $3, $6, NULL, $1); }
+    | COROUTINE '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_COROUTINE, KXFT_SYSFUNC, $5, NULL, $3, $6, NULL, $1); }
+    | NativeKeyword '(' ArgumentList_Opts ')' NativeType_Opt BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, 0, $5, NULL, $3, $6, NULL); }
+    | '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, $7, NULL); }
+    | '&' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, NULL, NULL, $3, NULL); }
     ;
 
 WhenPostfixExpression
@@ -523,7 +524,7 @@ WhenClauseBody
     ;
 
 WhenClauseBodyBlock
-    : BlockStatement { $$ = kx_gen_bexpr_object(KXOP_CALL, kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $1, NULL), NULL); }
+    : BlockStatement { $$ = kx_gen_bexpr_object(KXOP_CALL, kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, (arytype_t){ .type = KX_UNKNOWN_T }, NULL, NULL, $1, NULL), NULL); }
     ;
 
 Colon_Opt
@@ -647,17 +648,14 @@ PostfixExpression
     ;
 
 SimpleFuncCallFactorOrBlock
-    : BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $1, NULL); }
+    : BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, (arytype_t){ .type = KX_UNKNOWN_T }, NULL, NULL, $1, NULL); }
     | SimpleFuncCallFactor
     ;
 
 SimpleFuncCallFactor
-    : LBBR DARROW TernaryExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, kx_gen_stmt_object(KXST_RET, $3, NULL, NULL), NULL); }
-    | LBBR '&' '(' ArgumentList_Opts ')' DARROW TernaryExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $4, kx_gen_stmt_object(KXST_RET, $7, NULL, NULL), NULL); }
-    | LBBR '&' '(' ArgumentList_Opts ')' RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $4, NULL, NULL); }
-    | LBBR '&' '(' ArgumentList_Opts ')' ':' RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $4, NULL, NULL); }
-    | LBBR '&' '(' ArgumentList_Opts ')' StatementList RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $4, $6, NULL); }
-    | LBBR '&' '(' ArgumentList_Opts ')' ':' StatementList RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $4, $7, NULL); }
+    : LBBR FunctionType_Opt DARROW TernaryExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, NULL, NULL, kx_gen_stmt_object(KXST_RET, $4, NULL, NULL), NULL); }
+    | LBBR '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW TernaryExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $6, NULL, $4, kx_gen_stmt_object(KXST_RET, $8, NULL, NULL), NULL); }
+    | LBBR '&' '(' ArgumentList_Opts ')' FunctionType_Opt StatementList RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $6, NULL, $4, $7, NULL); }
     ;
 
 PostIncDec
@@ -963,13 +961,18 @@ FunctionDeclStatement
     ;
 
 NormalFunctionDeclStatement
-    : FUNCTION NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, 0, $2.name, $4, $6, NULL, $1); }
-    | SYSFUNC NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, 0, $2.name, $4, $6, NULL, $1); }
-    | NativeKeyword NativeType_Opt NAME '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_NATIVE, $2.type, $2.depth, $3.name, $5, $7, NULL, $1); }
+    : FUNCTION NAME '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, $6, $2.name, $4, $7, NULL, $1); }
+    | SYSFUNC NAME '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, $6, $2.name, $4, $7, NULL, $1); }
+    | NativeKeyword NAME '(' ArgumentList_Opts ')' NativeType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_NATIVE, 0, $6, $2.name, $4, $7, NULL, $1); }
     ;
 
 NativeKeyword
     : NATIVE { kx_make_native_mode(); $$ = $1; }
+    ;
+
+FunctionType_Opt
+    : { $$ = (arytype_t){ .type = KX_UNKNOWN_T }; }
+    | ':' TypeName { $$ = $2; }
     ;
 
 NativeType_Opt
@@ -978,19 +981,19 @@ NativeType_Opt
     ;
 
 AnonymousFunctionDeclExpression
-    : FUNCTION '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $3, $5, NULL, $1); }
-    | SYSFUNC '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, 0, NULL, $3, $5, NULL, $1); }
-    | COROUTINE '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_COROUTINE, KXFT_SYSFUNC, 0, NULL, $3, $5, NULL, $1); }
-    | NativeKeyword NativeType_Opt '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, $2.type, $2.depth, NULL, $4, $6, NULL); }
-    | '&' '(' ArgumentList_Opts ')' DARROW TernaryExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $3, kx_gen_stmt_object(KXST_RET, $6, NULL, NULL), NULL); }
-    | '&' '(' ArgumentList_Opts ')' DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, $3, $6, NULL); }
-    | '&' BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, 0, NULL, NULL, $2, NULL); }
+    : FUNCTION '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, $6, NULL, $1); }
+    | SYSFUNC '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, $5, NULL, $3, $6, NULL, $1); }
+    | COROUTINE '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_COROUTINE, KXFT_SYSFUNC, $5, NULL, $3, $6, NULL, $1); }
+    | NativeKeyword '(' ArgumentList_Opts ')' NativeType_Opt BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, 0, $5, NULL, $3, $6, NULL); }
+    | '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW TernaryExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, kx_gen_stmt_object(KXST_RET, $7, NULL, NULL), NULL); }
+    | '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, $7, NULL); }
+    | '&' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, NULL, NULL, $3, NULL); }
     ;
 
 ClassFunctionDeclStatement
-    : PUBLIC ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PUBLIC, 0, $2, $4, $6, NULL, $1); }
-    | PRIVATE ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PRIVATE, 0, $2, $4, $6, NULL, $1); }
-    | PROTECTED ClassFunctionName '(' ArgumentList_Opts ')' BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PROTECTED, 0, $2, $4, $6, NULL, $1); }
+    : PUBLIC ClassFunctionName '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PUBLIC, $6, $2, $4, $7, NULL, $1); }
+    | PRIVATE ClassFunctionName '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PRIVATE, $6, $2, $4, $7, NULL, $1); }
+    | PROTECTED ClassFunctionName '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_PROTECTED, $6, $2, $4, $7, NULL, $1); }
     ;
 
 ClassFunctionName
@@ -999,13 +1002,13 @@ ClassFunctionName
     ;
 
 ClassDeclStatement
-    : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_CLASS, KXFT_CLASS, 0, $2.name, $3, $5, $4, $1); }
-    | SYSCLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_SYSCLASS, KXFT_CLASS, 0, $2.name, $3, $5, $4, $1); }
+    : CLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_CLASS, KXFT_CLASS, (arytype_t){ .type = KX_UNKNOWN_T }, $2.name, $3, $5, $4, $1); }
+    | SYSCLASS NAME ClassArgumentList_Opts Inherit_Opt BlockStatement { $$ = kx_gen_func_object_name_line(KXST_SYSCLASS, KXFT_CLASS, (arytype_t){ .type = KX_UNKNOWN_T }, $2.name, $3, $5, $4, $1); }
     ;
 
 ModuleDeclStatement
-    : MODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_CLASS, KXFT_MODULE, 0, $2.name, NULL, $3, NULL, $1); }
-    | SYSMODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_SYSCLASS, KXFT_MODULE, 0, $2.name, NULL, $3, NULL, $1); }
+    : MODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_CLASS, KXFT_MODULE, (arytype_t){ .type = KX_UNKNOWN_T }, $2.name, NULL, $3, NULL, $1); }
+    | SYSMODULE NAME BlockStatement { $$ = kx_gen_func_object_line(KXST_SYSCLASS, KXFT_MODULE, (arytype_t){ .type = KX_UNKNOWN_T }, $2.name, NULL, $3, NULL, $1); }
     ;
 
 Inherit_Opt

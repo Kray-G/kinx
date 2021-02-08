@@ -238,6 +238,7 @@ typedef struct kx_object_ {
     int optional;
     int refdepth;
     const char *typename;
+    const char *ret_typename;
     union {
         int64_t     i;
         double      d;
