@@ -35,6 +35,14 @@
         *   `_` means to ignore binding a value at `when` condition.
     *   Updated for a language server.
         *   Updated an output for type system.
+    *   I am very sorry but after my consideration, I desided to change a syntax for a return type of native again.
+        Instead, I added a syntax that you can specify a return type also for a normal function.
+        However note that a return type for a normal function is currently just an information to the language server.
+        *   [OLD] `native:int`
+        *   [NEW] `native funcname(args):int`
+        *   [ADD] `function funcname(args):int`
+        *   [ADD] `public funcname(args):int`
+        *   [ADD] `private funcname(args):int`
     *   Some bug fixes and improvements.
 
 ## V0.20.1 (20th Preview Release) - 2021/01/29
