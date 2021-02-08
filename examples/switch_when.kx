@@ -1,0 +1,78 @@
+var array = [1,2,3,4,5,6,7,8,9,10];
+function switchTest(n) {
+    switch (n) {
+    when 1:     System.println(n);
+    when 2:     System.println(n);
+    when 3:     System.println(n);
+    when 4:     System.println(n);
+    when 5:     System.println(n);
+    when 6:     System.println(n);
+    when 7:     System.println(n);
+    when 8:     System.println(n);
+
+    else:
+        System.print("default - ");
+        fallthrough;
+    when 100:
+        System.println(n);
+    when array.length():
+        System.println("array-length:%{n}");
+    when "aaa":
+        System.println(n);
+    when "bbb":
+        System.println(n);
+    }
+}
+System.println("--- switch-when in normal function");
+0.upto(100, function(i) {
+    if (12 < i && i <= 97) {
+        return; // omitted.
+    }
+    System.print("%{i} => ");
+    switchTest(i);
+});
+
+var y = 19;
+native f(a, x) {
+    var b = 0;
+    switch (a) {
+    when 1:
+        b = a;
+    when 5:
+        b = a;
+    else:
+        b = 100;
+    when 4:
+        b = a;
+    when 3:
+        b = a;
+    when 8:
+        b = 10;
+    when 9:
+        b = a;
+    when x:
+        b = 1000;
+    when y:
+        b = 10000;
+    when y+1:
+        b = 100000;
+        fallthrough;
+    when x+3:
+        b += 1000000;
+    }
+    return b;
+}
+System.println("--- switch-when in native");
+System.println(f(1, 18));
+System.println(f(2, 18));
+System.println(f(3, 18));
+System.println(f(4, 18));
+System.println(f(5, 18));
+System.println(f(6, 18));
+System.println(f(7, 18));
+System.println(f(8, 18));
+System.println(f(9, 18));
+System.println(f(18, 18));
+System.println(f(19, 18));
+System.println(f(20, 18));
+System.println(f(21, 18));
