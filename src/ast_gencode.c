@@ -1941,6 +1941,8 @@ printf("%s:%d, type = %d\n", __FILE__, __LINE__, node->type);
         ana->block = next;
         break;
     }
+    case KXST_FALLTHROUGH:
+        break;
     case KXST_LABEL: {       /* lhs: stmt */
         int label = new_block_hook(ana);
         int absent;
@@ -2080,6 +2082,9 @@ printf("%s:%d, type = %d\n", __FILE__, __LINE__, node->type);
         break;
     }
     case KXST_CASE:    {  /* lhs: cond */
+        if (node->ex) {
+            gencode_ast_hook(ctx, node->ex, ana, 0);
+        }
         kx_block_t *blk = &kv_A(module->blocks, ana->block);
         int stmt;
         if (kv_size(blk->code) == 0) {

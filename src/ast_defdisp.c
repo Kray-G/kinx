@@ -511,6 +511,8 @@ LOOP_HEAD:;
         break;
     case KXST_CONTINUE:
         break;
+    case KXST_FALLTHROUGH:
+        break;
     case KXST_LABEL:
         print_define(dctx, "label", node);
         display_def_ast(dctx, node->lhs, 0);
