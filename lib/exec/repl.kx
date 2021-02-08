@@ -399,7 +399,7 @@ class Repl {
     };
     var re_ = {
         assign: /^\s*(?:var)?\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)\s*;?\s*\n$/,
-        natv: /^\s*native\s*(?:\<([a-z]+)\>)?\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
+        natv: /^\s*native\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)\s*(?::([a-z]+))?((.|\n)+)/,
         func: /^\s*function\s*([$_a-zA-Z0-9]+)\s*\(([^\\)]*)\)((.|\n)+)/,
         clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*((.|\n)+)/,
@@ -879,21 +879,21 @@ class Repl {
                 re_.natv.reset(input);
                 if (re_.natv.find()) {
                     g = re_.natv.group;
-                    var rtyp = g[1].string || 'int';
-                    var name = g[2].string;
-                    input = "var %{name}:native(%{rtyp}) = native:%{rtyp}(%{g[3].string}) %{g[4].string};";
-                    input = appendPreCode() + input + ";return 'native:%{rtyp} %{name}';";
+                    var rtyp = g[3].string || 'int';
+                    var name = g[1].string;
+                    input = "var %{name}:native(%{rtyp}) = native(%{g[2].string}):%{rtyp} %{g[4].string};";
+                    input = appendPreCode() + input + ";return 'native %{name}:%{rtyp}';";
                     # System.println(input);
                     r = tryEval(input);
                     replinfo_.vars[name] = {
                         id: ++cmdid_,
                         isNative: true,
-                        func: "native:%{rtyp}(%{g[3].string}) %{g[4].string}",
+                        func: "native(%{g[2].string}):%{rtyp} %{g[4].string}",
                         body: g[4].string,
-                        disp: 'native:%{rtyp} %{name}(%{g[3].string})',
+                        disp: 'native %{name}(%{g[2].string}):%{rtyp}',
                         name: name,
                         type: "native(%{rtyp})",
-                        args: g[3].string
+                        args: g[2].string
                     };
                     return r;
                 }
