@@ -285,6 +285,9 @@ LOOP_HEAD:;
         if (!node->rhs) {
             if (lvalue) {
                 if (node->value.s && node->value.s[0] != '_') {
+                    if (node->refs != 0) {
+                        print_ref(dctx, "var", node, node->ex);
+                    }
                     print_define(dctx, node->optional == KXDC_CONST ? "const" : "var", node);
                 }
             } else {

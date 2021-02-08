@@ -360,6 +360,7 @@ static void propagate_ary_typename(kx_object_t *lhs, kx_object_t *rhs)
 
     if (lhs->type == KXST_EXPRLIST) {
         if (rhs->type != KXST_EXPRLIST) {
+            propagate_ary_typename(lhs->lhs, rhs);
             return;
         }
         propagate_ary_typename(lhs->lhs, rhs->lhs);
@@ -382,13 +383,12 @@ static void propagate_ary_typename(kx_object_t *lhs, kx_object_t *rhs)
             rhs = rhs->lhs;
         }
         if (lhs->var_type == KX_UNKNOWN_T) {
+            lhs->var_type = rhs->var_type;
             const char *name = get_node_typename(lhs);
             if (!name) {
                 name = get_node_typename(rhs);
                 if (name) {
                     lhs->typename = name;
-                } else {
-                    lhs->var_type = rhs->var_type;
                 }
             }
         }
@@ -621,11 +621,18 @@ LOOP_HEAD:;
         if (actx->vars) {
             kv_push(kx_object_t*, (*(actx->vars)), node);
         }
+        node->refs = (node == sym->base) ? 0 : 1;
         node->ex = sym->base;
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
-        node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
-        node->refdepth = sym->base->refdepth;
+        if (!actx->in_native && (actx->decl || actx->lvalue)) {
+            sym->base = node;
+            node->var_type = vtype;
+            node->refdepth = 0;
+        } else {
+            node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
+            node->refdepth = sym->base->refdepth;
+        }
         if (sym->base->var_type == KX_NFNC_T) {
             node->ret_type = sym->base->ret_type;
         }
