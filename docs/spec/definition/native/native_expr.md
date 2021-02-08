@@ -97,11 +97,11 @@ System.println(mod(-103, 20));
 #### Code
 
 ```javascript
-native:dbl add(a:dbl, b:dbl) { return a + b; }
-native:dbl sub(a:dbl, b:dbl) { return a - b; }
-native:dbl mul(a:dbl, b:dbl) { return a * b; }
-native:dbl div(a:dbl, b:dbl) { return a / b; }
-native:dbl mod(a:dbl, b:dbl) { return a % b; }
+native add(a:dbl, b:dbl):dbl { return a + b; }
+native sub(a:dbl, b:dbl):dbl { return a - b; }
+native mul(a:dbl, b:dbl):dbl { return a * b; }
+native div(a:dbl, b:dbl):dbl { return a / b; }
+native mod(a:dbl, b:dbl):dbl { return a % b; }
 System.println(add(10, 20));
 System.println(sub(10, 20));
 System.println(mul(10, 20));
@@ -124,11 +124,11 @@ System.println(mod(10, 20));
 #### Code
 
 ```javascript
-native:dbl add(a:dbl, b:dbl) { return a + b; }
-native:dbl sub(a:dbl, b:dbl) { return a - b; }
-native:dbl mul(a:dbl, b:dbl) { return a * b; }
-native:dbl div(a:dbl, b:dbl) { return a / b; }
-native:dbl mod(a:dbl, b:dbl) { return a % b; }
+native add(a:dbl, b:dbl):dbl { return a + b; }
+native sub(a:dbl, b:dbl):dbl { return a - b; }
+native mul(a:dbl, b:dbl):dbl { return a * b; }
+native div(a:dbl, b:dbl):dbl { return a / b; }
+native mod(a:dbl, b:dbl):dbl { return a % b; }
 System.println(add(103, 20));
 System.println(sub(103, 20));
 System.println(mul(103, 20));
@@ -151,11 +151,11 @@ System.println(mod(103, 20));
 #### Code
 
 ```javascript
-native:dbl add(a:dbl, b:dbl) { return a + b; }
-native:dbl sub(a:dbl, b:dbl) { return a - b; }
-native:dbl mul(a:dbl, b:dbl) { return a * b; }
-native:dbl div(a:dbl, b:dbl) { return a / b; }
-native:dbl mod(a:dbl, b:dbl) { return a % b; }
+native add(a:dbl, b:dbl):dbl { return a + b; }
+native sub(a:dbl, b:dbl):dbl { return a - b; }
+native mul(a:dbl, b:dbl):dbl { return a * b; }
+native div(a:dbl, b:dbl):dbl { return a / b; }
+native mod(a:dbl, b:dbl):dbl { return a % b; }
 System.println(add(-103, 20));
 System.println(sub(-103, 20));
 System.println(mul(-103, 20));
@@ -178,8 +178,8 @@ System.println(mod(-103, 20));
 #### Code
 
 ```javascript
-native:str add(a:str, b:str) { return a + b; }
-native:str mul(a:str, b) { return a * b; }
+native add(a:str, b:str):str { return a + b; }
+native mul(a:str, b):str { return a * b; }
 System.println(add("pre:", "post"));
 System.println(mul("abc:", 5));
 ```

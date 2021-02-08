@@ -8,7 +8,7 @@ In a condition of `case` statement, you can put an expression.
 If the condition's value in case as a result is same, direct value is checked first.
 Otherwise, the condition written first is checked first.
 
-You need `break` for exitting `case` statement because kinx `switch-case` is **fall through**.
+You need `break` for exitting `case` statement because kinx `switch-case` is **fallthrough**.
 
 ```javascript
 switch (x) {
@@ -30,7 +30,7 @@ switch (x) {
 case 1:
     /* ... */
     break;
-default: /* fall through */
+default: /* fallthrough */
 case 2:
     /* ... */
     break;
@@ -174,7 +174,7 @@ function switchTest(n) {
 
     default:
         System.print("default - ");
-        // fall through
+        // fallthrough
     case 100:   System.println(n); break;
         break;
     case array.length():
