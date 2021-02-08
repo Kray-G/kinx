@@ -97,6 +97,8 @@ enum functype {
 enum casetype {
     KXCS_CASE,
     KXCS_DEFAULT,
+    KXCS_WHEN,
+    KXCS_ELSE,
 };
 
 enum opecode {
@@ -202,6 +204,7 @@ enum opecode {
 
     KXST_BREAK,
     KXST_CONTINUE,
+    KXST_FALLTHROUGH,
 };
 
 typedef struct kxana_symbol_ {
@@ -238,6 +241,7 @@ typedef struct kx_object_ {
     int optional;
     int refdepth;
     const char *typename;
+    const char *ret_typename;
     union {
         int64_t     i;
         double      d;

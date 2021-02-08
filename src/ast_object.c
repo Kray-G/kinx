@@ -375,7 +375,7 @@ kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t
         blk = kx_gen_bexpr_object(KXST_STMTLIST, nassign, blk);
     }
     blk = kx_gen_bexpr_object(KXOP_CALL,
-        kx_gen_func_object(KXST_FUNCTION, internal ? KXFT_SYSFUNC : KXFT_FUNCTION, 0, NULL, NULL, blk, NULL),
+        kx_gen_func_object(KXST_FUNCTION, internal ? KXFT_SYSFUNC : KXFT_FUNCTION, (arytype_t){ .type = KX_UNKNOWN_T }, NULL, NULL, blk, NULL),
         NULL
     );
     kx_object_t *namevar = kx_gen_var_object(name, KX_OBJ_T);
@@ -589,7 +589,7 @@ kx_object_t *kx_gen_catch_object(int type, kx_object_t *namevar, kx_object_t *bl
     return obj;
 }
 
-static kx_object_t *kx_gen_func_object_impl(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, const char *inherit, int line)
+static kx_object_t *kx_gen_func_object_impl(int type, int optional, arytype_t *rtype, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, const char *inherit, int line)
 {
     static int classid = 0;
     static int counter = 0;
@@ -646,7 +646,7 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, int refdepth
             kx_gen_stmt_object(KXST_EXPR,
                 kx_gen_bassign_object(KXOP_ASSIGN,
                     kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("this", KX_UNKNOWN_T), kx_gen_str_object("instanceOf")),
-                    kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, 0, NULL,
+                    kx_gen_func_object(KXST_FUNCTION, KXFT_SYSFUNC, (arytype_t){ .type = KX_UNKNOWN_T }, NULL,
                         kx_gen_var_object("classobj", KX_UNKNOWN_T),
                         kx_gen_bexpr_object(KXST_STMTLIST, instanceOf, NULL),
                     NULL)
@@ -682,7 +682,10 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, int refdepth
         obj->line = line;
     }
     if (type == KXST_NATIVE) {
-        obj->ret_type = refdepth > 0 ? KX_OBJ_T : optional;
+        obj->ret_type = rtype->depth > 0 ? KX_OBJ_T : rtype->type;
+    }
+    if (rtype->name) {
+        obj->ret_typename = rtype->name;
     }
     obj->value.s = name;
     kx_object_t *assign;
@@ -754,19 +757,19 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, int refdepth
     return stmt;
 }
 
-kx_object_t *kx_gen_func_object_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line)
+kx_object_t *kx_gen_func_object_line(int type, int optional, arytype_t rtype, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex, int line)
 {
-    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ex, NULL, line);
+    return kx_gen_func_object_impl(type, optional, &rtype, name, lhs, rhs, ex, NULL, line);
 }
 
-kx_object_t *kx_gen_func_object_name_line(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, named_stmt_t ns, int line)
+kx_object_t *kx_gen_func_object_name_line(int type, int optional, arytype_t rtype, const char *name, kx_object_t *lhs, kx_object_t *rhs, named_stmt_t ns, int line)
 {
-    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ns.stmt, ns.name, line);
+    return kx_gen_func_object_impl(type, optional, &rtype, name, lhs, rhs, ns.stmt, ns.name, line);
 }
 
-kx_object_t *kx_gen_func_object(int type, int optional, int refdepth, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+kx_object_t *kx_gen_func_object(int type, int optional, arytype_t rtype, const char *name, kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
-    return kx_gen_func_object_impl(type, optional, refdepth, name, lhs, rhs, ex, NULL, -1);
+    return kx_gen_func_object_impl(type, optional, &rtype, name, lhs, rhs, ex, NULL, -1);
 }
 
 kx_object_t *kx_gen_prop_func_object(kx_object_t *nameobj)
@@ -779,7 +782,7 @@ kx_object_t *kx_gen_prop_func_object(kx_object_t *nameobj)
     kx_object_t *apply_prop3 = kx_gen_bexpr_object(KXOP_IDX, args, nameobj);
     kx_object_t *texpr = kx_gen_texpr_object(is_func, call_func, apply_prop3);
     return kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION,
-        0,
+        (arytype_t){ .type = KX_UNKNOWN_T },
         NULL,
         args,
         kx_gen_stmt_object(KXST_RET, texpr, NULL, NULL),
@@ -792,7 +795,7 @@ kx_object_t *kx_gen_typeprop_func_object(int type)
     kx_object_t *args = kx_gen_var_object("_a1", KX_UNKNOWN_T);
     kx_object_t *is_type = kx_gen_typeof_object(args, type);
     return kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION,
-        0,
+        (arytype_t){ .type = KX_UNKNOWN_T },
         NULL,
         args,
         kx_gen_stmt_object(KXST_RET, is_type, NULL, NULL),

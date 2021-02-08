@@ -25,6 +25,7 @@ typedef struct kxana_context_ {
     int arg_index;
     int anon_arg;
     int in_case_when;
+    int autobreak;
     kx_object_t *parent;
     kx_object_t *class_node;
     kx_object_t *func;
@@ -360,6 +361,7 @@ static void propagate_ary_typename(kx_object_t *lhs, kx_object_t *rhs)
 
     if (lhs->type == KXST_EXPRLIST) {
         if (rhs->type != KXST_EXPRLIST) {
+            propagate_ary_typename(lhs->lhs, rhs);
             return;
         }
         propagate_ary_typename(lhs->lhs, rhs->lhs);
@@ -382,13 +384,12 @@ static void propagate_ary_typename(kx_object_t *lhs, kx_object_t *rhs)
             rhs = rhs->lhs;
         }
         if (lhs->var_type == KX_UNKNOWN_T) {
+            lhs->var_type = rhs->var_type;
             const char *name = get_node_typename(lhs);
             if (!name) {
                 name = get_node_typename(rhs);
                 if (name) {
                     lhs->typename = name;
-                } else {
-                    lhs->var_type = rhs->var_type;
                 }
             }
         }
@@ -621,7 +622,11 @@ LOOP_HEAD:;
         if (actx->vars) {
             kv_push(kx_object_t*, (*(actx->vars)), node);
         }
+        node->refs = (node == sym->base) ? 0 : 1;
         node->ex = sym->base;
+        if (!actx->in_native && (actx->decl || actx->lvalue)) {
+            sym->base = node;
+        }
         node->index = sym->local_index;
         node->lexical = sym->lexical_index;
         node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
@@ -1250,6 +1255,9 @@ LOOP_HEAD:;
     case KXST_LABEL:
         analyze_ast(ctx, node->lhs, actx);
         break;
+    case KXST_FALLTHROUGH:
+        actx->autobreak = 0;
+        break;
     case KXST_EXPR:       /* lhs: expr */
         analyze_ast(ctx, node->lhs, actx);
         break;
@@ -1286,6 +1294,8 @@ LOOP_HEAD:;
         break;
     }
     case KXST_SWITCH: {   /* lhs: cond: rhs: block */
+        int autobreak = actx->autobreak;
+        actx->autobreak = 0;
         ++actx->depth;
         kx_object_t *sw = actx->switch_stmt;
         actx->switch_stmt = node;
@@ -1296,12 +1306,22 @@ LOOP_HEAD:;
         kv_shrinkto(table->list, size);
         actx->switch_stmt = sw;
         --actx->depth;
+        actx->autobreak = autobreak;
         break;
     }
     case KXST_CASE: {     /* lhs: cond */
+        if (actx->autobreak) {
+            // do break right before this node.
+            node->ex = kx_gen_break_object(KXST_BREAK, NULL);
+        }
         actx->switch_stmt->case_next = node;
         actx->switch_stmt = node;
         analyze_ast(ctx, node->lhs, actx);
+        if (node->optional == KXCS_WHEN || node->optional == KXCS_ELSE) {
+            actx->autobreak = 1;
+        } else {
+            actx->autobreak = 0;
+        }
         break;
     }
     case KXST_WHILE:      /* lhs: cond: rhs: block */

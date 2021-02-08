@@ -1577,6 +1577,8 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         }
         break;
     }
+    case KXST_FALLTHROUGH:
+        break;
     case KXST_LABEL:
         kv_push(kx_label_t, nctx->continue_list, KXLABEL(node->value.s));
         kv_push(kx_label_t, nctx->break_list, KXLABEL(node->value.s));
@@ -1685,6 +1687,9 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         break;
     }
     case KXST_CASE: {  /* lhs: cond */
+        if (node->ex) {
+            nativejit_ast(nctx, node->ex, 0);
+        }
         int clen = kv_size(KXNBLK(nctx)->code);
         int stmt;
         if (clen == 0) {
@@ -1695,7 +1700,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
             nctx->block = stmt;
         }
         kx_switch_t *sw = &kv_last_by(nctx->switch_list, 1);
-        if (node->optional == KXCS_DEFAULT) {
+        if (node->optional == KXCS_DEFAULT || node->optional == KXCS_ELSE) {
             sw->defblock = stmt;
         } else if (node->lhs) {
             kx_object_t *lhs = node->lhs;

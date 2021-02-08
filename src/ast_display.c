@@ -348,6 +348,9 @@ LOOP_HEAD:;
             printf("(continue)\n");
         }
         break;
+    case KXST_FALLTHROUGH:
+        printf("(fallthrough)\n");
+        break;
     case KXST_LABEL:
         printf("(label) %s:\n", node->value.s);
         display_ast(node->lhs, indent + 1, 0);
