@@ -33,16 +33,25 @@
         *   Supported putting a function object to check the result by function call at `when` condition.
         *   Changed to make it error when the length of array is mismatched.
         *   `_` means to ignore binding a value at `when` condition.
+    *   Introduced a `when` label in `switch` statement.
+        *   This can be used a substitute of a `case` label, and it will do `break` automatically by default.
+        *   When specifying `fallthrough;` at the last statement of a `when` clause, it will be fallthroght.
+        *   The label instead of `default:` is `else:` which will do `break` automatically at the end of statements.
+        *   The `fallthrough` keyword in a `case` is meaningless and it will be ignored.
+        *   You can mix a `case` label and a `when` label, but it is not recommended.
+        *   `switch-when` is a statement and it is same as `switch-case` except a behavior of `break` and `fallthrough`.
     *   Updated for a language server.
         *   Updated an output for type system.
-    *   I am very sorry but after my consideration, I desided to change a syntax for a return type of native again.
-        Instead, I added a syntax that you can specify a return type also for a normal function.
+    *   I am very sorry but, after a reconsideration I desided to change a syntax for a return type of native again.
+        Instead, It was possible to add a syntax that you can specify a return type also for a normal function.
         However note that a return type for a normal function is currently just an information to the language server.
-        *   [OLD] `native:int`
-        *   [NEW] `native funcname(args):int`
-        *   [ADD] `function funcname(args):int`
-        *   [ADD] `public funcname(args):int`
-        *   [ADD] `private funcname(args):int`
+        *   OLD
+            *   `native:int`
+        *   NEW/ADD
+            *   `native funcname(args):int`
+            *   `function funcname(args):int`
+            *   `public funcname(args):int`
+            *   `private funcname(args):int`
     *   Some bug fixes and improvements.
 
 ## V0.20.1 (20th Preview Release) - 2021/01/29
