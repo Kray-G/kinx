@@ -2,7 +2,7 @@
 
 ## Overview
 
-`case-when` expression is introduced as a syntax like **[`switch-case`](docs/spec/statement/switch_case.md)** and **[`switch-when`](docs/spec/statement/switch_when.md)**, but there are some following differences.
+`case-when` expression is introduced as a syntax like **[`switch-case`](../../statement/switch_case.md)** and **[`switch-when`](../../statement/switch_when.md)**, but there are some following differences.
 
 * `switch-case` and `switch-when` is a statement, but `case-when` is an expression. `case-when` can be used inside an expression, and the result value can be assigned to a variable or be used with calculation.
 * `switch-case` is a fallthrough by default, but `case-when` will do automatically `break` similarly as `switch-when`. Always the only one of `when` clause is used.
