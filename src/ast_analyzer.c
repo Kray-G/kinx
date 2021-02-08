@@ -623,16 +623,13 @@ LOOP_HEAD:;
         }
         node->refs = (node == sym->base) ? 0 : 1;
         node->ex = sym->base;
-        node->index = sym->local_index;
-        node->lexical = sym->lexical_index;
         if (!actx->in_native && (actx->decl || actx->lvalue)) {
             sym->base = node;
-            node->var_type = vtype;
-            node->refdepth = 0;
-        } else {
-            node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
-            node->refdepth = sym->base->refdepth;
         }
+        node->index = sym->local_index;
+        node->lexical = sym->lexical_index;
+        node->var_type = vtype != KX_UNKNOWN_T ? vtype : ((sym->base->var_type == KX_SPR_T && !actx->decl) ? KX_UNKNOWN_T : sym->base->var_type);
+        node->refdepth = sym->base->refdepth;
         if (sym->base->var_type == KX_NFNC_T) {
             node->ret_type = sym->base->ret_type;
         }
