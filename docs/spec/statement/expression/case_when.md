@@ -2,13 +2,13 @@
 
 ## Overview
 
-`case-when` expression is introduced as a syntax like `switch-case`, but the followings are different.
+`case-when` expression is introduced as a syntax like **[`switch-case`](docs/spec/statement/switch_case.md)** and **[`switch-when`](docs/spec/statement/switch_when.md)**, but there are some following differences.
 
-* `switch-case` is a statement, but `case-when` is an expression. `case-when` can be used inside an expression, and the result value can be assigned to a variable or be used with calculation.
-* `case` clause in `switch` allows a fall through, but `when` clause in `case` never do it. Always the only one of `when` clause is used.
-* `switch-case` will only check if the value is same, but `case-when` will check if the shape of an array or object is the same. This is like Ruby's pattern matching syntax of `case-in`.
-* In `switch-case`, the order of checking value is normally not guaranteed, but when it is in `case-when`, the order of checking is always the written order on the source code and starting it with the top.
-* When no condition is matched in `switch-case`, nothing is done. On the other hand, when it is in `case-when`, the exception of `NoMatchingPatternException` will be raised.
+* `switch-case` and `switch-when` is a statement, but `case-when` is an expression. `case-when` can be used inside an expression, and the result value can be assigned to a variable or be used with calculation.
+* `switch-case` is a fallthrough by default, but `case-when` will do automatically `break` similarly as `switch-when`. Always the only one of `when` clause is used.
+* `switch-case` and `switch-when` will only check if the value is same, but `case-when` will check if the shape of an array or object is the same. This is like Ruby's pattern matching syntax of `case-in`.
+* In `switch-case` and `switch-when`, the order of checking value is normally not guaranteed and it will generate a jump by table in some cases for performance. But when it is in `case-when`, the order of checking is always the written order on the source code and starting it with the top.
+* When no condition is matched in `switch-case` and `switch-when`, nothing will be done. On the other hand, when it is in `case-when`, the exception of `NoMatchingPatternException` will be raised.
 * Putting a block to a `when` clause means an on the fly function call. Therefore `return` in a block of `when` clause never returns to a caller function, and just returns a value as a result of `when` clause.
 * `case-when` is an expression, so you need a block when you want to write a statement. As said above, a block is an automatically called function object, so you can write multiple statements in a block and do it.
 * `case-when` is an expression, so the end of statement requires a semicolon of `;`.
