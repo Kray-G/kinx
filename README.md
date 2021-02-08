@@ -94,10 +94,10 @@ Sharing the definition of **C Style Syntax**, it is below.
 
 *   **Block** is a scope between `{` and `}`
 *   Mostly **freedom** style of indent.
-*   **Fall through** in switch case.
-    *   There are pros and cons anyway.
-    *   But a C programmer will feel it to continue to the next when there is no `break`.
-    *   If you want to do it without `break`, you can use **[case-when](docs/spec/statement/expression/case_when.md)** instead for that purpose.
+*   **Fallthrough** in switch case.
+    *   C programmers will feel it to continue to the next when there is no `break`.
+    *   If you want to do it without `break`, you can use **[switch-when](docs/spec/statement/switch_when.md)** instead for that purpose.
+    *   You can also use **[case-when](docs/spec/statement/expression/case_when.md)** as an expression with a pattern matching syntax.
 *   etc.
 
 For example that is C, C++, Java, JavaScript, C#, and so on.
