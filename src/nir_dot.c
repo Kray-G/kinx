@@ -351,13 +351,13 @@ static void natir_display_code_dot(kxn_code_t *code)
         break;
     case KXN_UOP:
         natir_display_uop_dot(code);
-        break; 
+        break;
     case KXN_0OP:
         natir_display_0op_dot(code);
-        break; 
+        break;
     case KXN_SOP:
         natir_display_sop_dot(code);
-        break; 
+        break;
     case KXN_ARG:
         printf("%s ", "arg");
         natir_display_op_dot(&(code->dst));
