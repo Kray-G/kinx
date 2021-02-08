@@ -434,13 +434,13 @@ static void natir_display_code(kxn_code_t *code, int addr)
         break;
     case KXN_UOP:
         natir_display_uop(code);
-        break; 
+        break;
     case KXN_0OP:
         natir_display_0op(code);
-        break; 
+        break;
     case KXN_SOP:
         natir_display_sop(code);
-        break; 
+        break;
     case KXN_ARG:
         printf("%-23s ", "arg");
         natir_display_op(&(code->dst));
