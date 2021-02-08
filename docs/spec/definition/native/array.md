@@ -14,7 +14,7 @@ In that case, you have to specify the type for a variable which is lvalue of ass
 See an example below.
 
 ```javascript
-native:str test1(s:obj) {
+native test1(s:obj):str {
     var a:obj = s[0];       // `a` will receive a value as an object.
     var b:int = a[0][0];    // `b` will receive a value as an integer.
     return "a" * b;
@@ -30,7 +30,7 @@ System.println(test1([[[100]]])); // => "a" is repeated 100 times like "aaa..."
 #### Code
 
 ```javascript
-native:int[] makeArray(a:int[]) {
+native makeArray(a:int[]):int[] {
     for (var i = 0; i < 10; ++i) {
         a[i] = i;
     }
@@ -50,7 +50,7 @@ System.println(makeArray([]));
 #### Code
 
 ```javascript
-native:dbl[] makeArray(a:dbl[]) {
+native makeArray(a:dbl[]):dbl[] {
     for (var i = 0; i < 10; ++i) {
         a[i] = i * 0.1;
     }
@@ -70,7 +70,7 @@ System.println(makeArray([]));
 #### Code
 
 ```javascript
-native:dbl[] makeArray(a:dbl[][]) {
+native makeArray(a:dbl[][]):dbl[] {
     var d:dbl[] = a[0];
     for (var i = 0; i < 10; ++i) {
         d[i] = i * 0.1;
@@ -91,7 +91,7 @@ System.println(makeArray([[]]));
 #### Code
 
 ```javascript
-native:dbl[] mapArray(a:dbl[]) {
+native mapArray(a:dbl[]):dbl[] {
     for (var i = 0, n = a.length(); i < n; ++i) {
         a[i] = a[i] * a[i];
     }
@@ -111,7 +111,7 @@ System.println(mapArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
 #### Code
 
 ```javascript
-native:str test1(s:obj) {
+native test1(s:obj):str {
     var a:obj = s[0];       // `a` will receive a value as an object.
     var b:int = a[0][0];    // `b` will receive a value as an integer.
     return "a" * b;
