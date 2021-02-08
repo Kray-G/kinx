@@ -77,6 +77,7 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 
 *   [if-else](spec/statement/if_else.md)
 *   [switch-case](spec/statement/switch_case.md)
+*   [switch-when](spec/statement/switch_when.md)
 *   [try-catch-finally](spec/statement/try_catch_finally.md)
 
 Kinx has supported a `case-when` syntax is an expression but also branch, see [expression](spec/statement/expression.md) for details.

@@ -35,7 +35,7 @@ static inline void yy_restart(int token)
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN ENUM
+%token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN ENUM FALLTHROUGH
 %token NEW VAR CONST RETURN THROW YIELD MIXIN
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
@@ -199,7 +199,6 @@ NonSemicolonStatement
     | NamespaceStatement
     | EnumStatement
     | IfStatement
-    | CaseStatement
     | TryCatchStatement
     | LabelStatement
     | LabelledStatement
@@ -293,11 +292,14 @@ DoWhileStatement
 
 SwitchCaseStatement
     : SWITCH '(' AssignExpressionList ')' BlockStatement { $$ = kx_gen_stmt_object(KXST_SWITCH, $3, $5, NULL); }
+    | CaseStatement
     ;
 
 CaseStatement
     : CASE AssignExpression ':' { $$ = kx_gen_case_stmt_object(KXCS_CASE, $2); }
     | DEFAULT ':' { $$ = kx_gen_case_stmt_object(KXCS_DEFAULT, NULL); }
+    | WHEN AssignExpression ':' { $$ = kx_gen_case_stmt_object(KXCS_WHEN, $2); }
+    | ELSE ':' { $$ = kx_gen_case_stmt_object(KXCS_ELSE, NULL); }
     ;
 
 ForStatement
@@ -357,6 +359,7 @@ BreakStatement
     | BREAK NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_BREAK, $2.name)); }
     | CONTINUE Modifier_Opt ';' { $$ = kx_gen_modifier($2, kx_gen_break_object(KXST_CONTINUE, NULL)); }
     | CONTINUE NAME Modifier_Opt ';' { $$ = kx_gen_modifier($3, kx_gen_break_object(KXST_CONTINUE, $2.name)); }
+    | FALLTHROUGH ';' { $$ = kx_gen_break_object(KXST_FALLTHROUGH, NULL); }
     ;
 
 ReturnStatement
@@ -826,7 +829,6 @@ ValueOfKeyValue
 
 KeySpecialName
     : IF { $$ = "if"; }
-    | ELSE { $$ = "else"; }
     | WHILE { $$ = "while"; }
     | DO { $$ = "do"; }
     | FOR { $$ = "for"; }
@@ -842,6 +844,7 @@ KeySpecialName
     | NEW { $$ = "new"; }
     | VAR { $$ = "var"; }
     | CONST { $$ = "const"; }
+    | NATIVE { $$ = "native"; }
     | FUNCTION { $$ = "function"; }
     | SYSFUNC { $$ = "_function"; }
     | PUBLIC { $$ = "public"; }

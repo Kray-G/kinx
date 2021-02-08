@@ -97,6 +97,8 @@ enum functype {
 enum casetype {
     KXCS_CASE,
     KXCS_DEFAULT,
+    KXCS_WHEN,
+    KXCS_ELSE,
 };
 
 enum opecode {
@@ -202,6 +204,7 @@ enum opecode {
 
     KXST_BREAK,
     KXST_CONTINUE,
+    KXST_FALLTHROUGH,
 };
 
 typedef struct kxana_symbol_ {
