@@ -1678,7 +1678,6 @@ LOOP_HEAD:;
                 continue;
             }
             if (cond->type == KXOP_CAST) {
-printf("%s:%d, type = %d\n", __FILE__, __LINE__, node->type);
                 kv_push(kx_object_t*, stack, cond->lhs);
                 continue;
             }
