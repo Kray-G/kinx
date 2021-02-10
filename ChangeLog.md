@@ -40,8 +40,9 @@
         *   The `fallthrough` keyword in a `case` is meaningless and it will be ignored.
         *   You can mix a `case` label and a `when` label, but it is not recommended.
         *   `switch-when` is a statement and it is same as `switch-case` except a behavior of `break` and `fallthrough`.
-    *   Updated for a language server.
-        *   Updated an output for type system.
+    *   Updated some type system.
+        *   For type check in a language server.
+        *   Making a compile error when it is unknown type or type mismatch in assignment.
     *   I am very sorry but, after a reconsideration I desided to change a syntax for a return type of native again.
         Instead, It was possible to add a syntax that you can specify a return type also for a normal function.
         However note that a return type for a normal function is currently just an information to the language server.
