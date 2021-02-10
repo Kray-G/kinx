@@ -1418,6 +1418,8 @@ int kx_value_true(kx_context_t *ctx, kx_val_t *v)
         tf = 1;   /* big-int is always not zero. */
     } else if (v->type == KX_DBL_T) {
         tf = fabs(v->value.dv) >= DBL_EPSILON;
+    } else if (v->type == KX_BIN_T) {
+        tf = kv_size(v->value.bn->bin) > 0;
     } else if (v->type == KX_OBJ_T) {
         kx_val_t *val = NULL;
         KEX_GET_PROP(val, v->value.ov, "_False");
@@ -1446,6 +1448,8 @@ int kx_value_false(kx_context_t *ctx, kx_val_t *v)
         tf = 0;   /* big-int is always not zero. */
     } else if (v->type == KX_DBL_T) {
         tf = fabs(v->value.dv) < DBL_EPSILON;
+    } else if (v->type == KX_BIN_T) {
+        tf = kv_size(v->value.bn->bin) == 0;
     } else if (v->type == KX_OBJ_T) {
         kx_val_t *val = NULL;
         KEX_GET_PROP(val, v->value.ov, "_False");
