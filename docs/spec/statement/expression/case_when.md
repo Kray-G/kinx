@@ -777,3 +777,60 @@ test("10.0");
 10.000000 is Double
 10.0 is String
 ```
+
+### Example 15. Various Example (7)
+
+#### Code
+
+```javascript
+var cond1 = { => _1.isInteger };
+var cond2 = { => _1.isDouble };
+var cond3 = { => _1.isString };
+
+function test(n) {
+    case n
+    when ^cond1: System.println("%d is Integer" % n)
+    when ^cond2: System.println("%f is Double" % n)
+    when ^cond3: System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
+#### Result
+
+```
+10 is Integer
+10.000000 is Double
+10.0 is String
+```
+
+### Example 16. Various Example (8)
+
+#### Code
+
+```javascript
+var cond1 = { => _1.isInteger };
+var cond3 = { => _1.isString };
+
+function test(n) {
+    case n
+    when ^cond1:             System.println("%d is Integer" % n)
+    when { => _1.isDouble }: System.println("%f is Double" % n)
+    when ^cond3:             System.println("%s is String" % n)
+    ;
+}
+test(10);
+test(10.0);
+test("10.0");
+```
+
+#### Result
+
+```
+10 is Integer
+10.000000 is Double
+10.0 is String
+```
