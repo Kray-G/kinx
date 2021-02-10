@@ -520,6 +520,22 @@ static void propagate_typename(kx_context_t *ctx, kxana_context_t *actx, kx_obje
     }
 }
 
+static void type_definition_check(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *node, const char *name)
+{
+    if (name) {
+        int decl = actx->decl;
+        actx->decl = 0;
+        int lvalue = actx->lvalue;
+        actx->lvalue = 0;
+        kxana_symbol_t *sym = search_symbol_table(ctx, node, name, actx);
+        if (!sym) {
+            kx_yyerror_line_fmt("Type(%s) not found", node->file, node->line, name);
+        }
+        actx->lvalue = lvalue;
+        actx->decl = decl;
+    }
+}
+
 static void set_class_method_return_type(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *idx, const char *type, const char *method)
 {
     int lvalue = actx->lvalue;
@@ -584,6 +600,7 @@ LOOP_HEAD:;
         break;
 
     case KXOP_VAR: {
+        type_definition_check(ctx, actx, node, node->typename);
         if ((node->var_type == KX_LARY_T || node->var_type == KX_LOBJ_T) && actx->func && node->lhs) {
             const char *name = const_str(ctx, tempname());
             kx_object_t *tempvar = kx_gen_var_object(name, KX_UNKNOWN_T);
@@ -1650,6 +1667,7 @@ LOOP_HEAD:;
                 }
             }
         }
+        type_definition_check(ctx, actx, node, get_ret_typename_or_null(node));
 
         enum_map_t enval = kh_init(enum_value);
         kv_push(enum_map_t, actx->enval, enval);
