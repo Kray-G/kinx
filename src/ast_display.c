@@ -25,7 +25,7 @@ static inline const char *get_short_typename(int type)
     return "unknown";
 }
 
-static inline const char *get_node_typename(kx_object_t *node)
+static inline const char *get_disp_node_typename(kx_object_t *node)
 {
     if (node->typename) {
         return node->typename;
@@ -33,10 +33,10 @@ static inline const char *get_node_typename(kx_object_t *node)
     if (node->ex && node->ex->typename) {
         return node->ex->typename;
     }
-    return get_short_typename(node->ret_type);
+    return get_short_typename(node->var_type);
 }
 
-static inline const char *get_ret_typename(kx_object_t *node)
+static inline const char *get_disp_ret_typename(kx_object_t *node)
 {
     if (node->ret_typename) {
         return node->ret_typename;
@@ -108,12 +108,12 @@ LOOP_HEAD:;
             printf("optimized - ");
         }
         if (node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T) {
-            printf("%c(fnc:%s)(%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_ret_typename(node), node->lexical, node->index);
+            printf("%c(fnc:%s)(%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_ret_typename(node), node->lexical, node->index);
         } else {
             if (node->refdepth > 0) {
                 printf("%c(var:%s[depth:%d]):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
             } else {
-                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_node_typename(node), node->lexical, node->index);
+                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_node_typename(node), node->lexical, node->index);
             }
         }
         break;
@@ -257,7 +257,7 @@ LOOP_HEAD:;
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_IDX:
-        printf("(ref):%s, depth:%d\n", get_node_typename(node), node->refdepth);
+        printf("(ref):%s, depth:%d\n", get_disp_node_typename(node), node->refdepth);
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, lvalue);
         break;
@@ -311,7 +311,7 @@ LOOP_HEAD:;
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_CALL:
-        printf("(call):%s\n", get_node_typename(node));
+        printf("(call):%s\n", get_disp_node_typename(node));
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
@@ -527,7 +527,7 @@ LOOP_HEAD:;
             printf("(%s: %s)(%s) [refs:%d]\n",
                 node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function",
                 node->value.s,
-                get_ret_typename(node),
+                get_disp_ret_typename(node),
                 node->refs);
             if (node->lhs) {
                 print_indent(node, indent + 1);
@@ -540,7 +540,7 @@ LOOP_HEAD:;
     case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: ret_type: return type */
         printf("(native: %s)(%s)\n",
             node->value.s,
-            get_ret_typename(node));
+            get_disp_ret_typename(node));
         if (node->lhs) {
             print_indent(node, indent + 1);
             printf("(argument)\n");

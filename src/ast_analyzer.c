@@ -357,7 +357,7 @@ static void append_typename(kx_object_t *node)
     }
 }
 
-static const char *get_node_typename(kx_object_t *node)
+static const char *get_node_typename_or_null(kx_object_t *node)
 {
     if (node->typename) {
         return node->typename;
@@ -368,7 +368,7 @@ static const char *get_node_typename(kx_object_t *node)
     return NULL;
 }
 
-static const char *get_ret_typename(kx_object_t *node)
+static const char *get_ret_typename_or_null(kx_object_t *node)
 {
     if (node->ret_typename) {
         return node->ret_typename;
@@ -383,19 +383,20 @@ static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx
 {
     if (lhs->var_type == KX_UNKNOWN_T) {
         lhs->var_type = rhs->var_type;
-        const char *name = get_node_typename(lhs);
+        const char *name = get_node_typename_or_null(lhs);
         if (!name) {
-            name = get_node_typename(rhs);
+            name = get_node_typename_or_null(rhs);
             if (name) {
                 lhs->typename = name;
             }
         }
     }
+
     if (lhs->var_type == KX_FNC_T || lhs->var_type == KX_NFNC_T) {
         lhs->ret_type = rhs->ret_type;
-        const char *name = get_ret_typename(lhs);
+        const char *name = get_ret_typename_or_null(lhs);
         if (!name) {
-            name = get_ret_typename(rhs);
+            name = get_ret_typename_or_null(rhs);
             if (name) {
                 lhs->ret_typename = name;
             }
@@ -403,7 +404,31 @@ static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx
         if (rhs->ex && rhs->ex->init) {
             lhs->init = rhs->ex->init;
         }
+    } else {
+        /*
+            (lhs->type == KXOP_VAR && lhs->var_type == KX_UND_T) means a skip parameter.
+        */
+        if (lhs->type != KXOP_VAR || lhs->var_type != KX_UND_T) {
+            int ltype = lhs->var_type == KX_CSTR_T ? KX_STR_T : lhs->var_type;
+            int rtype = rhs->var_type == KX_CSTR_T ? KX_STR_T : rhs->var_type;
+            if ((ltype != KX_UNKNOWN_T && rtype != KX_UNKNOWN_T) || lhs->typename || rhs->typename) {
+                if (!lhs->typename && !rhs->typename) {
+                    if (ltype != rtype) {
+                        kx_yyerror_line_fmt("Type mismatch in assignment (%s, %s)", lhs->file, lhs->line, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                    }
+                } else {
+                    if (!lhs->typename && lhs->var_type != KX_UNKNOWN_T) {
+                        kx_yyerror_line_fmt("Type mismatch in assignment (%s, %s)", lhs->file, lhs->line, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                    } else if (!rhs->typename && rhs->var_type != KX_UNKNOWN_T) {
+                        kx_yyerror_line_fmt("Type mismatch in assignment (%s, %s)", lhs->file, lhs->line, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                    } else if (lhs->typename && rhs->typename && strcmp(lhs->typename, rhs->typename) != 0) {
+                        kx_yyerror_line_fmt("Type mismatch in assignment (%s, %s)", lhs->file, lhs->line, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                    }
+                }
+            }
+        }
     }
+
     if (!actx->in_native && lhs->type == KXOP_VAR) {
         reset_base_symbol(ctx, actx, lhs);
     }
