@@ -215,6 +215,16 @@ kx_object_t *kx_gen_str_object(const char *val)
     return obj;
 }
 
+kx_object_t *kx_gen_str_object_pos(name_t name)
+{
+    kx_object_t *obj = kx_gen_obj(KXVL_STR, 0, NULL, NULL, NULL);
+    obj->value.s = name.name;
+    obj->line = name.line;
+    obj->pos1 = name.pos1;
+    obj->pos2 = name.pos2;
+    return obj;
+}
+
 const char *kx_gen_constant_string(const char *name)
 {
     return const_str(g_parse_ctx, name);
