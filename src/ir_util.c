@@ -1414,12 +1414,8 @@ int kx_value_true(kx_context_t *ctx, kx_val_t *v)
         tf = v->value.pv && v->value.pv[0] != 0;
     } else if (v->type == KX_STR_T) {
         tf = ks_string(v->value.sv) && ks_string(v->value.sv)[0] != 0;
-    } else if (v->type == KX_BIG_T) {
-        tf = 1;   /* big-int is always not zero. */
     } else if (v->type == KX_DBL_T) {
         tf = fabs(v->value.dv) >= DBL_EPSILON;
-    } else if (v->type == KX_BIN_T) {
-        tf = kv_size(v->value.bn->bin) > 0;
     } else if (v->type == KX_OBJ_T) {
         kx_val_t *val = NULL;
         KEX_GET_PROP(val, v->value.ov, "_False");
@@ -1428,6 +1424,10 @@ int kx_value_true(kx_context_t *ctx, kx_val_t *v)
         } else {
             tf = 1;
         }
+    } else if (v->type == KX_BIG_T) {
+        tf = 1;   /* big-int is always not zero. */
+    } else if (v->type == KX_BIN_T) {
+        tf = kv_size(v->value.bn->bin) > 0;
     } else {
         tf = 0;
     }
@@ -1444,12 +1444,8 @@ int kx_value_false(kx_context_t *ctx, kx_val_t *v)
         tf = !v->value.pv || v->value.pv[0] == 0;
     } else if (v->type == KX_STR_T) {
         tf = !ks_string(v->value.sv) || ks_string(v->value.sv)[0] == 0;
-    } else if (v->type == KX_BIG_T) {
-        tf = 0;   /* big-int is always not zero. */
     } else if (v->type == KX_DBL_T) {
         tf = fabs(v->value.dv) < DBL_EPSILON;
-    } else if (v->type == KX_BIN_T) {
-        tf = kv_size(v->value.bn->bin) == 0;
     } else if (v->type == KX_OBJ_T) {
         kx_val_t *val = NULL;
         KEX_GET_PROP(val, v->value.ov, "_False");
@@ -1458,8 +1454,10 @@ int kx_value_false(kx_context_t *ctx, kx_val_t *v)
         } else {
             tf = 0;
         }
-    } else if (v->type == KX_FNC_T) {
-        tf = 0;
+    } else if (v->type == KX_BIG_T) {
+        tf = 0;   /* big-int is always not zero. */
+    } else if (v->type == KX_BIN_T) {
+        tf = kv_size(v->value.bn->bin) == 0;
     } else {
         tf = 1;
     }
