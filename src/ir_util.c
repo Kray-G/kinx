@@ -473,13 +473,22 @@ int eval_file(const char *file, kx_context_t *ctx)
         .str = NULL,
         .file = file
     });
-    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    const char *name = "<startup>";
-    setup_lexinfo(ctx, name, &(kx_yyin_t){
-        .fp = NULL,
-        .str = startup_code(),
-        .file = name
-    });
+    int load_startup = 1;
+    if (file) {
+        const char *p = strrchr(file, '\\');
+        if (strcmp(p ? (p+1) : file, "kxstartup.kx") == 0) {
+            load_startup = 0;
+        }
+    }
+    if (load_startup) {
+        kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+        const char *name = "<startup>";
+        setup_lexinfo(ctx, name, &(kx_yyin_t){
+            .fp = NULL,
+            .str = startup_code(),
+            .file = name
+        });
+    }
     int r = eval(ctx);
     free_lexer();
     pthread_mutex_unlock(&g_mutex);
