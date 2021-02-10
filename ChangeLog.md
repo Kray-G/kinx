@@ -35,7 +35,7 @@
         *   `_` means to ignore binding a value at `when` condition.
     *   Introduced a `when` label in `switch` statement.
         *   This can be used a substitute of a `case` label, and it will do `break` automatically by default.
-        *   When specifying `fallthrough;` at the last statement of a `when` clause, it will be fallthroght.
+        *   When specifying `fallthrough;` at the last statement of a `when` clause, it will be fallthrough.
         *   The label instead of `default:` is `else:` which will do `break` automatically at the end of statements.
         *   The `fallthrough` keyword in a `case` is meaningless and it will be ignored.
         *   You can mix a `case` label and a `when` label, but it is not recommended.
