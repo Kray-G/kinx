@@ -1,4 +1,4 @@
-const STDIN, STDOUT, STDERR, $exepath, $kinxpath;
+const STDIN, STDOUT, STDERR, $exepath, $kinxpath, $libpath;
 const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Duktape, Debugger;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
@@ -61,11 +61,20 @@ var Xml, Net;
     STDERR = $stderr;
     System.print = _function(...arg) { return $stdout.print(...arg); };
     System.println = _function(...arg) { return $stdout.println(...arg); };
-    $exepath = System.exepath();
-    $kinxpath = System.kinxpath();
     True = System._setTrueFalse(1, new _BooleanClass(true));
     False = System._setTrueFalse(0, new _BooleanClass(false));
     SystemTimer.create = System.SystemTimer_create;
+
+    $exepath = System.exepath();
+    $kinxpath = System.kinxpath();
+    var libpath = $kinxpath / "kinxlib";
+    if (!File.exists(libpath)) {
+        libpath = $kinxpath / "lib";
+        if (!File.exists(libpath)) {
+            throw SystemException("No 'kinxlib' folder in this system");
+        }
+    }
+    $libpath = libpath;
 })();
 
 const KX_KEY_ESC        = 0x1b;
