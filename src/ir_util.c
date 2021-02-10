@@ -473,13 +473,22 @@ int eval_file(const char *file, kx_context_t *ctx)
         .str = NULL,
         .file = file
     });
-    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    const char *name = "<startup>";
-    setup_lexinfo(ctx, name, &(kx_yyin_t){
-        .fp = NULL,
-        .str = startup_code(),
-        .file = name
-    });
+    int load_startup = 1;
+    if (file) {
+        const char *p = strrchr(file, '\\');
+        if (strcmp(p ? (p+1) : file, "kxstartup.kx") == 0) {
+            load_startup = 0;
+        }
+    }
+    if (load_startup) {
+        kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+        const char *name = "<startup>";
+        setup_lexinfo(ctx, name, &(kx_yyin_t){
+            .fp = NULL,
+            .str = startup_code(),
+            .file = name
+        });
+    }
     int r = eval(ctx);
     free_lexer();
     pthread_mutex_unlock(&g_mutex);
@@ -1414,8 +1423,6 @@ int kx_value_true(kx_context_t *ctx, kx_val_t *v)
         tf = v->value.pv && v->value.pv[0] != 0;
     } else if (v->type == KX_STR_T) {
         tf = ks_string(v->value.sv) && ks_string(v->value.sv)[0] != 0;
-    } else if (v->type == KX_BIG_T) {
-        tf = 1;   /* big-int is always not zero. */
     } else if (v->type == KX_DBL_T) {
         tf = fabs(v->value.dv) >= DBL_EPSILON;
     } else if (v->type == KX_OBJ_T) {
@@ -1426,6 +1433,10 @@ int kx_value_true(kx_context_t *ctx, kx_val_t *v)
         } else {
             tf = 1;
         }
+    } else if (v->type == KX_BIG_T) {
+        tf = 1;   /* big-int is always not zero. */
+    } else if (v->type == KX_BIN_T) {
+        tf = kv_size(v->value.bn->bin) > 0;
     } else {
         tf = 0;
     }
@@ -1442,8 +1453,6 @@ int kx_value_false(kx_context_t *ctx, kx_val_t *v)
         tf = !v->value.pv || v->value.pv[0] == 0;
     } else if (v->type == KX_STR_T) {
         tf = !ks_string(v->value.sv) || ks_string(v->value.sv)[0] == 0;
-    } else if (v->type == KX_BIG_T) {
-        tf = 0;   /* big-int is always not zero. */
     } else if (v->type == KX_DBL_T) {
         tf = fabs(v->value.dv) < DBL_EPSILON;
     } else if (v->type == KX_OBJ_T) {
@@ -1454,8 +1463,10 @@ int kx_value_false(kx_context_t *ctx, kx_val_t *v)
         } else {
             tf = 0;
         }
-    } else if (v->type == KX_FNC_T) {
-        tf = 0;
+    } else if (v->type == KX_BIG_T) {
+        tf = 0;   /* big-int is always not zero. */
+    } else if (v->type == KX_BIN_T) {
+        tf = kv_size(v->value.bn->bin) == 0;
     } else {
         tf = 1;
     }
