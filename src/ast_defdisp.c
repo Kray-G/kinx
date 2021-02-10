@@ -29,6 +29,17 @@ static const char *get_var_typename(defdisp_context_t *dctx, int t)
     return NULL;
 }
 
+static const char *get_ret_typename(defdisp_context_t *dctx, kx_object_t *node)
+{
+    if (node->ret_typename) {
+        return node->ret_typename;
+    }
+    if (node->ex && node->ex->ret_typename) {
+        return node->ex->ret_typename;
+    }
+    return get_var_typename(dctx, node->ret_type);
+}
+
 static const char *get_node_typename(defdisp_context_t *dctx, kx_object_t *node)
 {
     if (node->typename) {
@@ -44,10 +55,11 @@ static void print_ref(defdisp_context_t *dctx, const char *type, kx_object_t *no
 {
     if (node->value.s && node->value.s[0] != '_') {
         if (base) {
-            if (base->typename) {
-                printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, base->typename);
+            const char *ret_typename = (node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T) ? get_ret_typename(dctx, node) : NULL;
+            if (ret_typename) {
+                printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\tFunction#%s\n", type, node->value.s, node->file, node->line, base->file, base->line, ret_typename);
             } else {
-                const char *typename = get_node_typename(dctx, node);
+                const char *typename = base->typename ? base->typename : get_node_typename(dctx, node);
                 if (typename) {
                     printf("#ref\t%s\t%s\t%s\t%d\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, base->file, base->line, typename);
                 } else {
@@ -55,7 +67,12 @@ static void print_ref(defdisp_context_t *dctx, const char *type, kx_object_t *no
                 }
             }
         } else {
-            printf("#ref\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+            const char *ret_typename = (node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T) ? get_ret_typename(dctx, node) : NULL;
+            if (ret_typename) {
+                printf("#ref\t%s\t%s\t%s\t%d\tFunction#%s\n", type, node->value.s, node->file, node->line, ret_typename);
+            } else {
+                printf("#ref\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+            }
         }
     }
 }
@@ -63,19 +80,41 @@ static void print_ref(defdisp_context_t *dctx, const char *type, kx_object_t *no
 static void print_define(defdisp_context_t *dctx, const char *type, kx_object_t *node)
 {
     if (node->value.s && node->value.s[0] != '_') {
-        const char *typename = get_node_typename(dctx, node);
-        if (typename) {
-            printf("#define\t%s\t%s\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, typename);
+        int is_func = node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T;
+        const char *ret_typename = is_func ? get_ret_typename(dctx, node) : NULL;
+        if (ret_typename) {
+            printf("#define\t%s\t%s\t%s\t%d\tFunction#%s\n", type, node->value.s, node->file, node->line, ret_typename);
         } else {
-            printf("#define\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+            const char *typename = get_node_typename(dctx, node);
+            if (typename) {
+                printf("#define\t%s\t%s\t%s\t%d\t%s\n", type, node->value.s, node->file, node->line, typename);
+            } else {
+                printf("#define\t%s\t%s\t%s\t%d\n", type, node->value.s, node->file, node->line);
+            }
         }
     }
 }
 
-static void print_scope_start(const char *scope, const char *name)
+static void print_func_define(defdisp_context_t *dctx, const char *type, kx_object_t *node)
+{
+    if (node->value.s && node->value.s[0] != '_') {
+        const char *ret_typename = get_ret_typename(dctx, node);
+        if (ret_typename) {
+            printf("#define\t%s\t%s\t%s\t%d\tFunction#%s\n", type, node->value.s, node->file, node->line, ret_typename);
+        } else {
+            printf("#define\t%s\t%s\t%s\t%d\tFunction#Any\n", type, node->value.s, node->file, node->line);
+        }
+    }
+}
+
+static void print_scope_start(const char *scope, const char *name, const char *retname)
 {
     if (name && name[0] != '_') {
-        printf("#scope\tstart\t%s\t%s\n", scope, name);
+        if (retname) {
+            printf("#scope\tstart\t%s\t%s\t%s\n", scope, name, retname);
+        } else {
+            printf("#scope\tstart\t%s\t%s\n", scope, name);
+        }
     }
 }
 
@@ -288,10 +327,22 @@ LOOP_HEAD:;
                     if (node->refs != 0) {
                         print_ref(dctx, "var", node, node->ex);
                     }
-                    print_define(dctx, node->optional == KXDC_CONST ? "const" : "var", node);
+                    if ((node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T) && node->init) {
+                        print_scope_start("function", node->value.s, get_ret_typename(dctx, node));
+                        print_def_args(dctx, node->init->lhs, 0, -1);
+                        print_func_define(dctx, "function", node);
+                        print_scope_end("function", node->value.s);
+                    } else {
+                        print_define(dctx, node->optional == KXDC_CONST ? "const" : "var", node);
+                    }
                 }
             } else {
-                if (node->ex) {
+                if ((node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T) && node->init) {
+                    print_scope_start("function", node->value.s, get_ret_typename(dctx, node));
+                    print_def_args(dctx, node->init->lhs, 0, -1);
+                    print_func_define(dctx, "function", node);
+                    print_scope_end("function", node->value.s);
+                } else if (node->ex) {
                     print_ref(dctx, "var", node, node->ex);
                 }
             }
@@ -363,9 +414,7 @@ LOOP_HEAD:;
         }
         break;
     case KXOP_ASSIGN: {
-        // assignment is dealt with not definition for variable, just a reference instead.
-        int lv = (node->lhs && node->lhs->type == KXOP_VAR) ? 0 : 1;
-        display_def_ast(dctx, node->lhs, lv);
+        display_def_ast(dctx, node->lhs, 1);
         display_def_ast(dctx, node->rhs, 0);
         if (node->lhs && node->rhs) {
             if ((node->lhs->type == KXOP_MKARY && node->rhs->type == KXOP_MKARY) || (node->lhs->type == KXOP_MKOBJ && node->rhs->type == KXOP_MKOBJ)) {
@@ -588,7 +637,7 @@ LOOP_HEAD:;
     case KXST_SYSCLASS:
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
         const char *scope = node->optional == KXFT_CLASS ? "class" : "module";
-        print_scope_start(scope, node->value.s);
+        print_scope_start(scope, node->value.s, NULL);
         print_def_args(dctx, node->lhs, 0, -1);
         print_define(dctx, scope, node);
         display_def_ast(dctx, node->lhs, 1);
@@ -599,10 +648,10 @@ LOOP_HEAD:;
     }
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION:   /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
-        print_scope_start("function", node->value.s);
+        print_scope_start("function", node->value.s, get_ret_typename(dctx, node));
         print_def_args(dctx, node->lhs, 0, -1);
         const char *type = node->optional == KXFT_PUBLIC ? "public" : node->optional == KXFT_PROTECTED ? "protected" : node->optional == KXFT_PRIVATE ? "private" : "function";
-        print_define(dctx, type, node);
+        print_func_define(dctx, type, node);
         if (node->optional != KXFT_SYSFUNC) {
             display_def_ast(dctx, node->lhs, 1);
             display_def_ast(dctx, node->rhs, 0);
@@ -610,9 +659,9 @@ LOOP_HEAD:;
         print_scope_end("function", node->value.s);
         break;
     case KXST_NATIVE:   /* s: name, lhs: arglist, rhs: block: ret_type: return type */
-        print_scope_start("function", node->value.s);
+        print_scope_start("function", node->value.s, get_ret_typename(dctx, node));
         print_def_args(dctx, node->lhs, 0, KX_INT_T);
-        print_define(dctx, "native", node);
+        print_func_define(dctx, "native", node);
         dctx->in_native = 1;
         display_def_ast(dctx, node->lhs, 1);
         display_def_ast(dctx, node->rhs, 0);
