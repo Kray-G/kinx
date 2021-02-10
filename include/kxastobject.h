@@ -85,7 +85,7 @@ static inline const char *get_var_typename(int in_native, int t)
     case KX_BFNC_T:  return "Function";
     case KX_NFNC_T:  return "Function";
     }
-    return "unknown";
+    return NULL;
 }
 
 static inline const char *get_ret_typename(int in_native, kx_object_t *node)
