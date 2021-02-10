@@ -290,6 +290,11 @@ static void print_objchk(defdisp_context_t *dctx, kx_object_t *n1, kx_object_t *
     printf("\n");
 }
 
+static void print_class_method_call(kx_object_t *node)
+{
+    printf("#method\t%s\t%s\t%d\t%d\t%d\n", node->typename, node->file, node->line, node->pos1, node->pos2);
+}
+
 static void display_def_ast(defdisp_context_t *dctx, kx_object_t *node, int lvalue)
 {
     if (!node) {
@@ -308,6 +313,9 @@ LOOP_HEAD:;
     case KXVL_DBL:
         break;
     case KXVL_STR:
+        if (node->typename) {
+            print_class_method_call(node);
+        }
         break;
     case KXVL_BIG:
         break;
@@ -414,8 +422,12 @@ LOOP_HEAD:;
         }
         break;
     case KXOP_ASSIGN: {
-        display_def_ast(dctx, node->lhs, 1);
-        display_def_ast(dctx, node->rhs, 0);
+        if (node->lhs->optional == KXDC_CONST && (node->rhs->type == KXST_FUNCTION || node->rhs->type == KXST_NATIVE)) {
+            display_def_ast(dctx, node->rhs, 0);
+        } else {
+            display_def_ast(dctx, node->lhs, 1);
+            display_def_ast(dctx, node->rhs, 0);
+        }
         if (node->lhs && node->rhs) {
             if ((node->lhs->type == KXOP_MKARY && node->rhs->type == KXOP_MKARY) || (node->lhs->type == KXOP_MKOBJ && node->rhs->type == KXOP_MKOBJ)) {
                 print_objchk(dctx, node->lhs, node->rhs);

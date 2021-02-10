@@ -30,6 +30,7 @@ extern kx_object_t *kx_gen_int_object(int64_t val);
 extern kx_object_t *kx_gen_dbl_object(double val);
 extern kx_object_t *kx_gen_big_object(const char *val);
 extern kx_object_t *kx_gen_str_object(const char *val);
+extern kx_object_t *kx_gen_str_object_pos(name_t name);
 extern const char *kx_gen_constant_string(const char *name);
 extern const char *kx_check_the_name(kx_object_t *obj);
 extern kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs);
