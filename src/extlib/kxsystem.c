@@ -1619,6 +1619,7 @@ int System_kinxpath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     char *buf = conv_acp2utf8_alloc(get_kinx_path());
     ks_append(sv, buf);
     conv_free(buf);
+    ks_replace_char(sv, '\\', '/');
 
     KX_ADJST_STACK();
     push_sv(ctx->stack, sv);
@@ -1631,6 +1632,7 @@ int System_exepath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     char *buf = conv_acp2utf8_alloc(get_actual_exe_path());
     ks_append(sv, buf);
     conv_free(buf);
+    ks_replace_char(sv, '\\', '/');
 
     KX_ADJST_STACK();
     push_sv(ctx->stack, sv);
