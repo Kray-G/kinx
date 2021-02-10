@@ -491,7 +491,7 @@ static void propagate_typename(kx_context_t *ctx, kxana_context_t *actx, kx_obje
     }
 }
 
-static void get_class_method_return_type(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *idx, const char *type, const char *method)
+static void set_class_method_return_type(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *idx, const char *type, const char *method)
 {
     int lvalue = actx->lvalue;
     actx->lvalue = 0;
@@ -502,6 +502,7 @@ static void get_class_method_return_type(kx_context_t *ctx, kxana_context_t *act
             if (!strcmp(m->value.s, method)) {
                 idx->var_type = m->ret_type;
                 idx->typename = m->ret_typename;
+                idx->rhs->typename = const_str2(ctx, type, method);
                 return;
             }
             m = m->methods;
@@ -1197,9 +1198,9 @@ LOOP_HEAD:;
             kx_object_t *idx = node->lhs;
             if (idx->lhs->type == KXOP_VAR && idx->rhs->type == KXVL_STR) {
                 if (idx->lhs->typename) {
-                    get_class_method_return_type(ctx, actx, idx, idx->lhs->typename, idx->rhs->value.s);
+                    set_class_method_return_type(ctx, actx, idx, idx->lhs->typename, idx->rhs->value.s);
                 } else if (idx->lhs->ex && idx->lhs->ex->typename) {
-                    get_class_method_return_type(ctx, actx, idx, idx->lhs->ex->typename, idx->rhs->value.s);
+                    set_class_method_return_type(ctx, actx, idx, idx->lhs->ex->typename, idx->rhs->value.s);
                 }
             }
         }
