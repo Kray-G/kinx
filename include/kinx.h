@@ -267,6 +267,7 @@ typedef struct kx_object_ {
     uint32_t pos2;
 
     struct kx_object_ *case_next; /* used in switch-case */
+    struct kx_object_ *methods; /* class methods */
     kvec_t(int) case_src_block;  /* jump source to case */
     kvec_t(int) case_src_pos;  /* jump source to case */
 

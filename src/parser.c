@@ -2560,7 +2560,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_var_object(kx_gen_typestr_object(YYASP(1-1).intval), KX_UNKNOWN_T); } break;
         case 276:
 #line 700 "src/kinx.y"
-{ yyval.obj = kx_gen_str_object(YYASP(1-1).strinfo.name); } break;
+{ yyval.obj = kx_gen_str_object_pos(YYASP(1-1).strinfo); } break;
         case 277:
 #line 701 "src/kinx.y"
 { yyval.obj = kx_gen_str_object(kx_gen_typestr_object(YYASP(1-1).intval)); } break;

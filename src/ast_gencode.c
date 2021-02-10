@@ -1678,7 +1678,6 @@ LOOP_HEAD:;
                 continue;
             }
             if (cond->type == KXOP_CAST) {
-printf("%s:%d, type = %d\n", __FILE__, __LINE__, node->type);
                 kv_push(kx_object_t*, stack, cond->lhs);
                 continue;
             }
@@ -1808,26 +1807,30 @@ printf("%s:%d, type = %d\n", __FILE__, __LINE__, node->type);
                 // fallthrough
             default:
                 gencode_ast_hook(ctx, cond, ana, 0);
-                int c1 = ana->block;
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_DUP }));
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_TYPEOF, .value1 = { .i = KX_FNC_T } }));
-                int n1 = new_block_hook(ana);
-                get_block(module, c1)->tf[0] = n1;
-                ana->block = n1;
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_CALL, .count = 1 }));
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_NEQI, .value1.i = 0 }));
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = jmpop, .value1.i = njmp}));
-                KX_NEW_BLK(module, ana);
-                n1 = ana->block;
+                if ((code_size(module, ana) > 0) && last_op(ana) == KX_PUSHF) {
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_CALL, .count = 1 }));
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = jmpop, .value1.i = njmp}));
+                    KX_NEW_BLK(module, ana);
+                } else {
+                    int c1 = ana->block;
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_DUP }));
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_TYPEOF, .value1 = { .i = KX_FNC_T } }));
+                    int n1 = new_block_hook(ana);
+                    get_block(module, c1)->tf[0] = n1;
+                    ana->block = n1;
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_CALL, .count = 1 }));
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = jmpop, .value1.i = njmp}));
+                    KX_NEW_BLK(module, ana);
 
-                int n2 = new_block_hook(ana);
-                get_block(module, c1)->tf[1] = n2;
-                ana->block = n2;
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_EQEQ }));
-                kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = jmpop, .value1.i = njmp }));
+                    int n2 = new_block_hook(ana);
+                    get_block(module, c1)->tf[1] = n2;
+                    ana->block = n2;
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = KX_EQEQ }));
+                    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(cond, ana), .op = jmpop, .value1.i = njmp }));
 
-                KX_NEW_BLK(module, ana);
-                get_block(module, n1)->tf[0] = ana->block;
+                    KX_NEW_BLK(module, ana);
+                    get_block(module, n1)->tf[0] = ana->block;
+                }
                 break;
             }
         }

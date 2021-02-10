@@ -697,7 +697,7 @@ VarName
     ;
 
 PropertyName
-    : NAME { $$ = kx_gen_str_object($1.name); }
+    : NAME { $$ = kx_gen_str_object_pos($1); }
     | TYPE { $$ = kx_gen_str_object(kx_gen_typestr_object($1)); }
     | IF { $$ = kx_gen_str_object("if"); }
     | ELSE { $$ = kx_gen_str_object("else"); }
