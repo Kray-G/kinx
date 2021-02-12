@@ -1,5 +1,5 @@
 /*
- * regset-harness.c
+ * regset.c
  * Copyright (c) 2019  K.Kosako
  */
 #include <stdio.h>
@@ -14,9 +14,9 @@
 #include "oniguruma.h"
 
 
-#define RETRY_LIMIT    500
+#define RETRY_LIMIT   5000
 
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
 //#define CHECK_EACH_REGEX_SEARCH_TIME
 #endif
 
@@ -24,6 +24,18 @@
 
 typedef unsigned char uint8_t;
 static OnigEncoding ENC;
+
+static void
+output_current_time(FILE* fp)
+{
+  char d[64];
+  time_t t;
+
+  t = time(NULL);
+  strftime(d, sizeof(d), "%m/%d %H:%M:%S", localtime(&t));
+
+  fprintf(fp, "%s", d);
+}
 
 #ifdef CHECK_EACH_REGEX_SEARCH_TIME
 static double
@@ -85,7 +97,7 @@ search(OnigRegSet* set, OnigRegSetLead lead, unsigned char* str, unsigned char* 
   r = onig_regset_search(set, str, end, start, range, lead,
                          ONIG_OPTION_NONE, &match_pos);
   if (r >= 0) {
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
     int i;
     int match_index;
     OnigRegion* region;
@@ -105,12 +117,12 @@ search(OnigRegSet* set, OnigRegSetLead lead, unsigned char* str, unsigned char* 
 #endif
   }
   else if (r == ONIG_MISMATCH) {
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
     fprintf(stdout, "search fail (%s)\n", ONIGENC_NAME(ENC));
 #endif
   }
   else { /* error */
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
 
     onig_error_code_to_str((UChar* )s, r);
@@ -148,13 +160,13 @@ exec(OnigEncoding enc, int reg_num, int init_reg_num,
   options = (EXEC_COUNT % 4 == 0) ? ONIG_OPTION_IGNORECASE : ONIG_OPTION_NONE;
 
   onig_initialize(&enc, 1);
-  onig_set_retry_limit_in_match(RETRY_LIMIT);
+  onig_set_retry_limit_in_search(RETRY_LIMIT);
 
   for (i = 0; i < init_reg_num; i++) {
     r = onig_new(&regs[i], pat[i], pat_end[i], options, ENC,
                  ONIG_SYNTAX_DEFAULT, &einfo);
     if (r != 0) {
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
       char s[ONIG_MAX_ERROR_MESSAGE_LEN];
 
       onig_error_code_to_str((UChar* )s, r, &einfo);
@@ -189,7 +201,7 @@ exec(OnigEncoding enc, int reg_num, int init_reg_num,
     r = onig_new(&reg, pat[i], pat_end[i], options, ENC,
                  ONIG_SYNTAX_DEFAULT, &einfo);
     if (r != 0) {
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
       char s[ONIG_MAX_ERROR_MESSAGE_LEN];
 
       onig_error_code_to_str((UChar* )s, r, &einfo);
@@ -311,7 +323,7 @@ LLVMFuzzerTestOneInput(const uint8_t * Data, size_t Size)
   memcpy(str, data, remaining_size);
   str_null_end = str + remaining_size;
 
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
   fprintf(stdout, "reg num: %d, pattern size: %d, lead: %s\n",
           reg_num, pattern_size,
           lead == ONIG_REGSET_POSITION_LEAD ? "position" : "regex");
@@ -344,26 +356,27 @@ LLVMFuzzerTestOneInput(const uint8_t * Data, size_t Size)
   }
 
   if (EXEC_COUNT_INTERVAL == EXEC_PRINT_INTERVAL) {
-    char d[64];
-    time_t t;
     float fexec, freg, fvalid;
-
-    t = time(NULL);
-    strftime(d, sizeof(d), "%m/%d %H:%M:%S", localtime(&t));
 
     fexec  = (float )EXEC_COUNT / INPUT_COUNT;
     freg   = (float )REGEX_SUCCESS_COUNT / INPUT_COUNT;
     fvalid = (float )VALID_STRING_COUNT / INPUT_COUNT;
 
-    fprintf(stdout, "%s: %ld: EXEC:%.2f, REG:%.2f, VALID:%.2f MAX REG:%d-%d\n",
-            d, EXEC_COUNT, fexec, freg, fvalid, MaxRegNum, MaxInitRegNum);
+    output_current_time(stdout);
+    fprintf(stdout, ": %ld: EXEC:%.2f, REG:%.2f, VALID:%.2f MAX REG:%d-%d\n",
+            EXEC_COUNT, fexec, freg, fvalid, MaxRegNum, MaxInitRegNum);
 
     EXEC_COUNT_INTERVAL = 0;
   }
+  else if (EXEC_COUNT == 1) {
+    output_current_time(stdout);
+    fprintf(stdout, ": ------------ START ------------\n");
+  }
+
   return r;
 }
 
-#ifdef WITH_READ_MAIN
+#ifdef STANDALONE
 
 extern int main(int argc, char* argv[])
 {
@@ -376,4 +389,4 @@ extern int main(int argc, char* argv[])
 
   return 0;
 }
-#endif /* WITH_READ_MAIN */
+#endif /* STANDALONE */

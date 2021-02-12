@@ -1,4 +1,4 @@
-const STDIN, STDOUT, STDERR, $exepath, $kinxpath, $libpath;
+const STDIN, STDOUT, STDERR, $exepath, $kinxpath, $libpath, $pkgpath;
 const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Duktape, Debugger;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
@@ -75,6 +75,7 @@ var Xml, Net;
         }
     }
     $libpath = libpath;
+    $pkgpath = ($libpath / "../kinxpkg").replace(/\/[^\/]+\/\.\./, "");
 })();
 
 const KX_KEY_ESC        = 0x1b;

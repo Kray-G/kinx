@@ -2,7 +2,7 @@
   utf16_le.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2019  K.Kosako
+ * Copyright (c) 2002-2020  K.Kosako
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,7 @@ static int
 utf16le_is_mbc_newline(const UChar* p, const UChar* end)
 {
   if (p + 1 < end) {
-    if (*p == 0x0a && *(p+1) == 0x00)
+    if (*p == NEWLINE_CODE && *(p+1) == 0x00)
       return 1;
 #ifdef USE_UNICODE_ALL_LINE_TERMINATORS
     if ((
@@ -194,7 +194,7 @@ utf16le_code_to_mbc(OnigCodePoint code, UChar *buf)
   }
   else {
     *p++ = (UChar )(code & 0xff);
-    *p++ = (UChar )((code & 0xff00) >> 8);
+    *p   = (UChar )((code & 0xff00) >> 8);
     return 2;
   }
 }
