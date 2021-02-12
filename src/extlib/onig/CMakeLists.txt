@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
 project(oniguruma
-  VERSION 6.9.4
+  VERSION 6.9.6
   LANGUAGES C)
 
 set(PACKAGE onig)
 set(PACKAGE_VERSION ${PROJECT_VERSION})
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-option(ENABLE_POSIX_API  "Include POSIX API" ON)
+option(ENABLE_POSIX_API  "Include POSIX API" OFF)
+option(ENABLE_BINARY_COMPATIBLE_POSIX_API  "Include Binary compatible POSIX API" OFF)
 if(MSVC)
   option(MSVC_STATIC_RUNTIME "Build with static runtime" OFF)
 endif()
@@ -32,6 +33,8 @@ check_include_files(unistd.h    HAVE_UNISTD_H)
 check_include_files(inttypes.h  HAVE_INTTYPES_H)
 check_type_size(int SIZEOF_INT)
 check_type_size(long SIZEOF_LONG)
+check_type_size("long long" SIZEOF_LONG_LONG)
+check_type_size("void*" SIZEOF_VOIDP)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
@@ -54,9 +57,14 @@ set(_SRCS src/regint.h src/regparse.h src/regenc.h src/st.h
 
 set(_INST_HEADERS src/oniguruma.h src/oniggnu.h)
 
-if(ENABLE_POSIX_API)
+if(ENABLE_POSIX_API OR ENABLE_BINARY_COMPATIBLE_POSIX_API)
   set(_SRCS ${_SRCS} src/regposix.c src/regposerr.c)
   set(_INST_HEADERS ${_INST_HEADERS} src/onigposix.h)
+  add_definitions("-DUSE_POSIX_API")
+endif()
+
+if(ENABLE_BINARY_COMPATIBLE_POSIX_API)
+  add_definitions("-DUSE_BINARY_COMPATIBLE_POSIX_API")
 endif()
 
 add_library(onig ${_SRCS})
@@ -66,6 +74,19 @@ target_include_directories(onig PUBLIC
 
 target_compile_definitions(onig PUBLIC
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:ONIG_STATIC>)
+
+if(BUILD_SHARED_LIBS)
+  # Parse SOVERSION information from LTVERSION in configure.ac
+  file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/configure.ac" LTVERSION REGEX "^LTVERSION *= *\"?[0-9]+:[0-9]+:[0-9]+\"?")
+  string(REGEX REPLACE "^LTVERSION *= *\"?([0-9]+:[0-9]+:[0-9]+)\"?.*$" "\\1" LTVERSION "${LTVERSION}")
+  string(REGEX REPLACE "^([0-9]+):([0-9]+):([0-9]+)" "\\1" LTCURRENT ${LTVERSION})
+  string(REGEX REPLACE "^([0-9]+):([0-9]+):([0-9]+)" "\\2" LTREVISION ${LTVERSION})
+  string(REGEX REPLACE "^([0-9]+):([0-9]+):([0-9]+)" "\\3" LTAGE ${LTVERSION})
+  math(EXPR ONIG_SOVERSION "${LTCURRENT} - ${LTAGE}")
+  set_target_properties(onig PROPERTIES
+      SOVERSION "${ONIG_SOVERSION}"
+      VERSION "${ONIG_SOVERSION}.${LTAGE}.${LTREVISION}")
+endif()
 
 if(MSVC)
   target_compile_options(onig PRIVATE
@@ -78,6 +99,12 @@ if(MSVC)
 	  $<$<CONFIG:MinSizeRel>:/MT>
 	  $<$<CONFIG:RelWithDebgInfo>:/MTd>
 	  )
+  endif()
+  if(MSVC_VERSION LESS_EQUAL "1600")
+    # <= VS2010
+    target_compile_definitions(onig PRIVATE
+      -Dinline=__inline
+      )
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC)
   target_compile_options(onig PRIVATE

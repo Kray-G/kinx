@@ -1,17 +1,12 @@
 /*
  * testc.c
- * Copyright (c) 2019  K.Kosako
+ * Copyright (c) 2019-2020  K.Kosako
  */
 #include "config.h"
 #include <stdio.h>
-
-#ifdef POSIX_TEST
-#include "onigposix.h"
-#else
-#include "oniguruma.h"
-#endif
-
 #include <string.h>
+
+#include "oniguruma.h"
 
 #define SLEN(s)  strlen(s)
 
@@ -19,67 +14,20 @@ static int nsucc  = 0;
 static int nfail  = 0;
 static int nerror = 0;
 
-static FILE* err_file;
-
-#ifndef POSIX_TEST
-static OnigRegion* region;
+#ifdef __TRUSTINSOFT_ANALYZER__
+static int nall = 0;
 #endif
+
+static FILE* err_file;
+static OnigRegion* region;
 
 static void xx(char* pattern, char* str, int from, int to, int mem, int not)
 {
+#ifdef __TRUSTINSOFT_ANALYZER__
+  if (nall++ % TIS_TEST_CHOOSE_MAX != TIS_TEST_CHOOSE_CURRENT) return;
+#endif
+
   int r;
-
-#ifdef POSIX_TEST
-  regex_t reg;
-  char buf[200];
-  regmatch_t pmatch[25];
-
-  r = regcomp(&reg, pattern, REG_EXTENDED | REG_NEWLINE);
-  if (r) {
-    regerror(r, &reg, buf, sizeof(buf));
-    fprintf(err_file, "ERROR: %s\n", buf);
-    nerror++;
-    return ;
-  }
-
-  r = regexec(&reg, str, reg.re_nsub + 1, pmatch, 0);
-  if (r != 0 && r != REG_NOMATCH) {
-    regerror(r, &reg, buf, sizeof(buf));
-    fprintf(err_file, "ERROR: %s\n", buf);
-    nerror++;
-    return ;
-  }
-
-  if (r == REG_NOMATCH) {
-    if (not) {
-      fprintf(stdout, "OK(N): /%s/ '%s'\n", pattern, str);
-      nsucc++;
-    }
-    else {
-      fprintf(stdout, "FAIL: /%s/ '%s'\n", pattern, str);
-      nfail++;
-    }
-  }
-  else {
-    if (not) {
-      fprintf(stdout, "FAIL(N): /%s/ '%s'\n", pattern, str);
-      nfail++;
-    }
-    else {
-      if (pmatch[mem].rm_so == from && pmatch[mem].rm_eo == to) {
-        fprintf(stdout, "OK: /%s/ '%s'\n", pattern, str);
-        nsucc++;
-      }
-      else {
-        fprintf(stdout, "FAIL: /%s/ '%s' %d-%d : %d-%d\n", pattern, str,
-                from, to, pmatch[mem].rm_so, pmatch[mem].rm_eo);
-        nfail++;
-      }
-    }
-  }
-  regfree(&reg);
-
-#else
   regex_t* reg;
   OnigErrorInfo einfo;
 
@@ -132,7 +80,6 @@ static void xx(char* pattern, char* str, int from, int to, int mem, int not)
     }
   }
   onig_free(reg);
-#endif
 }
 
 static void x2(char* pattern, char* str, int from, int to)
@@ -152,20 +99,13 @@ static void n(char* pattern, char* str)
 
 extern int main(int argc, char* argv[])
 {
-#ifndef POSIX_TEST
   OnigEncoding use_encs[1];
 
   use_encs[0] = ONIG_ENCODING_EUC_JP;
   onig_initialize(use_encs, sizeof(use_encs)/sizeof(use_encs[0]));
-#endif
 
   err_file = stdout;
-
-#ifdef POSIX_TEST
-  reg_set_encoding(REG_POSIX_ENCODING_EUC_JP);
-#else
   region = onig_region_new();
-#endif
 
   x2("", "", 0, 0);
   x2("^", "", 0, 0);
@@ -961,19 +901,15 @@ extern int main(int argc, char* argv[])
   x2(".<b>バージョンのダウンロード<\\/b>", "a<b>バージョンのダウンロード</b>", 0, 32);
   x2("\\n?\\z", "こんにちは", 10, 10);
 
-#ifndef POSIX_TEST
   x2("\\p{Hiragana}", "ぴ", 0, 2);
   n("\\P{Hiragana}", "ぴ");
-#endif
 
   fprintf(stdout,
        "\nRESULT   SUCC: %4d,  FAIL: %d,  ERROR: %d      (by Oniguruma %s)\n",
        nsucc, nfail, nerror, onig_version());
 
-#ifndef POSIX_TEST
   onig_region_free(region, 1);
   onig_end();
-#endif
 
   return ((nfail == 0 && nerror == 0) ? 0 : -1);
 }
