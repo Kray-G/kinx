@@ -228,8 +228,12 @@ kxdouble.dll: $(SRCDIR)/extlib/kxdouble.c $(PICOBJS)
 kxarray.dll: $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
 
-kxfile.dll: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj $(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib
-	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj $(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib user32.lib advapi32.lib
+kxfile.dll: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj $(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib $(SRCDIR)/extlib/zip/x64/vs2017/bzip2.lib
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj \
+		$(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib  \
+		$(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib  \
+		$(SRCDIR)/extlib/zip/x64/vs2017/bzip2.lib  \
+		user32.lib advapi32.lib crypt32.lib
 
 kxdebugger.dll: $(SRCDIR)/extlib/kxdebugger.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxdebugger.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj user32.lib advapi32.lib
@@ -287,6 +291,9 @@ $(SRCDIR)/extlib/zip/x64/vs2017/zlib.dll:
 	echo Build minizip.lib first.
 
 $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib:
+	echo Build minizip.lib first.
+
+$(SRCDIR)/extlib/zip/x64/vs2017/bzip2.lib:
 	echo Build minizip.lib first.
 
 $(SRCDIR)/extlib/kc-json/dist/kc-json.obj:

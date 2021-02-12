@@ -1,6 +1,6 @@
-Oniguruma Regular Expressions Version 6.9.4    2019/10/31
+Oniguruma Regular Expressions Version 6.9.6    2020/07/31
 
-syntax: ONIG_SYNTAX_ONIGURUMA (default)
+syntax: ONIG_SYNTAX_ONIGURUMA (default syntax)
 
 
 1. Syntax elements
@@ -21,17 +21,26 @@ syntax: ONIG_SYNTAX_ONIGURUMA (default)
   \f           form feed              (0x0C)
   \a           bell                   (0x07)
   \e           escape                 (0x1B)
-  \nnn         octal char             (encoded byte value)
-  \o{17777777777} wide octal char     (character code point value)
-  \uHHHH       wide hexadecimal char  (character code point value)
-  \xHH         hexadecimal char       (encoded byte value)
-  \x{7HHHHHHH} wide hexadecimal char  (character code point value)
-  \cx          control char           (character code point value)
-  \C-x         control char           (character code point value)
-  \M-x         meta  (x|0x80)         (character code point value)
-  \M-\C-x      meta control char      (character code point value)
+  \nnn         octal char                    (encoded byte value)
+  \xHH         hexadecimal char              (encoded byte value)
+  \x{7HHHHHHH} (1-8 digits) hexadecimal char (code point value)
+  \o{17777777777} (1-11 digits) octal char   (code point value)
+  \uHHHH       hexadecimal char              (code point value)
+  \cx          control char                  (code point value)
+  \C-x         control char                  (code point value)
+  \M-x         meta  (x|0x80)                (code point value)
+  \M-\C-x      meta control char             (code point value)
 
  (* \b as backspace is effective in character class only)
+
+
+2.1 Code point sequences
+
+  Hexadecimal code point  (1-8 digits)
+  \x{7HHHHHHH 7HHHHHHH ... 7HHHHHHH}
+
+  Octal code point  (1-11 digits)
+  \o{17777777777 17777777777 ... 17777777777}
 
 
 3. Character types
@@ -132,6 +141,7 @@ syntax: ONIG_SYNTAX_ONIGURUMA (default)
     {,n}    at least 0 but no more than n times ({0,n})
     {n}     n times
 
+
   reluctant
 
     ??      0 or 1 times
@@ -141,6 +151,11 @@ syntax: ONIG_SYNTAX_ONIGURUMA (default)
     {n,}?   at least n times
     {,n}?   at least 0 but not more than n times (== {0,n}?)
 
+      {n}? is reluctant operator in ONIG_SYNTAX_JAVA and ONIG_SYNTAX_PERL only.
+      (In that case, it doesn't make sense to write so.)
+      In default syntax, /a{n}?/ === /(?:a{n})?/
+
+
   possessive (greedy and does not backtrack once match)
 
     ?+      1 or 0 times
@@ -148,8 +163,8 @@ syntax: ONIG_SYNTAX_ONIGURUMA (default)
     ++      1 or more times
     {n,m}   (n > m)  at least m but not more than n times
 
-    {n,m}+, {n,}+, {n}+ are possessive operators in ONIG_SYNTAX_JAVA and
-    ONIG_SYNTAX_PERL only.
+      {n,m}+, {n,}+, {n}+ are possessive operators in ONIG_SYNTAX_JAVA and
+      ONIG_SYNTAX_PERL only.
 
     ex. /a*+/ === /(?>a*)/
 
@@ -279,15 +294,12 @@ syntax: ONIG_SYNTAX_ONIGURUMA (default)
 
   (?=subexp)         look-ahead
   (?!subexp)         negative look-ahead
+
   (?<=subexp)        look-behind
   (?<!subexp)        negative look-behind
 
-                     Subexp of look-behind must be fixed-width.
-                     But top-level alternatives can be of various lengths.
-                     ex. (?<=a|bc) is OK. (?<=aaa(?:b|cd)) is not allowed.
-
-                     In negative look-behind, capturing group isn't allowed,
-                     but non-capturing group (?:) is allowed.
+                     * Cannot use Absent stopper (?~|expr) and Range clear
+                       (?~|) operators in look-behind and negative look-behind.
 
                      * In look-behind and negative look-behind, support for
                        ignore-case option is limited. Only supports conversion
@@ -354,7 +366,7 @@ syntax: ONIG_SYNTAX_ONIGURUMA (default)
 
   (?~|absent)        Absent stopper (* original)
                      After passed this operator, string right range is limited
-                     at the point that does not include the string match whth
+                     at the point that does not include the string match with
                      <absent>.
 
   (?~|)              Range clear

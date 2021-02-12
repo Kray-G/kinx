@@ -1,4 +1,4 @@
-鬼車インターフェース Version 6.9.4   2019/09/30
+鬼車インターフェース Version 6.9.7   2021/01/18
 
 #include <oniguruma.h>
 
@@ -14,6 +14,10 @@
   1 use_encodings:         使用する文字エンコーディングの配列
   2 num_encodings:         文字エンコーディングの数
 
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
+
 
 # int onig_error_code_to_str(UChar* err_buf, int err_code, ...)
 
@@ -22,7 +26,8 @@
   この関数を、onig_new()の結果に対して呼び出す場合には、onig_new()のpattern引数を
   メモリ解放するよりも前に呼び出さなければならない。
 
-  正常終了戻り値: エラーメッセージ文字列のバイト長
+  戻り値
+  正常終了: エラーメッセージ文字列のバイト長
 
   引数
   1 err_buf:              エラーメッセージを格納する領域
@@ -60,7 +65,9 @@
 
   正規表現オブジェクト(regex)を作成する。
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
   引数
   1 reg:         作成された正規表現オブジェクトを返すアドレス
@@ -75,13 +82,11 @@
       ONIG_OPTION_EXTEND             パターン拡張形式
       ONIG_OPTION_FIND_LONGEST       最長マッチ
       ONIG_OPTION_FIND_NOT_EMPTY     空マッチを無視
-      ONIG_OPTION_NEGATE_SINGLELINE
-            ONIG_SYNTAX_POSIX_BASIC, ONIG_SYNTAX_POSIX_EXTENDED,
-            ONIG_SYNTAX_PERL, ONIG_SYNTAX_PERL_NG, ONIG_SYNTAX_JAVAで
-            デフォルトで有効なONIG_OPTION_SINGLELINEをクリアする。
+      ONIG_OPTION_NEGATE_SINGLELINE  ONIG_SYNTAX_POSIX_BASIC/POSIX_EXTENDED/PERL/PERL_NG/PYTHON/JAVAでデフォルトで有効なONIG_OPTION_SINGLELINEをクリアする。
 
       ONIG_OPTION_DONT_CAPTURE_GROUP 名前付き捕獲式集合のみ捕獲
       ONIG_OPTION_CAPTURE_GROUP      名前無し捕獲式集合も捕獲
+      ONIG_OPTION_IGNORECASE_IS_ASCII  IGNORECASE((?i))をASCII文字の範囲に制限する
       ONIG_OPTION_WORD_IS_ASCII      wordがASCIIのみ (\w, \p{Word}, [[:word:]])
                                      word boundがASCIIのみ (\b)
       ONIG_OPTION_DIGIT_IS_ASCII     digitがASCIIのみ (\d, \p{Digit}, [[:digit:]])
@@ -93,6 +98,8 @@
                                       word)
       ONIG_OPTION_TEXT_SEGMENT_EXTENDED_GRAPHEME_CLUSTER  拡張書記素房モード
       ONIG_OPTION_TEXT_SEGMENT_WORD                       単語モード
+
+      * ONIG_OPTION_FIND_LONGEST はonig_search()の後方探索では正しく動作しない
 
   5 enc:        文字エンコーディング
 
@@ -140,7 +147,7 @@
       ONIG_SYNTAX_JAVA              Java (Sun java.util.regex)
       ONIG_SYNTAX_PERL              Perl
       ONIG_SYNTAX_PERL_NG           Perl + 名前付き捕獲式集合
-      ONIG_SYNTAX_RUBY              Ruby
+      ONIG_SYNTAX_PYTHON            Python
       ONIG_SYNTAX_ONIGURUMA         Oniguruma
       ONIG_SYNTAX_DEFAULT           default (== ONIG_SYNTAX_ONIGURUMA)
                                     onig_set_default_syntax()
@@ -160,20 +167,24 @@
   正規表現オブジェクト(regex)を作成する。
   regの領域を内部で割り当てない。
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
 
 
 # int onig_new_deluxe(regex_t** reg, const UChar* pattern, const UChar* pattern_end,
                       OnigCompileInfo* ci, OnigErrorInfo* einfo)
 
-  この関数は廃止予定。
+  この関数は廃止(使用不可)。
   パターンと対象文字列の文字エンコーディングが異なる場合を許さなくなった。
 
   正規表現オブジェクト(regex)を作成する。
   この関数は、onig_new()のデラックス版。
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
   引数
   1 reg:         作成された正規表現オブジェクトを返すアドレス
@@ -263,7 +274,19 @@
 
 # int onig_set_retry_limit_in_match_of_match_param(OnigMatchParam* mp, unsigned long limit)
 
-  一回のマッチでのリトライ数の最大値をセットする。
+  一回のマッチでのリトライ数の制限値をセットする。
+
+  引数
+  1 mp: マッチパラメタオブジェクトアドレス
+  2 limit: 制限回数
+
+  正常終了戻り値: ONIG_NORMAL
+
+
+# int onig_set_retry_limit_in_search_of_match_param(OnigMatchParam* mp, unsigned long limit)
+
+  一回の検索でのリトライ数の制限値をセットする。
+  ０は無制限を意味する。
 
   引数
   1 mp: マッチパラメタオブジェクトアドレス
@@ -303,8 +326,9 @@
   正規表現で文字列を検索し、検索結果とマッチ領域を返す。
   正規表現オブジェクトの文字エンコーディングで、検索文字列として不正な文字列を渡してはいけない。
 
-  正常終了戻り値: マッチ位置 (p - str >= 0)
-  検索失敗:       ONIG_MISMATCH (< 0)
+  戻り値
+  正常終了: マッチ位置 (p - str >= 0)
+  検索失敗: ONIG_MISMATCH (< 0)
 
   引数
   1 reg:    正規表現オブジェクト
@@ -317,9 +341,11 @@
   6 region: マッチ領域情報(region)  (NULLも許される)
   7 option: 検索時オプション
 
-    ONIG_OPTION_NOTBOL        文字列の先頭(str)を行頭と看做さない
-    ONIG_OPTION_NOTEOL        文字列の終端(end)を行末と看做さない
-    ONIG_OPTION_POSIX_REGION  region引数をPOSIX APIのregmatch_t[]にする
+    ONIG_OPTION_NOTBOL              strの先頭を行頭および文字列先頭と看做さない
+    ONIG_OPTION_NOTEOL              endを行末および文字列終端と看做さない
+    ONIG_OPTION_NOT_BEGIN_STRING    strの先頭を文字列の先頭と看做さない (\A 失敗)
+    ONIG_OPTION_NOT_END_STRING      endを文字列終端と看做さない (\z, \Z 失敗)
+    ONIG_OPTION_NOT_BEGIN_POSITION  startを検索開始位置と看做さない (\G 失敗)
 
 
 # int onig_search_with_param(regex_t* reg, const UChar* str, const UChar* end,
@@ -331,7 +357,7 @@
 
   引数
   1-7:  onig_search()と同じ
-  8 mp: マッチパラメタ値 (match_stack_limit, retry_limit_in_match)
+  8 mp: マッチパラメタ値 (match_stack_limit, retry_limit_in_match, retry_limit_in_search)
 
 
 # int onig_match(regex_t* reg, const UChar* str, const UChar* end,
@@ -340,8 +366,9 @@
   文字列の指定位置でマッチングを行い、結果とマッチ領域を返す。
   正規表現オブジェクトの文字エンコーディングで、検索文字列として不正な文字列を渡してはいけない。
 
-  正常終了戻り値: マッチしたバイト長 (>= 0)
-  not match:      ONIG_MISMATCH      ( < 0)
+  戻り値
+  正常終了: マッチしたバイト長 (>= 0)
+  not match: ONIG_MISMATCH      ( < 0)
 
   引数
   1 reg:    正規表現オブジェクト
@@ -351,9 +378,11 @@
   5 region: マッチ領域情報(region)  (NULLも許される)
   6 option: 検索時オプション
 
-    ONIG_OPTION_NOTBOL        文字列の先頭(str)を行頭と看做さない
-    ONIG_OPTION_NOTEOL        文字列の終端(end)を行末と看做さない
-    ONIG_OPTION_POSIX_REGION  region引数をPOSIX APIのregmatch_t[]にする
+    ONIG_OPTION_NOTBOL              strの先頭を行頭および文字列先頭と看做さない
+    ONIG_OPTION_NOTEOL              endを行末および文字列終端と看做さない
+    ONIG_OPTION_NOT_BEGIN_STRING    strの先頭を文字列の先頭と看做さない (\A 失敗)
+    ONIG_OPTION_NOT_END_STRING      endを文字列終端と看做さない (\z, \Z 失敗)
+    ONIG_OPTION_NOT_BEGIN_POSITION  startを検索開始位置と看做さない (\G 失敗)
 
 
 # int onig_match_with_param(regex_t* reg, const UChar* str, const UChar* end,
@@ -365,7 +394,7 @@
 
   引数
   1-6:  onig_match()と同じ
-  7 mp: マッチパラメタ値 (match_stack_limit, retry_limit_in_match)
+  7 mp: マッチパラメタ値 (match_stack_limit, retry_limit_in_match, retry_limit_in_search)
 
 
 # int onig_scan(regex_t* reg, const UChar* str, const UChar* end,
@@ -376,6 +405,7 @@
   正規表現で文字列をスキャンして、マッチングする毎にコールバック関数を呼び出す。
   正規表現オブジェクトの文字エンコーディングで、検索文字列として不正な文字列を渡してはいけない。
 
+  戻り値
   正常終了: マッチ回数 (0回も含める)
   エラー:   エラーコード (< 0)
   中断: コールバック関数が０以外の戻り値を返したとき、その値を戻り値として中断
@@ -401,7 +431,9 @@
   2 n:    正規表現の個数
   3 regs: 正規表現オブジェクトの配列
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
 
 # int onig_regset_add(OnigRegSet* set, regex_t* reg)
@@ -414,7 +446,9 @@
   1 set: regsetオブジェクト
   2 reg: 正規表現オブジェクト
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
 
 # int onig_regset_replace(OnigRegSet* set, int at, regex_t* reg)
@@ -427,7 +461,9 @@
   2 at:  変更する場所のインデックス
   2 reg: 正規表現オブジェクト
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
 
 # void onig_regset_free(OnigRegSet* set)
@@ -469,10 +505,10 @@
 
   regsetによる検索を実行する。
 
-  戻り値:
-    検索成功: マッチした正規表現オブジェクトのインデックス (ゼロ開始)
-    検索失敗: ONIG_MISMATCH (< 0)
-    エラー:   エラーコード   (< 0)
+  戻り値
+  検索成功: マッチした正規表現オブジェクトのインデックス (ゼロ開始)
+  検索失敗: ONIG_MISMATCH (< 0)
+  エラー:   エラーコード   (< 0)
 
   引数
   1 set:    regsetオブジェクト
@@ -486,8 +522,11 @@
     ONIG_REGSET_REGEX_LEAD      (最左位置でマッチした結果を返す)
     ONIG_REGSET_PRIORITY_TO_REGEX_ORDER (最初にマッチした正規表現の結果を返す)
   7 option: 検索時オプション
-    ONIG_OPTION_NOTBOL        文字列の先頭(str)を行頭と看做さない
-    ONIG_OPTION_NOTEOL        文字列の終端(end)を行末と看做さない
+    ONIG_OPTION_NOTBOL              strの先頭を行頭および文字列先頭と看做さない
+    ONIG_OPTION_NOTEOL              endを行末および文字列終端と看做さない
+    ONIG_OPTION_NOT_BEGIN_STRING    strの先頭を文字列の先頭と看做さない (\A 失敗)
+    ONIG_OPTION_NOT_END_STRING      endを文字列終端と看做さない (\z, \Z 失敗)
+    ONIG_OPTION_NOT_BEGIN_POSITION  startを検索開始位置と看做さない (\G 失敗)
   8 rmatch_pos: マッチした位置を返すためのアドレス (match_address - str)
 
   * ONIG_REGSET_POSITION_LEADとONIG_REGSET_REGEX_LEADは同じ結果を返す。
@@ -499,10 +538,10 @@
 
   regsetとOnigMatchParamオブジェクトによる検索を実行する。
 
-  戻り値:
-    検索成功: マッチした正規表現オブジェクトのインデックス (ゼロ開始)
-    検索失敗: ONIG_MISMATCH (< 0)
-    エラー:   エラーコード   (< 0)
+  戻り値
+  検索成功: マッチした正規表現オブジェクトのインデックス (ゼロ開始)
+  検索失敗: ONIG_MISMATCH (< 0)
+  エラー:   エラーコード  (< 0)
 
   引数
   1 set:    regsetオブジェクト
@@ -516,8 +555,11 @@
     ONIG_REGSET_REGEX_LEAD      (最左位置でマッチした結果を返す)
     ONIG_REGSET_PRIORITY_TO_REGEX_ORDER (最初にマッチした正規表現の結果を返す)
   7 option: 検索時オプション
-    ONIG_OPTION_NOTBOL        文字列の先頭(str)を行頭と看做さない
-    ONIG_OPTION_NOTEOL        文字列の終端(end)を行末と看做さない
+    ONIG_OPTION_NOTBOL              strの先頭を行頭および文字列先頭と看做さない
+    ONIG_OPTION_NOTEOL              endを行末および文字列終端と看做さない
+    ONIG_OPTION_NOT_BEGIN_STRING    strの先頭を文字列の先頭と看做さない (\A 失敗)
+    ONIG_OPTION_NOT_END_STRING      endを文字列終端と看做さない (\z, \Z 失敗)
+    ONIG_OPTION_NOT_BEGIN_POSITION  startを検索開始位置と看做さない (\G 失敗)
   8 mps:    OnigMatchParamオブジェクトの配列
   9 rmatch_pos: マッチした位置を返すためのアドレス (match_address - str)
 
@@ -557,7 +599,9 @@
 
   マッチ領域情報(region)の捕獲式集合(グループ)数を変更する。
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
   引数
   1 region: 対象領域
@@ -571,8 +615,9 @@
   グループ番号リストを返す。
   名前付き捕獲式集合は、(?<name>....)によって定義できる。
 
-  正常終了戻り値:  指定された名前に対するグループ数
-                   (例 /(?<x>..)(?<x>..)/  ==>  2)
+  戻り値
+  正常終了: 指定された名前に対するグループ数
+            (例 /(?<x>..)(?<x>..)/  ==>  2)
   名前に対するグループが存在しない: -1
 
   引数
@@ -590,7 +635,9 @@
   名前に対する捕獲式集合が一個しかないときには、対応するマッチ領域が有効か
   どうかに関係なく、その番号を返す。(従って、regionにはNULLを渡してもよい。)
 
-  正常終了戻り値: 番号
+  戻り値
+  正常終了: 番号
+  エラー時: エラーコード < 0
 
   引数
   1 reg:       正規表現オブジェクト
@@ -600,13 +647,14 @@
 
 
 # int onig_foreach_name(regex_t* reg,
-                        int (*func)(const UChar*, const UChar*, int,int*,regex_t*,void*),
-                        void* arg)
+          int (*func)(const UChar*, const UChar*, int,int*,regex_t*,void*),
+          void* arg)
 
   全ての名前に対してコールバック関数呼び出しを実行する。
 
-  正常終了戻り値: 0
-  エラー:         コールバック関数の戻り値
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: コールバック関数の戻り値
 
   引数
   1 reg:     正規表現オブジェクト
@@ -631,10 +679,18 @@
 
 # OnigEncoding     onig_get_encoding(regex_t* reg)
 # OnigOptionType   onig_get_options(regex_t* reg)
-# OnigCaseFoldType onig_get_case_fold_flag(regex_t* reg)
 # OnigSyntaxType*  onig_get_syntax(regex_t* reg)
 
   正規表現オブジェクトに対して、対応する値を返す。
+
+  引数
+  1 reg:    正規表現オブジェクト
+
+
+# OnigCaseFoldType onig_get_case_fold_flag(regex_t* reg)
+
+  正規表現オブジェクトに対して、case_fold_flag値を返す。
+  この関数は廃止予定(非推奨)。
 
   引数
   1 reg:    正規表現オブジェクト
@@ -674,8 +730,9 @@
 
   捕獲履歴データ木を巡回してコールバックする。
 
-  正常終了戻り値: 0
-  エラー:         コールバック関数の戻り値
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: コールバック関数の戻り値
 
   引数
   1 region:  マッチ領域
@@ -710,6 +767,7 @@
 
   名前なし式集合の捕獲機能が有効かどうかを返す。
 
+  戻り値
   有効: 1
   無効: 0
 
@@ -846,11 +904,13 @@
 # OnigCaseFoldType onig_get_default_case_fold_flag()
 
   デフォルトのcase foldフラグを取得する。
+  この関数は廃止予定(非推奨)。
 
 
 # int onig_set_default_case_fold_flag(OnigCaseFoldType case_fold_flag)
 
   デフォルトのcase foldフラグをセットする。
+  この関数は廃止予定(非推奨)。
 
   引数
   1 case_fold_flag: case foldフラグ
@@ -872,15 +932,63 @@
 
 # unsigned long onig_get_retry_limit_in_match(void)
 
-  マッチング関数内でのリトライ数の制限値を返す。
+  一回のマッチングでのリトライ数の制限値を返す。
   (デフォルト: 10000000)
 
   正常終了戻り値: 制限値
 
 
-# int onig_set_retry_limit_in_match(unsigned long n)
+# unsigned long onig_get_retry_limit_in_search(void)
 
-  マッチング関数内でのリトライ数の制限値を指定する。
+  一回の検索でのリトライ数の制限値を返す。
+  0は無制限を意味する。
+  (デフォルト: 0)
+
+  正常終了戻り値: 制限値
+
+
+# int onig_set_retry_limit_in_match(unsigned long limit)
+
+  一回のマッチング内でのリトライ数の制限値を指定する。
+
+  正常終了戻り値: ONIG_NORMAL
+
+
+# int onig_set_retry_limit_in_search(unsigned long limit)
+
+  一回の検索でのリトライ数の制限値をセットする。
+  0は無制限を意味する。
+  (デフォルト: 0)
+
+  正常終了戻り値: ONIG_NORMAL
+
+
+# unsigned long onig_get_subexp_call_limit_in_search(void)
+
+  部分式呼出しの呼び出し回数の制限値を返す。
+  (デフォルト: 0:無制限)
+
+  正常終了戻り値: 制限値
+
+
+# int onig_set_subexp_call_limit_in_search(unsigned long n)
+
+  部分式呼出しの呼び出し回数の制限値を指定する。
+
+  正常終了戻り値: ONIG_NORMAL
+
+
+# int onig_get_subexp_call_max_nest_level(void)
+
+  部分式呼出しのネストレベルの最大値を返す。
+  (デフォルト: 24)
+
+  正常終了戻り値: 制限値
+
+
+# int onig_set_subexp_call_max_nest_level(int max_level)
+
+  部分式呼出しのネストレベルの最大値を指定する。
 
   正常終了戻り値: ONIG_NORMAL
 
@@ -925,7 +1033,9 @@
 
     * この関数を呼んだ後で、rangesを変更/破壊しないこと
 
-  正常終了戻り値: ONIG_NORMAL
+  戻り値
+  正常終了: ONIG_NORMAL == 0
+  エラー時: エラーコード < 0
 
 
 # unsigned int onig_get_parse_depth_limit(void)
