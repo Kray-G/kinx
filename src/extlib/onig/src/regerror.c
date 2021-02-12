@@ -2,7 +2,7 @@
   regerror.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2019  K.Kosako
+ * Copyright (c) 2002-2021  K.Kosako
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,12 @@
  * SUCH DAMAGE.
  */
 
-#include "regint.h"
-#include <stdio.h> /* for vsnprintf() */
+#ifndef NEED_TO_INCLUDE_STDIO
+/* for vsnprintf() */
+#define NEED_TO_INCLUDE_STDIO
+#endif
 
-#include <stdarg.h>
+#include "regint.h"
 
 extern UChar*
 onig_error_code_to_format(int code)
@@ -52,6 +54,10 @@ onig_error_code_to_format(int code)
     p = "parse depth limit over"; break;
   case ONIGERR_RETRY_LIMIT_IN_MATCH_OVER:
     p = "retry-limit-in-match over"; break;
+  case ONIGERR_RETRY_LIMIT_IN_SEARCH_OVER:
+    p = "retry-limit-in-search over"; break;
+  case ONIGERR_SUBEXP_CALL_LIMIT_IN_SEARCH_OVER:
+    p = "subexp-call-limit-in-search over"; break;
   case ONIGERR_TYPE_BUG:
     p = "undefined type (bug)"; break;
   case ONIGERR_PARSER_BUG:
@@ -140,6 +146,8 @@ onig_error_code_to_format(int code)
     p = "too big wide-char value"; break;
   case ONIGERR_TOO_LONG_WIDE_CHAR_VALUE:
     p = "too long wide-char value"; break;
+  case ONIGERR_UNDEFINED_OPERATOR:
+    p = "undefined operator"; break;
   case ONIGERR_INVALID_CODE_POINT_VALUE:
     p = "invalid code point value"; break;
   case ONIGERR_EMPTY_GROUP_NAME:
@@ -184,6 +192,8 @@ onig_error_code_to_format(int code)
     p = "not supported encoding combination"; break;
   case ONIGERR_INVALID_COMBINATION_OF_OPTIONS:
     p = "invalid combination of options"; break;
+  case ONIGERR_VERY_INEFFICIENT_PATTERN:
+    p = "very inefficient pattern"; break;
   case ONIGERR_LIBRARY_IS_NOT_INITIALIZED:
     p = "library is not initialized"; break;
 
@@ -277,7 +287,8 @@ onig_is_error_code_needs_param(int code)
 /* for ONIG_MAX_ERROR_MESSAGE_LEN */
 #define MAX_ERROR_PAR_LEN   30
 
-extern int onig_error_code_to_str(UChar* s, int code, ...)
+extern int ONIG_VARIADIC_FUNC_ATTR
+onig_error_code_to_str(UChar* s, int code, ...)
 {
   UChar *p, *q;
   OnigErrorInfo* einfo;
@@ -337,8 +348,9 @@ extern int onig_error_code_to_str(UChar* s, int code, ...)
 }
 
 
-void onig_snprintf_with_pattern(UChar buf[], int bufsize, OnigEncoding enc,
-                                UChar* pat, UChar* pat_end, const UChar *fmt, ...)
+void ONIG_VARIADIC_FUNC_ATTR
+onig_snprintf_with_pattern(UChar buf[], int bufsize, OnigEncoding enc,
+                           UChar* pat, UChar* pat_end, const UChar *fmt, ...)
 {
   int n, need, len;
   UChar *p, *s, *bp;
