@@ -2,7 +2,7 @@
   regposerr.c - Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2019  K.Kosako
+ * Copyright (c) 2002-2020  K.Kosako
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,22 @@
 #include "config.h"
 #include "onigposix.h"
 
+#undef regex_t
+#undef regmatch_t
+#undef regoff_t
+#undef regcomp
+#undef regexec
+#undef regfree
+#undef regerror
+#undef reg_set_encoding
+#undef reg_name_to_group_numbers
+#undef reg_foreach_name
+#undef reg_number_of_names
+
+#ifndef ONIG_NO_STANDARD_C_HEADERS
 #include <string.h>
+#include <stdio.h>
+#endif
 
 #if defined(__GNUC__)
 #  define ARG_UNUSED  __attribute__ ((unused))
@@ -46,12 +61,25 @@
 #endif
 
 #if defined(_WIN32) && !defined(__GNUC__)
+
+#ifndef xsnprintf
 #define xsnprintf   sprintf_s
+#endif
+#ifndef xstrncpy
 #define xstrncpy(dest,src,size)   strncpy_s(dest,size,src,_TRUNCATE)
+#endif
+
 #else
+
+#ifndef xsnprintf
 #define xsnprintf   snprintf
+#endif
+#ifndef xstrncpy
 #define xstrncpy    strncpy
 #endif
+
+#endif
+
 
 static char* ESTRING[] = {
   NULL,
@@ -75,12 +103,10 @@ static char* ESTRING[] = {
   "invalid argument"                         /* REG_EONIG_BADARG   */
 };
 
-#include <stdio.h>
-
 
 extern size_t
-regerror(int posix_ecode, const regex_t* reg ARG_UNUSED, char* buf,
-         size_t size)
+onig_posix_regerror(int posix_ecode, const onig_posix_regex_t* reg ARG_UNUSED,
+                    char* buf, size_t size)
 {
   char* s;
   char tbuf[35];
@@ -106,3 +132,14 @@ regerror(int posix_ecode, const regex_t* reg ARG_UNUSED, char* buf,
   }
   return len;
 }
+
+#ifdef USE_BINARY_COMPATIBLE_POSIX_API
+
+extern size_t
+regerror(int posix_ecode, const onig_posix_regex_t* reg ARG_UNUSED,
+         char* buf, size_t size)
+{
+  return onig_posix_regerror(posix_ecode, reg, buf, size);
+}
+
+#endif

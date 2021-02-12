@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/kkos/oniguruma.svg?branch=master)](https://travis-ci.org/kkos/oniguruma)
 [![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/kkos/oniguruma.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kkos/oniguruma/context:cpp)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/kkos/oniguruma.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kkos/oniguruma/alerts)
+[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/oniguruma.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html#oniguruma)
+[![TrustInSoft CI](https://ci.trust-in-soft.com/projects/kkos/oniguruma.svg?branch=master)](https://ci.trust-in-soft.com/projects/kkos/oniguruma)
 
 Oniguruma
 =========
@@ -25,6 +27,42 @@ Supported character encodings:
 * GB18030: contributed by KUBO Takehiro
 * CP1251:  contributed by Byte
 * doc/SYNTAX.md: contributed by seanofw
+
+
+Master branch
+-------------
+* NEW API: ONIG_SYNTAX_PYTHON
+* NEW API: ONIG_OPTION_IGNORECASE_IS_ASCII
+
+
+Version 6.9.6
+-------------
+* When using configure script, if you have the POSIX API enabled in an earlier version (disabled by default in 6.9.5) and you need application binary compatibility with the POSIX API, specify "--enable-binary-compatible-posix-api=yes" instead of "--enable-posix-api=yes". Starting in 6.9.6, "--enable-posix-api=yes" only supports source-level compatibility for 6.9.5 and earlier about POSIX API. (Issue #210)
+* NEW: configure option --enable-binary-compatible-posix-api=[yes/no]
+* NEW API: Limiting the maximum number of calls of subexp-call
+* NEW API: ONIG_OPTION_NOT_BEGIN_STRING / NOT_END_STRING / NOT_BEGIN_POSITION
+* Fixed behavior of ONIG_OPTION_NOTBOL / NOTEOL
+* Fixed many problems found by OSS-Fuzz
+* Fixed many problems found by Coverity
+* Fixed CVE-2020-26159 (This turned out not to be a problem later. #221)
+* Under cygwin and mingw, generate and install the libonig.def file (Issue #220)
+
+
+Version 6.9.5 revised 1
+-----------------------
+
+* Fixed Issue #192
+
+
+Version 6.9.5
+-------------
+
+* POSIX API disabled by default for Unix (* Enabled by: configure --enable-posix-api=yes)
+* Update Unicode version 13.0.0
+* NEW: Code point sequence notation \x{HHHH HHHH ...}, \o{OOOO OOOO ...}
+* NEW API: retry limit in search functions
+* NEW API: maximum nesting level of subexp call
+* Fixed behavior of isolated options in Perl and Java syntaxes.  /...(?i).../
 
 
 Version 6.9.4
@@ -95,82 +133,6 @@ Version 6.8.0
 * Examples of Callouts program: [callout.c](sample/callout.c), [count.c](sample/count.c), [echo.c](sample/echo.c)
 
 
-Version 6.7.1
--------------
-
-* NEW: Mechanism of retry-limit-in-match (* disabled by default)
-
-
-Version 6.7.0
--------------
-
-* NEW: hexadecimal codepoint \uHHHH
-* NEW: add ONIG_SYNTAX_ONIGURUMA (== ONIG_SYNTAX_DEFAULT)
-* Disabled \N and \O on ONIG_SYNTAX_RUBY
-* Reduced size of object file
-
-
-Version 6.6.0
--------------
-
-* NEW: ASCII only mode options for character type/property (?WDSP)
-* NEW: Extended Grapheme Cluster boundary \y, \Y
-* NEW: Extended Grapheme Cluster \X
-* Range-clear (Absent-clear) operator restores previous range in retractions.
-
-
-Version 6.5.0
--------------
-
-* NEW: \K (keep)
-* NEW: \R (general newline) \N (no newline)
-* NEW: \O (true anychar)
-* NEW: if-then-else   (?(...)...\|...)
-* NEW: Backreference validity checker (?(xxx)) (*original)
-* NEW: Absent repeater (?~absent)  \[is equal to (?\~\|(?:absent)|\O*)]
-* NEW: Absent expression   (?~|absent|expr)  (*original)
-* NEW: Absent stopper (?~|absent)     (*original)
-
-
-Version 6.4.0
--------------
-
-* Fix fatal problem of endless repeat on Windows
-* NEW: call zero (call the total regexp) \g<0>
-* NEW: relative backref/call by positive number \k<+n>, \g<+n>
-
-
-Version 6.3.0
--------------
-
-* NEW: octal codepoint \o{.....}
-* Fixed CVE-2017-9224
-* Fixed CVE-2017-9225
-* Fixed CVE-2017-9226
-* Fixed CVE-2017-9227
-* Fixed CVE-2017-9228
-* Fixed CVE-2017-9229
-
-
-Version 6.1.2
--------------
-
-* allow word bound, word begin and word end in look-behind.
-* NEW option: ONIG_OPTION_CHECK_VALIDITY_OF_STRING
-
-Version 6.1
------------
-
-* improved doc/RE
-* NEW API: onig_scan()
-
-Version 6.0
------------
-
-* Update Unicode 8.0 Property/Case-folding
-* NEW API: onig_unicode_define_user_property()
-
-
 License
 -------
 
@@ -180,7 +142,15 @@ License
 Install
 -------
 
-### Case 1: Unix and Cygwin platform
+### Case 1: Linux distribution packages
+
+   * Fedora:         `dnf install oniguruma`
+   * RHEL/CentOS:    `yum install oniguruma`
+   * Debian/Ubuntu:  `apt install libonig5`
+   * Arch:           `pacman -S oniguruma`
+   * openSUSE:       `zypper install oniguruma`
+
+### Case 2: Manual compilation on Linux, Unix, and Cygwin platform
 
    1. autoreconf -vfi   (* case: configure script is not found.)
 
@@ -201,7 +171,7 @@ Install
 
 
 
-### Case 2: Windows 64/32bit platform (Visual Studio)
+### Case 3: Windows 64/32bit platform (Visual Studio)
 
    Execute make_win.bat
 
@@ -216,7 +186,16 @@ Install
 
    (I have checked by Visual Studio Community 2015)
 
+Alternatively, you can build and install oniguruma using [vcpkg](https://github.com/microsoft/vcpkg/) dependency manager:
 
+   1. git clone https://github.com/Microsoft/vcpkg.git
+   2. cd vcpkg
+   3. ./bootstrap-vcpkg.bat
+   4. ./vcpkg integrate install
+   5. ./vcpkg install oniguruma
+
+The oniguruma port in vcpkg is kept up to date by microsoft team members and community contributors.
+If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
 
 Regular Expressions
 -------------------

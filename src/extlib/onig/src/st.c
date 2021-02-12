@@ -2,16 +2,13 @@
 
 /* static	char	sccsid[] = "@(#) st.c 5.1 89/12/14 Crucible"; */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#ifdef _WIN32
-#include <malloc.h>
+#ifndef NEED_TO_INCLUDE_STDIO
+#define NEED_TO_INCLUDE_STDIO
 #endif
 
 #include "regint.h"
 #include "st.h"
+
 
 typedef struct st_table_entry st_table_entry;
 
@@ -154,6 +151,7 @@ st_init_table_with_size(type, size)
 #endif
 
   size = new_size(size);	/* round up to prime number */
+  if (size <= 0) return 0;
 
   tbl = alloc(st_table);
   if (tbl == 0) return 0;
@@ -321,10 +319,13 @@ rehash(table)
      register st_table *table;
 {
   register st_table_entry *ptr, *next, **new_bins;
-  int i, old_num_bins = table->num_bins, new_num_bins;
+  int i, new_num_bins, old_num_bins;
   unsigned int hash_val;
 
-  new_num_bins = new_size(old_num_bins+1);
+  old_num_bins = table->num_bins;
+  new_num_bins = new_size(old_num_bins + 1);
+  if (new_num_bins <= 0) return ;
+
   new_bins = (st_table_entry**)Calloc(new_num_bins, sizeof(st_table_entry*));
   if (new_bins == 0) {
     return ;

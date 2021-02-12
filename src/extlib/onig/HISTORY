@@ -1,9 +1,85 @@
 History
 
+2020/11/05: Version 6.9.6
+
+2020/11/01: fix Issue 26798 in oss-fuzz: Timeout
+2020/10/27: fix Issue 26675 in oss-fuzz: Timeout
+
+2020/10/21: Release Candidate 4 for Version 6.9.6
+
+2020/10/20: #221: revert cbe9f8b and 8155473: Out-of-bounds write in #207 (Issues found with Coverity) is fake
+
+2020/10/16: Release Candidate 3 for Version 6.9.6
+
+2020/10/15: fix #220: autotools not building DLL using msys2 and mingw64 on windows 10
+2020/10/12: fix #219: Binary incompatibilty between 6.9.5_rev1 -> 6.9.2_rc2: reg_number_of_names
+
+2020/10/09: Release Candidate 2 for Version 6.9.6
+
+2020/10/09: fix #216: build fails on Windows
+
+2020/10/07: Release Candidate 1 for Version 6.9.6
+
+2020/09/30: add configure option --enable-binary-compatible-posix-api
+2020/09/24: fix: Issue 25893 in oss-fuzz: Stack-buffer-overflow
+2020/09/22: fix Issues found with Coverity (Issue #207)
+2020/08/27: fix Issue #204: define uint32_t and uint64_t for Visual Studio older than 2010
+2020/08/04: fix Issue 24544 in oss-fuzz: Timeout
+2020/07/21: add USE_CHECK_VALIDITY_OF_STRING_IN_TREE (fix Issue 24276 in oss-fuzz: Undefined-shift)
+2020/07/20: fix: Issue 24268 in oss-fuzz: Timeout
+2020/07/17: fix: Issue 24112 in oss-fuzz: Undefined-shift
+2020/07/14: fix: Issue 24066 in oss-fuzz: Timeout
+2020/07/05: fix: Incomplete application of ONIG_OPTION_NOTBOL to \A
+2020/07/05: fix: Incomplete application of ONIG_OPTION_NOT_END_STRING to \Z (Issue #192)
+2020/07/05: fix: Incomplete application of ONIG_OPTION_NOTEOL to \z
+2020/07/05: fix: Incomplete application of ONIG_OPTION_NOTEOL to \Z
+2020/07/01: add ONIG_OPTION_NOT_END_STRING (Issue #198)
+2020/06/28: add ONIG_OPTION_NOT_BEGIN_POSITION (Issue #198)
+2020/06/28: add ONIG_OPTION_NOT_BEGIN_STRING
+2020/06/28: fix: Issue 23754 in oss-fuzz: Timeout
+2020/06/21: fix: Issue 23525 in oss-fuzz: Timeout
+2020/06/15: fix: Issue 23311 in oss-fuzz: Timeout
+2020/06/03: fix: Issue 22925 in oss-fuzz: Index-out-of-bounds
+2020/06/03: fix: Issue 22917 in oss-fuzz: Out-of-memory
+2020/06/02: fix: Issue 22916 in oss-fuzz: Timeout
+2020/05/29: fix: Issue 22744 in oss-fuzz: Integer-overflow
+2020/05/28: fix: Issue 22658 in oss-fuzz: check backref with level
+2020/05/28: fix: Issue 22533 in oss-fuzz: memory leak
+2020/05/23: fix: Issue 22393 in oss-fuzz: Integer-overflow
+2020/05/13: fix: Issue 22154 in oss-fuzz: When the option FIND_LONGEST is specified, match_at() returns ONIG_MISMATCH unless there is no need to search any more.
+2020/05/06: Add SOVERSION info to library when using cmake
+2020/05/04: fix: 22008 in oss-fuzz
+2020/05/04: fix: 21998 in oss-fuzz
+2020/05/03: fix: 21944, 21977 in oss-fuzz
+
+2020/04/26: Version 6.9.5 revised 1
+
+2020/04/24: fix #192: Unexpected regex match
+
+2020/04/20: Version 6.9.5
+
+2020/04/12: Release Candidate 2 for Version 6.9.5
+2020/04/09: fix a problem (found by oss-fuzz test on my PC)
+2020/04/05: Release Candidate 1 for Version 6.9.5
+2020/03/30: remove src/*.py and src/*.sh from distribution files
+2020/03/27: NEW: Code point sequence notation \x{HHHH ...}, \o{OOOO ...}
+2020/03/24: NEW API: maximum nesting level of subexp call
+2020/03/22: #165: change enable-posix-api default from YES to NO
+2020/03/15: update Unicode version to 13.0.0
+2020/03/10: add test_back.c
+2020/03/08: tune output of debug in print_optimize_info()
+2020/03/02: fix #186: Allow regset search to succeed at end of string
+2020/02/13: NEW API: retry-limit-in-search functions
+2020/01/20: add ONIG_SYN_VARIABLE_LEN_LOOK_BEHIND flag
+2019/12/27: add USE_REGSET switch
+2019/12/20: remove OPTIMIZE_STR_CASE_FOLD
+2019/12/13: add test/test_syntax.c
+2019/12/13: add ONIG_SYN_ISOLATED_OPTION_CONTINUE_BRANCH flag
+
+
 2019/11/29: Version 6.9.4
 
 2019/11/22: Release Candidate 3 for Version 6.9.4
-
 2019/11/20: fix a problem found by libFuzzer test
 2019/11/14: Release Candidate 2 for Version 6.9.4
 2019/11/12: fix integer overflow by nested quantifier
