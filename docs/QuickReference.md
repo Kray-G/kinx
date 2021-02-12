@@ -1020,12 +1020,12 @@ var x = new A.B.X(); // OK
 Here is the expression's priority order.
 The order of upside of the list is higher.
 
-|   #   |     Type      |                                                   Excample                                                    |  Evaluation   |
+|  No.  |     Type      |                                                   Excample                                                    |  Evaluation   |
 | :---: | ------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
-|   1   | Factor        | Variable, Number, String, ...                                                                                 |               |
+|   1   | Factor        | Variable, Number, String, ...                                                                                 |       -       |
 |   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
-|   3   | Prefix        | `!`, `+`, `-`, `++`, `--`                                                                                     | left to right |
-|   4   | Matching      | `=~`, `!~`                                                                                                    | left to right |
+|   3   | Prefix        | `!`, `+`, `-`, `*`, `++`, `--`                                                                                | left to right |
+|   4   | Match/Range   | `=~`, `!~`, `n..m`                                                                                            | left to right |
 |   5   | Exponent      | `**`                                                                                                          | right to left |
 |   6   | Mul,...       | `*`, `/`, `%`                                                                                                 | left to right |
 |   7   | Add,...       | `+`, `-`                                                                                                      | left to right |
