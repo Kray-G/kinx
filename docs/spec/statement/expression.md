@@ -15,7 +15,7 @@ a = 2 * getValueOf(holder);
 Expression has a priority about a calculation order.
 Here is the order to calculate values.
 
-|   #   |     Type      |                                                   Excample                                                    |  Evaluation   |
+|  No.  |     Type      |                                                   Excample                                                    |  Evaluation   |
 | :---: | ------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
 |   1   | Factor        | Variable, Number, String, ...                                                                                 |       -       |
 |   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
