@@ -1,6 +1,6 @@
 /*
  * test_utf8.c
- * Copyright (c) 2019  K.Kosako
+ * Copyright (c) 2019-2020  K.Kosako
  */
 #include "config.h"
 #ifdef ONIG_ESCAPE_UCHAR_COLLISION
@@ -18,13 +18,21 @@ static int nsucc  = 0;
 static int nfail  = 0;
 static int nerror = 0;
 
+#ifdef __TRUSTINSOFT_ANALYZER__
+static int nall = 0;
+#endif
+
 static FILE* err_file;
 
 static OnigRegion* region;
 
 static void xx(char* pattern, char* str, int from, int to, int mem, int not,
-               int error_no)
+               int error_no, int line_no)
 {
+#ifdef __TRUSTINSOFT_ANALYZER__
+  if (nall++ % TIS_TEST_CHOOSE_MAX != TIS_TEST_CHOOSE_CURRENT) return;
+#endif
+
   int r;
   regex_t* reg;
   OnigErrorInfo einfo;
@@ -36,17 +44,17 @@ static void xx(char* pattern, char* str, int from, int to, int mem, int not,
 
     if (error_no == 0) {
       onig_error_code_to_str((UChar* )s, r, &einfo);
-      fprintf(err_file, "ERROR: %s  /%s/\n", s, pattern);
+      fprintf(err_file, "ERROR: %s  /%s/  #%d\n", s, pattern, line_no);
       nerror++;
     }
     else {
       if (r == error_no) {
-        fprintf(stdout, "OK(ERROR): /%s/ %d\n", pattern, r);
+        fprintf(stdout, "OK(ERROR): /%s/ %d  #%d\n", pattern, r, line_no);
         nsucc++;
       }
       else {
-        fprintf(stdout, "FAIL(ERROR): /%s/ '%s', %d, %d\n", pattern, str,
-                error_no, r);
+        fprintf(stdout, "FAIL(ERROR): /%s/ '%s', %d, %d  #%d\n", pattern, str,
+                error_no, r, line_no);
         nfail++;
       }
     }
@@ -62,17 +70,18 @@ static void xx(char* pattern, char* str, int from, int to, int mem, int not,
 
     if (error_no == 0) {
       onig_error_code_to_str((UChar* )s, r);
-      fprintf(err_file, "ERROR: %s  /%s/\n", s, pattern);
+      fprintf(err_file, "ERROR: %s  /%s/  #%d\n", s, pattern, line_no);
       nerror++;
     }
     else {
       if (r == error_no) {
-        fprintf(stdout, "OK(ERROR): /%s/ '%s', %d\n", pattern, str, r);
+        fprintf(stdout, "OK(ERROR): /%s/ '%s', %d  #%d\n",
+                pattern, str, r, line_no);
         nsucc++;
       }
       else {
-        fprintf(stdout, "FAIL ERROR NO: /%s/ '%s', %d, %d\n", pattern, str,
-                error_no, r);
+        fprintf(stdout, "FAIL ERROR NO: /%s/ '%s', %d, %d  #%d\n",
+                pattern, str, error_no, r, line_no);
         nfail++;
       }
     }
@@ -82,27 +91,27 @@ static void xx(char* pattern, char* str, int from, int to, int mem, int not,
 
   if (r == ONIG_MISMATCH) {
     if (not) {
-      fprintf(stdout, "OK(N): /%s/ '%s'\n", pattern, str);
+      fprintf(stdout, "OK(N): /%s/ '%s'  #%d\n", pattern, str, line_no);
       nsucc++;
     }
     else {
-      fprintf(stdout, "FAIL: /%s/ '%s'\n", pattern, str);
+      fprintf(stdout, "FAIL: /%s/ '%s'  #%d\n", pattern, str, line_no);
       nfail++;
     }
   }
   else {
     if (not) {
-      fprintf(stdout, "FAIL(N): /%s/ '%s'\n", pattern, str);
+      fprintf(stdout, "FAIL(N): /%s/ '%s'  #%d\n", pattern, str, line_no);
       nfail++;
     }
     else {
       if (region->beg[mem] == from && region->end[mem] == to) {
-        fprintf(stdout, "OK: /%s/ '%s'\n", pattern, str);
+        fprintf(stdout, "OK: /%s/ '%s'  #%d\n", pattern, str, line_no);
         nsucc++;
       }
       else {
-        fprintf(stdout, "FAIL: /%s/ '%s' %d-%d : %d-%d\n", pattern, str,
-                from, to, region->beg[mem], region->end[mem]);
+        fprintf(stdout, "FAIL: /%s/ '%s' %d-%d : %d-%d  #%d\n", pattern, str,
+                from, to, region->beg[mem], region->end[mem], line_no);
         nfail++;
       }
     }
@@ -110,25 +119,30 @@ static void xx(char* pattern, char* str, int from, int to, int mem, int not,
   onig_free(reg);
 }
 
-static void x2(char* pattern, char* str, int from, int to)
+static void xx2(char* pattern, char* str, int from, int to, int line_no)
 {
-  xx(pattern, str, from, to, 0, 0, 0);
+  xx(pattern, str, from, to, 0, 0, 0, line_no);
 }
 
-static void x3(char* pattern, char* str, int from, int to, int mem)
+static void xx3(char* pattern, char* str, int from, int to, int mem, int line_no)
 {
-  xx(pattern, str, from, to, mem, 0, 0);
+  xx(pattern, str, from, to, mem, 0, 0, line_no);
 }
 
-static void n(char* pattern, char* str)
+static void xn(char* pattern, char* str, int line_no)
 {
-  xx(pattern, str, 0, 0, 0, 1, 0);
+  xx(pattern, str, 0, 0, 0, 1, 0, line_no);
 }
 
-static void e(char* pattern, char* str, int error_no)
+static void xe(char* pattern, char* str, int error_no, int line_no)
 {
-  xx(pattern, str, 0, 0, 0, 0, error_no);
+  xx(pattern, str, 0, 0, 0, 0, error_no, line_no);
 }
+
+#define x2(p,s,f,t)    xx2(p,s,f,t, __LINE__)
+#define x3(p,s,f,t,m)  xx3(p,s,f,t,m, __LINE__)
+#define n(p,s)          xn(p,s,   __LINE__)
+#define e(p,s,en)       xe(p,s,en, __LINE__)
 
 extern int main(int argc, char* argv[])
 {
@@ -351,6 +365,114 @@ extern int main(int argc, char* argv[])
   x2("(.*)a\\1f", "bacbabf", 3, 7);
   x2("((.*)a\\2f)", "bacbabf", 3, 7);
   x2("(.*)a\\1f", "baczzzzzz\nbazz\nzzzzbabf", 19, 23);
+  x2("(?:x?)?", "", 0, 0);
+  x2("(?:x?)?", "x", 0, 1);
+  x2("(?:x?)?", "xx", 0, 1);
+  x2("(?:x?)*", "", 0, 0);
+  x2("(?:x?)*", "x", 0, 1);
+  x2("(?:x?)*", "xx", 0, 2);
+  x2("(?:x?)+", "", 0, 0);
+  x2("(?:x?)+", "x", 0, 1);
+  x2("(?:x?)+", "xx", 0, 2);
+  x2("(?:x?)\?\?", "", 0, 0);
+  x2("(?:x?)\?\?", "x", 0, 0);
+  x2("(?:x?)\?\?", "xx", 0, 0);
+  x2("(?:x?)*?", "", 0, 0);
+  x2("(?:x?)*?", "x", 0, 0);
+  x2("(?:x?)*?", "xx", 0, 0);
+  x2("(?:x?)+?", "", 0, 0);
+  x2("(?:x?)+?", "x", 0, 1);
+  x2("(?:x?)+?", "xx", 0, 1);
+  x2("(?:x*)?", "", 0, 0);
+  x2("(?:x*)?", "x", 0, 1);
+  x2("(?:x*)?", "xx", 0, 2);
+  x2("(?:x*)*", "", 0, 0);
+  x2("(?:x*)*", "x", 0, 1);
+  x2("(?:x*)*", "xx", 0, 2);
+  x2("(?:x*)+", "", 0, 0);
+  x2("(?:x*)+", "x", 0, 1);
+  x2("(?:x*)+", "xx", 0, 2);
+  x2("(?:x*)\?\?", "", 0, 0);
+  x2("(?:x*)\?\?", "x", 0, 0);
+  x2("(?:x*)\?\?", "xx", 0, 0);
+  x2("(?:x*)*?", "", 0, 0);
+  x2("(?:x*)*?", "x", 0, 0);
+  x2("(?:x*)*?", "xx", 0, 0);
+  x2("(?:x*)+?", "", 0, 0);
+  x2("(?:x*)+?", "x", 0, 1);
+  x2("(?:x*)+?", "xx", 0, 2);
+  x2("(?:x+)?", "", 0, 0);
+  x2("(?:x+)?", "x", 0, 1);
+  x2("(?:x+)?", "xx", 0, 2);
+  x2("(?:x+)*", "", 0, 0);
+  x2("(?:x+)*", "x", 0, 1);
+  x2("(?:x+)*", "xx", 0, 2);
+  n("(?:x+)+", "");
+  x2("(?:x+)+", "x", 0, 1);
+  x2("(?:x+)+", "xx", 0, 2);
+  x2("(?:x+)\?\?", "", 0, 0);
+  x2("(?:x+)\?\?", "x", 0, 0);
+  x2("(?:x+)\?\?", "xx", 0, 0);
+  x2("(?:x+)*?", "", 0, 0);
+  x2("(?:x+)*?", "x", 0, 0);
+  x2("(?:x+)*?", "xx", 0, 0);
+  n("(?:x+)+?", "");
+  x2("(?:x+)+?", "x", 0, 1);
+  x2("(?:x+)+?", "xx", 0, 2);
+  x2("(?:x\?\?)?", "", 0, 0);
+  x2("(?:x\?\?)?", "x", 0, 0);
+  x2("(?:x\?\?)?", "xx", 0, 0);
+  x2("(?:x\?\?)*", "", 0, 0);
+  x2("(?:x\?\?)*", "x", 0, 0);
+  x2("(?:x\?\?)*", "xx", 0, 0);
+  x2("(?:x\?\?)+", "", 0, 0);
+  x2("(?:x\?\?)+", "x", 0, 0);
+  x2("(?:x\?\?)+", "xx", 0, 0);
+  x2("(?:x\?\?)\?\?", "", 0, 0);
+  x2("(?:x\?\?)\?\?", "x", 0, 0);
+  x2("(?:x\?\?)\?\?", "xx", 0, 0);
+  x2("(?:x\?\?)*?", "", 0, 0);
+  x2("(?:x\?\?)*?", "x", 0, 0);
+  x2("(?:x\?\?)*?", "xx", 0, 0);
+  x2("(?:x\?\?)+?", "", 0, 0);
+  x2("(?:x\?\?)+?", "x", 0, 0);
+  x2("(?:x\?\?)+?", "xx", 0, 0);
+  x2("(?:x*?)?", "", 0, 0);
+  x2("(?:x*?)?", "x", 0, 0);
+  x2("(?:x*?)?", "xx", 0, 0);
+  x2("(?:x*?)*", "", 0, 0);
+  x2("(?:x*?)*", "x", 0, 0);
+  x2("(?:x*?)*", "xx", 0, 0);
+  x2("(?:x*?)+", "", 0, 0);
+  x2("(?:x*?)+", "x", 0, 0);
+  x2("(?:x*?)+", "xx", 0, 0);
+  x2("(?:x*?)\?\?", "", 0, 0);
+  x2("(?:x*?)\?\?", "x", 0, 0);
+  x2("(?:x*?)\?\?", "xx", 0, 0);
+  x2("(?:x*?)*?", "", 0, 0);
+  x2("(?:x*?)*?", "x", 0, 0);
+  x2("(?:x*?)*?", "xx", 0, 0);
+  x2("(?:x*?)+?", "", 0, 0);
+  x2("(?:x*?)+?", "x", 0, 0);
+  x2("(?:x*?)+?", "xx", 0, 0);
+  x2("(?:x+?)?", "", 0, 0);
+  x2("(?:x+?)?", "x", 0, 1);
+  x2("(?:x+?)?", "xx", 0, 1);
+  x2("(?:x+?)*", "", 0, 0);
+  x2("(?:x+?)*", "x", 0, 1);
+  x2("(?:x+?)*", "xx", 0, 2);
+  n("(?:x+?)+", "");
+  x2("(?:x+?)+", "x", 0, 1);
+  x2("(?:x+?)+", "xx", 0, 2);
+  x2("(?:x+?)\?\?", "", 0, 0);
+  x2("(?:x+?)\?\?", "x", 0, 0);
+  x2("(?:x+?)\?\?", "xx", 0, 0);
+  x2("(?:x+?)*?", "", 0, 0);
+  x2("(?:x+?)*?", "x", 0, 0);
+  x2("(?:x+?)*?", "xx", 0, 0);
+  n("(?:x+?)+?", "");
+  x2("(?:x+?)+?", "x", 0, 1);
+  x2("(?:x+?)+?", "xx", 0, 1);
   x2("a|b", "a", 0, 1);
   x2("a|b", "b", 0, 1);
   x2("|a", "a", 0, 0);
@@ -545,6 +667,17 @@ extern int main(int argc, char* argv[])
   x2("(?<=a|bc||defghij|klmnopq|r)z", "rz", 1, 2);
   x3("(?<=(abc))d", "abcd", 0, 3, 1);
   x2("(?<=(?i:abc))d", "ABCd", 3, 4);
+  x2("(?<=^|b)c", " cbc", 3, 4);
+  x2("(?<=a|^|b)c", " cbc", 3, 4);
+  x2("(?<=a|(^)|b)c", " cbc", 3, 4);
+  x2("(?<=a|(^)|b)c", "cbc", 0, 1);
+  n("(Q)|(?<=a|(?(1))|b)c", "czc");
+  x2("(Q)(?<=a|(?(1))|b)c", "cQc", 1, 3);
+  x2("(?<=a|(?~END)|b)c", "ENDc", 3, 4);
+  n("(?<!^|b)c", "cbc");
+  n("(?<!a|^|b)c", "cbc");
+  n("(?<!a|(?:^)|b)c", "cbc");
+  x2("(?<!a|(?:^)|b)c", " cbc", 1, 2);
   x2("(a)\\g<1>", "aa", 0, 2);
   x2("(?<!a)b", "cb", 1, 2);
   n("(?<!a)b", "ab");
@@ -682,10 +815,17 @@ extern int main(int argc, char* argv[])
 
   x2("(?~)", "", 0, 0);
   x2("(?~)", "A", 0, 0);
+  x2("(?~ab)", "abc", 0, 0);
+  x2("(?~abc)", "abc", 0, 0);
+  x2("(?~abc|ab)", "abc", 0, 0);
+  x2("(?~ab|abc)", "abc", 0, 0);
+  x2("(?~a.c)", "abc", 0, 0);
+  x2("(?~a.c|ab)", "abc", 0, 0);
+  x2("(?~ab|a.c)", "abc", 0, 0);
   x2("aaaaa(?~)", "aaaaaaaaaa", 0, 5);
   x2("(?~(?:|aaa))", "aaa", 0, 0);
   x2("(?~aaa|)", "aaa", 0, 0);
-  x2("a(?~(?~)).", "abcdefghijklmnopqrstuvwxyz", 0, 26); // !!!
+  x2("a(?~(?~)).", "abcdefghijklmnopqrstuvwxyz", 0, 26); // nested absent functions cause strange result
   x2("/\\*(?~\\*/)\\*/", "/* */ */", 0, 5);
   x2("(?~\\w+)zzzzz", "zzzzz", 0, 5);
   x2("(?~\\w*)zzzzz", "zzzzz", 0, 5);
@@ -1198,6 +1338,15 @@ extern int main(int argc, char* argv[])
   x2("\\g'0'++{,0}?",  "abcdefgh", 0, 0);
   x2("\\g'0'++{,0}b",  "abcdefgh", 1, 2);
   x2("\\g'0'++{,0}?def", "abcdefgh", 3, 6);
+  x2("a{1,3}?", "aaa", 0, 1);
+  x2("a{3}", "aaa", 0, 3);
+  x2("a{3}?", "aaa", 0, 3);
+  x2("a{3}?", "aa", 0, 0);
+  x2("a{3,3}?", "aaa", 0, 3);
+  n("a{3,3}?", "aa");
+  x2("a{1,3}+", "aaaaaa", 0, 6);
+  x2("a{3}+", "aaaaaa", 0, 6);
+  x2("a{3,3}+", "aaaaaa", 0, 6);
   n("a{2,3}?",  "a");
   n("a{3,2}a", "aaa");
   x2("a{3,2}b", "aaab", 0, 4);
@@ -1212,11 +1361,116 @@ extern int main(int argc, char* argv[])
   x2("[a[xyz]-c]", "a", 0, 1);
   x2("[a[xyz]-c]", "-", 0, 1);
   x2("[a[xyz]-c]", "c", 0, 1);
+  x2("(a.c|def)(.{4})(?<=\\1)", "abcdabc", 0, 7);
+  x2("(a.c|de)(.{4})(?<=\\1)", "abcdabc", 0, 7);
+  x2("(a.c|def)(.{5})(?<=d\\1e)", "abcdabce", 0, 8);
+  x2("(a.c|.)d(?<=\\k<1>d)", "zzzzzabcdabc", 5, 9);
+  x2("(?<=az*)abc", "azzzzzzzzzzabcdabcabc", 11, 14);
+  x2("(?<=ab|abc|abcd)ef", "abcdef", 4, 6);
+  x2("(?<=ta+|tb+|tc+|td+)zz", "tcccccccccczz", 11, 13);
+  x2("(?<=t.{7}|t.{5}|t.{2}|t.)zz", "tczz", 2, 4);
+  x2("(?<=t.{7}|t.{5}|t.{2})zz", "tczzzz", 3, 5);
+  x2("(?<=t.{7}|t.{5}|t.{3})zz", "tczzazzbzz", 8, 10);
+  n("(?<=t.{7}|t.{5}|t.{3})zz", "tczzazzbczz");
+  x2("(?<=(ab|abc|abcd))ef", "abcdef", 4, 6);
+  x2("(?<=(ta+|tb+|tc+|td+))zz", "tcccccccccczz", 11, 13);
+  x2("(?<=(t.{7}|t.{5}|t.{2}|t.))zz", "tczz", 2, 4);
+  x2("(?<=(t.{7}|t.{5}|t.{2}))zz", "tczzzz", 3, 5);
+  x2("(?<=(t.{7}|t.{5}|t.{3}))zz", "tczzazzbzz", 8, 10);
+  n("(?<=(t.{7}|t.{5}|t.{3}))zz", "tczzazzbczz");
+  x2("(.{1,4})(.{1,4})(?<=\\2\\1)", "abaaba", 0, 6);
+  x2("(.{1,4})(.{1,4})(?<=\\2\\1)", "ababab", 0, 6);
+  n("(.{1,4})(.{1,4})(?<=\\2\\1)", "abcdabce");
+  x2("(.{1,4})(.{1,4})(?<=\\2\\1)", "abcdabceabce", 4, 12);
+  x2("(?<=a)", "a", 1, 1);
+  x2("(?<=a.*\\w)z", "abbbz", 4, 5);
+  n("(?<=a.*\\w)z", "abb z");
+  x2("(?<=a.*\\W)z", "abb z", 4, 5);
+  x2("(?<=a.*\\b)z", "abb z", 4, 5);
+  x2("(?<=(?>abc))", "abc", 3, 3);
+  x2("(?<=a\\Xz)", "abz", 3, 3);
+  n("(?<=^a*)bc", "zabc");
+  n("(?<=a*\\b)b", "abc");
+  x2("(?<=a+.*[efg])z", "abcdfz", 5, 6);
+  x2("(?<=a+.*[efg])z", "abcdfgz", 6, 7);
+  n("(?<=a+.*[efg])z", "bcdfz");
+  x2("(?<=a*.*[efg])z", "bcdfz", 4, 5);
+  n("(?<=a+.*[efg])z", "abcdz");
+  x2("(?<=v|t|a+.*[efg])z", "abcdfz", 5, 6);
+  x2("(?<=v|t|^a+.*[efg])z", "abcdfz", 5, 6);
+  x2("(?<=^(?:v|t|a+.*[efg]))z", "abcdfz", 5, 6);
+  x2("(?<=v|^t|a+.*[efg])z", "uabcdfz", 6, 7);
+  n("^..(?<=(a{,2}))\\1z", "aaaaz"); // !!! look-behind is shortest priority
+  x2("^..(?<=(a{,2}))\\1z", "aaz", 0, 3); // shortest priority
+  e("(?<=(?~|zoo)a.*z)", "abcdefz", ONIGERR_INVALID_LOOK_BEHIND_PATTERN);
+  e("(?<=(?~|)a.*z)", "abcdefz", ONIGERR_INVALID_LOOK_BEHIND_PATTERN);
+  e("(a(?~|boo)z){0}(?<=\\g<1>)", "abcdefz", ONIGERR_INVALID_LOOK_BEHIND_PATTERN);
+  x2("(?<=(?<= )| )", "abcde fg", 6, 6); // #173
+  x2("(?<=D|)(?<=@!nnnnnnnnnIIIIn;{1}D?()|<x@x*xxxD|)(?<=@xxx|xxxxx\\g<1>;{1}x)", "(?<=D|)(?<=@!nnnnnnnnnIIIIn;{1}D?()|<x@x*xxxD|)(?<=@xxx|xxxxx\\g<1>;{1}x)", 55, 55); // #173
+  x2("(?<=;()|)\\g<1>", "", 0, 0); // reduced #173
+  x2("(?<=;()|)\\k<1>", ";", 1, 1);
+  x2("(())\\g<3>{0}(?<=|())", "abc", 0, 0); // #175
+  x2("(?<=()|)\\1{0}", "abc", 0, 0);
+  e("(?<!xxxxxxxxxxxxxxxxxxxxxxx{32774}{65521}xxxxxxxx{65521}xxxxxxxxxxxxxx{32774}xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)", "", ONIGERR_INVALID_LOOK_BEHIND_PATTERN); // #177
+  x2("(?<=(?<=abc))def", "abcdef", 3, 6);
+  x2("(?<=ab(?<=.+b)c)def", "abcdef", 3, 6);
+  n("(?<=ab(?<=a+)c)def", "abcdef");
+  n("(?<=abc)(?<!abc)def", "abcdef");
+  n("(?<!ab.)(?<=.bc)def", "abcdef");
+  x2("(?<!ab.)(?<=.bc)def", "abcdefcbcdef", 9, 12);
+  n("(?<!abc)def", "abcdef");
+  n("(?<!xxx|abc)def", "abcdef");
+  n("(?<!xxxxx|abc)def", "abcdef");
+  n("(?<!xxxxx|abc)def", "xxxxxxdef");
+  n("(?<!x+|abc)def", "abcdef");
+  n("(?<!x+|abc)def", "xxxxxxxxxdef");
+  x2("(?<!x+|abc)def", "xxxxxxxxzdef", 9, 12);
+  n("(?<!a.*z|a)def", "axxxxxxxzdef");
+  n("(?<!a.*z|a)def", "bxxxxxxxadef");
+  x2("(?<!a.*z|a)def", "axxxxxxxzdefxxdef", 14, 17);
+  x2("(?<!a.*z|a)def", "bxxxxxxxadefxxdef", 14, 17);
+  x2("(?<!a.*z|a)def", "bxxxxxxxzdef", 9, 12);
+  x2("(?<!x+|y+)\\d+", "xxx572", 4, 6);
+  x2("(?<!3+|4+)\\d+", "33334444", 0, 8);
+  n(".(?<!3+|4+)\\d+", "33334444");
+  n("(.{,3})..(?<!\\1)", "aaaaa");
+  x2("(.{,3})..(?<!\\1)", "abcde", 0, 5);
+  x2("(.{,3})...(?<!\\1)", "abcde", 0, 5);
+  x2("(a.c)(.{3,}?)(?<!\\1)", "abcabcd", 0, 7);
+  x2("(a*)(.{3,}?)(?<!\\1)", "abcabcd", 0, 5);
+  x2("(?:(a.*b)|c.*d)(?<!(?(1))azzzb)", "azzzzb", 0, 6);
+  n("(?:(a.*b)|c.*d)(?<!(?(1))azzzb)", "azzzb");
+  x2("<(?<!NT{+}abcd)", "<(?<!NT{+}abcd)", 0, 1);
+  x2("(?<!a.*c)def", "abbbbdef", 5, 8);
+  n("(?<!a.*c)def", "abbbcdef");
+  x2("(?<!a.*X\\b)def", "abbbbbXdef", 7, 10);
+  n("(?<!a.*X\\B)def", "abbbbbXdef");
+  x2("(?<!a.*[uvw])def", "abbbbbXdef", 7, 10);
+  n("(?<!a.*[uvw])def", "abbbbbwdef");
+  x2("(?<!ab*\\S+)def", "abbbbb   def", 9, 12);
+  x2("(?<!a.*\\S)def", "abbbbb def", 7, 10);
+  n("(?<!ab*\\s+)def", "abbbbb   def");
+  x2("(?<!ab*\\s+\\B)def", "abbbbb   def", 9, 12);
+  n("(?<!v|t|a+.*[efg])z", "abcdfz");
+  x2("(?<!v|t|a+.*[efg])z", "abcdfzavzuz", 10, 11);
+  n("(?<!v|t|^a+.*[efg])z", "abcdfz");
+  n("(?<!^(?:v|t|a+.*[efg]))z", "abcdfz");
+  x2("(?<!v|^t|^a+.*[efg])z", "uabcdfz", 6, 7);
+  n("(\\k<2>)|(?<=(\\k<1>))", "");
+  x2("(a|\\k<2>)|(?<=(\\k<1>))", "a", 0, 1);
+  x2("(a|\\k<2>)|(?<=b(\\k<1>))", "ba", 1, 2);
 
   x2("((?(a)\\g<1>|b))", "aab", 0, 3);
   x2("((?(a)\\g<1>))", "aab", 0, 2);
   x2("(b(?(a)|\\g<1>))", "bba", 0, 3);
   e("(()(?(2)\\g<1>))", "", ONIGERR_NEVER_ENDING_RECURSION);
+  x2("(?(a)(?:b|c))", "ac", 0, 2);
+  n("^(?(a)b|c)", "ac");
+  x2("(?i)a|b", "B", 0, 1);
+  n("((?i)a|b.)|c", "C");
+  n("c(?i)a.|b.", "Caz");
+  x2("c(?i)a|b", "cB", 0, 2); /* == c(?i:a|b) */
+  x2("c(?i)a.|b.", "cBb", 0, 3);
 
   x2("(?i)st", "st", 0, 2);
   x2("(?i)st", "St", 0, 2);
@@ -1279,7 +1533,69 @@ extern int main(int argc, char* argv[])
   x2("(?i)[ǰ]", "ǰ", 0, 2);
   x2("(?i)[ǰ]", "j\xcc\x8c", 0, 3);
   //x2("(?i)[j]\xcc\x8c", "ǰ", 0, 2);
+  x2("(?i)\ufb00a", "ffa", 0, 3);
+  x2("(?i)ffz", "\xef\xac\x80z", 0, 4);
+  x2("(?i)\u2126", "\xcf\x89", 0, 2);
+  x2("a(?i)\u2126", "a\xcf\x89", 0, 3);
+  x2("(?i)A\u2126", "a\xcf\x89", 0, 3);
+  x2("(?i)A\u2126=", "a\xcf\x89=", 0, 4);
+  x2("(?i:ss)=1234567890", "\xc5\xbf\xc5\xbf=1234567890", 0, 15);
 
+  x2("\\x{000A}", "\x0a", 0, 1);
+  x2("\\x{000A 002f}", "\x0a\x2f", 0, 2);
+  x2("\\x{000A 002f }", "\x0a\x2f", 0, 2);
+  x2("\\x{007C     001b}", "\x7c\x1b", 0, 2);
+  x2("\\x{1 2 3 4 5 6 7 8 9 a b c d e f}", "\x01\x02\x3\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f", 0, 15);
+  x2("a\\x{000A 002f}@", "a\x0a\x2f@", 0, 4);
+  x2("a\\x{0060\n0063}@", "a\x60\x63@", 0, 4);
+  e("\\x{00000001 000000012}", "", ONIGERR_TOO_LONG_WIDE_CHAR_VALUE);
+  e("\\x{000A 00000002f}", "", ONIGERR_TOO_LONG_WIDE_CHAR_VALUE);
+  e("\\x{000A 002f/", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\x{000A 002f /", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\x{000A", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\x{000A ", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\x{000A 002f ", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  x2("\\o{102}", "B", 0, 1);
+  x2("\\o{102 103}", "BC", 0, 2);
+  x2("\\o{0160 0000161}", "pq", 0, 2);
+  x2("\\o{1 2 3 4 5 6 7 10 11 12 13 14 15 16 17}", "\x01\x02\x3\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f", 0, 15);
+  x2("\\o{0007 0010 }", "\x07\x08", 0, 2);
+  e("\\o{0000 0015/", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\o{0000 0015 /", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\o{0015", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\o{0015 ", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("\\o{0007 002f}", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  x2("[\\x{000A}]", "\x0a", 0, 1);
+  x2("[\\x{000A 002f}]+", "\x0a\x2f\x2e", 0, 2);
+  x2("[\\x{01 0F 1A 2c 4B}]+", "\x20\x01\x0f\x1a\x2c\x4b\x1b", 1, 6);
+  x2("[\\x{0020 0024}-\\x{0026}]+", "\x25\x24\x26\x23", 0, 3);
+  x2("[\\x{0030}-\\x{0033 005a}]+", "\x30\x31\x32\x33\x5a\34", 0, 5);
+  e("[\\x{000A]", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[\\x{000A ]", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[\\x{000A }]", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  x2("[\\o{102}]", "B", 0, 1);
+  x2("[\\o{102 103}]*", "BC", 0, 2);
+  e("[a\\o{002  003]bcde|zzz", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  x2("[\\x{0030-0039}]+", "abc0123456789def", 3, 13);
+  x2("[\\x{0030 - 0039 }]+", "abc0123456789def", 3, 13);
+  x2("[\\x{0030 - 0039 0063 0064}]+", "abc0123456789def", 2, 14);
+  x2("[\\x{0030 - 0039 0063-0065}]+", "acde019b", 1, 7);
+  e("[\\x{0030 - 0039-0063 0064}]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[\\x{0030 - }]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[\\x{0030 -- 0040}]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[\\x{0030--0040}]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[\\x{0030 - - 0040}]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[\\x{0030 0044 - }]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  e("[a-\\x{0070 - 0039}]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  x2("[a-\\x{0063 0071}]+", "dabcqz", 1, 5);
+  x2("[-\\x{0063-0065}]+", "ace-df", 1, 5);
+  x2("[\\x61-\\x{0063 0065}]+", "abced", 0, 4);
+  e("[\\x61-\\x{0063-0065}]+", "", ONIGERR_INVALID_CODE_POINT_VALUE);
+  x2("[t\\x{0063 0071}]+", "tcqb", 0, 3);
+  x2("[\\W\\x{0063 0071}]+", "*cqa", 0, 3);
+  x2("(\\O|(?=z\\g<2>*))(\\g<0>){0}", "a", 0, 1);
+
+  n("a(b|)+d", "abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcd"); /* https://www.haijin-boys.com/discussions/5079 */
   n("   \xfd", ""); /* https://bugs.php.net/bug.php?id=77370 */
   /* can't use \xfc00.. because compiler error: hex escape sequence out of range */
   n("()0\\xfc00000\\xfc00000\\xfc00000\xfc", ""); /* https://bugs.php.net/bug.php?id=77371 */
@@ -1287,6 +1603,10 @@ extern int main(int argc, char* argv[])
   e("(?i)000000000000000000000\xf0", "", ONIGERR_INVALID_CODE_POINT_VALUE); /* https://bugs.php.net/bug.php?id=77382 */
   n("0000\\\xf5", "0"); /* https://bugs.php.net/bug.php?id=77385 */
   n("(?i)FFF00000000000000000\xfd", ""); /* https://bugs.php.net/bug.php?id=77394 */
+  n("(?x)\n  (?<!\\+\\+|--)(?<=[({\\[,?=>:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*\n  (?!<\\s*[_$[:alpha:]][_$[:alnum:]]*((\\s+extends\\s+[^=>])|,)) # look ahead is not type parameter of arrow\n  (?=(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))(?=((<\\s*)|(\\s+))(?!\\?)|\\/?>))", "    while (i < len && f(array[i]))"); /* Issue #192 */
+
+  x2("aaaaaaaaaaaaaaaaaaaaaaaあb", "aaaaaaaaaaaaaaaaaaaaaaaあb", 0, 27); /* Issue #221 */
+
   e("x{55380}{77590}", "", ONIGERR_TOO_BIG_NUMBER_FOR_REPEAT_RANGE);
   e("(xyz){40000}{99999}(?<name>vv)", "", ONIGERR_TOO_BIG_NUMBER_FOR_REPEAT_RANGE);
   e("f{90000,90000}{80000,80000}", "", ONIGERR_TOO_BIG_NUMBER_FOR_REPEAT_RANGE);
@@ -1295,12 +1615,18 @@ extern int main(int argc, char* argv[])
   x2("\\p{Common}", "\xe3\x8b\xbf", 0, 3);   /* U+32FF */
   x2("\\p{In_Enclosed_CJK_Letters_and_Months}", "\xe3\x8b\xbf", 0, 3); /* U+32FF */
 
-  e("\\x{7fffffff}", "", ONIGERR_TOO_BIG_WIDE_CHAR_VALUE);
+  e("\\x{7fffffff}", "", ONIGERR_INVALID_CODE_POINT_VALUE);
   e("[\\x{7fffffff}]", "", ONIGERR_INVALID_CODE_POINT_VALUE);
   e("\\u040", "@", ONIGERR_INVALID_CODE_POINT_VALUE);
   e("(?<abc>\\g<abc>)", "zzzz", ONIGERR_NEVER_ENDING_RECURSION);
-  e("(?<=(?>abc))", "abc", ONIGERR_INVALID_LOOK_BEHIND_PATTERN);
   e("(*FOO)", "abcdefg", ONIGERR_UNDEFINED_CALLOUT_NAME);
+  e("*", "abc", ONIGERR_TARGET_OF_REPEAT_OPERATOR_NOT_SPECIFIED);
+  e("|*", "abc", ONIGERR_TARGET_OF_REPEAT_OPERATOR_NOT_SPECIFIED);
+  e("(?i)*", "abc", ONIGERR_TARGET_OF_REPEAT_OPERATOR_NOT_SPECIFIED);
+  e("(?:*)", "abc", ONIGERR_TARGET_OF_REPEAT_OPERATOR_NOT_SPECIFIED);
+  e("(?m:*)", "abc", ONIGERR_TARGET_OF_REPEAT_OPERATOR_NOT_SPECIFIED);
+  x2("(?:)*", "abc", 0, 0);
+  e("^*", "abc", ONIGERR_TARGET_OF_REPEAT_OPERATOR_INVALID);
 
   fprintf(stdout,
        "\nRESULT   SUCC: %4d,  FAIL: %d,  ERROR: %d      (by Oniguruma %s)\n",

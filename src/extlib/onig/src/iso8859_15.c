@@ -2,7 +2,7 @@
   iso8859_15.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2019  K.Kosako
+ * Copyright (c) 2002-2020  K.Kosako
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,11 @@ mbc_case_fold(OnigCaseFoldType flag,
     return 2;
   }
 
-  *lower = ENC_ISO_8859_15_TO_LOWER_CASE(*p);
+  if (CASE_FOLD_IS_NOT_ASCII_ONLY(flag) || ONIGENC_IS_ASCII_CODE(*p))
+    *lower = ENC_ISO_8859_15_TO_LOWER_CASE(*p);
+  else
+    *lower = *p;
+
   (*pp)++;
   return 1; /* return byte length of converted char to lower */
 }
