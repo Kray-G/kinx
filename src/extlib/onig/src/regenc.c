@@ -2,7 +2,7 @@
   regenc.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2019  K.Kosako
+ * Copyright (c) 2002-2020  K.Kosako
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,9 @@
  */
 
 #include "regint.h"
+
+#define LARGE_S   0x53
+#define SMALL_S   0x73
 
 OnigEncoding OnigEncDefaultCharEncoding = ONIG_ENCODING_INIT_DEFAULT;
 
@@ -260,12 +263,12 @@ onigenc_strlen_null(OnigEncoding enc, const UChar* s)
 extern int
 onigenc_str_bytelen_null(OnigEncoding enc, const UChar* s)
 {
-  UChar* start = (UChar* )s;
-  UChar* p = (UChar* )s;
+  const UChar* start = s;
+  const UChar* p = s;
 
   while (1) {
     if (*p == '\0') {
-      UChar* q;
+      const UChar* q;
       int len = ONIGENC_MBC_MINLEN(enc);
 
       if (len == 1) return (int )(p - start);
@@ -549,7 +552,7 @@ static int
 ss_apply_all_case_fold(OnigCaseFoldType flag ARG_UNUSED,
                        OnigApplyAllCaseFoldFunc f, void* arg)
 {
-  static OnigCodePoint ss[] = { 0x73, 0x73 };
+  static OnigCodePoint ss[] = { SMALL_S, SMALL_S };
 
   return (*f)((OnigCodePoint )0xdf, ss, 2, arg);
 }
@@ -565,6 +568,9 @@ onigenc_apply_all_case_fold_with_map(int map_size,
 
   r = onigenc_ascii_apply_all_case_fold(flag, f, arg);
   if (r != 0) return r;
+
+  if (CASE_FOLD_IS_ASCII_ONLY(flag))
+    return 0;
 
   for (i = 0; i < map_size; i++) {
     code = map[i].to;
@@ -585,40 +591,56 @@ onigenc_apply_all_case_fold_with_map(int map_size,
 extern int
 onigenc_get_case_fold_codes_by_str_with_map(int map_size,
     const OnigPairCaseFoldCodes map[],
-    int ess_tsett_flag, OnigCaseFoldType flag ARG_UNUSED,
+    int ess_tsett_flag, OnigCaseFoldType flag,
     const OnigUChar* p, const OnigUChar* end, OnigCaseFoldCodeItem items[])
 {
-  if (0x41 <= *p && *p <= 0x5a) {
+  int i, j, n;
+  static OnigUChar sa[] = { LARGE_S, SMALL_S };
+
+  if (0x41 <= *p && *p <= 0x5a) { /* A - Z */
+    if (*p == LARGE_S && ess_tsett_flag != 0 && end > p + 1
+        && (*(p+1) == LARGE_S || *(p+1) == SMALL_S) /* SS */
+        && CASE_FOLD_IS_NOT_ASCII_ONLY(flag)) {
+    ss_combination:
+      items[0].byte_len = 2;
+      items[0].code_len = 1;
+      items[0].code[0] = (OnigCodePoint )0xdf;
+
+      n = 1;
+      for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+          if (sa[i] == *p && sa[j] == *(p+1))
+            continue;
+
+          items[n].byte_len = 2;
+          items[n].code_len = 2;
+          items[n].code[0] = (OnigCodePoint )sa[i];
+          items[n].code[1] = (OnigCodePoint )sa[j];
+          n++;
+        }
+      }
+      return 4;
+    }
+
     items[0].byte_len = 1;
     items[0].code_len = 1;
     items[0].code[0] = (OnigCodePoint )(*p + 0x20);
-    if (*p == 0x53 && ess_tsett_flag != 0 && end > p + 1
-        && (*(p+1) == 0x53 || *(p+1) == 0x73)) {
-      /* SS */
-      items[1].byte_len = 2;
-      items[1].code_len = 1;
-      items[1].code[0] = (OnigCodePoint )0xdf;
-      return 2;
-    }
-    else
-      return 1;
+    return 1;
   }
-  else if (0x61 <= *p && *p <= 0x7a) {
+  else if (0x61 <= *p && *p <= 0x7a) { /* a - z */
+    if (*p == SMALL_S && ess_tsett_flag != 0 && end > p + 1
+        && (*(p+1) == SMALL_S || *(p+1) == LARGE_S)
+        && CASE_FOLD_IS_NOT_ASCII_ONLY(flag)) {
+      goto ss_combination;
+    }
+
     items[0].byte_len = 1;
     items[0].code_len = 1;
     items[0].code[0] = (OnigCodePoint )(*p - 0x20);
-    if (*p == 0x73 && ess_tsett_flag != 0 && end > p + 1
-        && (*(p+1) == 0x73 || *(p+1) == 0x53)) {
-      /* ss */
-      items[1].byte_len = 2;
-      items[1].code_len = 1;
-      items[1].code[0] = (OnigCodePoint )0xdf;
-      return 2;
-    }
-    else
-      return 1;
+    return 1;
   }
-  else if (*p == 0xdf && ess_tsett_flag != 0) {
+  else if (*p == 0xdf && ess_tsett_flag != 0
+           && CASE_FOLD_IS_NOT_ASCII_ONLY(flag)) {
     items[0].byte_len = 1;
     items[0].code_len = 2;
     items[0].code[0] = (OnigCodePoint )'s';
@@ -643,6 +665,9 @@ onigenc_get_case_fold_codes_by_str_with_map(int map_size,
   }
   else {
     int i;
+
+    if (CASE_FOLD_IS_ASCII_ONLY(flag))
+      return 0;
 
     for (i = 0; i < map_size; i++) {
       if (*p == map[i].from) {
@@ -676,7 +701,7 @@ extern int
 onigenc_is_mbc_newline_0x0a(const UChar* p, const UChar* end)
 {
   if (p < end) {
-    if (*p == 0x0a) return 1;
+    if (*p == NEWLINE_CODE) return 1;
   }
   return 0;
 }
@@ -887,7 +912,7 @@ onigenc_is_mbc_word_ascii(OnigEncoding enc, UChar* s, const UChar* end)
 {
   OnigCodePoint code = ONIGENC_MBC_TO_CODE(enc, s, end);
 
-  if (code > 127) return 0;
+  if (code > ASCII_LIMIT) return 0;
 
   return ONIGENC_IS_ASCII_CODE_WORD(code);
 }

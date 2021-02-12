@@ -21,12 +21,10 @@ https://github.com/openssl/openssl
     ```
 3. Configure it and generate `makefile`.
     ```
-    $ perl Configure VC-WIN64A no-ssl3 --prefix=$(openssl)\dist --openssldir=C:\Kinx\lib\ssl
-    $ perl -pe "s/[-\/]MD/\/MT/g" makefile > sample.mak
-    $ del makefile
-    $ move sample.mak makefile
+    $ perl Configure VC-WIN64A no-ssl3 --prefix=$(openssl)\dist --openssldir=C:\kinx\lib\ssl
     ```
-4. Make it.
+4. Replace `/MD` by `/MT` in `makefile`.
+5. Make it.
     ```
     $ nmake -f makefile
     $ nmake -f makefile install

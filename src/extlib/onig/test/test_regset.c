@@ -50,6 +50,7 @@ make_regset(int line_no, int n, char* pat[], OnigRegSet** rset, int error_no)
           nfail++;
         }
       }
+      onig_regset_free(set);
       return r;
     }
 
@@ -66,19 +67,16 @@ make_regset(int line_no, int n, char* pat[], OnigRegSet** rset, int error_no)
   return 0;
 }
 
-#ifndef _WIN32
-
 static double
-get_sec(struct timespec* ts, struct timespec* te)
+get_sec(clock_t start, clock_t end)
 {
   double t;
 
-  t = (te->tv_sec - ts->tv_sec) +
-      (double )(te->tv_nsec - ts->tv_nsec) / 1000000000.0;
+  t = (double )(end - start) / CLOCKS_PER_SEC;
   return t;
 }
 
-/* clock_gettime() doesn't exist in Windows */
+/* use clock(), because clock_gettime() doesn't exist in Windows and old Unix. */
 
 static int
 time_test(int repeat, int n, char* ps[], char* s, char* end, double* rt_set, double* rt_reg)
@@ -87,48 +85,46 @@ time_test(int repeat, int n, char* ps[], char* s, char* end, double* rt_set, dou
   int i;
   int match_pos;
   OnigRegSet* set;
-  struct timespec ts1, ts2;
+  clock_t ts1, ts2;
   double t_set, t_reg;
 
   r = make_regset(0, n, ps, &set, 0);
   if (r != 0) return r;
 
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1);
-
+  ts1 = clock();
   for (i = 0; i < repeat; i++) {
     r = onig_regset_search(set, (UChar* )s, (UChar* )end, (UChar* )s, (UChar* )end,
                            ONIG_REGSET_POSITION_LEAD, ONIG_OPTION_NONE, &match_pos);
     if (r < 0) {
       fprintf(stderr, "FAIL onig_regset_search(POSITION_LEAD): %d\n", r);
+      onig_regset_free(set);
       return r;
     }
   }
 
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
-  t_set = get_sec(&ts1, &ts2);
+  ts2 = clock();
+  t_set = get_sec(ts1, ts2);
 
-
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1);
-
+  ts1 = clock();
   for (i = 0; i < repeat; i++) {
     r = onig_regset_search(set, (UChar* )s, (UChar* )end, (UChar* )s, (UChar* )end,
                            ONIG_REGSET_REGEX_LEAD, ONIG_OPTION_NONE, &match_pos);
     if (r < 0) {
       fprintf(stderr, "FAIL onig_regset_search(REGEX_LEAD): %d\n", r);
+      onig_regset_free(set);
       return r;
     }
   }
 
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
-  onig_regset_free(set);
+  ts2 = clock();
+  t_reg = get_sec(ts1, ts2);
 
-  t_reg = get_sec(&ts1, &ts2);
+  onig_regset_free(set);
 
   *rt_set = t_set;
   *rt_reg = t_reg;
   return 0;
 }
-#endif
 
 static void
 fisher_yates_shuffle(int n, char* ps[], char* cps[])
@@ -147,7 +143,6 @@ fisher_yates_shuffle(int n, char* ps[], char* cps[])
   }
 }
 
-#ifndef _WIN32
 static void
 time_compare(int n, char* ps[], char* s, char* end)
 {
@@ -166,7 +161,10 @@ time_compare(int n, char* ps[], char* s, char* end)
   for (i = 0; i < n; i++) {
     fisher_yates_shuffle(n, ps, cps);
     r = time_test(repeat, n, cps, s, end, &t_set, &t_reg);
-    if (r != 0) return ;
+    if (r != 0) {
+      free(cps);
+      return ;
+    }
     total_set += t_set;
     total_reg += t_reg;
   }
@@ -176,7 +174,6 @@ time_compare(int n, char* ps[], char* s, char* end)
   fprintf(stdout, "POS lead: %6.2lfmsec.  REG lead: %6.2lfmsec.\n",
           total_set * 1000.0, total_reg * 1000.0);
 }
-#endif
 
 
 static OnigRegSetLead XX_LEAD = ONIG_REGSET_POSITION_LEAD;
@@ -240,6 +237,7 @@ xx(int line_no, int n, char* ps[], char* s, int from, int to, int mem, int not, 
       if (region == 0) {
         fprintf(stderr, "ERROR: %d: can't get region.\n", line_no);
         nerror++;
+        onig_regset_free(set);
         return ;
       }
 
@@ -294,7 +292,7 @@ n(int line_no, int n, char* ps[], char* s)
 static int
 get_all_content_of_file(char* path, char** rs, char** rend)
 {
-  size_t len;
+  ssize_t len;
   size_t n;
   char* line;
   FILE* fp;
@@ -391,11 +389,15 @@ static char* p7[] = {
   "0+", "1+", "2+", "3+", "4+", "5+", "6+", "7+", "8+", "9+",
 };
 
+static char* p8[] = {"a", ".*"};
+
 extern int
 main(int argc, char* argv[])
 {
-  int r;
+#ifndef _WIN32
   int file_exist;
+#endif
+  int r;
   char *s, *end;
   OnigEncoding use_encs[1];
 
@@ -412,6 +414,7 @@ main(int argc, char* argv[])
   N(p2, " XXXX AAA 1223 012345678bbb");
   X2(p2, "0123456789", 9, 10);
   X2(p7, "abcde 555 qwert", 6, 9);
+  X2(p8, "", 0, 0);
 
   XX_LEAD = ONIG_REGSET_REGEX_LEAD;
 
@@ -432,22 +435,20 @@ main(int argc, char* argv[])
     fprintf(stdout, "Ignore %s\n", TEXT_PATH);
     file_exist = 0;
   }
-#else
-    file_exist = 0;
-#endif
 
   if (file_exist != 0) {
     X2(p2, s, 10, 22);
     X2(p3, s, 496079, 496088);
     X2(p4, s, 1294, 1315);
   }
+#endif
 
   fprintf(stdout,
           "\nRESULT   SUCC: %4d,  FAIL: %d,  ERROR: %d      (by Oniguruma %s)\n",
           nsucc, nfail, nerror, onig_version());
 
-  if (file_exist != 0) {
 #ifndef _WIN32
+  if (file_exist != 0) {
     fprintf(stdout, "\n");
     time_compare(ASIZE(p2), p2, s, end);
     time_compare(ASIZE(p3), p3, s, end);
@@ -455,9 +456,9 @@ main(int argc, char* argv[])
     time_compare(ASIZE(p5), p5, s, end);
     time_compare(ASIZE(p6), p6, s, end);
     fprintf(stdout, "\n");
-#endif
     free(s);
   }
+#endif
 
   onig_end();
 

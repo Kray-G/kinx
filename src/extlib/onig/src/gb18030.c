@@ -2,7 +2,7 @@
   gb18030.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2005-2019  KUBO Takehiro <kubo AT jiubao DOT org>
+ * Copyright (c) 2005-2020  KUBO Takehiro <kubo AT jiubao DOT org>
  *                          K.Kosako
  * All rights reserved.
  *
@@ -30,11 +30,23 @@
 
 #include "regenc.h"
 
-#if 1
-#define DEBUG_GB18030(arg)
+/* #define DEBUG_GB18030 */
+
+#ifndef DEBUG_GB18030
+
+#define DEBUG_OUT(arg)
+
 #else
-#include <stdio.h>
-#define DEBUG_GB18030(arg) printf arg
+
+#ifndef NEED_TO_INCLUDE_STDIO
+#define NEED_TO_INCLUDE_STDIO
+#endif
+
+/* for printf() */
+#include "regint.h"
+
+#define DEBUG_OUT(arg) printf arg
+
 #endif
 
 enum {
@@ -79,15 +91,25 @@ gb18030_mbc_enc_len(const UChar* p)
 static int
 gb18030_code_to_mbclen(OnigCodePoint code)
 {
-       if ((code & 0xff000000) != 0) return 4;
-  else if ((code &   0xff0000) != 0) return ONIGERR_INVALID_CODE_POINT_VALUE;
-  else if ((code &     0xff00) != 0) return 2;
-  else {
-    if (GB18030_MAP[(int )(code & 0xff)] == CM)
-      return ONIGERR_INVALID_CODE_POINT_VALUE;
-
-    return 1;
+  if ((code & 0xff000000) != 0) {
+    if (GB18030_MAP[(int )(code >> 24) & 0xff] == CM)
+      if (GB18030_MAP[(int )(code >> 16) & 0xff] == C4)
+        return 4;
   }
+  else if ((code & 0xff0000) != 0) return ONIGERR_INVALID_CODE_POINT_VALUE;
+  else if ((code & 0xff00) != 0) {
+    if (GB18030_MAP[(int )(code >> 8) & 0xff] == CM) {
+      char c = GB18030_MAP[(int )code & 0xff];
+      if (c == CM || c == C2)
+        return 2;
+    }
+  }
+  else {
+    if (GB18030_MAP[(int )(code & 0xff)] != CM)
+      return 1;
+  }
+
+  return ONIGERR_INVALID_CODE_POINT_VALUE;
 }
 
 static int
@@ -157,8 +179,8 @@ gb18030_is_code_ctype(OnigCodePoint code, unsigned int ctype)
 }
 
 enum state {
-  S_START,
-  S_one_C2,
+  S_START = 0,
+  S_one_C2 = 1,
   S_one_C4,
   S_one_CM,
 
@@ -190,15 +212,43 @@ enum state {
   S_odd_CM_even_C4CM,
 };
 
+#ifdef DEBUG_GB18030
+static char* StateNames[] = {
+  "S_START",
+  "S_one_C2",
+  "S_one_C4",
+  "S_one_CM",
+  "S_odd_CM_one_CX",
+  "S_even_CM_one_CX",
+  "S_one_CMC4",
+  "S_odd_CMC4",
+  "S_one_C4_odd_CMC4",
+  "S_even_CMC4",
+  "S_one_C4_even_CMC4",
+  "S_odd_CM_odd_CMC4",
+  "S_even_CM_odd_CMC4",
+  "S_odd_CM_even_CMC4",
+  "S_even_CM_even_CMC4",
+  "S_odd_C4CM",
+  "S_one_CM_odd_C4CM",
+  "S_even_C4CM",
+  "S_one_CM_even_C4CM",
+  "S_even_CM_odd_C4CM",
+  "S_odd_CM_odd_C4CM",
+  "S_even_CM_even_C4CM",
+  "S_odd_CM_even_C4CM"
+};
+#endif
+
 static UChar*
 gb18030_left_adjust_char_head(const UChar* start, const UChar* s)
 {
   const UChar *p;
   enum state state = S_START;
 
-  DEBUG_GB18030(("----------------\n"));
+  DEBUG_OUT(("----------------\n"));
   for (p = s; p >= start; p--) {
-    DEBUG_GB18030(("state %d --(%02x)-->\n", state, *p));
+    DEBUG_OUT(("%5d: state %-19s (0x%02x)->\n", (int )(p - start), StateNames[state], *p));
     switch (state) {
     case S_START:
       switch (GB18030_MAP[*p]) {
@@ -479,7 +529,7 @@ gb18030_left_adjust_char_head(const UChar* start, const UChar* s)
     }
   }
 
-  DEBUG_GB18030(("state %d\n", state));
+  DEBUG_OUT(("state %-19s\n", StateNames[state]));
   switch (state) {
   case S_START:             return (UChar *)(s - 0);
   case S_one_C2:            return (UChar *)(s - 0);
