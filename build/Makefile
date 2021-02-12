@@ -186,8 +186,8 @@ install:
 	cp -f kxssh.so /usr/bin/kinxlib/
 	cp -f kxjit.so /usr/bin/kinxlib/
 	cp -f kxprocess.so /usr/bin/kinxlib/
-	cp -f libonig.so.5.0.0 /usr/bin/kinxlib/
-	ln -sf /usr/bin/kinxlib/libonig.so.5.0.0 /usr/bin/kinxlib/libonig.so.5
+	cp -f libonig.so.5.1.0 /usr/bin/kinxlib/
+	ln -sf /usr/bin/kinxlib/libonig.so.5.1.0 /usr/bin/kinxlib/libonig.so.5
 	ln -sf /usr/bin/kinxlib/libonig.so.5 /usr/bin/kinxlib/libonig.so
 	cp -f libz.so.1.2.11 /usr/bin/kinxlib/
 	cp -f libssl.so.3 /usr/bin/kinxlib/
@@ -309,8 +309,8 @@ libonig.so:
 	autoreconf -vfi; \
 	./configure --with-pic; \
 	make; \
-	cp -f src/.libs/libonig.so.5.0.0 $(CDIR);
-	ln -s libonig.so.5.0.0 libonig.so.5; \
+	cp -f src/.libs/libonig.so.5.1.0 $(CDIR);
+	ln -s libonig.so.5.1.0 libonig.so.5; \
 	ln -s libonig.so.5 libonig.so;
 
 $(SRCDIR)/extlib/kc-json/dist/kc-json.h:
