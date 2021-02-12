@@ -320,6 +320,7 @@ LOOP_HEAD:;
         break;
     case KXOP_TYPEOF:
         printf("(typeof) is %s\n", get_short_typename(node->value.i));
+        display_ast(node->lhs, indent + 1, 0);
         break;
     case KXOP_ENUM:
         printf("(enum value) %s = %d\n", node->value.s, node->optional);
