@@ -51,7 +51,16 @@ _namespace Net {
         }
 
         public setProxy(url) {
-            curl_.setOptionInt(Net.CURLOPT_PROXY, url);
+            curl_.setOptionString(Net.CURLOPT_PROXY, url);
+            return this;
+        }
+
+        public setProxyPort(port) {
+            if (port.isInteger) {
+                curl_.setOptionString(Net.CURLOPT_PROXYPORT, ""+port);
+            } else {
+                curl_.setOptionString(Net.CURLOPT_PROXYPORT, port);
+            }
             return this;
         }
 

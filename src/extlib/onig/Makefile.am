@@ -42,11 +42,29 @@ all-test:
 archive:
 	git archive --format=tar --prefix=oniguruma/ HEAD | gzip > ../oniguruma-archive.tar.gz
 
+tar:
+	cd ..; tar cvf oniguruma-`date +%Y%m%d`.tar oniguruma; gzip oniguruma-`date +%Y%m%d`.tar
+
+debug:
+	make clean
+	./configure CFLAGS="-O0 -g"
+	make
+
+debug_out:
+	make clean
+	./configure CFLAGS="-O0 -g -DONIG_DEBUG_PARSE -DONIG_DEBUG_COMPILE"
+	make
+
 sanitize:
 	make clean
-	./configure --enable-posix-api=no CC=clang CFLAGS="-O -g -fsanitize=address" LDFLAGS="-fsanitize=address"
+	./configure CFLAGS="-O -g -fsanitize=address" LDFLAGS="-fsanitize=address"
 	make
 	make all-test
+
+debug_out_sanitize:
+	make clean
+	./configure CFLAGS="-O0 -g -fsanitize=address -DONIG_DEBUG_PARSE -DONIG_DEBUG_COMPILE" LDFLAGS="-fsanitize=address"
+	make
 
 cov:
 	make lcov-clear

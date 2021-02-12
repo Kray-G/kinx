@@ -1,5 +1,3 @@
-import Net;
-
 var http = new Net.Http();
 
 # http.setDebugDetail(true, { hex: false });
