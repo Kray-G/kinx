@@ -14,6 +14,10 @@ static int nsucc  = 0;
 static int nfail  = 0;
 static int nerror = 0;
 
+#ifdef __TRUSTINSOFT_ANALYZER__
+static int nall = 0;
+#endif
+
 static FILE* err_file;
 
 #ifndef POSIX_TEST
@@ -36,7 +40,7 @@ static void uconv(char* from, char* to, int len)
     if (c == 0) {
       c = (unsigned char )from[i+1];
       if (c < 0x20 || c >= 0x7f || c == 0x5c || c == 0x22) {
-        sprintf(q, "\\%03o", c);
+        sprintf(q, "\\%03o", (unsigned int )c);
         q += 4;
       }
       else {
@@ -45,10 +49,10 @@ static void uconv(char* from, char* to, int len)
       }
     }
     else {
-      sprintf(q, "\\%03o", c);
+      sprintf(q, "\\%03o", (unsigned int )c);
       q += 4;
       c = (unsigned char )from[i+1];
-      sprintf(q, "\\%03o", c);
+      sprintf(q, "\\%03o", (unsigned int )c);
       q += 4;
     }
   }
@@ -58,6 +62,10 @@ static void uconv(char* from, char* to, int len)
 
 static void xx(char* pattern, char* str, int from, int to, int mem, int not)
 {
+#ifdef __TRUSTINSOFT_ANALYZER__
+  if (nall++ % TIS_TEST_CHOOSE_MAX != TIS_TEST_CHOOSE_CURRENT) return;
+#endif
+
   int r;
   char cpat[4000], cstr[4000];
 
