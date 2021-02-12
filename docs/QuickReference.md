@@ -1022,7 +1022,7 @@ The order of upside of the list is higher.
 
 |   #   |     Type      |                                                   Excample                                                    |  Evaluation   |
 | :---: | ------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
-|   1   | Factor        | Variable, Number, String, ...                                                                                 |       -       |
+|   1   | Factor        | Variable, Number, String, ...                                                                                 |               |
 |   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
 |   3   | Prefix        | `!`, `+`, `-`, `++`, `--`                                                                                     | left to right |
 |   4   | Matching      | `=~`, `!~`                                                                                                    | left to right |
