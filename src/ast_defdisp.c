@@ -291,7 +291,8 @@ LOOP_HEAD:;
 
     case KXOP_VAR:
         if (!node->rhs) {
-            if (lvalue) {
+            // if the variable is a lexical variable, it will be just a reference.
+            if (lvalue && node->lexical == 0) {
                 if (node->value.s && node->value.s[0] != '_') {
                     if (node->refs != 0) {
                         print_ref(dctx, "var", node, node->ex);
@@ -388,7 +389,8 @@ LOOP_HEAD:;
         if (node->lhs->optional == KXDC_CONST && (node->rhs->type == KXST_FUNCTION || node->rhs->type == KXST_NATIVE)) {
             display_def_ast(dctx, node->rhs, 0);
         } else {
-            display_def_ast(dctx, node->lhs, 1);
+            // lhs is a variable, it will be just a reference.
+            display_def_ast(dctx, node->lhs, node->lhs->type != KXOP_VAR);
             display_def_ast(dctx, node->rhs, 0);
         }
         if (node->lhs && node->rhs) {
@@ -505,6 +507,7 @@ LOOP_HEAD:;
     case KXOP_IMPORT:
         break;
     case KXOP_TYPEOF:
+        display_def_ast(dctx, node->lhs, 0);
         break;
     case KXOP_ENUM:
         break;
