@@ -155,7 +155,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Math](spec/lib/basic/imath.md)
 *   [File](spec/lib/basic/file.md)
 *   [Directory](spec/lib/basic/directory.md)
-*   [Regex](spec/lib/basic/regex.md) - *not documented yet*
+*   [Regex](spec/lib/basic/regex.md)
 *   [Enumerable](spec/lib/basic/enumerable.md)
 *   [Range](spec/lib/basic/range.md)
 *   [DateTime](spec/lib/basic/datetime.md)

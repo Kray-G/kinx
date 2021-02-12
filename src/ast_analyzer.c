@@ -415,7 +415,7 @@ static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx
             }
             int ltype = lhs->var_type == KX_CSTR_T ? KX_STR_T : lhs->var_type;
             int rtype = rhs->var_type == KX_CSTR_T ? KX_STR_T : rhs->var_type;
-            if ((ltype != KX_UNKNOWN_T && rtype != KX_UNKNOWN_T) || lhs->typename || rhs->typename) {
+            if ((ltype != KX_UNKNOWN_T && rtype != KX_UNKNOWN_T && rtype != KX_UND_T) || lhs->typename || rhs->typename) {
                 if (!lhs->typename && !rhs->typename) {
                     if (ltype != rtype) {
                         kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
@@ -431,10 +431,6 @@ static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx
                 }
             }
         }
-    }
-
-    if (!actx->in_native && lhs->type == KXOP_VAR) {
-        reset_base_symbol(ctx, actx, lhs);
     }
 }
 
@@ -507,6 +503,32 @@ static void propagate_obj_typename(kx_context_t *ctx, kxana_context_t *actx, kx_
     }
 }
 
+static void reset_base_symbol_all(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *lhs)
+{
+    if (!lhs) {
+        return;
+    }
+    if (lhs->type == KXST_EXPRLIST) {
+        reset_base_symbol_all(ctx, actx, lhs->lhs);
+        reset_base_symbol_all(ctx, actx, lhs->rhs);
+        return;
+    }
+
+    if (lhs->type == KXOP_MKARY || lhs->type == KXOP_MKOBJ) {
+        reset_base_symbol_all(ctx, actx, lhs->lhs);
+        return;
+    }
+
+    if (!actx->in_native) {
+        if (lhs->type == KXOP_CAST) {
+            lhs = lhs->lhs;
+        }
+        if (lhs->type == KXOP_VAR) {
+            reset_base_symbol(ctx, actx, lhs);
+        }
+    }
+}
+
 static void propagate_typename(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *lhs, kx_object_t *rhs)
 {
     if (lhs && rhs) {
@@ -517,6 +539,9 @@ static void propagate_typename(kx_context_t *ctx, kxana_context_t *actx, kx_obje
         } else {
             propagate_node_typename(ctx, actx, lhs, rhs);
         }
+    }
+    if (lhs) {
+        reset_base_symbol_all(ctx, actx, lhs);
     }
 }
 
