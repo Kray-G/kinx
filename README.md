@@ -10,7 +10,7 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 
 ## Topics
 
-* **Preview Release 0.20.1 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+* **Preview Release 0.21.0 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
 * Now the Kinx is supporting the platform of **x86-64 Windows and Linux only**,  because I have no environment.
   *  If you are interested in other platforms, **please check [here](#how-to-support-a-platform)**.
 *  **See [ChangeLog.md](ChangeLog.md)** about the history of this project.
