@@ -236,8 +236,8 @@ kxdouble.so: $(SRCDIR)/extlib/kxdouble.c $(PICOBJS)
 kxarray.so: $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
-kxfile.so: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) libz.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+kxfile.so: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) libz.so libcrypto.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lcrypto -lz
 
 kxdebugger.so: $(SRCDIR)/extlib/kxdebugger.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN'
