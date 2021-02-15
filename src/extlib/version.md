@@ -7,10 +7,10 @@
 | oniguruma  |  Src  |  6.9.6  | 2021.02.12 | https://github.com/kkos/oniguruma.git |
 | sqlite3    |  Src  | 3.34.1  | 2021.02.12 | https://www.sqlite.org/               |
 | minizip-ng |  Lib  |  3.0.0  | 2021.02.12 | https://github.com/zlib-ng/minizip-ng |
-| OpenSSL    |  Lib  |   3.0   | 2021.02.12 | https://github.com/openssl/openssl    |
+| OpenSSL    |  Lib  |   3.0   | 2021.02.15 | https://github.com/openssl/openssl    |
 | libxml2    |  Lib  |  2.9.9  | 2020.03.04 |                                       |
 | libssh2    |  Lib  |         |            |                                       |
-| libcurl    |  Lib  | 7.76.0  |            | https://github.com/curl/curl          |
+| libcurl    |  Lib  | 7.76.0  | 2021.02.15 | https://github.com/curl/curl          |
 | libharu    |  Lib  |         |            |                                       |
 
 ## Linux gcc 7.5.0
