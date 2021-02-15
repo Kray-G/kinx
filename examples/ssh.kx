@@ -2,9 +2,10 @@ using net.Ssh;
 
 var [, user, pass] = $$;
 
+
 var ssh = new Net.Ssh("127.0.0.1");
-ssh.setTimeout(100); # for connection timeout.
-ssh.open { &(con):
+# ssh.setTimeout(100); # for connection timeout.
+ssh.open { &(con)
     System.println("Fingerprint: ", con.getFingerprint());
 
     con.setTimeout(10000);  # for user auth timeout.
