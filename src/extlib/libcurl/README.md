@@ -23,7 +23,7 @@ https://github.com/curl/curl
     ```
     $ cd winbuild
     $ Set RTLIBCFG=static
-    $ nmake /f MakeFile.vc mode=static DEBUG=no WITH_SSL=dll WITH_ZLIB=dll ZLIB_PATH=$(minizip)\dist\install\zlib SSL_PATH=$(openssl)\dist WITH_PREFIX=%CD%\dist MACHINE=x64
+    $ nmake /f MakeFile.vc mode=static DEBUG=no WITH_SSL=dll WITH_ZLIB=dll ZLIB_PATH=$(minizip-ng/lib/zlib)\dist\install\zlib SSL_PATH=$(openssl)\dist WITH_PREFIX=%CD%\dist MACHINE=x64
     ```
 
 ### Linux
