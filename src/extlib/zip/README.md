@@ -27,7 +27,7 @@ Here is the procedure to build with Visual Studio 2017 x64 version. And the comp
 
 4. Reconfiguration & Build it at first.
     ```
-    $ cmake -G "Visual Studio 15 2017 Win64" ..
+    $ cmake -DCMAKE_INSTALL_PREFIX=.\install -G "Visual Studio 15 2017 Win64" ..
     $ msbuild /p:Configuration=Release ALL_BUILD.vcxproj
     ```
 
@@ -45,8 +45,9 @@ Here is the procedure to build with Visual Studio 2017 x64 version. And the comp
 
 7. Modify CMakeCache.txt of zlib to replace `/MD` by `/MT` like above.
     ```
-    $ cmake -G "Visual Studio 15 2017 Win64" ..
+    $ cmake -DCMAKE_INSTALL_PREFIX=.\install\zlib -G "Visual Studio 15 2017 Win64" ..
     $ msbuild /p:Configuration=Release ALL_BUILD.vcxproj
+    $ msbuild /p:Configuration=Release INSTALL.vcxproj
     ```
 
 That is all.
