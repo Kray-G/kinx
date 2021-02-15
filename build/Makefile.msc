@@ -176,7 +176,7 @@ RCFILE = \
 .SUFFIXES :
 .SUFFIXES : .c .obj
 
-all: timex kinx zlib.dll libxml2.dll libssh2.dll libssl-3.dll libcrypto-3.dll $(SOFILES) main_kxcmd
+all: timex kinx zlib.dll libxml2.dll libssh2.dll libssl-3-x64.dll libcrypto-3-x64.dll $(SOFILES) main_kxcmd
 
 lib: $(SOFILES)
 
@@ -253,12 +253,13 @@ kxssh.dll: $(SRCDIR)/extlib/kxssh.c $(PICOBJS) onig.dll
 kxsqlite.dll: $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 
-kxnet.dll: $(SRCDIR)/extlib/kxnet.c $(PICOBJS) libssl-3.dll libcrypto-3.dll
+kxnet.dll: $(SRCDIR)/extlib/kxnet.c $(PICOBJS) libssl-3-x64.dll libcrypto-3-x64.dll
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxnet.c $(PICOBJS) \
 		$(SRCDIR)\extlib\libcurl\x64\vs2017\libcurl_a.lib \
 		$(SRCDIR)\extlib\openssl\x64\vs2017\libssl.lib \
 		$(SRCDIR)\extlib\openssl\x64\vs2017\libcrypto.lib \
-		$(SRCDIR)\extlib\zip\x64\vs2017\zlib.lib
+		$(SRCDIR)\extlib\zip\x64\vs2017\zlib.lib \
+		advapi32.lib
 
 kxxml.dll: $(SRCDIR)/extlib/kxxml.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libxml2/include/libxml2 /Fe$@ $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libxml2/x64/vs2017/libxml2.lib
@@ -278,11 +279,11 @@ libxml2.dll:
 libssh2.dll:
 	copy /y $(SRCDIR)\extlib\libssh2\x64\vs2017\libssh2.dll libssh2.dll
 
-libssl-3.dll:
-	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libssl-3.dll libssl-3.dll
+libssl-3-x64.dll:
+	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libssl-3-x64.dll libssl-3-x64.dll
 
-libcrypto-3.dll:
-	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libcrypto-3.dll libcrypto-3.dll
+libcrypto-3-x64.dll:
+	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libcrypto-3-x64.dll libcrypto-3-x64.dll
 
 zip/x64/vs2017/minizip.lib:
 	echo Build minizip.lib first.
