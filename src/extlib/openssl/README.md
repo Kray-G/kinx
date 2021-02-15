@@ -44,7 +44,7 @@ https://github.com/openssl/openssl
     ```
 3. Configure it and generate `makefile`.
     ```
-    $ ./config --prefix=`pwd`/dist --openssldir=/usr/bin/kinxlib/ssl "-Wl,-rpath,'\$\$ORIGIN'"
+    $ ./config --prefix=/usr/bin/kinxlib/ssl --openssldir=/usr/bin/kinxlib/ssl "-Wl,-rpath,'\$\$ORIGIN'"
     ```
 4. Make it.
     ```
