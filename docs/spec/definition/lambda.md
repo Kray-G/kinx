@@ -52,15 +52,6 @@ var doit = { => _1() };
 When the block style without an arrow of `=>` operator, it can be just like a block statement with argument list inside block.
 
 ```javascript
-var add = { &(a, b):
-    return a + b;
-};
-System.println(add(1, 2));  // => 3
-```
-
-The ':' in the above example can be omitted. You can just use it as a separator if you want it.
-
-```javascript
 var add = { &(a, b)
     return a + b;
 };

@@ -36,7 +36,7 @@ This repository has `libxml2.lib` and `libxml2.dll`, which is built by Visual St
     ```
     ./autogen.sh
     mkdir dist
-    ./configure --with-zlib=$(minizip)/dist/install/zlib --with-pic --without-python --without-ftp --without-http --prefix=$(libxml2)/dist
+    LDFLAGS="-Wl,-rpath,'\$\$ORIGIN'"  ./configure --with-zlib=/usr/local --with-pic --without-python --without-ftp --without-http --prefix=$(libxml2)/dist
     make
     make install
     ```

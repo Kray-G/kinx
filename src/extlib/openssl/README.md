@@ -21,10 +21,11 @@ https://github.com/openssl/openssl
     ```
 3. Configure it and generate `makefile`.
     ```
-    $ perl Configure VC-WIN64A no-ssl3 --prefix=$(openssl)\dist --openssldir=C:\kinx\lib\ssl
+    $ perl Configure VC-WIN64A no-ssl3 --prefix=%CD%\dist --openssldir="C:\Program Files\Kinx\V1\ssl"
     ```
 4. Replace `/MD` by `/MT` in `makefile`.
-5. Make it.
+5. Replace `C:\\Git\\hub\\openssl\\dist\\lib` to `C:\\Program Files\\Kinx\\V1\\ssl\\lib`
+6. Make it.
     ```
     $ nmake -f makefile
     $ nmake -f makefile install
@@ -43,7 +44,7 @@ https://github.com/openssl/openssl
     ```
 3. Configure it and generate `makefile`.
     ```
-    $ ./config --prefix=$(openssl)/dist --openssldir=/usr/bin/kinxlib/ssl "-Wl,-rpath,'\$\$ORIGIN'"
+    $ ./config --prefix=/usr/bin/kinxlib/ssl --openssldir=/usr/bin/kinxlib/ssl "-Wl,-rpath,'\$\$ORIGIN'"
     ```
 4. Make it.
     ```
