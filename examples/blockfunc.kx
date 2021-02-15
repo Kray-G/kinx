@@ -16,16 +16,12 @@ System.println(r);
 var r = f(3, 10) { &(a, b) return a + b; };
 System.println(r);
 
-# ':' is available for distinguishing parameters and a statement list.
-var r = f(4, 10) { &(a, b): return a + b; };
-System.println(r);
-
 # Can put a statement list directly without a parameter list.
 var r = f(5, 10) { return _1 * _2; };
 System.println(r);
 
-# No sense, but it is okay without statements.
-var r = f(6, 10) { &(a, b) };
+# No sense.
+var r = f(6, 10) { &(a, b) ; };
 System.println(r.isUndefined);
 
 # This means nothing to do, it can be used for ignoring callback, etc.
