@@ -12,6 +12,7 @@
 
 #ifndef OPENSSL_CONFIGURATION_H
 # define OPENSSL_CONFIGURATION_H
+# pragma once
 
 # ifdef  __cplusplus
 extern "C" {
