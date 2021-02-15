@@ -65,7 +65,7 @@ _namespace Net {
         }
 
         public setProxyUserPassword(user, pass) {
-            curl_.setOptionInt(Net.CURLOPT_PROXYUSERPWD, user + ":" + pass);
+            curl_.setOptionString(Net.CURLOPT_PROXYUSERPWD, user + ":" + pass);
             return this;
         }
 
