@@ -20,3 +20,7 @@ rebuild:
 	cp -f build/kxrepl ./
 	cp -f build/kxtest ./
 	cp -f build/*.so* ./
+
+install:
+	(cd build; make install)
+
