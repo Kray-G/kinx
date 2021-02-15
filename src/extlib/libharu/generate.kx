@@ -149,7 +149,7 @@ var predefinedFunction = {
 var objectMain = [];
 var objectType = {};
 var noCreatorType = {};
-funcs.each { &(func):
+funcs.each { &(func)
     if (func.unknown || predefinedFunction[func.data.name]) {
         func.skip = true;
     }
@@ -658,7 +658,7 @@ function genFunc(func) {
         }
         var args = "";
         if (func.data.args.isArray) {
-            func.data.args.each { &([type, name, orgt], i):
+            func.data.args.each { &([type, name, orgt], i)
                 if (type) {
                     var argCode = ArgCode[type];
                     if (argCode) {
@@ -687,7 +687,7 @@ funcs.each(genFunc);
 # System.println("ignore = ", ignore);
 # System.println("total  = ", skip + output + ignore);
 
-objectType.keySet().each { &(type):
+objectType.keySet().each { &(type)
     if (noCreatorType[type]) {
         return;
     }
@@ -710,7 +710,7 @@ System.println("\nint kxpdf_create_Main(int args, kx_frm_t *frmv, kx_frm_t *lexv
 var methods = [];
 fs.each { => genMethodDef(_1, methods, "obj") };
 System.println(methods.join('\n'));
-objectType.keySet().each { &(type):
+objectType.keySet().each { &(type)
     if (!noCreatorType[type]) {
         var mname = type.replace(/^HPDF_(Page_|FreeTextAnnot_|Font_|Outline_|Destination_|Encoder_|3DAnnotExData_|3DView_|Image_|ExtGState_)?/, "");
         if (mname == "Doc") {
