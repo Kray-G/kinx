@@ -1022,7 +1022,7 @@ The order of upside of the list is higher.
 
 |  No.  |     Type      |                                                   Excample                                                    |  Evaluation   |
 | :---: | ------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
-|   1   | Factor        | Variable, Number, String, ...                                                                                 |       -       |
+|   1   | Factor        | Variable, Number, String, ...                                                                                 |   (factor)    |
 |   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
 |   3   | Prefix        | `!`, `+`, `-`, `*`, `++`, `--`                                                                                | left to right |
 |   4   | Match/Range   | `=~`, `!~`, `n..m`                                                                                            | left to right |
@@ -1038,9 +1038,10 @@ The order of upside of the list is higher.
 |  14   | Logical AND   | `&&`                                                                                                          | left to right |
 |  15   | Logical OR    | <code>&#124;&#124;</code>                                                                                     | left to right |
 |  16   | Logical UNDEF | `??`                                                                                                          | left to right |
-|  17   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | right to left |
-|  18   | Case When     | `case-when`                                                                                                   | left to right |
-|  19   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
+|  17   | Pipeline      | <code>&#124;&gt;</code>                                                                                       | left to right |
+|  18   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | right to left |
+|  19   | Case When     | `case-when`                                                                                                   | left to right |
+|  20   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
 
 ### Pattern-Matching operator
 

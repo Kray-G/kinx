@@ -17,3 +17,5 @@ class Person(name) {
 
 var john = new Person("John");
 "Thank you very much" |> john.said;
+
+64 |> Math.sqrt |> System.println;
