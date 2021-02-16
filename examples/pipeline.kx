@@ -1,0 +1,19 @@
+const double = &(n) => n * 2;
+const increment = &(n) => n + 1;
+
+// Normal case.
+var r1 = double(increment(double(double(5)))); // 42
+System.println(r1);
+
+// Rewrite it with a pipeline operator.
+var r2 = 5 |> double |> double |> increment |> double; // 42
+System.println(r2);
+
+class Person(name) {
+    public said(x) {
+        '"%{x}," %{name} said.' |> System.println;
+    }
+}
+
+var john = new Person("John");
+"Thank you very much" |> john.said;
