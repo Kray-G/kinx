@@ -1,6 +1,6 @@
 #include <winver.h>
 
-KINXICO ICON DISCARDABLE "kinxi.ico"
+KINXICO ICON "kinxi.ico"
 
 VS_VERSION_INFO    VERSIONINFO
 FILEVERSION        0,22,0,0
