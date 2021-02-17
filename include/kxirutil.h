@@ -116,10 +116,7 @@ extern kx_fnc_t *kx_try_gt_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, i
 extern kx_fnc_t *kx_try_gt_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 extern kx_fnc_t *kx_try_gt_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc);
 
-extern int kx_try_pow(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
-extern int kx_try_pow_i(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_pow_d(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
-extern int kx_try_pow_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
+extern kx_fnc_t *kx_try_pow(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc);
 extern int kx_try_appenda(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);
 extern void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1);
 extern int kx_try_getobjv(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2);

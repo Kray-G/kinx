@@ -17,7 +17,7 @@ Here is the order to calculate values.
 
 |  No.  |     Type      |                                                   Excample                                                    |  Evaluation   |
 | :---: | ------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
-|   1   | Factor        | Variable, Number, String, ...                                                                                 |       -       |
+|   1   | Factor        | Variable, Number, String, ...                                                                                 |   (factor)    |
 |   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
 |   3   | Prefix        | `!`, `+`, `-`, `*`, `++`, `--`                                                                                | left to right |
 |   4   | Match/Range   | `=~`, `!~`, `n..m`                                                                                            | left to right |
@@ -33,9 +33,10 @@ Here is the order to calculate values.
 |  14   | Logical AND   | `&&`                                                                                                          | left to right |
 |  15   | Logical OR    | <code>&#124;&#124;</code>                                                                                     | left to right |
 |  16   | Logical UNDEF | `??`                                                                                                          | left to right |
-|  17   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | right to left |
-|  18   | Case When     | `case-when`                                                                                                   | left to right |
-|  19   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
+|  17   | Pipeline      | <code>&#124;&gt;</code>                                                                                       | left to right |
+|  18   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | right to left |
+|  19   | Case When     | `case-when`                                                                                                   | left to right |
+|  20   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
 
 In this list, only for exponent operator, ternary operator, and assignment operator the evaluation direction is right to left.
 Otherwise it is left to right.
@@ -47,6 +48,7 @@ The individual operations are described below.
 *   [Assignment](expression/assign.md)
 *   [Case-When Expression](expression/case_when.md)
 *   [Ternary Expression](expression/ternary.md)
+*   [Pipeline Operation](expression/pipeline.md)
 *   [Logical UNDEF Operation](expression/logical_undef.md)
 *   [Logical OR Operation](expression/logical_or.md)
 *   [Logical AND Operation](expression/logical_and.md)
