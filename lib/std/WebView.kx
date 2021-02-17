@@ -1,0 +1,90 @@
+
+System.Webview = _import('kxwebview');
+
+class WebView(params_) {
+    var interface_ = System.Webview;
+    var handle_, callback_, tmpfile_;
+
+    private initialize() {
+        tmpfile_ = [];
+        handle_ = interface_.init();
+        if (params_.width) {
+            @setWidth(params_.width);
+        }
+        if (params_.height) {
+            @setHeight(params_.height);
+        }
+        if (params_.url) {
+            @setUrl(params_.url);
+        }
+        if (params_.title) {
+            @setTitle(params_.title);
+        }
+        if (params_.resizable) {
+            @setResizable(params_.resizable);
+        }
+        if (params_.debug) {
+            @setDebug(params_.debug);
+        }
+    }
+    private genTempFile(html) {
+        var tmpdir = $env.TMP.replace("\\", "/");
+        var tmpfile;
+        do {
+            tmpfile = tmpdir / System.mktime() + "_" + Integer.parseInt(Math.random() * 10) + ".html";
+        } while (File.exists(tmpfile));
+        tmpfile_.push(tmpfile);
+        File.open(tmpfile, File.WRITE) {
+            _1.println(html);
+        };
+        return tmpfile;
+    }
+    public setUrl(url) {
+        interface_.setUrl(handle_, url);
+    }
+    public setHtml(html) {
+        var tmpfile = genTempFile(html);
+        interface_.setUrl(handle_, "file://" + tmpfile);
+    }
+    public setTitle(title) {
+        interface_.setTitle(handle_, title);
+    }
+    public setWidth(width) {
+        interface_.setWidth(handle_, width);
+    }
+    public setHeight(height) {
+        interface_.setHeight(handle_, height);
+    }
+    public setResizable(tf) {
+        interface_.setResizable(handle_, tf);
+    }
+    public setDebug(tf) {
+        interface_.setDebug(handle_, tf);
+    }
+    public setCallback(func) {
+        callback_ = func;
+    }
+    public run() {
+        interface_.start(handle_);
+        while (true) {
+            var r = interface_.loop(handle_);
+            if (callback_.isFunction && r[1].isString) {
+                callback_(r[1]);
+            }
+            if (r[0] == 0) {
+                break;
+            }
+        }
+        tmpfile_.each {
+            if (File.exists(_1)) {
+                File.remove(_1);
+            }
+        };
+        tmpfile_ = [];
+    }
+}
+
+WebView.BASE = "file://%{$libpath}/webview";
+WebView.ICON_PATH = "file://%{$libpath}/webview/materialize/css/fonts.css";
+WebView.CSS_PATH = "file://%{$libpath}/webview/materialize/css/materialize.min.css";
+WebView.JS_PATH = "file://%{$libpath}/webview/materialize/js/materialize.min.js";

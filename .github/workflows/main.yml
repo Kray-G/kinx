@@ -65,7 +65,7 @@ jobs:
           make.cmd
       - name: package
         shell: pwsh
-        run: Compress-Archive -Path kinx.exe,kxrepl.exe,kxtest.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
+        run: Compress-Archive -Path kinx.exe,kinxw.exe,kxrepl.exe,kxtest.exe,kx.lib,*.dll,lib/ -DestinationPath windows-x64.zip -Force -Verbose
       - name: create installer
         uses: joncloud/makensis-action@v3.4
       - id: name
