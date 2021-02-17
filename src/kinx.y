@@ -37,7 +37,7 @@ static inline void yy_restart(int token)
 %token ERROR
 %token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN ENUM FALLTHROUGH
 %token NEW VAR CONST RETURN THROW YIELD MIXIN
-%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF
+%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF PIPEOP
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE AS
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS2 DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
@@ -95,7 +95,6 @@ static inline void yy_restart(int token)
 %type<obj> ObjectSpecialSyntax
 %type<obj> AssignExpressionList_Opt
 %type<obj> TernaryExpression
-%type<obj> FunctionExpression
 %type<obj> LogicalUndefExpression
 %type<obj> LogicalOrExpression
 %type<obj> LogicalAndExpression
@@ -161,6 +160,7 @@ static inline void yy_restart(int token)
 %type<intval> ArrayLevel
 %type<intval> ReturnType_Opt
 %type<intval> GetLineNumber
+%type<obj> PipelineExpression
 %type<obj> CaseWhenExpression
 %type<obj> WhenClauseList
 %type<obj> WhenClause
@@ -536,13 +536,14 @@ Colon_Opt
     ;
 
 TernaryExpression
-    : FunctionExpression
-    | LogicalUndefExpression '?' TernaryExpression ':' TernaryExpression { $$ = kx_gen_texpr_object($1, $3, $5); }
+    : AnonymousFunctionDeclExpression
+    | PipelineExpression
+    | PipelineExpression '?' TernaryExpression ':' TernaryExpression { $$ = kx_gen_texpr_object($1, $3, $5); }
     ;
 
-FunctionExpression
-    : AnonymousFunctionDeclExpression
-    | LogicalUndefExpression
+PipelineExpression
+    : LogicalUndefExpression
+    | PipelineExpression PIPEOP LogicalUndefExpression { $$ = kx_gen_bexpr_object(KXOP_CALL, $3, $1); }
     ;
 
 LogicalUndefExpression
@@ -733,6 +734,8 @@ PropertyName
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
     | USING { $$ = kx_gen_str_object("using"); }
+    | PIPEOP { $$ = kx_gen_str_object("|>"); }
+    | POW { $$ = kx_gen_str_object("**"); }
     | SHL { $$ = kx_gen_str_object("<<"); }
     | SHR { $$ = kx_gen_str_object(">>"); }
     | EQEQ { $$ = kx_gen_str_object("=="); }
@@ -899,6 +902,7 @@ ClassFunctionSpecialName
     | USING { $$ = "using"; }
     | TYPE { $$ = kx_gen_typestr_object($1); }
     | TYPEOF { $$ = kx_gen_typeofstr_object($1); }
+    | POW { $$ = "**"; }
     | SHL { $$ = "<<"; }
     | SHR { $$ = ">>"; }
     | EQEQ { $$ = "=="; }

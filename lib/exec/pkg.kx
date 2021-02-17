@@ -1,0 +1,84 @@
+/*
+    Currently under development.
+    Do not use this.
+*/
+
+/*
+    Package Manager for Kinx
+
+    $ kxpkg add <repo>
+    $ kxpkg remove <repo>
+    $ kxpkg install <name>
+    $ kxpkg uninstall <name>
+    $ kxpkg update [<name>]
+    $ kxpkg list
+    $ kxpkg depends
+*/
+
+class KinxPackageManagerConfig(config_) {
+}
+
+class KinxPackageRepositoryManager(cfgMger_) {
+
+    public add(repo) {
+        ;
+    }
+    public remove(repo) {
+        ;
+    }
+
+}
+
+class KinxPackageLibraryManager(repoMgr_) {
+
+    public list() {
+        ;
+    }
+    public install(name) {
+        ;
+    }
+    public uninstall(name) {
+        ;
+    }
+    public update(name) {
+        ;
+    }
+
+}
+
+class KinxPackageManager {
+
+    const CONFIG_FILE_NAME = "config.json";
+    var pkgpath_ = {
+        path:   $pkgpath,
+        log:    $pkgpath / "log",
+        config: $pkgpath / "config",
+    };
+    var config_, repo_;
+
+    private initialize() {
+        if (!File.exists(pkgpath_.path)) {
+            File.mkdir(pkgpath_.path);
+        }
+        pkgpath_.keySet().filter({ => _1 != "path" }).each { &(key)
+            if (!File.exists(pkgpath_[key])) {
+                File.mkdir(pkgpath_[key]);
+            }
+        };
+        var configFile = pkgpath_.config / CONFIG_FILE_NAME;
+        if (!File.exists(configFile)) {
+            File.open(configFile, File.WRITE) { &(f: File)
+                var data = {
+                    repo: {},
+                };
+                f.println(data.toJsonString(true));
+            };
+        }
+        config_ = new KinxPackageManagerConfig(File.load(configFile));
+        repo_ = new KinxPackageRepositoryManager(config_);
+    }
+
+}
+
+var mgr = new KinxPackageManager();
+
