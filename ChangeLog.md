@@ -11,10 +11,10 @@
 
 *   Updated
     *   Supported a pipeline operator such as `a |> b` which is just same as `b(a)`.
+    *   Supported GUI library, which is based on webview.
     *   Some bug fixes and improvements.
 *   Planned
     *   Support to read/write from/to Clipboard.
-    *   Support GUI library, which is based on webview.
     *   Documentation & SpecTest complete.
     *   Support Package Manager.
 
