@@ -5,18 +5,20 @@
 *   Planned, or remaining tasks.
     *   Support OpenCV library.
     *   Support HTTP Server library.
-    *   Support GUI library.
-    *   Support Package Manager.
     *   Support Cryptography library.
 
-## V1.0.0 (Planned)
+## V1.0.0-RC1 (Current Development Version)
 
+*   Updated
+    *   Supported a pipeline operator such as `a |> b` which is just same as `b(a)`.
+    *   Some bug fixes and improvements.
 *   Planned
     *   Support to read/write from/to Clipboard.
+    *   Support GUI library, which is based on webview.
     *   Documentation & SpecTest complete.
-    *   Full documenting by SpecTest.
+    *   Support Package Manager.
 
-## V0.21.0 (Current Development Version)
+## V0.21.0 (21th Preview Release) - 2021/02/16
 
 *   Updated
     *   Obsoleted a dot style of string literal like `.abc` which means `"abc"`.
