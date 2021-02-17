@@ -32,6 +32,7 @@ extern int kx_value_true(kx_context_t *ctx, kx_val_t *v);
 #define KX_DIV_OP_NAME "/"
 #define KX_MOD_OP_NAME "%"
 #define KX_MUL_OP_NAME "*"
+#define KX_POW_OP_NAME "**"
 #define KX_AND_OP_NAME "&"
 #define KX_OR_OP_NAME  "|"
 #define KX_XOR_OP_NAME "^"
@@ -6228,8 +6229,22 @@ kx_fnc_t *kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->value.dv = pow((v1)->value.dv, (double)val); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_POW_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_POW_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -6255,8 +6270,22 @@ kx_fnc_t *kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         (v1)->value.dv = pow((v1)->value.dv, val); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_POW_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_POW_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
@@ -6274,20 +6303,34 @@ kx_fnc_t *kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         KX_POW_POW_D(v1, (v2)->value.dv); \
         break; \
     } \
+    case KX_BIN_T: { \
+        fn = kx_get_special_object_function(ctx, v1, KX_POW_OP_NAME); \
+        if (!fn) { \
+            *exc = KXN_UNSUPPORTED_OPERATOR; \
+        } \
+        break; \
+    } \
+    case KX_OBJ_T: { \
+        fn = kx_get_object_operator_function(ctx, v1, KX_POW_OP_NAME); \
+        if (fn) { \
+            break; \
+        } \
+        /* fall through */ \
+    } \
     default: \
-        exc = KXN_UNSUPPORTED_OPERATOR; \
+        *exc = KXN_UNSUPPORTED_OPERATOR; \
         break; \
     } \
 } \
 /**/
 
-int kx_try_pow(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2)
+kx_fnc_t *kx_try_pow(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, kx_val_t *v2, int *exc)
 {
-    int exc = 0;
+    kx_fnc_t *fn = NULL;
     do {
         KX_POW_POW_V(v1, v2);
     } while (0);
-    return exc;
+    return fn;
 }
 
 /* append */
