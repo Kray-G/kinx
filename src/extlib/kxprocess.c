@@ -15,20 +15,20 @@
 
 #define ALLOCA _alloca
 
-typedef struct kx_pipe_ {
+typedef struct kx_proc_pipe_ {
     HANDLE w;
     HANDLE r;
     int i, o, e;            // Use standard in/out/err.
     int no_alloc;
-} kx_pipe_t;
+} kx_proc_pipe_t;
 
-typedef struct kx_process_ {
-    kx_pipe_t *h_stdin;     // Standard Input of Child Process.
-    kx_pipe_t *h_stdout;    // Standard Output of Child Process.
-    kx_pipe_t *h_stderr;    // Standard Error Output of Child Process.
+typedef struct kx_proc_process_ {
+    kx_proc_pipe_t *h_stdin;     // Standard Input of Child Process.
+    kx_proc_pipe_t *h_stdout;    // Standard Output of Child Process.
+    kx_proc_pipe_t *h_stderr;    // Standard Error Output of Child Process.
     PROCESS_INFORMATION pi; // Process information.
     int launch;             // run and detach.
-} kx_process_t;
+} kx_proc_process_t;
 
 /* for debug */
 static void display_debug_last_error()
@@ -52,12 +52,12 @@ static unsigned int get_tick_count(void)
     return GetTickCount();
 }
 
-static int is_process_alive(kx_process_t *proc)
+static int is_process_alive(kx_proc_process_t *proc)
 {
     return proc ? (WaitForSingleObject(proc->pi.hProcess, 0) == WAIT_TIMEOUT) : 0;
 }
 
-static int get_process_status(kx_process_t *proc)
+static int get_process_status(kx_proc_process_t *proc)
 {
     if (proc) {
         DWORD r = WaitForSingleObject(proc->pi.hProcess, 0);
@@ -73,19 +73,19 @@ static int get_process_status(kx_process_t *proc)
     return -1;
 }
 
-kx_process_t *create_proc(void)
+kx_proc_process_t *create_proc(void)
 {
-    kx_process_t *p = kx_calloc(1, sizeof(kx_process_t));
+    kx_proc_process_t *p = kx_calloc(1, sizeof(kx_proc_process_t));
     p->launch = 0;
     return p;
 }
 
-void free_proc(kx_process_t *proc)
+void free_proc(kx_proc_process_t *proc)
 {
     kx_free(proc);
 }
 
-void finalize_process(kx_process_t *proc)
+void finalize_process(kx_proc_process_t *proc)
 {
     if (proc->pi.hThread != INVALID_HANDLE_VALUE) {
         CloseHandle(proc->pi.hThread);
@@ -97,7 +97,7 @@ void finalize_process(kx_process_t *proc)
     }
 }
 
-int peek_pipe(kx_pipe_t *p)
+int peek_pipe(kx_proc_pipe_t *p)
 {
     DWORD len = 0;
     if (!PeekNamedPipe(p->r, NULL, 0, NULL, &len, NULL)) {
@@ -106,7 +106,7 @@ int peek_pipe(kx_pipe_t *p)
     return len;
 }
 
-int write_pipe(kx_pipe_t *p, const char *msg)
+int write_pipe(kx_proc_pipe_t *p, const char *msg)
 {
     if (!p || p->w == INVALID_HANDLE_VALUE) {
         return -1;
@@ -121,7 +121,7 @@ int write_pipe(kx_pipe_t *p, const char *msg)
     return writelen;
 }
 
-int read_pipe(kx_pipe_t *p, char *buf, int len)
+int read_pipe(kx_proc_pipe_t *p, char *buf, int len)
 {
     if (!p || p->r == INVALID_HANDLE_VALUE) {
         return -1;
@@ -142,7 +142,7 @@ int read_pipe(kx_pipe_t *p, char *buf, int len)
     return readlen;
 }
 
-int close_read_pipe(kx_pipe_t *p)
+int close_read_pipe(kx_proc_pipe_t *p)
 {
     if (p && p->r != INVALID_HANDLE_VALUE) {
         CloseHandle(p->r);
@@ -155,7 +155,7 @@ int close_read_pipe(kx_pipe_t *p)
     return 0;
 }
 
-int close_write_pipe(kx_pipe_t *p)
+int close_write_pipe(kx_proc_pipe_t *p)
 {
     if (p && p->w != INVALID_HANDLE_VALUE) {
         CloseHandle(p->w);
@@ -168,7 +168,7 @@ int close_write_pipe(kx_pipe_t *p)
     return 0;
 }
 
-kx_pipe_t *create_pipe(void)
+kx_proc_pipe_t *create_pipe(void)
 {
     HANDLE r, w;
     SECURITY_ATTRIBUTES sa = {0};
@@ -179,7 +179,7 @@ kx_pipe_t *create_pipe(void)
     if (!CreatePipe(&r, &w, &sa, 0)) {
         return NULL;
     }
-    kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
+    kx_proc_pipe_t *p = kx_calloc(1, sizeof(kx_proc_pipe_t));
     p->r = r;
     p->w = w;
     p->i = 0;
@@ -189,7 +189,7 @@ kx_pipe_t *create_pipe(void)
     return p;
 }
 
-kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
+kx_proc_pipe_t *create_file_pipe(const char *infile, const char *outfile)
 {
     HANDLE r = INVALID_HANDLE_VALUE;
     HANDLE w = INVALID_HANDLE_VALUE;
@@ -212,7 +212,7 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
         }
     }
 
-    kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
+    kx_proc_pipe_t *p = kx_calloc(1, sizeof(kx_proc_pipe_t));
     p->r = r;
     p->w = w;
     p->i = 0;
@@ -281,7 +281,7 @@ static int make_command(char *dst, const char *cmd)
     return l + escape + quote * 2;
 }
 
-int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, kx_pipe_t *h_stderr, int argc, char *const argv[])
+int start_process(kx_proc_process_t *proc, kx_proc_pipe_t *h_stdin, kx_proc_pipe_t *h_stdout, kx_proc_pipe_t *h_stderr, int argc, char *const argv[])
 {
     int console_output = 0;
     HANDLE currproc = GetCurrentProcess();
@@ -347,7 +347,7 @@ CLEANUP:
     return 0;
 }
 
-static int process_detach(kx_process_t *proc)
+static int process_detach(kx_proc_process_t *proc)
 {
     finalize_process(proc);
     return 1;
@@ -372,21 +372,21 @@ static int process_detach(kx_process_t *proc)
 #define R (0)
 #define W (1)
 
-typedef struct kx_pipe_ {
+typedef struct kx_proc_pipe_ {
     int w;
     int r;
     int i, o, e;            // Use standard in/out/err.
     int no_alloc;
-} kx_pipe_t;
+} kx_proc_pipe_t;
 
-typedef struct kx_process_ {
-    kx_pipe_t *h_stdin;     // Standard Input of Child Process.
-    kx_pipe_t *h_stdout;    // Standard Output of Child Process.
-    kx_pipe_t *h_stderr;    // Standard Error Output of Child Process.
+typedef struct kx_proc_process_ {
+    kx_proc_pipe_t *h_stdin;     // Standard Input of Child Process.
+    kx_proc_pipe_t *h_stdout;    // Standard Output of Child Process.
+    kx_proc_pipe_t *h_stderr;    // Standard Error Output of Child Process.
     pid_t pid;              // Process information.
     int status;             // Process status.
     int launch;             // run and detach.
-} kx_process_t;
+} kx_proc_process_t;
 
 static unsigned int get_tick_count(void)
 {
@@ -395,7 +395,7 @@ static unsigned int get_tick_count(void)
     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 
-static int is_process_alive(kx_process_t *proc)
+static int is_process_alive(kx_proc_process_t *proc)
 {
     if (proc) {
         if (proc->status >= 0) {
@@ -418,7 +418,7 @@ static int is_process_alive(kx_process_t *proc)
     return 0;
 }
 
-static int get_process_status(kx_process_t *proc)
+static int get_process_status(kx_proc_process_t *proc)
 {
     if (proc) {
         if (proc->status >= 0) {
@@ -441,21 +441,21 @@ static int get_process_status(kx_process_t *proc)
     return -1;
 }
 
-kx_process_t *create_proc(void)
+kx_proc_process_t *create_proc(void)
 {
-    kx_process_t *p = kx_calloc(1, sizeof(kx_process_t));
+    kx_proc_process_t *p = kx_calloc(1, sizeof(kx_proc_process_t));
     p->pid = 0;
     p->status = -1;
     p->launch = 0;
     return p;
 }
 
-void free_proc(kx_process_t *p)
+void free_proc(kx_proc_process_t *p)
 {
     kx_free(p);
 }
 
-void finalize_process(kx_process_t *proc)
+void finalize_process(kx_proc_process_t *proc)
 {
     proc->pid = 0;
     proc->status = -1;
@@ -463,7 +463,7 @@ void finalize_process(kx_process_t *proc)
     // when this process is terminated, the necessary wait will be performed by init process.
 }
 
-int peek_pipe(kx_pipe_t *p)
+int peek_pipe(kx_proc_pipe_t *p)
 {
     struct pollfd fds = { .fd = p->r, .events = POLLIN };
     int res = poll(&fds, 1, 0);
@@ -474,7 +474,7 @@ int peek_pipe(kx_pipe_t *p)
     return fds.revents & POLLIN;
 }
 
-int write_pipe(kx_pipe_t *p, const char *msg)
+int write_pipe(kx_proc_pipe_t *p, const char *msg)
 {
     int nwrite = write(p->w, msg, strlen(msg));
     switch (nwrite) {
@@ -491,7 +491,7 @@ int write_pipe(kx_pipe_t *p, const char *msg)
     return nwrite;
 }
 
-int read_pipe(kx_pipe_t *p, char *buf, int len)
+int read_pipe(kx_proc_pipe_t *p, char *buf, int len)
 {
     switch (peek_pipe(p)) {
     case -1:
@@ -515,7 +515,7 @@ int read_pipe(kx_pipe_t *p, char *buf, int len)
     return nread;
 }
 
-int close_read_pipe(kx_pipe_t *p)
+int close_read_pipe(kx_proc_pipe_t *p)
 {
     if (p && p->r >= 0) {
         if (p->r > 2) {
@@ -530,7 +530,7 @@ int close_read_pipe(kx_pipe_t *p)
     return 0;
 }
 
-int close_write_pipe(kx_pipe_t *p)
+int close_write_pipe(kx_proc_pipe_t *p)
 {
     if (p && p->w >= 0) {
         if (p->w > 2) {
@@ -545,7 +545,7 @@ int close_write_pipe(kx_pipe_t *p)
     return 0;
 }
 
-kx_pipe_t *create_pipe(void)
+kx_proc_pipe_t *create_pipe(void)
 {
     int h[2];
     if (pipe(h) < 0) {
@@ -557,7 +557,7 @@ kx_pipe_t *create_pipe(void)
     if (fcntl(h[W], F_SETFL, fcntl(h[W], F_GETFL) | O_NONBLOCK) < 0) {
         return NULL;
     }
-    kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
+    kx_proc_pipe_t *p = kx_calloc(1, sizeof(kx_proc_pipe_t));
     p->r = h[R];
     p->w = h[W];
     p->i = 0;
@@ -567,7 +567,7 @@ kx_pipe_t *create_pipe(void)
     return p;
 }
 
-kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
+kx_proc_pipe_t *create_file_pipe(const char *infile, const char *outfile)
 {
     int h[2] = {0};
 
@@ -584,7 +584,7 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
         }
     }
 
-    kx_pipe_t *p = kx_calloc(1, sizeof(kx_pipe_t));
+    kx_proc_pipe_t *p = kx_calloc(1, sizeof(kx_proc_pipe_t));
     p->r = h[R];
     p->w = h[W];
     p->i = 0;
@@ -608,7 +608,7 @@ kx_pipe_t *create_file_pipe(const char *infile, const char *outfile)
 } \
 /**/
 
-int start_process(kx_process_t *proc, kx_pipe_t *h_stdin, kx_pipe_t *h_stdout, kx_pipe_t *h_stderr, int argc, char *const argv[])
+int start_process(kx_proc_process_t *proc, kx_proc_pipe_t *h_stdin, kx_proc_pipe_t *h_stdout, kx_proc_pipe_t *h_stderr, int argc, char *const argv[])
 {
     proc->pid = 0;
     proc->h_stdin = h_stdin;
@@ -715,7 +715,7 @@ static thread_return_t STDCALL run_process_wait_thread(void *p)
     return 0;
 }
 
-static int process_detach(kx_process_t *proc)
+static int process_detach(kx_proc_process_t *proc)
 {
     if (!proc || proc->pid == 0) {
         return 0;
@@ -738,37 +738,37 @@ KX_DECL_MEM_ALLOCATORS();
 void free_proc_void(void *p)
 {
     if (p) {
-        free_proc((kx_process_t *)p);
+        free_proc((kx_proc_process_t *)p);
     }
 }
 
 void close_read_pipe_void(void *p)
 {
-    (void)close_read_pipe((kx_pipe_t*)p);
+    (void)close_read_pipe((kx_proc_pipe_t*)p);
 }
 
 void close_write_pipe_void(void *p)
 {
-    (void)close_write_pipe((kx_pipe_t*)p);
+    (void)close_write_pipe((kx_proc_pipe_t*)p);
 }
 
 #define KX_PROCESS_GET_PROC(r, obj) \
-kx_process_t *r = NULL; \
+kx_proc_process_t *r = NULL; \
 if (obj) { \
     kx_val_t *val = NULL; \
     KEX_GET_PROP(val, obj, "_proc"); \
     if (val && val->type == KX_ANY_T) { \
-        r = (kx_process_t *)(val->value.av->p); \
+        r = (kx_proc_process_t *)(val->value.av->p); \
     } \
 } \
 /**/
 #define KX_PROCESS_GET_PIPE(r, obj, namep) \
-kx_pipe_t *r = NULL; \
+kx_proc_pipe_t *r = NULL; \
 if (obj) { \
     kx_val_t *val = NULL; \
     KEX_GET_PROP(val, obj, namep); \
     if (val && val->type == KX_ANY_T) { \
-        r = (kx_pipe_t *)(val->value.av->p); \
+        r = (kx_proc_pipe_t *)(val->value.av->p); \
     } \
 } \
 /**/
@@ -790,11 +790,11 @@ int Process_closeReadPipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
         KX_THROW_BLTIN_EXCEPTION("IoException", "Invalid Pipe Object");
     }
 
-    kx_pipe_t *p = NULL;
+    kx_proc_pipe_t *p = NULL;
     kx_val_t *val = NULL;
     KEX_GET_PROP(val, obj, "_read");
     if (val && val->type == KX_ANY_T) {
-        p = (kx_pipe_t *)(val->value.av->p);
+        p = (kx_proc_pipe_t *)(val->value.av->p);
     }
     if (p) {
         int f = close_read_pipe(p);
@@ -824,11 +824,11 @@ int Process_closeWritePipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_
         KX_THROW_BLTIN_EXCEPTION("IoException", "Invalid Pipe Object");
     }
 
-    kx_pipe_t *p = NULL;
+    kx_proc_pipe_t *p = NULL;
     kx_val_t *val = NULL;
     KEX_GET_PROP(val, obj, "_write");
     if (val && val->type == KX_ANY_T) {
-        p = (kx_pipe_t *)(val->value.av->p);
+        p = (kx_proc_pipe_t *)(val->value.av->p);
     }
     if (p) {
         int f = close_write_pipe(p);
@@ -862,7 +862,7 @@ int Process_pipe_write(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
 
     int nwrite = 0;
     const char *msg = get_arg_str(2, args, ctx);
-    if (msg) {    
+    if (msg) {
         nwrite = write_pipe(wp, msg);
         if (nwrite < 0) {
             KX_THROW_BLTIN_EXCEPTION("IoException", "Write pipe error");
@@ -917,7 +917,7 @@ int Process_pipe_read(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 
 int Process_createPipe(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
-    kx_pipe_t *p = create_pipe();
+    kx_proc_pipe_t *p = create_pipe();
 
     kx_obj_t *robj = allocate_obj(ctx);
     kx_any_t *r = allocate_any(ctx);
@@ -975,16 +975,16 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
     argv[len] = NULL;
 
     kx_obj_t *pobj = allocate_obj(ctx);
-    kx_process_t *proc = NULL;
+    kx_proc_process_t *proc = NULL;
     kx_obj_t *options = get_arg_obj(2, args, ctx);
     if (options) {
         kx_obj_t *obj = NULL;
         kx_val_t *val = NULL;
 
-        kx_pipe_t i = { .i = 1, .no_alloc = 1 };
-        kx_pipe_t o = { .o = 1, .no_alloc = 1 };
-        kx_pipe_t e = { .e = 1, .no_alloc = 1 };
-        kx_pipe_t *ri = NULL;
+        kx_proc_pipe_t i = { .i = 1, .no_alloc = 1 };
+        kx_proc_pipe_t o = { .o = 1, .no_alloc = 1 };
+        kx_proc_pipe_t e = { .e = 1, .no_alloc = 1 };
+        kx_proc_pipe_t *ri = NULL;
         KEX_GET_PROP(val, options, "in");
         if (val) {
             if (val->type == KX_CSTR_T || val->type == KX_STR_T) {
@@ -1006,14 +1006,14 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                     val = NULL;
                     KEX_GET_PROP(val, obj, "_read");
                     if (val && val->type == KX_ANY_T) {
-                        ri = (kx_pipe_t *)(val->value.av->p);
+                        ri = (kx_proc_pipe_t *)(val->value.av->p);
                     }
                 }
             }
         }
 
         val = NULL;
-        kx_pipe_t *wo = NULL;
+        kx_proc_pipe_t *wo = NULL;
         KEX_GET_PROP(val, options, "out");
         if (val) {
             if (val->type == KX_CSTR_T || val->type == KX_STR_T) {
@@ -1042,14 +1042,14 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                     val = NULL;
                     KEX_GET_PROP(val, obj, "_write");
                     if (val && val->type == KX_ANY_T) {
-                        wo = (kx_pipe_t *)(val->value.av->p);
+                        wo = (kx_proc_pipe_t *)(val->value.av->p);
                     }
                 }
             }
         }
 
         val = NULL;
-        kx_pipe_t *we = NULL;
+        kx_proc_pipe_t *we = NULL;
         KEX_GET_PROP(val, options, "err");
         if (val) {
             if (val->type == KX_CSTR_T || val->type == KX_STR_T) {
@@ -1078,7 +1078,7 @@ int Process_runImpl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                     val = NULL;
                     KEX_GET_PROP(val, obj, "_write");
                     if (val && val->type == KX_ANY_T) {
-                        we = (kx_pipe_t *)(val->value.av->p);
+                        we = (kx_proc_pipe_t *)(val->value.av->p);
                     }
                 }
             }
@@ -1126,10 +1126,10 @@ int Process_isAlive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *pobj = get_arg_obj(1, args, ctx);
     kx_val_t *prca = NULL;
-    kx_process_t *proc = NULL;
+    kx_proc_process_t *proc = NULL;
     KEX_GET_PROP(prca, pobj, "_proc");
     if (prca && prca->type == KX_ANY_T) {
-        proc = (kx_process_t *)(prca->value.av->p);
+        proc = (kx_proc_process_t *)(prca->value.av->p);
     }
 
     int is_alive = is_process_alive(proc);
@@ -1143,10 +1143,10 @@ int Process_getStatus(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 {
     kx_obj_t *pobj = get_arg_obj(1, args, ctx);
     kx_val_t *prca = NULL;
-    kx_process_t *proc = NULL;
+    kx_proc_process_t *proc = NULL;
     KEX_GET_PROP(prca, pobj, "_proc");
     if (prca && prca->type == KX_ANY_T) {
-        proc = (kx_process_t *)(prca->value.av->p);
+        proc = (kx_proc_process_t *)(prca->value.av->p);
     }
 
     int status = get_process_status(proc);
@@ -1160,10 +1160,10 @@ int Process_detach(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *pobj = get_arg_obj(1, args, ctx);
     kx_val_t *prca = NULL;
-    kx_process_t *proc = NULL;
+    kx_proc_process_t *proc = NULL;
     KEX_GET_PROP(prca, pobj, "_proc");
     if (prca && prca->type == KX_ANY_T) {
-        proc = (kx_process_t *)(prca->value.av->p);
+        proc = (kx_proc_process_t *)(prca->value.av->p);
     }
 
     process_detach(proc);

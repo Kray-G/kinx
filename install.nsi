@@ -14,7 +14,7 @@ Unicode True
 
 # Version
 !define MAJ_VERSION "1"
-!define VERSION_STRING "0.21.0"
+!define VERSION_STRING "0.22.0"
 
 # Application Name
 Name "Kinx version ${VERSION_STRING} for x64"
@@ -64,6 +64,7 @@ Section
   # File List
   SetOutPath "$INSTDIR\bin"
   File "kinx.exe"
+  File "kinxw.exe"
   File "kxrepl.exe"
   File "kxtest.exe"
   File "addpath.exe"
@@ -72,6 +73,7 @@ Section
   SetOutPath "$INSTDIR\bin\lib"
   File /r /x ".gitignore" "lib\std"
   File /r /x ".gitignore" "lib\exec"
+  File /r /x ".gitignore" "lib\webview"
 
   SetOutPath "$INSTDIR\docs"
   File /r /x "typesetting" "docs\licenses"
@@ -98,7 +100,7 @@ Section
   WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\bin\kinx.exe"
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "${VERSION_STRING}"
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
-  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "21"
+  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "22"
   WriteRegStr HKLM "${ARP}" "Comments" "Have fun with programming!"
   WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'

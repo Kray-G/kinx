@@ -78,6 +78,9 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     r->source = kx_calloc(strlen(str) + 2, sizeof(char));
     strcpy(r->source, str);
     r->start = 0;
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
     return 0;
 }
 
