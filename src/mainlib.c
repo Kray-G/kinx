@@ -62,7 +62,7 @@ BOOL WINAPI kx_signal_handler(DWORD type)
         return FALSE;
     }
 
-	return TRUE;
+    return TRUE;
 }
 #else
 #include <termios.h>
@@ -353,6 +353,7 @@ END_OF_OPT:
         r = 1;
         goto CLEANUP;
     }
+    signal(SIGPIPE, SIG_IGN);
 
     struct termios newf, oldf;
     tcgetattr(0, &oldf);
