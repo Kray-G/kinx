@@ -1626,6 +1626,21 @@ int System_kinxpath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int System_cwd(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kstr_t *sv = allocate_str(ctx);
+    char cwd[4096] = {0};
+    getcwd(cwd, sizeof(cwd) - 1);
+    char *buf = conv_acp2utf8_alloc(cwd);
+    ks_append(sv, buf);
+    conv_free(buf);
+    ks_replace_char(sv, '\\', '/');
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 int System_exepath(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kstr_t *sv = allocate_str(ctx);
@@ -2043,6 +2058,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "setupRange", System_setupRange },
     { "isUtf8Bytes", System_isUtf8Bytes },
     { "kinxpath", System_kinxpath },
+    { "cwd", System_cwd },
     { "exepath", System_exepath },
     { "getenvall", System_getenvall },
     { "getenv", System_getenv },
