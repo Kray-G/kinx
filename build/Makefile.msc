@@ -130,6 +130,7 @@ SOFILES = \
     kxxml.dll \
     kxjit.dll \
     kxpdf.dll \
+    kxwebview.dll \
     kxprocess.dll
 PICOBJS = \
     $(SRCDIR)/bign.obj \
@@ -193,10 +194,11 @@ clean:
 	pushd .. && del /S /Q *.obj *.exp *.s && popd
 	pushd .. && del /Q *.dll *.exe *.dll kx.output && popd
 	del /Q *.dll
-	del /Q timex.exe kinx.exe test.exe
+	del /Q timex.exe kinx.exe kinxw.exe test.exe
 
 kinx: $(SRCDIR)/main.c $(INCDIR)/libkinx.h libkinx.dll $(RCFILE)
-	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map $(SRCDIR)/main.c $(SRCDIR)/fileutil.obj $(RCFILE)
+	$(CC) $(CFLAGS) /Fekinx.exe /Fmkinx.map $(SRCDIR)/main.c $(SRCDIR)/fileutil.obj $(RCFILE)
+	$(CC) $(CFLAGS) /DKX_WINMAIN /Fekinxw.exe $(SRCDIR)/main.c $(SRCDIR)/fileutil.obj $(RCFILE) /link /SUBSYSTEM:WINDOWS
 
 main_kxcmd: $(SRCDIR)/main_kxcmd.c $(INCDIR)/libkinx.h libkinx.dll $(RCFILE)
 	$(CC) $(CFLAGS) /Fe$@ /Fmkinx.map $(SRCDIR)/main_kxcmd.c $(SRCDIR)/fileutil.obj $(RCFILE)
@@ -269,6 +271,9 @@ kxjit.dll: $(SRCDIR)/extlib/kxjit.c $(PICOBJS)
 
 kxpdf.dll: $(SRCDIR)/extlib/kxpdf.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libharu/include /Fe$@ $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libharu/x64/vs2017/libhpdf.lib $(SRCDIR)/extlib/libharu/x64/vs2017/zlib_a.lib $(SRCDIR)/extlib/libharu/x64/vs2017/libpng.lib
+
+kxwebview.dll: $(SRCDIR)/extlib/kxwebview.c $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /DWEBVIEW_WINAPI /I $(SRCDIR)/extlib/libharu/include /Fe$@ $(SRCDIR)/extlib/kxwebview.c $(PICOBJS) advapi32.lib gdi32.lib
 
 zlib.dll: $(SRCDIR)/extlib/zip/x64/vs2017/zlib.dll
 	copy /y $(SRCDIR)\extlib\zip\x64\vs2017\zlib.dll zlib.dll

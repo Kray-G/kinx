@@ -6,7 +6,7 @@
 #define PROGNAME "kinx"
 #endif
 #define VER_MAJ     0
-#define VER_MIN     21
+#define VER_MIN     22
 #define VER_PAT     0
 #define VER_SUFFIX  ""
 

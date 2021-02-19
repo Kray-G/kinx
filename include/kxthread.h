@@ -23,6 +23,7 @@ typedef struct { HANDLE signal, broadcast; } pthread_cond_t;
 #if _MSC_VER <= 1600
 struct timespec { time_t tv_sec/* sec */; long tv_nsec/* nanosec */; };
 #endif
+#define pthread_self() GetCurrentThreadId()
 
 static inline int pthread_mutex_init(pthread_mutex_t* mutex, void* unused)
 {
