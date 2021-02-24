@@ -9,6 +9,9 @@ Fiber.create = _function(coroutine) {
     this.isAlive = _function() {
         return System.isFiberAlive(this.resume);
     };
+    this.reset = _function() {
+        System.resetFiber(this.resume);
+    };
     return this;
 };
 
