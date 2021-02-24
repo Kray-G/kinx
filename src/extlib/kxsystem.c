@@ -879,6 +879,19 @@ int System_isFiberAlive(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
+int System_resetFiber(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_val_t *val = &kv_last(ctx->stack);
+    if (val->type != KX_FNC_T) {
+        KX_THROW_BLTIN_EXCEPTION("FiberException", "Invalid Fiber object");
+    }
+    val->value.fn->fiber = 0;
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
+    return 0;
+}
+
 int System_halt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kv_shrinkto(ctx->stack, frmv->id + 1);
@@ -2033,6 +2046,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "sleep", System_sleep },
     { "convType", System_convType },
     { "isFiberAlive", System_isFiberAlive },
+    { "resetFiber", System_resetFiber },
     { "_globalSignalHookMap", System_globalSignalHookMap },
     { "setSignalHookFunction", System_setSignalHookFunction },
     { "getSigintCount", System_getSigintCount },
