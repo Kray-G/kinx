@@ -164,7 +164,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [CSV/TSV](spec/lib/basic/csv_tsv.md)
 *   [Xml](spec/lib/basic/xml.md)
 *   [Zip](spec/lib/basic/zip.md)
-*   [SQLite](spec/lib/basic/sqlite.md) - *not documented yet*
+*   [SQLite](spec/lib/basic/sqlite.md)
 *   [JIT](spec/lib/basic/jit.md)
 *   [Parsek](spec/lib/basic/parsek.md) - *not documented yet*
 

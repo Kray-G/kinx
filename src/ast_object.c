@@ -493,6 +493,19 @@ kx_object_t *kx_gen_regex_object(const char *pattern, int eq)
     return obj;
 }
 
+kx_object_t *kx_gen_expr_right_object(int type, int keytype, kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (keytype != lhs->type) {
+        return kx_gen_bexpr_object(type, lhs, rhs);
+    }
+    kx_object_t *p = lhs;
+    while (keytype == p->rhs->type) {
+        p = p->rhs;
+    }
+    p->rhs = kx_gen_bexpr_object(type, p->rhs, rhs);
+    return lhs;
+}
+
 kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
     if (type == KXOP_CBBLOCK) {
@@ -529,15 +542,7 @@ kx_object_t *kx_gen_bexpr_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 
 kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
 {
-    if (KXOP_ASSIGN != lhs->type) {
-        return kx_gen_bexpr_object(type, lhs, rhs);
-    }
-    kx_object_t *p = lhs;
-    while (KXOP_ASSIGN == p->rhs->type) {
-        p = p->rhs;
-    }
-    p->rhs = kx_gen_bexpr_object(type, p->rhs, rhs);
-    return lhs;
+    return kx_gen_expr_right_object(type, KXOP_ASSIGN, lhs, rhs);
 }
 
 kx_object_t *kx_gen_case_expr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
