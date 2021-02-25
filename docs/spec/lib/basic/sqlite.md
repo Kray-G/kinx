@@ -357,8 +357,8 @@ Here is the result.
 #### Code
 
 ```javascript
-File.remove("database.db");
 var db = new SQLite("database.db", 3000);
+db.exec("DROP TABLE IF EXISTS mytable");
 db.exec("CREATE TABLE IF NOT EXISTS mytable "
     "("
         "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -437,7 +437,7 @@ db.createTable("mytable", [
 var c = db.query({
     select: "name",
     from: "sqlite_master",
-    where: "type='table'",
+    where: "type='table' AND name <> 'sqlite_sequence'",
 });
 while (c.next()) {
     var cols = c.columns();
@@ -452,8 +452,6 @@ while (c.next()) {
 #### Result
 
 ```
-Record[sqlite_sequence]
-    name     = sqlite_sequence
 Record[mytable]
     name     = mytable
 ```
