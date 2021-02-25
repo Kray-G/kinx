@@ -3,11 +3,14 @@
 Fiber.create = _function(coroutine) {
     var this;
     this.isFiber = true;
-    this.resume = _coroutine(...val) {
+    this.() = this.resume = _coroutine(...val) {
         return coroutine(...val);
     };
     this.isAlive = _function() {
         return System.isFiberAlive(this.resume);
+    };
+    this.reset = _function() {
+        System.resetFiber(this.resume);
     };
     return this;
 };

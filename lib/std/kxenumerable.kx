@@ -1,5 +1,6 @@
 
 _module _Enumerable {
+    @isEnumerable = true;
     var host_ = this;
     var enumerator_, lazy_;
     var src_ = new Fiber(&() => host_.each());
