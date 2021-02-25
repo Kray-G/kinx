@@ -3,7 +3,7 @@
 Fiber.create = _function(coroutine) {
     var this;
     this.isFiber = true;
-    this.resume = _coroutine(...val) {
+    this.() = this.resume = _coroutine(...val) {
         return coroutine(...val);
     };
     this.isAlive = _function() {
