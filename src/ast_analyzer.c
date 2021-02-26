@@ -1256,7 +1256,8 @@ LOOP_HEAD:;
         analyze_ast(ctx, node->rhs, actx);
         node->var_type = KX_INT_T;
         break;
-    case KXOP_CALLP:
+    case KXOP_CALLPL:
+    case KXOP_CALLPR:
     case KXOP_CALL: {
         int lvalue = actx->lvalue;
         int decl = actx->decl;
