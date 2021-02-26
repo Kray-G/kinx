@@ -32,7 +32,7 @@ Note that it will be used also for an object.
 | `Array.take(n)`                       | Takes the specified number of items from the head.                           |
 | `Array.takeWhile(n, callback)`        | Takes items while a callback returns true.                                   |
 | `Array.drop(n)`                       | Drops the specified number of items from the head.                           |
-| `Array.dropWhile(n, callback)`        | Drops items while a callback returns true.                           |
+| `Array.dropWhile(n, callback)`        | Drops items while a callback returns true.                                   |
 
 For example, the following 2 examples mean the same.
 
