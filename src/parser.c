@@ -96,62 +96,64 @@ extern YYSTYPE kx_yylval;
 #define LUNDEF 294
 #define PIPEOPL2R 295
 #define PIPEOPR2L 296
-#define ADDEQ 297
-#define SUBEQ 298
-#define MULEQ 299
-#define DIVEQ 300
-#define MODEQ 301
-#define ANDEQ 302
-#define OREQ 303
-#define XOREQ 304
-#define LANDEQ 305
-#define LOREQ 306
-#define LUNDEFEQ 307
-#define SHLEQ 308
-#define SHREQ 309
-#define REGEQ 310
-#define REGNE 311
-#define NUL 312
-#define TRUE 313
-#define FALSE 314
-#define AS 315
-#define IMPORT 316
-#define USING 317
-#define DARROW 318
-#define SQ 319
-#define DQ 320
-#define MLSTR 321
-#define BINEND 322
-#define DOTS2 323
-#define DOTS3 324
-#define REGPF 325
-#define NAMESPACE 326
-#define SYSNS 327
-#define SYSRET_NV 328
-#define CLASS 329
-#define SYSCLASS 330
-#define MODULE 331
-#define SYSMODULE 332
-#define NATIVE 333
-#define FUNCTION 334
-#define SYSFUNC 335
-#define PUBLIC 336
-#define PRIVATE 337
-#define PROTECTED 338
-#define COROUTINE 339
-#define NAME 340
-#define STR 341
-#define SRCFILE 342
-#define BIGINT 343
-#define INT 344
-#define TYPE 345
-#define TYPEOF 346
-#define LBBR 347
-#define RBBR 348
-#define LMBR 349
-#define RMBR 350
-#define DBL 351
-#define BIN 352
+#define FCOMPOSL2R 297
+#define FCOMPOSR2L 298
+#define ADDEQ 299
+#define SUBEQ 300
+#define MULEQ 301
+#define DIVEQ 302
+#define MODEQ 303
+#define ANDEQ 304
+#define OREQ 305
+#define XOREQ 306
+#define LANDEQ 307
+#define LOREQ 308
+#define LUNDEFEQ 309
+#define SHLEQ 310
+#define SHREQ 311
+#define REGEQ 312
+#define REGNE 313
+#define NUL 314
+#define TRUE 315
+#define FALSE 316
+#define AS 317
+#define IMPORT 318
+#define USING 319
+#define DARROW 320
+#define SQ 321
+#define DQ 322
+#define MLSTR 323
+#define BINEND 324
+#define DOTS2 325
+#define DOTS3 326
+#define REGPF 327
+#define NAMESPACE 328
+#define SYSNS 329
+#define SYSRET_NV 330
+#define CLASS 331
+#define SYSCLASS 332
+#define MODULE 333
+#define SYSMODULE 334
+#define NATIVE 335
+#define FUNCTION 336
+#define SYSFUNC 337
+#define PUBLIC 338
+#define PRIVATE 339
+#define PROTECTED 340
+#define COROUTINE 341
+#define NAME 342
+#define STR 343
+#define SRCFILE 344
+#define BIGINT 345
+#define INT 346
+#define TYPE 347
+#define TYPEOF 348
+#define LBBR 349
+#define RBBR 350
+#define LMBR 351
+#define RMBR 352
+#define DBL 353
+#define BIN 354
 #line 44 "build/utility/kmyacc.c.parser"
 
 /* -p option */
@@ -1004,18 +1006,18 @@ static char yytranslate[] = {
     4,    5,    6,    7,    8,    9,   10,   11,   12,   13,
    14,   15,   16,   17,   18,   19,   20,   21,   22,   23,
    24,   25,   26,   27,   28,   29,   30,   31,   32,   33,
-   34,   35,   36,   37,   38,   39,   40,   41,   42,   43,
-   44,   45,   46,   47,   48,   49,   50,   51,   52,   53,
-   54,   55,   56,   57,   58,   59,   60,   61,   62,  114,
-  114,  114,   63,   64,   65,   66,   67,   68,   69,   70,
-   71,   72,   73,   74,   75,   76,   77,   78,   79,   80,
-   81,   82,   83,   84,   85,   86,   87,   88,   89,   90,
-   91,   92,  114
+   34,   35,   36,   37,   38,   39,   40,  114,  114,   41,
+   42,   43,   44,   45,   46,   47,   48,   49,   50,   51,
+   52,   53,   54,   55,   56,   57,   58,   59,   60,   61,
+   62,  114,  114,  114,   63,   64,   65,   66,   67,   68,
+   69,   70,   71,   72,   73,   74,   75,   76,   77,   78,
+   79,   80,   81,   82,   83,   84,   85,   86,   87,   88,
+   89,   90,   91,   92,  114
 #line 165 "build/utility/kmyacc.c.parser"
 };
 
 #define YYBADCH 114
-#define YYMAXLEX 353
+#define YYMAXLEX 355
 #define YYTERMS 114
 #define YYNONTERMS 123
 
@@ -2382,10 +2384,10 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_texpr_object(YYASP(1-5).obj, YYASP(3-5).obj, YYASP(5-5).obj); } break;
         case 188:
 #line 546 "src/kinx.y"
-{ yyval.obj = kx_gen_bexpr_object(KXOP_CALLP, YYASP(3-3).obj, YYASP(1-3).obj); } break;
+{ yyval.obj = kx_gen_bexpr_object(KXOP_CALLPL, YYASP(3-3).obj, YYASP(1-3).obj); } break;
         case 189:
 #line 547 "src/kinx.y"
-{ yyval.obj = kx_gen_expr_right_object(KXOP_CALLP, KXOP_CALLP, YYASP(1-3).obj, YYASP(3-3).obj); } break;
+{ yyval.obj = kx_gen_expr_right_object(KXOP_CALLPR, KXOP_CALLPR, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 191:
 #line 552 "src/kinx.y"
 { yyval.obj = kx_gen_bexpr_object(KXOP_LUNDEF, YYASP(1-3).obj, YYASP(3-3).obj); } break;

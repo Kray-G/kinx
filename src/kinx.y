@@ -37,7 +37,7 @@ static inline void yy_restart(int token)
 %token ERROR
 %token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN ENUM FALLTHROUGH
 %token NEW VAR CONST RETURN THROW YIELD MIXIN
-%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF PIPEOPL2R PIPEOPR2L
+%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF PIPEOPL2R PIPEOPR2L FCOMPOSL2R FCOMPOSR2L
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE AS
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS2 DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
@@ -543,8 +543,8 @@ TernaryExpression
 
 PipelineExpression
     : LogicalUndefExpression
-    | PipelineExpression PIPEOPL2R LogicalUndefExpression { $$ = kx_gen_bexpr_object(KXOP_CALLP, $3, $1); }
-    | PipelineExpression PIPEOPR2L LogicalUndefExpression { $$ = kx_gen_expr_right_object(KXOP_CALLP, KXOP_CALLP, $1, $3); }
+    | PipelineExpression PIPEOPL2R LogicalUndefExpression { $$ = kx_gen_bexpr_object(KXOP_CALLPL, $3, $1); }
+    | PipelineExpression PIPEOPR2L LogicalUndefExpression { $$ = kx_gen_expr_right_object(KXOP_CALLPR, KXOP_CALLPR, $1, $3); }
     ;
 
 LogicalUndefExpression
