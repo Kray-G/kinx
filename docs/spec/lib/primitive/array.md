@@ -27,7 +27,12 @@ Note that it will be used also for an object.
 | `Array.map(ary, callback)`            | Returns an array having items mapped by `callback`.                          |
 | `Array.filter(ary, callback)`         | Returns an array having items filtered by `callback`.                        |
 | `Array.reduce(ary, callback, initer)` | Returns an array having items applied by `callback(r, initer)` to each item. |
-| `Array.sort(ary, cmpfunc)`            | Sorted array by `cmpfunc`. **Not implemented yet**                           |
+| `Array.sort(ary, cmpfunc)`            | Returns a sorted array by `cmpfunc`.                                         |
+| `Array.shuffle(ary)`                  | Shuffles items in an array.                                                  |
+| `Array.take(n)`                       | Takes the specified number of items from the head.                           |
+| `Array.takeWhile(n, callback)`        | Takes items while a callback returns true.                                   |
+| `Array.drop(n)`                       | Drops the specified number of items from the head.                           |
+| `Array.dropWhile(n, callback)`        | Drops items while a callback returns true.                                   |
 
 For example, the following 2 examples mean the same.
 
@@ -213,7 +218,7 @@ System.println(func([1, 2, 3, 4], 3));
 9
 ```
 
-### Example 7. Function argument (3)
+### Example 8. Function argument (3)
 
 #### Code
 
@@ -228,4 +233,64 @@ System.println(func({x: 100, y: 200, z: 300}, 3));
 
 ```
 503
+```
+
+### Example 9. Array method - take
+
+#### Code
+
+```javascript
+var r = (1..10).toArray().take(3);
+System.println(r);
+```
+
+#### Result
+
+```
+[1, 2, 3]
+```
+
+### Example 10. Array method - takeWhile
+
+#### Code
+
+```javascript
+var r = (1..10).toArray().takeWhile({ => _1 < 7 });
+System.println(r);
+```
+
+#### Result
+
+```
+[1, 2, 3, 4, 5, 6]
+```
+
+### Example 11. Array method - drop
+
+#### Code
+
+```javascript
+var r = (1..10).toArray().drop(3);
+System.println(r);
+```
+
+#### Result
+
+```
+[4, 5, 6, 7, 8, 9, 10]
+```
+
+### Example 12. Array method - dropWhile
+
+#### Code
+
+```javascript
+var r = (1..10).toArray().dropWhile({ => _1 < 7 });
+System.println(r);
+```
+
+#### Result
+
+```
+[7, 8, 9, 10]
 ```

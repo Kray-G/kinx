@@ -1256,6 +1256,8 @@ LOOP_HEAD:;
         analyze_ast(ctx, node->rhs, actx);
         node->var_type = KX_INT_T;
         break;
+    case KXOP_CALLPL:
+    case KXOP_CALLPR:
     case KXOP_CALL: {
         int lvalue = actx->lvalue;
         int decl = actx->decl;
@@ -1301,6 +1303,29 @@ LOOP_HEAD:;
         }
         break;
     }
+
+    case KXOP_COMPOSITL:
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        node->lhs = kx_gen_bexpr_object(KXOP_CALL,
+            kx_gen_var_object("_functional_pipe2", KX_FNC_T),
+            kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, node->lhs)
+        );
+        analyze_ast(ctx, node->lhs, actx);
+        node->rhs = NULL;
+        node->type = KXST_EXPRLIST;
+        break;
+    case KXOP_COMPOSITR:
+        analyze_ast(ctx, node->lhs, actx);
+        analyze_ast(ctx, node->rhs, actx);
+        node->lhs = kx_gen_bexpr_object(KXOP_CALL,
+            kx_gen_var_object("_functional_compose2", KX_FNC_T),
+            kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, node->lhs)
+        );
+        analyze_ast(ctx, node->lhs, actx);
+        node->rhs = NULL;
+        node->type = KXST_EXPRLIST;
+        break;
 
     case KXOP_TYPEOF:
         if (actx->in_native) {

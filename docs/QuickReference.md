@@ -1020,28 +1020,29 @@ var x = new A.B.X(); // OK
 Here is the expression's priority order.
 The order of upside of the list is higher.
 
-|  No.  |     Type      |                                                   Excample                                                    |  Evaluation   |
-| :---: | ------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
-|   1   | Factor        | Variable, Number, String, ...                                                                                 |   (factor)    |
-|   2   | Postfix       | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
-|   3   | Prefix        | `!`, `+`, `-`, `*`, `++`, `--`                                                                                | left to right |
-|   4   | Match/Range   | `=~`, `!~`, `n..m`                                                                                            | left to right |
-|   5   | Exponent      | `**`                                                                                                          | right to left |
-|   6   | Mul,...       | `*`, `/`, `%`                                                                                                 | left to right |
-|   7   | Add,...       | `+`, `-`                                                                                                      | left to right |
-|   8   | Shift         | `<<`, `>>`                                                                                                    | left to right |
-|   9   | Compare       | `<`, `>`, `>=`, `<=`                                                                                          | left to right |
-|  10   | Equals        | `==`, `!=`                                                                                                    | left to right |
-|  11   | Bit AND       | `&`                                                                                                           | left to right |
-|  12   | Bit XOR       | `^`                                                                                                           | left to right |
-|  13   | Bit OR        | <code>&#124;</code>                                                                                           | left to right |
-|  14   | Logical AND   | `&&`                                                                                                          | left to right |
-|  15   | Logical OR    | <code>&#124;&#124;</code>                                                                                     | left to right |
-|  16   | Logical UNDEF | `??`                                                                                                          | left to right |
-|  17   | Pipeline      | <code>&#124;&gt;</code>                                                                                       | left to right |
-|  18   | Ternary, ...  | ` ? : `, `function(){}`                                                                                       | right to left |
-|  19   | Case When     | `case-when`                                                                                                   | left to right |
-|  20   | Assignment    | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
+|  No.  |         Type         |                                                   Excample                                                    |  Evaluation   |
+| :---: | -------------------- | ------------------------------------------------------------------------------------------------------------- | :-----------: |
+|   1   | Factor               | Variable, Number, String, ...                                                                                 |   (factor)    |
+|   2   | Postfix              | `++`, `--`, `[]`, `.`, `()`                                                                                   | left to right |
+|   3   | Prefix               | `!`, `+`, `-`, `*`, `++`, `--`                                                                                | left to right |
+|   4   | Match/Range          | `=~`, `!~`, `n..m`                                                                                            | left to right |
+|   5   | Exponent             | `**`                                                                                                          | right to left |
+|   6   | Mul,...              | `*`, `/`, `%`                                                                                                 | left to right |
+|   7   | Add,...              | `+`, `-`                                                                                                      | left to right |
+|   8   | Shift                | `<<`, `>>`                                                                                                    | left to right |
+|   9   | Compare              | `<`, `>`, `>=`, `<=`                                                                                          | left to right |
+|  10   | Equals               | `==`, `!=`                                                                                                    | left to right |
+|  11   | Bit AND              | `&`                                                                                                           | left to right |
+|  12   | Bit XOR              | `^`                                                                                                           | left to right |
+|  13   | Bit OR               | <code>&#124;</code>                                                                                           | left to right |
+|  14   | Logical AND          | `&&`                                                                                                          | left to right |
+|  15   | Logical OR           | <code>&#124;&#124;</code>                                                                                     | left to right |
+|  16   | Logical UNDEF        | `??`                                                                                                          | left to right |
+|  17   | Function Composition | <code>+&gt;</code><code>&lt;+</code>                                                                          | left to right |
+|  18   | Pipeline             | <code>&#124;&gt;</code><code>&lt;&#124;</code>                                                                | left to right |
+|  19   | Ternary, ...         | ` ? : `, `function(){}`                                                                                       | right to left |
+|  20   | Case When            | `case-when`                                                                                                   | left to right |
+|  21   | Assignment           | `=`, `+=`, `-=`, `*=`. `/=`. `%=`, `&=`, <code>&#124;=</code>, `^=`, `&&=`, <code>&#124;&#124;=</code>, `??=` | right to left |
 
 ### Pattern-Matching operator
 

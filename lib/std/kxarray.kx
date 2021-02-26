@@ -144,6 +144,54 @@ Array.partition = _function(ary, condition) {
     return [t, f];
 };
 
+Array.take = _function(ary, n) {
+    var r = [];
+    var len = ary.length();
+    if (n < len) {
+        len = n;
+    }
+    for (var i = 0; i < len; ++i) {
+        r.push(ary[i]);
+    }
+    return r;
+};
+
+Array.takeWhile = _function(ary, callback) {
+    var r = [];
+    var len = ary.length();
+    for (var i = 0; i < len; ++i) {
+        if (!callback(ary[i])) {
+            break;
+        }
+        r.push(ary[i]);
+    }
+    return r;
+};
+
+Array.drop = _function(ary, n) {
+    var r = [];
+    var len = ary.length();
+    for (var i = n; i < len; ++i) {
+        r.push(ary[i]);
+    }
+    return r;
+};
+
+Array.dropWhile = _function(ary, callback) {
+    var r = [];
+    var len = ary.length();
+    var i = 0;
+    for ( ; i < len; ++i) {
+        if (!callback(ary[i])) {
+            break;
+        }
+    }
+    for ( ; i < len; ++i) {
+        r.push(ary[i]);
+    }
+    return r;
+};
+
 Array.join = _function(ary, delm) {
     return Array.joinImpl(ary.stringify(), delm);
 };
@@ -208,6 +256,15 @@ Array.uniq = _function(ary) {
         }
     }
     return n;
+};
+
+Array.shuffle = _function(ary) {
+    ary = ary.clone();
+    for(var i = ary.length() - 1; i > 0; --i){
+        var r = Math.floor(Math.random() * (i + 1));
+        [ary[i], ary[r]] = [ary[r], ary[i]];
+    }
+    return ary;
 };
 
 Array.clone = (_function() {
