@@ -847,6 +847,10 @@ HEAD_OF_YYLEX:
             kx_lex_next(kx_lexinfo);
             return PIPEOPR2L;
         }
+        if (kx_lexinfo.ch == '+') {
+            kx_lex_next(kx_lexinfo);
+            return FCOMPOSR2L;
+        }
         return '<';
     case '~':
         kx_lex_next(kx_lexinfo);
@@ -912,6 +916,10 @@ HEAD_OF_YYLEX:
         if (kx_lexinfo.ch == '=') {
             kx_lex_next(kx_lexinfo);
             return ADDEQ;
+        }
+        if (kx_lexinfo.ch == '>') {
+            kx_lex_next(kx_lexinfo);
+            return FCOMPOSL2R;
         }
         return '+';
     case '-':
