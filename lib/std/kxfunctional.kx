@@ -1,6 +1,6 @@
 // Fiber -> Fiber
 _function _functional_pipe2_ff(f1, f2) {
-    return new Fiber { &(a)
+    return new Fiber(_function(a) {
         f1.reset();
         while (true) {
             var r1 = f1.resume(a);
@@ -18,12 +18,12 @@ _function _functional_pipe2_ff(f1, f2) {
                 yield r;
             }
         }
-    };
+    });
 }
 
 // Fiber -> function
 _function _functional_pipe2_f1(f1, f2) {
-    return { &(a)
+    return _function(a) {
         var r;
         f1.reset();
         while (true) {
@@ -40,7 +40,7 @@ _function _functional_pipe2_f1(f1, f2) {
 
 // function -> Fiber
 _function _functional_pipe2_f2(f1, f2) {
-    return new Fiber { &(a)
+    return new Fiber(_function(a) {
         var r1 = (!f1.isFunction && !f1.().isFunction) ? f1 : f1(a);
         f2.reset();
         while (true) {
@@ -52,7 +52,7 @@ _function _functional_pipe2_f2(f1, f2) {
             // passing the value to the next one by one.
             yield r;
         }
-    };
+    });
 }
 
 // Checking a combination.
@@ -69,10 +69,10 @@ _functional_pipe2 = _function(f1, f2) {
     }
     // value -> function
     if (!f1.isFunction && !f1.().isFunction) {
-        return { &(a) => f2(f1) };
+        return _function(a) { return f2(f1); };
     }
     // function -> function
-    return { &(a) => f2(f1(a)) };
+    return _function(a) { return f2(f1(a)); };
 };
 
 _functional_compose2 = _function(f1, f2) {
