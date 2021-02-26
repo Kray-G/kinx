@@ -1569,7 +1569,8 @@ LOOP_HEAD:;
         break;
     }
 
-    case KXOP_CALLP:
+    case KXOP_CALLPL:
+    case KXOP_CALLPR:
     case KXOP_CALL: {
         if (node->rhs) {
             gencode_ast_hook(ctx, node->rhs, ana, 0);
