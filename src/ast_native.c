@@ -1398,6 +1398,7 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
 
+    case KXOP_CALLP:
     case KXOP_CALL: {
         if (node->lhs->type == KXOP_VAR && strcmp(nctx->func_name, node->lhs->value.s) == 0) {
             /* recursive call of this function */

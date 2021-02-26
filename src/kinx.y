@@ -37,7 +37,7 @@ static inline void yy_restart(int token)
 %token ERROR
 %token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN ENUM FALLTHROUGH
 %token NEW VAR CONST RETURN THROW YIELD MIXIN
-%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF PIPEOP
+%token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF PIPEOPL2R PIPEOPR2L
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
 %token NUL TRUE FALSE AS
 %token IMPORT USING DARROW SQ DQ MLSTR BINEND DOTS2 DOTS3 REGPF NAMESPACE SYSNS SYSRET_NV
@@ -543,7 +543,8 @@ TernaryExpression
 
 PipelineExpression
     : LogicalUndefExpression
-    | PipelineExpression PIPEOP LogicalUndefExpression { $$ = kx_gen_bexpr_object(KXOP_CALL, $3, $1); }
+    | PipelineExpression PIPEOPL2R LogicalUndefExpression { $$ = kx_gen_bexpr_object(KXOP_CALLP, $3, $1); }
+    | PipelineExpression PIPEOPR2L LogicalUndefExpression { $$ = kx_gen_expr_right_object(KXOP_CALLP, KXOP_CALLP, $1, $3); }
     ;
 
 LogicalUndefExpression
@@ -734,7 +735,7 @@ PropertyName
     | FALSE { $$ = kx_gen_str_object("false"); }
     | IMPORT { $$ = kx_gen_str_object("import"); }
     | USING { $$ = kx_gen_str_object("using"); }
-    | PIPEOP { $$ = kx_gen_str_object("|>"); }
+    | PIPEOPL2R { $$ = kx_gen_str_object("|>"); }
     | POW { $$ = kx_gen_str_object("**"); }
     | SHL { $$ = kx_gen_str_object("<<"); }
     | SHR { $$ = kx_gen_str_object(">>"); }
