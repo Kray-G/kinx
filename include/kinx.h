@@ -164,6 +164,8 @@ enum opecode {
     KXOP_REGEQ,
     KXOP_REGNE,
     KXOP_CALL,
+    KXOP_CALLP,
+    KXOP_COMPOSIT,
     KXOP_IMPORT,
     KXOP_TYPEOF,
     KXOP_CAST,

@@ -499,6 +499,7 @@ LOOP_HEAD:;
         display_def_ast(dctx, node->lhs, 0);
         display_def_ast(dctx, node->rhs, 0);
         break;
+    case KXOP_CALLP:
     case KXOP_CALL:
         print_call_info(dctx, node);
         display_def_ast(dctx, node->lhs, 0);
