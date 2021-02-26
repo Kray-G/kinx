@@ -10,7 +10,10 @@
 ## V1.0.0-RC1 (Current Development Version)
 
 *   Updated
-    *   Supported a pipeline operator such as `a |> b` which is just same as `b(a)`.
+    *   Supported a pipeline operator of `a |> b` which is just same as `b(a)`.
+    *   Supported a pipeline operator of `a <| b` which is just same as `a(b)`.
+    *   Supported a function composition operator of `a +> b` which is like `{ => b(a(_1)) }`.
+    *   Supported a function composition operator of `a <+ b` which is like `{ => a(b(_1)) }`.
     *   Supported GUI library, which is based on webview.
     *   Some bug fixes and improvements.
 *   Planned
