@@ -30,6 +30,20 @@ var result = "hello"
 System.println(result); // => "Hello, hello!"
 ```
 
+The operator `<|` is also available.
+This is connected in opposite direction and passing a value from the right to the left.
+Here is an example.
+
+```
+var result =
+     exclaim
+  <| capitalize
+  <| doubleSay
+  <| "hello";
+
+System.println(result); // => "Hello, hello!"
+```
+
 If you want to use multiple arguments with pipeline, use a lambda as a spot.
 
 ```javascript
@@ -171,4 +185,34 @@ str |> String.length |> System.println;
 
 ```
 24
+```
+
+### Example 6. Opposite Direction
+
+#### Code
+
+```javascript
+function doubleSay(str) {
+    return "%{str}, %{str}";
+}
+function capitalize(str) {
+    return str.toUpper(0, 1);
+}
+function exclaim(str) {
+    return str + '!';
+}
+
+var result =
+     exclaim
+  <| capitalize
+  <| doubleSay
+  <| "hello";
+
+System.println(result); // => "Hello, hello!"
+```
+
+#### Result
+
+```
+Hello, hello!
 ```
