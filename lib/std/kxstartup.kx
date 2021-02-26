@@ -6,7 +6,7 @@ const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopItera
 const SystemException, RuntimeException, FileException, StopIterationException, FiberException, SocketException;
 const Boolean, True, False;
 var $stdin, $stdout, $stderr;
-var Xml, Net;
+var Xml, Net, _functional_pipe2, _functional_compose2;
 (_function() {
     System = _import('kxsystem');
     String = _import('kxstring');
@@ -27,6 +27,7 @@ var Xml, Net;
     using kxxml;
     using kxnet;
     using kxenumerable;
+    using kxfunctional;
     using kxsysutil;
     using kxstring;
     using kxarray;
