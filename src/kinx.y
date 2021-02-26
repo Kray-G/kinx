@@ -161,6 +161,7 @@ static inline void yy_restart(int token)
 %type<intval> ReturnType_Opt
 %type<intval> GetLineNumber
 %type<obj> PipelineExpression
+%type<obj> FunctionCompositionExpression
 %type<obj> CaseWhenExpression
 %type<obj> WhenClauseList
 %type<obj> WhenClause
@@ -542,9 +543,15 @@ TernaryExpression
     ;
 
 PipelineExpression
+    : FunctionCompositionExpression
+    | PipelineExpression PIPEOPL2R FunctionCompositionExpression { $$ = kx_gen_bexpr_object(KXOP_CALLPL, $3, $1); }
+    | PipelineExpression PIPEOPR2L FunctionCompositionExpression { $$ = kx_gen_expr_right_object(KXOP_CALLPR, KXOP_CALLPR, $1, $3); }
+    ;
+
+FunctionCompositionExpression
     : LogicalUndefExpression
-    | PipelineExpression PIPEOPL2R LogicalUndefExpression { $$ = kx_gen_bexpr_object(KXOP_CALLPL, $3, $1); }
-    | PipelineExpression PIPEOPR2L LogicalUndefExpression { $$ = kx_gen_expr_right_object(KXOP_CALLPR, KXOP_CALLPR, $1, $3); }
+    | FunctionCompositionExpression FCOMPOSL2R LogicalUndefExpression { $$ = kx_gen_bexpr_object(KXOP_COMPOSITL, $1, $3); }
+    | FunctionCompositionExpression FCOMPOSR2L LogicalUndefExpression { $$ = kx_gen_expr_right_object(KXOP_COMPOSITR, KXOP_COMPOSITR, $1, $3); }
     ;
 
 LogicalUndefExpression
