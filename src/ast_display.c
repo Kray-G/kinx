@@ -310,6 +310,16 @@ LOOP_HEAD:;
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, 0);
         break;
+    case KXOP_CALLPL:
+        printf("(pipeline-l):%s\n", get_disp_node_typename(node));
+        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->rhs, indent + 1, 0);
+        break;
+    case KXOP_CALLPR:
+        printf("(pipeline-r):%s\n", get_disp_node_typename(node));
+        display_ast(node->lhs, indent + 1, 0);
+        display_ast(node->rhs, indent + 1, 0);
+        break;
     case KXOP_CALL:
         printf("(call):%s\n", get_disp_node_typename(node));
         display_ast(node->lhs, indent + 1, 0);
