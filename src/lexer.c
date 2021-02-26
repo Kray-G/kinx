@@ -843,6 +843,10 @@ HEAD_OF_YYLEX:
             }
             return SHL;
         }
+        if (kx_lexinfo.ch == '|') {
+            kx_lex_next(kx_lexinfo);
+            return PIPEOPR2L;
+        }
         return '<';
     case '~':
         kx_lex_next(kx_lexinfo);
@@ -874,7 +878,7 @@ HEAD_OF_YYLEX:
         }
         if (kx_lexinfo.ch == '>') {
             kx_lex_next(kx_lexinfo);
-            return PIPEOP;
+            return PIPEOPL2R;
         }
         return '|';
     case '&':
