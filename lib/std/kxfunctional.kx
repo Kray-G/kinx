@@ -56,7 +56,7 @@ _function _functional_pipe2_f2(f1, f2) {
 }
 
 // Checking a combination.
-_functional_pipe2 = _function(f1, f2) {
+__functional_pipe2 = _function(f1, f2) {
     // with Fiber
     if (f1.isFiber && f2.isFiber) {
         return _functional_pipe2_ff(f1, f2);
@@ -75,6 +75,344 @@ _functional_pipe2 = _function(f1, f2) {
     return _function(a) { return f2(f1(a)); };
 };
 
-_functional_compose2 = _function(f1, f2) {
+__functional_compose2 = _function(f1, f2) {
     return _functional_pipe2(f2, f1);
 };
+
+_Functional = (_function() {
+    _function _functional_enumerator(e) {
+        if (e.isFunction) {
+            return _function() {
+                return { value: e(), done: false };
+            };
+        }
+        if (e.isFiber) {
+            e.reset();
+            return _function() {
+                const value = e.resume();
+                if (e.isAlive()) {
+                    return { value: value, done: false };
+                }
+                return { done: true };
+            };
+        }
+        if (e.enumerator.isFunction || e.isFile || e.isArray || e.isObject) {
+            var enumerator = new Enumerator(e);
+            return _function() {
+                const value = enumerator.next();
+                if (!enumerator.isEnded()) {
+                    return { value: value, done: false };
+                }
+                return { done: true };
+            };
+        }
+        var count = 0;
+        return _function() {
+            if (count++ == 0) {
+                return { value: e, done: false };
+            }
+            return { done: true };
+        };
+    }
+
+    _class Functional {
+        @enumerable = @Enumerator.create = _functional_enumerator;
+        private initialize() {
+            @collect = @map;
+            @collectConcat = @flatMap;
+            @inject = @reduce;
+            @select = @findAll = @filter;
+        }
+        public filter(predicate) {
+            return _function(sequence) {
+                return _function() {
+                    while (true) {
+                        const value = sequence();
+                        if (value.done) {
+                            break;
+                        }
+                        if (predicate(value.value)) {
+                            return value;
+                        }
+                    }
+                    return { done: true };
+                };
+            };
+        }
+        public reject(predicate) {
+            return _function(sequence) {
+                return _function() {
+                    while (true) {
+                        const value = sequence();
+                        if (value.done) {
+                            break;
+                        }
+                        if (!predicate(value.value)) {
+                            return value;
+                        }
+                    }
+                    return { done: true };
+                };
+            };
+        }
+        public map(mapping) {
+            return _function(sequence) {
+                return _function() {
+                    const value = sequence();
+                    if (!value.done) {
+                        return { value: mapping(value.value), done: false };
+                    }
+                    return { done: true };
+                };
+            };
+        }
+        public flatMap(mapping) {
+            return _function(sequence) {
+                var r = [];
+                return _function() {
+                    var active = true;
+                    while (active) {
+                        if (r.length() > 0) {
+                            return r.shift();
+                        }
+                        const value = sequence();
+                        if (value.done) {
+                            active = false;
+                            break;
+                        }
+                        var mapped = mapping(value.value);
+                        if (mapped.isArray) {
+                            mapped.flatten().each { &(e) => r.push({ value: e, done: false }) };
+                        } else {
+                            return { value: mapped, done: false };
+                        }
+                    }
+                    return { done: true };
+                };
+            };
+        }
+        public take(n) {
+            return _function(sequence) {
+                var count = 0;
+                return _function() {
+                    if (count < n) {
+                        count++;
+                        return sequence();
+                    }
+                    return { done: true };
+                };
+            };
+        }
+        public takeWhile(predicate) {
+            return _function(sequence) {
+                return _function() {
+                    const value = sequence();
+                    if (!value.done && predicate(value.value)) {
+                        return value;
+                    }
+                    return { done: true };
+                };
+            };
+        }
+        public drop(n) {
+            return _function(sequence) {
+                var count = 0;
+                return _function() {
+                    for ( ; count < n; ++count) {
+                        const value = sequence();
+                        if (value.done) {
+                            count = n;
+                            return { done: true };
+                        }
+                    }
+                    return sequence();
+                };
+            };
+        }
+        public dropWhile(predicate) {
+            return _function(sequence) {
+                var active = true;
+                return _function() {
+                    while (active) {
+                        const value = sequence();
+                        if (value.done) {
+                            active = false;
+                            return { done: true };
+                        }
+                        if (!predicate(value.value)) {
+                            active = false;
+                            return value;
+                        }
+                    }
+                    return sequence();
+                };
+            };
+        }
+        public sort(sequence) {
+            var r = [];
+            var value = sequence();
+            while (!value.done) {
+                r.push(value.value);
+                value = sequence();
+            }
+            r = r.sort();
+            var index = 0;
+            return _function() {
+                if (index < r.length()) {
+                    return { value: r[index++], done: false };
+                }
+                return { done: true };
+            };
+        }
+        public shuffle(sequence) {
+            var r = [];
+            var value = sequence();
+            while (!value.done) {
+                r.push(value.value);
+                value = sequence();
+            }
+            r = r.shuffle();
+            var index = 0;
+            return _function() {
+                if (index < r.length()) {
+                    return { value: r[index++], done: false };
+                }
+                return { done: true };
+            };
+        }
+        public print(argument) {
+            if (argument.isString) {
+                return _function(sequence) {
+                    return _function() {
+                        var value = sequence();
+                        if (!value.done) {
+                            System.print(argument, value.value);
+                        }
+                        return value;
+                    };
+                };
+            }
+            const sequence = argument;
+            return _function() {
+                var value = sequence();
+                if (!value.done) {
+                    System.print(value.value);
+                }
+                return value;
+            };
+        }
+        public println(argument) {
+            if (argument.isString) {
+                return _function(sequence) {
+                    return _function() {
+                        var value = sequence();
+                        if (!value.done) {
+                            System.println(argument, value.value);
+                        }
+                        return value;
+                    };
+                };
+            }
+            const sequence = argument;
+            return _function() {
+                var value = sequence();
+                if (!value.done) {
+                    System.println(value.value);
+                }
+                return value;
+            };
+        }
+        public trace(value) {
+            System.println(value);
+            return value;
+        }
+
+        public any(predicate) {
+            return _function(sequence) {
+                var value = sequence();
+                while (!value.done) {
+                    if (predicate(value.value)) {
+                        return true;
+                    }
+                    value = sequence();
+                }
+                return false;
+            };
+        }
+        public all(predicate) {
+            return _function(sequence) {
+                var value = sequence();
+                while (!value.done) {
+                    if (!predicate(value.value)) {
+                        return false;
+                    }
+                    value = sequence();
+                }
+                return true;
+            };
+        }
+        public partition(predicate) {
+            return _function(sequence) {
+                var t = [];
+                var f = [];
+                var value = sequence();
+                while (!value.done) {
+                    if (predicate(value.value)) {
+                        t.push(value.value);
+                    } else {
+                        f.push(value.value);
+                    }
+                    value = sequence();
+                }
+                return [t, f];
+            };
+        }
+        public sum(sequence) {
+            var result = 0;
+            var value = sequence();
+            while (!value.done) {
+                result += value.value;
+                value = sequence();
+            }
+            return result;
+        }
+        public toArray(sequence) {
+            const arr = [];
+            var value = sequence();
+            while (!value.done) {
+                arr.push(value.value);
+                value = sequence();
+            }
+            return arr;
+        }
+        public each(procedure) {
+            return _function(sequence) {
+                var value = sequence();
+                while (!value.done) {
+                    procedure(value.value);
+                    value = sequence();
+                }
+            };
+        }
+        public reduce(accumulator, startValue) {
+            return _function(sequence) {
+                var result = startValue;
+                var value = sequence();
+                while (!value.done) {
+                    result = accumulator(result, value.value);
+                    value = sequence();
+                }
+                return result;
+            };
+        }
+        public printlnAll(sequence) {
+            var value = sequence();
+            while (!value.done) {
+                System.println(value.value);
+                value = sequence();
+            }
+        }
+    }
+
+    return new Functional();
+})();
