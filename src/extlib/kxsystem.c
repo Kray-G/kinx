@@ -2036,7 +2036,8 @@ int System_isDebuggerMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
 static int is_text_in_clipboard()
 {
     UINT list[1] = { CF_TEXT };
-    return GetPriorityClipboardFormat(list, 1) == CF_TEXT;
+    int prop = GetPriorityClipboardFormat(list, 1);
+    return prop == CF_UNICODETEXT || prop == CF_TEXT;
 }
 
 static int open_clipboard(int retry, int interval)
@@ -2052,23 +2053,23 @@ static int open_clipboard(int retry, int interval)
 
 static int set_clipboard_text(const char *str)
 {
-    int    size;
-    char   *buf;
-    HANDLE mem;
+    int length = strlen(str) + 1;
+    int size = MultiByteToWideChar(CP_UTF8, 0, str, length, NULL, 0);
+    if (size == 0) {
+        return 0;
+    }
 
-    size = strlen(str) + 1;
-    mem = GlobalAlloc(GMEM_SHARE | GMEM_MOVEABLE, size);
+    HGLOBAL mem = GlobalAlloc(GMEM_SHARE | GMEM_MOVEABLE, sizeof(wchar_t) * size);
     if (!mem) return 0;
 
-    buf = (char*)GlobalLock(mem);
+    wchar_t *buf = (wchar_t *)GlobalLock(mem);
     if (buf) {
-        char *conv = conv_utf82acp_alloc(str);
-        strcpy(buf, conv);
-        conv_free(conv);
+        int ret = MultiByteToWideChar(CP_UTF8, 0, str, length, buf, size);
+        buf[size - 1] = 0;
         GlobalUnlock(mem);
         if (open_clipboard(30, 100)) {
             EmptyClipboard();
-            SetClipboardData(CF_TEXT, mem);
+            SetClipboardData(CF_UNICODETEXT, mem);
             CloseClipboard();
             GlobalFree(mem);
             return 1;
@@ -2080,22 +2081,22 @@ static int set_clipboard_text(const char *str)
 
 static void get_clipboard_text(kstr_t *str)
 {
-    HANDLE mem;
-    char   *text = NULL;
-
     ks_clear(str);
     if (!is_text_in_clipboard()) {
         return;
     }
 
     if (open_clipboard(30, 100)) {
-        mem = GetClipboardData(CF_TEXT);
+        HANDLE mem = GetClipboardData(CF_UNICODETEXT);
         if (mem) {
-            text = (char*)GlobalLock(mem);
+            wchar_t *text = (wchar_t *)GlobalLock(mem);
             if (text) {
-                char *conv = conv_acp2utf8_alloc(text);
-                ks_append(str, conv);
-                conv_free(conv);
+                int size = WideCharToMultiByte(CP_UTF8, 0, text, -1, NULL, 0, NULL, NULL);
+                char *buf = kx_calloc(size, sizeof(char));
+                if (WideCharToMultiByte(CP_UTF8, 0, text, -1, buf, size, NULL, NULL) > 0) {
+                    ks_append(str, buf);
+                }
+                kx_free(buf);
             }
             GlobalUnlock(mem);
         }
