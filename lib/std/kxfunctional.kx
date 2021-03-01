@@ -248,6 +248,17 @@ _Functional = (_function() {
                 };
             };
         }
+        public each(procedure) {
+            return _function(sequence) {
+                return _function() {
+                    var value = sequence();
+                    if (!value.done) {
+                        procedure(value.value);
+                    }
+                    return value;
+                };
+            };
+        }
         public sort(sequence) {
             var r = [];
             var value = sequence();
@@ -280,46 +291,36 @@ _Functional = (_function() {
                 return { done: true };
             };
         }
+        private printImpl(func, argument, value) {
+            if (!value.done) {
+                func(argument, value.value);
+            }
+            return value;
+        }
         public print(argument) {
             if (argument.isString) {
                 return _function(sequence) {
                     return _function() {
-                        var value = sequence();
-                        if (!value.done) {
-                            System.print(argument, value.value);
-                        }
-                        return value;
+                        return printImpl(System.print, argument, sequence());
                     };
                 };
             }
             const sequence = argument;
             return _function() {
-                var value = sequence();
-                if (!value.done) {
-                    System.print(value.value);
-                }
-                return value;
+                return printImpl(System.print, argument, sequence());
             };
         }
         public println(argument) {
             if (argument.isString) {
                 return _function(sequence) {
                     return _function() {
-                        var value = sequence();
-                        if (!value.done) {
-                            System.println(argument, value.value);
-                        }
-                        return value;
+                        return printImpl(System.println, argument, sequence());
                     };
                 };
             }
             const sequence = argument;
             return _function() {
-                var value = sequence();
-                if (!value.done) {
-                    System.println(value.value);
-                }
-                return value;
+                return printImpl(System.println, argument, sequence());
             };
         }
         public trace(value) {
@@ -384,15 +385,6 @@ _Functional = (_function() {
                 value = sequence();
             }
             return arr;
-        }
-        public each(procedure) {
-            return _function(sequence) {
-                var value = sequence();
-                while (!value.done) {
-                    procedure(value.value);
-                    value = sequence();
-                }
-            };
         }
         public reduce(accumulator, startValue) {
             return _function(sequence) {
