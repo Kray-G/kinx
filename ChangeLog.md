@@ -17,10 +17,11 @@
         *   Supported a pipeline operator of `a <| b` which is just same as `a(b)`.
         *   Supported a function composition operator of `a +> b` which is like `{ => b(a(_1)) }`.
         *   Supported a function composition operator of `a <+ b` which is like `{ => a(b(_1)) }`.
+    *   Documentation & SpecTest complete.
+        *   The documents which was planned has been prepared at least, although the quality should be increased.
     *   Some bug fixes and improvements.
 *   Planned
     *   Support to read/write from/to Clipboard.
-    *   Documentation & SpecTest complete.
     *   Support Package Manager.
 
 [pline]: docs/spec/statement/expression/pipeline.md
