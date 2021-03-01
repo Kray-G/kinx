@@ -3,6 +3,7 @@
 ## V1.1.0 (Future Planned)
 
 *   Planned, or remaining tasks.
+    *   Support GUI library.
     *   Support OpenCV library.
     *   Support HTTP Server library.
     *   Support Cryptography library.
@@ -10,16 +11,21 @@
 ## V1.0.0-RC1 (Current Development Version)
 
 *   Updated
-    *   Supported a pipeline operator of `a |> b` which is just same as `b(a)`.
-    *   Supported a pipeline operator of `a <| b` which is just same as `a(b)`.
-    *   Supported a function composition operator of `a +> b` which is like `{ => b(a(_1)) }`.
-    *   Supported a function composition operator of `a <+ b` which is like `{ => a(b(_1)) }`.
-    *   Supported GUI library, which is based on webview.
+    *   Supported a pipeline and a function compoition operator.
+        See [a pipeline][pline], [a function composition][fcomp], and a library of [Functional][] for details.
+        *   Supported a pipeline operator of `a |> b` which is just same as `b(a)`.
+        *   Supported a pipeline operator of `a <| b` which is just same as `a(b)`.
+        *   Supported a function composition operator of `a +> b` which is like `{ => b(a(_1)) }`.
+        *   Supported a function composition operator of `a <+ b` which is like `{ => a(b(_1)) }`.
     *   Some bug fixes and improvements.
 *   Planned
     *   Support to read/write from/to Clipboard.
     *   Documentation & SpecTest complete.
     *   Support Package Manager.
+
+[pline]: docs/spec/statement/expression/pipeline.md
+[fcomp]: docs/spec/statement/expression/function_composition.md
+[Functional]: docs/spec/lib/basic/functional.md
 
 ## V0.21.0 (21th Preview Release) - 2021/02/16
 
