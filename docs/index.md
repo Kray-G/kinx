@@ -167,7 +167,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [Zip](spec/lib/basic/zip.md)
 *   [SQLite](spec/lib/basic/sqlite.md)
 *   [JIT](spec/lib/basic/jit.md)
-*   [Parsek](spec/lib/basic/parsek.md) - *not documented yet*
+*   [Parsek](spec/lib/basic/parsek.md)
 
 ##### Network Objects
 
