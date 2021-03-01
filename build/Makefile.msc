@@ -213,7 +213,7 @@ kinx.res: kinx.rc
 	$(RC) kinx.rc
 
 kxsystem.dll: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj $(PICOBJS)
-	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsystem.c $(PICOBJS) $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsystem.c $(PICOBJS) $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj user32.lib
 
 kxstring.dll: $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
