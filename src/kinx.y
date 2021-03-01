@@ -665,8 +665,8 @@ SimpleFuncCallFactorOrBlock
     ;
 
 SimpleFuncCallFactor
-    : LBBR FunctionType_Opt DARROW TernaryExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, NULL, NULL, kx_gen_stmt_object(KXST_RET, $4, NULL, NULL), NULL); }
-    | LBBR '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW TernaryExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $6, NULL, $4, kx_gen_stmt_object(KXST_RET, $8, NULL, NULL), NULL); }
+    : LBBR FunctionType_Opt DARROW AssignExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, NULL, NULL, kx_gen_stmt_object(KXST_RET, $4, NULL, NULL), NULL); }
+    | LBBR '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW AssignExpression RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $6, NULL, $4, kx_gen_stmt_object(KXST_RET, $8, NULL, NULL), NULL); }
     | LBBR '&' '(' ArgumentList_Opts ')' FunctionType_Opt StatementList RBBR { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $6, NULL, $4, $7, NULL); }
     ;
 
@@ -1000,7 +1000,7 @@ AnonymousFunctionDeclExpression
     | SYSFUNC '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_FUNCTION, KXFT_SYSFUNC, $5, NULL, $3, $6, NULL, $1); }
     | COROUTINE '(' ArgumentList_Opts ')' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object_line(KXST_COROUTINE, KXFT_SYSFUNC, $5, NULL, $3, $6, NULL, $1); }
     | NativeKeyword '(' ArgumentList_Opts ')' NativeType_Opt BlockStatement { $$ = kx_gen_func_object(KXST_NATIVE, 0, $5, NULL, $3, $6, NULL); }
-    | '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW TernaryExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, kx_gen_stmt_object(KXST_RET, $7, NULL, NULL), NULL); }
+    | '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW AssignExpression { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, kx_gen_stmt_object(KXST_RET, $7, NULL, NULL), NULL); }
     | '&' '(' ArgumentList_Opts ')' FunctionType_Opt DARROW BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $5, NULL, $3, $7, NULL); }
     | '&' FunctionType_Opt BlockStatement { $$ = kx_gen_func_object(KXST_FUNCTION, KXFT_FUNCTION, $2, NULL, NULL, $3, NULL); }
     ;
