@@ -141,3 +141,14 @@ _class _Iconv(tocode, fromcode) {
         return System.iconvConvertStr(tocode, fromcode, input);
     }
 }
+
+# Clipboard
+
+_class _Clipboard {
+    public write(text) {
+        return System.setTextToClipboard(text);
+    }
+    public read() {
+        return System.getTextFromClipboard();
+    }
+}
