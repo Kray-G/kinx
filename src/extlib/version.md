@@ -6,6 +6,7 @@
 | ---------- | :---: | :--------------: | :--------: | ------------------------------------- | ------------------------------------------------ |
 | oniguruma  |  Src  |      6.9.6       | 2021.02.12 | https://github.com/kkos/oniguruma     | [License](../../docs/licenses/LICENSE.oniguruma) |
 | sqlite3    |  Src  |      3.34.1      | 2021.02.12 | https://www.sqlite.org/               | [License](../../docs/licenses/LICENSE.sqlite3)   |
+| duktape    |  Src  |      2.6.0       | 2021.03.01 | https://github.com/svaarala/duktape   | [License](../../docs/licenses/LICENSE.duktape)   |
 | minizip-ng |  Lib  |      3.0.0       | 2021.02.12 | https://github.com/zlib-ng/minizip-ng | [License](../../docs/licenses/LICENSE.minizip)   |
 | OpenSSL    |  Lib  | 3.0.0alpha12-dev | 2021.02.15 | https://github.com/openssl/openssl    | [License](../../docs/licenses/LICENSE.openssl)   |
 | libxml2    |  Lib  |      2.9.10      | 2021.02.15 | https://github.com/GNOME/libxml2      | [License](../../docs/licenses/LICENSE.libxml2)   |
@@ -19,6 +20,7 @@
 | ------------ | :---: | :--------------: | :--------: | ------------------------------------- | --------------------------------------------------- |
 | oniguruma    |  Src  |      6.9.6       | 2021.02.12 | https://github.com/kkos/oniguruma     | [License](../../docs/licenses/LICENSE.oniguruma)    |
 | sqlite3      |  Src  |      3.34.1      | 2021.02.12 | https://www.sqlite.org/               | [License](../../docs/licenses/LICENSE.sqlite3)      |
+| duktape      |  Src  |      2.6.0       | 2021.03.01 | https://github.com/svaarala/duktape   | [License](../../docs/licenses/LICENSE.duktape)      |
 | libclipboard |  Src  |       1.1        | 2021.03.01 | https://github.com/jtanx/libclipboard | [License](../../docs/licenses/LICENSE.libclipboard) |
 | minizip-ng   |  Lib  |      3.0.0       | 2021.02.15 | https://github.com/zlib-ng/minizip-ng | [License](../../docs/licenses/LICENSE.minizip)      |
 | OpenSSL      |  Lib  | 3.0.0alpha12-dev | 2021.02.15 | https://github.com/openssl/openssl    | [License](../../docs/licenses/LICENSE.openssl)      |
