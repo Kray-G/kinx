@@ -75,7 +75,7 @@ Therefore, `Functional.trace` can be used before `Functional.enumerable` as an e
     |> Functional.trace
     |> Functional.enumerable
     |> Functional.each { => Functional.trace(_1) }
-    |> Functional.reduce(&(r, e) => (r += e), 0)
+    |> Functional.reduce(&(r, e) => r += e, 0)
     |> Functional.trace
     ;
 
@@ -450,7 +450,7 @@ var printlnArray = $F.toArray +> println;
     |> Functional.trace
     |> Functional.enumerable
     |> Functional.each { => Functional.trace(_1) }
-    |> Functional.reduce(&(r, e) => (r += e), 0)
+    |> Functional.reduce(&(r, e) => r += e, 0)
     |> Functional.trace
     ;
 ```
