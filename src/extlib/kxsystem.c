@@ -2067,15 +2067,16 @@ static int set_clipboard_text(const char *str)
         int ret = MultiByteToWideChar(CP_UTF8, 0, str, length, buf, size);
         buf[size - 1] = 0;
         GlobalUnlock(mem);
-        if (open_clipboard(30, 100)) {
+        if (ret > 0 && open_clipboard(30, 100)) {
             EmptyClipboard();
             SetClipboardData(CF_UNICODETEXT, mem);
             CloseClipboard();
             GlobalFree(mem);
             return 1;
         }
-        GlobalFree(mem);
     }
+
+    GlobalFree(mem);
     return 0;
 }
 
