@@ -875,6 +875,7 @@ static int is_terminate(void)
 }
 thread_return_t STDCALL signal_thread(void *pp)
 {
+    (void)pp;
     /* detach first */
     pthread_detach(pthread_self());
 
@@ -902,10 +903,6 @@ thread_return_t STDCALL signal_thread(void *pp)
         }
     }
     return 0;
-}
-void kx_signal_handler(int signum)
-{
-    g_terminated = 1;
 }
 #endif
 
@@ -935,7 +932,7 @@ int main(int argc, char** argv)
     SetConsoleCtrlHandler(kx_signal_handler, TRUE);
     #else
     pthread_t sigth;
-    pthread_create_extra(&sigth, 0, &signal_thread, 0);
+    pthread_create_extra(&sigth, &signal_thread, NULL, 0);
     #endif
     if (start_webserver(20, default_port, path, 1, KX_WEBSERVER_EXPIRED_SECONDS)) {
         while (run_webserver(&is_terminate)) {
