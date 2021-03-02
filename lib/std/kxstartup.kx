@@ -1,5 +1,5 @@
 const STDIN, STDOUT, STDERR, $exepath, $kinxpath, $libpath, $pkgpath;
-const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Duktape, Debugger;
+const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Clipboard, Duktape, Debugger;
 const Isolate, Enumerable, Enumerator, Range;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass, SocketExceptionClass;
@@ -51,6 +51,7 @@ var Xml, Net;
     System.setupRange(Range.create);
     System.getopt = new Fiber(new GetOpt().getopt).resume;
     Iconv = _Iconv;
+    Clipboard = _Clipboard;
     $stdin = new File('<stdin>', File.READ);
     $stdin.print = $stdin.printImpl;
     $stdin.println = $stdin.printlnImpl;

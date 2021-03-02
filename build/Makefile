@@ -164,6 +164,7 @@ install:
 	cp -f ./kxrepl /usr/bin/kxrepl
 	cp -f ./kxtest /usr/bin/kxtest
 	cp -rf $(KXLIBD)/* /usr/bin/kinxlib/
+	cp -f ./kxsel /usr/bin/kinxlib/kxsel
 	cp -f $(DOCDIR)/licenses/LICENSE.* /usr/bin/kinxlib/docs/licenses/
 	cp -f $(INCDIR)/libkinx.h /usr/bin/kinxlib/include/libkinx.h
 	cp -f $(INCDIR)/fileutil.h /usr/bin/kinxlib/include/fileutil.h
@@ -218,8 +219,8 @@ libkinx.so: $(SRCDIR)/optimizer.c $(SRCDIR)/parser.c $(INCDIR)/parser.tab.h libo
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
 	ar rcs libkx.a fileutil.o
 
-kxsystem.so: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h kc-json.o duktape.o $(PICOBJS)
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o -lm
+kxsystem.so: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h kc-json.o duktape.o libclipboard.a $(PICOBJS)
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o libclipboard.a -lm -lxcb
 
 kxstring.so: $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
@@ -322,6 +323,9 @@ kc-json.o: $(SRCDIR)/extlib/kc-json/dist/kc-json.c $(SRCDIR)/extlib/kc-json/dist
 
 duktape.o: $(SRCDIR)/extlib/duktape/duktape.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<
+
+libclipboard.a: $(SRCDIR)/extlib/libclipboard/src/clipboard_x11.c
+	cd $(SRCDIR)/extlib/libclipboard/; make
 
 sqlite3.o: $(SRCDIR)/extlib/sqlite/sqlite3.c
 	./timex $(CC) -fPIC -c $(CFLAGS) -o $@ $<

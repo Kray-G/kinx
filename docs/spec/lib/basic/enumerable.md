@@ -12,23 +12,23 @@ For example, the `Range` can also use the following interfaces.
 
 `Lazy` field means the lazy operation will be performed after you call `lazy()` and use the `Enumerator` object returned by `lazy()`.
 
-|         Name         |                                   Outline                                   | Lazy  |
-| -------------------- | --------------------------------------------------------------------------- | :---: |
-| filter(func)         | Filter by the element returned by `func`.                                   |   O   |
-| map(func)            | Map by the element returned by `func`.                                      |   O   |
-| flatMap(func)        | Map by the element returned by `func`, then flatten the all result.         |   O   |
-| take(n)              | Take `n` elements from the beginning.                                       |   O   |
-| takeWhile(func)      | Take an element while returning true by `func`.                             |   O   |
-| drop(n)              | Skip `n` elements from the beginning.                                       |   O   |
-| dropWhile(func)      | Skip an element while returning true by `func`.                             |   O   |
-| each(func)           | Applying `func` for each.                                                   |   O   |
-| reduce(func, initer) | Reduce by the result of `func`. `initer` is the initial value if necessary. |       |
-| sort(func)           | Sort elements by comparing with the result of `func`                        |       |
-| all(func)            | true if the result of `func` is all true for all elements.                  |       |
-| any(func)            | true if there is at least one element which is true returned by `func`.     |       |
-| toArray()            | Returns elements as Array.                                                  |       |
-| println()            | Apply `System.println` for all elements.                                    |       |
-| lazy()               | Returns `Enumerator` for lazy operation.                                    |       |
+|         Name         |                                   Outline                                    | Lazy  |
+| -------------------- | ---------------------------------------------------------------------------- | :---: |
+| filter(func)         | Filters by the element returned by `func`.                                   |   O   |
+| map(func)            | Maps by the element returned by `func`.                                      |   O   |
+| flatMap(func)        | Maps by the element returned by `func`, then flatten the all result.         |   O   |
+| take(n)              | Takes `n` elements from the beginning.                                       |   O   |
+| takeWhile(func)      | Takes an element while returning true by `func`.                             |   O   |
+| drop(n)              | Skips `n` elements from the beginning.                                       |   O   |
+| dropWhile(func)      | Skips an element while returning true by `func`.                             |   O   |
+| each(func)           | Applies `func` for each.                                                     |   O   |
+| reduce(func, initer) | Reduces by the result of `func`. `initer` is the initial value if necessary. |       |
+| sort(func)           | Sorts elements by comparing with the result of `func`                        |       |
+| all(func)            | true if the result of `func` is all true for all elements.                   |       |
+| any(func)            | true if there is at least one element which is true returned by `func`.      |       |
+| toArray()            | Returns elements as Array.                                                   |       |
+| println()            | Applies `System.println` for all elements.                                   |       |
+| lazy()               | Returns `Enumerator` for lazy operation.                                     |       |
 
 ## Examples
 
