@@ -10,8 +10,8 @@
 
     Build
     * VisualStudio
-        $ cl /Fetinyweb.exe /Iinclude /DSTANDALONE_WEBSERVER src\extlib\tinyweb\tinyweb.c src\global.obj src\fileutil.c ws2_32.lib
-        $ gcc -o tinyweb.exe -I include -DSTANDALONE_WEBSERVER src/extlib/tinyweb/tinyweb.c build/global.obj build/fileutil.c -pthread
+        $ cl /Fetinyweb.exe /Iinclude /DSTANDALONE_WEBSERVER src\extlib\tinyweb\tinyweb.c src\global.obj src\fileutil.obj ws2_32.lib
+        $ gcc -o tinyweb.exe -I include -DSTANDALONE_WEBSERVER src/extlib/tinyweb/tinyweb.c build/global.o build/fileutil.o -pthread
 */
 
 #if defined(_WIN32) || defined(_WIN64)
