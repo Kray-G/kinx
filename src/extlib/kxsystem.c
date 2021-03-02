@@ -2117,12 +2117,16 @@ static int set_clipboard_text(const char *str)
     }
 
     int fd[2];
-    pipe(fd);
-    switch(fork()) {
-    case -1:
+    if (pipe(fd) != 0) {
+        return 0;
+    }
+    int cpid = fork();
+    if (cpid == -1) {
         // invoking a child process failed.
         return 0;
-    case 0: {
+    }
+
+    if (cpid == 0) {
         // a child process.
         close(fd[1]);
         if (dup2(fd[0], STDIN_FILENO) == -1) {
@@ -2130,18 +2134,15 @@ static int set_clipboard_text(const char *str)
         }
         close(fd[0]);
         execlp(buf, buf, "-b", NULL) ;
-        break;
+        // not coming here.
+    } else {
+        // a parent process, it is this process.
+        close(fd[0]);
+        write(fd[1], str, strlen(str) + 1);
+        close(fd[1]);
+        int status;
+        wait(&status);
     }
-    default:
-        break;
-    }
-
-    // a parent process, it is this process.
-    close(fd[0]);
-    write(fd[1], str, strlen(str) + 1);
-    close(fd[1]);
-    int status;
-    wait(&status);
     return 1;
 }
 
