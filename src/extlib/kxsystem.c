@@ -2104,11 +2104,17 @@ static void get_clipboard_text(kstr_t *str)
         CloseClipboard();
     }
 }
-#else
+// #else
 static int set_clipboard_text(const char *str)
 {
     char buf[2048] = {0};   // enough.
-    snprintf(buf, 2040, "%s/kinxlib/%s", get_kinx_path(), "kxsel");
+    snprintf(buf, 2040, "%s/%s", get_kinx_path(), "kxsel");
+    if (!file_exists(buf)) {
+        snprintf(buf, 2040, "%s/kinxlib/%s", get_kinx_path(), "kxsel");
+        if (!file_exists(buf)) {
+            return 0;
+        }
+    }
 
     int fd[2];
     pipe(fd);
