@@ -2105,7 +2105,7 @@ static void get_clipboard_text(kstr_t *str)
     }
 }
 #else
-#include <extlib/libclipboard/include/libclipboard.h>
+#include "libclipboard/include/libclipboard.h"
 static int set_clipboard_text(const char *str)
 {
     clipboard_c *cb = clipboard_new(NULL);
