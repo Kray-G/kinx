@@ -219,7 +219,7 @@ libkinx.so: $(SRCDIR)/optimizer.c $(SRCDIR)/parser.c $(INCDIR)/parser.tab.h libo
 	ar rcs libkx.a fileutil.o
 
 kxsystem.so: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h kc-json.o duktape.o libclipboard.a $(PICOBJS)
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o libclipboard.a -lm
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o libclipboard.a -lm -lxcb
 
 kxstring.so: $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)

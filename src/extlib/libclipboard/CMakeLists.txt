@@ -16,6 +16,7 @@ option(LIBCLIPBOARD_ADD_SOVERSION "Add soname versions to the built library (def
 option(LIBCLIPBOARD_USE_STDCALL "Use the stdcall calling convention (default:off)" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static libraries" OFF)
 set(LIBCLIPBOARD_BUILD_SHARED ${BUILD_SHARED_LIBS})
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Sigh... gtest quirks workarounds
 if (MINGW)
