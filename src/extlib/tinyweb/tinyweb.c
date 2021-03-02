@@ -721,10 +721,6 @@ thread_return_t STDCALL process_thread(void *pp)
 
 void init_webserver(void)
 {
-    pthread_mutex_init(&g_webserver_mutex, NULL);
-    pthread_cond_init(&g_webserver_cond, NULL);
-    g_websvr_mgr.initialized = 0;
-
     #if defined(_WIN32) || defined(_WIN64)
     WSADATA wsadata;
     int err = WSAStartup(MAKEWORD(2, 0), &wsadata);
@@ -732,7 +728,6 @@ void init_webserver(void)
         fprintf(stderr, "WSAStartup failed with error: %d\n", err);
         return 1;
     }
-    SetConsoleCtrlHandler(kx_signal_handler, TRUE);
     #else
     sigset_t ss;
     sigemptyset(&ss);
@@ -743,9 +738,11 @@ void init_webserver(void)
     // Ignore SIGPIPE signal, so if browser cancels the request, it
     // won't kill the whole process.
     signal(SIGPIPE, SIG_IGN);
-    pthread_t sigth;
-    pthread_create_extra(&sigth, 0, &signal_thread, 0);
     #endif
+
+    pthread_mutex_init(&g_webserver_mutex, NULL);
+    pthread_cond_init(&g_webserver_cond, NULL);
+    g_websvr_mgr.initialized = 0;
 }
 
 void fin_webserver(void)
