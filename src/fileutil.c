@@ -123,6 +123,24 @@ int file_exists(const char *p)
     return 1;
 }
 
+int is_directory(const char *p)
+{
+    DWORD attr = GetFileAttributes(p);
+    if (attr == 0xFFFFFFFF) {
+        return 0;
+    }
+    return (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
+}
+
+int is_regular_file(const char *p)
+{
+    DWORD attr = GetFileAttributes(p);
+    if (attr == 0xFFFFFFFF) {
+        return 0;
+    }
+    return (attr & FILE_ATTRIBUTE_DIRECTORY) == 0;
+}
+
 char *get_cur_path(void)
 {
     static char s_result[2048] = {0};
@@ -275,6 +293,24 @@ int file_exists(const char *p)
 {
     struct stat st;
     return stat(p, &st) == 0 ? 1 : 0;
+}
+
+int is_directory(const char *p)
+{
+    struct stat st;
+    if (stat(p, &st) == 0) {
+        return S_ISDIR(st.st_mode);
+    }
+    return 0;
+}
+
+int is_regular_file(const char *p)
+{
+    struct stat st;
+    if (stat(p, &st) == 0) {
+        return S_ISREG(st.st_mode);
+    }
+    return 0;
 }
 
 char *get_cur_path(void)
