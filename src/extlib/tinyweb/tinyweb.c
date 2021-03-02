@@ -11,6 +11,7 @@
     Build
     * VisualStudio
         $ cl /Fetinyweb.exe /Iinclude /DSTANDALONE_WEBSERVER src\extlib\tinyweb\tinyweb.c src\global.obj src\fileutil.c ws2_32.lib
+        $ gcc -o tinyweb.exe -I include -DSTANDALONE_WEBSERVER src/extlib/tinyweb/tinyweb.c build/global.obj build/fileutil.c -pthread
 */
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -886,7 +887,8 @@ thread_return_t STDCALL signal_thread(void *pp)
     sigaddset(&ss, SIGTERM);
     sigaddset(&ss, SIGQUIT);
     pthread_sigmask(SIG_BLOCK, &ss, 0);
-    while (!g_terminated) {
+    int loop = 1;
+    while (loop) {
         if (sigwait(&ss, &sig)) {
             continue;
         }
@@ -897,6 +899,7 @@ thread_return_t STDCALL signal_thread(void *pp)
             pthread_mutex_lock(&g_webserver_mutex);
             g_terminated = 1;
             pthread_mutex_unlock(&g_webserver_mutex);
+            loop = 0;
             break;
         defualt:
             break;
