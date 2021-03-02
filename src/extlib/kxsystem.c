@@ -2105,19 +2105,41 @@ static void get_clipboard_text(kstr_t *str)
     }
 }
 #else
-#include "libclipboard/include/libclipboard.h"
 static int set_clipboard_text(const char *str)
 {
-    clipboard_c *cb = clipboard_new(NULL);
-    if (cb == NULL) {
+    char buf[2048] = {0};   // enough.
+    snprintf(buf, 2040, "%s/kinxlib/%s", get_kinx_path(), "kxsel");
+
+    int fd[2];
+    pipe(fd);
+    switch(fork()) {
+    case -1:
+        // invoking a child process failed.
         return 0;
+    case 0: {
+        // a child process.
+        close(fd[1]);
+        if (dup2(fd[0], STDIN_FILENO) == -1) {
+            _exit(1);
+        }
+        close(fd[0]);
+        execlp(buf, buf, NULL) ;
+        break;
     }
-    int length = strlen(str) + 1;
-    clipboard_set_text_ex(cb, str, length, LCB_CLIPBOARD);
-    clipboard_free(cb);
+    default:
+        break;
+    }
+
+    // a parent process, it is this process.
+    close(fd[0]);
+    write(fd[1], str, strlen(str) + 1);
+    close(fd[1]);
+    int status;
+    wait(&status);
     return 1;
 }
 
+#include "libclipboard/include/libclipboard.h"
 static void get_clipboard_text(kstr_t *str)
 {
     ks_clear(str);
