@@ -29,6 +29,7 @@ It will be basically synchronous for all platforms, but there is a case that the
 |     Name     | Type  |     Version      |  Updated   |              Repository               |                       License                       |
 | ------------ | :---: | :--------------: | :--------: | ------------------------------------- | --------------------------------------------------- |
 | libclipboard |  Src  |       1.1        | 2021.03.01 | https://github.com/jtanx/libclipboard | [License](../../docs/licenses/LICENSE.libclipboard) |
+| +- xsel      |  Src  |      1.2.0       | 2021.03.02 | https://github.com/kfish/xsel         | [License](../../docs/licenses/LICENSE.xsel)         |
 | minizip-ng   |  Lib  |      3.0.0       | 2021.02.15 | https://github.com/zlib-ng/minizip-ng | [License](../../docs/licenses/LICENSE.minizip)      |
 | OpenSSL      |  Lib  | 3.0.0alpha12-dev | 2021.02.15 | https://github.com/openssl/openssl    | [License](../../docs/licenses/LICENSE.openssl)      |
 | libxml2      |  Lib  |      2.9.10      | 2021.02.15 | https://github.com/GNOME/libxml2      | [License](../../docs/licenses/LICENSE.libxml2)      |
