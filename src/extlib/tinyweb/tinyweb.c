@@ -178,7 +178,7 @@ static ssize_t writen(int fd, void *usrbuf, size_t n)
     return n;
 }
 
-static int select_sockect(int soc, int msec)
+static int select_socket(int soc, int msec)
 {
     fd_set fdr;
     FD_ZERO(&fdr);
@@ -206,7 +206,7 @@ static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n)
 {
     int cnt;
     while (rp->rio_cnt <= 0) {  /* refill if buf is empty */
-        if (select_sockect(rp->rio_fd, 1000) <= 0) {
+        if (select_socket(rp->rio_fd, 1000) <= 0) {
             return -1;
         }
         #if defined(_WIN32) || defined(_WIN64)
@@ -702,7 +702,7 @@ thread_return_t STDCALL process_thread(void *pp)
             pthread_mutex_unlock(&g_webserver_mutex);
 
             if (p && p->connfd > 0) {
-                if (select_sockect(p->connfd, 500) > 0) {
+                if (select_socket(p->connfd, 500) > 0) {
                     msec_sleep(1);
                     process(tid, p->connfd, &(p->clientaddr), verbose);
                 }
@@ -724,6 +724,28 @@ void init_webserver(void)
     pthread_mutex_init(&g_webserver_mutex, NULL);
     pthread_cond_init(&g_webserver_cond, NULL);
     g_websvr_mgr.initialized = 0;
+
+    #if defined(_WIN32) || defined(_WIN64)
+    WSADATA wsadata;
+    int err = WSAStartup(MAKEWORD(2, 0), &wsadata);
+    if (err != 0) {
+        fprintf(stderr, "WSAStartup failed with error: %d\n", err);
+        return 1;
+    }
+    SetConsoleCtrlHandler(kx_signal_handler, TRUE);
+    #else
+    sigset_t ss;
+    sigemptyset(&ss);
+    sigaddset(&ss, SIGINT);
+    sigaddset(&ss, SIGTERM);
+    sigaddset(&ss, SIGQUIT);
+    sigprocmask(SIG_BLOCK, &ss, 0);
+    // Ignore SIGPIPE signal, so if browser cancels the request, it
+    // won't kill the whole process.
+    signal(SIGPIPE, SIG_IGN);
+    pthread_t sigth;
+    pthread_create_extra(&sigth, 0, &signal_thread, 0);
+    #endif
 }
 
 void fin_webserver(void)
@@ -793,7 +815,7 @@ int run_webserver(int (*is_terminate)(void))
     }
 
     scan_info(tid);
-    if (select_sockect(g_websvr_mgr.listenfd, 10) > 0) {
+    if (select_socket(g_websvr_mgr.listenfd, 10) > 0) {
         int connfd = accept(g_websvr_mgr.listenfd, (SA *)&clientaddr, &clientlen);
         pthread_mutex_lock(&g_webserver_mutex);
         push_info(connfd, &clientaddr);
@@ -892,25 +914,6 @@ void kx_signal_handler(int signum)
 
 int main(int argc, char** argv)
 {
-    #if defined(_WIN32) || defined(_WIN64)
-    WSADATA wsadata;
-    int err = WSAStartup(MAKEWORD(2, 0), &wsadata);
-    if (err != 0) {
-        fprintf(stderr, "WSAStartup failed with error: %d\n", err);
-        return 1;
-    }
-    SetConsoleCtrlHandler(kx_signal_handler, TRUE);
-    #else
-    sigset_t ss;
-    sigemptyset(&ss);
-    sigaddset(&ss, SIGINT);
-    sigaddset(&ss, SIGTERM);
-    sigaddset(&ss, SIGQUIT);
-    sigprocmask(SIG_BLOCK, &ss, 0);
-    pthread_t sigth;
-    pthread_create_extra(&sigth, 0, &signal_thread, 0);
-    #endif
-
     kx_malloc = malloc;
     kx_calloc = calloc;
     kx_realloc = realloc;
@@ -930,13 +933,13 @@ int main(int argc, char** argv)
         path = argv[1];
     }
 
-    #if !defined(_WIN32) && !defined(_WIN64)
-    // Ignore SIGPIPE signal, so if browser cancels the request, it
-    // won't kill the whole process.
-    signal(SIGPIPE, SIG_IGN);
-    #endif
-
     init_webserver();
+    #if defined(_WIN32) || defined(_WIN64)
+    SetConsoleCtrlHandler(kx_signal_handler, TRUE);
+    #else
+    pthread_t sigth;
+    pthread_create_extra(&sigth, 0, &signal_thread, 0);
+    #endif
     if (start_webserver(20, default_port, path, 1, KX_WEBSERVER_EXPIRED_SECONDS)) {
         while (run_webserver(&is_terminate)) {
             ;
