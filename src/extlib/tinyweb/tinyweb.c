@@ -10,21 +10,30 @@
 
     Build
     * VisualStudio
-        $ cl /Fetinyweb.exe /Iinclude /DSTANDALONE_WEBSERVER src\extlib\tinyweb\tinyweb.c src\global.obj src\fileutil.c ws2_32.lib
+        $ cl /Fetinyweb.exe /Iinclude /DSTANDALONE_WEBSERVER src\extlib\tinyweb\tinyweb.c src\global.obj src\fileutil.obj ws2_32.lib
+        $ gcc -o tinyweb.exe -I include -DSTANDALONE_WEBSERVER src/extlib/tinyweb/tinyweb.c build/global.o build/fileutil.o -pthread
 */
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <direct.h>
+#include <io.h>
 typedef SSIZE_T ssize_t;
 #else
+#include <sys/sendfile.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#define O_BINARY 0
 #define closesocket close
 #endif
-#include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <time.h>
-#include <io.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -69,10 +78,24 @@ typedef struct {
 } rio_t;
 
 typedef struct {
-    char filename[MAXLINE];
+    int verbose;
     unsigned long offset;       /* for support Range */
     unsigned long end;
-    int verbose;
+    int remote_port;
+    char *gateway_interface;
+    char *remote_addr;
+    char *query_string;
+    char *script_name;
+    char *path_info;
+    char *request_method;
+    char *http_user_agent;
+    char *http_connection;
+    char *http_accept;
+    char *http_accept_language;
+    char *http_accept_encoding;
+    char *content_length;
+    char *content_type;
+    char filename[MAXLINE];
 } http_request_t;
 
 typedef struct {
@@ -170,7 +193,7 @@ static ssize_t writen(int fd, void *usrbuf, size_t n)
     return n;
 }
 
-static int select_sockect(int soc, int msec)
+static int select_socket(int soc, int msec)
 {
     fd_set fdr;
     FD_ZERO(&fdr);
@@ -198,7 +221,7 @@ static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n)
 {
     int cnt;
     while (rp->rio_cnt <= 0) {  /* refill if buf is empty */
-        if (select_sockect(rp->rio_fd, 1000) <= 0) {
+        if (select_socket(rp->rio_fd, 1000) <= 0) {
             return -1;
         }
         #if defined(_WIN32) || defined(_WIN64)
@@ -371,26 +394,123 @@ static int open_listenfd(int port)
     return listenfd;
 }
 
-static void url_decode(char* src, char* dest, int max)
+static void url_decode(char* dst, char* src, int max)
 {
     char *p = src;
     char code[3] = { 0 };
     while (*p && --max) {
         if (*p == '%') {
             memcpy(code, ++p, 2);
-            *dest++ = (char)strtoul(code, NULL, 16);
+            *dst++ = (char)strtoul(code, NULL, 16);
             p += 2;
         } else {
-            *dest++ = *p++;
+            *dst++ = *p++;
         }
     }
-    *dest = '\0';
+    *dst = '\0';
+}
+
+static void trimmed_copy(char* dst, char* src, int size)
+{
+    int trim = 1;
+    int index = 0;
+    for (int i = 0; i < size; ++i) {
+        if (src[i] == '\r' || src[i] == '\n' || src[i] == '\0') {
+            dst[index++] = '\0';
+            break;
+        } else if (src[i] != ' ' && src[i] != '\t') {
+            dst[index++] = src[i];
+            trim = 0;
+        } else if (trim) {
+            continue;
+        } else {
+            if (index > 0 && dst[index - 1] != ' ') {
+                dst[index++] = ' ';
+            }
+        }
+    }
+}
+
+static void parse_symbol(char* dst, char* src, int size, char delimiter)
+{
+    int index = 0;
+    for (int i = 0; i < size; ++i) {
+        if (src[i] != delimiter && src[i] != '\n' && src[i] != '\0'  && src[i] != ' ') {
+            dst[index++] = src[i];
+        } else {
+            dst[i] = '\0';
+            break;
+        }
+    }
+    trimmed_copy(dst, dst, size);
+}
+
+static int set_req_param(char **paramp, char *string)
+{
+    int len = strlen(string);
+    *paramp = kx_calloc(len + 2, sizeof(char));
+    trimmed_copy(*paramp, string, len);
+    return len + 1;
+}
+
+static void set_path_info(http_request_t *req)
+{
+    req->path_info = NULL;
+    if (is_regular_file(req->script_name)) {
+        return;
+    }
+
+    char buf[MAXLINE];
+    strncpy(buf, req->script_name, MAXLINE);
+    do {
+        char *p = strrchr(buf, '/');
+        if (!p) {
+            break;
+        }
+        *p = 0;
+        if (is_regular_file(buf)) {
+            int l = p - buf;
+            set_req_param(&(req->path_info), req->script_name + l);
+            req->script_name[l] = 0;
+            break;
+        }
+    } while (1);
+}
+
+static void scan_header(const char *line, http_request_t *req)
+{
+    char buf[MAXLINE] = {0};
+    if (strncmp(line, "Accept: ", strlen("Accept: ")) == 0) {
+        strncpy(buf, line + strlen("Accept: "), MAXLINE);
+        set_req_param(&(req->http_accept), buf);
+    } else if (strncmp(line, "User-Agent: ", strlen("User-Agent: ")) == 0) {
+        strncpy(buf, line + strlen("User-Agent: "), MAXLINE);
+        set_req_param(&(req->http_user_agent), buf);
+    } else if (strncmp(line, "Accept-Language: ", strlen("Accept-Language: ")) == 0) {
+        strncpy(buf, line + strlen("Accept-Language: "), MAXLINE);
+        set_req_param(&(req->http_accept_language), buf);
+    } else if (strncmp(line, "Accept-Encoding: ", strlen("Accept-Encoding: ")) == 0) {
+        strncpy(buf, line + strlen("Accept-Encoding: "), MAXLINE);
+        set_req_param(&(req->http_accept_encoding), buf);
+    } else if (strncmp(line, "Content-Type: ", strlen("Content-Type: ")) == 0) {
+        strncpy(buf, line + strlen("Content-Type: "), MAXLINE);
+        set_req_param(&(req->content_type), buf);
+    } else if (strncmp(line, "Content-Length: ", strlen("Content-Length: ")) == 0) {
+        strncpy(buf, line + strlen("Content-Length: "), MAXLINE);
+        set_req_param(&(req->content_length), buf);
+    } else if (strncmp(line, "Connection: ", strlen("Connection: ")) == 0) {
+        strncpy(buf, line + strlen("Connection: "), MAXLINE);
+        set_req_param(&(req->http_connection), buf);
+    }
 }
 
 static int parse_request(int fd, http_request_t *req)
 {
     rio_t rio;
-    char buf[MAXLINE], method[MAXLINE], uri[MAXLINE];
+    char buf[MAXLINE] = {0};
+    char method[MAXLINE] = {0};
+    char uri[MAXLINE] = {0};
+    char string[MAXLINE] = {0};
     req->offset = 0;
     req->end = 0;              /* default */
 
@@ -412,23 +532,27 @@ static int parse_request(int fd, http_request_t *req)
             // Range: [start, end]
             if (req->end != 0) req->end++;
         }
+        scan_header(buf, req);
     }
-    char* filename = uri;
-    if (uri[0] == '/') {
-        filename = uri + 1;
-        int length = strlen(filename);
-        if (length == 0) {
-            filename = ".";
-        } else {
-            for (int i = 0; i < length; ++ i) {
-                if (filename[i] == '?') {
-                    filename[i] = '\0';
-                    break;
-                }
-            }
-        }
+
+    // set_req_param(&(req->gateway_interface), "CGI/1.1");
+    set_req_param(&(req->request_method), method);
+
+    char *urip = uri;
+    if (urip[0] == '/') urip++;
+    trimmed_copy(uri, uri, MAXLINE);
+    parse_symbol(string, urip, MAXLINE, '?');
+    urip += set_req_param(&(req->script_name), string);
+    parse_symbol(string, urip, MAXLINE, '?');
+    urip += set_req_param(&(req->query_string), string);
+    set_path_info(req);
+
+    char* filename = req->script_name;
+    int length = strlen(filename);
+    if (filename[0] == 0) {
+        filename = "./";
     }
-    url_decode(filename, req->filename, MAXLINE);
+    url_decode(req->filename, filename, MAXLINE);
     return 1;
 }
 
@@ -527,27 +651,29 @@ static void replace_url_all(http_request_t *req)
     replace_url(req->filename, MAXLINE, rootpath, "MaterialIcons-Regular.woff2", "lib/webview/materialize/fonts/MaterialIcons-Regular.woff2");
 }
 
-static int get_header_ength(const char *buf)
+static void free_http_request(http_request_t *req)
 {
-    int prev = 0;
-    int len = 0;
-    for (const char *p = buf; *p; ++p) {
-        ++len;
-        if (*p == '\r') {
-            continue;
-        }
-        if (*p == '\n' && prev == '\n') {
-            return len;
-        }
-        prev = *p;
-    }
-    return 0;
+    kx_free(req->gateway_interface);
+    kx_free(req->remote_addr);
+    kx_free(req->query_string);
+    kx_free(req->script_name);
+    kx_free(req->path_info);
+    kx_free(req->request_method);
+    kx_free(req->http_user_agent);
+    kx_free(req->http_connection);
+    kx_free(req->http_accept);
+    kx_free(req->http_accept_language);
+    kx_free(req->http_accept_encoding);
+    kx_free(req->content_length);
+    kx_free(req->content_type);
 }
 
 static void process(int tid, int fd, struct sockaddr_in *clientaddr, int verbose)
 {
     logger(verbose, "[%6d] accept request, fd is %d\n", tid, fd);
     http_request_t req = { .verbose = verbose };
+    req.remote_port = ntohs(clientaddr->sin_port);
+    set_req_param(&(req.remote_addr), inet_ntoa(clientaddr->sin_addr));
     if (!parse_request(fd, &req))
         return;
 
@@ -591,6 +717,7 @@ static void process(int tid, int fd, struct sockaddr_in *clientaddr, int verbose
         client_error(fd, status, "Not found", msg);
     }
     log_access(tid, status, clientaddr, &req);
+    free_http_request(&req);
 }
 
 static void scan_info(int tid)
@@ -694,7 +821,7 @@ thread_return_t STDCALL process_thread(void *pp)
             pthread_mutex_unlock(&g_webserver_mutex);
 
             if (p && p->connfd > 0) {
-                if (select_sockect(p->connfd, 500) > 0) {
+                if (select_socket(p->connfd, 500) > 0) {
                     msec_sleep(1);
                     process(tid, p->connfd, &(p->clientaddr), verbose);
                 }
@@ -785,7 +912,7 @@ int run_webserver(int (*is_terminate)(void))
     }
 
     scan_info(tid);
-    if (select_sockect(g_websvr_mgr.listenfd, 10) > 0) {
+    if (select_socket(g_websvr_mgr.listenfd, 10) > 0) {
         int connfd = accept(g_websvr_mgr.listenfd, (SA *)&clientaddr, &clientlen);
         pthread_mutex_lock(&g_webserver_mutex);
         push_info(connfd, &clientaddr);
@@ -824,13 +951,13 @@ void end_webserver(void)
 
 #if defined(STANDALONE_WEBSERVER)
 static volatile int g_terminated = 0;
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
 static int is_terminate(void)
 {
     return g_terminated;   // never terminated
 }
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
 BOOL WINAPI kx_signal_handler(DWORD type)
 {
     g_terminated = 1;
@@ -839,9 +966,45 @@ BOOL WINAPI kx_signal_handler(DWORD type)
 #else
 #include <termios.h>
 #include <signal.h>
-void kx_signal_handler(int signum)
+static int is_terminate(void)
 {
-    g_terminated = 1;
+    pthread_mutex_lock(&g_webserver_mutex);
+    volatile int term = g_terminated;   // never terminated
+    pthread_mutex_unlock(&g_webserver_mutex);
+    return term;
+}
+thread_return_t STDCALL signal_thread(void *pp)
+{
+    (void)pp;
+    /* detach first */
+    pthread_detach(pthread_self());
+
+    int sig;
+    sigset_t ss;
+    sigemptyset(&ss);
+    sigaddset(&ss, SIGINT);
+    sigaddset(&ss, SIGTERM);
+    sigaddset(&ss, SIGQUIT);
+    pthread_sigmask(SIG_BLOCK, &ss, 0);
+    int loop = 1;
+    while (loop) {
+        if (sigwait(&ss, &sig)) {
+            continue;
+        }
+        switch (sig) {
+        case SIGINT:
+        case SIGTERM:
+        case SIGQUIT:
+            pthread_mutex_lock(&g_webserver_mutex);
+            g_terminated = 1;
+            pthread_mutex_unlock(&g_webserver_mutex);
+            loop = 0;
+            break;
+        default:
+            break;
+        }
+    }
+    return 0;
 }
 #endif
 
@@ -854,14 +1017,16 @@ int main(int argc, char** argv)
         fprintf(stderr, "WSAStartup failed with error: %d\n", err);
         return 1;
     }
-    SetConsoleCtrlHandler(kx_signal_handler, TRUE);
     #else
-    struct sigaction sa_signal;
-    memset(&sa_signal, 0, sizeof(sa_signal));
-    sa_signal.sa_handler = kx_signal_handler;
-    sa_signal.sa_flags = SA_RESTART;
-    sigaction(SIGINT, &sa_signal, NULL);
-    sigaction(SIGTERM, &sa_signal, NULL);
+    sigset_t ss;
+    sigemptyset(&ss);
+    sigaddset(&ss, SIGINT);
+    sigaddset(&ss, SIGTERM);
+    sigaddset(&ss, SIGQUIT);
+    sigprocmask(SIG_BLOCK, &ss, 0);
+    // Ignore SIGPIPE signal, so if browser cancels the request, it
+    // won't kill the whole process.
+    signal(SIGPIPE, SIG_IGN);
     #endif
 
     kx_malloc = malloc;
@@ -883,13 +1048,13 @@ int main(int argc, char** argv)
         path = argv[1];
     }
 
-    #if !defined(_WIN32) && !defined(_WIN64)
-    // Ignore SIGPIPE signal, so if browser cancels the request, it
-    // won't kill the whole process.
-    signal(SIGPIPE, SIG_IGN);
-    #endif
-
     init_webserver();
+    #if defined(_WIN32) || defined(_WIN64)
+    SetConsoleCtrlHandler(kx_signal_handler, TRUE);
+    #else
+    pthread_t sigth;
+    pthread_create_extra(&sigth, &signal_thread, NULL, 0);
+    #endif
     if (start_webserver(20, default_port, path, 1, KX_WEBSERVER_EXPIRED_SECONDS)) {
         while (run_webserver(&is_terminate)) {
             ;

@@ -1,4 +1,4 @@
-# SQlite
+# SQLite
 
 ## Overview
 
