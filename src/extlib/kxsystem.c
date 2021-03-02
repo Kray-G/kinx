@@ -2134,7 +2134,8 @@ static int set_clipboard_text(const char *str)
         }
         close(fd[0]);
         execlp(buf, buf, "-b", NULL) ;
-        // not coming here.
+        // It is for safety, generally this code will be not performed.
+        _exit(1);
     } else {
         // a parent process, it is this process.
         close(fd[0]);
