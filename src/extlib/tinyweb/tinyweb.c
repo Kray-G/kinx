@@ -651,38 +651,21 @@ static void replace_url_all(http_request_t *req)
     replace_url(req->filename, MAXLINE, rootpath, "MaterialIcons-Regular.woff2", "lib/webview/materialize/fonts/MaterialIcons-Regular.woff2");
 }
 
-static int get_header_ength(const char *buf)
-{
-    int prev = 0;
-    int len = 0;
-    for (const char *p = buf; *p; ++p) {
-        ++len;
-        if (*p == '\r') {
-            continue;
-        }
-        if (*p == '\n' && prev == '\n') {
-            return len;
-        }
-        prev = *p;
-    }
-    return 0;
-}
-
 static void free_http_request(http_request_t *req)
 {
-    kx_free(req->remote_addr);
     kx_free(req->gateway_interface);
-    kx_free(req->script_name);
+    kx_free(req->remote_addr);
     kx_free(req->query_string);
-    kx_free(req->request_method);
+    kx_free(req->script_name);
     kx_free(req->path_info);
-    kx_free(req->http_accept);
-    kx_free(req->http_connection);
+    kx_free(req->request_method);
     kx_free(req->http_user_agent);
+    kx_free(req->http_connection);
+    kx_free(req->http_accept);
     kx_free(req->http_accept_language);
     kx_free(req->http_accept_encoding);
-    kx_free(req->content_type);
     kx_free(req->content_length);
+    kx_free(req->content_type);
 }
 
 static void process(int tid, int fd, struct sockaddr_in *clientaddr, int verbose)
