@@ -2,6 +2,9 @@
 #define KX_FILEUTIL_H
 
 extern int file_exists(const char *p);
+extern int is_directory(const char *p);
+extern int is_regular_file(const char *p);
+
 extern char* get_cur_path(void);
 extern char* get_kinx_path(void);
 extern char* get_actual_exe_path(void);
