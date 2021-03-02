@@ -2129,7 +2129,7 @@ static int set_clipboard_text(const char *str)
             _exit(1);
         }
         close(fd[0]);
-        execlp(buf, buf, NULL) ;
+        execlp(buf, buf, "-b", NULL) ;
         break;
     }
     default:
