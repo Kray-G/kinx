@@ -2104,7 +2104,7 @@ static void get_clipboard_text(kstr_t *str)
         CloseClipboard();
     }
 }
-// #else
+#else
 static int set_clipboard_text(const char *str)
 {
     char buf[2048] = {0};   // enough.
