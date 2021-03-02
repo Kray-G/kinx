@@ -2105,15 +2105,31 @@ static void get_clipboard_text(kstr_t *str)
     }
 }
 #else
+#include <extlib/libclipboard/include/libclipboard.h>
 static int set_clipboard_text(const char *str)
 {
-    /* This is currently just a stub. */
-    return 0;
+    clipboard_c *cb = clipboard_new(NULL);
+    if (cb == NULL) {
+        return 0;
+    }
+    int length = strlen(str) + 1;
+    clipboard_set_text_ex(cb, str, length, LCB_CLIPBOARD);
+    clipboard_free(cb);
+    return 1;
 }
 
 static void get_clipboard_text(kstr_t *str)
 {
-    /* This is currently just a stub. */
+    ks_clear(str);
+    clipboard_c *cb = clipboard_new(NULL);
+    if (cb == NULL) {
+        return;
+    }
+    char *text = clipboard_text_ex(cb, NULL, LCB_CLIPBOARD);
+    if (text != NULL) {
+        ks_append(str, text);
+        free(text);
+    }
 }
 #endif
 
