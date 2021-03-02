@@ -16,15 +16,23 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <direct.h>
+#include <io.h>
 typedef SSIZE_T ssize_t;
 #else
+#include <sys/sendfile.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#define O_BINARY 0
 #define closesocket close
 #endif
-#include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <time.h>
-#include <io.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -824,13 +832,13 @@ void end_webserver(void)
 
 #if defined(STANDALONE_WEBSERVER)
 static volatile int g_terminated = 0;
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
 static int is_terminate(void)
 {
     return g_terminated;   // never terminated
 }
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
 BOOL WINAPI kx_signal_handler(DWORD type)
 {
     g_terminated = 1;
@@ -839,6 +847,43 @@ BOOL WINAPI kx_signal_handler(DWORD type)
 #else
 #include <termios.h>
 #include <signal.h>
+static int is_terminate(void)
+{
+    pthread_mutex_lock(&g_webserver_mutex);
+    volatile int term = g_terminated;   // never terminated
+    pthread_mutex_unlock(&g_webserver_mutex);
+    return term;
+}
+thread_return_t STDCALL signal_thread(void *pp)
+{
+    /* detach first */
+    pthread_detach(pthread_self());
+
+    int sig;
+    sigset_t ss;
+    sigemptyset(&ss);
+    sigaddset(&ss, SIGINT);
+    sigaddset(&ss, SIGTERM);
+    sigaddset(&ss, SIGQUIT);
+    pthread_sigmask(SIG_BLOCK, &ss, 0);
+    while (!g_terminated) {
+        if (sigwait(&ss, &sig)) {
+            continue;
+        }
+        switch (sig) {
+        case SIGINT:
+        case SIGTERM:
+        case SIGQUIT:
+            pthread_mutex_lock(&g_webserver_mutex);
+            g_terminated = 1;
+            pthread_mutex_unlock(&g_webserver_mutex);
+            break;
+        defualt:
+            break;
+        }
+    }
+    return 0;
+}
 void kx_signal_handler(int signum)
 {
     g_terminated = 1;
@@ -856,12 +901,14 @@ int main(int argc, char** argv)
     }
     SetConsoleCtrlHandler(kx_signal_handler, TRUE);
     #else
-    struct sigaction sa_signal;
-    memset(&sa_signal, 0, sizeof(sa_signal));
-    sa_signal.sa_handler = kx_signal_handler;
-    sa_signal.sa_flags = SA_RESTART;
-    sigaction(SIGINT, &sa_signal, NULL);
-    sigaction(SIGTERM, &sa_signal, NULL);
+    sigset_t ss;
+    sigemptyset(&ss);
+    sigaddset(&ss, SIGINT);
+    sigaddset(&ss, SIGTERM);
+    sigaddset(&ss, SIGQUIT);
+    sigprocmask(SIG_BLOCK, &ss, 0);
+    pthread_t sigth;
+    pthread_create_extra(&sigth, 0, &signal_thread, 0);
     #endif
 
     kx_malloc = malloc;
