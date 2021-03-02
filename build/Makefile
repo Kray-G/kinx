@@ -164,6 +164,7 @@ install:
 	cp -f ./kxrepl /usr/bin/kxrepl
 	cp -f ./kxtest /usr/bin/kxtest
 	cp -rf $(KXLIBD)/* /usr/bin/kinxlib/
+	cp -f ./kxsel /usr/bin/kinxlib/kxsel
 	cp -f $(DOCDIR)/licenses/LICENSE.* /usr/bin/kinxlib/docs/licenses/
 	cp -f $(INCDIR)/libkinx.h /usr/bin/kinxlib/include/libkinx.h
 	cp -f $(INCDIR)/fileutil.h /usr/bin/kinxlib/include/fileutil.h

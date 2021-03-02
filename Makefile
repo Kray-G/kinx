@@ -5,6 +5,7 @@ all:
 	cp -f build/kinx ./
 	cp -f build/kxrepl ./
 	cp -f build/kxtest ./
+	cp -f build/kxsel ./
 	cp -f build/*.so* ./
 
 clean:
@@ -12,6 +13,7 @@ clean:
 	rm -f kinx
 	rm -f kxrepl
 	rm -f kxtest
+	rm -f kxsel
 	rm -f *.so*
 
 rebuild:
@@ -19,6 +21,7 @@ rebuild:
 	cp -f build/kinx ./
 	cp -f build/kxrepl ./
 	cp -f build/kxtest ./
+	cp -f build/kxsel ./
 	cp -f build/*.so* ./
 
 install:
