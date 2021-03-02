@@ -2028,6 +2028,168 @@ int System_isDebuggerMode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     return 0;
 }
 
+/*
+    Clipboard
+*/
+
+#if defined(_WIN32) || defined(_WIN64)
+static int is_text_in_clipboard()
+{
+    UINT list[1] = { CF_TEXT };
+    int prop = GetPriorityClipboardFormat(list, 1);
+    return prop == CF_UNICODETEXT || prop == CF_TEXT;
+}
+
+static int open_clipboard(int retry, int interval)
+{
+    for (int i = 0; i < retry; ++i) {
+        if (OpenClipboard(NULL)) {
+            return 1;
+        }
+        Sleep(interval);
+    }
+    return 0;
+}
+
+static int set_clipboard_text(const char *str)
+{
+    int length = strlen(str) + 1;
+    int size = MultiByteToWideChar(CP_UTF8, 0, str, length, NULL, 0);
+    if (size == 0) {
+        return 0;
+    }
+
+    HGLOBAL mem = GlobalAlloc(GMEM_SHARE | GMEM_MOVEABLE, sizeof(wchar_t) * size);
+    if (!mem) return 0;
+
+    wchar_t *buf = (wchar_t *)GlobalLock(mem);
+    if (buf) {
+        int ret = MultiByteToWideChar(CP_UTF8, 0, str, length, buf, size);
+        buf[size - 1] = 0;
+        GlobalUnlock(mem);
+        if (ret > 0 && open_clipboard(30, 100)) {
+            EmptyClipboard();
+            SetClipboardData(CF_UNICODETEXT, mem);
+            CloseClipboard();
+            GlobalFree(mem);
+            return 1;
+        }
+    }
+
+    GlobalFree(mem);
+    return 0;
+}
+
+static void get_clipboard_text(kstr_t *str)
+{
+    ks_clear(str);
+    if (!is_text_in_clipboard()) {
+        return;
+    }
+
+    if (open_clipboard(30, 100)) {
+        HANDLE mem = GetClipboardData(CF_UNICODETEXT);
+        if (mem) {
+            wchar_t *text = (wchar_t *)GlobalLock(mem);
+            if (text) {
+                int size = WideCharToMultiByte(CP_UTF8, 0, text, -1, NULL, 0, NULL, NULL);
+                char *buf = kx_calloc(size, sizeof(char));
+                if (WideCharToMultiByte(CP_UTF8, 0, text, -1, buf, size, NULL, NULL) > 0) {
+                    ks_append(str, buf);
+                }
+                kx_free(buf);
+            }
+            GlobalUnlock(mem);
+        }
+        CloseClipboard();
+    }
+}
+#else
+static int set_clipboard_text(const char *str)
+{
+    char buf[2048] = {0};   // enough.
+    snprintf(buf, 2040, "%s/%s", get_kinx_path(), "kxsel");
+    if (!file_exists(buf)) {
+        snprintf(buf, 2040, "%s/kinxlib/%s", get_kinx_path(), "kxsel");
+        if (!file_exists(buf)) {
+            return 0;
+        }
+    }
+
+    int fd[2];
+    if (pipe(fd) != 0) {
+        return 0;
+    }
+    int cpid = fork();
+    if (cpid == -1) {
+        // invoking a child process failed.
+        return 0;
+    }
+
+    if (cpid == 0) {
+        // a child process.
+        close(fd[1]);
+        if (dup2(fd[0], STDIN_FILENO) == -1) {
+            _exit(1);
+        }
+        close(fd[0]);
+        execlp(buf, buf, "-b", NULL) ;
+        // It is for safety, generally this code will be not performed.
+        _exit(1);
+    } else {
+        // a parent process, it is this process.
+        close(fd[0]);
+        write(fd[1], str, strlen(str) + 1);
+        close(fd[1]);
+        int status;
+        wait(&status);
+    }
+    return 1;
+}
+
+#include "libclipboard/include/libclipboard.h"
+static void get_clipboard_text(kstr_t *str)
+{
+    ks_clear(str);
+    clipboard_c *cb = clipboard_new(NULL);
+    if (cb == NULL) {
+        return;
+    }
+    char *text = clipboard_text_ex(cb, NULL, LCB_CLIPBOARD);
+    if (text != NULL) {
+        ks_append(str, text);
+        free(text);
+    }
+}
+#endif
+
+int System_setTextToClipboard(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *text = get_arg_str(1, args, ctx);
+    if (!text) {
+        text = "";
+    }
+    pthread_mutex_lock(&g_system_mtx);
+    int r = set_clipboard_text(text);
+    pthread_mutex_unlock(&g_system_mtx);
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r);
+    return 0;
+}
+
+int System_getTextFromClipboard(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kstr_t *sv = allocate_str(ctx);
+    pthread_mutex_lock(&g_system_mtx);
+    get_clipboard_text(sv);
+    pthread_mutex_unlock(&g_system_mtx);
+
+    KX_ADJST_STACK();
+    push_sv(ctx->stack, sv);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "_halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -2085,6 +2247,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "_addBreakpoint", System_addBreakpoint },
     { "_removeBreakpoint", System_removeBreakpoint },
     { "_isDebuggerMode", System_isDebuggerMode },
+    { "setTextToClipboard", System_setTextToClipboard },
+    { "getTextFromClipboard", System_getTextFromClipboard },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
