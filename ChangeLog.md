@@ -7,6 +7,7 @@
     *   Support OpenCV library.
     *   Support HTTP Server library.
     *   Support Cryptography library.
+    *   Support Package Manager.
 
 ## V1.0.0-RC1 (Current Development Version)
 
@@ -17,12 +18,13 @@
         *   Supported a pipeline operator of `a <| b` which is just same as `a(b)`.
         *   Supported a function composition operator of `a +> b` which is like `{ => b(a(_1)) }`.
         *   Supported a function composition operator of `a <+ b` which is like `{ => a(b(_1)) }`.
+    *   Supported to read/write from/to Clipboard.
+        *   By `var cb = new Clipboard();`, then you can:
+            *   Use `cb.write(str)` to write `str` to clipboard, or
+            *   Use `cb.read()` to read a text from clipboard.
     *   Documentation & SpecTest complete.
-        *   The documents which was planned has been prepared at least, although the quality should be increased.
+        *   The documents which was planned was prepared at least, although the quality should be increased.
     *   Some bug fixes and improvements.
-*   Planned
-    *   Support to read/write from/to Clipboard.
-    *   Support Package Manager.
 
 [pline]: docs/spec/statement/expression/pipeline.md
 [fcomp]: docs/spec/statement/expression/function_composition.md
