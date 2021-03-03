@@ -125,12 +125,13 @@ String.[] = _function(str, obj) {
 
 String.Buffer = (_function() {
     _class StringBuffer(value_) {
+        value_ = "";
         public value() {
             return value_;
         }
         public clear() {
             var v = value_;
-            value_ = null;
+            value_ = "";
             return v;
         }
         public append(rhs) {
