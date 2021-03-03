@@ -1117,7 +1117,7 @@ CLEANUP:
     if (pc2p[1] > 0) close(pc2p[1]);
     if (pp2c[0] > 0) close(pp2c[0]);
     if (pp2c[1] > 0) close(pp2c[1]);
-    return 0;
+    return status;
 }
 #endif
 
