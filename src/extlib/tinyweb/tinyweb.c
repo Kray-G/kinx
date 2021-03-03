@@ -749,6 +749,38 @@ static void free_http_request(http_request_t *req)
     kx_free(req->cgi.content_type);
 }
 
+static int parse_and_send_response(int out_fd, char *data, http_request_t *req)
+{
+    int pos = 0;
+    int status = -1;
+    char buf[MAXLINE] = {0};
+    char *p = strchr(data, '\n');
+
+    while (p) {
+        int len = (p - data) - pos;
+        trimmed_copy(buf, data + pos, len);
+        buf[len] = 0;
+        if (strncmp(buf, "Status: ", strlen("Status: ")) == 0) {
+            status = strtol(buf + strlen("Status: "), NULL, 0);
+            break;
+        }
+        pos += len + 1;
+        if (data[pos] == '\r' && data[pos+1] == '\n') {
+            break;
+        }
+        p = strchr(p + 1, '\n');
+    }
+
+    if (status > 0) {
+        sprintf(buf, "HTTP/1.1 %d OK\r\n", status);
+    } else {
+        sprintf(buf, "HTTP/1.1 200 OK\r\nStatus: 200\r\n");
+    }
+    writen(out_fd, buf, strlen(buf));
+    writen(out_fd, data, strlen(data));
+    return status;
+}
+
 #if defined(_WIN32) || defined(_WIN64)
 static char *add_env(char *data, size_t *sz, const char *key, const char *val)
 {
@@ -796,7 +828,7 @@ static int push_data(HANDLE hInputWrite, http_request_t *req)
         abort_if_terminated(0);
         char buf[MAXLINE+1] = {0};
         int r = rio_read(&(req->rio), buf, MAXLINE);
-        if (r < 0 || r == 0)
+        if (r <= 0)
             break;
         n += r;
         int writelen = 0;
@@ -804,7 +836,6 @@ static int push_data(HANDLE hInputWrite, http_request_t *req)
             abort_if_terminated(0);
             DWORD wl = 0;
             if (WriteFile(hInputWrite, buf + writelen, r, &wl, NULL) == 0) {
-                printf("err = %d\n", GetLastError());
                 break;
             }
             if (wl <= 0) {
@@ -840,38 +871,6 @@ static char *pull_data(HANDLE hProcess, HANDLE hOutputRead)
         }
     }
     return data;
-}
-
-static int parse_and_send_response(int out_fd, char *data, http_request_t *req)
-{
-    int pos = 0;
-    int status = -1;
-    char buf[MAXLINE] = {0};
-    char *p = strchr(data, '\n');
-
-    while (p) {
-        int len = (p - data) - pos;
-        trimmed_copy(buf, data + pos, len);
-        buf[len] = 0;
-        if (strncmp(buf, "Status: ", strlen("Status: ")) == 0) {
-            status = strtol(buf + strlen("Status: "), NULL, 0);
-            break;
-        }
-        pos += len + 1;
-        if (data[pos] == '\r' && data[pos+1] == '\n') {
-            break;
-        }
-        p = strchr(p + 1, '\n');
-    }
-
-    if (status > 0) {
-        sprintf(buf, "HTTP/1.1 %d OK\r\n", status);
-    } else {
-        sprintf(buf, "HTTP/1.1 200 OK\r\nStatus: 200\r\n");
-    }
-    writen(out_fd, buf, strlen(buf));
-    writen(out_fd, data, strlen(data));
-    return status;
 }
 
 static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
@@ -919,7 +918,7 @@ static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
         goto CLEANUP;
     }
     kx_free(envblk);
-    /* Wait for start the interpreter */
+    /* Wait for starting the interpreter */
     for (int i = 0; i < 100; ++i) {
         if (WaitForSingleObject(pi.hProcess, 0) == WAIT_TIMEOUT) {
             break;
@@ -952,6 +951,169 @@ CLEANUP:
     CloseHandle(hInputWrite);
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
+    return 0;
+}
+#else
+int peek_pipe(int rd)
+{
+    struct pollfd fds = { .fd = rd, .events = POLLIN };
+    int res = poll(&fds, 1, 0);
+    if (res < 0 || (fds.revents & (POLLERR|POLLNVAL))) {
+        return -1;
+    }
+    return fds.revents & POLLIN;
+}
+
+static int add_env(char **envp, int i, int max, const char *key, const char *val)
+{
+    if (i < max && val != NULL) {
+        int len = strlen(key) + strlen(val) + 2;
+        char *env = (char *)kx_calloc(len, sizeof(char));
+        sprintf(env, "%s=%s", key, val);
+        envp[i++] = env;
+    }
+    return i;
+}
+
+static char **make_env_array(http_request_t *req)
+{
+    #define MAX_ENV_ARY (256)
+    char **envp = (char **)kx_calloc(MAX_ENV_ARY, sizeof(char *));
+    char port[16] = {0};
+    sprintf(port, "%d", req->cgi.remote_port);
+
+    int i;
+    i = add_env(envp, i, MAX_ENV_ARY, "GATEWAY_INTERFACE", req->cgi.gateway_interface);
+    i = add_env(envp, i, MAX_ENV_ARY, "REMOTE_ADDR", req->cgi.remote_addr);
+    i = add_env(envp, i, MAX_ENV_ARY, "REMOTE_PORT", port);
+    i = add_env(envp, i, MAX_ENV_ARY, "QUERY_STRING", req->cgi.query_string);
+    i = add_env(envp, i, MAX_ENV_ARY, "SCRIPT_NAME", req->cgi.script_name);
+    i = add_env(envp, i, MAX_ENV_ARY, "PATH_INFO", req->cgi.path_info);
+    i = add_env(envp, i, MAX_ENV_ARY, "REQUEST_METHOD", req->cgi.request_method);
+    i = add_env(envp, i, MAX_ENV_ARY, "HTTP_USER_AGENT", req->cgi.http_user_agent);
+    i = add_env(envp, i, MAX_ENV_ARY, "HTTP_CONNECTION", req->cgi.http_connection);
+    i = add_env(envp, i, MAX_ENV_ARY, "HTTP_ACCEPT", req->cgi.http_accept);
+    i = add_env(envp, i, MAX_ENV_ARY, "HTTP_ACCEPT_LANGUAGE", req->cgi.http_accept_language);
+    i = add_env(envp, i, MAX_ENV_ARY, "HTTP_ACCEPT_ENCODING", req->cgi.http_accept_encoding);
+    i = add_env(envp, i, MAX_ENV_ARY, "CONTENT_LENGTH", req->cgi.content_length);
+    i = add_env(envp, i, MAX_ENV_ARY, "CONTENT_TYPE", req->cgi.content_type);
+    return envp;
+}
+
+static void free_env_array(char **envp)
+{
+    for (int i = 0; ; ++i) {
+        char *p = envp[i];
+        if (!p) break;
+        kx_free(p);
+    }
+    kx_free(envp);
+}
+
+static int push_data(int wr, http_request_t *req)
+{
+    int n = 0;
+    int no_content_length = req->cgi.content_length == NULL;
+    int content_length = no_content_length ? 0 : strtol(req->cgi.content_length, NULL, 0);
+    while (content_length == 0 || n < content_length) {
+        abort_if_terminated(0);
+        char buf[MAXLINE+1] = {0};
+        int r = rio_read(&(req->rio), buf, MAXLINE);
+        if (r <= 0)
+            break;
+        n += r;
+        int writelen = 0;
+        while (r > 0) {
+            abort_if_terminated(0);
+            int wl = write(wr, buf + writelen, r);
+            if (wl == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
+                break;
+            }
+            if (wl <= 0) {
+                break;
+            }
+            writelen += wl;
+            r -= wl;
+        }
+    }
+    return 1;
+}
+
+static char *pull_data(int pid, int rd)
+{
+    int is_alive = 1;
+    char *data = NULL;
+    size_t sz = 0;
+    while (1) {
+        abort_if_terminated(NULL);
+        if (is_alive > 0) {
+            int status;
+            pid_t p = waitpid(pid, &status, WNOHANG);
+            is_alive = p == 0;
+        }
+        int l = peek_pipe(rd);
+        if (!is_alive && l <= 0)
+            break;
+        }
+        if (l > 0) {
+            int nread = read(rd, buf, sizeof(buf));
+            if (nread > 0) {
+                data = grow_buffer(data, &sz, buf, 0);
+            }
+        }
+    }
+    return data;
+}
+
+static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
+{
+    char **envp = NULL;
+    int pc2p[2] = {0};
+    int pp2c[2] = {0};
+    if (pipe(pc2p) < 0) {
+        goto CLEANUP;
+    }
+    if (pipe(pp2c) < 0) {
+        goto CLEANUP;
+    }
+    envp = make_env_array(req);
+
+    int pid = fork();
+    if (pid < 0) {
+        goto CLEANUP;
+    }
+    if (pid == 0) {
+        /* Child process */
+        close(pp2c[1]);
+        close(pc2p[0]);
+        dup2(pp2c[0], 0);
+        dup2(pc2p[1], 1);
+        close(pp2c[0]);
+        close(pc2p[1]);
+        if (execlpe(command, command, NULL, envp) < 0) {
+            close(pp2c[0]);
+            close(pc2p[1]);
+        }
+        _exit(1);
+    }
+
+    /* Parent process */
+    /* Write data to stdin of child */
+    push_data(pp2c[1], req);
+
+    /* Read stdout from child and send response to client */
+    char *data = pull_data(pid, pc2p[0]);
+    if (data) {
+        status = parse_and_send_response(out_fd, data, req);
+        kx_free(data);
+    }
+
+CLEANUP:
+    if (envp) free_env_array(envp);
+    if (pc2p[0] > 0) close(pc2p[0]);
+    if (pc2p[1] > 0) close(pc2p[1]);
+    if (pp2c[0] > 0) close(pp2c[0]);
+    if (pp2c[1] > 0) close(pp2c[1]);
     return 0;
 }
 #endif
