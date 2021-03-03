@@ -983,7 +983,7 @@ static char **make_env_array(http_request_t *req)
     char port[16] = {0};
     sprintf(port, "%d", req->cgi.remote_port);
 
-    int i;
+    int i = 0;
     i = add_env(envp, i, MAX_ENV_ARY, "GATEWAY_INTERFACE", req->cgi.gateway_interface);
     i = add_env(envp, i, MAX_ENV_ARY, "REMOTE_ADDR", req->cgi.remote_addr);
     i = add_env(envp, i, MAX_ENV_ARY, "REMOTE_PORT", port);
