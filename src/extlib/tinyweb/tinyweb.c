@@ -1069,6 +1069,7 @@ static char *pull_data(int pid, int rd)
 
 static int run_cgi(int out_fd, const char *interpreter, char *filename, http_request_t *req)
 {
+    int status = 0;
     char **envp = NULL;
     int pc2p[2] = {0};
     int pp2c[2] = {0};
