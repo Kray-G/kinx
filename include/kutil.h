@@ -132,7 +132,7 @@ typedef struct fileinfo_ {
     uint8_t is_err:1;
 } fileinfo_t;
 
-void kx_timer(systemtimer_t *v)
+static inline void kx_timer(systemtimer_t *v)
 {
     #if defined(_WIN32) || defined(_WIN64)
     QueryPerformanceFrequency(&(v->freq));
@@ -142,7 +142,7 @@ void kx_timer(systemtimer_t *v)
     #endif
 }
 
-void kx_restart(systemtimer_t *v)
+static inline void kx_restart(systemtimer_t *v)
 {
     #if defined(_WIN32) || defined(_WIN64)
     QueryPerformanceCounter(&(v->start));
@@ -151,7 +151,7 @@ void kx_restart(systemtimer_t *v)
     #endif
 }
 
-double kx_elapsed(systemtimer_t *v)
+static inline double kx_elapsed(systemtimer_t *v)
 {
     #if defined(_WIN32) || defined(_WIN64)
     LARGE_INTEGER end;
