@@ -6,12 +6,13 @@
     * Supported Windows socket.
     * Changed the strategy from pre-fork to multi threading.
     * Made it fit to Kinx & Material Design by default.
-    * TODO: CGI
+    * Supported Windows CGI.
+    * TODO: Linux CGI
 
     Build
     * VisualStudio
         $ cl /Fetinyweb.exe /Iinclude /DSTANDALONE_WEBSERVER src\extlib\tinyweb\tinyweb.c src\global.obj src\fileutil.obj ws2_32.lib
-        $ gcc -o tinyweb.exe -I include -DSTANDALONE_WEBSERVER src/extlib/tinyweb/tinyweb.c build/global.o build/fileutil.o -pthread
+        $ gcc -o tinyweb -I include -DSTANDALONE_WEBSERVER src/extlib/tinyweb/tinyweb.c build/global.o build/fileutil.o -pthread
 */
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -39,6 +40,7 @@ typedef SSIZE_T ssize_t;
 #include <sys/types.h>
 #include <ctype.h>
 #include <kxthread.h>
+#include <kutil.h>
 #include <fileutil.h>
 
 #if defined(STANDALONE_WEBSERVER)
@@ -59,6 +61,14 @@ extern kx_free_t kx_free;
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
 #endif
 
+#define abort_if_terminated(retval) { \
+    pthread_mutex_lock(&g_webserver_mutex); \
+    volatile int is_term = g_websvr_mgr.is_term; \
+    pthread_mutex_unlock(&g_webserver_mutex); \
+    if (is_term) return retval; \
+} \
+/**/
+
 #define KX_WEBSERVER_MAX_THREADS (10)
 #define KX_WEBSERVER_EXPIRED_SECONDS (5)
 #define KX_WEBSERVER_SCAN_INTERVAL (1)
@@ -78,9 +88,6 @@ typedef struct {
 } rio_t;
 
 typedef struct {
-    int verbose;
-    unsigned long offset;       /* for support Range */
-    unsigned long end;
     int remote_port;
     char *gateway_interface;
     char *remote_addr;
@@ -95,13 +102,27 @@ typedef struct {
     char *http_accept_encoding;
     char *content_length;
     char *content_type;
+} cgi_info_t;
+
+typedef struct {
+    int verbose;
+    unsigned long offset;       /* for support Range */
+    unsigned long end;
+    systemtimer_t tmr;
     char filename[MAXLINE];
+    cgi_info_t cgi;
+    rio_t rio;
 } http_request_t;
 
 typedef struct {
     const char *extension;
     const char *mime_type;
 } mime_map_t;
+
+typedef struct {
+    const char *extension;
+    const char *interpreter;
+} cgi_map_t;
 
 typedef struct webserver_info_ {
     int connfd;
@@ -134,6 +155,7 @@ static mime_map_t meme_types[] = {
     {".jpg", "image/jpeg"},
     {".ico", "image/x-icon"},
     {".js", "application/javascript"},
+    {".json", "application/json"},
     {".pdf", "application/pdf"},
     {".mp4", "video/mp4"},
     {".png", "image/png"},
@@ -141,6 +163,11 @@ static mime_map_t meme_types[] = {
     {".xml", "text/xml"},
     {".md", "text/markdown"},
     {".csv", "text/csv"},
+    {NULL, NULL},
+};
+
+static cgi_map_t cgi_interpreters[] = {
+    {".kx", "kinx"},
     {NULL, NULL},
 };
 
@@ -161,6 +188,47 @@ static void logger(int verbose, const char *fmt, ...)
         fflush(stdout);
         pthread_mutex_unlock(&g_webserver_mutex);
     }
+}
+
+static char *grow_buffer(char *dst, size_t *cur_sz, const char *src, int add_sep)
+{
+    size_t len = strlen(src);
+    char *ndst = kx_realloc(dst, *cur_sz + len + 2);
+    if (ndst == NULL) {
+        kx_free(dst);
+        return NULL;
+    }
+    dst = ndst;
+    if (*cur_sz == 0) {
+        memcpy(dst, src, len);
+        *cur_sz += len;
+    } else {
+        if (add_sep) {
+            dst[*cur_sz] = ' ';
+            memcpy(dst + (*cur_sz) + 1, src, len);
+            *cur_sz += len + 1;
+        } else {
+            memcpy(dst + (*cur_sz), src, len);
+            *cur_sz += len;
+        }
+    }
+    dst[*cur_sz] = 0;
+    return dst;
+}
+
+static const char* get_cgi_interpreter(char *filename)
+{
+    char *dot = strrchr(filename, '.');
+    if (dot) {
+        cgi_map_t *map = cgi_interpreters;
+        while (map->extension) {
+            if (strcmp(map->extension, dot) == 0) {
+                return map->interpreter;
+            }
+            map++;
+        }
+    }
+    return NULL;
 }
 
 static void rio_readinitb(rio_t *rp, int fd)
@@ -221,7 +289,7 @@ static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n)
 {
     int cnt;
     while (rp->rio_cnt <= 0) {  /* refill if buf is empty */
-        if (select_socket(rp->rio_fd, 1000) <= 0) {
+        if (select_socket(rp->rio_fd, 50) <= 0) {
             return -1;
         }
         #if defined(_WIN32) || defined(_WIN64)
@@ -268,8 +336,11 @@ static ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
                 return 0; /* EOF, no data read */
             else
                 break;    /* EOF, some data was read */
-        } else
+        } else if (n > 1) {
+            break;
+        } else {
             return -1;    /* error */
+        }
     }
     *bufp = 0;
     return n;
@@ -339,6 +410,17 @@ static void handle_directory_request(int out_fd, const char *dir_path)
     sprintf(buf, "</table></body></html>");
     writen(out_fd, buf, strlen(buf));
     kx_close_dir(d);
+}
+
+static int handle_redirect_directory(int out_fd, const char *dir_path)
+{
+    char buf[MAXLINE];
+    sprintf(buf, "HTTP/1.1 301 Moved Permanently\r\n"
+            "Location: %s/\r\n\r\n"
+            "<html><body>301 Moved Permanently</body></html>",
+            dir_path);
+    writen(out_fd, buf, strlen(buf));
+    return 301;
 }
 
 static const char* get_mime_type(char *filename)
@@ -448,20 +530,20 @@ static void parse_symbol(char* dst, char* src, int size, char delimiter)
 static int set_req_param(char **paramp, char *string)
 {
     int len = strlen(string);
-    *paramp = kx_calloc(len + 2, sizeof(char));
+    *paramp = kx_calloc(len + 3, sizeof(char));
     trimmed_copy(*paramp, string, len);
     return len + 1;
 }
 
 static void set_path_info(http_request_t *req)
 {
-    req->path_info = NULL;
-    if (is_regular_file(req->script_name)) {
+    req->cgi.path_info = NULL;
+    if (is_regular_file(req->cgi.script_name)) {
         return;
     }
 
     char buf[MAXLINE];
-    strncpy(buf, req->script_name, MAXLINE);
+    strncpy(buf, req->cgi.script_name, MAXLINE);
     do {
         char *p = strrchr(buf, '/');
         if (!p) {
@@ -470,8 +552,8 @@ static void set_path_info(http_request_t *req)
         *p = 0;
         if (is_regular_file(buf)) {
             int l = p - buf;
-            set_req_param(&(req->path_info), req->script_name + l);
-            req->script_name[l] = 0;
+            set_req_param(&(req->cgi.path_info), req->cgi.script_name + l);
+            req->cgi.script_name[l] = 0;
             break;
         }
     } while (1);
@@ -482,31 +564,30 @@ static void scan_header(const char *line, http_request_t *req)
     char buf[MAXLINE] = {0};
     if (strncmp(line, "Accept: ", strlen("Accept: ")) == 0) {
         strncpy(buf, line + strlen("Accept: "), MAXLINE);
-        set_req_param(&(req->http_accept), buf);
+        set_req_param(&(req->cgi.http_accept), buf);
     } else if (strncmp(line, "User-Agent: ", strlen("User-Agent: ")) == 0) {
         strncpy(buf, line + strlen("User-Agent: "), MAXLINE);
-        set_req_param(&(req->http_user_agent), buf);
+        set_req_param(&(req->cgi.http_user_agent), buf);
     } else if (strncmp(line, "Accept-Language: ", strlen("Accept-Language: ")) == 0) {
         strncpy(buf, line + strlen("Accept-Language: "), MAXLINE);
-        set_req_param(&(req->http_accept_language), buf);
+        set_req_param(&(req->cgi.http_accept_language), buf);
     } else if (strncmp(line, "Accept-Encoding: ", strlen("Accept-Encoding: ")) == 0) {
         strncpy(buf, line + strlen("Accept-Encoding: "), MAXLINE);
-        set_req_param(&(req->http_accept_encoding), buf);
+        set_req_param(&(req->cgi.http_accept_encoding), buf);
     } else if (strncmp(line, "Content-Type: ", strlen("Content-Type: ")) == 0) {
         strncpy(buf, line + strlen("Content-Type: "), MAXLINE);
-        set_req_param(&(req->content_type), buf);
+        set_req_param(&(req->cgi.content_type), buf);
     } else if (strncmp(line, "Content-Length: ", strlen("Content-Length: ")) == 0) {
         strncpy(buf, line + strlen("Content-Length: "), MAXLINE);
-        set_req_param(&(req->content_length), buf);
+        set_req_param(&(req->cgi.content_length), buf);
     } else if (strncmp(line, "Connection: ", strlen("Connection: ")) == 0) {
         strncpy(buf, line + strlen("Connection: "), MAXLINE);
-        set_req_param(&(req->http_connection), buf);
+        set_req_param(&(req->cgi.http_connection), buf);
     }
 }
 
 static int parse_request(int fd, http_request_t *req)
 {
-    rio_t rio;
     char buf[MAXLINE] = {0};
     char method[MAXLINE] = {0};
     char uri[MAXLINE] = {0};
@@ -514,8 +595,8 @@ static int parse_request(int fd, http_request_t *req)
     req->offset = 0;
     req->end = 0;              /* default */
 
-    rio_readinitb(&rio, fd);
-    if (rio_readlineb(&rio, buf, MAXLINE) < 0)
+    rio_readinitb(&(req->rio), fd);
+    if (rio_readlineb(&(req->rio), buf, MAXLINE) < 0)
         return 0;
     if (buf[0] == 0)
         return 0;
@@ -523,7 +604,7 @@ static int parse_request(int fd, http_request_t *req)
     sscanf(buf, "%s %s", method, uri); /* version is not cared */
     /* read all */
     while (buf[0] != '\n' && buf[1] != '\n') { /* \n || \r\n */
-        if (rio_readlineb(&rio, buf, MAXLINE) < 0)
+        if (rio_readlineb(&(req->rio), buf, MAXLINE) < 0)
             return 0;
         if (buf[0] == 0)
             return 0;
@@ -536,18 +617,18 @@ static int parse_request(int fd, http_request_t *req)
     }
 
     // set_req_param(&(req->gateway_interface), "CGI/1.1");
-    set_req_param(&(req->request_method), method);
+    set_req_param(&(req->cgi.request_method), method);
 
     char *urip = uri;
     if (urip[0] == '/') urip++;
     trimmed_copy(uri, uri, MAXLINE);
     parse_symbol(string, urip, MAXLINE, '?');
-    urip += set_req_param(&(req->script_name), string);
+    urip += set_req_param(&(req->cgi.script_name), string);
     parse_symbol(string, urip, MAXLINE, '?');
-    urip += set_req_param(&(req->query_string), string);
+    urip += set_req_param(&(req->cgi.query_string), string);
     set_path_info(req);
 
-    char* filename = req->script_name;
+    char* filename = req->cgi.script_name;
     int length = strlen(filename);
     if (filename[0] == 0) {
         filename = "./";
@@ -558,7 +639,7 @@ static int parse_request(int fd, http_request_t *req)
 
 static void log_access(int tid, int status, struct sockaddr_in *c_addr, http_request_t *req)
 {
-    logger(req->verbose, "[%6d] %s:%d %d - %s\n", tid, inet_ntoa(c_addr->sin_addr), ntohs(c_addr->sin_port), status, req->filename);
+    logger(req->verbose, "[%6d](%6.3f) %s:%d %d - %s\n", tid, kx_elapsed(&(req->tmr)), inet_ntoa(c_addr->sin_addr), ntohs(c_addr->sin_port), status, req->filename);
 }
 
 static void client_error(int fd, int status, char *msg, char *longmsg)
@@ -653,30 +734,258 @@ static void replace_url_all(http_request_t *req)
 
 static void free_http_request(http_request_t *req)
 {
-    kx_free(req->gateway_interface);
-    kx_free(req->remote_addr);
-    kx_free(req->query_string);
-    kx_free(req->script_name);
-    kx_free(req->path_info);
-    kx_free(req->request_method);
-    kx_free(req->http_user_agent);
-    kx_free(req->http_connection);
-    kx_free(req->http_accept);
-    kx_free(req->http_accept_language);
-    kx_free(req->http_accept_encoding);
-    kx_free(req->content_length);
-    kx_free(req->content_type);
+    kx_free(req->cgi.gateway_interface);
+    kx_free(req->cgi.remote_addr);
+    kx_free(req->cgi.query_string);
+    kx_free(req->cgi.script_name);
+    kx_free(req->cgi.path_info);
+    kx_free(req->cgi.request_method);
+    kx_free(req->cgi.http_user_agent);
+    kx_free(req->cgi.http_connection);
+    kx_free(req->cgi.http_accept);
+    kx_free(req->cgi.http_accept_language);
+    kx_free(req->cgi.http_accept_encoding);
+    kx_free(req->cgi.content_length);
+    kx_free(req->cgi.content_type);
+}
+
+#if defined(_WIN32) || defined(_WIN64)
+static char *add_env(char *data, size_t *sz, const char *key, const char *val)
+{
+    if (val) {
+        data = grow_buffer(data, sz, key, 0);
+        data = grow_buffer(data, sz, "=", 0);
+        data = grow_buffer(data, sz, val, 0);
+        data = grow_buffer(data, sz, "\001", 0);
+    }
+    return data;
+}
+
+static char *make_env_block(http_request_t *req)
+{
+    size_t sz = 0;
+    char *data = NULL;
+    char port[16] = {0};
+    sprintf(port, "%d", req->cgi.remote_port);
+
+    data = add_env(data, &sz, "GATEWAY_INTERFACE", req->cgi.gateway_interface);
+    data = add_env(data, &sz, "REMOTE_ADDR", req->cgi.remote_addr);
+    data = add_env(data, &sz, "QUERY_STRING", req->cgi.query_string);
+    data = add_env(data, &sz, "SCRIPT_NAME", req->cgi.script_name);
+    data = add_env(data, &sz, "PATH_INFO", req->cgi.path_info);
+    data = add_env(data, &sz, "REQUEST_METHOD", req->cgi.request_method);
+    data = add_env(data, &sz, "HTTP_USER_AGENT", req->cgi.http_user_agent);
+    data = add_env(data, &sz, "HTTP_CONNECTION", req->cgi.http_connection);
+    data = add_env(data, &sz, "HTTP_ACCEPT", req->cgi.http_accept);
+    data = add_env(data, &sz, "HTTP_ACCEPT_LANGUAGE", req->cgi.http_accept_language);
+    data = add_env(data, &sz, "HTTP_ACCEPT_ENCODING", req->cgi.http_accept_encoding);
+    data = add_env(data, &sz, "CONTENT_LENGTH", req->cgi.content_length);
+    data = add_env(data, &sz, "CONTENT_TYPE", req->cgi.content_type);
+    for (int i = 0; i < sz; ++i) {
+        if (data[i] == 1) data[i] = 0;
+    }
+    return data;
+}
+
+static int push_data(HANDLE hInputWrite, http_request_t *req)
+{
+    int n = 0;
+    int no_content_length = req->cgi.content_length == NULL;
+    int content_length = no_content_length ? 0 : strtol(req->cgi.content_length, NULL, 0);
+    while (content_length == 0 || n < content_length) {
+        abort_if_terminated(0);
+        char buf[MAXLINE+1] = {0};
+        int r = rio_read(&(req->rio), buf, MAXLINE);
+        if (r < 0 || r == 0)
+            break;
+        n += r;
+        int writelen = 0;
+        while (r > 0) {
+            abort_if_terminated(0);
+            DWORD wl = 0;
+            if (WriteFile(hInputWrite, buf + writelen, r, &wl, NULL) == 0) {
+                printf("err = %d\n", GetLastError());
+                break;
+            }
+            if (wl <= 0) {
+                break;
+            }
+            writelen += wl;
+            r -= wl;
+        }
+    }
+    return 1;
+}
+
+static char *pull_data(HANDLE hProcess, HANDLE hOutputRead)
+{
+    char *data = NULL;
+    size_t sz = 0;
+    while (1) {
+        abort_if_terminated(NULL);
+        int is_alive = WaitForSingleObject(hProcess, 0) == WAIT_TIMEOUT;
+        int l = 0;
+        if (!PeekNamedPipe(hOutputRead, NULL, 0, NULL, &l, NULL)) {
+            break;
+        }
+        if (!is_alive && l <= 0) {
+            break;
+        }
+        if (l > 0) {
+            char buf[MAXLINE] = {0};
+            if (!ReadFile(hOutputRead, buf, sizeof(buf), &l, NULL)) {
+                break;
+            }
+            data = grow_buffer(data, &sz, buf, 0);
+        }
+    }
+    return data;
+}
+
+static int parse_and_send_response(int out_fd, char *data, http_request_t *req)
+{
+    int pos = 0;
+    int status = -1;
+    char buf[MAXLINE] = {0};
+    char *p = strchr(data, '\n');
+
+    while (p) {
+        int len = (p - data) - pos;
+        trimmed_copy(buf, data + pos, len);
+        buf[len] = 0;
+        if (strncmp(buf, "Status: ", strlen("Status: ")) == 0) {
+            status = strtol(buf + strlen("Status: "), NULL, 0);
+            break;
+        }
+        pos += len + 1;
+        if (data[pos] == '\r' && data[pos+1] == '\n') {
+            break;
+        }
+        p = strchr(p + 1, '\n');
+    }
+
+    if (status > 0) {
+        sprintf(buf, "HTTP/1.1 %d OK\r\n", status);
+    } else {
+        sprintf(buf, "HTTP/1.1 200 OK\r\nStatus: 200\r\n");
+    }
+    writen(out_fd, buf, strlen(buf));
+    writen(out_fd, data, strlen(data));
+    return status;
+}
+
+static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
+{
+    HANDLE hInputWriteTmp = INVALID_HANDLE_VALUE;
+    HANDLE hInputRead = INVALID_HANDLE_VALUE;
+    HANDLE hInputWrite = INVALID_HANDLE_VALUE;
+    HANDLE hOutputReadTmp = INVALID_HANDLE_VALUE;
+    HANDLE hOutputRead = INVALID_HANDLE_VALUE;
+    HANDLE hOutputWrite = INVALID_HANDLE_VALUE;
+    SECURITY_ATTRIBUTES sa;
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sa.lpSecurityDescriptor = 0;
+    sa.bInheritHandle = TRUE;
+
+    HANDLE currproc = GetCurrentProcess();
+    /* From stdout of ChildProcess */
+    if (!CreatePipe(&hOutputReadTmp, &hOutputWrite, &sa, 0))
+        return 0;
+    if (!DuplicateHandle(currproc, hOutputReadTmp, currproc, &hOutputRead, 0, FALSE, DUPLICATE_SAME_ACCESS))
+        return 0;
+    /* To stdin of ChildProcess */
+    if (!CreatePipe(&hInputRead, &hInputWriteTmp, &sa, 0))
+        return 0;
+    if (!DuplicateHandle(currproc, hInputWriteTmp, currproc, &hInputWrite, 0, FALSE, DUPLICATE_SAME_ACCESS))
+        return 0;
+    CloseHandle(hOutputReadTmp);
+    CloseHandle(hInputWriteTmp);
+
+    int status = 0;
+    PROCESS_INFORMATION pi;
+    STARTUPINFOA si;
+    ZeroMemory(&si, sizeof(STARTUPINFO));
+    si.cb = sizeof(STARTUPINFO);
+    si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
+    si.hStdInput = hInputRead;
+    si.hStdOutput = hOutputWrite;
+    si.hStdError = INVALID_HANDLE_VALUE;
+    char *tmp = (char *)_alloca(strlen(command) + 1);
+    strcpy(tmp, command);
+    char *envblk = make_env_block(req);
+    if (!CreateProcessA(0, tmp, 0, 0, TRUE, CREATE_NEW_PROCESS_GROUP, envblk, 0, &si, &pi)) {
+        kx_free(envblk);
+        goto CLEANUP;
+    }
+    kx_free(envblk);
+    /* Wait for start the interpreter */
+    for (int i = 0; i < 100; ++i) {
+        if (WaitForSingleObject(pi.hProcess, 0) == WAIT_TIMEOUT) {
+            break;
+        }
+        Sleep(100);
+    }
+
+    /* Write data to stdin of child */
+    push_data(hInputWrite, req);
+    CloseHandle(hInputRead);
+    CloseHandle(hInputWrite);
+
+    /* Read stdout from child and send response to client */
+    char *data = pull_data(pi.hProcess, hOutputRead);
+    if (data) {
+        status = parse_and_send_response(out_fd, data, req);
+        kx_free(data);
+    }
+    CloseHandle(hOutputWrite);
+    CloseHandle(hOutputRead);
+
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return status;
+
+CLEANUP:
+    CloseHandle(hOutputRead);
+    CloseHandle(hOutputWrite);
+    CloseHandle(hInputRead);
+    CloseHandle(hInputWrite);
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return 0;
+}
+#endif
+
+static int check_cgi(int tid, int out_fd, struct sockaddr_in *clientaddr, http_request_t *req)
+{
+    const char *interpreter = get_cgi_interpreter(req->filename);
+    if (!interpreter) {
+        return 0;
+    }
+
+    char cmd[256] = {0};
+    int len = 0;
+    snprintf(cmd, 255, "\"%s\" \"%s\"", interpreter, req->filename);
+    int status = run_cgi(out_fd, cmd, &status, req);
+    if (status <= 0) {
+        status = 500;
+        char *msg = "Internal Server Error";
+        client_error(out_fd, status, "Error", msg);
+    }
+    return status;
 }
 
 static void process(int tid, int fd, struct sockaddr_in *clientaddr, int verbose)
 {
-    logger(verbose, "[%6d] accept request, fd is %d\n", tid, fd);
     http_request_t req = { .verbose = verbose };
-    req.remote_port = ntohs(clientaddr->sin_port);
-    set_req_param(&(req.remote_addr), inet_ntoa(clientaddr->sin_addr));
-    if (!parse_request(fd, &req))
+    kx_timer(&(req.tmr));
+    req.cgi.remote_port = ntohs(clientaddr->sin_port);
+    set_req_param(&(req.cgi.remote_addr), inet_ntoa(clientaddr->sin_addr));
+    if (!parse_request(fd, &req)) {
         return;
+    }
 
+    logger(verbose, "[%6d] accept request, fd is %d\n", tid, fd);
     replace_url_all(&req);
     int status = 200, not_found = 0;
     struct stat sbuf;
@@ -687,21 +996,26 @@ static void process(int tid, int fd, struct sockaddr_in *clientaddr, int verbose
         } else {
             handle_directory_request(fd, req.filename);
         }
+    } else if (S_ISDIR(sbuf.st_mode)) {
+        status = handle_redirect_directory(fd, req.filename);
     } else {
         int ffd = open(req.filename, O_RDONLY|O_BINARY, 0);
         if (ffd <= 0) {
             not_found = 1;
         } else {
             if (S_ISREG(sbuf.st_mode)) {
-                if (req.end == 0) {
-                    req.end = sbuf.st_size;
+                int st = check_cgi(tid, fd, clientaddr, &req);
+                if (st > 0) {
+                    status = st;
+                } else {
+                    if (req.end == 0) {
+                        req.end = sbuf.st_size;
+                    }
+                    if (req.offset > 0) {
+                        status = 206;
+                    }
+                    serve_static(fd, ffd, &req, sbuf.st_size);
                 }
-                if (req.offset > 0) {
-                    status = 206;
-                }
-                serve_static(fd, ffd, &req, sbuf.st_size);
-            } else if (S_ISDIR(sbuf.st_mode)) {
-                not_found = 1;
             } else {
                 status = 400;
                 char *msg = "Unknow Error";
