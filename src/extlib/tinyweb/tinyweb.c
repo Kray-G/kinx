@@ -28,6 +28,7 @@ typedef SSIZE_T ssize_t;
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <poll.h>
 #define O_BINARY 0
 #define closesocket close
 #endif
@@ -873,7 +874,7 @@ static char *pull_data(HANDLE hProcess, HANDLE hOutputRead)
     return data;
 }
 
-static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
+static int run_cgi(int out_fd, const char *interpreter, char *filename, http_request_t *req)
 {
     HANDLE hInputWriteTmp = INVALID_HANDLE_VALUE;
     HANDLE hInputRead = INVALID_HANDLE_VALUE;
@@ -910,8 +911,8 @@ static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
     si.hStdInput = hInputRead;
     si.hStdOutput = hOutputWrite;
     si.hStdError = INVALID_HANDLE_VALUE;
-    char *tmp = (char *)_alloca(strlen(command) + 1);
-    strcpy(tmp, command);
+    char *tmp = (char *)_alloca(strlen(interpreter) + strlen(filename) + 8);
+    sprintf(tmp, "\"%s\" \"%s\"", interpreter, filename);
     char *envblk = make_env_block(req);
     if (!CreateProcessA(0, tmp, 0, 0, TRUE, CREATE_NEW_PROCESS_GROUP, envblk, 0, &si, &pi)) {
         kx_free(envblk);
@@ -1052,11 +1053,12 @@ static char *pull_data(int pid, int rd)
             is_alive = p == 0;
         }
         int l = peek_pipe(rd);
-        if (!is_alive && l <= 0)
+        if (!is_alive && l <= 0) {
             break;
         }
         if (l > 0) {
-            int nread = read(rd, buf, sizeof(buf));
+            char buf[MAXLINE] = {0};
+            int nread = read(rd, buf, sizeof(buf) - 1);
             if (nread > 0) {
                 data = grow_buffer(data, &sz, buf, 0);
             }
@@ -1065,7 +1067,7 @@ static char *pull_data(int pid, int rd)
     return data;
 }
 
-static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
+static int run_cgi(int out_fd, const char *interpreter, char *filename, http_request_t *req)
 {
     char **envp = NULL;
     int pc2p[2] = {0};
@@ -1090,7 +1092,7 @@ static int run_cgi(int out_fd, char *command, int *pstatus, http_request_t *req)
         dup2(pc2p[1], 1);
         close(pp2c[0]);
         close(pc2p[1]);
-        if (execlpe(command, command, NULL, envp) < 0) {
+        if (execle(interpreter, interpreter, filename, NULL, envp) < 0) {
             close(pp2c[0]);
             close(pc2p[1]);
         }
@@ -1125,10 +1127,7 @@ static int check_cgi(int tid, int out_fd, struct sockaddr_in *clientaddr, http_r
         return 0;
     }
 
-    char cmd[256] = {0};
-    int len = 0;
-    snprintf(cmd, 255, "\"%s\" \"%s\"", interpreter, req->filename);
-    int status = run_cgi(out_fd, cmd, &status, req);
+    int status = run_cgi(out_fd, interpreter, req->filename, req);
     if (status <= 0) {
         status = 500;
         char *msg = "Internal Server Error";
