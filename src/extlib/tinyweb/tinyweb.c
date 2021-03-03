@@ -6,8 +6,7 @@
     * Supported Windows socket.
     * Changed the strategy from pre-fork to multi threading.
     * Made it fit to Kinx & Material Design by default.
-    * Supported Windows CGI.
-    * TODO: Linux CGI
+    * Supported CGI for Windows/Linux.
 
     Build
     * VisualStudio
