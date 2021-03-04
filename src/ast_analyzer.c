@@ -675,9 +675,6 @@ LOOP_HEAD:;
                 break;
             }
         }
-        if (node->var_type == KX_UND_T && !node->lhs) {
-            node->lhs = kx_gen_special_object(KXVL_NULL);
-        }
         kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
         if (!sym) {
             if (!node->lhs && !actx->decl && !actx->lvalue) {
