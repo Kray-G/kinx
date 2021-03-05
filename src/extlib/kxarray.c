@@ -447,14 +447,8 @@ int Array_flatten(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     if (obj) {
-        int level = -1;
         kx_obj_t *ary = allocate_obj(ctx);
-        if (args > 1) {
-            kx_val_t val = kv_last_by(ctx->stack, 2);
-            if (val.type == KX_INT_T) {
-                level = get_arg_int(2, args, ctx);
-            }
-        }
+        int level = args > 1 ? get_arg_int(2, args, ctx) : -1;
         int r = Array_flatten_impl(args, ctx, ary, obj, 0, level);
         if (r > 0) {
             KX_ADJST_STACK();
