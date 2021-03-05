@@ -114,4 +114,27 @@ _function _functional_enumerator(e) {
     };
 }
 
-Functional.enumerable = Functional.Enumerator.create = _functional_enumerator;
+Functional.methodMissing = _function(_instance, method, ...a) {
+    Functional[method] = _function(...args) {
+        return _function(obj) {
+            return obj[method](...args);
+        };
+    };
+    return Functional[method](...a);
+};
+
+// The methods in Array such as `map` have to be assigned to this object
+//  because Array.map will have been called directly instead of this.map
+//  and methodMissing will not be called.
+Array.keySet(Array).filter({ => Array[_1].isFunction }).each { &(method)
+    Functional[method] = _function(...args) {
+        return _function(obj) {
+            return obj[method](...args);
+        };
+    };
+};
+
+Functional.enumerable
+    = Functional.Enumerator.create
+    = _functional_enumerator
+    ;
