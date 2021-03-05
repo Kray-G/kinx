@@ -1,40 +1,41 @@
 
-# Functional
+# Enumerable
 
 ## Overview
 
-The `Functional` is a global instance having functional methods which is useful with [a pipeline operator](../../statement/expression/pipeline.md).
+The `Enumerable` is not only `module` but also a global instance having functional enumerable methods
+which is useful with [a pipeline operator](../../statement/expression/pipeline.md).
 For example, when multiple valuse are passed to the next function via pipeline,
-a method in `Functional` can fetch a value one by one and pass the value to a next function in order.
+a method in `Enumerable` can fetch a value one by one and pass the value to a next function in order.
 
-Therefore, `Functional` can handle an infinite sequence.
+Therefore, `Enumerable` can handle an infinite sequence.
 This is an example below.
 
 ```javascript
 1..
     |> Functional.enumerable
-    |> Functional.drop(10)
-    |> Functional.filter { => _1 % 3 == 0 }
-    |> Functional.take(10)
-    |> Functional.toArray
+    |> Enumerable.drop(10)
+    |> Enumerable.filter { => _1 % 3 == 0 }
+    |> Enumerable.take(10)
+    |> Enumerable.toArray
     |> System.println;
 ```
 
-The `Functional.enumerable` is a magic function to make a sequence change to an item which `Functional` methods can use.
+The `Functional.enumerable` is a magic function to make a sequence change to an item which `Enumerable` methods can use.
 You can write it also like an example below, but the way how to write in the above example is more useful.
 
 ```javascript
 new Functional.Enumerator(1..)
-    |> Functional.drop(10)
-    |> Functional.filter { => _1 % 3 == 0 }
-    |> Functional.take(10)
-    |> Functional.toArray
+    |> Enumerable.drop(10)
+    |> Enumerable.filter { => _1 % 3 == 0 }
+    |> Enumerable.take(10)
+    |> Enumerable.toArray
     |> System.println;
 ```
 
 ### Methods
 
-The methods of `Functional` to pass values in pipeline is currently as follows.
+The methods of `Enumerable` to pass values in pipeline is currently as follows.
 
 |         Name         |                                                         Outline                                                         |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -63,20 +64,20 @@ By one of those, the pipeline will be terminated once and a value will be aggreg
 | partition(func)      | Returns an array of 2 groups of a group which is returning true by `func` and a group which is returning false by `func`. |
 | printlnAll           | Apply `System.println` for all elements.                                                                                  |
 
-### Functional.trace
+### Enumerable.trace
 
 This is not a `functional` method but a method just to trace and display items passed in the pipeline.
 This method will display an item and pass it to the next as it is.
 
-Therefore, `Functional.trace` can be used before `Functional.enumerable` as an example below.
+Therefore, `Enumerable.trace` can be used before `Functional.enumerable` as an example below.
 
 ```javascript
 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    |> Functional.trace
+    |> Enumerable.trace
     |> Functional.enumerable
-    |> Functional.each { => Functional.trace(_1) }
-    |> Functional.reduce(&(r, e) => r += e, 0)
-    |> Functional.trace
+    |> Enumerable.each { => Enumerable.trace(_1) }
+    |> Enumerable.reduce(&(r, e) => r += e, 0)
+    |> Enumerable.trace
     ;
 
 // [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -100,13 +101,13 @@ Therefore, `Functional.trace` can be used before `Functional.enumerable` as an e
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
-new $F.Enumerator(1..10)
-    |> $F.filter({ => _1 <= 4 })
-    |> $F.map({ => _1 * 10 })
+new Functional.Enumerator(1..10)
+    |> $E.filter({ => _1 <= 4 })
+    |> $E.map({ => _1 * 10 })
     |> printlnArray;
 ```
 
@@ -121,13 +122,13 @@ new $F.Enumerator(1..10)
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 1..10
-    |> $F.enumerable
-    |> $F.filter({ => _1 < 7 }) +> $F.map({ => _1 * 100 }) +> printlnArray
+    |> Functional.enumerable
+    |> $E.filter({ => _1 < 7 }) +> $E.map({ => _1 * 100 }) +> printlnArray
     ;
 ```
 
@@ -142,13 +143,13 @@ var printlnArray = $F.toArray +> println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 1..20
-    |> $F.enumerable
-    |> $F.dropWhile { => _1 < 10 || _1 % 2 == 0 }
+    |> Functional.enumerable
+    |> $E.dropWhile { => _1 < 10 || _1 % 2 == 0 }
     |> printlnArray;
 ```
 
@@ -163,13 +164,13 @@ var printlnArray = $F.toArray +> println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 [[1, 2], [3, 4]]
-    |> $F.enumerable
-    |> $F.flatMap { => _1.map { => _1 * 2 } }
+    |> Functional.enumerable
+    |> $E.flatMap { => _1.map { => _1 * 2 } }
     |> printlnArray;
 ```
 
@@ -184,13 +185,13 @@ var printlnArray = $F.toArray +> println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
-    |> $F.enumerable
-    |> $F.flatMap { => [_1, _1 * 2] }
+    |> Functional.enumerable
+    |> $E.flatMap { => [_1, _1 * 2] }
     |> printlnArray;
 ```
 
@@ -205,15 +206,15 @@ var printlnArray = $F.toArray +> println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 [10, 21, 92, 22, 37, 23, 98, 76, 56 , 48, 88, 76, 109, 2, 54]
-    |> $F.trace
-    |> $F.enumerable
-    |> $F.shuffle
-    |> printlnArray <+ $F.sort
+    |> $E.trace
+    |> Functional.enumerable
+    |> $E.shuffle
+    |> printlnArray <+ $E.sort
     ;
 ```
 
@@ -229,16 +230,16 @@ var printlnArray = $F.toArray +> println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 100..
-    |> $F.enumerable
-    |> $F.println("==> ")
-    |> $F.filter { => _1 % 2 == 0 }
-    |> $F.println("filterred: ")
-    |> $F.take(10)
+    |> Functional.enumerable
+    |> $E.println("==> ")
+    |> $E.filter { => _1 % 2 == 0 }
+    |> $E.println("filterred: ")
+    |> $E.take(10)
     |> printlnArray;
 ```
 
@@ -282,12 +283,12 @@ filterred: 118
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
 
 1..20
-    |> $F.enumerable
-    |> $F.all({ => _1 > 0 })
+    |> Functional.enumerable
+    |> $E.all({ => _1 > 0 })
     |> println;
 ```
 
@@ -302,12 +303,12 @@ var println = System.println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
 
 0..20
-    |> $F.enumerable
-    |> $F.all({ => _1 < 20 })
+    |> Functional.enumerable
+    |> $E.all({ => _1 < 20 })
     |> println;
 ```
 
@@ -322,12 +323,12 @@ var println = System.println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
 
 0...20
-    |> $F.enumerable
-    |> $F.all({ => _1 < 20 })
+    |> Functional.enumerable
+    |> $E.all({ => _1 < 20 })
     |> println;
 ```
 
@@ -342,12 +343,12 @@ var println = System.println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
 
 0..20
-    |> $F.enumerable
-    |> $F.any({ => _1 >= 20 })
+    |> Functional.enumerable
+    |> $E.any({ => _1 >= 20 })
     |> println;
 ```
 
@@ -362,12 +363,12 @@ var println = System.println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
 
 0...20
-    |> $F.enumerable
-    |> $F.any({ => _1 >= 20 })
+    |> Functional.enumerable
+    |> $E.any({ => _1 >= 20 })
     |> println;
 ```
 
@@ -382,13 +383,13 @@ var println = System.println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 1..100
-    |> $F.enumerable
-    |> $F.sum
+    |> Functional.enumerable
+    |> $E.sum
     |> println;
 ```
 
@@ -403,15 +404,15 @@ var printlnArray = $F.toArray +> println;
 #### Code
 
 ```javascript
-var $F = Functional;
+var $E = Enumerable;
 var println = System.println;
-var printlnArray = $F.toArray +> println;
+var printlnArray = $E.toArray +> println;
 
 [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
-    |> $F.enumerable
-    |> $F.partition { => _1 % 3 == 0 }
-    |> $F.enumerable
-    |> $F.printlnAll;
+    |> Functional.enumerable
+    |> $E.partition { => _1 % 3 == 0 }
+    |> Functional.enumerable
+    |> $E.printlnAll;
 ```
 
 #### Result
@@ -428,10 +429,10 @@ var printlnArray = $F.toArray +> println;
 ```javascript
 1..
     |> Functional.enumerable
-    |> Functional.drop(10)
-    |> Functional.filter { => _1 % 3 == 0 }
-    |> Functional.take(10)
-    |> Functional.toArray
+    |> Enumerable.drop(10)
+    |> Enumerable.filter { => _1 % 3 == 0 }
+    |> Enumerable.take(10)
+    |> Enumerable.toArray
     |> System.println;
 ```
 
@@ -447,11 +448,11 @@ var printlnArray = $F.toArray +> println;
 
 ```javascript
 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    |> Functional.trace
+    |> Enumerable.trace
     |> Functional.enumerable
-    |> Functional.each { => Functional.trace(_1) }
-    |> Functional.reduce(&(r, e) => r += e, 0)
-    |> Functional.trace
+    |> Enumerable.each { => Enumerable.trace(_1) }
+    |> Enumerable.reduce(&(r, e) => r += e, 0)
+    |> Enumerable.trace
     ;
 ```
 
