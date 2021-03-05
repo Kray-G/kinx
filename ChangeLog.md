@@ -9,7 +9,11 @@
     *   Support Cryptography library.
     *   Support Package Manager.
 
-## V0.22.0 (Current Development Version)
+## V0.23.0 (Current Development Version)
+
+*   Updated
+
+## V0.22.0 (22th Preview Release) - 2021/03/05
 
 *   Updated
     *   Supported a pipeline and a function compoition operator.
