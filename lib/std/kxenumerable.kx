@@ -392,6 +392,293 @@ _module _Enumerable {
     }
 }
 
+_Enumerable.filter = _function(predicate) {
+    return _function(sequence) {
+        return _function() {
+            while (true) {
+                const value = sequence();
+                if (value.done) {
+                    break;
+                }
+                if (predicate(value.value)) {
+                    return value;
+                }
+            }
+            return { done: true };
+        };
+    };
+};
+_Enumerable.reject = _function(predicate) {
+    return _function(sequence) {
+        return _function() {
+            while (true) {
+                const value = sequence();
+                if (value.done) {
+                    break;
+                }
+                if (!predicate(value.value)) {
+                    return value;
+                }
+            }
+            return { done: true };
+        };
+    };
+};
+_Enumerable.map = _function(mapping) {
+    return _function(sequence) {
+        return _function() {
+            const value = sequence();
+            if (!value.done) {
+                return { value: mapping(value.value), done: false };
+            }
+            return { done: true };
+        };
+    };
+};
+_Enumerable.flatMap = _function(mapping) {
+    return _function(sequence) {
+        var r = [];
+        return _function() {
+            var active = true;
+            while (active) {
+                if (r.length() > 0) {
+                    return r.shift();
+                }
+                const value = sequence();
+                if (value.done) {
+                    active = false;
+                    break;
+                }
+                var mapped = mapping(value.value);
+                if (mapped.isArray) {
+                    mapped.flatten().each { &(e) => r.push({ value: e, done: false }) };
+                } else {
+                    return { value: mapped, done: false };
+                }
+            }
+            return { done: true };
+        };
+    };
+};
+_Enumerable.take = _function(n) {
+    return _function(sequence) {
+        var count = 0;
+        return _function() {
+            if (count < n) {
+                count++;
+                return sequence();
+            }
+            return { done: true };
+        };
+    };
+};
+_Enumerable.takeWhile = _function(predicate) {
+    return _function(sequence) {
+        return _function() {
+            const value = sequence();
+            if (!value.done && predicate(value.value)) {
+                return value;
+            }
+            return { done: true };
+        };
+    };
+};
+_Enumerable.drop = _function(n) {
+    return _function(sequence) {
+        var count = 0;
+        return _function() {
+            for ( ; count < n; ++count) {
+                const value = sequence();
+                if (value.done) {
+                    count = n;
+                    return { done: true };
+                }
+            }
+            return sequence();
+        };
+    };
+};
+_Enumerable.dropWhile = _function(predicate) {
+    return _function(sequence) {
+        var active = true;
+        return _function() {
+            while (active) {
+                const value = sequence();
+                if (value.done) {
+                    active = false;
+                    return { done: true };
+                }
+                if (!predicate(value.value)) {
+                    active = false;
+                    return value;
+                }
+            }
+            return sequence();
+        };
+    };
+};
+_Enumerable.each = _function(procedure) {
+    return _function(sequence) {
+        return _function() {
+            var value = sequence();
+            if (!value.done) {
+                procedure(value.value);
+            }
+            return value;
+        };
+    };
+};
+_Enumerable.sort = _function(sequence) {
+    var r = [];
+    var value = sequence();
+    while (!value.done) {
+        r.push(value.value);
+        value = sequence();
+    }
+    r = r.sort();
+    var index = 0;
+    return _function() {
+        if (index < r.length()) {
+            return { value: r[index++], done: false };
+        }
+        return { done: true };
+    };
+};
+_Enumerable.shuffle = _function(sequence) {
+    var r = [];
+    var value = sequence();
+    while (!value.done) {
+        r.push(value.value);
+        value = sequence();
+    }
+    r = r.shuffle();
+    var index = 0;
+    return _function() {
+        if (index < r.length()) {
+            return { value: r[index++], done: false };
+        }
+        return { done: true };
+    };
+};
+_function printImpl(func, argument, value) {
+    if (!value.done) {
+        func(argument, value.value);
+    }
+    return value;
+}
+_Enumerable.print = _function(argument) {
+    if (argument.isString) {
+        return _function(sequence) {
+            return _function() {
+                return printImpl(System.print, argument, sequence());
+            };
+        };
+    }
+    const sequence = argument;
+    return _function() {
+        return printImpl(System.print, argument, sequence());
+    };
+};
+_Enumerable.println = _function(argument) {
+    if (argument.isString) {
+        return _function(sequence) {
+            return _function() {
+                return printImpl(System.println, argument, sequence());
+            };
+        };
+    }
+    const sequence = argument;
+    return _function() {
+        return printImpl(System.println, argument, sequence());
+    };
+};
+_Enumerable.trace = _function(value) {
+    System.println(value);
+    return value;
+};
+
+_Enumerable.any = _function(predicate) {
+    return _function(sequence) {
+        var value = sequence();
+        while (!value.done) {
+            if (predicate(value.value)) {
+                return true;
+            }
+            value = sequence();
+        }
+        return false;
+    };
+};
+_Enumerable.all = _function(predicate) {
+    return _function(sequence) {
+        var value = sequence();
+        while (!value.done) {
+            if (!predicate(value.value)) {
+                return false;
+            }
+            value = sequence();
+        }
+        return true;
+    };
+};
+_Enumerable.partition = _function(predicate) {
+    return _function(sequence) {
+        var t = [];
+        var f = [];
+        var value = sequence();
+        while (!value.done) {
+            if (predicate(value.value)) {
+                t.push(value.value);
+            } else {
+                f.push(value.value);
+            }
+            value = sequence();
+        }
+        return [t, f];
+    };
+};
+_Enumerable.sum = _function(sequence) {
+    var result = 0;
+    var value = sequence();
+    while (!value.done) {
+        result += value.value;
+        value = sequence();
+    }
+    return result;
+};
+_Enumerable.toArray = _function(sequence) {
+    const arr = [];
+    var value = sequence();
+    while (!value.done) {
+        arr.push(value.value);
+        value = sequence();
+    }
+    return arr;
+};
+_Enumerable.reduce = _function(accumulator, startValue) {
+    return _function(sequence) {
+        var result = startValue;
+        var value = sequence();
+        while (!value.done) {
+            result = accumulator(result, value.value);
+            value = sequence();
+        }
+        return result;
+    };
+};
+_Enumerable.printlnAll = _function(sequence) {
+    var value = sequence();
+    while (!value.done) {
+        System.println(value.value);
+        value = sequence();
+    }
+};
+
+_Enumerable.collect = _Enumerable.map;
+_Enumerable.collectConcat = _Enumerable.flatMap;
+_Enumerable.inject = _Enumerable.reduce;
+_Enumerable.select = _Enumerable.findAll = _Enumerable.filter;
+
 _class _RangeEnumerator(obj_) {
     var f_;
     private initialize() {

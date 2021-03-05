@@ -46,7 +46,6 @@ var Xml, Net;
     Enumerator = _Enumerator;
     _functional_pipe2 = __functional_pipe2;
     _functional_compose2 = __functional_compose2;
-    Functional = _Functional;
     Range = _Range;
     System.setupRange(Range.create);
     System.getopt = new Fiber(new GetOpt().getopt).resume;
