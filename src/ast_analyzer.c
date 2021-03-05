@@ -285,8 +285,10 @@ static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
     if (name && name[0] == '_') {
         if (!actx->in_case_when && name[1] == 0) {
             node->var_type = actx->in_native ? KX_INT_T : KX_UNKNOWN_T;
-            node->lexical = 0;
-            node->index = actx->anon_arg++;
+            int index_max = node->index + 1;
+            if (actx->anon_arg < index_max) {
+                actx->anon_arg = index_max;
+            }
             return 1;
         }
         if (name[2] == 0) {
@@ -1302,8 +1304,6 @@ LOOP_HEAD:;
     }
 
     case KXOP_COMPOSITL:
-        analyze_ast(ctx, node->lhs, actx);
-        analyze_ast(ctx, node->rhs, actx);
         node->lhs = kx_gen_bexpr_object(KXOP_CALL,
             kx_gen_var_object("_functional_pipe2", KX_FNC_T),
             kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, node->lhs)
@@ -1313,8 +1313,6 @@ LOOP_HEAD:;
         node->type = KXST_EXPRLIST;
         break;
     case KXOP_COMPOSITR:
-        analyze_ast(ctx, node->lhs, actx);
-        analyze_ast(ctx, node->rhs, actx);
         node->lhs = kx_gen_bexpr_object(KXOP_CALL,
             kx_gen_var_object("_functional_compose2", KX_FNC_T),
             kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, node->lhs)
