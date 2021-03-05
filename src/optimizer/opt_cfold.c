@@ -339,7 +339,7 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
         break;
     }
 
-    case KXOP_CASE:
+    case KXOP_CASE: {
         int in_case_when = cctx->in_case_when;
         cctx->in_case_when = 1;
         opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
@@ -347,6 +347,7 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
         opt_ast_constant_folding_impl(ctx, node->ex, cctx);
         cctx->in_case_when = in_case_when;
         break;
+    }
     case KXOP_WHEN:
         opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
