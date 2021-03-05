@@ -285,8 +285,10 @@ static int is_anon_var(kxana_context_t *actx, kx_object_t *node)
     if (name && name[0] == '_') {
         if (!actx->in_case_when && name[1] == 0) {
             node->var_type = actx->in_native ? KX_INT_T : KX_UNKNOWN_T;
-            node->lexical = 0;
-            node->index = actx->anon_arg++;
+            int index_max = node->index + 1;
+            if (actx->anon_arg < index_max) {
+                actx->anon_arg = index_max;
+            }
             return 1;
         }
         if (name[2] == 0) {
@@ -675,9 +677,6 @@ LOOP_HEAD:;
                 break;
             }
         }
-        if (node->var_type == KX_UND_T && !node->lhs) {
-            node->lhs = kx_gen_special_object(KXVL_NULL);
-        }
         kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
         if (!sym) {
             if (!node->lhs && !actx->decl && !actx->lvalue) {
@@ -735,7 +734,6 @@ LOOP_HEAD:;
                         kx_gen_int_object(actx->arg_index)
                     )
                 );
-                int arg_index = actx->arg_index;
                 int lvalue = actx->lvalue;
                 int decl = actx->decl;
                 actx->lvalue = 0;
@@ -743,7 +741,6 @@ LOOP_HEAD:;
                 analyze_ast(ctx, node->lhs, actx);
                 actx->lvalue = lvalue;
                 actx->decl = decl;
-                actx->arg_index = arg_index;
                 actx->arg_index = -1;
             } else {
                 ++(actx->arg_index);
@@ -1305,8 +1302,6 @@ LOOP_HEAD:;
     }
 
     case KXOP_COMPOSITL:
-        analyze_ast(ctx, node->lhs, actx);
-        analyze_ast(ctx, node->rhs, actx);
         node->lhs = kx_gen_bexpr_object(KXOP_CALL,
             kx_gen_var_object("_functional_pipe2", KX_FNC_T),
             kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, node->lhs)
@@ -1316,8 +1311,6 @@ LOOP_HEAD:;
         node->type = KXST_EXPRLIST;
         break;
     case KXOP_COMPOSITR:
-        analyze_ast(ctx, node->lhs, actx);
-        analyze_ast(ctx, node->rhs, actx);
         node->lhs = kx_gen_bexpr_object(KXOP_CALL,
             kx_gen_var_object("_functional_compose2", KX_FNC_T),
             kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, node->lhs)
@@ -1616,6 +1609,8 @@ LOOP_HEAD:;
         }
         kx_object_t *func = actx->func;
         actx->func = node;
+        kvec_pt(kx_object_t) *vars = actx->vars;
+        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         kv_push(kxana_symbol_t, actx->symbols, kx_empty_symbols);
         int decl = actx->decl;
         actx->decl = 1;
@@ -1634,8 +1629,6 @@ LOOP_HEAD:;
 
         int anon_arg = actx->anon_arg;
         actx->anon_arg = 0;
-        kvec_pt(kx_object_t) *vars = actx->vars;
-        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         analyze_ast(ctx, node->rhs, actx);
         int vdiff = actx->anon_arg - node->count_args;
         if (vdiff > 0) {
@@ -1733,6 +1726,8 @@ LOOP_HEAD:;
         }
         kx_object_t *func = actx->func;
         actx->func = node;
+        kvec_pt(kx_object_t) *vars = actx->vars;
+        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         kv_push(kxana_symbol_t, actx->symbols, kx_empty_symbols);
         int decl = actx->decl;
         actx->decl = 1;
@@ -1748,8 +1743,6 @@ LOOP_HEAD:;
 
         int anon_arg = actx->anon_arg;
         actx->anon_arg = 0;
-        kvec_pt(kx_object_t) *vars = actx->vars;
-        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         analyze_ast(ctx, node->rhs, actx);
         int vdiff = actx->anon_arg - node->count_args;
         if (vdiff > 0) {
@@ -1770,7 +1763,6 @@ LOOP_HEAD:;
         if (node->local_vars < node->count_args) {
             node->local_vars = node->count_args;
         }
-
         kv_destroy(*(actx->vars));
         kx_free(actx->vars);
         actx->vars = vars;
