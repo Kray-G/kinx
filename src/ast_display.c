@@ -105,15 +105,17 @@ LOOP_HEAD:;
 
     case KXOP_VAR:
         if (node->lhs) {
-            printf("optimized - ");
-        }
-        if (node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T) {
-            printf("%c(fnc:%s)(%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_ret_typename(node), node->lexical, node->index);
+            printf("var:optimized\n");
+            display_ast(node->lhs, indent + 1, lvalue);
         } else {
-            if (node->refdepth > 0) {
-                printf("%c(var:%s[depth:%d]):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
+            if (node->var_type == KX_FNC_T || node->var_type == KX_NFNC_T) {
+                printf("%c(fnc:%s)(%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_ret_typename(node), node->lexical, node->index);
             } else {
-                printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_node_typename(node), node->lexical, node->index);
+                if (node->refdepth > 0) {
+                    printf("%c(var:%s[depth:%d]):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
+                } else {
+                    printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_node_typename(node), node->lexical, node->index);
+                }
             }
         }
         break;
