@@ -1150,7 +1150,7 @@ LOOP_HEAD:;
         KX_CANNOT_BE_LVALUE(node, "Key-vaule");
         if (node->lhs->type == KXOP_SPREAD) {
             gencode_ast_hook(ctx, node->lhs->lhs, ana, 0);
-            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDA }));\
+            kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDA }));
         } else {
             gencode_ast_hook(ctx, node->lhs, ana, 0);
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_APPENDK, .value1 = { .s = const_str(ctx, node->value.s) } }));
