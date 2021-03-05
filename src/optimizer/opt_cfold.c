@@ -17,7 +17,14 @@
 } \
 /**/
 
-void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
+typedef struct folding_context_ {
+    int anon_check;
+    int anon_arg;
+    int exprlist_r2l;
+    int in_case_when;
+} folding_context_t;
+
+static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, folding_context_t *cctx)
 {
     if (!node) {
         return;
@@ -45,65 +52,73 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXVL_REGEX:
         break;
 
-    case KXOP_VAR:
+    case KXOP_VAR: {
+        if (cctx->anon_check) {
+            const char *name = node->value.s;
+            if (!cctx->in_case_when && name && name[0] == '_' && name[1] == 0) {
+                node->lexical = 0;
+                node->index = cctx->anon_arg++;
+            }
+        }
         break;
+    }
     case KXOP_KEYVALUE:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
 
     case KXOP_BNOT:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_NOT:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_POSITIVE:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_NEGATIVE:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_CONV:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_INC:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_DEC:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_INCP:       /* postfix */
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_DECP:       /* postfix */
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_MKRANGE:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXOP_MKBIN:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_MKARY:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_MKOBJ:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
 
     case KXOP_DECL:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXOP_ASSIGN:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
 
     case KXOP_SHL:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -117,8 +132,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_SHR:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -130,8 +145,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_ADD:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -147,8 +162,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_SUB:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -164,8 +179,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_POW:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -179,8 +194,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_MUL:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -196,8 +211,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_DIV:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -216,8 +231,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_MOD:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -227,8 +242,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_AND:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -238,8 +253,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_OR:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -249,8 +264,8 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         }
         break;
     case KXOP_XOR:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         KX_CONST_VAR_CHECK(node, lhs);
         KX_CONST_VAR_CHECK(node, rhs);
         if (node->lhs->type == KXVL_INT && node->rhs->type == KXVL_INT) {
@@ -262,15 +277,15 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_LAND:
     case KXOP_LOR:
     case KXOP_LUNDEF:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXOP_IDX:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXOP_YIELD:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
 
     case KXOP_EQEQ:
@@ -280,24 +295,37 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
     case KXOP_GE:
     case KXOP_GT:
     case KXOP_LGE:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXOP_REGEQ:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXOP_REGNE:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
-    case KXOP_CALL:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+
+    case KXOP_CALLPL:
+    case KXOP_CALLPR:
+    case KXOP_CALL: {
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        int exprlist_r2l = cctx->exprlist_r2l;
+        cctx->exprlist_r2l = 1;
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        cctx->exprlist_r2l = exprlist_r2l;
+        break;
+    }
+
+    case KXOP_COMPOSITL:
+    case KXOP_COMPOSITR:
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
 
     case KXOP_TYPEOF:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXOP_CAST: {
         /* do nothing */
@@ -307,98 +335,134 @@ void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
         break;
     }
     case KXOP_SPREAD: {
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     }
 
+    case KXOP_CASE:
+        int in_case_when = cctx->in_case_when;
+        cctx->in_case_when = 1;
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->ex, cctx);
+        cctx->in_case_when = in_case_when;
+        break;
+    case KXOP_WHEN:
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->ex, cctx);
+        break;
+
     case KXOP_TER:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
-        opt_ast_constant_folding(ctx, node->ex);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->ex, cctx);
         break;
 
     case KXST_BREAK:
     case KXST_CONTINUE:
     case KXST_LABEL:
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXST_EXPR:       /* lhs: expr */
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        break;
+    case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
+        if (cctx->exprlist_r2l) {
+            opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+            opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        } else {
+            opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+            opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        }
         break;
     case KXST_EXPRSEQ:   /* lhs: expr1: rhs: expr2 */
-    case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXST_BLOCK:      /* lhs: block */
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXST_IF: {       /* lhs: cond, rhs: then-block: ex: else-block */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
-        opt_ast_constant_folding(ctx, node->ex);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->ex, cctx);
         break;
     }
     case KXST_SWITCH: {   /* lhs: cond: rhs: block */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     }
     case KXST_CASE: {     /* lhs: cond */
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     }
     case KXST_WHILE:      /* lhs: cond: rhs: block */
     case KXST_DO:         /* lhs: cond: rhs: block */
     case KXST_FOR: {      /* lhs: forcond: rhs: block */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     }
     case KXST_FORCOND:    /* lhs: init, rhs: cond: ex: inc */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
-        opt_ast_constant_folding(ctx, node->ex);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->ex, cctx);
         break;
     case KXST_TRY: {      /* lhs: try, rhs: catch: ex: finally */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
-        opt_ast_constant_folding(ctx, node->ex);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->ex, cctx);
         break;
     }
     case KXST_CATCH: {    /* lhs: name: rhs: block */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     }
     case KXST_RET:        /* lhs: expr */
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXST_SYSRET_NV:
         break;
     case KXST_THROW:      /* lhs: expr */
-        opt_ast_constant_folding(ctx, node->lhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         break;
     case KXST_MIXIN:
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         break;
     case KXST_SYSCLASS:
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
-        opt_ast_constant_folding(ctx, node->ex);
+        int anon_arg = cctx->anon_arg;
+        cctx->anon_arg = 0;
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->ex, cctx);
+        cctx->anon_arg = anon_arg;
         break;
     }
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
-        opt_ast_constant_folding(ctx, node->lhs);
-        opt_ast_constant_folding(ctx, node->rhs);
+        int anon_arg = cctx->anon_arg;
+        cctx->anon_arg = 0;
+        opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
+        opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
+        cctx->anon_arg = anon_arg;
         break;
     }
     default:
         break;
     }
+}
+
+void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
+{
+    folding_context_t cctx = {0};
+    cctx.anon_check = (node->type == KXST_STMTLIST && node->optional == 0);
+    ++node->optional;
+    opt_ast_constant_folding_impl(ctx, node, &cctx);
 }
