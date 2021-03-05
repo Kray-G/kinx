@@ -6432,7 +6432,7 @@ void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         kx_obj_t *obj = v1->value.ov;
         int len = kv_size(obj->ary);
         if (len == 0) {
-            push_undef((ctx)->stack);
+            ctx->spread_additional--;
         } else {
             ctx->spread_additional += --len;
             for (int i = len; i >= 0; --i) {
@@ -6443,7 +6443,7 @@ void kx_try_spread(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1)
         kvec_t(uint8_t) *bin = &(v1->value.bn->bin);
         int len = kv_size(*bin);
         if (len == 0) {
-            push_undef((ctx)->stack);
+            ctx->spread_additional--;
         } else {
             ctx->spread_additional += --len;
             for (int i = len; i >= 0; --i) {
