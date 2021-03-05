@@ -348,11 +348,12 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
         cctx->in_case_when = in_case_when;
         break;
     }
-    case KXOP_WHEN:
+    case KXOP_WHEN: {
         opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         opt_ast_constant_folding_impl(ctx, node->ex, cctx);
         break;
+    }
 
     case KXOP_TER:
         opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
