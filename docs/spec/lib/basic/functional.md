@@ -1,5 +1,5 @@
 
-# Enumerable
+# Functional
 
 ## Overview
 
