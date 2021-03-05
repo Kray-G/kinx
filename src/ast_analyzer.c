@@ -734,7 +734,6 @@ LOOP_HEAD:;
                         kx_gen_int_object(actx->arg_index)
                     )
                 );
-                int arg_index = actx->arg_index;
                 int lvalue = actx->lvalue;
                 int decl = actx->decl;
                 actx->lvalue = 0;
@@ -742,7 +741,6 @@ LOOP_HEAD:;
                 analyze_ast(ctx, node->lhs, actx);
                 actx->lvalue = lvalue;
                 actx->decl = decl;
-                actx->arg_index = arg_index;
                 actx->arg_index = -1;
             } else {
                 ++(actx->arg_index);
@@ -1611,6 +1609,8 @@ LOOP_HEAD:;
         }
         kx_object_t *func = actx->func;
         actx->func = node;
+        kvec_pt(kx_object_t) *vars = actx->vars;
+        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         kv_push(kxana_symbol_t, actx->symbols, kx_empty_symbols);
         int decl = actx->decl;
         actx->decl = 1;
@@ -1629,8 +1629,6 @@ LOOP_HEAD:;
 
         int anon_arg = actx->anon_arg;
         actx->anon_arg = 0;
-        kvec_pt(kx_object_t) *vars = actx->vars;
-        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         analyze_ast(ctx, node->rhs, actx);
         int vdiff = actx->anon_arg - node->count_args;
         if (vdiff > 0) {
@@ -1728,6 +1726,8 @@ LOOP_HEAD:;
         }
         kx_object_t *func = actx->func;
         actx->func = node;
+        kvec_pt(kx_object_t) *vars = actx->vars;
+        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         kv_push(kxana_symbol_t, actx->symbols, kx_empty_symbols);
         int decl = actx->decl;
         actx->decl = 1;
@@ -1743,8 +1743,6 @@ LOOP_HEAD:;
 
         int anon_arg = actx->anon_arg;
         actx->anon_arg = 0;
-        kvec_pt(kx_object_t) *vars = actx->vars;
-        actx->vars = kx_calloc(1, sizeof(kvec_pt(kx_object_t)));
         analyze_ast(ctx, node->rhs, actx);
         int vdiff = actx->anon_arg - node->count_args;
         if (vdiff > 0) {
@@ -1765,7 +1763,6 @@ LOOP_HEAD:;
         if (node->local_vars < node->count_args) {
             node->local_vars = node->count_args;
         }
-
         kv_destroy(*(actx->vars));
         kx_free(actx->vars);
         actx->vars = vars;
