@@ -44,6 +44,7 @@ var Xml, Net;
     Database = _SQLiteDatabase;
     Enumerable = _Enumerable;
     Enumerator = _Enumerator;
+    Functional = new _Functional();
     _functional_pipe2 = __functional_pipe2;
     _functional_compose2 = __functional_compose2;
     Range = _Range;

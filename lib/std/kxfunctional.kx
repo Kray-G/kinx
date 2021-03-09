@@ -114,27 +114,57 @@ _function _functional_enumerator(e) {
     };
 }
 
-Functional.methodMissing = _function(_instance, method, ...a) {
-    Functional[method] = _function(...args) {
+var _Functional = {};
+_Functional.methodMissing = _function(instance, method, ...a) {
+    instance[method] = _function(...args) {
         return _function(obj) {
             return obj[method](...args);
         };
     };
-    return Functional[method](...a);
+    return instance[method](...a);
 };
 
-// The methods in Array such as `map` have to be assigned to this object
-//  because Array.map will have been called directly instead of this.map
+// The methods in Array such as `map` have to be assigned to Functional object
+//  because Array.map will have been called directly instead of Functional.map
 //  and methodMissing will not be called.
 Array.keySet(Array).filter({ => Array[_1].isFunction }).each { &(method)
-    Functional[method] = _function(...args) {
+    _Functional[method] = _function(...args) {
         return _function(obj) {
             return obj[method](...args);
         };
     };
 };
 
-Functional.enumerable
-    = Functional.Enumerator.create
+_Functional.enumerable
+    = _Functional.Enumerator.create
     = _functional_enumerator
     ;
+
+_function _gen_functional_use(f) {
+    f.use = _function(method, opts) {
+        if (f[method].isUndefined) {
+            if (opts.argument.isDefined && opts.argument) {
+                f[method] = _function(...args) {
+                    return _function(obj) {
+                        return obj[method](...args);
+                    };
+                };
+            } else {
+                f[method] = _function(obj) {
+                    return obj[method]();
+                };
+            }
+        }
+    };
+    return f;
+}
+
+_Functional.create = _function() {
+    return _gen_functional_use(
+        Array.keySet(_Functional)
+            .reduce(_function(r, e) {
+                r[e] = _Functional[e];
+                return r;
+            }, {})
+    );
+};
