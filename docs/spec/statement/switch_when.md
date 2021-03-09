@@ -60,15 +60,14 @@ when f():       // function call is available, but calling a function will be pe
 
 ```javascript
 function test(a) {
-    var r;
     switch (a) {
-    when 1: r = a * 2;
-    when 2: r = a * 4;
-    when 3: r = a * 8;
-    when 4: r = a * 16;
-    else:
+    when 1: return a * 2;
+    when 2: return a * 4;
+    when 3: return a * 8;
+    when 4: return a * 16;
+    default:
     }
-    return r ?? -1;
+    return -1;
 }
 0.upto(8, &(n) => System.println("%d => %3d" % n % test(n)));
 ```
@@ -94,10 +93,10 @@ function test(a) {
 ```javascript
 function test(count) {
     switch (count) {
-    else: do {  System.println("%d" % count); count++; fallthrough;
-    when 0:     System.println("%d" % count); count++; fallthrough;
-    when 1:     System.println("%d" % count); count++; fallthrough;
-    when 2:     System.println("%d" % count); count++; fallthrough;
+    default: do {   System.println("%d" % count); count++; fallthrough;
+    when 0:         System.println("%d" % count); count++; fallthrough;
+    when 1:         System.println("%d" % count); count++; fallthrough;
+    when 2:         System.println("%d" % count); count++; fallthrough;
             } while (count < 8);
     }
 }
@@ -127,15 +126,15 @@ function f() {
     return "a4";
 }
 function test(a) {
-    var r, x = [1, 1.2, "a2", "a"];
+    var x = [1, 1.2, "a2", "a"];
     switch (a) {
-    when "a1":     r = 2;
-    when x[-2]:    r = 4;
-    when x[3]+"3": r = 8;
-    when f():      r = 16;
-    else:
+    when "a1":     return 2;
+    when x[-2]:    return 4;
+    when x[3]+"3": return 8;
+    when f():      return 16;
+    default:
     }
-    return r ?? -1;
+    return -1;
 }
 0.upto(8, &(n) => System.println("%d => %3d" % n % test("a" + n)));
 ```
