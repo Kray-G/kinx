@@ -2,7 +2,6 @@ using net.Ssh;
 
 var [, ip, user, pass] = $$;
 
-
 var ssh = new Net.Ssh(ip);
 # ssh.setTimeout(100); # for connection timeout.
 ssh.open { &(con)
