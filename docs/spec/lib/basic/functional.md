@@ -26,9 +26,9 @@ obj |> Functional.map { => _1 * 2 }
 
 ### `Enumerable`
 
-The `Enumerable` is not only `module` but also a global instance having functional enumerable methods
-which is useful with [a pipeline operator](../../statement/expression/pipeline.md).
-For example, when multiple valuse are passed to the next function via pipeline,
+The `Enumerable` is not only as a `module` but also a global instance having functional enumerable methods
+which is useful in [a pipeline](../../statement/expression/pipeline.md).
+For example, when multiple values are passed to the next function via pipeline,
 a method in `Enumerable` can fetch a value one by one and pass the value to a next function in order.
 
 Therefore, `Enumerable` can handle an infinite sequence.
