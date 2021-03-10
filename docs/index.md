@@ -174,12 +174,14 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 Network library is now very few, but it will be increased in future
 because now the networking library is needed by many developpers.
 
-*   [Http](spec/lib/net/http.md) - *not documented yet*
-*   [SSH](spec/lib/net/ssh.md) - *not documented yet*
+*   [Http](spec/lib/net/http.md)
+*   [SSH](spec/lib/net/ssh.md)
 
 I provide Http library only, but it is based on libcurl.
 Therefore adding a library based on the same technology must be easy.
 I strongly want **contributers**. How about you?
+
+Note that the above documents do not have any test code because it is hard to test of networking.
 
 ##### Exception Objects
 
