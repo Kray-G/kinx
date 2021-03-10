@@ -12,6 +12,11 @@
 ## V0.23.0 (Current Development Version)
 
 *   Updated
+    *   Updated `Functional`.
+        *   See [Functional][] for details.
+    *   Supported String Color methods.
+    *   Updated Documentation & SpecTest.
+    *   Some bug fixes and improvements.
 
 ## V0.22.0 (22th Preview Release) - 2021/03/05
 

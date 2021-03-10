@@ -37,11 +37,10 @@ typedef struct kxssh_ {
     int exitcode;
     int timeout;
     int auth_pw;
-    const char *fingerprint;
     uint8_t fpbin[20];
-    const char *userauthlist;
-    const char *prvkey;
-    const char *pubkey;
+    char *userauthlist;
+    char *prvkey;
+    char *pubkey;
     LIBSSH2_SESSION *session;
     LIBSSH2_CHANNEL *channel;
     LIBSSH2_KNOWNHOSTS* knownhost;
@@ -408,6 +407,18 @@ void kx_ssh_close(kxssh_t *p)
         onig_region_free(p->region, 1);
         p->region = 0;
     }
+    if (p->userauthlist) {
+        kx_free(p->userauthlist);
+        p->userauthlist = NULL;
+    }
+    if (p->prvkey) {
+        kx_free(p->prvkey);
+        p->prvkey = NULL;
+    }
+    if (p->pubkey) {
+        kx_free(p->pubkey);
+        p->pubkey = NULL;
+    }
 }
 
 void Ssh_initialize(void)
@@ -478,10 +489,10 @@ int Ssh_open(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (rc < 0) {
         KX_THROW_BLTIN_EXCEPTION("SshException", "Failure establishing SSH session");
     }
-    p->fingerprint = libssh2_hostkey_hash(p->session, LIBSSH2_HOSTKEY_HASH_SHA1);
-    if (p->fingerprint) {
+    const char *fingerprint = libssh2_hostkey_hash(p->session, LIBSSH2_HOSTKEY_HASH_SHA1);
+    if (fingerprint) {
         for (int i = 0; i < 20; ++i) {
-            p->fpbin[i] = (uint8_t)p->fingerprint[i];
+            p->fpbin[i] = (uint8_t)fingerprint[i];
         }
     }
     libssh2_keepalive_config(p->session, 0, 2);
@@ -531,7 +542,7 @@ int Ssh_login(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (rc < 0 && !p->userauthlist) {
         KX_THROW_SSH_EXCEPTION(p);
     }
-    p->userauthlist = kx_const_str(ctx, p->userauthlist);
+    p->userauthlist = kx_strdup(p->userauthlist);
     p->auth_pw = 0;
     if (strstr(p->userauthlist, "password") != NULL) {
         p->auth_pw |= 1;
@@ -862,7 +873,7 @@ int Ssh_setPublicKey(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
 
     const char *str = get_arg_str(2, args, ctx);
     if (str) {
-        p->pubkey = kx_const_str(ctx, str);
+        p->pubkey = kx_strdup(str);
     } else {
         KX_THROW_BLTIN_EXCEPTION("SshException", "Invalid filename type");
     }
@@ -879,7 +890,7 @@ int Ssh_setPrivateKey(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
 
     const char *str = get_arg_str(2, args, ctx);
     if (str) {
-        p->prvkey = kx_const_str(ctx, str);
+        p->prvkey = kx_strdup(str);
     } else {
         KX_THROW_BLTIN_EXCEPTION("SshException", "Invalid filename type");
     }

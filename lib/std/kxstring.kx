@@ -165,3 +165,120 @@ String.slice = _function(str, start, end) {
     }
     return "";
 };
+
+StringAnsiColor.Checker = {
+    Black:   { black:   true, color: 40 },
+    Red:     { red:     true, color: 41 },
+    Green:   { green:   true, color: 42 },
+    Yellow:  { yellow:  true, color: 43 },
+    Blue:    { blue:    true, color: 44 },
+    Magenta: { magenta: true, color: 45 },
+    Cyan:    { cyan:    true, color: 46 },
+    White:   { white:   true, color: 47 },
+};
+
+_class StringAnsiColor(str_) {
+    var attrs_ = [];
+    var color_ = 37;
+    var bgcolor_;
+    private applyBackgroundColor(isBgColor) {
+        for (var key in StringAnsiColor.Checker.keySet()) {
+            if (isBgColor(StringAnsiColor.Checker[key])) {
+                bgcolor_ = StringAnsiColor.Checker[key].color;
+                return;
+            }
+        }
+    }
+    public black(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 30;
+        return this;
+    }
+    public red(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 31;
+        return this;
+    }
+    public green(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 32;
+        return this;
+    }
+    public yellow(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 33;
+        return this;
+    }
+    public blue(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 34;
+        return this;
+    }
+    public magenta(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 35;
+        return this;
+    }
+    public cyan(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 36;
+        return this;
+    }
+    public white(bgColor) {
+        if (bgColor.isFunction) applyBackgroundColor(bgColor);
+        color_ = 37;
+        return this;
+    }
+    public bold() {
+        attrs_.push(1);
+        return this;
+    }
+    public underline() {
+        attrs_.push(4);
+        return this;
+    }
+    public +(str) {
+        return @toString() + str;
+    }
+    public toString() {
+        var attrs = ((bgcolor_.isDefined ? [color_, bgcolor_] : [color_]) + attrs_).join(';');
+        color_ = 37;
+        bgcolor_ = null;
+        attrs_ = [];
+        return "\e%{attrs}[m%{str_}\e[0m";
+    }
+}
+
+// Text color.
+String.black = _function(str, bgColor) {
+    return new StringAnsiColor(str).black(bgColor);
+};
+String.red = _function(str, bgColor) {
+    return new StringAnsiColor(str).red(bgColor);
+};
+String.green = _function(str, bgColor) {
+    return new StringAnsiColor(str).green(bgColor);
+};
+String.yellow = _function(str, bgColor) {
+    return new StringAnsiColor(str).yellow(bgColor);
+};
+String.blue = _function(str, bgColor) {
+    return new StringAnsiColor(str).blue(bgColor);
+};
+String.magenta = _function(str, bgColor) {
+    return new StringAnsiColor(str).magenta(bgColor);
+};
+String.cyan = _function(str, bgColor) {
+    return new StringAnsiColor(str).cyan(bgColor);
+};
+String.white = _function(str, bgColor) {
+    return new StringAnsiColor(str).white(bgColor);
+};
+
+// Text attrbutes.
+String.bold = _function(str) {
+    return new StringAnsiColor(str).bold();
+};
+String.underline = _function(str) {
+    return new StringAnsiColor(str).underline();
+};
