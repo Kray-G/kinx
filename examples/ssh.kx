@@ -1,9 +1,8 @@
 using net.Ssh;
 
-var [, user, pass] = $$;
+var [, ip, user, pass] = $$;
 
-
-var ssh = new Net.Ssh("127.0.0.1");
+var ssh = new Net.Ssh(ip);
 # ssh.setTimeout(100); # for connection timeout.
 ssh.open { &(con)
     System.println("Fingerprint: ", con.getFingerprint());
@@ -13,6 +12,10 @@ ssh.open { &(con)
     System.println("UserAuthList: ", con.getUserAuthList());
 
     con.println("ls -lha");
+    var mes = con.waitfor();
+    System.println(mes);
+
+    con.println("cat .bash_history");
     var mes = con.waitfor();
     System.println(mes);
 

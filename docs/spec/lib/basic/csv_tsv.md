@@ -113,7 +113,6 @@ abcde,efgh,not necessary \n the end of csv};
 
 File.open("test.csv", File.WRITE) { => _1.print(csv) };
 System.println(CSV.parse("test.csv").toJsonString(true));
-File.remove("test.csv");
 ```
 
 #### Result
@@ -206,7 +205,6 @@ var tsv =
 
 File.open("test.tsv", File.WRITE) { => _1.print(tsv) };
 System.println(TSV.parse("test.tsv").toJsonString(true));
-File.remove("test.tsv");
 ```
 
 #### Result
@@ -276,4 +274,20 @@ System.println(TSV.parseString(tsv).toJsonString(true));
 }, {
     "data": ["abcde", "efgh", "not necessary \\n the end of tsv"]
 }]
+```
+
+### Example 5. Finalize
+
+#### Code
+
+```javascript
+File.remove("test.csv");
+File.remove("test.tsv");
+System.println("Succeeded.");
+```
+
+#### Result
+
+```
+Succeeded.
 ```
