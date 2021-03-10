@@ -14,6 +14,7 @@
 *   Updated
     *   Updated `Functional`.
         *   See [Functional][] for details.
+    *   Supported String Color methods.
     *   Updated Documentation & SpecTest.
     *   Some bug fixes and improvements.
 
