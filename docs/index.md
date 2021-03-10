@@ -168,6 +168,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [SQLite](spec/lib/basic/sqlite.md)
 *   [JIT](spec/lib/basic/jit.md)
 *   [Parsek](spec/lib/basic/parsek.md)
+*   [Clipboard](spec/lib/basic/clipboard.md)
 
 ##### Network Objects
 

@@ -3,6 +3,29 @@
 
 ## Overview
 
+### `Functional`
+
+The `Functional` is a global instance to deal with functional methods.
+In general, when you use a method of some object in pipeline, you should do it as a following example.
+
+```javascript
+obj |> { &(obj) => obj.map({ => _1 * 2 }) }
+    |> { &(obj) => obj.method() }
+    |> // ... and so on.
+```
+
+The `Functional` instance will wrap the actual function object and pass it into the pipeline.
+For example, you can write it as follows against the example above.
+
+```javascript
+obj |> Functional.map { => _1 * 2 }
+    |> Functional.method()  // Note that it needs a `()` to use an actual function object
+                            // which receives an object at a first argument.
+    |> // ... and so on.
+```
+
+### `Enumerable`
+
 The `Enumerable` is not only `module` but also a global instance having functional enumerable methods
 which is useful with [a pipeline operator](../../statement/expression/pipeline.md).
 For example, when multiple valuse are passed to the next function via pipeline,
@@ -471,4 +494,66 @@ var printlnArray = $E.toArray +> println;
 9
 10
 55
+```
+
+### Example 17. Functional (1)
+
+#### Code
+
+```javascript
+class Object(list_) {
+    public map(func) {
+        list_ = list_.map { => func(_) };
+        return this;
+    }
+    public hoge() {
+        list_ = list_ + list_;
+        return this;
+    }
+    public value() {
+        return list_;
+    }
+}
+
+var r = new Object([1, 2, 3])
+    |> Functional.map { => _ + 1 }
+    |> Functional.map { => _ * 2 }
+    |> Functional.hoge()    // to call methodMissing and register it, and use it.
+    |> Functional.map { => _ * 2 }
+    |> Functional.value()   // to call methodMissing and register it, and use it.
+    ;
+System.println(r); // [8, 12, 16, 8, 12, 16]
+```
+
+#### Result
+
+```
+[8, 12, 16, 8, 12, 16]
+```
+
+### Example 18. Functional (2)
+
+#### Code
+
+```javascript
+var test = (1..10).toArray();
+var r = test
+    |> { => Array.map(_) { => _1 + ":" + _1 } }
+    |> { => Array.map(_) { => String.split(_1, ":") } }
+    |> Array.flatten
+    ;
+System.println(r);
+var r = test
+    |> Functional.map { => _1 + ":" + _1 }
+    |> Functional.map { => String.split(_1, ":") }
+    |> Array.flatten
+    ;
+System.println(r);
+```
+
+#### Result
+
+```
+["1", "1", "2", "2", "3", "3", "4", "4", "5", "5", "6", "6", "7", "7", "8", "8", "9", "9", "10", "10"]
+["1", "1", "2", "2", "3", "3", "4", "4", "5", "5", "6", "6", "7", "7", "8", "8", "9", "9", "10", "10"]
 ```
