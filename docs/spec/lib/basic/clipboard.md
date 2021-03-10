@@ -11,7 +11,9 @@ cb.write(str);
 var r = cb.read();
 ```
 
-## Examples
+## Some Examples
+
+> Disabled a spec test because it will be failed on Github Action with the message of `Can't open display: (null)`.
 
 ### Example 1. Write to Clipboard
 
