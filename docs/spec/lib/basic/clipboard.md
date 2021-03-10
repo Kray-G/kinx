@@ -8,7 +8,7 @@ The basic usage is below.
 ```javascript
 var cb = new Clipboard();
 cb.write(str);
-cb.read();
+var r = cb.read();
 ```
 
 ## Examples
