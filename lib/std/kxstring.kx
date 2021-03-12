@@ -191,7 +191,7 @@ _class StringAnsiColor(str_) {
     var color_ = 37;
     var bgcolor_;
     private applyBackgroundColor(isBgColor) {
-        for (var key in StringAnsiColor.Colors.keySet()) {
+        for (var key in Array.keySet(StringAnsiColor.Colors)) {
             if (isBgColor(StringAnsiColor.Colors[key])) {
                 bgcolor_ = StringAnsiColor.Colors[key].bgcolor;
                 return;
@@ -212,17 +212,17 @@ _class StringAnsiColor(str_) {
         };
     }
     private initialize() {
-        for (var key in StringAnsiColor.Colors.keySet()) {
+        for (var key in Array.keySet(StringAnsiColor.Colors)) {
             this[key] = makeColorMethod(StringAnsiColor.Colors[key].color);
         }
-        for (var key in StringAnsiColor.Attrs.keySet()) {
+        for (var key in Array.keySet(StringAnsiColor.Attrs)) {
             this[key] = makeDecorationMethod(StringAnsiColor.Attrs[key].value);
         }
     }
     public color(name, bgColor) {
         return this[name](bgColor);
     }
-    private decorate(name) {
+    public decorate(name) {
         return this[name]();
     }
     public +(str) {
