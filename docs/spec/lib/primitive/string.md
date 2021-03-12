@@ -7,8 +7,8 @@ You can write it as a double-quoted or single-quoted string.
 
 ### Basic Methods
 
-There is a special object named as `Double`.
-The methods of `Double` can be used for integer values directly.
+There is a special object named as `String`.
+The methods of `String` can be used for string values directly.
 
 |               Method                |                                                                Meaning                                                                |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
