@@ -166,15 +166,24 @@ String.slice = _function(str, start, end) {
     return "";
 };
 
-StringAnsiColor.Checker = {
-    Black:   { black:   true, color: 40 },
-    Red:     { red:     true, color: 41 },
-    Green:   { green:   true, color: 42 },
-    Yellow:  { yellow:  true, color: 43 },
-    Blue:    { blue:    true, color: 44 },
-    Magenta: { magenta: true, color: 45 },
-    Cyan:    { cyan:    true, color: 46 },
-    White:   { white:   true, color: 47 },
+var StringAnsiColor = {
+    Colors: {
+        black:      { black:   true, color: 30, bgcolor: 40 },
+        red:        { red:     true, color: 31, bgcolor: 41 },
+        green:      { green:   true, color: 32, bgcolor: 42 },
+        yellow:     { yellow:  true, color: 33, bgcolor: 43 },
+        blue:       { blue:    true, color: 34, bgcolor: 44 },
+        magenta:    { magenta: true, color: 35, bgcolor: 45 },
+        cyan:       { cyan:    true, color: 36, bgcolor: 46 },
+        white:      { white:   true, color: 37, bgcolor: 47 },
+    },
+    Attrs: {
+        bold:       { value: 1 },
+        italic:     { value: 3 },
+        underline:  { value: 4 },
+        blink:      { value: 5 },
+        reverse:    { value: 7 },
+    },
 };
 
 _class StringAnsiColor(str_) {
@@ -182,60 +191,39 @@ _class StringAnsiColor(str_) {
     var color_ = 37;
     var bgcolor_;
     private applyBackgroundColor(isBgColor) {
-        for (var key in StringAnsiColor.Checker.keySet()) {
-            if (isBgColor(StringAnsiColor.Checker[key])) {
-                bgcolor_ = StringAnsiColor.Checker[key].color;
+        for (var key in StringAnsiColor.Colors.keySet()) {
+            if (isBgColor(StringAnsiColor.Colors[key])) {
+                bgcolor_ = StringAnsiColor.Colors[key].bgcolor;
                 return;
             }
         }
     }
-    public black(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 30;
-        return this;
+    private makeColorMethod(fgColor) {
+        return _function(bgColor) {
+            if (bgColor.isFunction) applyBackgroundColor(bgColor);
+            color_ = fgColor;
+            return this;
+        };
     }
-    public red(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 31;
-        return this;
+    private makeDecorationMethod(value) {
+        return _function() {
+            attrs_.push(value);
+            return this;
+        };
     }
-    public green(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 32;
-        return this;
+    private initialize() {
+        for (var key in StringAnsiColor.Colors.keySet()) {
+            this[key] = makeColorMethod(StringAnsiColor.Colors[key].color);
+        }
+        for (var key in StringAnsiColor.Attrs.keySet()) {
+            this[key] = makeDecorationMethod(StringAnsiColor.Attrs[key].value);
+        }
     }
-    public yellow(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 33;
-        return this;
+    public color(name, bgColor) {
+        return this[name](bgColor);
     }
-    public blue(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 34;
-        return this;
-    }
-    public magenta(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 35;
-        return this;
-    }
-    public cyan(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 36;
-        return this;
-    }
-    public white(bgColor) {
-        if (bgColor.isFunction) applyBackgroundColor(bgColor);
-        color_ = 37;
-        return this;
-    }
-    public bold() {
-        attrs_.push(1);
-        return this;
-    }
-    public underline() {
-        attrs_.push(4);
-        return this;
+    private decorate(name) {
+        return this[name]();
     }
     public +(str) {
         return @toString() + str;
@@ -250,35 +238,25 @@ _class StringAnsiColor(str_) {
 }
 
 // Text color.
-String.black = _function(str, bgColor) {
-    return new StringAnsiColor(str).black(bgColor);
-};
-String.red = _function(str, bgColor) {
-    return new StringAnsiColor(str).red(bgColor);
-};
-String.green = _function(str, bgColor) {
-    return new StringAnsiColor(str).green(bgColor);
-};
-String.yellow = _function(str, bgColor) {
-    return new StringAnsiColor(str).yellow(bgColor);
-};
-String.blue = _function(str, bgColor) {
-    return new StringAnsiColor(str).blue(bgColor);
-};
-String.magenta = _function(str, bgColor) {
-    return new StringAnsiColor(str).magenta(bgColor);
-};
-String.cyan = _function(str, bgColor) {
-    return new StringAnsiColor(str).cyan(bgColor);
-};
-String.white = _function(str, bgColor) {
-    return new StringAnsiColor(str).white(bgColor);
-};
+_function _make_string_color_hook(name) {
+    return _function(str, bgColor) {
+        return new StringAnsiColor(str).color(name, bgColor);
+    };
+}
+const _colorkeys = Array.keySet(StringAnsiColor.Colors);
+for (var i = 0, l = _colorkeys.length(); i < l; ++i) {
+    const _colorkey = _colorkeys[i];
+    String[_colorkey] = _make_string_color_hook(_colorkey);
+}
 
 // Text attrbutes.
-String.bold = _function(str) {
-    return new StringAnsiColor(str).bold();
-};
-String.underline = _function(str) {
-    return new StringAnsiColor(str).underline();
-};
+_function _make_string_attribute_hook(name) {
+    return _function(str) {
+        return new StringAnsiColor(str).decorate(name);
+    };
+}
+const _attrkeys = Array.keySet(StringAnsiColor.Attrs);
+for (var i = 0, l = _attrkeys.length(); i < l; ++i) {
+    const _attrkey = _attrkeys[i];
+    String[_attrkey] = _make_string_attribute_hook(_attrkey);
+}
