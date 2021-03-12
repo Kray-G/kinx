@@ -5,7 +5,7 @@
 String objects are a quoted string like `"aaa"`.
 You can write it as a double-quoted or single-quoted string.
 
-### Methods
+### Basic Methods
 
 There is a special object named as `Double`.
 The methods of `Double` can be used for integer values directly.
@@ -44,6 +44,62 @@ Hello, I am John.
 ```
 
 The receiver comes in the first argument.
+
+### Escape Sequence
+
+You can use an escape sequence easily via some `String` methods.
+Those methods currently are supporting to decorate a string such as a coloring.
+
+#### Example of String Decoration
+
+Here is an example of decorating a string.
+The decoration range is only a specified string, and the decoration will be automatically cleared.
+
+```javascript
+var s = "This is a pen";
+System.println(s.red(.white));                              // => \e31;47[mThis is a pen\e[0m
+System.println(s.yellow());                                 // => \e33[mThis is a pen\e[0m
+System.println(s.bold().yellow());                          // => \e33;1[mThis is a pen\e[0m
+System.println("xyz:" + s.yellow(.red).underline().bold()); // => xyz:\e33;41;4;1[mThis is a pen\e[0m
+System.println(s.black(.white).underline());                // => \e30;47;4[mThis is a pen\e[0m
+System.println(s.red().bold().underline() + ":aaa");        // => \e31;1;4[mThis is a pen\e[0m:aaa
+```
+
+Here is an actual result.
+
+![ColoringString](../../images/string_color.png)
+
+#### Methods
+
+Here are methods of coloring and decorating.
+
+|       Method       |                                       Meaning                                        |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| `black(bgColor)`   | Makes a foreground color black, and optionally possible to set a background color.   |
+| `red(bgColor)`     | Makes a foreground color red, and optionally possible to set a background color.     |
+| `green(bgColor)`   | Makes a foreground color green, and optionally possible to set a background color.   |
+| `yellow(bgColor)`  | Makes a foreground color yellow, and optionally possible to set a background color.  |
+| `blue(bgColor)`    | Makes a foreground color blue, and optionally possible to set a background color.    |
+| `magenta(bgColor)` | Makes a foreground color magenta, and optionally possible to set a background color. |
+| `cyan(bgColor)`    | Makes a foreground color cyan, and optionally possible to set a background color.    |
+| `white(bgColor)`   | Makes a foreground color white, and optionally possible to set a background color.   |
+| `bold()`           | Makes a string bold.                                                                 |
+| `underline()`      | Adds underline to a string.                                                          |
+
+`bgColor` is optional and it is `.` style such as `.white`.
+Here is a possible background color setting.
+If nothing specified, there is no change to a background color.
+
+| `bgColor`  |              Meaning              |
+| ---------- | --------------------------------- |
+| `.black`   | Makes a background color black.   |
+| `.red`     | Makes a background color red.     |
+| `.green`   | Makes a background color green.   |
+| `.yellow`  | Makes a background color yellow.  |
+| `.blue`    | Makes a background color blue.    |
+| `.magenta` | Makes a background color magenta. |
+| `.cyan`    | Makes a background color cyan.    |
+| `.white`   | Makes a background color white.   |
 
 ### Special operator
 
