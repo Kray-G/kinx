@@ -23,8 +23,8 @@ var Xml, Net;
     SQLite = _import('kxsqlite');
     Debugger = _import('kxdebugger');
     using kxsysutil;
+    using kxarray;  // should be imported before kxstring.
     using kxstring;
-    using kxarray;
     using kxbinary;
     using kxnumeric;
     using kxisolate;
