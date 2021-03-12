@@ -14,7 +14,8 @@
 *   Updated
     *   Updated `Functional`.
         *   See [Functional][] for details.
-    *   Supported String Color methods.
+    *   Supported String Color methods with Escape Sequence.
+        *   See [String](docs/spec/lib/primitive/string.md) for details.
     *   Updated Documentation & SpecTest.
     *   Some bug fixes and improvements.
 
