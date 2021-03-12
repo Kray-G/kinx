@@ -260,3 +260,106 @@ for (var i = 0, l = _attrkeys.length(); i < l; ++i) {
     const _attrkey = _attrkeys[i];
     String[_attrkey] = _make_string_attribute_hook(_attrkey);
 }
+
+// Colorize class.
+_class _Colorize {
+    enum {
+        COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE,
+        COLOR_BOLD, COLOR_ITALIC, COLOR_UNDERLINE, COLOR_BLINK, COLOR_REVERSE,
+        COLOR_END, COLOR_CLEAR, COLOR_STRING,
+    }
+    var stack_ = [];
+    private makeMethod(type, isBack) {
+        return _function() {
+            stack_.push({ type: type, isBack: isBack });
+            return this;
+        };
+    }
+    private initialize() {
+        @black     = makeMethod(COLOR_BLACK, false);
+        @red       = makeMethod(COLOR_RED, false);
+        @green     = makeMethod(COLOR_GREEN, false);
+        @yellow    = makeMethod(COLOR_YELLOW, false);
+        @blue      = makeMethod(COLOR_BLUE, false);
+        @magenta   = makeMethod(COLOR_MAGENTA, false);
+        @cyan      = makeMethod(COLOR_CYAN, false);
+        @white     = makeMethod(COLOR_WHITE, false);
+
+        @onBlack     = makeMethod(COLOR_BLACK, true);
+        @onRed       = makeMethod(COLOR_RED, true);
+        @onGreen     = makeMethod(COLOR_GREEN, true);
+        @onYellow    = makeMethod(COLOR_YELLOW, true);
+        @onBlue      = makeMethod(COLOR_BLUE, true);
+        @onMagenta   = makeMethod(COLOR_MAGENTA, true);
+        @onCyan      = makeMethod(COLOR_CYAN, true);
+        @onWhite     = makeMethod(COLOR_WHITE, true);
+
+        @bold      = makeMethod(COLOR_BOLD);
+        @italic    = makeMethod(COLOR_ITALIC);
+        @underline = makeMethod(COLOR_UNDERLINE);
+        @blink     = makeMethod(COLOR_BLINK);
+        @reverse   = makeMethod(COLOR_REVERSE);
+
+        @clear     = makeMethod(COLOR_CLEAR);
+        @end       = makeMethod(COLOR_END);
+    }
+    public text(str) {
+        stack_.push({ type: COLOR_STRING, value: str });
+        return this;
+    }
+    public +(rhs) {
+        return @toString() + rhs;
+    }
+    public toString() {
+        var attrs = [];
+        var s = "";
+        for (var i = 0, l = stack_.length(); i < l; ++i) {
+            var item = stack_[i];
+            switch (item.type) {
+            when COLOR_BLACK:     attrs.push({ isColor: true, value: item.isBack ? 40 : 30, isBack: item.isBack });
+            when COLOR_RED:       attrs.push({ isColor: true, value: item.isBack ? 41 : 31, isBack: item.isBack });
+            when COLOR_GREEN:     attrs.push({ isColor: true, value: item.isBack ? 42 : 32, isBack: item.isBack });
+            when COLOR_YELLOW:    attrs.push({ isColor: true, value: item.isBack ? 43 : 33, isBack: item.isBack });
+            when COLOR_BLUE:      attrs.push({ isColor: true, value: item.isBack ? 44 : 34, isBack: item.isBack });
+            when COLOR_MAGENTA:   attrs.push({ isColor: true, value: item.isBack ? 45 : 35, isBack: item.isBack });
+            when COLOR_CYAN:      attrs.push({ isColor: true, value: item.isBack ? 46 : 36, isBack: item.isBack });
+            when COLOR_WHITE:     attrs.push({ isColor: true, value: item.isBack ? 47 : 37, isBack: item.isBack });
+            when COLOR_BOLD:      attrs.push({ isAttr: true, value: 1});
+            when COLOR_ITALIC:    attrs.push({ isAttr: true, value: 3});
+            when COLOR_UNDERLINE: attrs.push({ isAttr: true, value: 4});
+            when COLOR_BLINK:     attrs.push({ isAttr: true, value: 5});
+            when COLOR_REVERSE:   attrs.push({ isAttr: true, value: 7});
+            when COLOR_END:       attrs.pop();
+            when COLOR_CLEAR:     attrs = [];
+            when COLOR_STRING: {
+                if (attrs.length() > 0) {
+                    var attrvalues = attrs.partition(.isColor);
+                    var cols = attrvalues[0].partition(.isBack);
+                    var col = cols[1].map { => _1.value };
+                    var bgc = cols[0].map { => _1.value };
+                    var att = attrvalues[1].map { => _1.value };
+                    var es = "";
+                    if (col.length() > 0) {
+                        es += col[-1];
+                    }
+                    if (bgc.length() > 0) {
+                        if (es.length() > 0) es += ';';
+                        es += bgc[-1];
+                    }
+                    if (att.length() > 0) {
+                        if (es.length() > 0) es += ';';
+                        es += att.join(';');
+                    }
+                    s += ("\e[" + es + "m" + item.value + "\e[0m");
+                } else {
+                    s += item.value;
+                }
+            }
+            else:
+                break;
+            }
+        }
+        stack_ = [];
+        return s + "\e[0m";
+    }
+}
