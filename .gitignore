@@ -18,6 +18,7 @@ myacc
 /kinxpkg
 /benchmark
 /bench
+src/extlib/onig
 timeit.dat
 /x86.ins
 /x64.ins
