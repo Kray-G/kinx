@@ -233,7 +233,7 @@ _class StringAnsiColor(str_) {
         color_ = 37;
         bgcolor_ = null;
         attrs_ = [];
-        return "\e%{attrs}[m%{str_}\e[0m";
+        return "\e[%{attrs}m%{str_}\e[0m";
     }
 }
 
