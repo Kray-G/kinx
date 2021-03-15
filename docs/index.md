@@ -152,6 +152,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [System](spec/lib/basic/system.md)
 *   [Getopt](spec/lib/basic/getopt.md)
 *   [Iconv](spec/lib/basic/iconv.md)
+*   [Colorize](spec/lib/basic/colorize.md)
 *   [Math](spec/lib/basic/imath.md)
 *   [File](spec/lib/basic/file.md)
 *   [Directory](spec/lib/basic/directory.md)
