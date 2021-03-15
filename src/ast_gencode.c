@@ -642,8 +642,10 @@ static void gen_jmp_search_case_block(kx_context_t *ctx, kx_analyze_t *ana, kx_c
     int maxi = last->value.i - mini;
 
     /* subtract minimum value */
-    if (mini != 0) {
+    if (mini > 0) {
         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(head, ana), .op = KX_SUBI, .value1 = { .i = mini } }));
+    } else if (mini < 0) {
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(head, ana), .op = KX_ADDI, .value1 = { .i = -mini } }));
     }
 
     if (!checked) {
