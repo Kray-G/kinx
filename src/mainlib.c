@@ -28,6 +28,11 @@
 #ifndef VER_SUFFIX
 #define VER_SUFFIX ""
 #endif
+#ifndef VER_HASH
+#define VER_HASH NO_HASH
+#endif
+#define VER_ACT_STR(x) #x
+#define VER_HASH_STR(x) VER_ACT_STR(x)
 
 extern void alloc_initialize(void);
 extern void alloc_finalize(void);
@@ -113,9 +118,8 @@ static void usage(void)
 
 static void version(int detail)
 {
-    printf(PROGNAME " version %d.%d.%d%s\n", VER_MAJ, VER_MIN, VER_PAT, VER_SUFFIX);
+    printf(PROGNAME " version %d.%d.%d%s built on %s\n", VER_MAJ, VER_MIN, VER_PAT, VER_SUFFIX, VER_HASH_STR(VER_HASH));
     if (detail) {
-        printf("\n");
         printf("- platform: %s\n", sljit_get_platform_name());
         printf("- path:     %s\n", get_kinx_path());
         printf("\n");

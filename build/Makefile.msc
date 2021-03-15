@@ -2,7 +2,7 @@ SRCDIR = ..\src
 INCDIR = ../include
 CC = cl
 RC = rc
-CFLAGS = /nologo /O2 /MT /I$(INCDIR) /I$(SRCDIR)/jit /DYYMALLOC=kx_malloc /DYYFREE=kx_free
+CFLAGS = /nologo /O2 /MT /I$(INCDIR) /I$(SRCDIR)/jit /DYYMALLOC=kx_malloc /DYYFREE=kx_free /DVER_HASH=$(VER_HASH)
 OBJS = \
     $(SRCDIR)/allocator.obj \
     $(SRCDIR)/alloccore.obj \
