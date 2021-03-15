@@ -219,7 +219,7 @@ _class StringAnsiColor(str_) {
             this[key] = makeDecorationMethod(StringAnsiColor.Attrs[key].value);
         }
     }
-    public color(name, bgColor) {
+    public colorize(name, bgColor) {
         return this[name](bgColor);
     }
     public decorate(name) {
@@ -240,7 +240,7 @@ _class StringAnsiColor(str_) {
 // Text color.
 _function _make_string_color_hook(name) {
     return _function(str, bgColor) {
-        return new StringAnsiColor(str).color(name, bgColor);
+        return new StringAnsiColor(str).colorize(name, bgColor);
     };
 }
 const _colorkeys = Array.keySet(StringAnsiColor.Colors);
@@ -269,6 +269,7 @@ _class _Colorize {
         COLOR_END, COLOR_CLEAR, COLOR_STRING,
     }
     var stack_ = [];
+    var re_ = /<(\/?)(black|red|green|yellow|blue|magenta|cyan|white|onBlack|onRed|onGreen|onYellow|onBlue|onMagenta|onCyan|onWhite|bold|underline|blink|reverse)>|\\<|\\>|\\\\|[^<\\]+/;
     private makeMethod(type, isBack) {
         return _function() {
             stack_.push({ type: type, isBack: isBack });
@@ -285,14 +286,14 @@ _class _Colorize {
         @cyan      = makeMethod(COLOR_CYAN, false);
         @white     = makeMethod(COLOR_WHITE, false);
 
-        @onBlack     = makeMethod(COLOR_BLACK, true);
-        @onRed       = makeMethod(COLOR_RED, true);
-        @onGreen     = makeMethod(COLOR_GREEN, true);
-        @onYellow    = makeMethod(COLOR_YELLOW, true);
-        @onBlue      = makeMethod(COLOR_BLUE, true);
-        @onMagenta   = makeMethod(COLOR_MAGENTA, true);
-        @onCyan      = makeMethod(COLOR_CYAN, true);
-        @onWhite     = makeMethod(COLOR_WHITE, true);
+        @onBlack   = makeMethod(COLOR_BLACK, true);
+        @onRed     = makeMethod(COLOR_RED, true);
+        @onGreen   = makeMethod(COLOR_GREEN, true);
+        @onYellow  = makeMethod(COLOR_YELLOW, true);
+        @onBlue    = makeMethod(COLOR_BLUE, true);
+        @onMagenta = makeMethod(COLOR_MAGENTA, true);
+        @onCyan    = makeMethod(COLOR_CYAN, true);
+        @onWhite   = makeMethod(COLOR_WHITE, true);
 
         @bold      = makeMethod(COLOR_BOLD);
         @italic    = makeMethod(COLOR_ITALIC);
@@ -309,6 +310,26 @@ _class _Colorize {
     }
     public +(rhs) {
         return @toString() + rhs;
+    }
+    public parse(text) {
+        while (g = (re_ =~ text)) {
+            var s = g[0].string;
+            if (s[0] == '<'[0]) {
+                if (s[1] == '/'[0]) {
+                    @end();
+                } else {
+                    var tag = g[2].string;
+                    if (this[tag].isFunction) {
+                        this[tag]();
+                    } else {
+                        @text(s);
+                    }
+                }
+            } else {
+                @text((s == '\\<' ? '<' : (s == '\\>' ? '>' : (s == '\\\\' ? '\\' : s))));
+            }
+        }
+        return this;
     }
     public toString() {
         var attrs = [];
