@@ -779,12 +779,24 @@ LOOP_HEAD:;
         node->var_type = node->lhs->var_type;
         break;
     case KXOP_POSITIVE:
-        analyze_ast(ctx, node->lhs, actx);
-        node->var_type = node->lhs->var_type;
+        if (node->lhs) {
+            analyze_ast(ctx, node->lhs, actx);
+            if (node->lhs->type == KXVL_INT) {
+                node->type = KXVL_INT;
+                node->value.i = node->lhs->value.i;
+            }
+            node->var_type = node->lhs->var_type;
+        }
         break;
     case KXOP_NEGATIVE:
-        analyze_ast(ctx, node->lhs, actx);
-        node->var_type = node->lhs->var_type;
+        if (node->lhs) {
+            analyze_ast(ctx, node->lhs, actx);
+            if ((node->lhs->type == KXVL_INT) && (-INT64_MAX <= node->lhs->value.i) && (node->lhs->value.i <= INT64_MAX)) {
+                node->type = KXVL_INT;
+                node->value.i = -node->lhs->value.i;
+            }
+            node->var_type = node->lhs->var_type;
+        }
         break;
     case KXOP_CONV:
         node->count_args = count_args(node->lhs);
