@@ -1,0 +1,48 @@
+
+var s = "This is a pen";
+System.println(s.red(.white));
+System.println(s.yellow());
+System.println(s.bold().yellow());
+System.println("xyz:" + s.yellow(.red).underline().bold());
+System.println(s.black(.white).underline());
+System.println(s.red().bold().underline() + ":aaa");
+
+System.println("\e[31mThis \e[31;43mis \e[31;43;5ma pen.\e[0m");
+System.println("\e[31mThis \e[43mis \e[5ma pen.\e[0m");
+
+var colorize = new Colorize();
+System.println(
+    "Head:" +
+    colorize
+        .red()
+            .text("Red")
+            .bold()
+                .text("Red/Bold")
+                .yellow()
+                    .text("Yellow/Bold")
+                    .onRed()
+                        .underline()
+                            .text("Yellow/Bold/Underlined")
+                        .end()  // Underline ended
+                        .text("<-->")
+                    .end()  // BgColor
+                .end()  // Yellow ended
+                .text("Red/Bold")
+            .end()  // Bold ended
+            .text("Red")
+    + ":Tail"
+);
+
+System.println(
+    colorize.parse(
+        "<red>"
+            "Yes, "
+            "<yellow>"
+                "<underline>\\<bv\\></underline>"
+                " at <bold>the <onRed>bottom,"
+                " or <reverse><blink>top</blink></reverse></onRed></bold>"
+                " of <underline>row</underline>"
+            "</yellow>"
+        "</red>"
+    )
+);
