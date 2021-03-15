@@ -7,6 +7,7 @@
 #include <kxalloc.h>
 #include <kxutf8.h>
 
+#define LIBNAME_BUFSIZE (512)
 #define POSMAX ((KX_BUF_MAX)-128)
 static char kx_strbuf[KX_BUF_MAX] = {0};
 static int g_import = 0;
@@ -17,8 +18,8 @@ static const char *modulename = NULL;
 
 static const char *parent_path(const char *str)
 {
-    static char buf[2048] = {0};
-    strcpy(buf, str);
+    static char buf[LIBNAME_BUFSIZE] = {0};
+    strncpy(buf, str, LIBNAME_BUFSIZE-1);
     char *sep = strrchr(buf, PATH_DELCH);
     if (sep) {
         *sep = 0;
@@ -96,7 +97,7 @@ static void load_using_module_asta(const char *name, int len)
 
 static int load_using_module(const char *name, int no_error)
 {
-    char libname[256] = {0};
+    char libname[LIBNAME_BUFSIZE*2] = {0};
     const char *file = NULL;
     int len = strlen(name);
     if (name[len-1] == '*') {
@@ -108,15 +109,15 @@ static int load_using_module(const char *name, int no_error)
         }
     } else {
         /* Trying to search the file in the same directory first. */
-        snprintf(libname, 255, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
+        snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
         if (file_exists(libname)) {
             file = libname;
         } else {
-            snprintf(libname, 255, "%s.kx", name);
+            snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s.kx", name);
             if (!(file = kxlib_file_exists(libname))) {
                 if (!no_error) {
-                    char buf[512] = {0};
-                    snprintf(buf, 511, "File not found(%s)", libname);
+                    char buf[LIBNAME_BUFSIZE*3] = {0};
+                    snprintf(buf, LIBNAME_BUFSIZE*3-1, "File not found(%s)", libname);
                     kx_yywarning(buf);
                 }
                 while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
