@@ -642,7 +642,11 @@ static void gen_jmp_search_case_block(kx_context_t *ctx, kx_analyze_t *ana, kx_c
     int maxi = last->value.i - mini;
 
     /* subtract minimum value */
-    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(head, ana), .op = KX_SUBI, .value1 = { .i = mini } }));
+    if (mini > 0) {
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(head, ana), .op = KX_SUBI, .value1 = { .i = mini } }));
+    } else if (mini < 0) {
+        kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE_OF(head, ana), .op = KX_ADDI, .value1 = { .i = -mini } }));
+    }
 
     if (!checked) {
         /* out of range (lt) */
@@ -872,7 +876,12 @@ static void gen_seq_search_block(kx_context_t *ctx, kx_analyze_t *ana, kx_case_i
 
 static int case_int_cond(const void *node1, const void *node2)
 {
-    return (*(kx_object_t**)node1)->lhs->value.i - (*(kx_object_t**)node2)->lhs->value.i;
+    int vdiff = (*(kx_object_t**)node1)->lhs->value.i - (*(kx_object_t**)node2)->lhs->value.i;
+    if (vdiff == 0) {
+        /* This check will mostly make a sort stable. */
+        vdiff = (*(kx_object_t**)node1)->lhs->line - (*(kx_object_t**)node2)->lhs->line;
+    }
+    return vdiff;
 }
 
 static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_object_t *node)
@@ -885,7 +894,7 @@ static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_
         if (p->lhs) {
             if (p->lhs->type == KXOP_VAR && p->lhs->lhs) {
                 p->lhs = p->lhs->lhs;
-            };
+            }
             if (p->lhs->type == KXVL_INT) {
                 kv_push(kx_object_t*, caseinfo.sorted_int_cases, p);
             } else {
@@ -911,6 +920,9 @@ static kx_object_t *generate_case_cond(kx_context_t *ctx, kx_analyze_t *ana, kx_
         for (int i = 0; i < len; ++i) {
             p = kv_A(caseinfo.sorted_int_cases, i);
             int value = p->lhs->value.i;
+            if (value == prev) {
+                kx_yyerror_line_fmt("Detected a duplicate of an integer(%d) in case/when label", p->lhs->file, p->lhs->line, value);
+            }
             if ((value - prev) > ctx->options.case_threshold) {
                 kv_push(kx_objvec_t, caseinfo.case_int_block, (kx_objvec_t){0});
                 block = &kv_last(caseinfo.case_int_block);
