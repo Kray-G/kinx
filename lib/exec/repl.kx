@@ -404,7 +404,6 @@ class Repl {
         clas: /^\s*class\s*([$_a-zA-Z0-9]+)\s*(?:\(([^\\)]*)\))?((.|\n)+)/,
         modl: /^\s*module\s*([$_a-zA-Z0-9]+)\s*((.|\n)+)/,
         vars: /\s*([$_a-zA-Z0-9]+)\s*=\s*([^;]+)(?:;|\s*\n)?/,
-        histRange: /!(0|[1-9][0-9]*)(?:-(0|[1-9][0-9]*))?/,
         thisProp: /(?:public\s+|@\s*)([_a-zA-Z0-9\$]+)/,
     };
     var cmdid_ = 0;
@@ -1014,34 +1013,21 @@ class Repl {
         while (1) {
             System.gc();
             input = read();
-            while (input[0] == '!'[0]) {
-                var g, s, e;
-                re_.histRange.reset(input);
-                if (g = (input =~ re_.histRange)) {
-                    s = Integer.parseInt(g[1].string || 0);
-                    e = Integer.parseInt(g[2].string || s);
-                } else {
-                    printError("Invaild history number.");
-                    replinfo_.history.pop();
-                    continue;
-                }
-                var l = replinfo_.history.length();
-                if (l <= s || l <= e || e < s) {
-                    printError("Invaild history number.");
-                    replinfo_.history.pop();
-                    continue;
-                }
-                var list = replinfo_.history.subArray(s, e-s+1);
-                input = list
-                    .map(&(obj) => obj.info.map(&(e) => e.str).join('')).join(';\n') + ';\n';
-                if (input[0] != '!'[0]) {
-                    printCommand(input);
-                    replinfo_.history.pop();
-                    list.each(&(cmd) => {
-                        replinfo_.history.push(cmd);
-                    });
-                    break;
-                }
+            var replaced = false;
+            var l = replinfo_.history.length();
+            while (input.find(/!(0|[1-9][0-9]*)(?:-(0|[1-9][0-9]*))?/)) {
+                input = input.replace(/!(0|[1-9][0-9]*)(?:-(0|[1-9][0-9]*))?/) { &(g)
+                    var n = Integer.parseInt(g[1].string);
+                    if (n < l) {
+                        replaced = true;
+                        var h = replinfo_.history[n];
+                        return h.info.map(&(e) => e.str).join('');
+                    }
+                    return "0";
+                };
+            }
+            if (replaced) {
+                printCommand(input);
             }
             if (input[0] == '.'[0]) {
                 // command.
