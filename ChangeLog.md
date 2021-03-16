@@ -1,23 +1,33 @@
 # Change Log
 
-## V1.1.0 (Future Planned)
+## V1.2.0 (Future Planned)
 
-*   Planned, or remaining tasks.
+* Planned.
     *   Support GUI library.
     *   Support OpenCV library.
     *   Support HTTP Server library.
-    *   Support Cryptography library.
+
+## V1.1.0 (Current Development Version)
+
+*   Planned.
     *   Support Package Manager.
+    *   Support Cryptography library.
+    *   Separate other products in extlib to another repository.
 
-## V0.23.0 (Current Development Version)
+## V1.0.0 (Official Release) - 2021/03/16
+This is a 1st official release version.
 
-*   Updated
-    *   Updated `Functional`.
-        *   See [Functional][] for details.
-    *   Supported String Color methods with Escape Sequence.
-        *   See [String](docs/spec/lib/primitive/string.md) for details.
-    *   Updated Documentation & SpecTest.
-    *   Some bug fixes and improvements.
+* See [Kinx Specification](https://github.com/Kray-G/kinx/blob/master/docs/index.md) for a specification.
+
+> Small updates from v0.22.0
+> 
+> *   Updated
+>     *   Updated `Functional`.
+>         *   See [Functional][] for details.
+>     *   Supported String Color methods with Escape Sequence.
+>         *   See [String](docs/spec/lib/primitive/string.md) for details.
+>     *   Updated Documentation & SpecTest.
+>     *   Some bug fixes and improvements.
 
 ## V0.22.0 (22th Preview Release) - 2021/03/05
 

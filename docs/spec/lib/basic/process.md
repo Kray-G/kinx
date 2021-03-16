@@ -82,7 +82,11 @@ If you are doing `detach`, you cannot get it (0 is returned).
 
 #### Detach
 
-The `detach` that came out earlier. The process can also be `detach` (detached). If separated, the edge with the child will be cut. You don't have to wait and wait for the end. Or rather, you can't do it even if you want to care.
+It has been already described but it is a `detach`.
+The process can also be `detach` (detached).
+If doing a detach, the communication with the child will be cut.
+You don't have to wait and wait for the end.
+Or rather, you can't do it even if you want to care.
 
 ```javascript
 var p = new Process(["cmd", "arg1"]).run();
@@ -197,7 +201,7 @@ var r = Process.pipeline(cmd1, cmd2, cmd3/* , ... */) { &(i, o, pipeline):
     // pipeline.wait() ......waits for all processes in the pipeline to complete,
     // return the exit code as an array
 
-// The return value of the callback becomes the return value of Process.pipeline() as it is.
+    // The return value of the callback becomes the return value of Process.pipeline() as it is.
     return pipeline.wait();
 };
 ```
@@ -221,7 +225,7 @@ It can be used even without calling back.
 ```javascript
 var pipeline = Process.pipeline(cmd1, cmd2, cmd3 /* , ... */);
 // pipeline ... pipeline object
-// omitted below.
+// omitted the same information.
 ```
 
 ## Examples
