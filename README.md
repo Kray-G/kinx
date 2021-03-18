@@ -21,6 +21,18 @@ Ruby is a major scripting language. Also Python is.
 However, either of these syntax is **NOT** familiar to C programmers.
 This Kinx is a script language for people who want C-like syntax.
 
+### The Concept
+
+The concept is, ___"Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."___
+
+*   Looks like JavaScript ... It provides C family syntax.
+*   Feels like Ruby ... Enjoy programming.
+*   Fitting in C programmers ... It is easy to use for many programmers.
+
+_"C programmers"_ in this context means _"almost all programmers."_
+Because I think almost all programmers have used or known C language at least.
+And _"Providing C Like Syntax"_ as well also means _"friendly for almost all programmers."_
+
 ### Features
 
 #### Language Basic Concept
