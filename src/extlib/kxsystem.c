@@ -2190,6 +2190,277 @@ int System_getTextFromClipboard(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_con
     return 0;
 }
 
+#include "picosat/picosat.h"
+inline static void *picokx_malloc(void *mmgr, size_t bytes)
+{
+    return kx_malloc(bytes);
+}
+
+inline static void *picokx_realloc(void *mmgr, void *ptr, size_t old, size_t new)
+{
+    return kx_realloc(ptr, new);
+}
+
+inline static void picokx_free(void *mmgr, void *ptr, size_t bytes)
+{
+    kx_free(ptr);
+}
+
+static int add_clause(PicoSAT *picosat, kx_val_t *clausev)
+{
+    if (!clausev || clausev->type != KX_OBJ_T) {
+        return -1;
+    }
+
+    kx_obj_t *clause = clausev->value.ov;
+    int size = kv_size(clause->ary);
+    for (int i = 0; i < size; ++i) {
+        kx_val_t *lit = &kv_A(clause->ary, i);
+        if (!lit || lit->type != KX_INT_T) {
+            return -1;
+        }
+        int64_t v = lit->value.iv;
+        if (v == 0) {
+            return -1;
+        }
+        picosat_add(picosat, v);
+    }
+
+    picosat_add(picosat, 0);
+    return 0;
+}
+
+static int add_clauses(PicoSAT *picosat, kx_obj_t *clauses)
+{
+    if (!clauses) {
+        return -1;
+    }
+
+    int size = kv_size(clauses->ary);
+    for (int i = 0; i < size; ++i) {
+        kx_val_t *item = &kv_A(clauses->ary, i);
+        if (add_clause(picosat, item) < 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+PicoSAT *setup_picosat(kx_obj_t *clauses, int vars, int verbose, unsigned long long prop_limit)
+{
+    PicoSAT *picosat = picosat_minit(NULL, picokx_malloc, picokx_realloc, picokx_free);
+    picosat_set_verbosity(picosat, verbose);
+    if (vars != -1) {
+        picosat_adjust(picosat, vars);
+    }
+    if (prop_limit) {
+        picosat_set_propagation_limit(picosat, prop_limit);
+    }
+    if (add_clauses(picosat, clauses) < 0) {
+        picosat_reset(picosat);
+        return NULL;
+    }
+    if (verbose >= 2) {
+        picosat_print(picosat, stdout);
+    }
+    return picosat;
+}
+
+static kx_obj_t* get_solution(kx_context_t *ctx, PicoSAT *picosat)
+{
+    kx_obj_t *list = allocate_obj(ctx);
+    if (list == NULL) {
+        picosat_reset(picosat);
+        return NULL;
+    }
+
+    int max_idx = picosat_variables(picosat);
+    for (int i = 1; i <= max_idx; i++) {
+        int v = picosat_deref(picosat, i);
+        // assert(v == -1 || v == 1);
+        KEX_PUSH_ARRAY_INT(list, (int64_t)v * i);
+    }
+    return list;
+}
+
+int System_picosat_solve(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *clauses = get_arg_obj(1, args, ctx);
+    if (!clauses) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid clause object");
+    }
+    int vars = args >= 2 ? get_arg_int(2, args, ctx) : -1;
+    int verbose = args >= 3 ? get_arg_int(3, args, ctx) : 0;
+    unsigned long long prop_limit = args >= 4 ? get_arg_int(4, args, ctx) : 0;
+    PicoSAT *picosat = setup_picosat(clauses, vars, verbose, prop_limit);
+    if (picosat == NULL) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Failed to setup SAT");
+    }
+
+    kx_obj_t *result = NULL;
+    int res = picosat_sat(picosat, -1);
+    switch (res) {
+    case PICOSAT_SATISFIABLE:
+        result = get_solution(ctx, picosat);
+        break;
+    case PICOSAT_UNSATISFIABLE: {
+        kstr_t *sv = allocate_str(ctx);
+        ks_append(sv, "UNSATISFIABLE");
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, sv);
+        return 0;
+    }
+    case PICOSAT_UNKNOWN: {
+        kstr_t *sv = allocate_str(ctx);
+        ks_append(sv, "UNKNOWN");
+        KX_ADJST_STACK();
+        push_sv(ctx->stack, sv);
+        return 0;
+    }
+    default:
+        KX_THROW_BLTIN_EXCEPTION("SystemException", static_format("picosat return value: %d", res));
+    }
+
+    picosat_reset(picosat);
+    if (!result) {
+        result = allocate_obj(ctx);
+    }
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, result);
+    return 0;
+}
+
+typedef struct {
+    PicoSAT *picosat;
+    int is_ended;
+    signed char *mem;   /* temporary storage */
+} kx_picoit_t;
+
+void PicoSAT_free(void *p)
+{
+    kx_picoit_t *r = (kx_picoit_t *)p;
+    if (r->mem) {
+        kx_free(r->mem);
+    }
+    picosat_reset(r->picosat);
+    kx_free(r);
+}
+
+static int blocksol(PicoSAT *picosat, signed char **mem)
+{
+    int max_idx = picosat_variables(picosat);
+    if (*mem == NULL) {
+        *mem = kx_malloc(max_idx + 1);
+        if (*mem == NULL) {
+            return -1;
+        }
+    }
+    for (int i = 1; i <= max_idx; i++) {
+        (*mem)[i] = (picosat_deref(picosat, i) > 0) ? 1 : -1;
+    }
+    for (int i = 1; i <= max_idx; i++) {
+        picosat_add(picosat, ((*mem)[i] < 0) ? i : -i);
+    }
+    picosat_add(picosat, 0);
+    return 0;
+}
+
+int PicoSAT_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_RAW(kx_picoit_t, "_pack", r, obj, "SystemException", "Invalid SAT iterator");
+    if (!r) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SAT iterator");
+    }
+
+    kx_obj_t *result = NULL;    /* return value */
+    int res = picosat_sat(r->picosat, -1);
+    switch (res) {
+    case PICOSAT_SATISFIABLE:
+        result = get_solution(ctx, r->picosat);
+        if (result == NULL) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Failed to create list");
+        }
+        /* add inverse solution to the clauses, for next iteration */
+        if (blocksol(r->picosat, &r->mem) < 0) {
+            KX_THROW_BLTIN_EXCEPTION("SystemException", "Memoey allocation error in SAT");
+        }
+        break;
+
+    case PICOSAT_UNSATISFIABLE:
+    case PICOSAT_UNKNOWN:
+        /* no more solutions -- stop iteration */
+        r->is_ended = 1;
+        KX_ADJST_STACK();
+        push_undef(ctx->stack);
+        return 0;
+
+    default:
+        KX_THROW_BLTIN_EXCEPTION("SystemException", static_format("picosat return value: %d", res));
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, result);
+    return 0;
+}
+
+int PicoSAT_isEnded(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_RAW(kx_picoit_t, "_pack", r, obj, "SystemException", "Invalid SAT iterator");
+    if (!r) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SAT iterator");
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r->is_ended);
+    return 0;
+}
+
+int PicoSAT_this(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
+int System_picosat_iter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *clauses = get_arg_obj(1, args, ctx);
+    if (!clauses) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid clause object");
+    }
+    int vars = args >= 2 ? get_arg_int(2, args, ctx) : -1;
+    int verbose = args >= 3 ? get_arg_int(3, args, ctx) : 0;
+    unsigned long long prop_limit = args >= 4 ? get_arg_int(4, args, ctx) : 0;
+    PicoSAT *picosat = setup_picosat(clauses, vars, verbose, prop_limit);
+    if (picosat == NULL) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Failed to setup SAT");
+    }
+
+    kx_obj_t *obj = allocate_obj(ctx);
+    kx_picoit_t *r = (kx_picoit_t *)kx_calloc(1, sizeof(kx_picoit_t));
+    r->picosat = picosat;
+    r->is_ended = 0;
+    r->mem = NULL;
+    kx_any_t *a = allocate_any(ctx);
+    a->p = r;
+    if (!a->p) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "Failed to allocate a Regex object");
+    }
+    a->any_free = PicoSAT_free;
+    KEX_SET_PROP_ANY(obj, "_pack", a);
+    KEX_SET_METHOD("enumerator", obj, PicoSAT_this);
+    KEX_SET_METHOD("next", obj, PicoSAT_next);
+    KEX_SET_METHOD("isEnded", obj, PicoSAT_isEnded);
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 static kx_bltin_def_t kx_bltin_info[] = {
     { "_halt", System_halt },
     { "_globalExceptionMap", System_globalExceptionMap },
@@ -2249,6 +2520,8 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "_isDebuggerMode", System_isDebuggerMode },
     { "setTextToClipboard", System_setTextToClipboard },
     { "getTextFromClipboard", System_getTextFromClipboard },
+    { "picosatSolve", System_picosat_solve },
+    { "picosatGetIter", System_picosat_iter },
 };
 
 KX_DLL_DECL_FNCTIONS(kx_bltin_info, system_initialize, system_finalize);
