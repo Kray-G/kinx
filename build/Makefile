@@ -13,8 +13,8 @@ CC = gcc
 GCCV8 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 8)
 #CFLAGS = -DKX_PROFILE -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -I$(INCDIR) -O2 \
 	 -fno-crossjumping -Wno-unused-result -Wno-missing-braces -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
-CFLAGS = -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -DVER_HASH=$(VER_HASH) -I$(INCDIR) -O2 \
-	 -fno-crossjumping -Wno-trigraphs -Wno-unused-result -Wno-missing-braces \
+CFLAGS = -DNDEBUG -DKX_DIRECT_THREAD -DYYMALLOC=kx_malloc -DYYFREE=kx_free -DVER_HASH=$(VER_HASH) -I$(INCDIR) \
+	 -O2 -fno-crossjumping -Wno-trigraphs -Wno-unused-result -Wno-missing-braces \
 	 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
 ifeq "$(GCCV8)" "1"
         CFLAGS += -mshstk
