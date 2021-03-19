@@ -1,0 +1,95 @@
+
+_class Satisfiablity(cnf_) {
+    public solve() {
+        return System.picosatSolve(cnf_);
+    }
+    public enumerator() {
+        return System.picosatGetIter(cnf_);
+    }
+}
+
+_class VersionSatisfiablity() {
+    var info_ = [];
+    var vers_ = [];
+    var nvmp_ = [];
+    var deps_ = [];
+    public reset() {
+        info_ = [];
+        vers_ = [];
+        nvmp_ = [];
+        deps_ = [];
+    }
+    public addVersion(name, version, isFix) {
+        if (nvmp_[name][version].isInteger) {
+            var index = nvmp_[name][version] - 1;
+            if (info_[index].isDefined && isFix.isDefined) {
+                info_[index].isFix = isFix;
+            }
+            return;
+        }
+        var index = info_.length() + 1;
+        var info = {
+            name: name,
+            version: version,
+            index: index,
+            isFix: isFix,
+        };
+        info_.push(info);
+        vers_[name] ??= [];
+        vers_[name].push(index);
+        nvmp_[name][version] = index;
+    }
+    public setDependency(base, deps) {
+        deps_.push({
+            base: base,
+            deps: deps,
+        });
+    }
+    private genCnf() {
+        var cnf = info_.filter { => _1.isFix }.map { => [_1.index] };
+        vers_.keySet().each { &(name)
+            var indexes = vers_[name];
+            cnf.push(indexes);
+            for (var i = 0, l = indexes.length(); i < l; ++i) {
+                for (var j = i + 1; j < l; ++j) {
+                    cnf.push([-indexes[i], -indexes[j]]);
+                }
+            }
+        };
+        deps_.each { &(dep)
+            var i1 = nvmp_[dep.base.name][dep.base.version];
+            if (!i1) {
+                return false;
+            }
+            var chk = [ -i1 ];
+            dep.deps.each { &(d)
+                var i2 = nvmp_[d.name][d.version];
+                if (i2) {
+                    chk.push(i2);
+                }
+            };
+            cnf.push(chk);
+        };
+        return cnf;
+    }
+    public solve() {
+        var cnf = genCnf();
+        var res = System.picosatSolve(cnf);
+        return res.filter { => _1 > 0 }.map { => info_[_1 - 1] };
+    }
+    public enumerator() {
+        var cnf = genCnf();
+        var iter = System.picosatGetIter(cnf);
+        return {
+            next: function() {
+                var res = iter.next();
+                if (res) {
+                    return res.filter({ => _1 > 0 }).map { => info_[_1 - 1] };
+                }
+            },
+            isEnded: function() {
+                return iter.isEnded();
+            },
+        };
+    }
+}
