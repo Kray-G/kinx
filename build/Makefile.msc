@@ -2,7 +2,7 @@ SRCDIR = ..\src
 INCDIR = ../include
 CC = cl
 RC = rc
-CFLAGS = /nologo /O2 /MT /I$(INCDIR) /I$(SRCDIR)/jit /DYYMALLOC=kx_malloc /DYYFREE=kx_free /DVER_HASH=$(VER_HASH)
+CFLAGS = /nologo /O2 /MT /I$(INCDIR) /I$(SRCDIR)/jit /I$(SRCDIR)/extlib/picosat /DNGETRUSAGE /DYYMALLOC=kx_malloc /DYYFREE=kx_free /DVER_HASH=$(VER_HASH)
 OBJS = \
     $(SRCDIR)/allocator.obj \
     $(SRCDIR)/alloccore.obj \
@@ -43,6 +43,7 @@ OBJS = \
     $(SRCDIR)/optimizer/opt_jumpx.obj \
     $(SRCDIR)/extlib/winiconv/winiconv.obj \
     $(SRCDIR)/extlib/duktape/duktape.obj \
+    $(SRCDIR)/extlib/picosat/picosat.obj \
     $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj \
     $(SRCDIR)/extlib/kc-json/dist/kc-json.obj
 SLJIT_DEP = \
@@ -212,8 +213,8 @@ libkinx.dll: $(SRCDIR)/parser.c $(INCDIR)/parser.tab.h onig.dll $(OBJS) $(DISASM
 kinx.res: kinx.rc
 	$(RC) kinx.rc
 
-kxsystem.dll: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj $(PICOBJS)
-	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsystem.c $(PICOBJS) $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj user32.lib
+kxsystem.dll: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj $(SRCDIR)/extlib/picosat/picosat.obj $(PICOBJS)
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsystem.c  $(PICOBJS) $(SRCDIR)/extlib/kc-json/dist/kc-json.obj $(SRCDIR)/extlib/winiconv/winiconv.obj $(SRCDIR)/extlib/duktape/duktape.obj $(SRCDIR)/extlib/picosat/picosat.obj user32.lib
 
 kxstring.dll: $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
