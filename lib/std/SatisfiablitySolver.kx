@@ -80,16 +80,16 @@ _class VersionSatisfiablity() {
     public enumerator() {
         var cnf = genCnf();
         var iter = System.picosatGetIter(cnf);
-        return {
-            next: function() {
-                var res = iter.next();
-                if (res) {
-                    return res.filter({ => _1 > 0 }).map { => info_[_1 - 1] };
-                }
-            },
-            isEnded: function() {
-                return iter.isEnded();
-            },
+        var next = iter.next;
+        iter.next = _function() {
+            var res = next();
+            if (res) {
+                return res.filter({ => _1 > 0 }).map { => info_[_1 - 1] };
+            }
         };
+        return iter;
+    }
+    public iterator() {
+        return this;
     }
 }
