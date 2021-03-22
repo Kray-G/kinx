@@ -1,17 +1,17 @@
 using SatisfiablitySolver;
 
 var vs = new VersionSatisfiablity();
-var A = vs.addProduct("A");
-A.addVersion("0.0.1");
-A.addVersion("0.0.2");
-A.addVersion("0.0.3");
-var B = vs.addProduct("B");
-B.addVersion("0.0.1");
-B.addVersion("0.0.2");
-B.addVersion("0.0.3");
-var X = vs.addProduct("X");
-X.addVersion("0.0.1", true);
-X.addVersion("0.0.2");
+var A = vs.addProduct("A")
+    .addVersion("0.0.1")
+    .addVersion("0.0.2")
+    .addVersion("0.0.3");
+var B = vs.addProduct("B")
+    .addVersion("0.0.1")
+    .addVersion("0.0.2")
+    .addVersion("0.0.3");
+var X = vs.addProduct("X")
+    .addVersion("0.0.1", true);
+    .addVersion("0.0.2");
 
 A("0.0.1").dependsOn(B("0.0.1"));
 A("0.0.2").dependsOn(B("0.0.2"));
