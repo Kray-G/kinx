@@ -14,7 +14,7 @@ function display(e) {
     }
     for (var ix = 0; ix < N; ++ix) {
         for (var jx = 0; jx < N; ++jx) {
-            System.print(board[ix][jx] ? "Q " : ". ");
+            System.print(board[ix][jx] ? " Q" : " .");
         }
         System.println("");
     }
