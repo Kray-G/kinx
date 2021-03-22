@@ -10,7 +10,7 @@ var B = vs.addProduct("B")
     .addVersion("0.0.2")
     .addVersion("0.0.3");
 var X = vs.addProduct("X")
-    .addVersion("0.0.1", true);
+    .addVersion("0.0.1", true)
     .addVersion("0.0.2");
 
 A("0.0.1").dependsOn(B("0.0.1"));
@@ -21,5 +21,5 @@ X("0.0.2").dependsOn(B("0.0.3"));
 
 var i = 0;
 for (var e in vs.iterator()) {
-    System.println("%2d: " % i++, e.toJsonString(true));
+    System.println("%d: " % i, e.toJsonString(true));
 }
