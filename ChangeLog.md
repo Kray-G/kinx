@@ -13,6 +13,8 @@
     *   Support Package Manager.
     *   Support Cryptography library.
     *   Separate other products in extlib to another repository.
+*   Updated
+    *   Supported SAT solver by picosat.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.
