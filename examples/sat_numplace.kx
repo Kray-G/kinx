@@ -1,6 +1,6 @@
 using SatisfiablitySolver;
 
-const N = 3;
+const N = Integer.parseInt($$[1] || 3);
 var R = N * N;
 var solution = 0;
 
