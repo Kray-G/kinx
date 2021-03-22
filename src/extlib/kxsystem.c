@@ -2334,6 +2334,7 @@ int System_picosat_solve(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
 typedef struct {
     PicoSAT *picosat;
     int is_ended;
+    int size;
     signed char *mem;   /* temporary storage */
 } kx_picoit_t;
 
@@ -2347,22 +2348,24 @@ void PicoSAT_free(void *p)
     kx_free(r);
 }
 
-static int blocksol(PicoSAT *picosat, signed char **mem)
+static int blocksol(kx_picoit_t *r)
 {
-    int max_idx = picosat_variables(picosat);
-    if (*mem == NULL) {
-        *mem = kx_malloc(max_idx + 1);
-        if (*mem == NULL) {
+    int max_idx = picosat_variables(r->picosat) + 1;
+    if (r->mem == NULL || r->size < max_idx) {
+        void *mem = r->mem ? kx_realloc(r->mem, max_idx) : kx_malloc(max_idx);
+        if (mem == NULL) {
             return -1;
         }
+        r->mem  = mem;
+        r->size = max_idx;
     }
-    for (int i = 1; i <= max_idx; i++) {
-        (*mem)[i] = (picosat_deref(picosat, i) > 0) ? 1 : -1;
+    for (int i = 1; i < max_idx; i++) {
+        r->mem[i] = (picosat_deref(r->picosat, i) > 0) ? 1 : -1;
     }
-    for (int i = 1; i <= max_idx; i++) {
-        picosat_add(picosat, ((*mem)[i] < 0) ? i : -i);
+    for (int i = 1; i < max_idx; i++) {
+        picosat_add(r->picosat, (r->mem[i] < 0) ? i : -i);
     }
-    picosat_add(picosat, 0);
+    picosat_add(r->picosat, 0);
     return 0;
 }
 
@@ -2383,7 +2386,7 @@ int PicoSAT_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
             KX_THROW_BLTIN_EXCEPTION("SystemException", "Failed to create list");
         }
         /* add inverse solution to the clauses, for next iteration */
-        if (blocksol(r->picosat, &r->mem) < 0) {
+        if (blocksol(r) < 0) {
             KX_THROW_BLTIN_EXCEPTION("SystemException", "Memoey allocation error in SAT");
         }
         break;
