@@ -8,6 +8,36 @@ _class Satisfiablity(cnf_) {
     }
 }
 
+_class SatisfiablityCheckVersion(name_, version_, vs_) {
+    public dependsOn(deps) {
+        if (!deps.isArray) {
+            deps = [deps];
+        }
+        vs_.setDependency({ name: name_, version: version_ }, deps);
+        return this;
+    }
+}
+
+_class SatisfiablityCheckProduct(name_, vs_) {
+    var fixedVersion;
+    public name() {
+        return name_;
+    }
+    public version(ver) {
+        return new SatisfiablityCheckVersion(name_, ver, vs_);
+    }
+    public addVersion(version, isFix) {
+        if (isFix) {
+            if (fixedVersion) {
+                // clear the fixed version once.
+                vs_.addVersion(name_, fixedVersion, false);
+            }
+            fixedVersion = version;
+        }
+        return vs_.addVersion(name_, version, isFix);
+    }
+}
+
 _class VersionSatisfiablity() {
     var info_ = [];
     var vers_ = [];
@@ -18,6 +48,9 @@ _class VersionSatisfiablity() {
         vers_ = [];
         nvmp_ = [];
         deps_ = [];
+    }
+    public addProduct(name) {
+        return new SatisfiablityCheckProduct(name, this);
     }
     public addVersion(name, version, isFix) {
         if (nvmp_[name][version].isInteger) {
