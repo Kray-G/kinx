@@ -1,10 +1,30 @@
 
-_class Satisfiablity(cnf_) {
+class Satisfiablity(cnf_, opts_) {
+    var s_;
+    private initialize() {
+        if (!cnf_) {
+            s_ = System.picosatGetIter(null, opts_.vars, opts_.verbose, opts_.propLimit);
+        }
+    }
+    public addClause(clause) {
+        if (!s_) {
+            s_ = System.picosatGetIter(null, opts_.vars, opts_.verbose, opts_.propLimit);
+        }
+        s_.addClause(clause);
+        return this;
+    }
     public solve() {
-        return System.picosatSolve(cnf_);
+        if (s_) {
+            var n = s_.next();
+            return s_.isEnded() ? null : n;
+        }
+        return System.picosatSolve(cnf_, opts_.vars, opts_.verbose, opts_.propLimit);
     }
     public enumerator() {
-        return System.picosatGetIter(cnf_);
+        if (s_) {
+            return s_;
+        }
+        return System.picosatGetIter(cnf_, opts_.vars, opts_.verbose, opts_.propLimit);
     }
 }
 
@@ -45,7 +65,7 @@ _class SatisfiablityCheckProduct(name_, vs_) {
     }
 }
 
-_class VersionSatisfiablity() {
+_class VersionSatisfiablity(opts_) {
     var info_ = [];
     var vers_ = [];
     var nvmp_ = [];
@@ -114,12 +134,12 @@ _class VersionSatisfiablity() {
     }
     public solve() {
         var cnf = genCnf();
-        var res = System.picosatSolve(cnf);
+        var res = System.picosatSolve(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
         return res.filter { => _1 > 0 }.map { => info_[_1 - 1] };
     }
     public enumerator() {
         var cnf = genCnf();
-        var iter = System.picosatGetIter(cnf);
+        var iter = System.picosatGetIter(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
         var next = iter.next;
         iter.next = _function() {
             var res = next();
