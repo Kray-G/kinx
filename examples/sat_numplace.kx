@@ -6,9 +6,8 @@ var R = N * N;
 var solution = 0;
 
 function display(test, e) {
-    var board = test.clone();
+    var board = e ? [] : test.clone();
     if (e) {
-        board = [];
         System.print("\nSolution %d\n" % ++solution);
         for (var key = 0, l = e.length(); key < l; ++key) {
             if (e[key] > 0) {
