@@ -1,5 +1,5 @@
 
-class Satisfiablity(cnf_, opts_) {
+_class Satisfiablity(cnf_, opts_) {
     var s_;
     private initialize() {
         if (!cnf_) {
