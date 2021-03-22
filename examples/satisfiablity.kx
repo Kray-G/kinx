@@ -13,11 +13,11 @@ var X = vs.addProduct("X");
 X.addVersion("0.0.1", true);
 X.addVersion("0.0.2");
 
-A.version("0.0.1").dependsOn(B("0.0.1"));
-A.version("0.0.2").dependsOn(B("0.0.2"));
-A.version("0.0.3").dependsOn(B("0.0.3"));
-X.version("0.0.1").dependsOn([A("0.0.1"),A("0.0.2"),A("0.0.3")]).dependsOn(B("0.0.2"));
-X.version("0.0.2").dependsOn(B("0.0.3"));
+A("0.0.1").dependsOn(B("0.0.1"));
+A("0.0.2").dependsOn(B("0.0.2"));
+A("0.0.3").dependsOn(B("0.0.3"));
+X("0.0.1").dependsOn([A("0.0.1"),A("0.0.2"),A("0.0.3")]).dependsOn(B("0.0.2"));
+X("0.0.2").dependsOn(B("0.0.3"));
 
 var i = 0;
 for (var e in vs.iterator()) {
