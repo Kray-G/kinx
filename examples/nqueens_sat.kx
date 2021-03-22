@@ -1,0 +1,63 @@
+using SatisfiablitySolver;
+
+const N = 8;
+var cnf = [];
+var solution = 0;
+
+function display(e) {
+    System.print("\nSolution %d\n" % ++solution);
+    var board = [];
+    for (var key = 0, l = e.length(); key < l; ++key) {
+        var i = key % N;
+        var j = Integer.parseInt(key / N);
+        board[i][j] = e[key] > 0;
+    }
+    for (var ix = 0; ix < N; ++ix) {
+        for (var jx = 0; jx < N; ++jx) {
+            System.print(board[ix][jx] ? "Q " : ". ");
+        }
+        System.println("");
+    }
+}
+
+function makeRestriction(i, j) {
+    const jN = j * N;
+    const key = i + jN + 1;
+
+    /* right */
+    for (var ix = i + 1; ix < N; ++ix) {
+        cnf.push([-key, -(ix + jN + 1)]);
+    }
+
+    /* down */
+    for (var jx = j + 1; jx < N; ++jx) {
+        cnf.push([-key, -(i + jx * N + 1)]);
+    }
+
+    /* right-down */
+    for (var ix = i + 1, jx = j + 1; ix < N && jx < N; ++ix, ++jx) {
+        cnf.push([-key, -(ix + jx * N + 1)]);
+    }
+
+    /* left-down */
+    for (var ix = i - 1, jx = j + 1; ix >= 0 && jx < N; --ix, ++jx) {
+        cnf.push([-key, -(ix + jx * N + 1)]);
+    }
+}
+
+/* Possible answers */
+for (var ix = 0, max = N*N; ix < max; ix += N) {
+    cnf.push(N.times().map { => ix + _1 + 1 });
+}
+/* Restrictions */
+for (var ix = 0; ix < N; ++ix) {
+    for (var jx = 0; jx < N; ++jx) {
+        makeRestriction(ix, jx);
+    }
+}
+
+/* Resolving */
+var s = new Satisfiablity(cnf);
+for (var e in s) {
+    display(e);
+}
