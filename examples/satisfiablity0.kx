@@ -1,0 +1,24 @@
+using SatisfiablitySolver;
+
+var vs = new VersionSatisfiablity();
+vs.addVersion("A", "0.0.1");
+vs.addVersion("A", "0.0.2");
+vs.addVersion("A", "0.0.3");
+vs.addVersion("B", "0.0.1");
+vs.addVersion("B", "0.0.2");
+vs.addVersion("B", "0.0.3");
+vs.addVersion("X", "0.0.1");
+vs.addVersion("X", "0.0.2");
+vs.setDependency({ name: "A", version: "0.0.1" }, [{ name: "B", version: "0.0.1" }]);
+vs.setDependency({ name: "A", version: "0.0.2" }, [{ name: "B", version: "0.0.2" }]);
+vs.setDependency({ name: "A", version: "0.0.3" }, [{ name: "B", version: "0.0.3" }]);
+vs.setDependency({ name: "X", version: "0.0.1" }, [{ name: "A", version: "0.0.1" },{ name: "A", version: "0.0.2" },{ name: "A", version: "0.0.3" }]);
+vs.setDependency({ name: "X", version: "0.0.1" }, [{ name: "B", version: "0.0.2" }]);
+vs.setDependency({ name: "X", version: "0.0.2" }, [{ name: "B", version: "0.0.3" }]);
+
+vs.addVersion("X", "0.0.1", true);
+
+var i = 0;
+for (var e in vs.iterator()) {
+    System.println("%d: " % i, e.toJsonString(true));
+}
