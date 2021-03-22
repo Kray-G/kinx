@@ -40,7 +40,8 @@ _class SatisfiablityCheckProduct(name_, vs_) {
             }
             fixedVersion = version;
         }
-        return vs_.addVersion(name_, version, isFix);
+        vs_.addVersion(name_, version, isFix);
+        return this;
     }
 }
 
