@@ -2206,13 +2206,12 @@ inline static void picokx_free(void *mmgr, void *ptr, size_t bytes)
     kx_free(ptr);
 }
 
-static int add_clause(PicoSAT *picosat, kx_val_t *clausev)
+static int add_clause(PicoSAT *picosat, kx_obj_t *clause)
 {
-    if (!clausev || clausev->type != KX_OBJ_T) {
+    if (!clause) {
         return -1;
     }
 
-    kx_obj_t *clause = clausev->value.ov;
     int size = kv_size(clause->ary);
     for (int i = 0; i < size; ++i) {
         kx_val_t *lit = &kv_A(clause->ary, i);
@@ -2233,13 +2232,16 @@ static int add_clause(PicoSAT *picosat, kx_val_t *clausev)
 static int add_clauses(PicoSAT *picosat, kx_obj_t *clauses)
 {
     if (!clauses) {
-        return -1;
+        return 0;
     }
 
     int size = kv_size(clauses->ary);
     for (int i = 0; i < size; ++i) {
         kx_val_t *item = &kv_A(clauses->ary, i);
-        if (add_clause(picosat, item) < 0) {
+        if (!item || item->type != KX_OBJ_T) {
+            return -1;
+        }
+        if (add_clause(picosat, item->value.ov) < 0) {
             return -1;
         }
     }
@@ -2408,6 +2410,23 @@ int PicoSAT_next(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int PicoSAT_addClause(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_RAW(kx_picoit_t, "_pack", r, obj, "SystemException", "Invalid SAT iterator");
+    if (!r) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SAT iterator");
+    }
+    kx_obj_t *clause = get_arg_obj(2, args, ctx);
+    if (add_clause(r->picosat, clause) < 0) {
+        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid SAT clause");
+    }
+
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 int PicoSAT_isEnded(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
@@ -2432,9 +2451,9 @@ int PicoSAT_this(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 int System_picosat_iter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *clauses = get_arg_obj(1, args, ctx);
-    if (!clauses) {
-        KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid clause object");
-    }
+    // if (!clauses) {
+    //     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid clause object");
+    // }
     int vars = args >= 2 ? get_arg_int(2, args, ctx) : -1;
     int verbose = args >= 3 ? get_arg_int(3, args, ctx) : 0;
     unsigned long long prop_limit = args >= 4 ? get_arg_int(4, args, ctx) : 0;
@@ -2457,6 +2476,7 @@ int System_picosat_iter(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     KEX_SET_PROP_ANY(obj, "_pack", a);
     KEX_SET_METHOD("enumerator", obj, PicoSAT_this);
     KEX_SET_METHOD("next", obj, PicoSAT_next);
+    KEX_SET_METHOD("addClause", obj, PicoSAT_addClause);
     KEX_SET_METHOD("isEnded", obj, PicoSAT_isEnded);
 
     KX_ADJST_STACK();
