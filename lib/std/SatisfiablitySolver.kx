@@ -26,8 +26,11 @@ _class SatisfiablityCheckProduct(name_, vs_) {
     public version(ver) {
         return new SatisfiablityCheckVersion(name_, ver, vs_);
     }
+    public dependsOn(ver, deps) {
+        return new SatisfiablityCheckVersion(name_, ver, vs_).dependsOn(deps);
+    }
     public ()(ver) {
-        return { name: name_, version: ver };
+        return { name: name_, version: ver, dependsOn: { => dependsOn(ver, _1) } };
     }
     public addVersion(version, isFix) {
         if (isFix) {
