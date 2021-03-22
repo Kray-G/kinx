@@ -1,27 +1,23 @@
 using SatisfiablitySolver;
 
 var vs = new VersionSatisfiablity();
-var productA = vs.addProduct("A");
-productA.addVersion("0.0.1");
-productA.addVersion("0.0.2");
-productA.addVersion("0.0.3");
-productA.version("0.0.1").dependsOn({ name: "B", version: "0.0.1" });
-productA.version("0.0.2").dependsOn({ name: "B", version: "0.0.2" });
-productA.version("0.0.3").dependsOn({ name: "B", version: "0.0.3" });
+var A = vs.addProduct("A");
+A.addVersion("0.0.1");
+A.addVersion("0.0.2");
+A.addVersion("0.0.3");
+var B = vs.addProduct("B");
+B.addVersion("0.0.1");
+B.addVersion("0.0.2");
+B.addVersion("0.0.3");
+var X = vs.addProduct("X");
+X.addVersion("0.0.1", true);
+X.addVersion("0.0.2");
 
-var productB = vs.addProduct("B");
-productB.addVersion("0.0.1");
-productB.addVersion("0.0.2");
-productB.addVersion("0.0.3");
-
-var productX = vs.addProduct("X");
-productX.addVersion("0.0.1", true);
-productX.addVersion("0.0.2");
-productX.version("0.0.1")
-    .dependsOn([{ name: "A", version: "0.0.1" },{ name: "A", version: "0.0.2" },{ name: "A", version: "0.0.3" }])
-    .dependsOn({ name: "B", version: "0.0.2" });
-productX.version("0.0.2")
-    .dependsOn({ name: "B", version: "0.0.3" });
+A.version("0.0.1").dependsOn(B("0.0.1"));
+A.version("0.0.2").dependsOn(B("0.0.2"));
+A.version("0.0.3").dependsOn(B("0.0.3"));
+X.version("0.0.1").dependsOn([A("0.0.1"),A("0.0.2"),A("0.0.3")]).dependsOn(B("0.0.2"));
+X.version("0.0.2").dependsOn(B("0.0.3"));
 
 var i = 0;
 for (var e in vs.iterator()) {
