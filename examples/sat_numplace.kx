@@ -76,6 +76,37 @@ function makeRestriction(s, i, j, v) {
     }
 }
 
+function setup(test) {
+    var s = new Satisfiablity();
+
+    // Adding this restrictions makes a performance increase.
+    for (var v = 1; v <= R; ++v) {
+        // Each number appears at least once in each row. (Row - definedness)
+        for (var j = 0; j < R; ++j) {
+            s.addClause(R.times().map { => ((_1 + j * R) * R) + v });
+        }
+        // Each number appears at least once in each column. (Column - definedness)
+        for (var i = 0; i < R; ++i) {
+            s.addClause(R.times().map { => ((i + _1 * R) * R) + v });
+        }
+    }
+    for (var j = 0; j < R; ++j) {
+        for (var i = 0; i < R; ++i) {
+            const key = ((i + j * R) * R) + 1;
+            var v = test[j][i];
+            if (v == 0) {
+                // There is at least one number in each cell. (Cell - definedness)
+                s.addClause(R.times().map { => key + _1 });
+            } else {
+                s.addClause([ key + v - 1 ]);
+            }
+            R.times().each { => makeRestriction(s, i, j, _1 + 1) };
+        }
+    }
+
+    return s;
+}
+
 var test = (N == 3 ? [
     [
         [ 0, 0, 0, 0, 0, 0, 0, 7, 0],
@@ -190,37 +221,26 @@ var test = (N == 3 ? [
     ]
 ] : [])[P];
 
-var s = new Satisfiablity();
+if (!test) {
+    System.println("No pattern you specified.");
+    System.println("    [N] [pattern]");
+    System.println("        N      : 3, 4, or 5 ... 3 by default");
+    System.println("        pattern: 0, or 1    ... 0 by default");
+    System.println("    * N = 3 means 9x9 puzzle.");
+    return 1;
+}
 
-// Adding this restrictions makes a performance increase.
-for (var v = 1; v <= R; ++v) {
-    // Each number appears at least once in each row. (Row - definedness)
-    for (var j = 0; j < R; ++j) {
-        s.addClause(R.times().map { => ((_1 + j * R) * R) + v });
-    }
-    // Each number appears at least once in each column. (Column - definedness)
-    for (var i = 0; i < R; ++i) {
-        s.addClause(R.times().map { => ((i + _1 * R) * R) + v });
-    }
-}
-for (var j = 0; j < R; ++j) {
-    for (var i = 0; i < R; ++i) {
-        const key = ((i + j * R) * R) + 1;
-        var v = test[j][i];
-        if (v == 0) {
-            // There is at least one number in each cell. (Cell - definedness)
-            s.addClause(R.times().map { => key + _1 });
-        } else {
-            s.addClause([ key + v - 1 ]);
-        }
-        R.times().each { => makeRestriction(s, i, j, _1 + 1) };
-    }
-}
+System.println("[Selected] %dx%d - pattern %d" % R % R % P);
+display(test);
+
+System.println("\nSetting up...");
+var tmr = new SystemTimer();
+var s = setup(test);
+System.println("[Setup] elapsed: ", tmr.elapsed());
 
 /* Resolving */
-display(test);
-var tmr = new SystemTimer();
+tmr.restart();
 for (var e in s) {
     display(test, e);
 }
-System.println("elapsed: ", tmr.elapsed());
+System.println("[Solved] elapsed: ", tmr.elapsed());
