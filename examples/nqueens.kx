@@ -23,7 +23,7 @@ function test(i, n) {
         }
 }
 
-function nqueen(n) {    
+function nqueen(n) {
     for (var i = 0; i < n; i++)         a[i] = 1;
     for (var i = 0; i < 2 * n - 1; i++) b[i] = 1;
     for (var i = 0; i < 2 * n - 1; i++) c[i] = 1;
