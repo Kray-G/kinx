@@ -19,6 +19,7 @@ typedef struct kxana_context_ {
     int depth;
     int in_catch;
     int in_native;
+    int in_function;
     int class_id;
     int arg_index;
     int anon_arg;
@@ -665,7 +666,7 @@ LOOP_HEAD:;
                 }
                 break;
             }
-            if (is_anon_var(actx, node)) {
+            if (actx->in_function && is_anon_var(actx, node)) {
                 break;
             }
             int enumv = 0;
@@ -1604,6 +1605,8 @@ LOOP_HEAD:;
         enum_map_t enval = kh_init(enum_value);
         kv_push(enum_map_t, actx->enval, enval);
 
+        int in_function = actx->in_function;
+        actx->in_function = 1;
         kx_object_t *class_node = actx->class_node;
         actx->class_node = node;
         int depth = actx->depth;
@@ -1671,6 +1674,7 @@ LOOP_HEAD:;
         kv_remove_last(actx->symbols);
         actx->depth = depth;
         actx->class_node = class_node;
+        actx->in_function = in_function;
 
         kh_destroy(enum_value, enval);
         kv_pop(actx->enval);
@@ -1727,6 +1731,8 @@ LOOP_HEAD:;
         enum_map_t enval = kh_init(enum_value);
         kv_push(enum_map_t, actx->enval, enval);
 
+        int in_function = actx->in_function;
+        actx->in_function = 1;
         if (node->type == KXST_NATIVE) {
             actx->in_native = 1;
             node->var_type = KX_NFNC_T;
@@ -1785,6 +1791,7 @@ LOOP_HEAD:;
         kv_remove_last(actx->symbols);
         actx->depth = depth;
         actx->in_native = 0;
+        actx->in_function = in_function;
 
         kh_destroy(enum_value, enval);
         kv_pop(actx->enval);
