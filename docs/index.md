@@ -168,6 +168,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [JIT](spec/lib/basic/jit.md)
 *   [Parsek](spec/lib/basic/parsek.md)
 *   [Clipboard](spec/lib/basic/clipboard.md)
+*   [SemanticVersion](spec/lib/basic/semanticver.md) - V1.1.0
 
 ##### Network Objects
 
