@@ -24,6 +24,10 @@ Integer.parseInt = function(val, rdx) {
     return Integer.parseIntImpl(val, rdx);
 };
 
+Integer.toDouble = Integer.parseDouble = _function(val) {
+    return Double.parseDouble(val);
+};
+
 Integer.times = _function(val, callback) {
     var ary = [];
     if (callback.isFunction) {
@@ -101,6 +105,10 @@ Integer.next = _function(val) {
 
 Integer.== = _function(val, obj) {
     return obj == val;
+};
+
+Double.toInt = Double.parseInt = _function(val) {
+    return Integer.parseInt(val);
 };
 
 # `Double.methodMissing` causes a bad result in some cases, so do not define `Double.methodMissing`.

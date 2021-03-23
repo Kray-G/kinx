@@ -60,40 +60,6 @@ int String_quote(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
 }
 
-int String_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    const char *str = get_arg_str(1, args, ctx);
-    if (str) {
-        KX_ADJST_STACK();
-        errno = 0;
-        int64_t v = (int64_t)strtoll(str, NULL, 0);
-        if (errno == ERANGE) {
-            const char *p = str;
-            int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
-            p += (base == 10 ? 0 : base == 16 ? 2 : 1);
-            push_b(ctx->stack, base, p);
-        } else {
-            push_i(ctx->stack, v);
-        }
-        return 0;
-    }
-
-    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
-}
-
-int String_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    const char *str = get_arg_str(1, args, ctx);
-    if (str) {
-        double v = strtod(str, NULL);
-        KX_ADJST_STACK();
-        push_d(ctx->stack, v);
-        return 0;
-    }
-
-    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
-}
-
 int String_trim(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
@@ -808,10 +774,6 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "length", String_length },
     { "utf8Length", String_utf8Length },
     { "quote", String_quote },
-    { "parseInt", String_parseInt },
-    { "parseDouble", String_parseDouble },
-    { "toInt", String_parseInt },
-    { "toDouble", String_parseDouble },
     { "trim", String_trim },
     { "trimLeft", String_trimLeft },
     { "trimRight", String_trimRight },
