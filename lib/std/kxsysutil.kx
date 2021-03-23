@@ -102,10 +102,20 @@ System.try = _function(f) {
 };
 
 _class _BooleanClass(tf) {
+    @isBoolean = true;
     @_False = @isFalse = !tf;
     @isTrue = tf;
     public toString() {
         return tf ? 'true' : 'false';
+    }
+    public ==(rhs) {
+        if (!rhs.isBoolean) {
+            return false;
+        }
+        return (tf && rhs.isTrue) || (!tf && !rhs.isTrue);
+    }
+    public !=(rhs) {
+        return !(this == rhs);
     }
 }
 
