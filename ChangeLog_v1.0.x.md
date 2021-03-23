@@ -2,7 +2,7 @@
 
 ## V1.0.1 (Current Development Version)
 
-*   Fixed
+*   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #237: Comparing between variables having a string is failed.
 
