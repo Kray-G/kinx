@@ -21,6 +21,7 @@ typedef struct folding_context_ {
     int anon_check;
     int anon_arg;
     int exprlist_r2l;
+    int in_function;
     int in_case_when;
 } folding_context_t;
 
@@ -53,7 +54,7 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
         break;
 
     case KXOP_VAR: {
-        if (cctx->anon_check) {
+        if (cctx->in_function && cctx->anon_check) {
             const char *name = node->value.s;
             if (!cctx->in_case_when && name && name[0] == '_' && name[1] == 0) {
                 node->lexical = 0;
@@ -438,22 +439,28 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
         break;
     case KXST_SYSCLASS:
     case KXST_CLASS: {    /* s: name, lhs: arglist, rhs: block: ex: expr (inherit) */
+        int in_function = cctx->in_function;
+        cctx->in_function = 1;
         int anon_arg = cctx->anon_arg;
         cctx->anon_arg = 0;
         opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         opt_ast_constant_folding_impl(ctx, node->ex, cctx);
         cctx->anon_arg = anon_arg;
+        cctx->in_function = in_function;
         break;
     }
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
+        int in_function = cctx->in_function;
+        cctx->in_function = 1;
         int anon_arg = cctx->anon_arg;
         cctx->anon_arg = 0;
         opt_ast_constant_folding_impl(ctx, node->lhs, cctx);
         opt_ast_constant_folding_impl(ctx, node->rhs, cctx);
         cctx->anon_arg = anon_arg;
+        cctx->in_function = in_function;
         break;
     }
     default:
