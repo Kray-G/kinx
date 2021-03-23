@@ -2670,6 +2670,14 @@ kx_fnc_t *kx_try_lge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         KX_LE_LE_D(v1, v2->value.dv); \
         break; \
     } \
+    case KX_CSTR_T: { \
+        KX_LE_LE_S(v1, v2->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_LE_LE_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
     case KX_BIN_T: { \
         fn = kx_get_special_object_function(ctx, v1, KX_LE_OP_NAME); \
         if (!fn) { \
@@ -2936,6 +2944,14 @@ kx_fnc_t *kx_try_le_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     } \
     case KX_DBL_T: { \
         KX_LT_LT_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        KX_LT_LT_S(v1, v2->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_LT_LT_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
     case KX_BIN_T: { \
@@ -3206,6 +3222,14 @@ kx_fnc_t *kx_try_lt_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
         KX_GE_GE_D(v1, v2->value.dv); \
         break; \
     } \
+    case KX_CSTR_T: { \
+        KX_GE_GE_S(v1, v2->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_GE_GE_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
     case KX_BIN_T: { \
         fn = kx_get_special_object_function(ctx, v1, KX_GE_OP_NAME); \
         if (!fn) { \
@@ -3472,6 +3496,14 @@ kx_fnc_t *kx_try_ge_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     } \
     case KX_DBL_T: { \
         KX_GT_GT_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        KX_GT_GT_S(v1, v2->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_GT_GT_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
     case KX_BIN_T: { \
