@@ -2,6 +2,14 @@ String.apply = _function(str, func) {
     return func(str);
 };
 
+String.toInt = String.parseInt = _function(str, rdx) {
+    return Integer.parseInt(str, rdx);
+};
+
+String.toDouble = String.parseDouble = _function(str, rdx) {
+    return Double.parseDouble(str, rdx);
+};
+
 String.find = _function(str, cond) {
     if (cond.isString) {
         return str.findByString(cond);
