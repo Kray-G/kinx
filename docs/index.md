@@ -198,6 +198,7 @@ Algorithm and Data structure examples are being described in the page below.
 Some special specifications.
 
 *   [String#next](spec/others/string_next.md)
+*   [String#isIntegerString](spec/others/string_isIntegerString.md) - V1.1.0
 
 ### Bug Fixes
 
