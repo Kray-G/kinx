@@ -166,6 +166,32 @@ String.slice = _function(str, start, end) {
     return "";
 };
 
+String.isIntegerString = _function(str, rdx) {
+    if (!rdx) {
+        rdx = 10;
+        if (str[0] == '0'[0]) {
+            if (str[1] == 'x'[0])      rdx = 16;
+            else if (str[1] == 'b'[0]) rdx = 2;
+            else                       rdx = 8;
+        }
+        if (str[-1] == 'h'[0])         rdx = 16;
+        else if (str[-1] == 'b'[0])    rdx = 2;
+    }
+    if (rdx == 10) {
+        return str.match(/^(\d|_)+$/).isDefined;
+    }
+    if (rdx == 16) {
+        return str.match(/^(?:(?:0x)?(?:\d|[a-fA-F]|_)+|(?:\d|[a-fA-F]|_)+h)$/).isDefined;
+    }
+    if (rdx == 8) {
+        return str.match(/^(?:0)?(?:[0-7]|_)+$/).isDefined;
+    }
+    if (rdx == 2) {
+        return str.match(/^(?:(?:0b)?(?:0|1|_)+|(?:0|1|_)+b)$/).isDefined;
+    }
+    throw RuntimeException('Unsupported radix in parsing String');
+};
+
 var StringAnsiColor = {
     Colors: {
         black:      { black:   true, color: 30, bgcolor: 40 },
