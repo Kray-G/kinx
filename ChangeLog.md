@@ -9,14 +9,20 @@
 
 ## V1.1.0 (Current Development Version)
 
-*   Planned.
+*   Planned
     *   Support Package Manager.
     *   Support Cryptography library.
     *   Separate other products in extlib to another repository.
-*   Updated
+*   New Features
     *   Supported SAT solver by picosat.
-*   Fixed
+    *   Supported SemanticVersion class.
+*   Improvements
+    *   Supported the operator of `==` and `!=` in Boolean class.
+    *   Supported `String#isIntegerString`.
+    *   SpecTest: Made a space wider of Test case number.
+*   Bug Fixed
     *   #235: Crash when using `_` outside a function.
+    *   #237: Comparing between variables having a string is failed.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.
