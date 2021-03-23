@@ -94,3 +94,35 @@ for (ypix in 0...24) {
 :     ....------------------------::::::::::;;;;++=X         X=;;;;;:::::------
 :      ......------------------------::::::::::;;;;+==x&  &x=+;;;::::::-------.
 ```
+
+### Example 3. Comparing between variables of a string.
+
+This bug's was caused by missing implementation.
+
+* Issue: [#237](https://github.com/Kray-G/kinx/issues/237)
+* Fixed: [94c49bae803a0131c138d28a5a65b2a4e1426612](https://github.com/Kray-G/kinx/commit/94c49bae803a0131c138d28a5a65b2a4e1426612)
+
+#### Code
+
+```javascript
+function gt(a, b)  { return a > b; }
+function lt(a, b)  { return a < b; }
+function ge(a, b)  { return a >= b; }
+function le(a, b)  { return a <= b; }
+function lge(a, b) { return a <=> b; }
+try { gt("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { lt("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { ge("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { le("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { lge("a", "b"); System.println("Successful"); } catch (e) { System.println(e.what()); }
+```
+
+#### Result
+
+```
+Successful
+Successful
+Successful
+Successful
+Successful
+```
