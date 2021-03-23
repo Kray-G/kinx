@@ -5,61 +5,6 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
-int Double_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
-{
-    if (args > 0) {
-        kvec_t(kx_val_t) *stack = &(ctx->stack);
-        kx_val_t val = kv_last_by(*stack, 1);
-        if (val.type == KX_UND_T) {
-            KX_ADJST_STACK();
-            push_i(ctx->stack, 0);
-            return 0;
-        } else if (val.type == KX_INT_T) {
-            KX_ADJST_STACK();
-            push_i(ctx->stack, val.value.iv);
-            return 0;
-        } else if (val.type == KX_DBL_T) {
-            int64_t v = (int64_t)val.value.dv;
-            KX_ADJST_STACK();
-            push_i(ctx->stack, v);
-            return 0;
-        } else if (val.type == KX_BIG_T) {
-            KX_ADJST_STACK();
-            push_value(ctx->stack, val);
-            return 0;
-        } else if (val.type == KX_CSTR_T) {
-            KX_ADJST_STACK();
-            errno = 0;
-            int64_t v = (int64_t)strtoll(val.value.pv, NULL, 0);
-            if (errno == ERANGE) {
-                const char *p = val.value.pv;
-                int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
-                p += (base == 10 ? 0 : base == 16 ? 2 : 1);
-                push_b(ctx->stack, base, p);
-            } else {
-                push_i(ctx->stack, v);
-            }
-            return 0;
-        } else if (val.type == KX_STR_T) {
-            KX_ADJST_STACK();
-            errno = 0;
-            int64_t v = (int64_t)strtoll(ks_string(val.value.sv), NULL, 0);
-            if (errno == ERANGE) {
-                const char *p = ks_string(val.value.sv);
-                int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
-                p += (base == 10 ? 0 : base == 16 ? 2 : 1);
-                push_b(ctx->stack, base, p);
-            } else {
-                push_i(ctx->stack, v);
-            }
-            return 0;
-        }
-        KX_THROW_BLTIN_EXCEPTION("ConvertException", "Converting failed to integer");
-    }
-
-    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to convert to integer");
-}
-
 int Double_parseDouble(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     if (args > 0) {
@@ -172,8 +117,6 @@ int Double_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Double_length },
-    { "parseInt", Double_parseInt },
-    { "toInt", Double_parseInt },
     { "parseDouble", Double_parseDouble },
     { "toString", Double_toString },
 };
