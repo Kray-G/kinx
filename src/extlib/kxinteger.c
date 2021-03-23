@@ -6,6 +6,48 @@
 
 KX_DECL_MEM_ALLOCATORS();
 
+void make_binary(kx_context_t *ctx, const char *p)
+{
+    BigZ bg = NULL;
+    BigZ b1 = NULL;
+    int64_t v = 0;
+    const char *pi = p;
+    while (*pi) {
+        if (bg) {
+            BigZ r = BzAsh(bg, 1);
+            BzFree(bg);
+            bg = r;
+        } else {
+            int vx = v * 2;
+            if (vx < 0) {
+                b1 = BzFromInteger(1);
+                bg = BzFromInteger(v);
+                BigZ r = BzAsh(bg, 1);
+                BzFree(bg);
+                bg = r;
+            } else {
+                v = vx;
+            }
+        }
+        if (bg) {
+            if (*pi == '1') {
+                BigZ r = BzAdd(bg, b1);
+                BzFree(bg);
+                bg = r;
+            }
+        } else {
+            if (*pi == '1') ++v;
+        }
+        ++pi;
+    }
+    if (bg) {
+        BzFree(b1);
+        push_big(ctx->stack, bg);
+    } else {
+        push_i(ctx->stack, v);
+    }
+}
+
 int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     if (args > 0) {
@@ -32,30 +74,38 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
             kx_val_t *rdxs = args > 1 ? &kv_last_by(*stack, 2) : NULL;
             int rdx = (rdxs && rdxs->type == KX_INT_T) ? rdxs->value.iv : 0;
             KX_ADJST_STACK();
-            errno = 0;
-            int64_t v = (int64_t)strtoll(val.value.pv, NULL, rdx);
-            if (errno == ERANGE) {
-                const char *p = val.value.pv;
-                int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
-                p += (base == 10 ? 0 : base == 16 ? 2 : 1);
-                push_b(ctx->stack, base, p);
+            if (rdx == 2) {
+                make_binary(ctx, val.value.pv);
             } else {
-                push_i(ctx->stack, v);
+                errno = 0;
+                int64_t v = (int64_t)strtoll(val.value.pv, NULL, rdx);
+                if (errno == ERANGE) {
+                    const char *p = val.value.pv;
+                    int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
+                    p += (base == 10 ? 0 : base == 16 ? 2 : 1);
+                    push_b(ctx->stack, base, p);
+                } else {
+                    push_i(ctx->stack, v);
+                }
             }
             return 0;
         } else if (val.type == KX_STR_T) {
             kx_val_t *rdxs = args > 1 ? &kv_last_by(*stack, 2) : NULL;
             int rdx = (rdxs && rdxs->type == KX_INT_T) ? rdxs->value.iv : 0;
             KX_ADJST_STACK();
-            errno = 0;
-            int64_t v = (int64_t)strtoll(ks_string(val.value.sv), NULL, rdx);
-            if (errno == ERANGE) {
-                const char *p = ks_string(val.value.sv);
-                int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
-                p += (base == 10 ? 0 : base == 16 ? 2 : 1);
-                push_b(ctx->stack, base, p);
+            if (rdx == 2) {
+                make_binary(ctx, ks_string(val.value.sv));
             } else {
-                push_i(ctx->stack, v);
+                errno = 0;
+                int64_t v = (int64_t)strtoll(ks_string(val.value.sv), NULL, rdx);
+                if (errno == ERANGE) {
+                    const char *p = ks_string(val.value.sv);
+                    int base = (p[0] == '0' ? ((p[1] == 'x' || p[1] == 'X') ? 16 : 8) : 10);
+                    p += (base == 10 ? 0 : base == 16 ? 2 : 1);
+                    push_b(ctx->stack, base, p);
+                } else {
+                    push_i(ctx->stack, v);
+                }
             }
             return 0;
         }
@@ -141,7 +191,7 @@ int Integer_length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", Integer_length },
-    { "parseInt", Integer_parseInt },
+    { "parseIntImpl", Integer_parseInt },
     { "parseDouble", Integer_parseDouble },
     { "toDouble", Integer_parseDouble },
     { "toString", Integer_toString },
