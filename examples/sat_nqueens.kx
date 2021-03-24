@@ -7,10 +7,10 @@ var solution = 0;
 function display(e) {
     System.print("\nSolution %d\n" % ++solution);
     var board = [];
-    for (var key = 0, l = e.length(); key < l; ++key) {
-        var i = key % N;
-        var j = Integer.parseInt(key / N);
-        board[i][j] = e[key] > 0;
+    for (var ijQ = 0, l = e.length(); ijQ < l; ++ijQ) {
+        var i = ijQ % N;
+        var j = Integer.parseInt(ijQ / N);
+        board[i][j] = e[ijQ] > 0;
     }
     for (var jx = 0; jx < N; ++jx) {
         for (var ix = 0; ix < N; ++ix) {
@@ -20,41 +20,44 @@ function display(e) {
     }
 }
 
-function makeRestriction(s, i, j) {
-    const jN = j * N;
-    const key = i + jN + 1;
+function getVarNum(i, j) {
+    return (i + j * N) + 1;
+}
+
+function addClauses(s, i, j) {
+    const ijQ = getVarNum(i, j);
 
     /* right */
     for (var ix = i + 1; ix < N; ++ix) {
-        s.addClause([-key, -(ix + jN + 1)]);
+        s.addClause([-ijQ, -getVarNum(ix, j)]);
     }
 
     /* down */
     for (var jx = j + 1; jx < N; ++jx) {
-        s.addClause([-key, -(i + jx * N + 1)]);
+        s.addClause([-ijQ, -getVarNum(i, jx)]);
     }
 
     /* right-down */
     for (var ix = i + 1, jx = j + 1; ix < N && jx < N; ++ix, ++jx) {
-        s.addClause([-key, -(ix + jx * N + 1)]);
+        s.addClause([-ijQ, -getVarNum(ix, jx)]);
     }
 
     /* left-down */
     for (var ix = i - 1, jx = j + 1; ix >= 0 && jx < N; --ix, ++jx) {
-        s.addClause([-key, -(ix + jx * N + 1)]);
+        s.addClause([-ijQ, -getVarNum(ix, jx)]);
     }
 }
 
 var s = new Satisfiablity();
 
 /* Possible answers */
-for (var ix = 0, max = N*N; ix < max; ix += N) {
-    s.addClause(N.times().map { => ix + _1 + 1 });
+for (var jx = 0; jx < N; ++jx) {
+    s.addClause(N.times().map { => getVarNum(_1, jx) });
 }
 /* Restrictions */
 for (var ix = 0; ix < N; ++ix) {
     for (var jx = 0; jx < N; ++jx) {
-        makeRestriction(s, ix, jx);
+        addClauses(s, ix, jx);
     }
 }
 
