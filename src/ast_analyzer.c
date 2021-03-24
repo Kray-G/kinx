@@ -326,21 +326,16 @@ static void reset_base_symbol(kx_context_t *ctx, kxana_context_t *actx, kx_objec
 
 static void append_typename(kx_object_t *node)
 {
-    const char *type = NULL;
-    kx_object_t *base = node;
-    if (!node->lhs || node->lhs->type != KXOP_VAR) {
-        return;
+    if (node->rhs) {
+        node->lhs->typename = node->rhs->typename;
+        node->lhs->var_type = node->rhs->var_type;
     }
-    const char *varname = node->lhs->value.s;
-    if (strcmp(varname, "this") == 0) {
-        return;
-    }
+}
 
-    node = node->rhs;
-    if (!node || node->type != KXOP_CALL) {
-        return;
-    }
-    node = node->lhs;
+static void append_classtype(kx_object_t *callnode)
+{
+    const char *type = NULL;
+    kx_object_t *node = callnode->lhs;
     if (!node || node->type != KXOP_IDX) {
         return;
     }
@@ -355,8 +350,8 @@ static void append_typename(kx_object_t *node)
         }
     }
     if (type) {
-        node->lhs->typename = type;
-        base->lhs->typename = type;
+        callnode->typename = type;
+        node->typename = type;
     }
 }
 
@@ -1311,6 +1306,7 @@ LOOP_HEAD:;
                 kx_yyerror_line("Can not call a native function without returning type", node->file, node->line);
             }
         }
+        append_classtype(node);
         break;
     }
 
@@ -1559,7 +1555,13 @@ LOOP_HEAD:;
                 } else {
                     make_cast_to(actx->func->ret_type, node);
                 }
-                if (actx->func->ret_type != node->lhs->var_type) {
+                if (actx->func->ret_typename) {
+                    if (!node->lhs->typename) {
+                        kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, actx->func->ret_typename, get_typename(node->lhs->var_type));
+                    } else if (strcmp(actx->func->ret_typename, node->lhs->typename) != 0) {
+                        kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, actx->func->ret_typename, node->lhs->typename);
+                    }
+                } else if (actx->func->ret_type != node->lhs->var_type) {
                     kx_yyerror_line_fmt("Expect return type (%s) but (%s)", node->file, node->line, get_typename(actx->func->ret_type), get_typename(node->lhs->var_type));
                 }
             }
