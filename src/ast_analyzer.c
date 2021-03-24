@@ -329,29 +329,44 @@ static void append_typename(kx_object_t *node)
     if (node->rhs) {
         node->lhs->typename = node->rhs->typename;
         node->lhs->var_type = node->rhs->var_type;
+        node->lhs->ret_typename = node->rhs->ret_typename;
+        node->lhs->ret_type = node->rhs->ret_type;
     }
 }
 
-static void append_classtype(kx_object_t *callnode)
+static void append_calltype(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *callnode)
 {
     const char *type = NULL;
     kx_object_t *node = callnode->lhs;
-    if (!node || node->type != KXOP_IDX) {
+    if (!node) {
         return;
     }
-    if (!node->rhs || node->rhs->type != KXVL_STR || strcmp(node->rhs->value.s, "create") != 0) {
-        return;
-    }
-    if (node->lhs) {
-        if (node->lhs->type == KXOP_VAR) {
-            type = node->lhs->value.s;
-        } else if (node->lhs->type == KXOP_IDX && node->lhs->rhs && node->lhs->rhs->type == KXVL_STR) {
-            type = node->lhs->rhs->value.s;
+    if (node->type == KXOP_VAR) {
+        kxana_symbol_t *sym = search_symbol_table(ctx, node, node->value.s, actx);
+        if (sym && sym->base) {
+            kx_object_t *base = sym->base;
+            if (base->ret_typename) {
+                callnode->typename = base->ret_typename;
+            }
+            if (base->ret_type != KX_UNKNOWN_T) {
+                callnode->var_type = base->ret_type;
+            }
         }
-    }
-    if (type) {
-        callnode->typename = type;
-        node->typename = type;
+    } else if (node->type == KXOP_IDX) {
+        if (!node->rhs || node->rhs->type != KXVL_STR || strcmp(node->rhs->value.s, "create") != 0) {
+            return;
+        }
+        if (node->lhs) {
+            if (node->lhs->type == KXOP_VAR) {
+                type = node->lhs->value.s;
+            } else if (node->lhs->type == KXOP_IDX && node->lhs->rhs && node->lhs->rhs->type == KXVL_STR) {
+                type = node->lhs->rhs->value.s;
+            }
+        }
+        if (type) {
+            callnode->typename = type;
+            node->typename = type;
+        }
     }
 }
 
@@ -1306,7 +1321,7 @@ LOOP_HEAD:;
                 kx_yyerror_line("Can not call a native function without returning type", node->file, node->line);
             }
         }
-        append_classtype(node);
+        append_calltype(ctx, actx, node);
         break;
     }
 
