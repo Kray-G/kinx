@@ -126,3 +126,32 @@ Successful
 Successful
 Successful
 ```
+
+### Example 4. Comparing between variables of a string.
+
+This bug's was caused by missing implementation.
+
+* Issue: [#236](https://github.com/Kray-G/kinx/issues/236)
+* Fixed: [3fa599b7153bdcecaf506aeca753c2047f328aa2](https://github.com/Kray-G/kinx/commit/3fa599b7153bdcecaf506aeca753c2047f328aa2)
+* Fixed: [00319887f851d960a7e0523f5ef4735b2d37531c](https://github.com/Kray-G/kinx/commit/00319887f851d960a7e0523f5ef4735b2d37531c)
+
+#### Code
+
+```javascript
+class A() {
+    public xxx() {
+        System.println("Successful");
+    }
+}
+
+function f(): A {
+    return new A(); // => Error: Expect return type (object) but (... unknown)
+}
+f().xxx();
+```
+
+#### Result
+
+```
+Successful
+```
