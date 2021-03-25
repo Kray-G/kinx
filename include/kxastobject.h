@@ -97,7 +97,11 @@ static inline const char *get_ret_typename(int in_native, kx_object_t *node)
     if (node->ex && node->ex->ret_typename) {
         return node->ex->ret_typename;
     }
-    return get_var_typename(in_native, node->ret_type);
+    const char *r = get_var_typename(in_native, node->ret_type);
+    if (r) {
+        return r;
+    }
+    return "Any";
 }
 
 static inline const char *get_node_typename(int in_native, kx_object_t *node)
