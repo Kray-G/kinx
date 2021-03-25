@@ -59,12 +59,12 @@ The following operators are supported.
 
 | Operator |                                   Meaning                                   |
 | :------: | --------------------------------------------------------------------------- |
-|   '==`   | true if lhs and rhs are the same.                                           |
-|   '!=`   | true if lhs and rhs are not the same.                                       |
-|   '>`    | true if the version of lhs is greater than the version of rhs.              |
-|   '<`    | true if the version of lhs is less than the version of rhs.                 |
-|   '>=`   | true if the version of lhs is greater than or equals to the version of rhs. |
-|   '<=`   | true if the version of lhs is less than or equals to the version of rhs.    |
+|   `==`   | true if lhs and rhs are the same.                                           |
+|   `!=`   | true if lhs and rhs are not the same.                                       |
+|   `>`    | true if the version of lhs is greater than the version of rhs.              |
+|   `<`    | true if the version of lhs is less than the version of rhs.                 |
+|   `>=`   | true if the version of lhs is greater than or equals to the version of rhs. |
+|   `<=`   | true if the version of lhs is less than or equals to the version of rhs.    |
 
 Here is the example below.
 
