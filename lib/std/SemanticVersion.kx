@@ -110,9 +110,19 @@ _class SemanticVersion(ver_) {
         if (cond.isSemanticVersion) {
             return ver_ == cond.version();
         }
-        var [, op, cmaj, cmin, cpat] = cond.match(/(>|>=|<|<=|==|!=)?([0-9]+)(?:\.([0-9]+|\*)(?:\.([0-9]+|\*))?)?/);
+        var [, op, cmaj, cmin, cpat] = cond.match(/(>|>=|<|<=|==|!=)?([0-9]+|\*)(?:\.([0-9]+|\*)(?:\.([0-9]+|\*))?)?/);
         cmin ||= '*';
         cpat ||= '*';
+        if (cmaj == '*') {
+            if (cmin != '*' || cpat != '*') {
+                throw RuntimeException("Invalid pattern of SemanticVersion");
+            }
+            if (!op || op == "==") {
+                return true;    // always matched.
+            } else {
+                return false;   // always unmatched.
+            }
+        }
         if (cmin == '*' && cpat != '*') {
             throw RuntimeException("Invalid pattern of SemanticVersion");
         }
