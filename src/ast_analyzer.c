@@ -326,7 +326,7 @@ static void reset_base_symbol(kx_context_t *ctx, kxana_context_t *actx, kx_objec
 
 static void append_typename(kx_object_t *node)
 {
-    if (node->rhs) {
+    if (node->rhs && node->lhs->var_type == KX_UNKNOWN_T) {
         node->lhs->typename = node->rhs->typename;
         node->lhs->var_type = node->rhs->var_type;
         node->lhs->ret_typename = node->rhs->ret_typename;
@@ -434,7 +434,7 @@ static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx
                         kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
                     }
                 } else {
-                    if (!lhs->typename && lhs->var_type != KX_UNKNOWN_T) {
+                    if (!lhs->typename && (lhs->var_type != KX_UNKNOWN_T && lhs->var_type != KX_OBJ_T)) {
                         kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
                     } else if (!rhs->typename && rhs->var_type != KX_UNKNOWN_T) {
                         kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
