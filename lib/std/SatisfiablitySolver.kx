@@ -87,6 +87,7 @@ _class SatisfiablityCheckProduct(name_, vs_) {
 }
 
 _class VersionSatisfiablity(opts_) {
+    var conflict_;
     var info_ = [];
     var vers_ = [];
     var nvmp_ = [];
@@ -158,19 +159,48 @@ _class VersionSatisfiablity(opts_) {
         var res = System.picosatSolve(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
         return res.filter { => _1 > 0 }.map { => info_[_1 - 1] };
     }
+    private setLastConflict(cnf) {
+        conflict_ = System.picosatGetMus(cnf).map { => cnf[_1] };
+        conflict_ = conflict_.map {
+            return _1.map { &(a1) =>
+                { not: a1 < 0, value: info_[(a1 > 0 ? a1 : -a1) - 1] }
+            };
+        };
+    }
     public enumerator() {
+        conflict_ = null;
         var cnf = genCnf();
         var iter = System.picosatGetIter(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
+        iter.count = 0;
         var next = iter.next;
         iter.next = _function() {
             var res = next();
             if (res) {
+                ++iter.count;
                 return res.filter({ => _1 > 0 }).map { => info_[_1 - 1] };
+            }
+            if (iter.isEnded() && iter.count == 0) {
+                setLastConflict(cnf);
             }
         };
         return iter;
     }
+    public getConflict() {
+        return conflict_;
+    }
     public iterator() {
         return this;
+    }
+    public count() {
+        var c = 0;
+        var cnf = genCnf();
+        var iter = System.picosatGetIter(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
+        for (iter.next(); !iter.isEnded(); iter.next()) {
+            ++c;
+        }
+        if (c == 0) {
+            setLastConflict(cnf);
+        }
+        return c;
     }
 }
