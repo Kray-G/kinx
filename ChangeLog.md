@@ -20,6 +20,7 @@
     *   Supported the operator of `==` and `!=` in Boolean class.
     *   Supported `String#isIntegerString`.
     *   Shared an implementation of conversion for a string, an integer, and a double.
+    *   Improved type analysis for the language server.
     *   SpecTest: Made a space wider of Test case number.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
