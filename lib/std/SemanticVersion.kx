@@ -117,11 +117,8 @@ _class SemanticVersion(ver_) {
             if (cmin != '*' || cpat != '*') {
                 throw RuntimeException("Invalid pattern of SemanticVersion");
             }
-            if (!op || op == "==") {
-                return true;    // always matched.
-            } else {
-                return false;   // always unmatched.
-            }
+            // always true when it's a pattern to be matched.
+            return !op || op == "=="|| op == ">=" || op == "<=";
         }
         if (cmin == '*' && cpat != '*') {
             throw RuntimeException("Invalid pattern of SemanticVersion");
