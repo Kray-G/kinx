@@ -431,15 +431,15 @@ static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx
             if ((ltype != KX_UNKNOWN_T && rtype != KX_UNKNOWN_T && rtype != KX_UND_T) || lhs->typename || rhs->typename) {
                 if (!lhs->typename && !rhs->typename) {
                     if (ltype != rtype) {
-                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(lhs), get_node_typename(rhs));
                     }
                 } else {
                     if (!lhs->typename && (lhs->var_type != KX_UNKNOWN_T && lhs->var_type != KX_OBJ_T)) {
-                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(lhs), get_node_typename(rhs));
                     } else if (!rhs->typename && rhs->var_type != KX_UNKNOWN_T) {
-                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(lhs), get_node_typename(rhs));
                     } else if (lhs->typename && rhs->typename && strcmp(lhs->typename, rhs->typename) != 0) {
-                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(actx->in_native, lhs), get_node_typename(actx->in_native, rhs));
+                        kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(lhs), get_node_typename(rhs));
                     }
                 }
             }
