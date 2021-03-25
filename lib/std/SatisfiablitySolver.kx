@@ -1,3 +1,4 @@
+using SemanticVersion;
 
 _class Satisfiablity(cnf_, opts_) {
     var s_;
@@ -28,8 +29,11 @@ _class Satisfiablity(cnf_, opts_) {
     }
 }
 
-_class SatisfiablityCheckVersion(name_, version_, vs_) {
+_class SatisfiablityCheckVersion(name_, version_, vs_) : SemanticVersion(version_) {
     public dependsOn(deps) {
+        if (deps.isUndefined) {
+            return this;
+        }
         if (!deps.isArray) {
             deps = [deps];
         }
@@ -39,27 +43,44 @@ _class SatisfiablityCheckVersion(name_, version_, vs_) {
 }
 
 _class SatisfiablityCheckProduct(name_, vs_) {
-    var fixedVersion;
+    var fixedVersion_;
+    var vers_ = {};
     public name() {
         return name_;
     }
     public version(ver) {
-        return new SatisfiablityCheckVersion(name_, ver, vs_);
+        if (vers_[ver].isUndefined) {
+            @addVersion(ver);
+        }
+        return vers_[ver];
     }
     public dependsOn(ver, deps) {
         return @version(ver).dependsOn(deps);
     }
-    public ()(ver) {
-        return { name: name_, version: ver, dependsOn: { => @dependsOn(ver, _1) } };
+    public ()(vercond) {
+        if (vercond =~ /^\d\.\d\.\d+/) {
+            return { name: name_, version: vercond, dependsOn: _function(deps) { return @dependsOn(vercond, deps); } };
+        }
+        var items = vers_.keySet().filter(_function(v) { return vers_[v].match(vercond); }).map(_function(v) {
+            return { name: name_, version: v, dependsOn: _function(deps) { return @dependsOn(v, deps); } };
+        });
+        items.dependsOn = _function(deps) {
+            items.each(_function(item) {
+                item.dependsOn(deps);
+            });
+            return items;
+        };
+        return items;
     }
     public addVersion(version, isFix) {
         if (isFix) {
-            if (fixedVersion) {
+            if (fixedVersion_) {
                 // clear the fixed version once.
-                vs_.addVersion(name_, fixedVersion, false);
+                vs_.addVersion(name_, fixedVersion_, false);
             }
-            fixedVersion = version;
+            fixedVersion_ = version;
         }
+        vers_[version] = new SatisfiablityCheckVersion(name_, version, vs_);
         vs_.addVersion(name_, version, isFix);
         return this;
     }
