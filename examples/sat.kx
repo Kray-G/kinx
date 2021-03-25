@@ -13,13 +13,34 @@ var X = vs.addProduct("X")
     .addVersion("0.0.1", true)
     .addVersion("0.0.2");
 
+function tryit() {
+    var count = vs.count();
+    System.println("----: Count => ", count);
+    switch (count) {
+    when 0:
+        System.println(vs.getConflict().toJsonString(true));
+    else:
+        for (var e in vs.iterator()) {
+            System.println(e.toJsonString(true));
+        }
+    }
+}
+
+/* A(0.0.1) depends on B(0.0.1) */
 A("0.0.1").dependsOn(B("0.0.1"));
+
+/* A(0.0.2) depends on B(0.0.2) */
 A("0.0.2").dependsOn(B("0.0.2"));
+
+/* A(0.0.3) depends on B(0.0.3) */
 A("0.0.3").dependsOn(B("0.0.3"));
+
+/* X(0.0.1) depends on A(0.0.2)/A(0.0.3) and depends on B(0.0.2) */
 X("0.0.1").dependsOn(A(">=0.0.2")).dependsOn(B("0.0.2"));
+
+/* X(0.0.2) depends on B(0.0.3) */
 X("0.0.2").dependsOn(B("0.0.3"));
 
-var i = 0;
-for (var e in vs.iterator()) {
-    System.println("%d: " % i++, e.toJsonString(true));
-}
+/* Check dependency */
+X("0.0.1").dependsOn(B("0.0.3"));
+tryit();
