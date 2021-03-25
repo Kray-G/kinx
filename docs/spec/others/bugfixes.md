@@ -127,9 +127,9 @@ Successful
 Successful
 ```
 
-### Example 4. Comparing between variables of a string.
+### Example 4. Can't specify the class as a return type of function. 
 
-This bug's was caused by missing implementation.
+This bug's was caused by lack of consideration of a part of type propagation.
 
 * Issue: [#236](https://github.com/Kray-G/kinx/issues/236)
 * Fixed: [3fa599b7153bdcecaf506aeca753c2047f328aa2](https://github.com/Kray-G/kinx/commit/3fa599b7153bdcecaf506aeca753c2047f328aa2)
