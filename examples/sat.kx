@@ -20,8 +20,9 @@ function tryit() {
     when 0:
         System.println(vs.getConflict().toJsonString(true));
     else:
+        var i = 0;
         for (var e in vs.iterator()) {
-            System.println(e.toJsonString(true));
+            System.println("%d: " % ++i, e.toJsonString(true));
         }
     }
 }
