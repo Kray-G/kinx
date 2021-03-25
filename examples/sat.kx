@@ -42,5 +42,5 @@ X("0.0.1").dependsOn(A(">=0.0.2")).dependsOn(B("0.0.2"));
 X("0.0.2").dependsOn(B("0.0.3"));
 
 /* Check dependency */
-X("0.0.1").dependsOn(B("0.0.3"));
+# X("0.0.1").dependsOn(B("0.0.3"));
 tryit();
