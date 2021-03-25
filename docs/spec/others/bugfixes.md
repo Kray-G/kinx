@@ -127,7 +127,7 @@ Successful
 Successful
 ```
 
-### Example 4. Can't specify the class as a return type of function. 
+### Example 4. Can't specify a return type of function. 
 
 This bug's was caused by lack of consideration of a part of type propagation.
 
