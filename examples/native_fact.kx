@@ -1,13 +1,13 @@
 
 # here is a native function.
-native fact(a) {
+native factn(a) {
     if (a < 1) return 1;
-    return a * fact(a-1);
+    return a * factn(a-1);
 }
 
 # integer will NOT be promoted automatically to big integer in the native function.
 for (var i = 0; i <= 20; ++i) {
-    System.println("fact(%{i}) = ", fact(i));
+    System.println("fact(%{i}) = ", factn(i));
 }
 
 # overwrite the function by the same name.
