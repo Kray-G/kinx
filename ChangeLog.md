@@ -17,6 +17,7 @@
     *   Supported SAT solver by picosat.
     *   Supported SemanticVersion class.
 *   Improvements
+    *   Supported putting a comma at the end of an argument's list for both declaration and calling.
     *   Supported the operator of `==` and `!=` in Boolean class.
     *   Supported `String#isIntegerString`.
     *   Shared an implementation of conversion for a string, an integer, and a double.
