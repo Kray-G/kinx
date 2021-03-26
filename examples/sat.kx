@@ -14,16 +14,13 @@ var X = vs.addProduct("X")
     .addVersion("0.0.2");
 
 function tryit() {
-    var count = vs.count();
-    System.println("----: Count => ", count);
-    switch (count) {
-    when 0:
+    var count = 0;
+    for (var e in vs.iterator()) {
+        System.println("%d: " % ++count, e.toJsonString(true));
+    }
+    if (count == 0) {
+        System.println("Unsatisfiable");
         System.println(vs.getConflict().toJsonString(true));
-    else:
-        var i = 0;
-        for (var e in vs.iterator()) {
-            System.println("%d: " % ++i, e.toJsonString(true));
-        }
     }
 }
 
