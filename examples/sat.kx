@@ -13,14 +13,33 @@ var X = vs.addProduct("X")
     .addVersion("0.0.1", true)
     .addVersion("0.0.2");
 
+function msg(a) {
+    if (a.not) {
+        return ("%1% is NOT v%2%" % a.value.name % a.value.version).format();
+    } else {
+        return ("%1% is v%2%" % a.value.name % a.value.version).format();
+    }
+}
+function error(item) {
+    switch (item.length()) {
+    when 1:
+        System.println("- ", msg(item[0]));
+    when 2:
+        item[0].not = !item[0].not; // (!A || B) means (A => B)
+        System.println("- ", msg(item[0]), " => ", msg(item[1]));
+    else:
+        System.println("- ", item.map { => msg(_1) }.join(', or\n  '));
+    }
+}
+
 function tryit() {
     var count = 0;
     for (var e in vs.iterator()) {
         System.println("%d: " % ++count, e.toJsonString(true));
     }
     if (count == 0) {
-        System.println("Unsatisfiable");
-        System.println(vs.getConflict().toJsonString(true));
+        System.println("Unsatisfiable - Conflict here");
+        vs.getConflict().each { => error(_1) };
     }
 }
 
