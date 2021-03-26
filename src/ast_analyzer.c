@@ -92,6 +92,9 @@ DECL_VAR:
         if (node->var_type == KX_UNKNOWN_T && actx->in_native) {
             node->var_type = KX_INT_T;  // automatically set it.
         }
+        if (actx->class_node && !strcmp(node->value.s, "this")) {
+            node->typename = actx->class_node->value.s;
+        }
         kv_push(kxana_symbol_t, table->list, sym);
         kxana_symbol_t *functable = &(actx->func->symbols);
         kv_push(kxana_symbol_t, functable->list, sym);
@@ -394,6 +397,10 @@ static const char *get_ret_typename_or_null(kx_object_t *node)
 
 static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *lhs, kx_object_t *rhs)
 {
+    if (lhs->type == KXOP_VAR && strcmp(lhs->value.s, "this") == 0) {
+        return;
+    }
+
     if (lhs->var_type == KX_UNKNOWN_T) {
         lhs->var_type = rhs->var_type;
         const char *name = get_node_typename_or_null(lhs);
@@ -586,6 +593,7 @@ static void set_class_method_return_type(kx_context_t *ctx, kxana_context_t *act
                 idx->var_type = m->ret_type;
                 idx->typename = m->ret_typename;
                 idx->rhs->typename = const_str2(ctx, type, method);
+                actx->lvalue = lvalue;
                 return;
             }
             m = m->methods;
@@ -1245,6 +1253,15 @@ LOOP_HEAD:;
         analyze_ast(ctx, node->rhs, actx);
         actx->lvalue = lvalue;
         node->var_type = KX_UNKNOWN_T;
+        if (!actx->lvalue && node->lhs && node->rhs) {
+            if (node->rhs->type == KXVL_STR) {
+                if (node->lhs->typename) {
+                    set_class_method_return_type(ctx, actx, node, node->lhs->typename, node->rhs->value.s);
+                } else if (node->lhs->ex && node->lhs->ex->typename) {
+                    set_class_method_return_type(ctx, actx, node, node->lhs->ex->typename, node->rhs->value.s);
+                }
+            }
+        }
         break;
     case KXOP_YIELD:
         analyze_ast(ctx, node->lhs, actx);
@@ -1287,16 +1304,6 @@ LOOP_HEAD:;
         analyze_ast(ctx, node->rhs, actx);
         actx->lvalue = 0;
         actx->decl = 0;
-        if (node->lhs->type == KXOP_IDX) {
-            kx_object_t *idx = node->lhs;
-            if (idx->lhs->type == KXOP_VAR && idx->rhs->type == KXVL_STR) {
-                if (idx->lhs->typename) {
-                    set_class_method_return_type(ctx, actx, idx, idx->lhs->typename, idx->rhs->value.s);
-                } else if (idx->lhs->ex && idx->lhs->ex->typename) {
-                    set_class_method_return_type(ctx, actx, idx, idx->lhs->ex->typename, idx->rhs->value.s);
-                }
-            }
-        }
         if ((node->lhs->var_type == KX_CSTR_T || node->lhs->var_type == KX_STR_T) && (node->rhs->var_type == KX_CSTR_T || node->rhs->var_type == KX_STR_T)) {
             node->type = KXOP_ADD;
             make_cast(node, node->lhs, node->rhs, actx->in_native);
