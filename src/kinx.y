@@ -1057,7 +1057,7 @@ ClassArgumentList_Opts
 
 ArgumentList_Opts
     : { $$ = NULL; }
-    | ArgumentList
+    | ArgumentList Comma_Opt
     ;
 
 ArgumentList
@@ -1097,7 +1097,7 @@ ClassCallArgumentList_Opts
 
 CallArgumentList_Opts
     : { $$ = NULL; }
-    | CallArgumentList
+    | CallArgumentList Comma_Opt
     ;
 
 CallArgumentList
