@@ -2,6 +2,8 @@
 
 ## V1.0.1 (Current Development Version)
 
+*   Improvements
+    *   Improved type analysis for the language server.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #236: Can't specify the class as a return type of function.
