@@ -41,14 +41,14 @@ function display(test, e) {
 }
 
 function getVarNum(i, j, v) {
-    return ((i + j * R) * R) + v + 1;
+    return ((i + j * R) * R) + v;
 }
 
 function addClauses(s, i, j, v) {
     const ijv = getVarNum(i, j, v);
 
     // There is at most one number in each cell. (Cell - uniqueness)
-    for (var vi = 0; vi < R; ++vi) {
+    for (var vi = 1; vi <= R; ++vi) {
         if (v != vi) {
             s.addClause([-ijv, -getVarNum(i, j, vi)]);
         }
@@ -83,7 +83,7 @@ function setup(test) {
     var s = new Satisfiablity();
 
     // Adding this restrictions makes a performance increase.
-    for (var v = 0; v < R; ++v) {
+    for (var v = 1; v <= R; ++v) {
         // Each number appears at least once in each row. (Row - definedness)
         for (var j = 0; j < R; ++j) {
             s.addClause(R.times().map { => getVarNum(_1, j, v) });
@@ -95,15 +95,15 @@ function setup(test) {
     }
     for (var j = 0; j < R; ++j) {
         for (var i = 0; i < R; ++i) {
-            const ijv = ((i + j * R) * R) + 1;
+            const ijv = ((i + j * R) * R);
             var v = test[j][i];
             if (v == 0) {
                 // There is at least one number in each cell. (Cell - definedness)
-                s.addClause(R.times().map { => ijv + _1 });
+                s.addClause(R.times().map { => ijv + (_1 + 1) });
             } else {
-                s.addClause([ ijv + v - 1 ]);
+                s.addClause([ ijv + v ]);
             }
-            R.times().each { => addClauses(s, i, j, _1) };
+            R.times().each { => addClauses(s, i, j, (_1 + 1)) };
         }
     }
 
