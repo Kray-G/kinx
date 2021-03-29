@@ -54,3 +54,4 @@ TEMP*
 /*.so*
 /TEST.md
 /*.deb
+/lib/package
