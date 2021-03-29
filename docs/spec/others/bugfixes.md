@@ -95,7 +95,7 @@ for (ypix in 0...24) {
 :      ......------------------------::::::::::;;;;+==x&  &x=+;;;::::::-------.
 ```
 
-### Example 3. Comparing between variables of a string.
+### Example 3. Comparing between variables of a string
 
 This bug's was caused by missing implementation.
 
@@ -155,3 +155,32 @@ f().xxx();
 ```
 Successful
 ```
+
+### Example 5. Comparison Failure & Crash
+
+This bug's was caused by lack of the code which moves to the next opcode.
+
+* Issue: [#256](https://github.com/Kray-G/kinx/issues/256)
+* Fixed: [bf1b5ba926db08a69a5c6786d7557f9f6d7e420f](https://github.com/Kray-G/kinx/commit/bf1b5ba926db08a69a5c6786d7557f9f6d7e420f)
+
+#### Code
+
+```javascript
+function test1(a) { return 10 >= a; }
+function test2(a) { return -1 <= a; }
+function test3(a) { return 100 < a; }
+
+System.println(test1(10.5));
+System.println(test2(10.5));
+System.println(test3(10.5));
+```
+
+#### Result
+
+```
+0
+1
+0
+```
+
+
