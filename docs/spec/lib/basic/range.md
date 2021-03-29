@@ -181,7 +181,7 @@ out of range (9)
 out of range (10)
 ```
 
-### Example 5. Range for Switch-Case (2)
+### Example 6. Range for Switch-Case (2)
 
 #### Code
 
@@ -224,7 +224,7 @@ okay 1 (ae)
 out of range (af)
 ```
 
-### Example 6. Range for String
+### Example 7. Range for String
 
 Range for String means to return a part of string between the start and the end of `Range`.
 It is like `String#subString()` but note that `String#subString()` requires a length.
@@ -246,7 +246,7 @@ cdefghijklmnopqrstuvwxy
 cdefghijklmnopqrstuvwxy
 ```
 
-### Example 7. Range for Array
+### Example 8. Range for Array
 
 Range for Array means to return a part of array between the start and the end of `Range`.
 It is like `Array#subArray()` but note that `Array#subArray()` requires a length.
@@ -268,7 +268,7 @@ System.println(ary.subArray(2, 10));   // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 ```
 
-### Example 8. Range for Binary
+### Example 9. Range for Binary
 
 Range for Binary means to return a part of binary between the start and the end of `Range`.
 It is like `Binary#subBinary()` but note that `Binary#subBinary()` requires a length.
@@ -290,7 +290,7 @@ System.println(bin.subBinary(2, 10));  // <0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x
 <0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b>
 ```
 
-### Example 9. Range for Range
+### Example 10. Range for Range
 
 Range for Range means to return parts between the start and the end by `Range` at the index.
 
@@ -307,4 +307,64 @@ System.println(range[2...12]);  // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 ```
 [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+```
+
+### Example 11. Infinite Range (Range Index)
+
+Range for Range means to return parts between the start and the end by `Range` at the index.
+
+#### Code
+
+```javascript
+var range = 0..;
+System.println(range[2..12]);   // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+System.println(range[2...12]);  // [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+```
+
+#### Result
+
+```
+[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+[2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+```
+
+### Example 12. Infinite Range (Integer Index)
+
+Range for Range means to return parts between the start and the end by `Range` at the index.
+
+#### Code
+
+```javascript
+var range = 1..;
+System.println(range[2]);       // 3
+System.println(range[22]);      // 23
+System.println(range[1050]);    // 1051
+```
+
+#### Result
+
+```
+3
+23
+1051
+```
+
+### Example 13. Range for Range (Infinite Range Index)
+
+Range for Range means to return parts between the start and the end by `Range` at the index.
+
+#### Code
+
+```javascript
+System.println((1..10)[2..]);   // 3..10
+System.println((1...10)[2..]);  // 3...10
+System.println((100..)[2..]);   // 102..
+```
+
+#### Result
+
+```
+Range(3, 10, false)
+Range(3, 10, true)
+Range(102, null, false)
 ```
