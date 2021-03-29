@@ -349,7 +349,7 @@ System.println(range[1050]);    // 1051
 1051
 ```
 
-### Example 13. Range for Range (Infinite Range Index)
+### Example 13. Range for Range (Infinite Range Index 1)
 
 Range for Range means to return parts between the start and the end by `Range` at the index.
 
@@ -367,4 +367,29 @@ System.println((100..)[2..]);   // 102..
 Range(3, 10, false)
 Range(3, 10, true)
 Range(102, null, false)
+```
+
+### Example 14. Range for Range (Infinite Range Index 2)
+
+Range for Range means to return parts between the start and the end by `Range` at the index.
+
+#### Code
+
+```javascript
+var range = (1...10)[2..];
+for (e in range) {
+    System.println(e);
+}
+```
+
+#### Result
+
+```
+3
+4
+5
+6
+7
+8
+9
 ```
