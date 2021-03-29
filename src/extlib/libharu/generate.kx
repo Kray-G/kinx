@@ -510,7 +510,7 @@ int kxpdf_HPDF_CreateOutline(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
 });
 
 System.println("/* function prototype */");
-funcs.each { &(func):
+funcs.each { &(func)
     System.println("int kxpdf_%1%(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx);" % func.data.name);
 };
 System.println("");
