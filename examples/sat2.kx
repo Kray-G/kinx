@@ -1,0 +1,55 @@
+using SatisfiablitySolver;
+
+var vs = new VersionSatisfiablity();
+
+var X = vs.addProduct("X")
+    .addVersion("0.0.1", true);
+var A = vs.addProduct("A")
+    .addVersion("0.0.1")
+    .addVersion("0.0.2");
+var B = vs.addProduct("B")
+    .addVersion("0.0.1")
+    .addVersion("0.0.2");
+var Z = vs.addProduct("Z")
+    .addVersion("0.0.1")
+    .addVersion("0.0.2");
+
+function msg(a) {
+    if (a.not) {
+        return ("%1% is NOT v%2%" % a.value.name % a.value.version).format();
+    } else {
+        return ("%1% is v%2%" % a.value.name % a.value.version).format();
+    }
+}
+function error(item) {
+    switch (item.length()) {
+    when 1:
+        System.println("- ", msg(item[0]));
+    when 2:
+        item[0].not = !item[0].not; // (!A || B) means (A => B)
+        System.println("- ", msg(item[0]), " => ", msg(item[1]));
+    else:
+        System.println("- ", item.map { => msg(_1) }.join(', or\n  '));
+    }
+}
+
+function tryit() {
+    var count = 0;
+    for (var e in vs) {
+        System.println("%d: " % ++count, e.toJsonString(true));
+    }
+    if (count == 0) {
+        System.println("Unsatisfiable - Conflict here");
+        vs.getConflict().each { => error(_1) };
+    }
+}
+
+A("0.0.1").dependsOn(Z("0.0.1"));
+A("0.0.2").dependsOn(Z("0.0.2"));
+
+B("0.0.1").dependsOn(Z("0.0.1"));
+B("0.0.2").dependsOn(Z("0.0.2"));
+
+X("0.0.1").dependsOn(A("0.0.2"));
+X("0.0.1").dependsOn(B("0.0.1"));
+tryit();
