@@ -82,7 +82,7 @@ var Xml, Net;
         }
     }
     $libpath = libpath;
-    $pkgpath = (libpath / "../kinxpkg").replace(/\/[^\/]+\/\.\./, "");
+    $pkgpath = (libpath / "package").replace(/\/[^\/]+\/\.\./, "");
 })();
 
 const KX_KEY_ESC        = 0x1b;
