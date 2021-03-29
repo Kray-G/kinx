@@ -16,13 +16,14 @@
 *   New Features
     *   Supported SAT solver by picosat.
     *   Supported SemanticVersion class.
-*   Improvements
+*   Improvements/Enhancements
     *   Supported putting a comma at the end of an argument's list for both declaration and calling.
     *   Supported the operator of `==` and `!=` in Boolean class.
     *   Supported `String#isIntegerString`.
     *   Shared an implementation of conversion for a string, an integer, and a double.
     *   Improved type analysis for the language server.
     *   SpecTest: Made a space wider of Test case number.
+    *   #255: Improved the `operator[]` in `Range`.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #236: Can't specify the class as a return type of function.
