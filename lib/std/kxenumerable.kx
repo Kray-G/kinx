@@ -986,11 +986,7 @@ _class _Range(start_, end_, excludeEnd_) {
             var e = rhs.end();
             var ex = rhs.isEndExcluded();
             if (e.isUndefined) {
-                if (end_.isUndefined) {
-                    return new Range(start_ + s, null, ex);
-                } else {
-                    return new Range(start_ + s, end_, excludeEnd_);
-                }
+                return new Range(start_ + s, end_, excludeEnd_);
             }
             if (end_.isUndefined) {
                 var n = e + (ex ? 0 : 1) - arrayCacheLastIndex_;
