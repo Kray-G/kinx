@@ -13,7 +13,7 @@ kx_object_t *kx_ast_root = NULL;
 int g_yyerror = 0;
 int g_yywarning = 0;
 kx_context_t *g_parse_ctx = NULL;
-khash_t(package) *g_packages;
+khash_t(package) *g_packages = NULL;
 
 /* used in runtime. */
 volatile int g_terminated = 0;
