@@ -194,7 +194,6 @@ static void setup_run_environment(const char *filename)
 
 static void setup_package_info(kx_context_t *ctx)
 {
-    g_packages = kh_init(package);
     const char *pkgfile = kxlib_package_file();
     if (!pkgfile) {
         return;
@@ -315,6 +314,7 @@ DllExport int do_main(int ac, char **av)
     }
     #endif
 
+    g_packages = kh_init(package);
     int error_code = -1;
     int disp_version = -1;
     const char *filename = NULL;
