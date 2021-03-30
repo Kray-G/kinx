@@ -883,7 +883,7 @@ typedef struct kx_options_ {
     int output_location:1;
     int src_stdin:1;
     int utf8inout:1;
-    int native_verbose:1;
+    int verbose:1;
     int with_native:1;  /* dump with native */
     int exception_detail_info:1;
     int debug_mode:1;
