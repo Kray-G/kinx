@@ -821,7 +821,7 @@ AssignExpressionObjList
 
 KeyValueList
     : KeyValue
-    | KeyValueList ',' KeyValue { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | KeyValueList ',' KeyValue { $$ = kx_gen_exprlist($1, $3); }
     ;
 
 KeyValue
@@ -1034,9 +1034,9 @@ Inherit_Opt
                 .name = kx_check_the_name($3),
                 .stmt =
                     kx_gen_bexpr_object(KXST_STMTLIST,
-                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_UNKNOWN_T, $2),
+                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_OBJ_T, $2),
                             kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $3, kx_gen_str_object("create")), $4)),
-                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("super", KX_UNKNOWN_T, $2),
+                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("super", KX_OBJ_T, $2),
                             kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_UNKNOWN_T), kx_gen_str_object("makeSuper")), kx_gen_var_object("this", KX_UNKNOWN_T)))
                     ),
             };

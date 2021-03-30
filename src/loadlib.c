@@ -107,6 +107,21 @@ void unload_library(void *h)
 }
 #endif
 
+const char *kxlib_package_file(void)
+{
+    const char *checkfile = make_path_with(get_kinx_path(), "lib"PATH_DELIM"package", "kxpackage.ini");
+    if (file_exists(checkfile)) {
+        return checkfile;
+    }
+    #if !defined(KCC_WINDOWS)
+    checkfile = make_path_with("/usr/bin", "kinxlib/package", "kxpackage.ini");
+    if (file_exists(checkfile)) {
+        return checkfile;
+    }
+    #endif
+    return NULL;
+}
+
 const char *kxlib_file_exists_no_current(const char *file)
 {
     const char *checkfile = make_path(get_kinx_path(), file);

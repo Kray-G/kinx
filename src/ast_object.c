@@ -257,6 +257,22 @@ kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs)
     return lhs;
 }
 
+kx_object_t *kx_gen_exprlist(kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (!lhs) {
+        return rhs;
+    }
+    if (lhs->type != KXST_EXPRLIST) {
+        return kx_gen_bexpr_object(KXST_EXPRLIST, lhs, rhs);
+    }
+    kx_object_t *node = lhs->ex ? lhs->ex : lhs;
+    while (node->rhs && node->rhs->type == KXST_EXPRLIST) {
+        node = node->rhs;
+    }
+    lhs->ex = node->rhs = kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, rhs);
+    return lhs;
+}
+
 kx_object_t *kx_gen_range_object(kx_object_t *lhs, kx_object_t *end, int exclude_end)
 {
     return kx_gen_obj(KXOP_MKRANGE, exclude_end, lhs, end, NULL);
@@ -690,9 +706,6 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, arytype_t *r
         }
     }
     kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
-    if (inherit) {
-        obj->typename = inherit;
-    }
     obj->line2 = obj->line;
     if (line > 0) {
         obj->line = line;
