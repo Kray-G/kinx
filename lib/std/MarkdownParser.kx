@@ -51,7 +51,7 @@ namespace Markdown {
             }
             public toObject() {
                 var obj = {};
-                @keySet().each { &(key):
+                @keySet().each { &(key)
                     if (key[0] != '_'[0] && !this[key].isFunction) {
                         if (this[key].isNode) {
                             obj[key] = this[key].toObject();
@@ -213,9 +213,9 @@ namespace Markdown {
             }
         }
 
-        _class Table(_rows) : Node('table', 'block') {
+        class Table(_rows) : Node('table', 'block') {
             private initialize() {
-                const [heading, separator, ...rows] = _rows.map(&(line) => line.replace(/^\||\|$/, '').split('|'));
+                var [heading, separator, ...rows] = _rows.map({ &(line) => line.replace(/^\||\|$/, '').split('|') });
                 @headings = heading.map(&(cell) => inlineParser(cell.trim()));
                 @aligns = separator.map(&(cell) => {
                     cell = cell.trim();
