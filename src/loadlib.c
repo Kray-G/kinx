@@ -109,12 +109,12 @@ void unload_library(void *h)
 
 const char *kxlib_package_file(void)
 {
-    const char *checkfile = make_path_with(get_kinx_path(), "lib"PATH_DELIM"package", "kxpackage.ini");
+    const char *checkfile = make_path_with(get_kinx_path(), "lib"PATH_DELIM"package", "kxpackage.def");
     if (file_exists(checkfile)) {
         return checkfile;
     }
     #if !defined(KCC_WINDOWS)
-    checkfile = make_path_with("/usr/bin", "kinxlib/package", "kxpackage.ini");
+    checkfile = make_path_with("/usr/bin", "kinxlib/package", "kxpackage.def");
     if (file_exists(checkfile)) {
         return checkfile;
     }
