@@ -64,16 +64,19 @@ void setup_lexinfo(kx_context_t *ctx, const char *file, kx_yyin_t *yyin)
     kx_lexinfo.pkgkey = NULL;
 }
 
-void init_lexer(kx_context_t *ctx)
-{
-    kv_init(kx_lex_stack);
-    g_parse_ctx = ctx;
-}
-
 void free_lexer(void)
 {
     g_parse_ctx = NULL;
     kv_destroy(kx_lex_stack);
+}
+
+void init_lexer(kx_context_t *ctx)
+{
+    if (g_parse_ctx) {
+        free_lexer();
+    }
+    kv_init(kx_lex_stack);
+    g_parse_ctx = ctx;
 }
 
 void kx_make_bin_mode(void)
@@ -170,8 +173,9 @@ static const char *search_using_path(const char *name)
     return file;
 }
 
-static void load_using_module_asta(const char *name, int len, const char *pkgname, const char *pkgkey)
+static int load_using_module_asta(const char *name, int len, const char *pkgname, const char *pkgkey)
 {
+    int r = ';';
     int nested = get_nested_level();
     char *path = kx_calloc(len+2, sizeof(char));
     memcpy(path, name, len);
@@ -182,7 +186,9 @@ static void load_using_module_asta(const char *name, int len, const char *pkgnam
             ? static_format("Package(%s) not installed", pkgname, path)
             : static_format("Library file not found(%s)", path);
         kx_yyerror(msg);
-printf("1 ch = %c(%d)\n", kx_lexinfo.ch, kx_lexinfo.ch);
+        while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
+            kx_lex_next(kx_lexinfo);
+        }
     } else {
         kx_trace(g_parse_ctx, nested, "[using:dir] %s\n", search);
 
@@ -207,9 +213,11 @@ printf("1 ch = %c(%d)\n", kx_lexinfo.ch, kx_lexinfo.ch);
         }
 
         kx_close_dir(dir);
+        r = kx_yylex();
     }
 
     kx_free(path);
+    return r;
 }
 
 static int load_using_module(const char *name, const char *pkgname, const char *pkgkey, int no_error)
@@ -221,8 +229,7 @@ static int load_using_module(const char *name, const char *pkgname, const char *
         if (name[len-2] != PATH_DELCH) {
             kx_yyerror("Can not use '*' with a current directoy in 'using' directive");
         } else {
-            load_using_module_asta(name, len, pkgname, pkgkey);
-            return kx_yylex();
+            return load_using_module_asta(name, len, pkgname, pkgkey);
         }
     } else {
         file = search_using_path(name);
