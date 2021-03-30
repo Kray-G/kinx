@@ -34,10 +34,10 @@ typedef struct named_stmt_ {
 #include <parser.tab.h>
 #endif /* KX_PARSER */
 
-extern int kx_trace_fmt(kx_context_t *ctx, int nested, const char *fmt, ...);
-#define kx_trace(ctx, nested, fmt, ...) do {\
+extern int kx_trace_fmt(kx_context_t *ctx, int nested, ...);
+#define kx_trace(ctx, nested, ...) do {\
     if (ctx->options.verbose) { \
-        kx_trace_fmt(ctx, nested, fmt, __VA_ARGS__);\
+        kx_trace_fmt(ctx, nested, __VA_ARGS__);\
     } \
 } while (0); \
 /**/
