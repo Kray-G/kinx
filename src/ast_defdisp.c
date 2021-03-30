@@ -555,7 +555,8 @@ LOOP_HEAD:;
         break;
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
         display_def_ast(dctx, node->lhs, lvalue);
-        display_def_ast(dctx, node->rhs, lvalue);
+        node = node->rhs;
+        if (node) goto LOOP_HEAD;
         break;
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
         display_def_ast(dctx, node->lhs, lvalue);
