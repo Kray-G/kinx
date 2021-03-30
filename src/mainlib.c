@@ -145,7 +145,7 @@ static void version(int detail)
                 if (kh_exist(g_packages, k)) {
                     const char *key = kh_key(g_packages, k);
                     package_t *p = kh_value(g_packages, k);
-                    printf("  * %s v%s\n", key, p->vers);
+                    printf("  * %s %s\n", key, p->vers);
                 }
             }
         }
