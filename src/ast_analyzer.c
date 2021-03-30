@@ -1468,7 +1468,8 @@ LOOP_HEAD:;
     case KXST_EXPRSEQ:   /* lhs: expr1: rhs: expr2 */
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
         analyze_ast(ctx, node->lhs, actx);
-        analyze_ast(ctx, node->rhs, actx);
+        node = node->rhs;
+        if (node) goto LOOP_HEAD;
         break;
     case KXST_STMTLIST:   /* lhs: stmt2: rhs: stmt1 */
         analyze_ast(ctx, node->lhs, actx);
