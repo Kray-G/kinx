@@ -1,6 +1,7 @@
 #define KX_LIB_DLL
 #include <dbg.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <kinx.h>
 #include <kxthread.h>
 #include <kxirutil.h>
@@ -40,6 +41,18 @@ extern void init_allocator(void);
 extern volatile int g_terminated;
 extern khash_t(package) *g_packages;
 extern const char *kxlib_package_file(void);
+
+int kx_trace_fmt(kx_context_t *ctx, int nested, const char *fmt, ...)
+{
+    for (int i = 0; i < nested; ++i) {
+        printf("  ");
+    }
+    va_list list;
+    va_start(list, fmt);
+    int r = vprintf(fmt, list);
+    va_end(list);
+    return r;
+}
 
 #ifdef YYDEBUG
 extern int kx_yydebug;
@@ -186,6 +199,7 @@ static void setup_package_info(kx_context_t *ctx)
     if (!pkgfile) {
         return;
     }
+    kx_trace(ctx, 0, "[package:ini] %s\n", pkgfile);
     FILE *fp = fopen(pkgfile, "r");
     if (fp) {
         char buf[1024] = {0};
@@ -217,6 +231,7 @@ static void setup_package_info(kx_context_t *ctx)
                 int absent;
                 const char *key = kx_const_str(ctx, buf);
                 const char *ver = kx_const_str(ctx, p);
+                kx_trace(ctx, 0, "[add:package/version] %s (%s)\n", key, ver);
                 package_t *pkg = kx_calloc(1, sizeof(package_t));
                 pkg->vers = ver;
                 khint_t k = kh_put(package, g_packages, key, &absent);
@@ -245,6 +260,36 @@ static void free_package_info(void)
     kh_destroy(package, g_packages);
 }
 
+const char *search_exec_file(kx_context_t *ctx, const char *execname)
+{
+    const char *execfile = kxlib_exec_file_exists(execname);
+    if (execfile) {
+        kx_trace(ctx, 0, "[exec:found] %s\n", execfile);
+        return execfile;
+    }
+
+    kstr_t *ksv = ks_new();
+    for (khint_t k = 0; k < kh_end(g_packages); ++k) {
+        if (kh_exist(g_packages, k)) {
+            const char *pkgname = kh_key(g_packages, k);
+            package_t *p = kh_value(g_packages, k);
+            ks_clear(ksv);
+            ks_appendf(ksv, "lib%cpackage%c%s%c%s%cbin%c%s.kx", PATH_DELCH, PATH_DELCH, pkgname, PATH_DELCH, p->vers, PATH_DELCH, PATH_DELCH, execname);
+            kx_trace(ctx, 0, "[exec:check] %s", ks_string(ksv));
+            if (file_exists(ks_string(ksv))) {
+                execfile = kx_const_str(ctx, ks_string(ksv));
+                kx_trace(ctx, 0, " ... found\n");
+                break;
+            } else {
+                kx_trace(ctx, 0, " ... not found\n");
+            }
+        }
+    }
+    ks_free(ksv);
+
+    return execfile;
+}
+
 DllExport int do_main(int ac, char **av)
 {
     int r = 1;
@@ -271,11 +316,11 @@ DllExport int do_main(int ac, char **av)
     #endif
 
     int error_code = -1;
+    int disp_version = -1;
     const char *filename = NULL;
     const char *workdir = NULL;
     kx_context_t *ctx = make_context();
     g_main_thread = ctx;
-    setup_package_info(ctx);
     char lname[LONGNAME_MAX] = {0};
     char param[LONGNAME_MAX] = {0};
     char *execname = NULL;
@@ -285,8 +330,8 @@ DllExport int do_main(int ac, char **av)
         case '-':
             get_long_option(optarg, lname, param);
             if (!strcmp(lname, "version")) {
-                version(1);
-                goto CLEANUP;
+                disp_version = 1;
+                goto END_OF_OPT;
             } else if (!strcmp(lname, "dot")) {
                 ctx->options.dot = 1;
             } else if (!strcmp(lname, "native-call-max-depth")) {
@@ -295,8 +340,8 @@ DllExport int do_main(int ac, char **av)
                 ctx->options.with_native = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "exception-detail-info")) {
                 ctx->options.exception_detail_info = param[0] ? strtol(param, NULL, 0) : 1;
-            } else if (!strcmp(lname, "native-verbose")) {
-                ctx->options.native_verbose = param[0] ? strtol(param, NULL, 0) : 1;
+            } else if (!strcmp(lname, "verbose")) {
+                ctx->options.verbose = param[0] ? strtol(param, NULL, 0) : 1;
             } else if (!strcmp(lname, "case-threshold")) {
                 ctx->options.case_threshold = param[0] ? strtol(param, NULL, 0) : 16;
             } else if (!strcmp(lname, "error-code")) {
@@ -340,8 +385,8 @@ DllExport int do_main(int ac, char **av)
             usage();
             goto CLEANUP;
         case 'v':
-            version(0);
-            goto CLEANUP;
+            disp_version = 0;
+            goto END_OF_OPT;
         default:
             usage();
             goto CLEANUP;
@@ -349,6 +394,12 @@ DllExport int do_main(int ac, char **av)
     }
 
 END_OF_OPT:
+    setup_package_info(ctx);
+    if (disp_version >= 0) {
+        version(disp_version);
+        goto CLEANUP;
+    }
+
     #if defined(_WIN32) || defined(_WIN64)
     if (GetConsoleCP() == CP_UTF8) {
         ctx->options.utf8inout = 1;
@@ -361,7 +412,7 @@ END_OF_OPT:
     }
     kx_lexinfo.quiet = ctx->options.quiet;
     if (execname) {
-        const char *execfile = kxlib_exec_file_exists(execname);
+        const char *execfile = search_exec_file(ctx, execname);
         if (!execfile) {
             fprintf(stderr, "No internal execution code(%s).\n", execname);
             r = 1;
@@ -474,6 +525,7 @@ CLEANUP:
         start_display_def_ast(kx_ast_root);
     }
 
+    kx_trace(ctx, 0, "[cleanup] terminating the program...\n");
     g_terminated = 1;
     free_package_info();
     context_cleanup(ctx);
@@ -488,7 +540,9 @@ CLEANUP:
     #if defined(_WIN32) || defined(_WIN64)
     WSACleanup();
     #endif
-    return error_code >= 0 ? error_code : r;
+    r = error_code >= 0 ? error_code : r;
+    kx_trace(ctx, 0, "[done:status] %d\n", r);
+    return r;
 }
 
 /* Interfaces As a Library */
