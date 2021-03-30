@@ -38,6 +38,8 @@ extern void alloc_initialize(void);
 extern void alloc_finalize(void);
 extern void init_allocator(void);
 extern volatile int g_terminated;
+extern khash_t(package) *g_packages;
+extern const char *kxlib_package_file(void);
 
 #ifdef YYDEBUG
 extern int kx_yydebug;
@@ -122,7 +124,18 @@ static void version(int detail)
     if (detail) {
         printf("- platform: %s\n", sljit_get_platform_name());
         printf("- path:     %s\n", get_kinx_path());
-        printf("\n");
+
+        /* Package List */
+        if (kh_end(g_packages) > 0) {
+            printf("\nPackages:\n");
+            for (khint_t k = 0; k < kh_end(g_packages); ++k) {
+                if (kh_exist(g_packages, k)) {
+                    const char *key = kh_key(g_packages, k);
+                    package_t *p = kh_value(g_packages, k);
+                    printf("  * %s v%s\n", key, p->vers);
+                }
+            }
+        }
     }
 }
 
@@ -166,6 +179,72 @@ static void setup_run_environment(const char *filename)
     #endif
 }
 
+static void setup_package_info(kx_context_t *ctx)
+{
+    g_packages = kh_init(package);
+    const char *pkgfile = kxlib_package_file();
+    if (!pkgfile) {
+        return;
+    }
+    FILE *fp = fopen(pkgfile, "r");
+    if (fp) {
+        char buf[1024] = {0};
+        while (fgets(buf, 1020, fp)) {
+            char *p = strrchr(buf, '=');
+            if (!p || p == buf) continue;
+            char *s = p;
+            while (buf < s) {
+                --s;
+                if (*s != ' ' && *s != '\t') {
+                    break;
+                }
+                *s = 0;
+            }
+            if (buf == s) continue;
+            ++p;
+            while (*p) {
+                if (*p != ' ' && *p != '\t') {
+                    break;
+                }
+                ++p;
+            }
+            char *e = p + strlen(p) - 1;
+            while (*e == '\n' || *e == '\r') {
+                *e = 0;
+                --e;
+            }
+            if (*p) {
+                int absent;
+                const char *key = kx_const_str(ctx, buf);
+                const char *ver = kx_const_str(ctx, p);
+                package_t *pkg = kx_calloc(1, sizeof(package_t));
+                pkg->vers = ver;
+                khint_t k = kh_put(package, g_packages, key, &absent);
+                kh_value(g_packages, k) = pkg;
+                if (absent) {
+                    kh_key(g_packages, k) = key;
+                }
+            }
+        }
+        fclose(fp);
+    }
+}
+
+static void free_package_info(void)
+{
+    for (khint_t k = 0; k < kh_end(g_packages); ++k) {
+        if (kh_exist(g_packages, k)) {
+            package_t *p = kh_value(g_packages, k);
+            while (p) {
+                package_t *n = p->next;
+                kx_free(p);
+                p = n;
+            }
+        }
+    }
+    kh_destroy(package, g_packages);
+}
+
 DllExport int do_main(int ac, char **av)
 {
     int r = 1;
@@ -196,6 +275,7 @@ DllExport int do_main(int ac, char **av)
     const char *workdir = NULL;
     kx_context_t *ctx = make_context();
     g_main_thread = ctx;
+    setup_package_info(ctx);
     char lname[LONGNAME_MAX] = {0};
     char param[LONGNAME_MAX] = {0};
     char *execname = NULL;
@@ -395,6 +475,7 @@ CLEANUP:
     }
 
     g_terminated = 1;
+    free_package_info();
     context_cleanup(ctx);
     free_nodes();
     pthread_mutex_destroy(&g_mutex);
