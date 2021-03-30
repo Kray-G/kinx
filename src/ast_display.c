@@ -399,7 +399,8 @@ LOOP_HEAD:;
         break;
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
         display_ast(node->lhs, indent, lvalue);
-        display_ast(node->rhs, indent, lvalue);
+        node = node->rhs;
+        if (node) goto LOOP_HEAD;
         break;
     case KXST_STMTLIST:   /* lhs: stmt1: rhs: stmt2 */
         display_ast(node->lhs, indent, 0);
