@@ -160,7 +160,7 @@ all: timex kinx $(SOFILES) main_kxcmd
 install:
 	mkdir -p /usr/bin/kinxlib/include
 	mkdir -p /usr/bin/kinxlib/docs/licenses
-	mkdir -p /usr/bin/kinxlib/exec/3rdparty
+	mkdir -p /usr/bin/kinxlib/package
 	cp -f ./kinx /usr/bin/kinx
 	cp -f ./kxrepl /usr/bin/kxrepl
 	cp -f ./kxtest /usr/bin/kxtest
