@@ -127,7 +127,7 @@ Successful
 Successful
 ```
 
-### Example 4. Can't specify a return type of function. 
+### Example 4. Can't specify a return type of function
 
 This bug's was caused by lack of consideration of a part of type propagation.
 
@@ -183,4 +183,34 @@ System.println(test3(10.5));
 0
 ```
 
+### Example 6. Fails a Destructuring Assignment in Const
 
+This bug's was caused by an incorrect bytecode.
+
+* Issue: [#257](https://github.com/Kray-G/kinx/issues/257)
+* Fixed: [43d82765b577221c820575b7f5e7323cc0171be1](https://github.com/Kray-G/kinx/commit/43d82765b577221c820575b7f5e7323cc0171be1)
+
+#### Code
+
+```javascript
+function test1(data) {
+    var [a, b, ...c] = data.split(',');
+}
+function test2(data) {
+    [a, b, ...c] = data.split(',');
+}
+function test3(data) {
+    const [a, b, ...c] = data.split(',');
+}
+test1("1,2,3,4,5,6,7,8,9");
+test2("1,2,3,4,5,6,7,8,9");
+test3("1,2,3,4,5,6,7,8,9");
+
+System.println("Successful");
+```
+
+#### Result
+
+```
+Successful
+```
