@@ -158,16 +158,15 @@ static int set_package_version(const char *pkgname, int pos)
     return pos;
 }
 
-static const char *search_using_path(const char *name)
+static const char *search_using_path(const char *name, char *libname, int size)
 {
-    char libname[LIBNAME_BUFSIZE*2] = {0};
     const char *file = NULL;
     /* Trying to search the file in the same directory first. */
-    snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
+    snprintf(libname, size-1, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
     if (file_exists(libname)) {
         file = libname;
     } else {
-        snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s.kx", name);
+        snprintf(libname, size-1, "%s.kx", name);
         file = kxlib_file_exists(libname);
     }
     return file;
@@ -232,7 +231,7 @@ static int load_using_module(const char *name, const char *pkgname, const char *
             return load_using_module_asta(name, len, pkgname, pkgkey);
         }
     } else {
-        file = search_using_path(name);
+        file = search_using_path(name, libname, LIBNAME_BUFSIZE*2-1);
         if (!file) {
             if (!no_error) {
                 const char *msg = pkgname && !is_package_installed(pkgname)
