@@ -291,11 +291,6 @@ const char *search_exec_file(kx_context_t *ctx, const char *execname)
 
 DllExport int do_main(int ac, char **av)
 {
-    int r = 1;
-    init_allocator();
-    alloc_initialize();
-    pthread_mutex_init(&g_mutex, NULL);
-
     #ifdef YYDEBUG
     kx_yydebug = 1;
     #endif
@@ -314,7 +309,14 @@ DllExport int do_main(int ac, char **av)
     }
     #endif
 
+    /* initializations */
+    init_allocator();
+    alloc_initialize();
+    pthread_mutex_init(&g_mutex, NULL);
     g_packages = kh_init(package);
+
+    /* option check */
+    int r = 1;
     int error_code = -1;
     int disp_version = -1;
     const char *filename = NULL;
