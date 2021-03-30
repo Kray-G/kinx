@@ -86,95 +86,6 @@ void kx_make_regex_mode(int br)
     g_regexmode = br;
 }
 
-static const char *search_using_path(const char *name)
-{
-    char libname[LIBNAME_BUFSIZE*2] = {0};
-    const char *file = NULL;
-    /* Trying to search the file in the same directory first. */
-    snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
-    if (file_exists(libname)) {
-        file = libname;
-    } else {
-        snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s.kx", name);
-        file = kxlib_file_exists(libname);
-    }
-    return file;
-}
-
-static void load_using_module_asta(const char *name, int len, const char *pkgkey)
-{
-    int nested = get_nested_level();
-    char *path = kx_calloc(len+2, sizeof(char));
-    memcpy(path, name, len);
-    path[len-2] = 0;
-    const char *search = kxlib_file_exists(path);
-    kx_trace(g_parse_ctx, nested, "[using:dir] %s\n", search);
-
-    kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-    kx_dirent_t *entry = NULL;
-    kx_dir_t *dir = kx_open_dir(search);
-    while ((entry = kx_read_dir(dir)) != NULL) {
-        if (entry->d_name[0] != '.') {
-            const char *file = make_path(search, entry->d_name);
-            kx_trace(g_parse_ctx, nested, "[using:*] %s\n", file);
-            setup_lexinfo(g_parse_ctx, file, &(kx_yyin_t){
-                .fp = NULL,
-                .str = NULL,
-                .file = const_str(g_parse_ctx, file)
-            });
-            if (pkgkey) {
-                kx_lexinfo.pkgkey = pkgkey;
-                pkgkey = NULL;
-            }
-            kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-        }
-    }
-
-    kx_close_dir(dir);
-    kx_free(path);
-}
-
-static int load_using_module(const char *name, const char *pkgkey, int no_error)
-{
-    char libname[LIBNAME_BUFSIZE*2] = {0};
-    const char *file = NULL;
-    int len = strlen(name);
-    if (name[len-1] == '*') {
-        if (name[len-2] != PATH_DELCH) {
-            kx_yywarning("Can not use '*' with a current directoy in 'using' directive");
-        } else {
-            load_using_module_asta(name, len, pkgkey);
-            return kx_yylex();
-        }
-    } else {
-        file = search_using_path(name);
-        if (!file) {
-            if (!no_error) {
-                char buf[LIBNAME_BUFSIZE*3] = {0};
-                snprintf(buf, LIBNAME_BUFSIZE*3-1, "Library file not found(%s)", name);
-                kx_yywarning(buf);
-            }
-            while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
-                kx_lex_next(kx_lexinfo);
-            }
-            return no_error ? ';' : ERROR;
-        }
-        kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
-        FILE *fp = fopen(file, "r");
-        setup_lexinfo(g_parse_ctx, file, &(kx_yyin_t){
-            .fp = fp,
-            .str = NULL,
-            .file = const_str(g_parse_ctx, file)
-        });
-        if (pkgkey) {
-            kx_lexinfo.pkgkey = pkgkey;
-        }
-    }
-
-    kx_lex_next(kx_lexinfo);
-    return kx_yylex();  /* recursive call for the new file. */
-}
-
 static void kx_trace_versions(const char *key, const char *op, package_t *pkg)
 {
     if (g_parse_ctx->options.verbose) {
@@ -186,6 +97,12 @@ static void kx_trace_versions(const char *key, const char *op, package_t *pkg)
         }
         kx_trace(g_parse_ctx, 0, ")\n");
     }
+}
+
+static int is_package_installed(const char *key)
+{
+    khint_t k = kh_get(package, g_packages, key);
+    return k != kh_end(g_packages);
 }
 
 static void push_package_version(const char *key, const char *ver)
@@ -236,6 +153,105 @@ static int set_package_version(const char *pkgname, int pos)
         }
     }
     return pos;
+}
+
+static const char *search_using_path(const char *name)
+{
+    char libname[LIBNAME_BUFSIZE*2] = {0};
+    const char *file = NULL;
+    /* Trying to search the file in the same directory first. */
+    snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s%c%s.kx", parent_path(kx_lexinfo.file), PATH_DELCH, name);
+    if (file_exists(libname)) {
+        file = libname;
+    } else {
+        snprintf(libname, LIBNAME_BUFSIZE*2-1, "%s.kx", name);
+        file = kxlib_file_exists(libname);
+    }
+    return file;
+}
+
+static void load_using_module_asta(const char *name, int len, const char *pkgname, const char *pkgkey)
+{
+    int nested = get_nested_level();
+    char *path = kx_calloc(len+2, sizeof(char));
+    memcpy(path, name, len);
+    path[len-2] = 0;
+    const char *search = kxlib_file_exists(path);
+    if (!search) {
+        const char *msg = pkgname && !is_package_installed(pkgname)
+            ? static_format("Package(%s) not installed", pkgname, path)
+            : static_format("Library file not found(%s)", path);
+        kx_yyerror(msg);
+printf("1 ch = %c(%d)\n", kx_lexinfo.ch, kx_lexinfo.ch);
+    } else {
+        kx_trace(g_parse_ctx, nested, "[using:dir] %s\n", search);
+
+        kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+        kx_dirent_t *entry = NULL;
+        kx_dir_t *dir = kx_open_dir(search);
+        while ((entry = kx_read_dir(dir)) != NULL) {
+            if (entry->d_name[0] != '.') {
+                const char *file = make_path(search, entry->d_name);
+                kx_trace(g_parse_ctx, nested, "[using:*] %s\n", file);
+                setup_lexinfo(g_parse_ctx, file, &(kx_yyin_t){
+                    .fp = NULL,
+                    .str = NULL,
+                    .file = const_str(g_parse_ctx, file)
+                });
+                if (pkgkey) {
+                    kx_lexinfo.pkgkey = pkgkey;
+                    pkgkey = NULL;
+                }
+                kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+            }
+        }
+
+        kx_close_dir(dir);
+    }
+
+    kx_free(path);
+}
+
+static int load_using_module(const char *name, const char *pkgname, const char *pkgkey, int no_error)
+{
+    char libname[LIBNAME_BUFSIZE*2] = {0};
+    const char *file = NULL;
+    int len = strlen(name);
+    if (name[len-1] == '*') {
+        if (name[len-2] != PATH_DELCH) {
+            kx_yyerror("Can not use '*' with a current directoy in 'using' directive");
+        } else {
+            load_using_module_asta(name, len, pkgname, pkgkey);
+            return kx_yylex();
+        }
+    } else {
+        file = search_using_path(name);
+        if (!file) {
+            if (!no_error) {
+                const char *msg = pkgname && !is_package_installed(pkgname)
+                    ? static_format("Package(%s) not installed", pkgname, name)
+                    : static_format("Library file not found(%s)", name);
+                kx_yyerror(msg);
+            }
+            while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
+                kx_lex_next(kx_lexinfo);
+            }
+            return ';';
+        }
+        kv_push(kx_lexinfo_t, kx_lex_stack, kx_lexinfo);
+        FILE *fp = fopen(file, "r");
+        setup_lexinfo(g_parse_ctx, file, &(kx_yyin_t){
+            .fp = fp,
+            .str = NULL,
+            .file = const_str(g_parse_ctx, file)
+        });
+        if (pkgkey) {
+            kx_lexinfo.pkgkey = pkgkey;
+        }
+    }
+
+    kx_lex_next(kx_lexinfo);
+    return kx_yylex();  /* recursive call for the new file. */
 }
 
 static int process_using(void)
@@ -307,7 +323,7 @@ static int process_using(void)
     }
     kx_strbuf[pos] = 0;
 
-    return load_using_module(kx_strbuf, pushed_version ? pkgname : NULL, no_error);
+    return load_using_module(kx_strbuf, pkgname, pushed_version ? pkgname : NULL, no_error);
 }
 
 static int get_keyword_token(const char *val)
@@ -793,7 +809,7 @@ static int process_import(void)
         return ';';
     case 6:
         g_import = 0;
-        return load_using_module(modulename, NULL, 1);
+        return load_using_module(modulename, NULL, NULL, 1);
     }
     return ERROR;
 }
