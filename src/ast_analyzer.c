@@ -706,36 +706,45 @@ LOOP_HEAD:;
         kx_object_t *n = NULL;
         int vtype = KX_UNKNOWN_T;
         if (!actx->lvalue && sym->optional == KXDC_CONST && sym->base->init) {
-            switch (sym->base->init->type) {
-            case KXVL_INT:
-                n = kx_gen_int_object(sym->base->init->value.i);
-                vtype = KX_INT_T;
-                break;
-            case KXVL_DBL:
-                n = kx_gen_dbl_object(sym->base->init->value.d);
-                vtype = KX_DBL_T;
-                break;
-            case KXVL_STR:
-                n = kx_gen_str_object(sym->base->init->value.s);
-                vtype = KX_CSTR_T;
-                break;
-            case KXVL_BIG:
-                n = kx_gen_big_object(sym->base->init->value.s);
-                vtype = KX_BIG_T;
-                break;
-            case KXVL_NULL:
-                n = kx_gen_special_object(KXVL_NULL);
-                vtype = KX_UND_T;
-                break;
-            case KXVL_TRUE:
-                n = kx_gen_special_object(KXVL_TRUE);
-                vtype = KX_INT_T;
-                break;
-            case KXVL_FALSE:
-                n = kx_gen_special_object(KXVL_FALSE);
-                vtype = KX_INT_T;
-                break;
-            }
+            int retry;
+            do {
+                retry = 0;
+                switch (sym->base->init->type) {
+                case KXVL_INT:
+                    n = kx_gen_int_object(sym->base->init->value.i);
+                    vtype = KX_INT_T;
+                    break;
+                case KXVL_DBL:
+                    n = kx_gen_dbl_object(sym->base->init->value.d);
+                    vtype = KX_DBL_T;
+                    break;
+                case KXVL_STR:
+                    n = kx_gen_str_object(sym->base->init->value.s);
+                    vtype = KX_CSTR_T;
+                    break;
+                case KXVL_BIG:
+                    n = kx_gen_big_object(sym->base->init->value.s);
+                    vtype = KX_BIG_T;
+                    break;
+                case KXVL_NULL:
+                    n = kx_gen_special_object(KXVL_NULL);
+                    vtype = KX_UND_T;
+                    break;
+                case KXVL_TRUE:
+                    n = kx_gen_special_object(KXVL_TRUE);
+                    vtype = KX_INT_T;
+                    break;
+                case KXVL_FALSE:
+                    n = kx_gen_special_object(KXVL_FALSE);
+                    vtype = KX_INT_T;
+                    break;
+                default:
+                    if (sym->base->init->type < KXST_EXPR) {
+                        retry = opt_ast_constant_folding(ctx, sym->base->init);
+                    }
+                    break;
+                }
+            } while (!n && retry);
             if (n) {
                 node->lhs = n;
                 analyze_ast(ctx, node->lhs, actx);    // expanding const value.
