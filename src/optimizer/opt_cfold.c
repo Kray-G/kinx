@@ -1,6 +1,7 @@
 #include <kxoptimizer.h>
 
 #define KX_OPT_REPLACE_NODE(node, expr) \
+    cctx->changed++; \
     node->value.i = expr; \
     node->type = KXVL_INT; \
     node->lhs = NULL; \
@@ -9,8 +10,9 @@
 /**/
 #define KX_CONST_VAR_CHECK(p, br) { \
     kx_object_t *n = p->br; \
-    if (n->type == KXOP_VAR && n->lhs) { \
+    if (p->br != n->lhs && n->type == KXOP_VAR && n->lhs) { \
         if (n->lhs->type == KXVL_INT || n->lhs->type == KXVL_DBL) { \
+            cctx->changed++; \
             p->br = n->lhs; \
         } \
     } \
@@ -23,6 +25,7 @@ typedef struct folding_context_ {
     int exprlist_r2l;
     int in_function;
     int in_case_when;
+    int changed;
 } folding_context_t;
 
 static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, folding_context_t *cctx)
@@ -223,6 +226,7 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
                 if (v1val % (v2val > 0 ? v2val : -v2val) == 0) {
                     KX_OPT_REPLACE_NODE(node, v1val / v2val);
                 } else {
+                    cctx->changed++;
                     node->value.d = (double)v1val / v2val;
                     node->type = KXVL_DBL;
                     node->lhs = NULL;
@@ -468,10 +472,18 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
     }
 }
 
-void opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
+int opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
 {
     folding_context_t cctx = {0};
     cctx.anon_check = (node->type == KXST_STMTLIST && node->optional == 0);
     ++node->optional;
-    opt_ast_constant_folding_impl(ctx, node, &cctx);
+    int changed = 0;
+    do {
+        cctx.changed = 0;
+        opt_ast_constant_folding_impl(ctx, node, &cctx);
+        if (changed < cctx.changed) {
+            changed = cctx.changed;
+        }
+    } while (cctx.changed > 0);
+    return changed;
 }
