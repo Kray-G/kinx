@@ -1,4 +1,4 @@
-Integer.parseInt = function(val, rdx) {
+Integer.parseInt = _function(val, rdx) {
     if (val.isString) {
         val = val.replace("_", "");
         var l = val.length();
