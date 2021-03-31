@@ -451,7 +451,7 @@ _Enumerable.flatMap = _function(mapping) {
                 }
                 var mapped = mapping(value.value);
                 if (mapped.isArray) {
-                    mapped.flatten().each { &(e) => r.push({ value: e, done: false }) };
+                    mapped.flatten().each(_function(e) { return r.push({ value: e, done: false }); });
                 } else {
                     return { value: mapped, done: false };
                 }
