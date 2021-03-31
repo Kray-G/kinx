@@ -8,6 +8,7 @@
     *   #237: Comparing between variables having a string is failed.
     *   #256: Comparison operator will be failed with an integer on LHS and a variable(double) on RHS.
     *   #257: Fails a destructuring assignment when declaration with const.
+    *   #258: There is a case that the bytecode does not be outputted.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 
