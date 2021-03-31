@@ -16,17 +16,20 @@
 *   New Features
     *   Supported SAT solver by picosat.
     *   Supported SemanticVersion class.
-*   Improvements
+*   Improvements/Enhancements
     *   Supported putting a comma at the end of an argument's list for both declaration and calling.
     *   Supported the operator of `==` and `!=` in Boolean class.
     *   Supported `String#isIntegerString`.
     *   Shared an implementation of conversion for a string, an integer, and a double.
     *   Improved type analysis for the language server.
     *   SpecTest: Made a space wider of Test case number.
+    *   #255: Improved the `operator[]` in `Range`.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #236: Can't specify the class as a return type of function.
     *   #237: Comparing between variables having a string is failed.
+    *   #256: Comparison operator will be failed with an integer on LHS and a variable(double) on RHS.
+    *   #257: Fails a destructuring assignment when declaration with const.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.

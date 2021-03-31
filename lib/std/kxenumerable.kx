@@ -820,6 +820,8 @@ _class _Range(start_, end_, excludeEnd_) {
     mixin _Enumerable;
     @Enumerable.sum = @sum;
     @isRange = true;
+    var arrayCache_ = [];
+    var arrayCacheLastIndex_ = 0;
     var cur_;
     private initialize() {
         cur_ = start_;
@@ -853,6 +855,9 @@ _class _Range(start_, end_, excludeEnd_) {
         return a <=> b;
     }
     private eachByFunction(func) {
+        if (!@array && arrayCacheLastIndex_ > 0) {
+            @array = @toArray();
+        }
         if (@array) {
             var i = 0;
             var sz = @array.length();
@@ -896,6 +901,9 @@ _class _Range(start_, end_, excludeEnd_) {
         }
         if (func.isFunction) {
             return eachByFunction(func);
+        }
+        if (!@array && arrayCacheLastIndex_ > 0) {
+            @array = @toArray();
         }
         if (@array) {
             @array.each(&(e) => {
@@ -945,9 +953,53 @@ _class _Range(start_, end_, excludeEnd_) {
         }
         return true;
     }
+    public toString() {
+        return "Range(%{start_}, %{end_.isDefined ? end_ : 'null'}, %{excludeEnd_ ? 'true' : 'false'})";
+    }
+    public toArray() {
+        if (end_.isUndefined) {
+            throw FiberException("Cannot complete the iteration");
+        }
+        while (true) {
+            if (end_.isDefined && excludeEnd_ && comp(cur_, end_) >= 0) {
+                break;
+            }
+            arrayCache_.push(cur_);
+            if (end_.isDefined && !excludeEnd_ && comp(cur_, end_) >= 0) {
+                break;
+            }
+            cur_ = cur_.next();
+        }
+        return arrayCache_;
+    }
     public [](rhs) {
+        if (rhs.isInteger) {
+            var n = rhs - arrayCacheLastIndex_ + 1;
+            if (n > 0) {
+                arrayCache_ += @take(n);
+                arrayCacheLastIndex_ += n;
+            }
+            return arrayCache_[rhs];
+        }
+        if (rhs.isRange) {
+            var s = rhs.begin();
+            var e = rhs.end();
+            var ex = rhs.isEndExcluded();
+            if (e.isUndefined) {
+                return new Range(start_ + s, end_, excludeEnd_);
+            }
+            if (end_.isUndefined) {
+                var n = e + (ex ? 0 : 1) - arrayCacheLastIndex_;
+                if (n > 0) {
+                    arrayCache_ += @take(n);
+                    arrayCacheLastIndex_ += n;
+                }
+                return arrayCache_[rhs];
+            }
+            /* will do toArray. */
+        }
         if (!@array) {
-            @array = @toArray();
+            @array = toArray();
         }
         return @array[rhs];
     }
