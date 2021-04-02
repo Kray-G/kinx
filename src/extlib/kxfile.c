@@ -1,13 +1,13 @@
 #include <dbg.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-#include "zip/include/mz.h"
-#include "zip/include/mz_os.h"
-#include "zip/include/mz_strm.h"
-#include "zip/include/mz_strm_buf.h"
-#include "zip/include/mz_strm_split.h"
-#include "zip/include/mz_zip.h"
-#include "zip/include/mz_zip_rw.h"
+#include "libmodules/libs/zip/include/mz.h"
+#include "libmodules/libs/zip/include/mz_os.h"
+#include "libmodules/libs/zip/include/mz_strm.h"
+#include "libmodules/libs/zip/include/mz_strm_buf.h"
+#include "libmodules/libs/zip/include/mz_strm_split.h"
+#include "libmodules/libs/zip/include/mz_zip.h"
+#include "libmodules/libs/zip/include/mz_zip_rw.h"
 
 #define KX_DLL
 #include <kinx.h>

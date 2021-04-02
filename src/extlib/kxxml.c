@@ -2,8 +2,8 @@
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
-#include "libxml2/include/libxml2/libxml/xmlreader.h"
-#include "libxml2/include/libxml2/libxml/xpath.h"
+#include "libmodules/libs/libxml2/include/libxml2/libxml/xmlreader.h"
+#include "libmodules/libs/libxml2/include/libxml2/libxml/xpath.h"
 
 KX_DECL_MEM_ALLOCATORS();
 
@@ -607,7 +607,7 @@ static int XML_node_attributes(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_cont
         KEX_SET_PROP_CSTR(a, "value", value ? (const char *)value : "");
         KEX_PUSH_ARRAY_OBJ(ret, a);
 
-        xmlFree(value); 
+        xmlFree(value);
         attr = attr->next;
     }
 
@@ -1071,7 +1071,7 @@ static int xml_parse(int args, kx_context_t *ctx, kx_xml_t *xml)
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
     return 0;
-} 
+}
 
 static int XML_parseString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
