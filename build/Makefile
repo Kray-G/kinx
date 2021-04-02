@@ -239,7 +239,7 @@ kxarray.so: $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
 
 kxfile.so: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) libz.so libcrypto.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lcrypto -lz
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/libmodules/libs/zip/x64/gcc/libminizip.a -Wl,-rpath,'$$ORIGIN' -L. -lcrypto -lz
 
 kxdebugger.so: $(SRCDIR)/extlib/kxdebugger.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -Wl,-rpath,'$$ORIGIN'
@@ -254,16 +254,16 @@ kxsqlite.so: $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.o
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) sqlite3.o -pthread
 
 kxnet.so: $(SRCDIR)/extlib/kxnet.c $(PICOBJS) libssl.so libcrypto.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/libcurl/x64/gcc/libcurl.a $(SRCDIR)/extlib/zip/x64/gcc/libminizip.a -pthread -ldl -Wl,-rpath,'$$ORIGIN' -L. -lz -lcrypto -lssl
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/libmodules/libs/libcurl/x64/gcc/libcurl.a $(SRCDIR)/extlib/libmodules/libs/zip/x64/gcc/libminizip.a -pthread -ldl -Wl,-rpath,'$$ORIGIN' -L. -lz -lcrypto -lssl
 
-kxxml.so: $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libxml2/x64/gcc/libxml2.a libz.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I $(SRCDIR)/extlib/libxml2/include/libxml2 $(SRCDIR)/extlib/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
+kxxml.so: $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libmodules/libs/libxml2/x64/gcc/libxml2.a libz.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I $(SRCDIR)/extlib/libmodules/libs/libxml2/include/libxml2 $(SRCDIR)/extlib/libmodules/libs/libxml2/x64/gcc/libxml2.a -Wl,-rpath,'$$ORIGIN' -L. -lz
 
-kxpdf.so: $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libharu/x64/gcc/libhpdf.a $(SRCDIR)/extlib/libharu/x64/gcc/libpng.a libz.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I $(SRCDIR)/extlib/libharu/include $(SRCDIR)/extlib/libharu/x64/gcc/libhpdf.a $(SRCDIR)/extlib/libharu/x64/gcc/libpng.a -Wl,-rpath,'$$ORIGIN' -lm -L. -lz
+kxpdf.so: $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libmodules/libs/libharu/x64/gcc/libhpdf.a $(SRCDIR)/extlib/libmodules/libs/libharu/x64/gcc/libpng.a libz.so
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) -I $(SRCDIR)/extlib/libmodules/libs/libharu/include $(SRCDIR)/extlib/libmodules/libs/libharu/x64/gcc/libhpdf.a $(SRCDIR)/extlib/libmodules/libs/libharu/x64/gcc/libpng.a -Wl,-rpath,'$$ORIGIN' -lm -L. -lz
 
 kxssh.so: $(SRCDIR)/extlib/kxssh.c $(PICOBJS) libssl.so libcrypto.so
-	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/libssh2/x64/gcc/libssh2.a -Wl,-rpath,'$$ORIGIN' -L. -lonig -pthread -lcrypto
+	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) $(SRCDIR)/extlib/libmodules/libs/libssh2/x64/gcc/libssh2.a -Wl,-rpath,'$$ORIGIN' -L. -lonig -pthread -lcrypto
 
 kxprocess.so: $(SRCDIR)/extlib/kxprocess.c $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS)
@@ -277,16 +277,16 @@ libz.so: libz.so.1
 libz.so.1: libz.so.1.2.11
 	ln -s libz.so.1.2.11 libz.so.1
 
-libz.so.1.2.11: $(SRCDIR)/extlib/zip/x64/gcc/libz.so.1.2.11
-	cp -f $(SRCDIR)/extlib/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
+libz.so.1.2.11: $(SRCDIR)/extlib/libmodules/libs/zip/x64/gcc/libz.so.1.2.11
+	cp -f $(SRCDIR)/extlib/libmodules/libs/zip/x64/gcc/libz.so.1.2.11 ./libz.so.1.2.11
 	chmod +x libz.so.1.2.11
 
 libssl.so:
-	cp -f $(SRCDIR)/extlib/openssl/x64/gcc/libssl.so.3 ./libssl.so.3
+	cp -f $(SRCDIR)/extlib/libmodules/libs/openssl/x64/gcc/libssl.so.3 ./libssl.so.3
 	ln -s libssl.so.3 libssl.so
 
 libcrypto.so:
-	cp -f $(SRCDIR)/extlib/openssl/x64/gcc/libcrypto.so.3 ./libcrypto.so.3
+	cp -f $(SRCDIR)/extlib/libmodules/libs/openssl/x64/gcc/libcrypto.so.3 ./libcrypto.so.3
 	ln -s libcrypto.so.3 libcrypto.so
 
 $(SRCDIR)/optimizer.c: $(SRCDIR)/optimizer/optimizer.c

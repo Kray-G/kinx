@@ -4,7 +4,7 @@
 #define KX_DLL
 #include <kinx.h>
 #include <kxthread.h>
-#include "libharu/include/hpdf.h"
+#include "libmodules/libs/libharu/include/hpdf.h"
 
 KX_DECL_MEM_ALLOCATORS();
 
