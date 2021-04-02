@@ -22,7 +22,6 @@ myacc
 src/opt*.c
 src/extlib/onig
 src/extlib/libclipboard
-src/extlib/libmodules
 timeit.dat
 /x86.ins
 /x64.ins
