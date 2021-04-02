@@ -231,11 +231,11 @@ kxdouble.dll: $(SRCDIR)/extlib/kxdouble.c $(PICOBJS)
 kxarray.dll: $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxarray.c $(PICOBJS)
 
-kxfile.dll: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj $(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib $(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib $(SRCDIR)/extlib/zip/x64/vs2017/bzip2.lib
+kxfile.dll: $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj $(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/minizip.lib $(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/zlib.lib $(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/bzip2.lib
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxfile.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj \
-		$(SRCDIR)/extlib/zip/x64/vs2017/minizip.lib  \
-		$(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib  \
-		$(SRCDIR)/extlib/zip/x64/vs2017/bzip2.lib  \
+		$(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/minizip.lib  \
+		$(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/zlib.lib  \
+		$(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/bzip2.lib  \
 		user32.lib advapi32.lib crypt32.lib
 
 kxdebugger.dll: $(SRCDIR)/extlib/kxdebugger.c $(PICOBJS) $(SRCDIR)/extlib/ansicolor/ansicolor_w32.obj
@@ -251,56 +251,56 @@ kxregex.dll: $(SRCDIR)/extlib/kxregex.c $(PICOBJS) onig.dll
 	$(CC) /LD $(CFLAGS) /Fe$@ /Fmkxregex.map /Fakxregex.s $(SRCDIR)/extlib/kxregex.c $(PICOBJS) onig.lib
 
 kxssh.dll: $(SRCDIR)/extlib/kxssh.c $(PICOBJS) onig.dll
-	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxssh.c $(PICOBJS) onig.lib $(SRCDIR)/extlib/libssh2/x64/vs2017/libssh2.lib ws2_32.lib
+	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxssh.c $(PICOBJS) onig.lib $(SRCDIR)/extlib/libmodules/libs/libssh2/x64/vs2017/libssh2.lib ws2_32.lib
 
 kxsqlite.dll: $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxsqlite.c $(PICOBJS) sqlite3.obj
 
 kxnet.dll: $(SRCDIR)/extlib/kxnet.c $(PICOBJS) libssl-3-x64.dll libcrypto-3-x64.dll
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxnet.c $(PICOBJS) \
-		$(SRCDIR)\extlib\libcurl\x64\vs2017\libcurl_a.lib \
-		$(SRCDIR)\extlib\openssl\x64\vs2017\libssl.lib \
-		$(SRCDIR)\extlib\openssl\x64\vs2017\libcrypto.lib \
-		$(SRCDIR)\extlib\zip\x64\vs2017\zlib.lib \
+		$(SRCDIR)\extlib\libmodules\libs\libcurl\x64\vs2017\libcurl_a.lib \
+		$(SRCDIR)\extlib\libmodules\libs\openssl\x64\vs2017\libssl.lib \
+		$(SRCDIR)\extlib\libmodules\libs\openssl\x64\vs2017\libcrypto.lib \
+		$(SRCDIR)\extlib\libmodules\libs\zip\x64\vs2017\zlib.lib \
 		advapi32.lib
 
 kxxml.dll: $(SRCDIR)/extlib/kxxml.c $(PICOBJS)
-	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libxml2/include/libxml2 /Fe$@ $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libxml2/x64/vs2017/libxml2.lib
+	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libmodules/libs/libxml2/include/libxml2 /Fe$@ $(SRCDIR)/extlib/kxxml.c $(PICOBJS) $(SRCDIR)/extlib/libmodules/libs/libxml2/x64/vs2017/libxml2.lib
 
 kxjit.dll: $(SRCDIR)/extlib/kxjit.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /Fe$@ $(SRCDIR)/extlib/kxjit.c $(PICOBJS) $(SRCDIR)/ir_aotcore.obj $(SRCDIR)/disasm-x64/libudis86/*.obj
 
 kxpdf.dll: $(SRCDIR)/extlib/kxpdf.c $(PICOBJS)
-	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libharu/include /Fe$@ $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libharu/x64/vs2017/libhpdf.lib $(SRCDIR)/extlib/libharu/x64/vs2017/zlib_a.lib $(SRCDIR)/extlib/libharu/x64/vs2017/libpng.lib
+	$(CC) /LD $(CFLAGS) /I $(SRCDIR)/extlib/libmodules/libs/libharu/include /Fe$@ $(SRCDIR)/extlib/kxpdf.c $(PICOBJS) $(SRCDIR)/extlib/libmodules/libs/libharu/x64/vs2017/libhpdf.lib $(SRCDIR)/extlib/libmodules/libs/libharu/x64/vs2017/zlib_a.lib $(SRCDIR)/extlib/libmodules/libs/libharu/x64/vs2017/libpng.lib
 
 kxwebview.dll: $(SRCDIR)/extlib/kxwebview.c $(PICOBJS)
 	$(CC) /LD $(CFLAGS) /DWEBVIEW_WINAPI /I $(SRCDIR)/extlib/libharu/include /Fe$@ $(SRCDIR)/extlib/kxwebview.c $(PICOBJS) advapi32.lib gdi32.lib
 
-zlib.dll: $(SRCDIR)/extlib/zip/x64/vs2017/zlib.dll
-	copy /y $(SRCDIR)\extlib\zip\x64\vs2017\zlib.dll zlib.dll
+zlib.dll: $(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/zlib.dll
+	copy /y $(SRCDIR)\extlib\libmodules\libs\zip\x64\vs2017\zlib.dll zlib.dll
 
 libxml2.dll:
-	copy /y $(SRCDIR)\extlib\libxml2\x64\vs2017\libxml2.dll libxml2.dll
+	copy /y $(SRCDIR)\extlib\libmodules\libs\libxml2\x64\vs2017\libxml2.dll libxml2.dll
 
 libssh2.dll:
-	copy /y $(SRCDIR)\extlib\libssh2\x64\vs2017\libssh2.dll libssh2.dll
+	copy /y $(SRCDIR)\extlib\libmodules\libs\libssh2\x64\vs2017\libssh2.dll libssh2.dll
 
 libssl-3-x64.dll:
-	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libssl-3-x64.dll libssl-3-x64.dll
+	copy /y $(SRCDIR)\extlib\libmodules\libs\openssl\x64\vs2017\libssl-3-x64.dll libssl-3-x64.dll
 
 libcrypto-3-x64.dll:
-	copy /y $(SRCDIR)\extlib\openssl\x64\vs2017\libcrypto-3-x64.dll libcrypto-3-x64.dll
+	copy /y $(SRCDIR)\extlib\libmodules\libs\openssl\x64\vs2017\libcrypto-3-x64.dll libcrypto-3-x64.dll
 
-zip/x64/vs2017/minizip.lib:
+$(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/minizip.lib:
 	echo Build minizip.lib first.
 
-$(SRCDIR)/extlib/zip/x64/vs2017/zlib.dll:
+$(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/zlib.dll:
 	echo Build minizip.lib first.
 
-$(SRCDIR)/extlib/zip/x64/vs2017/zlib.lib:
+$(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/zlib.lib:
 	echo Build minizip.lib first.
 
-$(SRCDIR)/extlib/zip/x64/vs2017/bzip2.lib:
+$(SRCDIR)/extlib/libmodules/libs/zip/x64/vs2017/bzip2.lib:
 	echo Build minizip.lib first.
 
 $(SRCDIR)/extlib/kc-json/dist/kc-json.obj:
