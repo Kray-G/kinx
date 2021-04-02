@@ -12,6 +12,8 @@ jobs:
       installer: ${{ steps.name.outputs.artifact }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: build
         run: |
           cd build
@@ -58,6 +60,8 @@ jobs:
       installer: ${{ steps.name.outputs.artifact }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: build
         shell: cmd
         run: |
