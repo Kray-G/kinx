@@ -1,0 +1,3 @@
+[submodule "src/extlib/libmodules"]
+	path = src/extlib/libmodules
+	url = https://github.com/Kray-G/kinx-core-ext.git
