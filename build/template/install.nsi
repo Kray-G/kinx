@@ -76,7 +76,7 @@ Section
   File /r /x ".gitignore" "lib\webview"
 
   SetOutPath "$INSTDIR\docs"
-  File /r "docs\licenses"
+  File /r "build\licenses"
 
   # Uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"

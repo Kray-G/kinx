@@ -156,6 +156,8 @@ PICOBJS = \
     kstr.o
 
 all: timex kinx $(SOFILES) main_kxcmd
+	mkdir -p licenses
+	cp -f ../docs/licenses/* licenses/*
 
 install:
 	mkdir -p /usr/bin/kinxlib/include
@@ -166,7 +168,7 @@ install:
 	cp -f ./kxtest /usr/bin/kxtest
 	cp -rf $(KXLIBD)/* /usr/bin/kinxlib/
 	cp -f ./kxsel /usr/bin/kinxlib/kxsel
-	cp -f $(DOCDIR)/licenses/LICENSE.* /usr/bin/kinxlib/docs/licenses/
+	cp -f licenses/LICENSE.* /usr/bin/kinxlib/docs/licenses/
 	cp -f $(INCDIR)/libkinx.h /usr/bin/kinxlib/include/libkinx.h
 	cp -f $(INCDIR)/fileutil.h /usr/bin/kinxlib/include/fileutil.h
 	cp -f libkx.a /usr/bin/kinxlib/
