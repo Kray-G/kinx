@@ -1,13 +1,13 @@
 #include <dbg.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-#include "zip/include/mz.h"
-#include "zip/include/mz_os.h"
-#include "zip/include/mz_strm.h"
-#include "zip/include/mz_strm_buf.h"
-#include "zip/include/mz_strm_split.h"
-#include "zip/include/mz_zip.h"
-#include "zip/include/mz_zip_rw.h"
+#include "libmodules/libs/zip/include/mz.h"
+#include "libmodules/libs/zip/include/mz_os.h"
+#include "libmodules/libs/zip/include/mz_strm.h"
+#include "libmodules/libs/zip/include/mz_strm_buf.h"
+#include "libmodules/libs/zip/include/mz_strm_split.h"
+#include "libmodules/libs/zip/include/mz_zip.h"
+#include "libmodules/libs/zip/include/mz_zip_rw.h"
 
 #define KX_DLL
 #include <kinx.h>
@@ -216,6 +216,90 @@ static void free_dirinfo(void *p)
         }
         kx_free(di);
     }
+}
+
+static int handle_file_error(int code, int args, kx_context_t *ctx)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    switch (code) {
+    case ERROR_FILE_NOT_FOUND:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File not found");
+    case ERROR_PATH_NOT_FOUND:
+    case ERROR_BAD_NETPATH:
+    case ERROR_CANT_RESOLVE_FILENAME:
+    case ERROR_INVALID_DRIVE:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Path not found");
+    case ERROR_ACCESS_DENIED:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File access denied");
+    case ERROR_ALREADY_EXISTS:
+    case ERROR_FILE_EXISTS:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File exists");
+    case ERROR_INVALID_NAME:
+    case ERROR_DIRECTORY:
+    case ERROR_FILENAME_EXCED_RANGE:
+    case ERROR_BAD_PATHNAME:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Path syntax error");
+    #if defined(ERROR_FILE_READ_ONLY)
+    case ERROR_FILE_READ_ONLY:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File read only");
+    #endif
+    case ERROR_CANNOT_MAKE:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Cannot create file");
+    case ERROR_DIR_NOT_EMPTY:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Directory not empty");
+    case ERROR_WRITE_FAULT:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Write file failed");
+    case ERROR_READ_FAULT:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Read file failed");
+    case ERROR_SHARING_VIOLATION:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Sharing violation");
+    case ERROR_LOCK_VIOLATION:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Lock violation");
+    case ERROR_HANDLE_EOF:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "EOF reached");
+    case ERROR_HANDLE_DISK_FULL:
+    case ERROR_DISK_FULL:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Disk is full");
+    case ERROR_NEGATIVE_SEEK:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Negative seek");
+    default:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Unknow file error");
+    }
+    return 0;
+#else
+    switch (code) {
+    case EIO:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "I/O error");
+    case EPERM:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Insufficient permissions");
+    case EACCES:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File access denied");
+    case ENOENT:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File not found");
+    case ENOTDIR:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Not a directory");
+    case EISDIR:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Not a file");
+    case EROFS:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File read only");
+    case EEXIST:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "File exists");
+    case ENOSPC:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "No space left on device");
+    case EDQUOT:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Disk quota exceeded");
+    case ENOTEMPTY:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Directory not empty");
+    case ENAMETOOLONG:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Path syntax error");
+    case ENFILE:
+    case EMFILE:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Too many open files");
+    default:
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Unknow file error");
+    }
+    return 0;
+#endif
 }
 
 static int File_close(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -470,12 +554,26 @@ int File_static_unlink(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *c
     }
     #if defined(_WIN32) || defined(_WIN64)
     int32_t r = mz_os_unlink(target);
+    if (r != MZ_OK) {
+        int code = GetLastError();
+        if (code != ERROR_FILE_NOT_FOUND && handle_file_error(code, args, ctx) > 0) {
+            return KX_THROW_EXCEPTION;
+        }
+        KX_ADJST_STACK();
+        push_i(ctx->stack, 0);
+        return 0;
+    }
     #else
     int32_t r = remove(target);
-    #endif
-    if (r != MZ_OK) {
-        KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to unlink");
+    if (r == -1) {
+        if (errno != ENOENT && handle_file_error(errno, args, ctx) > 0) {
+            return KX_THROW_EXCEPTION;
+        }
+        KX_ADJST_STACK();
+        push_i(ctx->stack, 0);
+        return 0;
     }
+    #endif
     KX_ADJST_STACK();
     push_i(ctx->stack, 1);
     return 0;

@@ -94,3 +94,123 @@ for (ypix in 0...24) {
 :     ....------------------------::::::::::;;;;++=X         X=;;;;;:::::------
 :      ......------------------------::::::::::;;;;+==x&  &x=+;;;::::::-------.
 ```
+
+### Example 3. Comparing between variables of a string
+
+This bug's was caused by missing implementation.
+
+* Issue: [#237](https://github.com/Kray-G/kinx/issues/237)
+* Fixed: [94c49bae803a0131c138d28a5a65b2a4e1426612](https://github.com/Kray-G/kinx/commit/94c49bae803a0131c138d28a5a65b2a4e1426612)
+
+#### Code
+
+```javascript
+function gt(a, b)  { return a > b; }
+function lt(a, b)  { return a < b; }
+function ge(a, b)  { return a >= b; }
+function le(a, b)  { return a <= b; }
+function lge(a, b) { return a <=> b; }
+try { gt("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { lt("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { ge("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { le("a", "b");  System.println("Successful"); } catch (e) { System.println(e.what()); }
+try { lge("a", "b"); System.println("Successful"); } catch (e) { System.println(e.what()); }
+```
+
+#### Result
+
+```
+Successful
+Successful
+Successful
+Successful
+Successful
+```
+
+### Example 4. Can't specify a return type of function
+
+This bug's was caused by lack of consideration of a part of type propagation.
+
+* Issue: [#236](https://github.com/Kray-G/kinx/issues/236)
+* Fixed: [3fa599b7153bdcecaf506aeca753c2047f328aa2](https://github.com/Kray-G/kinx/commit/3fa599b7153bdcecaf506aeca753c2047f328aa2)
+* Fixed: [00319887f851d960a7e0523f5ef4735b2d37531c](https://github.com/Kray-G/kinx/commit/00319887f851d960a7e0523f5ef4735b2d37531c)
+
+#### Code
+
+```javascript
+class A() {
+    public xxx() {
+        System.println("Successful");
+    }
+}
+
+function f(): A {
+    return new A(); // => Error: Expect return type (object) but (... unknown)
+}
+f().xxx();
+```
+
+#### Result
+
+```
+Successful
+```
+
+### Example 5. Comparison Failure & Crash
+
+This bug's was caused by lack of the code which moves to the next opcode.
+
+* Issue: [#256](https://github.com/Kray-G/kinx/issues/256)
+* Fixed: [bf1b5ba926db08a69a5c6786d7557f9f6d7e420f](https://github.com/Kray-G/kinx/commit/bf1b5ba926db08a69a5c6786d7557f9f6d7e420f)
+
+#### Code
+
+```javascript
+function test1(a) { return 10 >= a; }
+function test2(a) { return -1 <= a; }
+function test3(a) { return 100 < a; }
+
+System.println(test1(10.5));
+System.println(test2(10.5));
+System.println(test3(10.5));
+```
+
+#### Result
+
+```
+0
+1
+0
+```
+
+### Example 6. Fails a Destructuring Assignment in Const
+
+This bug's was caused by an incorrect bytecode.
+
+* Issue: [#257](https://github.com/Kray-G/kinx/issues/257)
+* Fixed: [43d82765b577221c820575b7f5e7323cc0171be1](https://github.com/Kray-G/kinx/commit/43d82765b577221c820575b7f5e7323cc0171be1)
+
+#### Code
+
+```javascript
+function test1(data) {
+    var [a, b, ...c] = data.split(',');
+}
+function test2(data) {
+    [a, b, ...c] = data.split(',');
+}
+function test3(data) {
+    const [a, b, ...c] = data.split(',');
+}
+test1("1,2,3,4,5,6,7,8,9");
+test2("1,2,3,4,5,6,7,8,9");
+test3("1,2,3,4,5,6,7,8,9");
+
+System.println("Successful");
+```
+
+#### Result
+
+```
+Successful
+```

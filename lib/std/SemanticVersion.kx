@@ -1,0 +1,156 @@
+
+_class SemanticVersion(ver_) {
+    @isSemanticVersion = true;
+    var [, major_, minor_, patch_, prerel_, build_] =
+        ver_.match(/([0-9]+)(?:\.([0-9]+)(?:\.([0-9]+)(?:-([0-9a-zA-Z]+(?:\.[0-9a-zA-Z]+)*))?(?:\+([0-9a-zA-Z]+(?:\.[0-9a-zA-Z]+)*))?)?)?/);
+    public version() {
+        return ver_;
+    }
+    public detail() {
+        var major = Integer.parseInt(major_);
+        var minor = Integer.parseInt(minor_);
+        var patch = Integer.parseInt(patch_);
+        return { major, minor, patch, prerel: prerel_, build: build_ };
+    }
+    private numeq(lv, rv) {
+        return lv.major == rv.major && (lv.nminor || lv.minor == rv.minor) && (lv.npatch || lv.patch == rv.patch);
+    }
+    private numgt(lv, rv) {
+        return lv.major > rv.major || (!lv.nminor && lv.major == rv.major && lv.minor > rv.minor) ||
+                (!lv.npatch && lv.major == rv.major && lv.minor == rv.minor && lv.patch > rv.patch);
+    }
+    private numlt(lv, rv) {
+        return lv.major < rv.major || (!lv.nminor && lv.major == rv.major && lv.minor < rv.minor) ||
+                (!lv.npatch && lv.major == rv.major && lv.minor == rv.minor && lv.patch < rv.patch);
+    }
+    public <=>(rhs) {
+        var lv = @detail();
+        var rv = rhs.detail();
+
+        /* Simple Check */
+        if (numgt(lv, rv)) {
+            return 1;
+        }
+        if (numlt(lv, rv)) {
+            return -1;
+        }
+        if (lv.prerel == rv.prerel) {
+            return 0;
+        }
+
+        /* Pre-release tag */
+        if (!lv.prerel && rv.prerel) {    /* > */
+            return 1;
+        }
+        if (lv.prerel && !rv.prerel) {    /* < */
+            return -1;
+        }
+        var lp = lv.prerel.split('.').map { &(v) => v.isIntegerString() ? Integer.parseInt(v) : v };
+        var rp = rv.prerel.split('.').map { &(v) => v.isIntegerString() ? Integer.parseInt(v) : v };
+        if (lp[0] != rp[0]) {
+            return lp[0] > rp[0] ? 1 : -1;
+        }
+        if (lp.length() > rp.length()) {
+            return 1;
+        }
+        if (lp.length() < rp.length()) {
+            return -1;
+        }
+
+        /* Pre-release number */
+        var lpn = lp.length() >= 2 ? lp[1] : -1;
+        var rpn = rp.length() >= 2 ? rp[1] : -1;
+        if (!lpn.isInteger || !rpn.isInteger) {
+            return lpn.isInteger ? -1 : 1;
+        }
+        if (lpn > rpn) {
+            return 1;
+        }
+        if (lpn < rpn) {
+            return -1;
+        }
+        return 0;
+    }
+    public >(rhs) {
+        return (this <=> rhs) > 0;
+    }
+    public <(rhs) {
+        return (this <=> rhs) < 0;
+    }
+    public >=(rhs) {
+        return !(this < rhs);
+    }
+    public <=(rhs) {
+        return !(this > rhs);
+    }
+    public ==(rhs) {
+        return (this <=> rhs) == 0;
+    }
+    public !=(rhs) {
+        return (this <=> rhs) != 0;
+    }
+
+    private matchop(op, lv, rv) {
+        if (lv.prerel) {
+            if (op == ">=") op = ">";
+            else if (op == "<") op = "<=";
+        }
+        switch (op) {
+        case ">":   return  numgt(lv, rv);
+        case "<":   return  numlt(lv, rv);
+        case ">=":  return !numlt(lv, rv);
+        case "<=":  return !numgt(lv, rv);
+        case "==":  return  numeq(lv, rv);
+        case "!=":  return !numeq(lv, rv);
+        default:
+            throw RuntimeException("Unsupported operator to compare SemanticVersion");
+        }
+    }
+    public match(cond) {
+        if (cond.isSemanticVersion) {
+            return ver_ == cond.version();
+        }
+        var [, op, cmaj, cmin, cpat] = cond.match(/(>|>=|<|<=|==|!=)?([0-9]+|\*)(?:\.([0-9]+|\*)(?:\.([0-9]+|\*))?)?/);
+        cmin ||= '*';
+        cpat ||= '*';
+        if (cmaj == '*') {
+            if (cmin != '*' || cpat != '*') {
+                throw RuntimeException("Invalid pattern of SemanticVersion");
+            }
+            // always true when it's a pattern to be matched.
+            return !op || op == "=="|| op == ">=" || op == "<=";
+        }
+        if (cmin == '*' && cpat != '*') {
+            throw RuntimeException("Invalid pattern of SemanticVersion");
+        }
+        if (!op) {
+            var cre = new Regex("^" + cmaj + '\\.' +
+                ((cmin == '*') ? "[0-9]+" : cmin) + '\\.' +
+                ((cpat == '*') ? "[0-9]+" : cpat) + "$"
+            );
+            return ver_.match(cre).isDefined;
+        }
+        major = Integer.parseInt(cmaj);
+        minor = Integer.parseInt(cmin);
+        patch = Integer.parseInt(cpat);
+        var rv = { major, minor, patch };
+        var lv = @detail();
+        if (cmin != '*' && cpat != '*') {
+            return matchop(op, lv, rv);
+        }
+        lv.npatch = true;
+        if (cmin != '*') {
+            return matchop(op, lv, rv);
+        }
+        lv.nminor = true;
+        return matchop(op, lv, rv);
+    }
+}
+
+_function SemanticVersionTest(op, lver, rver, testfunc, expected) {
+    var r = testfunc() ? True : False;
+    System.println("%{lver} %{op} %{rver} => ", r, " : expected => ", expected);
+    if (r != expected) {
+        throw RuntimeException("Test failed.");
+    }
+}

@@ -1,6 +1,6 @@
 const STDIN, STDOUT, STDERR, $exepath, $kinxpath, $libpath, $pkgpath;
 const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Clipboard, Duktape, Debugger;
-const Isolate, Enumerable, Enumerator, Range;
+const Isolate, Enumerable, Enumerator, Range, Colorize;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
 const SystemExceptionClass, RuntimeExceptionClass, FileExceptionClass, StopIterationExceptionClass, FiberExceptionClass, SocketExceptionClass;
 const SystemException, RuntimeException, FileException, StopIterationException, FiberException, SocketException;
@@ -23,8 +23,8 @@ var Xml, Net;
     SQLite = _import('kxsqlite');
     Debugger = _import('kxdebugger');
     using kxsysutil;
+    using kxarray;  // should be imported before kxstring.
     using kxstring;
-    using kxarray;
     using kxbinary;
     using kxnumeric;
     using kxisolate;
@@ -36,6 +36,7 @@ var Xml, Net;
     using kxfunctional;
     using kxfile;
     using kxgetopt;
+    Colorize.create = _Colorize.create;
     Zip.create = File._zipCreate;
     Duktape.create = System.createDuktape;
     JSON.parse = System.parseJson;
@@ -44,6 +45,7 @@ var Xml, Net;
     Database = _SQLiteDatabase;
     Enumerable = _Enumerable;
     Enumerator = _Enumerator;
+    Functional = new _Functional();
     _functional_pipe2 = __functional_pipe2;
     _functional_compose2 = __functional_compose2;
     Range = _Range;
@@ -80,7 +82,7 @@ var Xml, Net;
         }
     }
     $libpath = libpath;
-    $pkgpath = (libpath / "../kinxpkg").replace(/\/[^\/]+\/\.\./, "");
+    $pkgpath = (libpath / "package").replace(/\/[^\/]+\/\.\./, "");
 })();
 
 const KX_KEY_ESC        = 0x1b;

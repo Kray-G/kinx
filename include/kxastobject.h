@@ -34,6 +34,7 @@ extern kx_object_t *kx_gen_str_object_pos(name_t name);
 extern const char *kx_gen_constant_string(const char *name);
 extern const char *kx_check_the_name(kx_object_t *obj);
 extern kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs);
+extern kx_object_t *kx_gen_exprlist(kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int include_end);
 extern kx_object_t *kx_gen_case_when_object(kx_object_t *decl, kx_object_t *expr, kx_object_t *modifier);
 extern kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl);
@@ -69,17 +70,17 @@ extern kx_object_t *kx_gen_func_object(int type, int optional, arytype_t rtype, 
 extern kx_object_t *kx_gen_prop_func_object(kx_object_t *nameobj);
 extern kx_object_t *kx_gen_typeprop_func_object(int type);
 
-static inline const char *get_var_typename(int in_native, int t)
+static inline const char *get_var_typename(int t)
 {
     switch (t) {
     case KX_UND_T:  return "null";
-    case KX_INT_T:  return in_native ? "int" : "Integer";
+    case KX_INT_T:  return "int";
     case KX_BIG_T:  return "big";
     case KX_NUM_T:  return "num";
-    case KX_DBL_T:  return in_native ? "dbl" : "Double";
+    case KX_DBL_T:  return "dbl";
     case KX_STR_T:  /* fallthrough */
-    case KX_CSTR_T: return in_native ? "str" : "String";
-    case KX_BIN_T:  return in_native ? "bin" : "Binary";
+    case KX_CSTR_T: return "str";
+    case KX_BIN_T:  return "bin";
     case KX_ARY_T:  return "ary";
     case KX_OBJ_T:  return "obj";
     case KX_FNC_T:  return "Function";
@@ -89,7 +90,7 @@ static inline const char *get_var_typename(int in_native, int t)
     return NULL;
 }
 
-static inline const char *get_ret_typename(int in_native, kx_object_t *node)
+static inline const char *get_ret_typename(kx_object_t *node)
 {
     if (node->ret_typename) {
         return node->ret_typename;
@@ -97,10 +98,14 @@ static inline const char *get_ret_typename(int in_native, kx_object_t *node)
     if (node->ex && node->ex->ret_typename) {
         return node->ex->ret_typename;
     }
-    return get_var_typename(in_native, node->ret_type);
+    const char *r = get_var_typename(node->ret_type);
+    if (r) {
+        return r;
+    }
+    return "Any";
 }
 
-static inline const char *get_node_typename(int in_native, kx_object_t *node)
+static inline const char *get_node_typename(kx_object_t *node)
 {
     if (node->typename) {
         return node->typename;
@@ -108,7 +113,10 @@ static inline const char *get_node_typename(int in_native, kx_object_t *node)
     if (node->ex && node->ex->typename) {
         return node->ex->typename;
     }
-    return get_var_typename(in_native, node->var_type);
+    if (node->refdepth > 0) {
+        return "obj";
+    }
+    return get_var_typename(node->var_type);
 }
 
 #endif /* KX_OBJECT_H */

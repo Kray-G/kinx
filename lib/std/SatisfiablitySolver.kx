@@ -1,0 +1,206 @@
+using SemanticVersion;
+
+_class Satisfiablity(cnf_, opts_) {
+    var s_;
+    private initialize() {
+        if (!cnf_) {
+            s_ = System.picosatGetIter(null, opts_.vars, opts_.verbose, opts_.propLimit);
+        }
+    }
+    public addClause(clause) {
+        if (!s_) {
+            s_ = System.picosatGetIter(null, opts_.vars, opts_.verbose, opts_.propLimit);
+        }
+        s_.addClause(clause);
+        return this;
+    }
+    public solve() {
+        if (s_) {
+            var n = s_.next();
+            return s_.isEnded() ? null : n;
+        }
+        return System.picosatSolve(cnf_, opts_.vars, opts_.verbose, opts_.propLimit);
+    }
+    public enumerator() {
+        if (s_) {
+            return s_;
+        }
+        return System.picosatGetIter(cnf_, opts_.vars, opts_.verbose, opts_.propLimit);
+    }
+}
+
+_class SatisfiablityCheckVersion(name_, version_, vs_) : SemanticVersion(version_) {
+    public dependsOn(deps) {
+        if (deps.isUndefined) {
+            return this;
+        }
+        if (!deps.isArray) {
+            deps = [deps];
+        }
+        vs_.setDependency({ name: name_, version: version_ }, deps);
+        return this;
+    }
+}
+
+_class SatisfiablityCheckProduct(name_, vs_) {
+    var fixedVersion_;
+    var vers_ = {};
+    public name() {
+        return name_;
+    }
+    public version(ver) {
+        if (vers_[ver].isUndefined) {
+            @addVersion(ver);
+        }
+        return vers_[ver];
+    }
+    public dependsOn(ver, deps) {
+        return @version(ver).dependsOn(deps);
+    }
+    public ()(vercond) {
+        if (vercond =~ /^\d\.\d\.\d+/) {
+            return { name: name_, version: vercond, dependsOn: _function(deps) { return @dependsOn(vercond, deps); } };
+        }
+        var items = vers_.keySet().filter(_function(v) { return vers_[v].match(vercond); }).map(_function(v) {
+            return { name: name_, version: v, dependsOn: _function(deps) { return @dependsOn(v, deps); } };
+        });
+        items.dependsOn = _function(deps) {
+            items.each(_function(item) {
+                item.dependsOn(deps);
+            });
+            return items;
+        };
+        return items;
+    }
+    public addVersion(version, isFix) {
+        if (isFix) {
+            if (fixedVersion_) {
+                // clear the fixed version once.
+                vs_.addVersion(name_, fixedVersion_, false);
+            }
+            fixedVersion_ = version;
+        }
+        vers_[version] = new SatisfiablityCheckVersion(name_, version, vs_);
+        vs_.addVersion(name_, version, isFix);
+        return this;
+    }
+}
+
+_class VersionSatisfiablity(opts_) {
+    var conflict_;
+    var info_ = [];
+    var vers_ = [];
+    var nvmp_ = [];
+    var deps_ = [];
+    public reset() {
+        info_ = [];
+        vers_ = [];
+        nvmp_ = [];
+        deps_ = [];
+    }
+    public addProduct(name) {
+        return new SatisfiablityCheckProduct(name, this);
+    }
+    public addVersion(name, version, isFix) {
+        if (nvmp_[name][version].isInteger) {
+            var index = nvmp_[name][version] - 1;
+            if (info_[index].isDefined && isFix.isDefined) {
+                info_[index].isFix = isFix;
+            }
+            return;
+        }
+        var index = info_.length() + 1;
+        var info = {
+            name: name,
+            version: version,
+            index: index,
+            isFix: isFix,
+        };
+        info_.push(info);
+        vers_[name] ??= [];
+        vers_[name].push(index);
+        nvmp_[name][version] = index;
+    }
+    public setDependency(base, deps) {
+        deps_.push({
+            base: base,
+            deps: deps,
+        });
+    }
+    private genCnf() {
+        var cnf = info_.filter { => _1.isFix }.map { => [_1.index] };
+        vers_.keySet().each { &(name)
+            var indexes = vers_[name];
+            cnf.push(indexes);
+            for (var i = 0, l = indexes.length(); i < l; ++i) {
+                for (var j = i + 1; j < l; ++j) {
+                    cnf.push([-indexes[i], -indexes[j]]);
+                }
+            }
+        };
+        deps_.each { &(dep)
+            var i1 = nvmp_[dep.base.name][dep.base.version];
+            if (!i1) {
+                return false;
+            }
+            var chk = [ -i1 ];
+            dep.deps.each { &(d)
+                var i2 = nvmp_[d.name][d.version];
+                if (i2) {
+                    chk.push(i2);
+                }
+            };
+            cnf.push(chk);
+        };
+        return cnf;
+    }
+    public solve() {
+        var cnf = genCnf();
+        var res = System.picosatSolve(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
+        return res.filter { => _1 > 0 }.map { => info_[_1 - 1] };
+    }
+    private setLastConflict(cnf) {
+        conflict_ = System.picosatGetMus(cnf).map { => cnf[_1] };
+        conflict_ = conflict_.map {
+            return _1.map { &(a1) =>
+                { not: a1 < 0, value: info_[(a1 > 0 ? a1 : -a1) - 1] }
+            };
+        };
+    }
+    public enumerator() {
+        conflict_ = null;
+        var cnf = genCnf();
+        var iter = System.picosatGetIter(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
+        iter.count = 0;
+        var next = iter.next;
+        iter.next = _function() {
+            var res = next();
+            if (res) {
+                ++iter.count;
+                return res.filter({ => _1 > 0 }).map { => info_[_1 - 1] };
+            }
+            if (iter.isEnded() && iter.count == 0) {
+                setLastConflict(cnf);
+            }
+        };
+        return iter;
+    }
+    public getConflict() {
+        return conflict_;
+    }
+    public iterator() {
+        return this;
+    }
+    public count() {
+        var c = 0;
+        var cnf = genCnf();
+        var iter = System.picosatGetIter(cnf, opts_.vars, opts_.verbose, opts_.propLimit);
+        for (iter.next(); !iter.isEnded(); iter.next()) {
+            ++c;
+        }
+        if (c == 0) {
+            setLastConflict(cnf);
+        }
+        return c;
+    }
+}

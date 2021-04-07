@@ -1,0 +1,63 @@
+using SatisfiablitySolver;
+
+var vs = new VersionSatisfiablity();
+var A = vs.addProduct("A")
+    .addVersion("0.0.1")
+    .addVersion("0.0.2")
+    .addVersion("0.0.3");
+var B = vs.addProduct("B")
+    .addVersion("0.0.1")
+    .addVersion("0.0.2")
+    .addVersion("0.0.3");
+var X = vs.addProduct("X")
+    .addVersion("0.0.1", true)
+    .addVersion("0.0.2");
+
+function msg(a) {
+    if (a.not) {
+        return ("%1% is NOT v%2%" % a.value.name % a.value.version).format();
+    } else {
+        return ("%1% is v%2%" % a.value.name % a.value.version).format();
+    }
+}
+function error(item) {
+    switch (item.length()) {
+    when 1:
+        System.println("- ", msg(item[0]));
+    when 2:
+        item[0].not = !item[0].not; // (!A || B) means (A => B)
+        System.println("- ", msg(item[0]), " => ", msg(item[1]));
+    else:
+        System.println("- ", item.map { => msg(_1) }.join(', or\n  '));
+    }
+}
+
+function tryit() {
+    var count = 0;
+    for (var e in vs.iterator()) {
+        System.println("%d: " % ++count, e.toJsonString(true));
+    }
+    if (count == 0) {
+        System.println("Unsatisfiable - Conflict here");
+        vs.getConflict().each { => error(_1) };
+    }
+}
+
+/* A(0.0.1) depends on B(0.0.1) */
+A("0.0.1").dependsOn(B("0.0.1"));
+
+/* A(0.0.2) depends on B(0.0.2) */
+A("0.0.2").dependsOn(B("0.0.2"));
+
+/* A(0.0.3) depends on B(0.0.3) */
+A("0.0.3").dependsOn(B("0.0.3"));
+
+/* X(0.0.1) depends on A(0.0.2)/A(0.0.3) and depends on B(0.0.2) */
+X("0.0.1").dependsOn(A(">=0.0.2")).dependsOn(B("0.0.2"));
+
+/* X(0.0.2) depends on B(0.0.3) */
+X("0.0.2").dependsOn(B("0.0.3"));
+
+/* Check dependency */
+# X("0.0.1").dependsOn(B("0.0.3"));
+tryit();

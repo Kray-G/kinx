@@ -10,7 +10,7 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 
 ## Topics
 
-* **Preview Release 0.22.0 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+* **Official Release 1.0.0 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
 * Now the Kinx is supporting the platform of **x86-64 Windows and Linux only**,  because I have no environment.
   *  If you are interested in other platforms, **please check [here](#how-to-support-a-platform)**.
 *  **See [ChangeLog.md](ChangeLog.md)** about the history of this project.
@@ -20,6 +20,18 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 Ruby is a major scripting language. Also Python is.
 However, either of these syntax is **NOT** familiar to C programmers.
 This Kinx is a script language for people who want C-like syntax.
+
+### The Concept
+
+The concept is, ___"Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers."___
+
+*   Looks like JavaScript ... It provides C family syntax.
+*   Feels like Ruby ... Enjoy programming.
+*   Fitting in C programmers ... It is easy to use for many programmers.
+
+_"C programmers"_ in this context means _"almost all programmers."_
+Because I think almost all programmers have used or known C language at least.
+And _"Providing C Like Syntax"_ as well also means _"friendly for almost all programmers."_
 
 ### Features
 

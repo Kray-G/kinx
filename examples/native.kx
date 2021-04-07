@@ -1,6 +1,6 @@
 var n = 10000;
 
-native loop_while(n) {
+native loop_whilen(n) {
     var v = 0, i = 0;
     while (i <= n) {
         v += i++;
@@ -8,7 +8,7 @@ native loop_while(n) {
     return v;
 }
 
-native loop_for(n) {
+native loop_forn(n) {
     var v = 0;
     for (var i = 0; i <= n; ++i) {
         v += i;
@@ -16,7 +16,7 @@ native loop_for(n) {
     return v;
 }
 
-native loop_do_while(n) {
+native loop_do_whilen(n) {
     var v = 0, i = 0;
     do {
         v += i++;
@@ -24,9 +24,9 @@ native loop_do_while(n) {
     return v;
 }
 
-System.println("while(%{n})    = ", loop_while(n));
-System.println("for(%{n})      = ", loop_for(n));
-System.println("do_while(%{n}) = ", loop_do_while(n));
+System.println("while(%{n})    = ", loop_whilen(n));
+System.println("for(%{n})      = ", loop_forn(n));
+System.println("do_while(%{n}) = ", loop_do_whilen(n));
 
 function loop_while(n) {
     var v = 0, i = 0;

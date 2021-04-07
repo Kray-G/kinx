@@ -1,17 +1,51 @@
 # Change Log
 
-## V1.1.0 (Future Planned)
+## V1.2.0 (Future Planned)
 
-*   Planned, or remaining tasks.
+* Planned.
     *   Support GUI library.
     *   Support OpenCV library.
     *   Support HTTP Server library.
-    *   Support Cryptography library.
+
+## V1.1.0 (Current Development Version)
+
+*   Planned
     *   Support Package Manager.
+    *   Support Cryptography library.
+    *   Separate other products in extlib to another repository.
+*   New Features
+    *   Supported SAT solver by picosat.
+    *   Supported SemanticVersion class.
+*   Improvements/Enhancements
+    *   Supported putting a comma at the end of an argument's list for both declaration and calling.
+    *   Supported the operator of `==` and `!=` in Boolean class.
+    *   Supported `String#isIntegerString`.
+    *   Shared an implementation of conversion for a string, an integer, and a double.
+    *   Improved type analysis for the language server.
+    *   SpecTest: Made a space wider of Test case number.
+    *   #255: Improved the `operator[]` in `Range`.
+*   Bug Fixed
+    *   #235: Crash when using `_` outside a function.
+    *   #236: Can't specify the class as a return type of function.
+    *   #237: Comparing between variables having a string is failed.
+    *   #256: Comparison operator will be failed with an integer on LHS and a variable(double) on RHS.
+    *   #257: Fails a destructuring assignment when declaration with const.
+    *   #258: There is a case that the bytecode does not be outputted.
 
-## V0.23.0 (Current Development Version)
+## V1.0.0 (Official Release) - 2021/03/16
+This is a 1st official release version.
 
-*   Updated
+* See [Kinx Specification](https://github.com/Kray-G/kinx/blob/master/docs/index.md) for a specification.
+
+> Small updates from v0.22.0
+> 
+> *   Updated
+>     *   Updated `Functional`.
+>         *   See [Functional][] for details.
+>     *   Supported String Color methods with Escape Sequence.
+>         *   See [String](docs/spec/lib/primitive/string.md) for details.
+>     *   Updated Documentation & SpecTest.
+>     *   Some bug fixes and improvements.
 
 ## V0.22.0 (22th Preview Release) - 2021/03/05
 

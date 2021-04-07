@@ -118,6 +118,7 @@
         int exc = 0; \
         (void)kx_try_le_i(ctx, cur, v1, &exc); /* comparing by opposite operation */ \
         KX_EXCEPTION_CHECK("SystemException", exc); \
+        cur = cur->next; \
     } \
 } \
 /**/

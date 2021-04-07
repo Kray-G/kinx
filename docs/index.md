@@ -20,16 +20,15 @@ As an example of **SpecTest**, I prepared another [here](spec/../benchmark/READM
 
 ### How to Run
 
-Execute the command below under `kinx` repository's root to run the **SpecTest** of Kinx,
+Set and confirm a path to the `kinx` and `kxtest` executable first.
+After that, execute the command below under `kinx` repository's root to run the **SpecTest** of Kinx,
 and **SpecTest** will automatically load a `.spectest` file and run the tests.
 
 ```
-$ ./kinx --exec:spectest -v
+$ kxtest -v
 ```
 
 ## Contents
-
-> Note that writing specifications is incomplete. Some links are still under construction.
 
 Actual specification is described from here.
 I divided the section for the description of SpecTest, but actually it do not have to be separated.
@@ -48,10 +47,8 @@ There are some of special statements that `yield` for Fiber, `mixin` for Module,
 
 #### Basic Statement
 
-Declaration statement and expression statement is a basic statement of Kinx.
+A declaration and expression statement is a basic statement of Kinx.
 Some of expression rules will be described in `expression` section.
-`mixin` is a special declaration to include `Module` component.
-This statement will be described also in `Module` section again.
 
 *   [declaration](spec/statement/declaration.md)
 *   [enum](spec/statement/enum.md)
@@ -59,8 +56,9 @@ This statement will be described also in `Module` section again.
 *   [mixin](spec/statement/mixin.md)
 *   [using](spec/statement/using.md)
 
-By the way, declaration of a Function or a Class, etc,
-is described not in this section but in **Definitions** section.
+`mixin` is a special declaration used to include `Module` component.
+This statement will be described also in `Module` section again.
+And a declaration of a Function or a Class, etc, is described not in this section but in **Definitions** section.
 
 #### Flow Control
 
@@ -80,7 +78,7 @@ Note that a flow is not changed by `block`, but `block` is included in this sect
 *   [switch-when](spec/statement/switch_when.md)
 *   [try-catch-finally](spec/statement/try_catch_finally.md)
 
-Kinx has supported a `case-when` syntax is an expression but also branch, see [expression](spec/statement/expression.md) for details.
+By the way, Kinx has supports a `case-when`, and the syntax of `case-when` is described in [expression](spec/statement/expression.md) because it is an expression.
 
 ##### Loop
 
@@ -152,6 +150,7 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [System](spec/lib/basic/system.md)
 *   [Getopt](spec/lib/basic/getopt.md)
 *   [Iconv](spec/lib/basic/iconv.md)
+*   [Colorize](spec/lib/basic/colorize.md)
 *   [Math](spec/lib/basic/imath.md)
 *   [File](spec/lib/basic/file.md)
 *   [Directory](spec/lib/basic/directory.md)
@@ -168,18 +167,22 @@ The functionality is very simple but powerful, so a lot of developpers will use 
 *   [SQLite](spec/lib/basic/sqlite.md)
 *   [JIT](spec/lib/basic/jit.md)
 *   [Parsek](spec/lib/basic/parsek.md)
+*   [Clipboard](spec/lib/basic/clipboard.md)
+*   [SemanticVersion](spec/lib/basic/semanticver.md) - V1.1.0
 
 ##### Network Objects
 
 Network library is now very few, but it will be increased in future
 because now the networking library is needed by many developpers.
 
-*   [Http](spec/lib/net/http.md) - *not documented yet*
-*   [SSH](spec/lib/net/ssh.md) - *not documented yet*
+*   [Http](spec/lib/net/http.md)
+*   [SSH](spec/lib/net/ssh.md)
 
 I provide Http library only, but it is based on libcurl.
 Therefore adding a library based on the same technology must be easy.
 I strongly want **contributers**. How about you?
+
+Note that the above documents do not have any test code because it is hard to test of networking.
 
 ##### Exception Objects
 
@@ -196,6 +199,7 @@ Algorithm and Data structure examples are being described in the page below.
 Some special specifications.
 
 *   [String#next](spec/others/string_next.md)
+*   [String#isIntegerString](spec/others/string_isIntegerString.md) - V1.1.0
 
 ### Bug Fixes
 

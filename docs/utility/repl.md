@@ -305,7 +305,7 @@ You can also use `!` with the history number to execute the line by selecting th
 
 ```
 kinx[ 36]> !34
-=> "sample.sum();"
+=> "sample.sum()"
 => 270
 ```
 

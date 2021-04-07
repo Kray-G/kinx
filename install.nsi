@@ -14,7 +14,7 @@ Unicode True
 
 # Version
 !define MAJ_VERSION "1"
-!define VERSION_STRING "0.22.0"
+!define VERSION_STRING "1.1.0"
 
 # Application Name
 Name "Kinx version ${VERSION_STRING} for x64"
@@ -76,10 +76,11 @@ Section
   File /r /x ".gitignore" "lib\webview"
 
   SetOutPath "$INSTDIR\docs"
-  File /r /x "typesetting" "docs\licenses"
+  File /r "build\licenses"
 
   # Uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
+  CreateDirectory "$INSTDIR\bin\lib\package"
 
   # Shortcut to start menu
   CreateDirectory "$SMPROGRAMS\Kinx"
@@ -99,8 +100,8 @@ Section
   WriteRegStr HKLM "${ARP}" "Publisher" "Kray-G"
   WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\bin\kinx.exe"
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "${VERSION_STRING}"
-  WriteRegDWORD HKLM "${ARP}" "VersionMajor" "0"
-  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "22"
+  WriteRegDWORD HKLM "${ARP}" "VersionMajor" "1"
+  WriteRegDWORD HKLM "${ARP}" "VersionMinor" "1"
   WriteRegStr HKLM "${ARP}" "Comments" "Have fun with programming!"
   WriteRegStr HKLM "${ARP}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${ARP}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'

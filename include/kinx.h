@@ -31,8 +31,9 @@ typedef struct kx_lexinfo_ {
     int is_trim;
     kx_lexinner_t inner;
     kx_yyin_t in;
-    int tempbuf[16];
+    const char *pkgkey;
     const int *restart;
+    int tempbuf[16];
 } kx_lexinfo_t;
 kvec_init_t(kx_lexinfo_t);
 
