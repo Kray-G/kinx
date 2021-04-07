@@ -12,7 +12,7 @@
 KX_DECL_MEM_ALLOCATORS();
 
 #define CURL_STATICLIB
-#include "libcurl/include/curl/curl.h"
+#include "libmodules/libs/libcurl/include/curl/curl.h"
 
 static size_t Net_headerCallback(void *ptr, size_t size, size_t nmemb, void *userp);
 static size_t Net_writeCallback(void *ptr, size_t size, size_t nmemb, void *userp);
@@ -895,7 +895,7 @@ int Net_createTcpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         freeaddrinfo(res);
         KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
     }
- 
+
     kx_netinfo_t *p = kx_calloc(1, sizeof(kx_netinfo_t));
     p->soc = soc;
     p->ai = res;
@@ -999,7 +999,7 @@ int Net_createUdpServerSocket(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_conte
         freeaddrinfo(res);
         KX_THROW_BLTIN_EXCEPTION("SocketException", kx_strerror(errno));
     }
- 
+
     kx_netinfo_t *p = kx_calloc(1, sizeof(kx_netinfo_t));
     p->soc = soc;
     p->ai = res;
