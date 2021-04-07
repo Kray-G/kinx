@@ -5,6 +5,7 @@
 #include <kvec.h>
 #include <khash.h>
 #include <kxastobject.h>
+#include <kxoptimizer.h>
 
 #define KX_ENV_VAR ("$env")
 #define KXN_ISOBJ(x) (((x) == KX_OBJ_T) || ((x) == KX_ARY_T))
