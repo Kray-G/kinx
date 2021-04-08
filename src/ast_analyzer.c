@@ -8,6 +8,7 @@
 #include <kxoptimizer.h>
 
 #define KX_ENV_VAR ("$env")
+#define KX_PWD_VAR ("$pwd")
 #define KXN_ISOBJ(x) (((x) == KX_OBJ_T) || ((x) == KX_ARY_T))
 
 KHASH_MAP_INIT_STR(enum_value, int)
@@ -664,6 +665,19 @@ LOOP_HEAD:;
                 node->lhs = kx_gen_bexpr_object(KXOP_CALL,
                     kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("getenvall")),
                     node->rhs
+                );
+                analyze_ast(ctx, node->lhs, actx);
+                node->rhs = NULL;
+                node->type = KXST_EXPRLIST;
+            }
+            break;
+        } else if (node && node->type == KXOP_VAR && !strcmp(node->value.s, KX_PWD_VAR)) {
+            if (actx->lvalue) {
+                kx_yyerror_line("$pwd can not be lvalue", node->file, node->line);
+            } else {
+                node->lhs = kx_gen_bexpr_object(KXOP_CALL,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_OBJ_T), kx_gen_str_object("cwd")),
+                    NULL
                 );
                 analyze_ast(ctx, node->lhs, actx);
                 node->rhs = NULL;
