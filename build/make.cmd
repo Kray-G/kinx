@@ -10,7 +10,7 @@ if "%1" == "" (
 )
 for /f "usebackq" %%A in (`git rev-parse HEAD`) do set VER_HASH=%%A
 
-mkdir -p licenses
+mkdir licenses
 copy /y ..\docs\licenses\*.* licenses\*.*
 
 if "%1" == "rebuild" goto REBUILD

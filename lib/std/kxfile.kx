@@ -30,6 +30,16 @@ Directory.recursiveWalk = _function(dirname, func, opts) {
         }
     }, opts);
 };
+Directory.changeTo = File.dirChangeTo;
+Directory.change = _function(dir, func) {
+    var cd = System.cwd();
+    try {
+        Directory.changeTo(dir);
+        return func();
+    } finally {
+        Directory.changeTo(cd);
+    }
+};
 File._setup(File);
 File.create = _function(name, mode) {
     var f = File._create(name, mode);
@@ -43,7 +53,7 @@ File.create = _function(name, mode) {
     f.print = _function(...arg) { f.printImpl(...arg.stringify()); };
     f.println = _function(...arg) { f.printlnImpl(...arg.stringify()); };
     f.eachLine = _function(func) {
-        var lineno = 1; 
+        var lineno = 1;
         do {
             var line = f.readLine();
             if (line.isInteger) return line;
