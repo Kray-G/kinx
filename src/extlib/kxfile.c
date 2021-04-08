@@ -24,6 +24,12 @@ KX_DECL_MEM_ALLOCATORS();
 #define KXFILE_MODE_WRITE  (0x20)
 #define KXFILE_MODE_APPEND (0x40)
 
+#if defined(_WIN32) || defined(_WIN64)
+#define CHDIR _chdir
+#else
+#define CHDIR chdir
+#endif
+
 typedef struct dirinfo_ {
     DIR *dir;
 } dirinfo_t;
@@ -494,6 +500,22 @@ int File_static_dirclose(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     if (r != MZ_OK) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to close directory");
     }
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
+    return 0;
+}
+
+int File_static_dirchangeto(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *dir = get_arg_str(1, args, ctx);
+    if (!dir) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid directory name");
+    }
+    int res = CHDIR(dir);
+    if (res != 0) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to change directory");
+    }
+
     KX_ADJST_STACK();
     push_i(ctx->stack, 1);
     return 0;
@@ -1794,6 +1816,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "diropen", File_static_diropen },
     { "direntry", File_static_direntry },
     { "dirclose", File_static_dirclose },
+    { "dirChangeTo", File_static_dirchangeto },
 
     { "ostimeByMs", File_static_ms_time },
 
