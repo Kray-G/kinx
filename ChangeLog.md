@@ -24,6 +24,8 @@
     *   Improved type analysis for the language server.
     *   SpecTest: Made a space wider of Test case number.
     *   #255: Improved the `operator[]` in `Range`.
+    *   #264: Supported to change directory.
+    *   #265: Supported `$pwd` for getting a current directory.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #236: Can't specify the class as a return type of function.
