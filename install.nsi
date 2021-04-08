@@ -76,10 +76,11 @@ Section
   File /r /x ".gitignore" "lib\webview"
 
   SetOutPath "$INSTDIR\docs"
-  File /r /x "typesetting" "docs\licenses"
+  File /r "build\licenses"
 
   # Uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
+  CreateDirectory "$INSTDIR\bin\lib\package"
 
   # Shortcut to start menu
   CreateDirectory "$SMPROGRAMS\Kinx"
@@ -158,5 +159,4 @@ Function .onInit
     CopyFiles /SILENT /FILESONLY "$R0\Uninstall.exe" "$PLUGINSDIR\olduninst"
     ExecWait '"$PLUGINSDIR\olduninst\Uninstall.exe" _?=$R0'
   ${EndIf}
-FunctionEnd
 
