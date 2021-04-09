@@ -1,3 +1,4 @@
+# Common rules
 *.exe
 *.obj
 *.dll
@@ -12,39 +13,32 @@
 *.so*
 *.dep
 *.zip
-kinx
-timex
-myacc
-/.vscode
-/kinxpkg
-/benchmark
-/bench
-src/opt*.c
-src/extlib/onig
-src/extlib/libclipboard
-timeit.dat
-/x86.ins
-/x64.ins
-/mips.ins
-/arm.ins
-/x86.spec
-/mips.spec
 *.pdb
 *.res
 *.db
+*.deb
+
+# Executables
+timex
+myacc
+kinx
+kxkitty
+kxrepl
+kxsel
+kxtest
+main_kxcmd
+
+# Temporary files
+timeit.dat
+temp*
+TEMP*
 kinx.map
 kx.tab.c
 kx.tab.h
-package_win64.zip
-temp*
-TEMP*
 /memo.*
-/kinx
-/kxkitty
-/kxrepl
-/kxsel
-/kxtest
-/main_kxcmd
+/TEST.md
+
+# Ignore build files
 /build/licenses
 /build/kinx
 /build/kxkitty
@@ -52,7 +46,26 @@ TEMP*
 /build/kxsel
 /build/kxtest
 /build/main_kxcmd
-/*.so*
-/TEST.md
-/*.deb
-/lib/package
+
+# Ignore source files
+src/opt*.c
+src/extlib/onig
+src/extlib/libclipboard
+
+# Ignore files for disasm
+/x86.ins
+/x64.ins
+/mips.ins
+/arm.ins
+/x86.spec
+/mips.spec
+
+# Ignore folders
+/.vscode
+
+# Package configuration file.
+!/lib/package/
+/lib/package/*
+!/lib/package/config/
+/lib/package/config/*
+!/lib/package/config/config.json
