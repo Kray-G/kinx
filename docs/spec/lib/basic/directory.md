@@ -7,8 +7,9 @@ There are 2 methods below.
 
 |            Methods             |                                    Outline                                     |
 | ------------------------------ | ------------------------------------------------------------------------------ |
-| `recursiveWalk(dir, callback)` | When finding a sub directory, it goes into that sub directoty.                 |
 | `walk(dir, callback)`          | Even when finding a sub directory, it does **NOT** go into that sub directoty. |
+| `recursiveWalk(dir, callback)` | When finding a sub directory, it goes into that sub directoty.                 |
+| `change(dir, callback)`        | Do something `callback` in `dir` directory.                                    |
 
 ### Directory.walk()
 
@@ -26,6 +27,17 @@ Here is how to traverse folders recursively and to display found files all.
 
 ```javascript
 Directory.recursiveWalk("src") { &(name)
+    System.println(name);
+};
+```
+
+### Directory.change()
+
+Here is how to work in a secified directory.
+
+```javascript
+Directory.change("src") {
+    // Work in "src" directory.
     System.println(name);
 };
 ```
@@ -95,4 +107,23 @@ build/template/theme/standard/uninstaller.ico
 build/template/theme/standard/uninstaller.png
 build/template/theme/standard/wizard-uninst.bmp
 build/template/theme/standard/wizard.bmp
+```
+
+### Example 4. Directory changes by `change`
+
+#### Code
+
+```
+var path = $pwd;
+var dirname = path.filename();
+Directory.change("..") {
+    var d = $pwd / dirname;
+    System.println(d == path);
+};
+```
+
+#### Result
+
+```
+1
 ```
