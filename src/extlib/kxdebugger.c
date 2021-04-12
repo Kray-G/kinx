@@ -370,7 +370,7 @@ static kx_charkind_t get_char_kind(const char *p, int in_alphabet)
 {
     if (*p == ' ') {
         return CK_WHITESPACE;
-    } else if (('a' <= *p && *p <= 'z') || *p == '!' || *p == '.' || *p == '[' || *p == ']' || *p == '_') {
+    } else if (('a' <= *p && *p <= 'z') || ('A' <= *p && *p <= 'Z') || *p == '!' || *p == '.' || *p == '[' || *p == ']' || *p == '_') {
         return CK_ALPHABET;
     } else if (*p == '-' || ('0' <= *p && *p <= '9')) {
         return in_alphabet ? CK_ALPHABET : CK_NUMBER;
