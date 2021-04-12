@@ -191,7 +191,7 @@ _class StringAnsiColor(str_) {
     var color_ = 37;
     var bgcolor_;
     private applyBackgroundColor(isBgColor) {
-        for (var key in Array.keySet(StringAnsiColor.Colors)) {
+        for (var key in StringAnsiColor.Colors.keySet()) {
             if (isBgColor(StringAnsiColor.Colors[key])) {
                 bgcolor_ = StringAnsiColor.Colors[key].bgcolor;
                 return;
@@ -212,10 +212,10 @@ _class StringAnsiColor(str_) {
         };
     }
     private initialize() {
-        for (var key in Array.keySet(StringAnsiColor.Colors)) {
+        for (var key in StringAnsiColor.Colors.keySet()) {
             this[key] = makeColorMethod(StringAnsiColor.Colors[key].color);
         }
-        for (var key in Array.keySet(StringAnsiColor.Attrs)) {
+        for (var key in StringAnsiColor.Attrs.keySet()) {
             this[key] = makeDecorationMethod(StringAnsiColor.Attrs[key].value);
         }
     }
@@ -243,7 +243,7 @@ _function _make_string_color_hook(name) {
         return new StringAnsiColor(str).colorize(name, bgColor);
     };
 }
-const _colorkeys = Array.keySet(StringAnsiColor.Colors);
+const _colorkeys = StringAnsiColor.Colors.keySet();
 for (var i = 0, l = _colorkeys.length(); i < l; ++i) {
     const _colorkey = _colorkeys[i];
     String[_colorkey] = _make_string_color_hook(_colorkey);
@@ -255,7 +255,7 @@ _function _make_string_attribute_hook(name) {
         return new StringAnsiColor(str).decorate(name);
     };
 }
-const _attrkeys = Array.keySet(StringAnsiColor.Attrs);
+const _attrkeys = StringAnsiColor.Attrs.keySet();
 for (var i = 0, l = _attrkeys.length(); i < l; ++i) {
     const _attrkey = _attrkeys[i];
     String[_attrkey] = _make_string_attribute_hook(_attrkey);
