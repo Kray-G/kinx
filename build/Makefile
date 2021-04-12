@@ -158,6 +158,7 @@ PICOBJS = \
 all: timex kinx $(SOFILES) main_kxcmd
 	mkdir -p licenses
 	cp -f ../docs/licenses/* licenses/
+	cp -f ../src/extlib/libmodules/docs/licenses/* licenses/
 
 install:
 	mkdir -p /usr/bin/kinxlib/include
