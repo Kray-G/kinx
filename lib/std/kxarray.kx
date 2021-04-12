@@ -1,3 +1,7 @@
+Array.keySet = _function(ary) {
+    return Array.keySetImpl(ary);
+};
+
 Array.apply = _function(ary, func) {
     return func(ary);
 };

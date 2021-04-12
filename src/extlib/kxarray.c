@@ -575,7 +575,7 @@ int Array_hasOwnProperty(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
 static kx_bltin_def_t kx_bltin_info[] = {
     { "empty", Array_empty },
     { "length", Array_length },
-    { "keySet", Array_keySet },
+    { "keySetImpl", Array_keySet },
     { "remove", Array_remove },
     { "push", Array_push },
     { "pop", Array_pop },
