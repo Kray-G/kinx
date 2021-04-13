@@ -213,9 +213,9 @@ namespace Markdown {
             }
         }
 
-        class Table(_rows) : Node('table', 'block') {
+        _class Table(_rows) : Node('table', 'block') {
             private initialize() {
-                var [heading, separator, ...rows] = _rows.map({ &(line) => line.replace(/^\||\|$/, '').split('|') });
+                var [heading, separator, ...rows] = _rows.map({ &(line) => line.subString(1, line.length() - 2).split('|') });
                 @headings = heading.map(&(cell) => inlineParser(cell.trim()));
                 @aligns = separator.map(&(cell) => {
                     cell = cell.trim();
@@ -225,9 +225,7 @@ namespace Markdown {
                     }
                     return align;
                 });
-                @rows = rows.map(&(row) => {
-                    return row.map(&(cell) => inlineParser(cell.trim()));
-                });
+                @rows = rows.map { &(row) => row.map(&(cell) => inlineParser(cell.trim())) };
             }
         }
 
@@ -567,7 +565,6 @@ namespace Markdown {
     const FWIMAGE_REGEX = /^!\[([^\]]*)\]\s*\((.+)\)$/;
     const TAGREF_REGEX = /^(\[[^\]]*\])\s*:\s*((?:.|\r?\n)+)/;
     const TAGREFNEXT_REGEX = /(.+?)\r?\n(\[[^\]]*\])\s*:\s*((?:.|\r?\n)+)/;
-    const FWIMAGE_REGEX = /^!\[([^\]]*)\]\s*\((.+)\)$/;
 
     const MODE_DEFAULT = 0;
     const MODE_CODE = 1;

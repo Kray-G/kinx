@@ -12,6 +12,7 @@ for /f "usebackq" %%A in (`git rev-parse HEAD`) do set VER_HASH=%%A
 
 mkdir licenses
 copy /y ..\docs\licenses\*.* licenses\*.*
+copy /y ..\src\extlib\libmodules\docs\licenses\*.* licenses\*.*
 
 if "%1" == "rebuild" goto REBUILD
 nmake -f Makefile.msc %*
