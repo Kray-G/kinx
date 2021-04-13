@@ -37,6 +37,8 @@ kx.tab.c
 kx.tab.h
 /memo.*
 /TEST.md
+/*.pdf
+/*.json
 
 # Ignore build files
 /build/licenses
