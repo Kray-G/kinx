@@ -1,0 +1,338 @@
+/*
+    Currently under development.
+    Do not use this.
+*/
+
+/*
+    Package Manager for Kinx
+
+    For configuration.
+    $ kip config set|s <name> <value>           Sets a value to a name in a configuration.
+    $ kip config remove|rm|r <name>             Removes a name from a configuration.
+    $ kip config show|sh|list|ls|l [<name>]     Lists up a name and a value in a configuration.
+
+    For a central repository access.
+    $ kip repo add|a <repo>                     Adds a central repository for packages.
+    $ kip repo remove|rm|r <repo>               Removes a central repository for packages.
+    $ kip repo list|ls|l                        Lists up a central repository list and its holding packages.
+
+    For installed packages.
+    $ kip search|s <key>                        Searches a package from central repositories.
+    $ kip install|i <key> <ver>                 Installs a specified package with a specified version.
+    $ kip uninstall|u <key>                     Uninstalls a specified package.
+    $ kip update|up [<key>]                     Updates a specified package.
+    $ kip list|ls                               Lists up an installed packages.
+*/
+
+class KinxPackageManagerConfig(configFile_, defFile_) {
+
+    var config_, def_;
+    var changed_ = false;
+
+    private saveData(data) {
+        File.open(configFile_, File.WRITE) { &(f: File)
+            f.println(data.toJsonString(true));
+        };
+    }
+
+    private initialize() {
+        if (!File.exists(configFile_)) {
+            config_ = { repository: [] };
+            saveData(config_);
+        } else {
+            config_ = JSON.parse(File.load(configFile_));
+        }
+        def_ = File.load(defFile_).split(/\r?\n/).map { => _1.split('=').map { => _1.trim() } }
+            .reduce({ &(r, e)
+                r[e[0]] = e[1];
+                return r;
+            }, {});
+        System.println(def_);
+    }
+
+    public save() {
+        if (changed_ && config_) {
+            saveData(config_);
+            changed_ = false;
+        }
+    }
+
+    private makePackageJsonPath(url) {
+        var [, user, repo] = url.match(%m!^https://github.com/([^/]+)/([^/]+)!);
+        return "https://raw.githubusercontent.com/%{user}/%{repo}/main/packages.json";
+    }
+
+    public getRepository() {
+        return config_.repository.map { => { url: _1.url, jsonUrl: makePackageJsonPath(_1.url) } };
+    }
+
+    public list() {
+        if (config_.values) {
+            config_.values.keySet().each {
+                System.println(_1, "=", config_.values[_1]);
+            };
+        }
+    }
+
+    public set(name, value) {
+        if (name && value) {
+            config_.values[name] = value;
+            changed_ = true;
+        }
+    }
+
+    public remove(name) {
+        if (name) {
+            config_.values.remove(name);
+            changed_ = true;
+        }
+    }
+
+    public addRepo(repo) {
+        if (repo) {
+            if (config_.repository.filter({ => _1.url == repo }).length() == 0) {
+                config_.repository.push({ url: repo });
+            }
+            changed_ = true;
+        }
+    }
+
+    public removeRepo(repo) {
+        if (repo) {
+            config_.repository = config_.repository.filter { => _1.url != repo };
+            changed_ = true;
+        }
+    }
+
+    public httpGet(url) {
+        var http = new Net.Http();
+        http.sslVerifyPeer(false);
+        http.sslVerifyHost(false);
+        http.addHeader("User-Agent", "Kinx Package Manager");
+        if (config_.values["proxy.url"]) {
+            http.setProxy(config_.values["proxy.url"]);
+            if (config_.values["proxy.username"] && config_.values["proxy.password"]) {
+                http.setProxyUserPassword(config_.values["proxy.username"], config_.values["proxy.password"]);
+            }
+        }
+        var json = "";
+        var res = http.get(url, &(data) => {
+            json += data;
+        });
+        if (res.code == 200) {
+            return JSON.parse(json);
+        }
+        return [];
+    }
+
+}
+
+class KinxPackage(key_, info_, cfgMgr_) {
+
+    var user_, repo_;
+
+    private initialize() {
+        [, user_, repo_] = info_.url.match(%m!^https://github.com/([^/]+)/([^/]+)!);
+    }
+
+    public show() {
+        if (info_.base) {
+            System.println("* ", info_.base);
+        }
+        System.println("  - %{key_.bold()} - %{info_.name.yellow()}");
+        if (info_.url) {
+            System.println("    ", info_.url);
+        }
+    }
+
+    public getReleaseUrl() {
+        return "https://api.github.com/repos/%{user_}/%{repo_}/releases";
+    }
+
+    public getReleaseList() {
+        return cfgMgr_.httpGet(getReleaseUrl());
+    }
+
+    public packagePath() {
+        var version = info_.version ?? "v${version}";
+        var file = info_.file ?? "package.zip";
+        return "https://github.com/%{user_}/%{repo_}/releases/download" / version / file;
+    }
+
+}
+
+class KinxNullPackage(name_) {
+
+    public show() {
+        System.println("Package not found: ", name_);
+    }
+
+    public getReleaseList() {
+        return [];
+    }
+
+    public packagePath() {
+        return "";
+    }
+
+}
+
+class KinxPackageRepositoryManager(cfgMgr_) {
+
+    public getPackageInfo() {
+        var repolist = cfgMgr_.getRepository();
+        return repolist.reduce({ &(packages, access)
+            var pkgs = cfgMgr_.httpGet(access.jsonUrl);
+            pkgs.keySet().each { &(key)
+                if (packages[key].isUndefined) {
+                    var json = pkgs[key];
+                    json.base = access.url;
+                    packages[key] = new KinxPackage(key, json, cfgMgr_);
+                }
+            };
+            return packages;
+        }, {});
+    }
+
+    public list(args) {
+        var repolist = cfgMgr_.getRepository();
+        repolist.each { &(access)
+            System.println("* ", access.url);
+            if (args[3] != "url") {
+                json = cfgMgr_.httpGet(access.jsonUrl);
+                if (json) {
+                    json.keySet().each { &(key)
+                        new KinxPackage(key, json[key], cfgMgr_).show();
+                    };
+                }
+            }
+        };
+    }
+
+    public add(args) {
+        cfgMgr_.addRepo(args[3]);
+    }
+
+    public remove(args) {
+        cfgMgr_.removeRepo(args[3]);
+    }
+
+}
+
+class KinxPackageLibraryManager(repoMgr_) {
+
+    private listRemotePackages(info, key) {
+        var list = info.getReleaseList().flatMap({ => _1.assets.map({ => { url: _1.browser_download_url, size: _1.size } }) });
+        var re = new Regex(info.packagePath().replace("${version}", "(?:([0-9]+)\\.([0-9]+)\\.([0-9]+))"));
+        list = list.map { => { url: _1.url, ver: _1.url.match(re), size: _1.size } } .filter { => _1.ver.isDefined };
+        list = list.map { => {
+            url: _1.url,
+            version: {
+                string: [_1.ver[1], _1.ver[2], _1.ver[3]].join('.'),
+                major: _1.ver[1],
+                minor: _1.ver[2],
+                patch: _1.ver[3] },
+            size: _1.size
+        } };
+        System.println("* ", key) if (key);
+        System.println(list.toJsonString(true));
+    }
+
+    public search(target) {
+        var packages = repoMgr_.getPackageInfo();
+        if (packages) {
+            if (target) {
+                listRemotePackages(packages[target], target);
+            } else {
+                packages.keySet().each { => listRemotePackages(packages[_1], _1) };
+            }
+        }
+    }
+
+    public list() {
+        System.println(__FUNC__);
+    }
+
+    public install(name) {
+        System.println(__FUNC__);
+    }
+
+    public uninstall(name) {
+        System.println(__FUNC__);
+    }
+
+    public update(name) {
+        System.println(__FUNC__);
+    }
+
+}
+
+class KinxPackageManager {
+
+    const CONFIG_FILE_NAME = "config.json";
+    const DEF_FILE_NAME = "kxpackage.def";
+    var config_;
+
+    private initialize() {
+        if (!File.exists($pkgpath)) {
+            File.mkdir($pkgpath);
+        }
+        var configFile = $pkgpath / CONFIG_FILE_NAME;
+        var defFile = $pkgpath / DEF_FILE_NAME;
+        config_ = new KinxPackageManagerConfig(configFile, defFile);
+    }
+
+    private config(args) {
+        switch (args[2]) {
+        case "list": case "ls": case "l": case "show": case "sh":
+            config_.list();
+            break;
+        case "set": case "s":
+            config_.set(args[3], args[4]);
+            break;
+        case "remove": case "rm": case "r":
+            config_.remove(args[3]);
+            break;
+        }
+    }
+
+    private repo(args) {
+        var mgr = new KinxPackageRepositoryManager(config_);
+        switch (args[2]) {
+        case "list": case "ls": case "l":
+            mgr.list(args);
+            break;
+        case "add": case "a":
+            mgr.add(args);
+            break;
+        case "remove": case "rm": case "r":
+            mgr.remove(args);
+            break;
+        }
+    }
+
+    private package(args) {
+        var mgr = new KinxPackageLibraryManager(new KinxPackageRepositoryManager(config_));
+        switch (args[1]) {
+        case "search": case "s":
+            mgr.search(args[2]);
+            break;
+        }
+    }
+
+    public work(args) {
+        switch (args[1]) {
+        when "config":
+            config(args);
+        when "repo":
+            repo(args);
+        else:
+            package(args);
+        }
+        config_.save();
+    }
+
+}
+
+var mgr = new KinxPackageManager();
+mgr.work($$);
