@@ -68,4 +68,3 @@ src/extlib/libclipboard
 # Package configuration file.
 !/lib/package/
 /lib/package/*
-!/lib/package/config.json
