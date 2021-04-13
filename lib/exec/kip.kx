@@ -18,11 +18,14 @@
 
     For installed packages.
     $ kip search|s <key>                        Searches a package from central repositories.
-    $ kip install|i <key> <ver>                 Installs a specified package with a specified version.
-    $ kip uninstall|u <key>                     Uninstalls a specified package.
-    $ kip update|up [<key>]                     Updates a specified package.
+    $ kip install|i <key> [<ver>]               Installs a specified package with the latest version if not specified.
+    $ kip uninstall|u <key> [<ver>]             Uninstalls a specified package with the version if specified.
+    $ kip update|up [<key>]                     Installs the latest version of a specified package.
     $ kip list|ls                               Lists up an installed packages.
 */
+using SemanticVersion;
+
+const MAIN_PACKAGE_CENTRAL_REPO = "https://github.com/Kray-G/kinx-package-repository";
 
 class KinxPackageManagerConfig(configFile_, defFile_) {
 
@@ -37,7 +40,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
 
     private initialize() {
         if (!File.exists(configFile_)) {
-            config_ = { repository: [] };
+            config_ = { repository: [{ "url": MAIN_PACKAGE_CENTRAL_REPO }] };
             saveData(config_);
         } else {
             config_ = JSON.parse(File.load(configFile_));
@@ -47,7 +50,10 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
                 r[e[0]] = e[1];
                 return r;
             }, {});
-        System.println(def_);
+    }
+
+    public getPackageDefList() {
+        return def_;
     }
 
     public save() {
@@ -161,23 +167,11 @@ class KinxPackage(key_, info_, cfgMgr_) {
 
 }
 
-class KinxNullPackage(name_) {
-
-    public show() {
-        System.println("Package not found: ", name_);
-    }
-
-    public getReleaseList() {
-        return [];
-    }
-
-    public packagePath() {
-        return "";
-    }
-
-}
-
 class KinxPackageRepositoryManager(cfgMgr_) {
+
+    public getConfigManager() {
+        return cfgMgr_;
+    }
 
     public getPackageInfo() {
         var repolist = cfgMgr_.getRepository();
@@ -221,19 +215,32 @@ class KinxPackageRepositoryManager(cfgMgr_) {
 
 class KinxPackageLibraryManager(repoMgr_) {
 
-    private listRemotePackages(info, key) {
+    var cfgMgr_;
+
+    private initialize() {
+        cfgMgr_ = repoMgr_.getConfigManager();
+    }
+
+    private getRemotePackages(info) {
         var list = info.getReleaseList().flatMap({ => _1.assets.map({ => { url: _1.browser_download_url, size: _1.size } }) });
-        var re = new Regex(info.packagePath().replace("${version}", "(?:([0-9]+)\\.([0-9]+)\\.([0-9]+))"));
+        var re = new Regex(info.packagePath().replace("${version}", "(([0-9]+)\\.([0-9]+)\\.([0-9]+))"));
         list = list.map { => { url: _1.url, ver: _1.url.match(re), size: _1.size } } .filter { => _1.ver.isDefined };
         list = list.map { => {
             url: _1.url,
             version: {
-                string: [_1.ver[1], _1.ver[2], _1.ver[3]].join('.'),
-                major: _1.ver[1],
-                minor: _1.ver[2],
-                patch: _1.ver[3] },
+                semver: new SemanticVersion(_1.ver[1]),
+                string: _1.ver[1],
+                major: _1.ver[2],
+                minor: _1.ver[3],
+                patch: _1.ver[4],
+            },
             size: _1.size
         } };
+        return list;
+    }
+
+    private listRemotePackages(info, key) {
+        var list = getRemotePackages(info);
         System.println("* ", key) if (key);
         System.println(list.toJsonString(true));
     }
@@ -249,15 +256,61 @@ class KinxPackageLibraryManager(repoMgr_) {
         }
     }
 
+    private getVersionList(name, def) {
+        def ??= cfgMgr_.getPackageDefList();
+        var l = [];
+        var dir = $pkgpath / name;
+        if (File.isDirectory(dir)) {
+            var packdef = name ? def[name] : null;
+            Directory.walk(dir) { &(verpath)
+                var ver = verpath.filename();
+                l.push({
+                    latest: packdef && packdef == ver,
+                    version: ver,
+                });
+            };
+        }
+        return l;
+    }
+
     public list() {
-        System.println(__FUNC__);
+        var def = cfgMgr_.getPackageDefList();
+        Directory.walk($pkgpath) { &(path)
+            if (File.isDirectory(path)) {
+                var name = path.filename();
+                var l = getVersionList(name, def);
+                System.print(name, ": ");
+                System.println(l.map { => _1.latest ? _1.version.bold() : _1.version });
+            }
+        };
     }
 
-    public install(name) {
-        System.println(__FUNC__);
+    public install(name, version) {
+        var verlist;
+        var packages = repoMgr_.getPackageInfo();
+        if (packages && packages[name]) {
+            verlist = getRemotePackages(packages[name]);
+        }
+        if (!verlist || verlist.length() == 0) {
+            System.println("No package found.");
+            return;
+        }
+        var semvlist = verlist.map({ => _1.version.semver });
+        if (!version) {
+            // Install the latest version.
+            version = semvlist.sort()[-1].version();
+        }
+        var installed = getVersionList(name);
+        if (installed.isArray && installed.length() > 0) {
+            if (installed.filter({ => _1.version == version }).length() > 0) {
+                System.println("The package %s(%s) has been already installed." % name.bold().underline().toString() % version);
+                return;
+            }
+        }
+        System.println("Install(%{version}): ", __FUNC__);
     }
 
-    public uninstall(name) {
+    public uninstall(name, version) {
         System.println(__FUNC__);
     }
 
@@ -314,6 +367,15 @@ class KinxPackageManager {
     private package(args) {
         var mgr = new KinxPackageLibraryManager(new KinxPackageRepositoryManager(config_));
         switch (args[1]) {
+        case "install": case "i":
+            mgr.install(args[2], args[3]);
+            break;
+        case "uninstall": case "u":
+            mgr.uninstall(args[2], args[3]);
+            break;
+        case "list": case "ls": case "l":
+            mgr.list();
+            break;
         case "search": case "s":
             mgr.search(args[2]);
             break;
