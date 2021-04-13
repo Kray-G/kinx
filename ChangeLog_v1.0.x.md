@@ -15,6 +15,7 @@
     *   #257: Fails a destructuring assignment when declaration with const.
     *   #258: There is a case that the bytecode is not outputted.
     *   #267: Can't use a variable name using an upper case in debugger.
+    *   #269: Object item is removed by flatten().
 
 ## V1.0.0 (Official Release) - 2021/03/16
 
