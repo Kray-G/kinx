@@ -428,10 +428,13 @@ int Array_flatten_impl(int args, kx_context_t *ctx, kx_obj_t *ary, kx_obj_t *src
         } else if (val->type == KX_STR_T) {
             KEX_PUSH_ARRAY_STR(ary, ks_string(val->value.sv));
         } else if (val->type == KX_OBJ_T) {
-            if (0 <= max && max <= level) {
+            kx_obj_t *ov = val->value.ov;
+            if (kv_size(ov->ary) == 0) {
+                KEX_PUSH_ARRAY_VAL(ary, *val);
+            } else if (0 <= max && max <= level) {
                 KEX_PUSH_ARRAY_VAL(ary, *val);
             } else {
-                int r = Array_flatten_impl(args, ctx, ary, val->value.ov, level + 1, max);
+                int r = Array_flatten_impl(args, ctx, ary, ov, level + 1, max);
                 if (r > 0) {
                     return r;
                 }
