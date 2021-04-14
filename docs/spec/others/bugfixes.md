@@ -214,3 +214,31 @@ System.println("Successful");
 ```
 Successful
 ```
+
+### Example 7. Fixed toJsonString() for Object
+
+This bug's was caused by an incorrect bytecode.
+
+* Issue: [#271](https://github.com/Kray-G/kinx/issues/271)
+* Fixed: [b2351c251e8eaa64042af7378725535dcf0edc3c](https://github.com/Kray-G/kinx/commit/b2351c251e8eaa64042af7378725535dcf0edc3c)
+
+#### Code
+
+```javascript
+class A {
+    public toString() { return "A"; }
+}
+class B {
+    public toString() { return "\\\"B\""; }
+}
+
+System.println({ a: new A() });  // => {"a":"A"}
+System.println({ b: new B() });  // => {"a":"A"}
+```
+
+#### Result
+
+```
+{"a":"A"}
+{"b":"\\\"B\""}
+```
