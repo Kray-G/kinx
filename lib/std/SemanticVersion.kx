@@ -3,6 +3,9 @@ _class SemanticVersion(ver_) {
     @isSemanticVersion = true;
     var [, major_, minor_, patch_, prerel_, build_] =
         ver_.match(/([0-9]+)(?:\.([0-9]+)(?:\.([0-9]+)(?:-([0-9a-zA-Z]+(?:\.[0-9a-zA-Z]+)*))?(?:\+([0-9a-zA-Z]+(?:\.[0-9a-zA-Z]+)*))?)?)?/);
+    public toString() {
+        return ver_;
+    }
     public version() {
         return ver_;
     }
