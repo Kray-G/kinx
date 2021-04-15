@@ -20,6 +20,14 @@ _namespace Net {
             return this;
         }
 
+        public binmode(tf) {
+            curl_.isContentTypeText = tf ? "0" : "1";
+        }
+
+        public textmode(tf) {
+            curl_.isContentTypeText = tf ? "1" : "0";
+        }
+
         public sslVerifyPeer(tf) {
             curl_.setOptionInt(Net.CURLOPT_SSL_VERIFYPEER, tf);
             return this;
@@ -161,12 +169,21 @@ _namespace Net {
                         hdr_.append(curl_.header);
                         curl_.header = "";
                     }
-                    if (curl_.received.length() > 0) {
-                        if (body.isFunction) {
-                            body(curl_.received);
+                    if (curl_.isContentTypeText[0] == '1'[0]) {
+                        if (curl_.received.length() > 0) {
+                            if (body.isFunction) {
+                                body(curl_.received);
+                            }
+                            buf_.append(curl_.received);
+                            curl_.received = "";
                         }
-                        buf_.append(curl_.received);
-                        curl_.received = "";
+                    } else {
+                        if (curl_.receivedbin.length() > 0) {
+                            if (body.isFunction) {
+                                body(curl_.receivedbin);
+                            }
+                            curl_.receivedbin = <>;
+                        }
                     }
                     curl_.wait(1000);
                 } while (curl_.isRunning);
