@@ -27,6 +27,8 @@
     *   #255: Improved the `operator[]` in `Range`.
     *   #264: Supported to change directory.
     *   #265: Supported `$pwd` for getting a current directory.
+    *   #272: Supported a binary mode in HTTP.
+    *   #273: Supported `read`/`write` in `File`.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #236: Can't specify the class as a return type of function.
