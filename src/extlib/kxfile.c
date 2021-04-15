@@ -548,6 +548,68 @@ int File_static_ms_time(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
+int copy_file(const char* src, const char* dst)
+{
+    if (strcmp(src, dst) == 0) {
+        return MZ_OK;
+    }
+    if (file_exists(dst)) {
+        return MZ_EXIST_ERROR;
+    }
+
+    char c;
+    int r = MZ_OK;
+    FILE *fps = fopen(src, "rb");
+    FILE *fpd = fopen(dst, "wb");
+    if (fps == NULL || fpd == NULL) {
+        r = MZ_OPEN_ERROR;
+    }
+    if (r == MZ_OK) {
+        while (1) {
+            if (fread(&c, sizeof(c), 1, fps) < 1) {
+                if (feof(fps)) {
+                    break;
+                } else {
+                    r = MZ_READ_ERROR;
+                    break;
+                }
+            }
+            if (fwrite(&c, sizeof(c), 1, fpd) < 1) {
+                r = MZ_WRITE_ERROR;
+                break;
+            }
+        }
+    }
+    if (fpd != NULL && fclose(fpd) == EOF) {
+        r = MZ_CLOSE_ERROR;
+    }
+    if (fps != NULL && fclose(fps) == EOF) {
+        r = MZ_CLOSE_ERROR;
+    }
+
+    return r;
+}
+
+int File_static_copy(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *source = get_arg_str(1, args, ctx);
+    const char *target = get_arg_str(2, args, ctx);
+    if (!source || !target) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Needs source and target file name");
+    }
+    int32_t r = copy_file(source, target);
+    if (r != MZ_OK) {
+        if (r == MZ_EXIST_ERROR) {
+            KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to copy files because the target file exists");
+        } else {
+            KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to copy files");
+        }
+    }
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
+    return 0;
+}
+
 int File_static_rename(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *source = get_arg_str(1, args, ctx);
@@ -1807,6 +1869,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "load", File_static_load },
 
     { "mkdir", File_static_mkdir },
+    { "copy", File_static_copy },
     { "rename", File_static_rename },
     { "remove", File_static_unlink },
     { "unlink", File_static_unlink },
