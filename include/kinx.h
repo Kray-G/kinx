@@ -82,6 +82,7 @@ extern int kx_yylex();
 
 enum decltype {
     KXDC_CONST = 1,
+    KXDC_PIN = 2,
 };
 
 enum functype {

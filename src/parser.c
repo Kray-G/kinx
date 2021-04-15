@@ -2310,7 +2310,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_bexpr_object(KXST_EXPRLIST, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 145:
 #line 476 "src/kinx.y"
-{ yyval.obj = YYASP(2-2).obj; yyval.obj->optional = KXDC_CONST; } break;
+{ yyval.obj = YYASP(2-2).obj; yyval.obj->optional = KXDC_PIN; } break;
         case 149:
 #line 480 "src/kinx.y"
 { yyval.obj = kx_gen_prop_func_object(YYASP(2-2).obj); } break;
@@ -2814,7 +2814,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_bexpr_object(KXST_EXPRLIST, YYASP(1-2).obj, kx_gen_var_object(NULL, KX_UND_T)); } break;
         case 351:
 #line 803 "src/kinx.y"
-{ yyval.obj = YYASP(2-2).obj; yyval.obj->optional = KXDC_CONST; } break;
+{ yyval.obj = YYASP(2-2).obj; yyval.obj->optional = KXDC_PIN; } break;
         case 352:
 #line 804 "src/kinx.y"
 { yyval.obj = kx_gen_uexpr_object(KXOP_SPREAD, YYASP(2-2).obj); } break;
@@ -2859,7 +2859,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_keyvalue_shorthand(YYASP(1-1).obj); } break;
         case 370:
 #line 837 "src/kinx.y"
-{ yyval.obj = YYASP(2-2).obj; yyval.obj->optional = KXDC_CONST; } break;
+{ yyval.obj = YYASP(2-2).obj; yyval.obj->optional = KXDC_PIN; } break;
         case 372:
 #line 842 "src/kinx.y"
 { yyval.strval = "if"; } break;

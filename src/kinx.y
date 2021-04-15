@@ -473,7 +473,7 @@ WhenConditionRangeList
 WhenConditionRange
     : WhenAnonymousFunctionDeclExpression
     | WhenPostfixExpression
-    | '^' WhenPostfixExpression { $$ = $2; $$->optional = KXDC_CONST; }
+    | '^' WhenPostfixExpression { $$ = $2; $$->optional = KXDC_PIN; }
     | Array
     | Object
     | SimpleFuncCallFactor
@@ -800,7 +800,7 @@ CommaList
 
 ArrayItemListCore
     : AssignExpression
-    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_CONST; }
+    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_PIN; }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemListCore ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
     | ArrayItemListCore ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
@@ -834,7 +834,7 @@ KeyValue
 
 ValueOfKeyValue
     : AssignExpression
-    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_CONST; }
+    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_PIN; }
     | ObjectSpecialSyntax
     ;
 
