@@ -401,7 +401,7 @@ static size_t Net_writeCallback(void *ptr, size_t size, size_t nmemb, void *user
     if (is_bin) {
         KX_NET_GET_BIN_BUFFER(bin, obj, "receivedbin");
         char *p = (char *)ptr;
-        int i = 0, sz = bufsz;
+        int sz = bufsz;
         while (sz--) {
             *kv_pushp(uint8_t, bin->bin) = *p++;
         }
