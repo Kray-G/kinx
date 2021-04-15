@@ -896,7 +896,12 @@ LOOP_HEAD:;
             int decl = actx->decl;
             actx->decl = 1;
             if (node->lhs->type == KXOP_VAR) {
-                node->lhs->optional = node->optional;
+                kxana_symbol_t *sym = search_symbol_table(ctx, node->lhs, node->lhs->value.s, actx);
+                if (sym && sym->base->optional == KXDC_CONST) {
+                    kx_yyerror_line_fmt("Symbol(%s) has been already declared as 'const'", node->lhs->file, node->lhs->line, node->lhs->value.s);
+                    break;
+                }
+                sym->optional = node->lhs->optional = node->optional;
                 node->lhs->init = node->rhs;
             }
             analyze_ast(ctx, node->lhs, actx);
@@ -959,7 +964,7 @@ LOOP_HEAD:;
         }
         int decl = -1;
         if (node->lhs->type == KXOP_VAR) {
-            kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
+            kxana_symbol_t *sym = search_symbol_table(ctx, node->lhs, node->lhs->value.s, actx);
             if (sym && sym->base->optional == KXDC_CONST && !sym->base->init) {
                 node->lhs->init = sym->base->init = node->rhs;
                 decl = actx->decl;
@@ -971,7 +976,7 @@ LOOP_HEAD:;
         }
         if (decl < 0) {
             if (node->lhs && node->lhs->type == KXOP_VAR) {
-                kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
+                kxana_symbol_t *sym = search_symbol_table(ctx, node->lhs, node->lhs->value.s, actx);
                 if (sym && sym->optional == KXDC_CONST) {
                     kx_yyerror_line("Can not assign a value to the 'const' variable", node->lhs->file, node->lhs->line);
                     break;

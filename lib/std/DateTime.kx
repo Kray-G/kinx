@@ -46,11 +46,14 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
         }
         return false;
     }
-    public <=>(rhs) {
-        if (rhs.isDateTime) {
-            return rhs.unixtime() - unixtime_;
+    public <=>(dt) {
+        if (dt.isInteger) {
+            return unixtime_ <=> dt;
         }
-        return false;
+        if (dt.isDateTime) {
+            return unixtime_ <=> dt.unixtime();
+        }
+        return null;
     }
     public toString() {
         return ("%04d/%02d/%02d %02d:%02d:%02d"
@@ -189,15 +192,6 @@ _class DateTime(unixtime_, month_, day_, hour_, minute_, second_) {
     }
     public <<(month) {
         return clone().subMonth(month);
-    }
-    public <=>(dt) {
-        if (dt.isInteger) {
-            return unixtime_ <=> dt;
-        }
-        if (dt.isDateTime) {
-            return unixtime_ <=> dt.unixtime();
-        }
-        return null;
     }
 }
 DateTime.regex = %m"([0-9]{1,4})[-/]([0-9]{1,2})[-/]([0-9]{1,2}(?:[T\s]([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2}))?)";
