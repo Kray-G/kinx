@@ -38,6 +38,7 @@
     *   #258: There is a case that the bytecode is not outputted.
     *   #267: Can't use a variable name using an upper case in debugger.
     *   #269: Object item is removed by flatten().
+    *   #274: No error for multiple `const` declaration for the same variable.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.

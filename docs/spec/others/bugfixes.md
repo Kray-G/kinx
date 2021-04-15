@@ -242,3 +242,26 @@ System.println({ b: new B() });  // => {"a":"A"}
 {"a":"A"}
 {"b":"\\\"B\""}
 ```
+
+### Example 8. Detects error for multi decl of 'const'
+
+This bug's was caused by an incorrect bytecode.
+
+* Issue: [#274](https://github.com/Kray-G/kinx/issues/274)
+* Fixed: [c6f7f926f1790686fcb059605bc89ac24352663f](https://github.com/Kray-G/kinx/commit/c6f7f926f1790686fcb059605bc89ac24352663f)
+
+#### Code
+
+```javascript
+const A = 1;
+const A = 2;
+A = 3;
+System.println(A);
+```
+
+#### Result
+
+```
+Error: Symbol(A) has been already declared as 'const' near the <test.kx>:2
+Error: Can not assign a value to the 'const' variable near the <test.kx>:3
+```
