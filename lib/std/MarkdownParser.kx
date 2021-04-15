@@ -566,7 +566,6 @@ namespace Markdown {
     const TAGREF_REGEX = /^(\[[^\]]*\])\s*:\s*((?:.|\r?\n)+)/;
     const TAGREFNEXT_REGEX = /(.+?)\r?\n(\[[^\]]*\])\s*:\s*((?:.|\r?\n)+)/;
 
-    const MODE_DEFAULT = 0;
     const MODE_CODE = 1;
     const MODE_INDENTCODE = 2;
     const MODE_LIST = 3;
