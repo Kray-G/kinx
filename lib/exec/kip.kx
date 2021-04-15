@@ -24,8 +24,19 @@
     $ kip list|ls                               Lists up an installed packages.
 */
 using SemanticVersion;
+using DateTime;
 
 const MAIN_PACKAGE_CENTRAL_REPO = "https://github.com/Kray-G/kinx-package-repository";
+
+Kip.progress = _function(...args) {
+    System.print("[" + new DateTime().toString().bold().red() + "] ", ...args);
+};
+Kip.progressln = _function(...args) {
+    System.println("[" + new DateTime().toString().bold().red() + "] ", ...args);
+};
+Kip.info = _function(...args) {
+    System.println(...args);
+};
 
 class KinxPackageManagerConfig(configFile_, defFile_) {
 
@@ -75,7 +86,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
     public list() {
         if (config_.values) {
             config_.values.keySet().each {
-                System.println(_1, "=", config_.values[_1]);
+                Kip.info(_1, "=", config_.values[_1]);
             };
         }
     }
@@ -114,6 +125,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
         var http = new Net.Http();
         http.sslVerifyPeer(false);
         http.sslVerifyHost(false);
+        # http.textmode();
         http.addHeader("User-Agent", "Kinx Package Manager");
         if (config_.values["proxy.url"]) {
             http.setProxy(config_.values["proxy.url"]);
@@ -131,6 +143,43 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
         return [];
     }
 
+    public download(url, name, version, size) {
+        var tmpdir = ($env.TMPDIR || $env.TMP || "/tmp");
+        var http = new Net.Http();
+        http.sslVerifyPeer(false);
+        http.sslVerifyHost(false);
+        http.setRedirect(true);
+        http.addHeader("User-Agent", "Kinx Package Manager");
+        if (config_.values["proxy.url"]) {
+            http.setProxy(config_.values["proxy.url"]);
+            if (config_.values["proxy.username"] && config_.values["proxy.password"]) {
+                http.setProxyUserPassword(config_.values["proxy.username"], config_.values["proxy.password"]);
+            }
+        }
+
+        var filename = name + version + ".zip";
+        zipfile = tmpdir / filename;
+        Directory.change(tmpdir) {
+            if (File.exists(filename)) {
+                Kip.progressln("The file(%s) is found." % filename);
+                Kip.progressln("The package of %s(%s) has been already downloaded." % name % version);
+                return;
+            }
+            File.open(filename, File.WRITE|File.BINARY) { &(f)
+                var total = 0;
+                http.get(url, &(data) => {
+                    total += data.length();
+                    var prog = Integer.parseInt(total * 100 / size);
+                    Kip.progress("Received %d/%d (%d%%)\r" % total % size % prog);
+                    f.write(data);
+                });
+            };
+            Kip.progressln("");
+            Kip.progressln("Created %s done." % zipfile);
+        };
+        return zipfile;
+    }
+
 }
 
 class KinxPackage(key_, info_, cfgMgr_) {
@@ -143,11 +192,11 @@ class KinxPackage(key_, info_, cfgMgr_) {
 
     public show() {
         if (info_.base) {
-            System.println("* ", info_.base);
+            Kip.info("* ", info_.base);
         }
-        System.println("  - %{key_.bold()} - %{info_.name.yellow()}");
+        Kip.info("  - %{key_.bold()} - %{info_.name.yellow()}");
         if (info_.url) {
-            System.println("    ", info_.url);
+            Kip.info("    ", info_.url);
         }
     }
 
@@ -191,7 +240,7 @@ class KinxPackageRepositoryManager(cfgMgr_) {
     public list(args) {
         var repolist = cfgMgr_.getRepository();
         repolist.each { &(access)
-            System.println("* ", access.url);
+            Kip.info("* ", access.url);
             if (args[3] != "url") {
                 json = cfgMgr_.httpGet(access.jsonUrl);
                 if (json) {
@@ -222,27 +271,33 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     private getRemotePackages(info) {
-        var list = info.getReleaseList().flatMap({ => _1.assets.map({ => { url: _1.browser_download_url, size: _1.size } }) });
+        var list = info.getReleaseList().flatMap({
+            &(i) => i.assets.map({ &(a) => { url: a.browser_download_url, size: a.size, prerelease: i.prerelease } })
+        });
         var re = new Regex(info.packagePath().replace("${version}", "(([0-9]+)\\.([0-9]+)\\.([0-9]+))"));
-        list = list.map { => { url: _1.url, ver: _1.url.match(re), size: _1.size } } .filter { => _1.ver.isDefined };
-        list = list.map { => {
-            url: _1.url,
-            version: {
-                semver: new SemanticVersion(_1.ver[1]),
-                string: _1.ver[1],
-                major: _1.ver[2],
-                minor: _1.ver[3],
-                patch: _1.ver[4],
-            },
-            size: _1.size
-        } };
+        list = list
+            .map { => { url: _1.url, ver: _1.url.match(re), size: _1.size, prerelease: _1.prerelease } }
+            .filter { => _1.ver.isDefined }
+            .map { => {
+                url: _1.url,
+                prerelease: _1.prerelease,
+                version: {
+                    semver: new SemanticVersion(_1.ver[1]),
+                    string: _1.ver[1],
+                    major: _1.ver[2],
+                    minor: _1.ver[3],
+                    patch: _1.ver[4],
+                },
+                size: _1.size
+            }
+        };
         return list;
     }
 
     private listRemotePackages(info, key) {
         var list = getRemotePackages(info);
-        System.println("* ", key) if (key);
-        System.println(list.toJsonString(true));
+        Kip.info("* ", key) if (key);
+        Kip.info(list.toJsonString(true));
     }
 
     public search(target) {
@@ -280,7 +335,7 @@ class KinxPackageLibraryManager(repoMgr_) {
                 var name = path.filename();
                 var l = getVersionList(name, def);
                 System.print(name, ": ");
-                System.println(l.map { => _1.latest ? _1.version.bold() : _1.version });
+                Kip.info(l.map { => _1.latest ? _1.version.bold() : _1.version });
             }
         };
     }
@@ -292,7 +347,7 @@ class KinxPackageLibraryManager(repoMgr_) {
             verlist = getRemotePackages(packages[name]);
         }
         if (!verlist || verlist.length() == 0) {
-            System.println("No package found.");
+            Kip.info("No package found.");
             return;
         }
         var semvlist = verlist.map({ => _1.version.semver });
@@ -303,19 +358,41 @@ class KinxPackageLibraryManager(repoMgr_) {
         var installed = getVersionList(name);
         if (installed.isArray && installed.length() > 0) {
             if (installed.filter({ => _1.version == version }).length() > 0) {
-                System.println("The package %s(%s) has been already installed." % name.bold().underline().toString() % version);
+                Kip.info("The package %s(%s) has been already installed." % name.bold().underline().toString() % version);
                 return;
             }
         }
-        System.println("Install(%{version}): ", __FUNC__);
+
+        // Download package data.
+        var actver = verlist.filter { => _1.version.string == version } [0];
+        var url = actver.url;
+        var size = actver.size;
+        Kip.progressln("Downloading the package %s(%s) with %d bytes." % name % version % size);
+        Kip.progressln("from " + url);
+        var zipfile = cfgMgr_.download(url, name, version, size);
+
+        // Extract package data.
+        var packagedir = $pkgpath / name / version;
+        var zip = new Zip(zipfile, File.READ);
+        var files = zip.totalFiles;
+        var extracted = 0;
+        zip.each { &(e)
+            e.extractTo(packagedir / e.filename);
+            var prog = Integer.parseInt((++extracted) * 100 / files);
+            Kip.progress("Extracted %d/%d (%d%%)\r" % extracted % files % prog);
+        };
+        Kip.progressln("");
+
+        // Update .def file.
+        // TODO:
     }
 
     public uninstall(name, version) {
-        System.println(__FUNC__);
+        Kip.info(__FUNC__);
     }
 
     public update(name) {
-        System.println(__FUNC__);
+        Kip.info(__FUNC__);
     }
 
 }
@@ -339,14 +416,15 @@ class KinxPackageManager {
         switch (args[2]) {
         case "list": case "ls": case "l": case "show": case "sh":
             config_.list();
-            break;
+            return true;
         case "set": case "s":
             config_.set(args[3], args[4]);
-            break;
+            return true;
         case "remove": case "rm": case "r":
             config_.remove(args[3]);
-            break;
+            return true;
         }
+        return false;
     }
 
     private repo(args) {
@@ -354,14 +432,15 @@ class KinxPackageManager {
         switch (args[2]) {
         case "list": case "ls": case "l":
             mgr.list(args);
-            break;
+            return true;
         case "add": case "a":
             mgr.add(args);
-            break;
+            return true;
         case "remove": case "rm": case "r":
             mgr.remove(args);
-            break;
+            return true;
         }
+        return false;
     }
 
     private package(args) {
@@ -369,27 +448,53 @@ class KinxPackageManager {
         switch (args[1]) {
         case "install": case "i":
             mgr.install(args[2], args[3]);
-            break;
+            return true;
         case "uninstall": case "u":
             mgr.uninstall(args[2], args[3]);
-            break;
+            return true;
         case "list": case "ls": case "l":
             mgr.list();
-            break;
+            return true;
         case "search": case "s":
             mgr.search(args[2]);
-            break;
+            return true;
         }
+        return false;
+    }
+
+    private usage() {
+        Kip.info("Configuration");
+        Kip.info("    config set <name> <value> Sets a value to a name.");
+        Kip.info("    config remove <name>      Removes a name and a value.");
+        Kip.info("    config show [<name>]      Lists up a name and a value.");
+        Kip.info("");
+        Kip.info("Central Repository Access");
+        Kip.info("    repo add <repo>           Adds a central repository.");
+        Kip.info("    repo remove <repo>        Removes a central repository.");
+        Kip.info("    repo list                 Lists up a central repository.");
+        Kip.info("");
+        Kip.info("Packages Control");
+        Kip.info("    search <key>              Searches a package.");
+        Kip.info("    install <key> [<ver>]     Installs a specified package.");
+        Kip.info("    uninstall <key> [<ver>]   Uninstalls a specified package.");
+        Kip.info("    update [<key>]            Installs the latest version.");
+        Kip.info("    list                      Lists up an installed packages.");
     }
 
     public work(args) {
         switch (args[1]) {
         when "config":
-            config(args);
+            if (!config(args)) {
+                return usage();
+            }
         when "repo":
-            repo(args);
-        else:
-            package(args);
+            if (!repo(args)) {
+                return usage();
+            }
+        default:
+            if (!package(args)) {
+                return usage();
+            }
         }
         config_.save();
     }
