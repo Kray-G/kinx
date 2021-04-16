@@ -20,6 +20,23 @@ when 2:
 }
 ```
 
+### `fallthrough` keyword
+
+You can use `fallthrough` keyword to avoid an automatic `break`.
+The `fallthrough` keyword can be put anywhere, and it marks not to break the case.
+Note that the `fallthrough` keyword never jump anywhere and just mark it.
+
+```javascript
+switch (x) {
+when 1:
+    /* ... */
+    fallthrough;    // marks this case as no break.
+    /* ... */       // statements are proceeded and move to the next case after it will be done.
+when 2:
+    /* ... */
+}
+```
+
 ### Else case
 
 It is not necessary to put `else` case at the bottom.
