@@ -217,7 +217,7 @@ Successful
 
 ### Example 7. Fixed toJsonString() for Object
 
-This bug's was caused by an incorrect bytecode.
+This bug's was caused by incorrect extracting an object.
 
 * Issue: [#271](https://github.com/Kray-G/kinx/issues/271)
 * Fixed: [b2351c251e8eaa64042af7378725535dcf0edc3c](https://github.com/Kray-G/kinx/commit/b2351c251e8eaa64042af7378725535dcf0edc3c)
