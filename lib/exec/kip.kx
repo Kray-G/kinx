@@ -41,12 +41,23 @@ Kip.info = _function(...args) {
 class KinxPackageManagerConfig(configFile_, defFile_) {
 
     var config_, def_;
-    var changed_ = false;
+    var chgdConfig_ = false;
+    var chgdDef_ = false;
 
     private saveData(data) {
         File.open(configFile_, File.WRITE) { &(f: File)
             f.println(data.toJsonString(true));
         };
+        Kip.progressln("Saved a new configuration.");
+    }
+
+    private saveDef(data) {
+        File.open(defFile_, File.WRITE) { &(f: File)
+            data.keySet().each {
+                f.println("%s = %s" % _1 % def_[_1]);
+            };
+        };
+        Kip.progressln("Saved a .def file.");
     }
 
     private initialize() {
@@ -63,14 +74,23 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
             }, {});
     }
 
-    public getPackageDefList() {
-        return def_;
+    public getPackageDef(name) {
+        return def_[name];
+    }
+
+    public setPackageDef(name, latest) {
+        def_[name] = latest;
+        chgdDef_ = true;
     }
 
     public save() {
-        if (changed_ && config_) {
+        if (chgdConfig_ && config_) {
             saveData(config_);
-            changed_ = false;
+            chgdConfig_ = false;
+        }
+        if (chgdDef_ && def_) {
+            saveDef(def_);
+            chgdDef_ = false;
         }
     }
 
@@ -94,14 +114,14 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
     public set(name, value) {
         if (name && value) {
             config_.values[name] = value;
-            changed_ = true;
+            chgdConfig_ = true;
         }
     }
 
     public remove(name) {
         if (name) {
             config_.values.remove(name);
-            changed_ = true;
+            chgdConfig_ = true;
         }
     }
 
@@ -110,14 +130,14 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
             if (config_.repository.filter({ => _1.url == repo }).length() == 0) {
                 config_.repository.push({ url: repo });
             }
-            changed_ = true;
+            chgdConfig_ = true;
         }
     }
 
     public removeRepo(repo) {
         if (repo) {
             config_.repository = config_.repository.filter { => _1.url != repo };
-            changed_ = true;
+            chgdConfig_ = true;
         }
     }
 
@@ -311,12 +331,11 @@ class KinxPackageLibraryManager(repoMgr_) {
         }
     }
 
-    private getVersionList(name, def) {
-        def ??= cfgMgr_.getPackageDefList();
+    private getVersionList(name) {
         var l = [];
         var dir = $pkgpath / name;
         if (File.isDirectory(dir)) {
-            var packdef = name ? def[name] : null;
+            var packdef = name ? cfgMgr_.getPackageDef(name) : null;
             Directory.walk(dir) { &(verpath)
                 var ver = verpath.filename();
                 l.push({
@@ -329,11 +348,10 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     public list() {
-        var def = cfgMgr_.getPackageDefList();
         Directory.walk($pkgpath) { &(path)
             if (File.isDirectory(path)) {
                 var name = path.filename();
-                var l = getVersionList(name, def);
+                var l = getVersionList(name);
                 System.print(name, ": ");
                 Kip.info(l.map { => _1.latest ? _1.version.bold() : _1.version });
             }
@@ -377,14 +395,46 @@ class KinxPackageLibraryManager(repoMgr_) {
         var files = zip.totalFiles;
         var extracted = 0;
         zip.each { &(e)
-            e.extractTo(packagedir / e.filename);
+            var filename = e.filename;
+            if (filename.startsWith(version + "/")) {
+                filename = filename.subString(version.length() + 1);
+            } else if (filename.startsWith("v" + version + "/")) {
+                filename = filename.subString(version.length() + 2);
+            }
+            e.extractTo(packagedir / filename);
             var prog = Integer.parseInt((++extracted) * 100 / files);
             Kip.progress("Extracted %d/%d (%d%%)\r" % extracted % files % prog);
         };
         Kip.progressln("");
 
         // Update .def file.
-        // TODO:
+        semvlist.push(new SemanticVersion(version));
+        var latest = semvlist.sort()[-1].version();
+        cfgMgr_.setPackageDef(name, latest);
+
+        // Auto detaction of exec candidate.
+        System.println(packagedir / "bin");
+        var candidates = [];
+        Directory.walk(packagedir / "bin") { &(f)
+            if (f.extension() == ".kx") {
+                candidates.push(f.filename());
+            }
+        };
+        [ "kxrepl", "kxrepl.exe" ].each {
+            var src = $kinxpath / _1;
+            var exe = _1.extension() == ".exe";
+            if (File.exists(src)) {
+                candidates.each {
+                    var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
+                    if (File.exists(dst)) {
+                        Kip.progressln("Skipped generating a command of %s" % _1);
+                        return;
+                    }
+                    File.copy(src, dst);
+                    Kip.progressln("Generated a command of %s" % dst.filename());
+                };
+            }
+        };
     }
 
     public uninstall(name, version) {
