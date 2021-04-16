@@ -4,7 +4,7 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-    branches: [master]
+    branches: [main]
 
 jobs:
   update-bucket:
@@ -14,10 +14,10 @@ jobs:
         run: |
           Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
           echo "$env:UserProfile\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      - uses: actions/checkout@master
+      - uses: actions/checkout@main
       - name: update bucket
         run: bin\checkver.ps1 -Update
-      - name: commit to master
+      - name: commit to main
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -27,4 +27,4 @@ jobs:
         uses: ad-m/github-push-action@v0.6.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
+          branch: main
