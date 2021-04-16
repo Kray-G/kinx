@@ -548,6 +548,68 @@ int File_static_ms_time(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *
     return 0;
 }
 
+int copy_file(const char* src, const char* dst)
+{
+    if (strcmp(src, dst) == 0) {
+        return MZ_OK;
+    }
+    if (file_exists(dst)) {
+        return MZ_EXIST_ERROR;
+    }
+
+    char c;
+    int r = MZ_OK;
+    FILE *fps = fopen(src, "rb");
+    FILE *fpd = fopen(dst, "wb");
+    if (fps == NULL || fpd == NULL) {
+        r = MZ_OPEN_ERROR;
+    }
+    if (r == MZ_OK) {
+        while (1) {
+            if (fread(&c, sizeof(c), 1, fps) < 1) {
+                if (feof(fps)) {
+                    break;
+                } else {
+                    r = MZ_READ_ERROR;
+                    break;
+                }
+            }
+            if (fwrite(&c, sizeof(c), 1, fpd) < 1) {
+                r = MZ_WRITE_ERROR;
+                break;
+            }
+        }
+    }
+    if (fpd != NULL && fclose(fpd) == EOF) {
+        r = MZ_CLOSE_ERROR;
+    }
+    if (fps != NULL && fclose(fps) == EOF) {
+        r = MZ_CLOSE_ERROR;
+    }
+
+    return r;
+}
+
+int File_static_copy(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *source = get_arg_str(1, args, ctx);
+    const char *target = get_arg_str(2, args, ctx);
+    if (!source || !target) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Needs source and target file name");
+    }
+    int32_t r = copy_file(source, target);
+    if (r != MZ_OK) {
+        if (r == MZ_EXIST_ERROR) {
+            KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to copy files because the target file exists");
+        } else {
+            KX_THROW_BLTIN_EXCEPTION("FileException", "Failed to copy files");
+        }
+    }
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
+    return 0;
+}
+
 int File_static_rename(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *source = get_arg_str(1, args, ctx);
@@ -716,7 +778,7 @@ int File_static_set_filedate(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     return 0;
 }
 
-int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, fileinfo_t *fi)
+int File_write_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx, fileinfo_t *fi)
 {
     int n, count = 0;
     char *buf;
@@ -765,10 +827,12 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
                 conv_free(buf);
             }
             break;
-        case KX_BIN_T:
-            ++count;
-            fprintf(fi->fp, "<...>");
+        case KX_BIN_T: {
+            int sz = kv_size(val.value.bn->bin);
+            count += sz;
+            fwrite(&kv_head(val.value.bn->bin), 1, sz, fi->fp);
             break;
+        }
         case KX_OBJ_T:
             ++count;
             kstr_t *out = kx_format(&val);
@@ -797,7 +861,7 @@ int File_print_impl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx,
     return count;
 }
 
-int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int File_write(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_FILE_GET_RPACK(fi, obj);
@@ -807,7 +871,7 @@ int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (!(fi->mode & KXFILE_MODE_WRITE)) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
     }
-    int count = File_print_impl(args, frmv, lexv, ctx, fi);
+    int count = File_write_impl(args, frmv, lexv, ctx, fi);
     if (fi->is_std) {
         fflush(fi->fp);
     }
@@ -817,24 +881,26 @@ int File_print(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
-int File_println(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+int File_read(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_obj_t *obj = get_arg_obj(1, args, ctx);
     KX_FILE_GET_RPACK(fi, obj);
     if (!fi) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Invalid File object");
     }
-    if (!(fi->mode & KXFILE_MODE_WRITE)) {
+    if (!(fi->mode & KXFILE_MODE_READ)) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "File is not in Write Mode");
     }
-    int count = File_print_impl(args, frmv, lexv, ctx, fi);
-    fprintf(fi->fp, "\n");
-    if (fi->is_std) {
-        fflush(fi->fp);
+    int64_t count = get_arg_int(2, args, ctx);
+    kx_bin_t *bin = allocate_bin(ctx);
+    if (count > 0) {
+        kv_resize_if(uint8_t, bin->bin, count);
+        kv_shrinkto(bin->bin, count);
+        fread(&kv_head(bin->bin), 1, count, fi->fp);
     }
 
     KX_ADJST_STACK();
-    push_i(ctx->stack, count);
+    push_bin(ctx->stack, bin);
     return 0;
 }
 
@@ -1175,8 +1241,8 @@ int File_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_METHOD("geti", obj, File_getchi);
     KEX_SET_METHOD("getUtf8Char", obj, File_getUtf8Char);
     KEX_SET_METHOD("putch", obj, File_putch);
-    KEX_SET_METHOD("printImpl", obj, File_print);
-    KEX_SET_METHOD("printlnImpl", obj, File_println);
+    KEX_SET_METHOD("read", obj, File_read);
+    KEX_SET_METHOD("write", obj, File_write);
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
     return 0;
@@ -1803,6 +1869,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "load", File_static_load },
 
     { "mkdir", File_static_mkdir },
+    { "copy", File_static_copy },
     { "rename", File_static_rename },
     { "remove", File_static_unlink },
     { "unlink", File_static_unlink },

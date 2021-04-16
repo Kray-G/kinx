@@ -376,7 +376,7 @@ Array.toJsonString = (_function() {
             return;
         }
         if (elem.instanceOf.isFunction && elem.toString.isFunction) {
-            output(elem.toString());
+            output('"' + elem.toString().replace('\\', '\\\\').replace('"', '\\"') + '"');
             return;
         }
         if (elem.keySet().length() == 0) {

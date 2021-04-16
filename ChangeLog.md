@@ -12,21 +12,24 @@
 *   Planned
     *   Support Package Manager.
     *   Support Cryptography library.
-    *   Separate other products in extlib to another repository.
 *   New Features
     *   Supported SAT solver by picosat.
-    *   Supported SemanticVersion class.
+    *   Supported SemanticVersion class with `using SemanticVersion;`.
 *   Improvements/Enhancements
-    *   Supported putting a comma at the end of an argument's list for both declaration and calling.
-    *   Supported the operator of `==` and `!=` in Boolean class.
-    *   Supported `String#isIntegerString`.
-    *   Shared an implementation of conversion for a string, an integer, and a double.
-    *   Improved type analysis for the language server.
-    *   SpecTest: Made a space wider of Test case number.
-    *   Improved Array.keySet() for `Array` itself.
+    *   #261: Separated binary modules in extlib to another repository & reduced a repository size.
     *   #255: Improved the `operator[]` in `Range`.
     *   #264: Supported to change directory.
     *   #265: Supported `$pwd` for getting a current directory.
+    *   #272: Supported a binary mode in HTTP.
+    *   #273: Supported `read`/`write` in `File`.
+    *   Small improvements and enhancements as follows without managing by issues.
+        *   Supported putting a comma at the end of an argument's list for both declaration and calling.
+        *   Added operators of `==` and `!=` in Boolean class.
+        *   Supported `String#isIntegerString`.
+        *   Shared an implementation of conversion for a string, an integer, and a double.
+        *   Improved type analysis for the language server.
+        *   SpecTest: Made a space wider of Test case number.
+        *   Improved Array.keySet() for `Array` itself.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #236: Can't specify the class as a return type of function.
@@ -36,6 +39,7 @@
     *   #258: There is a case that the bytecode is not outputted.
     *   #267: Can't use a variable name using an upper case in debugger.
     *   #269: Object item is removed by flatten().
+    *   #274: No error for multiple `const` declaration for the same variable.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.

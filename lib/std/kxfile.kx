@@ -50,8 +50,8 @@ File.create = _function(name, mode) {
     f.filesize = _function() { return File.filesize(f.source); };
     f.filedate = _function() { return File.filedate(f.source); };
     f.setFiledate = _function(date) { return File.setFiledate(f.source, date); };
-    f.print = _function(...arg) { f.printImpl(...arg.stringify()); };
-    f.println = _function(...arg) { f.printlnImpl(...arg.stringify()); };
+    f.print = _function(...arg) { f.write(...arg.stringify()); };
+    f.println = _function(...arg) { f.write(...arg.stringify(), '\n'); };
     f.eachLine = _function(func) {
         var lineno = 1;
         do {

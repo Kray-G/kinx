@@ -59,6 +59,16 @@ if (obj) { \
     } \
 } \
 /**/
+#define KX_NET_GET_BIN_BUFFER(r, obj, name) \
+kx_bin_t *r = 0; \
+if (obj) { \
+    kx_val_t *val = NULL; \
+    KEX_GET_PROP(val, obj, name); \
+    if (val && val->type == KX_BIN_T) { \
+        r = val->value.bn; \
+    } \
+} \
+/**/
 #define KX_NET_GET_BUFFER_AS_CSTR(r, obj, name) \
 const char *r = 0; \
 if (obj) { \
@@ -343,11 +353,43 @@ static size_t Net_headerCallback(void *ptr, size_t size, size_t nmemb, void *use
     kx_obj_t *obj = (kx_obj_t *)userp;
     size_t bufsz = size * nmemb;
     KX_NET_GET_BUFFER(sv, obj, "header");
+    KX_NET_GET_BUFFER(ct, obj, "contentType");
     if (!sv) {
         return bufsz;
     }
 
     ks_append_n(sv, (char *)ptr, bufsz);
+    const char *p = strstr(ks_string(sv), "Content-Type: ");
+    if (p) {
+        p += strlen("Content-Type: ");
+        const char *e = strchr(p, ';');
+        if (!e) {
+            e = strchr(p, '\r');
+            if (!e) {
+                e = strchr(p, '\n');
+            }
+        }
+        if (e) {
+            kstr_t *s = ks_new();
+            ks_append_n(s, (char *)p, e - p);
+            if (!ks_equals(s, ct)) {
+                ks_clear(ct);
+                ks_append_n(ct, (char *)p, e - p);
+                KX_NET_GET_BUFFER(ctt, obj, "isContentTypeText");
+                // If a user sets it already, there's no change here.
+                // '*a' means a user did no mode change at the moment.
+                if (ks_string(ctt)[1] == 'a') {
+                    ks_clear(ctt);
+                    if (strcmp(ks_string(ct), "application/json") == 0 || strncmp(ks_string(ct), "text/", 5) == 0) {
+                        ks_append(ctt, "1a");
+                    } else {
+                        ks_append(ctt, "0a");
+                    }
+                }
+            }
+            ks_free(s);
+        }
+    }
     return bufsz;
 }
 
@@ -355,12 +397,29 @@ static size_t Net_writeCallback(void *ptr, size_t size, size_t nmemb, void *user
 {
     kx_obj_t *obj = (kx_obj_t *)userp;
     size_t bufsz = size * nmemb;
-    KX_NET_GET_BUFFER(sv, obj, "received");
-    if (!sv) {
-        return bufsz;
+
+    int is_bin;
+    KX_NET_GET_BUFFER(ctt, obj, "isContentTypeText");
+    if (ks_string(ctt)[0] == '1') {
+        is_bin = 0;
+    } else {
+        is_bin = 1;
+    }
+    if (is_bin) {
+        KX_NET_GET_BIN_BUFFER(bin, obj, "receivedbin");
+        char *p = (char *)ptr;
+        int sz = bufsz;
+        while (sz--) {
+            *kv_pushp(uint8_t, bin->bin) = *p++;
+        }
+    } else {
+        KX_NET_GET_BUFFER(sv, obj, "received");
+        if (!sv) {
+            return bufsz;
+        }
+        ks_append_n(sv, (char *)ptr, bufsz);
     }
 
-    ks_append_n(sv, (char *)ptr, bufsz);
     return bufsz;
 }
 
@@ -486,7 +545,10 @@ int Net_createCurlHandler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_PROP_ANY(obj, "_curl", info);
     KEX_SET_PROP_INT(obj, "isRunning", 0);
     KEX_SET_PROP_CSTR(obj, "header", "");
+    KEX_SET_PROP_CSTR(obj, "contentType", "");
+    KEX_SET_PROP_CSTR(obj, "isContentTypeText", "0a");
     KEX_SET_PROP_CSTR(obj, "received", "");
+    KEX_SET_PROP_BIN(obj, "receivedbin", allocate_bin(ctx));
     KEX_SET_PROP_CSTR(obj, "debugInfo", "");
 
     curl_easy_setopt(ci->eh, CURLOPT_WRITEFUNCTION, Net_writeCallback);

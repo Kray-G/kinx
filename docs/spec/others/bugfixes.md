@@ -214,3 +214,111 @@ System.println("Successful");
 ```
 Successful
 ```
+
+### Example 7. Fixed toJsonString() for Object
+
+This bug's was caused by incorrect extracting an object.
+
+* Issue: [#271](https://github.com/Kray-G/kinx/issues/271)
+* Fixed: [e7c9b9527b9a21b298df1d1a166311cfd8f97774](https://github.com/Kray-G/kinx/commit/e7c9b9527b9a21b298df1d1a166311cfd8f97774)
+
+#### Code
+
+```javascript
+class A {
+    public toString() { return "A"; }
+}
+class B {
+    public toString() { return "\\\"B\""; }
+}
+
+System.println({ a: new A() });  // => {"a":"A"}
+System.println({ b: new B() });  // => {"a":"A"}
+```
+
+#### Result
+
+```
+{"a":"A"}
+{"b":"\\\"B\""}
+```
+
+### Example 8. Detects error for multi decl of 'const'
+
+This bug's was caused by missing to check the condition.
+
+* Issue: [#274](https://github.com/Kray-G/kinx/issues/274)
+* Fixed: [c6f7f926f1790686fcb059605bc89ac24352663f](https://github.com/Kray-G/kinx/commit/c6f7f926f1790686fcb059605bc89ac24352663f)
+
+#### Code
+
+```javascript
+const A = 1;
+const A = 2;
+A = 3;
+System.println(A);
+```
+
+#### Result
+
+```
+Error: Symbol(A) has been already declared as 'const' near the <test.kx>:2
+Error: Can not assign a value to the 'const' variable near the <test.kx>:3
+```
+
+### Example 9. Pin operator in declaration.
+
+This bug's was caused by handling with `pinned` as a `const`.
+
+* Issue: [#277](https://github.com/Kray-G/kinx/issues/277)
+* Fixed: [554854f5c2afd0b459526dfd9ace74047d89c6e6](https://github.com/Kray-G/kinx/commit/554854f5c2afd0b459526dfd9ace74047d89c6e6)
+
+#### Code
+
+```javascript
+var a = 10;
+var { x: ^a, y } = { x: 10, y: 100 };
+System.println(y);
+var { x: ^a, y } = { x: 100, y: 100 };
+System.println(y);
+```
+
+#### Result
+
+```
+100
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at <main-block>(test.kx:4)
+```
+
+### Example 10. Pin operator in function arguments.
+
+This bug's was caused by the incorrect scope for a variable with pin operator in function arguments.
+
+* Issue: [#277](https://github.com/Kray-G/kinx/issues/277)
+* Fixed: [554854f5c2afd0b459526dfd9ace74047d89c6e6](https://github.com/Kray-G/kinx/commit/554854f5c2afd0b459526dfd9ace74047d89c6e6)
+
+#### Code
+
+```javascript
+var a = 10;
+function test({ x: ^a, y }) {   // The variable `a` should be handled
+                                //  as an outside variable by a lexical scope.
+    return y;
+}
+System.println(test({ x: 10, y: 100 }));
+System.println(test({ x: 100, y: 100 }));
+```
+
+#### Result
+
+```
+100
+Uncaught exception: No one catch the exception.
+NoMatchingPatternException: Pattern not matched
+Stack Trace Information:
+        at function test(test.kx:2)
+        at <main-block>(test.kx:7)
+```
