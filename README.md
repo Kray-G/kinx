@@ -10,7 +10,7 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 
 ## Topics
 
-* **Official Release 1.0.0 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+* **Official Release 1.0.1 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
 * Now the Kinx is supporting the platform of **x86-64 Windows and Linux only**,  because I have no environment.
   *  If you are interested in other platforms, **please check [here](#how-to-support-a-platform)**.
 *  **See [ChangeLog.md](ChangeLog.md)** about the history of this project.
@@ -322,116 +322,6 @@ Here is a sample screen shot.
 See [Kinx Debugger](docs/utility/debugger.md) for details.
 
 <p align="center"><img src="docs/utility/images/debugger.png" width="90%" /></p>
-
-### Output with Dot
-
-Kinx accepts `--dot` option for outputting by .dot format as below.
-
-```
-digraph fib {
-        node [fontname="Courier_New",fontsize=10,style="setlinewidth(0.1)",shape=record];
-        edge [fontname="Courier_New",fontsize=10,style="setlinewidth(0.1)"];
-        label="fib"
-        labelloc="t"
-        L2020 [label="{ \.L2020 | enter 19, vars(1), args(1) }"];
-        L2021 [label="{ \.L2021 | if $0(0) \>= 3 goto \.L2023 }"];
-        L2022 [label="{ \.L2022 | ret $0(0) }"];
-        L2023 [label="{ \.L2023 | sub_v0i $0(0), 2 | call $1(57), 1 | sub_v0i $0(0), 1 | call $1(57), 1 | add | ret }"];
-        L2020:s -> L2021:n;
-        L2021:s -> L2023:n;
-        L2021:s -> L2022:n;
-}
-```
-
-<p align="center"><img src="docs/fibkx.png" /></p>
-
-### Extending Functionalities
-
-You can add the functionalities easily.
-Basic strategy is to add the dll following by some rules.
-
-First, you use `using` directive like this.
-
-```js
-using YourLibrary;
-```
-
-This means to load `YourLibrary.kx`. The library is searched by the order below.
-
-*   Current directory.
-*   The same directory as executable of `kinx`.
-*   The child `lib` directory of a directory of `kinx` executable.
-*   The child `lib` directory of a parent directory of `kinx` executable.
-
-If you want to use your own `yourlibrary.dll`, write the code below inside `YourLibrary.kx`.
-
-```js
-var YourLibrary = _import("yourlibrary");
-```
-
-*   About a dll rule is like below.
-    *   See [`kxstring.c`](src/extlib/kxstring.c) for single object. It will be very simple example.
-    *   See [`kxregex.c`](src/extlib/kxregex.c) for class definition. Just defines a `create` method for `new` operator.
-
-For `new` operator, `new A` is just alias of `A.create`.
-See [Class Design](docs/HowClassWorks.md) for how class works.
-
-## TODO
-
-See [ChangeLog.md](ChangeLog.md) for a current status.
-
-## Undocumented Memo
-
-For specification, see [Kinx Specification](docs/spec/README.md).
-But now there is no document about following items.
-I will write it as soon as possible.
-
-### libCurl
-
-Now libcurl package is included in Kinx. example
-Simple HTTP Get client library is [`net/http.kx`](lib/std/net/http.kx) in `lib/std` folder from [`kxnet.kx`](lib/std/kxnet.kx).
-This is very poor but will be easy to upgrade it.
-
-Simple HTTP Get client is also [`http.kx`](examples/http.kx) in example folder.
-
-Note that OpenSSL is also included.
-OpenSSL version is 3.0.0, which is not released officially but means the license is Apache 2.0.
-
-### eval
-
-`eval()` is now supported.
-You can run the code of string on the fly.
-The eval's arguments are assigned to `$$` like command line arguments as an array.
-
-### using directive
-
-You can use `using` to include another source file.
-
-```coffee
-using dir.to.path.file1;
-using? dir.to.path.file2;
-```
-
-When you use `using` and the file is not found, it will make it error.
-When you use `using?` instead, it will be ignored without errors even if the file is not found.
-
-The library is searched by the following order.
-
-*   Current directory.
-*   The same directory as executable of `kinx`.
-*   The child `lib` directory of a directory of `kinx` executable.
-*   The child `lib` directory of a parent directory of `kinx` executable.
-
-### Alternative Function Call Value
-
-When you call `someMethod` but `methodMissing` occurs for an object,
-searching a `_someMethod` property and use the value of it if found.
-It is sometimes reasonable because you do not have to define the function.
-
-```coffee
-var obj = { _msg: "message" };
-System.println(obj.msg()); # => print out "message".
-```
 
 ## License
 
