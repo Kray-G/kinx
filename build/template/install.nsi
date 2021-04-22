@@ -159,3 +159,4 @@ Function .onInit
     CopyFiles /SILENT /FILESONLY "$R0\Uninstall.exe" "$PLUGINSDIR\olduninst"
     ExecWait '"$PLUGINSDIR\olduninst\Uninstall.exe" _?=$R0'
   ${EndIf}
+FunctionEnd
