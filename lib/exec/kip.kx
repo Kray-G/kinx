@@ -437,9 +437,10 @@ class KinxPackageLibraryManager(repoMgr_) {
                 candidates.push(f.filename());
             }
         };
-        [ "kxrepl", "kxrepl.exe" ].each {
-            var src = $kinxpath / _1;
-            var exe = _1.extension() == ".exe";
+        [ "kxrepl", "kxrepl.exe" ].each { &(exefile)
+            var filename = exefile.filename();
+            var src = $kinxpath / exefile;
+            var exe = exefile.extension() == ".exe";
             if (File.exists(src)) {
                 candidates.each {
                     var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
@@ -447,7 +448,7 @@ class KinxPackageLibraryManager(repoMgr_) {
                         Kip.progressln("Skipped generating a command of %s" % _1);
                         return;
                     }
-                    File.copy(src, dst);
+                    File.copy(src.replace("\\", "/"), dst.replace("\\", "/"));
                     Kip.progressln("Generated a command of %s" % dst.filename());
                 };
             }
