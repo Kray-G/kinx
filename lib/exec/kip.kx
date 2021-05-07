@@ -59,7 +59,6 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
                 }
             };
         };
-        Kip.progressln("Saved a .def file.");
     }
 
     private initialize() {
@@ -115,6 +114,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
                 Kip.info(_1, "=", config_.values[_1]);
             };
         }
+        return true;
     }
 
     public set(name, value) {
@@ -122,6 +122,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
             config_.values[name] = value;
             chgdConfig_ = true;
         }
+        return true;
     }
 
     public remove(name) {
@@ -129,6 +130,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
             config_.values.remove(name);
             chgdConfig_ = true;
         }
+        return true;
     }
 
     public addRepo(repo) {
@@ -138,6 +140,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
             }
             chgdConfig_ = true;
         }
+        return true;
     }
 
     public removeRepo(repo) {
@@ -145,6 +148,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
             config_.repository = config_.repository.filter { => _1.url != repo };
             chgdConfig_ = true;
         }
+        return true;
     }
 
     public httpGet(url) {
@@ -276,14 +280,17 @@ class KinxPackageRepositoryManager(cfgMgr_) {
                 }
             }
         };
+        return true;
     }
 
     public add(args) {
         cfgMgr_.addRepo(args[3]);
+        return true;
     }
 
     public remove(args) {
         cfgMgr_.removeRepo(args[3]);
+        return true;
     }
 
 }
@@ -335,6 +342,7 @@ class KinxPackageLibraryManager(repoMgr_) {
                 packages.keySet().each { => listRemotePackages(packages[_1], _1) };
             }
         }
+        return true;
     }
 
     private getVersionList(name) {
@@ -353,15 +361,18 @@ class KinxPackageLibraryManager(repoMgr_) {
         return l;
     }
 
-    public list() {
+    public list(pkgname) {
         Directory.walk($pkgpath) { &(path)
             if (File.isDirectory(path)) {
                 var name = path.filename();
-                var l = getVersionList(name);
-                System.print(name, ": ");
-                Kip.info(l.map { => _1.latest ? _1.version.bold() : _1.version.yellow() });
+                if (pkgname.isUndefined || pkgname == name) {
+                    var l = getVersionList(name);
+                    System.print(name, ": ");
+                    Kip.info(l.map { => _1.latest ? _1.version.bold() : _1.version.yellow() });
+                }
             }
         };
+        return true;
     }
 
     public install(name, version) {
@@ -372,7 +383,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         }
         if (!verlist || verlist.length() == 0) {
             Kip.info("No package found.");
-            return;
+            return false;
         }
         var semvlist = verlist.map({ => _1.version.semver });
         if (!version) {
@@ -383,7 +394,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         if (installed.isArray && installed.length() > 0) {
             if (installed.filter({ => _1.version == version }).length() > 0) {
                 Kip.info("The package %s(%s) has been already installed." % name.bold().underline().toString() % version);
-                return;
+                return false;
             }
         }
 
@@ -441,6 +452,7 @@ class KinxPackageLibraryManager(repoMgr_) {
                 };
             }
         };
+        return true;
     }
 
     private removeFile(file) {
@@ -464,14 +476,43 @@ class KinxPackageLibraryManager(repoMgr_) {
         return success;
     }
 
+    private uninstallAll(name) {
+        var exe = File.exists($kinxpath / "kxrepl.exe");
+        var packagebase = $pkgpath / name;
+        Directory.walk(packagebase) { &(packagedir)
+            Directory.walk(packagedir / "bin") { &(f)
+                if (f.extension() == ".kx") {
+                    var dst = $kinxpath / f.stem() + (exe ? ".exe" : "");
+                    if (File.exists(dst)) {
+                        if (removeFile(dst)) {
+                            Kip.progressln("Removed an executable of %s" % dst.filename());
+                        }
+                    }
+                }
+            };
+        };
+        cfgMgr_.setPackageDef(name);
+        if (removeDir(packagebase)) {
+            Kip.progressln("All versions of %s is successfully uninstalled" % name);
+        }
+        return true;
+    }
+
     public uninstall(name, version) {
+        if (name.isUndefined || version.isUndefined) {
+            return false;
+        }
+        if (version == "all") {
+            return uninstallAll(name);
+        }
+
         // Remove a specific binary.
         var exe = File.exists($kinxpath / "kxrepl.exe");
         var packagebase = $pkgpath / name;
-        var packagedir = $pkgpath / name / version;
+        var packagedir = packagebase / version;
         if (!File.exists(packagedir)) {
             Kip.progressln("No package of %s(%s)" % name % version);
-            return;
+            return false;
         }
         var vers = [];
         Directory.walk(packagebase) { &(ver)
@@ -502,10 +543,11 @@ class KinxPackageLibraryManager(repoMgr_) {
                 Kip.progressln("Removed all versions of %s" % name);
             }
         }
+        return true;
     }
 
     public update(name) {
-        install(name);
+        return install(name);
     }
 
 }
@@ -569,7 +611,7 @@ class KinxPackageManager {
             mgr.update(args[2]);
             return true;
         case "list": case "ls": case "l":
-            mgr.list();
+            mgr.list(args[2]);
             return true;
         case "search": case "s":
             mgr.search(args[2]);
