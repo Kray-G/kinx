@@ -1,0 +1,11 @@
+using PathInstUtil;
+
+System.println("Already installed : ", KinxPath.AlreadyInstalled);
+if (!KinxPath.AlreadyInstalled) {
+    System.println("add [%{kinxpath}] to PATH");
+    var p = new Process([$kinxpath / "addpath.exe", "add", "user", kinxpath]).run();
+    p.wait();
+    KinxPath.getPathList().each {
+        System.println(_1);
+    };
+}

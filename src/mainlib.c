@@ -273,7 +273,7 @@ const char *search_exec_file(kx_context_t *ctx, const char *execname)
             const char *pkgname = kh_key(g_packages, k);
             package_t *p = kh_value(g_packages, k);
             ks_clear(ksv);
-            ks_appendf(ksv, "lib%cpackage%c%s%c%s%cbin%c%s.kx", PATH_DELCH, PATH_DELCH, pkgname, PATH_DELCH, p->vers, PATH_DELCH, PATH_DELCH, execname);
+            ks_appendf(ksv, "%s%clib%cpackage%c%s%c%s%cbin%c%s.kx", get_kinx_path(), PATH_DELCH, PATH_DELCH, PATH_DELCH, pkgname, PATH_DELCH, p->vers, PATH_DELCH, PATH_DELCH, execname);
             kx_trace(ctx, 0, "[exec:check] %s", ks_string(ksv));
             if (file_exists(ks_string(ksv))) {
                 execfile = kx_const_str(ctx, ks_string(ksv));
@@ -357,6 +357,16 @@ DllExport int do_main(int ac, char **av)
             } else if (!strcmp(lname, "debug")) {
                 ctx->options.debug_mode = param[0] ? strtol(param, NULL, 0) : 1;
                 ctx->ir_executor = ir_dbg_exec;
+            #if defined(_WIN32) || defined(_WIN64)
+            } else if (!strcmp(lname, "install-path")) {
+                strcpy(param, "pathInst");
+                execname = param;
+                goto END_OF_OPT;
+            } else if (!strcmp(lname, "uninstall-path")) {
+                strcpy(param, "pathUninst");
+                execname = param;
+                goto END_OF_OPT;
+            #endif
             } else if (!strcmp(lname, "exec")) {
                 if (param[0]) {
                     execname = param;

@@ -1,0 +1,11 @@
+using PathInstUtil;
+
+System.println("Already installed : ", KinxPath.AlreadyInstalled);
+if (KinxPath.AlreadyInstalled) {
+    System.println("remove [%{kinxpath}] from PATH");
+    var p = new Process([$kinxpath / "addpath.exe", "del", "user", kinxpath]).run();
+    p.wait();
+    KinxPath.getPathList().each {
+        System.println(_1);
+    };
+}

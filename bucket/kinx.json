@@ -12,7 +12,8 @@
     "bin": [
         "kinx.exe",
         "kxrepl.exe",
-        "kxtest.exe"
+        "kxtest.exe",
+        "kip.exe"
     ],
     "checkver": "github",
     "autoupdate": {

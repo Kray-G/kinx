@@ -1,0 +1,40 @@
+using Process;
+
+if (!System.PLATFORM.endsWith("-WIN")) {
+    System.println("Not supported platform, it is only for Windows");
+    return 1;
+}
+
+KinxPath.getPathList = _function() {
+    var [r1, w1] = new Pipe();
+    var p1 = new Process([$kinxpath / "addpath.exe", "list", "user"], { out: w1 }).run();
+    w1.close();
+    var res = [];
+    while (p1.isAlive() || r1.peek() > 0) {
+        var buf = r1.read();
+        if (buf.length() > 0) {
+            res.push(buf);
+        }
+    }
+    var status = p1.wait();
+    return status == 0 ? res.join().split(/\r?\n/) : [];
+};
+
+var res = KinxPath.getPathList();
+if (res.length() == 0) {
+    System.println("Failed to get a PATH list.");
+    return 1;
+}
+
+var found = false;
+var kinxpath = $kinxpath.replace("/", "\\");
+res.each {
+    if (g = (_1 =~ /\s*\d+:\s+(.+)/)) {
+        if (g[1].string == kinxpath) {
+            found = true;
+            return false;
+        }
+    }
+};
+
+KinxPath.AlreadyInstalled = new Boolean(found);

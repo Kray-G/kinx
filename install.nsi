@@ -67,7 +67,9 @@ Section
   File "kinxw.exe"
   File "kxrepl.exe"
   File "kxtest.exe"
+  File "kip.exe"
   File "addpath.exe"
+  File "addpathc.exe"
   File "*.dll"
 
   SetOutPath "$INSTDIR\bin\lib"
