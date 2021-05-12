@@ -438,7 +438,6 @@ class KinxPackageLibraryManager(repoMgr_) {
             }
         };
         [ "kxrepl", "kxrepl.exe" ].each { &(exefile)
-            var filename = exefile.filename();
             var src = $kinxpath / exefile;
             var exe = exefile.extension() == ".exe";
             if (File.exists(src)) {
