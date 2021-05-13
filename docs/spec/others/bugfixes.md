@@ -322,3 +322,23 @@ Stack Trace Information:
         at function test(test.kx:2)
         at <main-block>(test.kx:7)
 ```
+
+### Example 11. Fixed SegFault on Linux
+
+This bug's was caused by NULL dereference only with a Linux code.
+
+* Issue: [#284](https://github.com/Kray-G/kinx/issues/271)
+* Fixed: [3e79cc61e9a57a74b0dbb2163d68f5669535e127](https://github.com/Kray-G/kinx/commit/3e79cc61e9a57a74b0dbb2163d68f5669535e127)
+
+#### Code
+
+```javascript
+var t = $env.NO_ENVVAR;
+System.println("t = ", t);
+```
+
+#### Result
+
+```
+t =
+```
