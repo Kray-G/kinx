@@ -593,9 +593,12 @@ static int split_name(kstr_t *a[KXNM], kstr_t *name)
 static kstr_t *get_script_name(kx_context_t *ctx)
 {
     kstr_t *sv = allocate_str(ctx);
-    char *buf = conv_acp2utf8_alloc(getenv("KINX_RUN_SCRIPT"));
-    ks_append(sv, buf);
-    conv_free(buf);
+    char *runscr = getenv("KINX_RUN_SCRIPT");
+    if (runscr) {
+        char *buf = conv_acp2utf8_alloc(runscr);
+        ks_append(sv, buf);
+        conv_free(buf);
+    }
     return sv;
 }
 

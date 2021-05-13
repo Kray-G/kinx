@@ -184,7 +184,7 @@ int ks_appendf(kstr_t *self, const char *format, ...) {
 
 int
 ks_append(kstr_t *self, const char *str) {
-  return ks_append_n(self, str, strlen(str));
+  return str ? ks_append_n(self, str, strlen(str)) : 0;
 }
 
 /*
