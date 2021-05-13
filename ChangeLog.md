@@ -40,6 +40,7 @@
     *   #267: Can't use a variable name using an upper case in debugger.
     *   #269: Object item is removed by flatten().
     *   #274: No error for multiple `const` declaration for the same variable.
+    *   #284: Fixed a segmentation fault problem on Linux.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.

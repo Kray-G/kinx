@@ -1,6 +1,11 @@
 # Change Log
 
-## V1.0.1 (Current Development Version)
+## V1.0.2 (Current Development Version)
+
+*   Bug Fixed
+    *   #284: Fixed a segmentation fault problem on Linux.
+
+## V1.0.1 (Officially Released)
 
 *   Improvements
     *   Improved type analysis for the language server.
