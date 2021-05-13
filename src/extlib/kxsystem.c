@@ -1701,9 +1701,12 @@ int System_getenv(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KX_THROW_BLTIN_EXCEPTION("SystemException", "No environment variable name");
     }
     kstr_t *sv = allocate_str(ctx);
-    char *buf = conv_acp2utf8_alloc(getenv(name));
-    ks_append(sv, buf);
-    conv_free(buf);
+    char *env = getenv(name);
+    if (env) {
+        char *buf = conv_acp2utf8_alloc(env);
+        ks_append(sv, buf);
+        conv_free(buf);
+    }
 
     KX_ADJST_STACK();
     push_sv(ctx->stack, sv);
