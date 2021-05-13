@@ -242,3 +242,23 @@ System.println({ b: new B() });  // => {"a":"A"}
 {"a":"A"}
 {"b":"\\\"B\""}
 ```
+
+### Example 8. Fixed SegFault on Linux
+
+This bug's was caused by NULL dereference only with a Linux code.
+
+* Issue: [#284](https://github.com/Kray-G/kinx/issues/271)
+* Fixed: [47668aa73c4b32ed3d45b040a21a5907a73b657f](https://github.com/Kray-G/kinx/commit/47668aa73c4b32ed3d45b040a21a5907a73b657f)
+
+#### Code
+
+```javascript
+var t = $env.NO_ENVVAR;
+System.println("t = ", t);
+```
+
+#### Result
+
+```
+t =
+```
