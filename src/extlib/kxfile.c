@@ -683,7 +683,7 @@ int File_static_set_filedate(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_contex
     if (!target) {
         KX_THROW_BLTIN_EXCEPTION("FileException", "Needs the file name to set file date");
     }
-    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    kx_obj_t *obj = get_arg_obj(2, args, ctx);
     time_t modified_date = 0;
     time_t accessed_date = 0;
     time_t creation_date = 0;
