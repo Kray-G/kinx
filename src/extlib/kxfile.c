@@ -739,6 +739,26 @@ int File_static_filedate(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t 
     return 0;
 }
 
+int File_static_chmod(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *target = get_arg_str(1, args, ctx);
+    if (!target) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "Needs the file name to set file date");
+    }
+
+    #if defined(_WIN32) || defined(_WIN64)
+    // always true on Windows.
+    int r = 0;
+    #else
+    int mode = get_arg_int(2, args, ctx);
+    int r = chmod(target, mode);
+    #endif
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, r == 0);
+    return 0;
+}
+
 int File_static_set_filedate(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *target = get_arg_str(1, args, ctx);
@@ -1879,6 +1899,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "filesize", File_static_filesize },
     { "filedate", File_static_filedate },
     { "setFiledate", File_static_set_filedate },
+    { "chmod", File_static_chmod },
 
     { "diropen", File_static_diropen },
     { "direntry", File_static_direntry },
