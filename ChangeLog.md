@@ -22,6 +22,7 @@
     *   #265: Supported `$pwd` for getting a current directory.
     *   #272: Supported a binary mode in HTTP.
     *   #273: Supported `read`/`write` in `File`.
+    *   #290: Supported `chmod` in `File`.
     *   Small improvements and enhancements as follows without managing by issues.
         *   Supported putting a comma at the end of an argument's list for both declaration and calling.
         *   Added operators of `==` and `!=` in Boolean class.
