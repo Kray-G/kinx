@@ -191,7 +191,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
         zipfile = tmpdir / filename;
         Directory.change(tmpdir) {
             if (File.exists(filename)) {
-                Kip.progressln("The file(%s) is found." % filename);
+                Kip.progressln("The file(%{filename.bold().yellow()}) is found.");
                 Kip.progressln("The package of %s(%s) has been already downloaded." % name % version);
                 return;
             }
@@ -375,6 +375,17 @@ class KinxPackageLibraryManager(repoMgr_) {
         return true;
     }
 
+    private isExecutable(file) {
+        if (File.isDirectory(file)) {
+            return false;
+        }
+        if (file.extension() == ".sh") {
+            return true;
+        }
+        var header = File.read(file, 4);
+        return header == <0x7f, 0x45, 0x4c, 0x46>;
+    }
+
     public install(name, version) {
         var verlist;
         var packages = repoMgr_.getPackageInfo();
@@ -437,6 +448,12 @@ class KinxPackageLibraryManager(repoMgr_) {
                 candidates.push(f.filename());
             }
         };
+        Directory.recursiveWalk(packagedir / "bin") { &(f)
+            if (isExecutable(f)) {
+                File.chmod(f, 755);
+                Kip.progressln("Made the file of %{_1.filename().bold().yellow()} executable");
+            }
+        };
         [ "kxrepl", "kxrepl.exe" ].each { &(exefile)
             var src = $kinxpath / exefile;
             var exe = exefile.extension() == ".exe";
@@ -448,7 +465,8 @@ class KinxPackageLibraryManager(repoMgr_) {
                         return;
                     }
                     File.copy(src.replace("\\", "/"), dst.replace("\\", "/"));
-                    Kip.progressln("Generated a command of %s" % dst.filename());
+                    File.chmod(dst, 755);
+                    Kip.progressln("Generated a command of %{dst.filename().bold().yellow()}");
                 };
             }
         };
