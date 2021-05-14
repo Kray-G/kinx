@@ -41,6 +41,7 @@
     *   #269: Object item is removed by flatten().
     *   #274: No error for multiple `const` declaration for the same variable.
     *   #284: Fixed a segmentation fault problem on Linux.
+    *   #288: Incorrect message is displayed when `File.open` failed.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.
