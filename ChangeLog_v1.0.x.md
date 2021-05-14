@@ -5,6 +5,7 @@
 *   Bug Fixed
     *   #284: Fixed a segmentation fault problem on Linux.
     *   #288: Incorrect message is displayed when `File.open` failed.
+    *   #289: `File.setFiledate` does not work correctly.
 
 ## V1.0.1 (Officially Released)
 
