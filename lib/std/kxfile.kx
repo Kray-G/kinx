@@ -75,6 +75,8 @@ File.open = _function(name, mode, func) {
         f = new File(name, mode);
         return func(f);
     } finally {
-        f.close();
+        if (f) {
+            f.close();
+        }
     }
 };
