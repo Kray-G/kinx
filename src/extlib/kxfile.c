@@ -759,6 +759,31 @@ int File_static_chmod(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     return 0;
 }
 
+int File_static_read(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    const char *filename = get_arg_str(1, args, ctx);
+    if (!filename) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", "No file specified");
+    }
+    FILE *fp = fopen(filename, "rb");
+    if (!fp) {
+        KX_THROW_BLTIN_EXCEPTION("FileException", static_format("File open failed: %s", strerror(errno)));
+    }
+
+    int64_t count = get_arg_int(2, args, ctx);
+    kx_bin_t *bin = allocate_bin(ctx);
+    if (count > 0) {
+        kv_resize_if(uint8_t, bin->bin, count);
+        kv_shrinkto(bin->bin, count);
+        fread(&kv_head(bin->bin), 1, count, fp);
+    }
+    fclose(fp);
+
+    KX_ADJST_STACK();
+    push_bin(ctx->stack, bin);
+    return 0;
+}
+
 int File_static_set_filedate(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *target = get_arg_str(1, args, ctx);
@@ -1900,6 +1925,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "filedate", File_static_filedate },
     { "setFiledate", File_static_set_filedate },
     { "chmod", File_static_chmod },
+    { "read", File_static_read },
 
     { "diropen", File_static_diropen },
     { "direntry", File_static_direntry },
