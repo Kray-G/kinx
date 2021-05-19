@@ -6713,7 +6713,6 @@ int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *
         return 1;
     }
 
-printf("[%s](%d) %s:%d\n", kx_opname[cur->op], (int)kv_size(ctx->stack), cfile, cline);
     location->line = cline;
     location->func = cur->func;
     // debugger will start with a breakpoint when the line is different from the previous check.
