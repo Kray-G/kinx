@@ -6674,7 +6674,7 @@ kx_code_t *ir_varname(kx_frm_t *frmv, kx_code_t *cur)
     kv_A(frmv->varname, cur->value2.idx).name = cur->varname;
     return cur->next;
 }
-KX_IR_NAME_DEF();
+
 int kx_debug_hook(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv, kx_code_t *cur)
 {
     if (ctx != g_main_thread) {
