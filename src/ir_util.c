@@ -1385,9 +1385,10 @@ int kx_regex_eq(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, kx_val_t *v1,
             exc = KXN_UNSUPPORTED_OPERATOR;
             return exc;
         }
-        kx_fnc_t *fn = val1->value.fn;
+        kv_pop(ctx->stack);
         push_s((ctx)->stack, str);
         push_obj((ctx)->stack, re);
+        kx_fnc_t *fn = val1->value.fn;
         exc = fn->func(2, frmv, fn->lex, ctx);
         if (exc != 0) {
             return exc;
@@ -1400,10 +1401,10 @@ int kx_regex_eq(kx_context_t *ctx, kx_frm_t *frmv, kx_code_t *cur, kx_val_t *v1,
         return KXN_UNSUPPORTED_OPERATOR;
     }
 
-    kx_fnc_t *fn = val1->value.fn;
+    kv_pop(ctx->stack);
     push_obj((ctx)->stack, re);
-    exc = fn->func(1, frmv, fn->lex, ctx);
-    return exc;
+    kx_fnc_t *fn = val1->value.fn;
+    return fn->func(1, frmv, fn->lex, ctx);
 }
 
 /*
