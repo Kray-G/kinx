@@ -44,6 +44,7 @@
     *   #284: Fixed a segmentation fault problem on Linux.
     *   #288: Incorrect message is displayed when `File.open` failed.
     *   #289: `File.setFiledate` does not work correctly.
+    *   #293: Fixed a problem of a stack overflow with `=~` or `!~`.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is a 1st official release version.

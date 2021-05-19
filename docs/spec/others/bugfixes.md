@@ -327,7 +327,7 @@ Stack Trace Information:
 
 This bug's was caused by NULL dereference only with a Linux code.
 
-* Issue: [#284](https://github.com/Kray-G/kinx/issues/271)
+* Issue: [#284](https://github.com/Kray-G/kinx/issues/284)
 * Fixed: [3e79cc61e9a57a74b0dbb2163d68f5669535e127](https://github.com/Kray-G/kinx/commit/3e79cc61e9a57a74b0dbb2163d68f5669535e127)
 
 #### Code
@@ -341,4 +341,31 @@ System.println("t = ", t);
 
 ```
 t =
+```
+
+### Example 12. Stack overflow with `=~` or `!~`
+
+This bug's was caused by missing a pop operation.
+
+* Issue: [#293](https://github.com/Kray-G/kinx/issues/293)
+* Fixed: [6e7d0115aef380fd92a1ff9799a3b4ce00f86890](https://github.com/Kray-G/kinx/commit/6e7d0115aef380fd92a1ff9799a3b4ce00f86890)
+
+#### Code
+
+```javascript
+var l = "aaaaaaa";
+for (var i = 0; i < 1000; ++i) {
+    if (g = (l =~ /([b-z]+)/)) {
+        System.println(g[1].string);
+    } else if (g = (l =~ /([0-9]+)/)) {
+        System.println(g[1].string);
+    }
+}
+System.println("Successful");
+```
+
+#### Result
+
+```
+Successful
 ```
