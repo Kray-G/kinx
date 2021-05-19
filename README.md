@@ -35,18 +35,14 @@ And _"Providing C Like Syntax"_ as well also means _"friendly for almost all pro
 
 ### Features
 
-#### Language Basic Concept
+#### Basic Features
 
-*   **Extendable**. Contributers are able to extend features easily for your own use.
-*   **Lightweight**. You can start using this without a lot of work.
-*   **Small**. Using C instead of C++. I love C++ but runtime is big in some cases.
-*   **Object-Oriented**. Of course you can do the object-oriented programming.
-*   C style syntax... no it is **JavaScript style syntax** rather than C, but it is also good.
-*   **Dynamic typing**, but you can also specify the type.
-*   **Native function** by JIT compiling supported with some limitations. Very fast.
+Mainly there are features below.
+
+*   **Dynamic typing** and **Object-Oriented programming**.
 *   **Classes** and inheritance, **Higher order functions**, **Lexical scoping**, **Closures**, **Fiber**, **Garbage Collection**, and so on.
-*   **Isolate** object to control native threads **without GIL** (Global Interpreter Lock).
-*   Including useful libraries as **All-In-One**. See details below.
+*   **Native function** by JIT compiling supported with some limitations. Very fast.
+*   Useful libraries are provided as **All-In-One**.
 *   **[REPL](docs/utility/repl.md)** is provided by default.
 *   **[Debugger](docs/utility/debugger.md)** is available and embedded in Kinx. Use the option `--debug` and you can run a script with debugger.
 *   Useful Testing System named as **[SpecTest](docs/index.md)**. It is designed to not only for Kinx but also for any other products.
