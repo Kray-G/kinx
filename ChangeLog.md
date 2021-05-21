@@ -47,7 +47,7 @@
     *   #293: Fixed a problem of a stack overflow with `=~` or `!~`.
 
 ## V1.0.0 (Official Release) - 2021/03/16
-This is a 1st official release version.
+This is 1st official release version.
 
 * See [Kinx Specification](https://github.com/Kray-G/kinx/blob/master/docs/index.md) for a specification.
 
