@@ -145,9 +145,12 @@ If anyone wants to support some other platform, the followings have to be done.
 
 1. Now `utliity/kmyacc` is prepared only for x86-64 Windows and Linux.
     * About this, I did commit directly the generated parser file by yacc. Use those files directly in Makefile.
-2. There are some dependent libraries in this repo. I think it is not a good way but I am doing so for convenience. Those libraries are put under `src/extlib` folder. Some are located it as a source code but some are located as a pre-built component. Currently there are 6 projects which is prepared as a pre-built component such as  libcurl, libharu, libssh2, libxml2, openssl, and zip(minizip).
-    * Create a folder for the target platform and prebuilding and putting a library under that folder each library.
-    * Prepare a Makefile for the target platform to compile with above libraries.
+2. Kinx needs some dependent libraries. The libraries as a source code are directly managed under `src/extlib`, and the other libraries which is provided as a binary is managed on [this repository](https://github.com/Kray-G/kinx-core-ext). That repository is registered as a submodule under `src/extlib`.
+    * Now there are 6 libraries provided as a binary.
+        * libcurl, libharu, libssh2, libxml2, openssl, and zip(minizip).
+    * How to add components you want to use.
+        * For source code libraries, use Makefile suited to the platform that you want to use, and add it into the build mechanism.
+        * For binary libraries, added components which you have built for the platform you want to support to [this repository](https://github.com/Kray-G/kinx-core-ext). And then, do pull request on that repository and update submodule's commit on this Kinx repository.
 
 ### How to Install
 
