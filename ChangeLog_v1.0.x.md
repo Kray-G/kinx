@@ -1,6 +1,6 @@
 # Change Log
 
-## V1.0.2 (Current Development Version)
+## V1.0.2 (Officially Released) - 2021/05/21
 
 *   Bug Fixed
     *   #284: Fixed a segmentation fault problem on Linux.
@@ -8,7 +8,7 @@
     *   #289: `File.setFiledate` does not work correctly.
     *   #293: Fixed a problem of a stack overflow with `=~` or `!~`.
 
-## V1.0.1 (Officially Released)
+## V1.0.1 (Officially Released) - 2021/04/22
 
 *   Improvements
     *   Improved type analysis for the language server.
@@ -27,4 +27,4 @@
 
 ## V1.0.0 (Official Release) - 2021/03/16
 
-This is a 1st official release version.
+This is 1st official release version.
