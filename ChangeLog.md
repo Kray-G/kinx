@@ -1,15 +1,6 @@
 # Change Log
 
-## V1.1.0 (Future Planned)
-
-*   Planned, or remaining tasks.
-    *   Support GUI library.
-    *   Support OpenCV library.
-    *   Support HTTP Server library.
-    *   Support Cryptography library.
-    *   Support Package Manager.
-
-## V0.23.0 (Current Development Version)
+## V1.0.0 (Official Release) - 2021/03/16
 
 *   Updated
     *   Updated `Functional`.
