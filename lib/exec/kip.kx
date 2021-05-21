@@ -29,9 +29,12 @@ using DateTime;
 const MAIN_PACKAGE_CENTRAL_REPO = "https://github.com/Kray-G/kinx-package-repository";
 
 Kip.progress = _function(...args) {
-    System.print("[" + new DateTime().toString().bold().red() + "] ", ...args);
+    System.print("[" + new DateTime().toString().bold().green() + "] ", ...args);
 };
 Kip.progressln = _function(...args) {
+    System.println("[" + new DateTime().toString().bold().green() + "] ", ...args);
+};
+Kip.errorln = _function(...args) {
     System.println("[" + new DateTime().toString().bold().red() + "] ", ...args);
 };
 Kip.info = _function(...args) {
@@ -298,6 +301,7 @@ class KinxPackageRepositoryManager(cfgMgr_) {
 class KinxPackageLibraryManager(repoMgr_) {
 
     var cfgMgr_;
+    var installed_;
 
     private initialize() {
         cfgMgr_ = repoMgr_.getConfigManager();
@@ -327,10 +331,44 @@ class KinxPackageLibraryManager(repoMgr_) {
         return list;
     }
 
+    private isInstalled(name, version) {
+        if (installed_.isUndefined) {
+            installed_ = [];
+            var dir = $pkgpath / name;
+            if (File.isDirectory(dir)) {
+                var packdef = name ? cfgMgr_.getPackageDef(name) : null;
+                Directory.walk(dir) { &(verpath)
+                    var ver = verpath.filename();
+                    installed_[name][ver] = true;
+                };
+            }
+        }
+        return installed_[name][version];
+    }
+
+    private makeSizeString(size) {
+        if (size > (1024 * 1024 * 1024 * 1024)) {
+            return ("%5.1f TB" % Double.parseDouble(size / 1024 / 1024 / 1024 / 1024)).format();
+        } else if (size > (1024 * 1024 * 1024)) {
+            return ("%5.1f GB" % Double.parseDouble(size / 1024 / 1024 / 1024)).format();
+        } else if (size > (1024 * 1024)) {
+            return ("%5.1f MB" % Double.parseDouble(size / 1024 / 1024)).format();
+        } else if (size > 1024) {
+            return ("%5.1f KB" % Double.parseDouble(size / 1024)).format();
+        }
+        return size + "bytes";
+    }
+
     private listRemotePackages(info, key) {
         var list = getRemotePackages(info);
         Kip.info("* ", key) if (key);
-        Kip.info(list.toJsonString(true));
+        list.each {
+            var version = _1.version.string;
+            var installed = isInstalled(key, version);
+            Kip.info("    - %{version.bold()} (%{makeSizeString(_1.size)}) ",
+                (_1.prerelease ? "[Pre-release]" : "").yellow(),
+                (installed ? " - Installed" : "").yellow().bold());
+        };
     }
 
     public search(target) {
@@ -474,7 +512,7 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     private removeFile(file) {
-        System.try({ => File.remove(file) }).else({ => Kip.progressln("Failed to remove: %s" % file) });
+        System.try({ => File.remove(file) }).else({ => Kip.errorln("Failed to remove: %s" % file) });
         return !File.exists(file);
     }
 
@@ -517,7 +555,13 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     public uninstall(name, version) {
-        if (name.isUndefined || version.isUndefined) {
+        if (name.isUndefined) {
+            Kip.errorln("No package name specified");
+            return false;
+        }
+        if (version.isUndefined) {
+            Kip.errorln("No version for %{name.bold()} specified");
+            Kip.errorln("If you want to uninstall all versions, specify 'all'");
             return false;
         }
         if (version == "all") {
@@ -529,7 +573,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         var packagebase = $pkgpath / name;
         var packagedir = packagebase / version;
         if (!File.exists(packagedir)) {
-            Kip.progressln("No package of %s(%s)" % name % version);
+            Kip.errorln("No package of %s(%s)" % name % version);
             return false;
         }
         var vers = [];
