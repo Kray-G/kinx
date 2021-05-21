@@ -34,6 +34,9 @@ Kip.progress = _function(...args) {
 Kip.progressln = _function(...args) {
     System.println("[" + new DateTime().toString().bold().green() + "] ", ...args);
 };
+Kip.warningln = _function(...args) {
+    System.println("[" + new DateTime().toString().bold().yellow() + "] ", ...args);
+};
 Kip.errorln = _function(...args) {
     System.println("[" + new DateTime().toString().bold().red() + "] ", ...args);
 };
@@ -425,6 +428,10 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     public install(name, version) {
+        if (name.isUndefined) {
+            Kip.errorln("No package name specified");
+            return false;
+        }
         var verlist;
         var packages = repoMgr_.getPackageInfo();
         if (packages && packages[name]) {
@@ -609,7 +616,15 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     public update(name) {
-        return install(name);
+        if (name) {
+            // Install the latest version of the package.
+            return install(name);
+        }
+        Kip.warningln("No name for update...");
+        Kip.warningln("Not implemented this feature yet");
+        Kip.warningln("TODO: - check if there are updates each package");
+        Kip.warningln("TODO: - update those if the package has an update");
+        return false;
     }
 
 }
