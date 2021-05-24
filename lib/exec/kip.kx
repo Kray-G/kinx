@@ -339,7 +339,6 @@ class KinxPackageLibraryManager(repoMgr_) {
             installed_ = [];
             var dir = $pkgpath / name;
             if (File.isDirectory(dir)) {
-                var packdef = name ? cfgMgr_.getPackageDef(name) : null;
                 Directory.walk(dir) { &(verpath)
                     var ver = verpath.filename();
                     installed_[name][ver] = true;
