@@ -2,11 +2,12 @@
 class DevelopPackageUpdater(pkgname, version) {
 
     const DEF_FILE_NAME = "kxpackage.def";
-    var defFile_ = $pkgpath / DEF_FILE_NAME;
-    var root_ = $pkgpath / pkgname / version;
-    var candidates_;
+    var defFile_, root_, candidates_;
 
     private initialize() {
+        pkgname += "-dev";
+        defFile_ = $pkgpath / DEF_FILE_NAME;
+        root_ = $pkgpath / pkgname / version;
         @root = root_;
         System.println("$PKGPATH: ", root_);
     }
