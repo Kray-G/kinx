@@ -144,8 +144,8 @@ static int set_package_devmode(const char *pkgname, int pos)
         kx_strbuf[pos++] = 'd';
         kx_strbuf[pos++] = 'e';
         kx_strbuf[pos++] = 'v';
-        kx_strbuf[pos] = 0;
     }
+    kx_strbuf[pos] = 0;
     return pos;
 }
 
@@ -167,6 +167,7 @@ static int set_package_version(const char *pkgname, int pos)
             kx_strbuf[pos++] = PATH_DELCH;
         }
     }
+    kx_strbuf[pos] = 0;
     return pos;
 }
 
@@ -194,7 +195,7 @@ static int load_using_module_asta(const char *name, int len, const char *pkgname
     const char *search = kxlib_file_exists(path);
     if (!search) {
         const char *msg = pkgname && !is_package_installed(pkgname)
-            ? static_format("Package(%s) not installed", pkgname, path)
+            ? static_format("Package(%s/%s) not installed", pkgname, path)
             : static_format("Library file not found(%s)", path);
         kx_yyerror(msg);
         while (kx_lexinfo.ch && kx_lexinfo.ch != ';') {
@@ -247,7 +248,7 @@ static int load_using_module(const char *name, const char *pkgname, const char *
         if (!file) {
             if (!no_error) {
                 const char *msg = pkgname && !is_package_installed(pkgname)
-                    ? static_format("Package(%s) not installed", pkgname, name)
+                    ? static_format("Package(%s/%s) not installed", pkgname, name)
                     : static_format("Library file not found(%s)", name);
                 kx_yyerror(msg);
             }
