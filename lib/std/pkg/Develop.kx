@@ -52,9 +52,6 @@ class DevelopPackageUpdater(pkgname, version) {
 
     public dircopy(file1, file2) {
         if (File.isDirectory(file1)) {
-            if (file1 == "dev") {
-                file2 = file2.parentPath() / "bin";
-            }
             System.println("Copying a directory : ", file1);
             if (!File.exists(file2)) {
                 File.mkdir(file2);
@@ -84,7 +81,7 @@ class DevelopPackageUpdater(pkgname, version) {
         if (File.exists(root_ / "bin")) {
             candidates = [];
             Directory.walk(root_ / "bin") { &(f)
-                if (f.extension() == ".kx" && f.stem().endsWith("-dev")) {
+                if (f.extension() == ".kx") {
                     candidates.push(f.filename());
                 }
             };
@@ -97,7 +94,7 @@ class DevelopPackageUpdater(pkgname, version) {
         if (candidates_.isDefined) {
             var exe = File.exists($kinxpath / "kxrepl.exe");
             candidates_.each {
-                var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
+                var dst = $kinxpath / _1.stem() + "-dev" + (exe ? ".exe" : "");
                 if (File.exists(dst) && removeFile(dst)) {
                     System.println("Removed an executable of %{dst.filename().bold().yellow()}");
                 }
@@ -119,7 +116,7 @@ class DevelopPackageUpdater(pkgname, version) {
                 var exe = exefile.extension() == ".exe";
                 if (File.exists(src)) {
                     candidates_.each {
-                        var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
+                        var dst = $kinxpath / _1.stem() + "-dev" + (exe ? ".exe" : "");
                         if (File.exists(dst)) {
                             removeFile(dst);
                         }
