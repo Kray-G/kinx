@@ -3,6 +3,7 @@
 ## V1.2.0 (Future Planned)
 
 * Planned.
+    *   Support Cryptography library.
     *   Support GUI library.
     *   Support OpenCV library.
     *   Support HTTP Server library.
@@ -10,11 +11,9 @@
 ## V1.1.0 (Current Development Version)
 
 *   Planned
-    *   Support Package Manager.
-    *   Support Cryptography library.
+    *   #232: Support Package Manager.
 *   New Features
-    *   Supported SAT solver by picosat.
-    *   Supported SemanticVersion class with `using SemanticVersion;`.
+    *   #275: Supported SAT solver by picosat.
 *   Improvements/Enhancements
     *   #261: Separated binary modules in extlib to another repository & reduced a repository size.
     *   #255: Improved the `operator[]` in `Range`.
@@ -24,6 +23,7 @@
     *   #273: Supported `read`/`write` in `File`.
     *   #290: Supported `chmod` in `File`.
     *   Small improvements and enhancements as follows without managing by issues.
+        *   Supported SemanticVersion class with `using SemanticVersion;`.
         *   Supported putting a comma at the end of an argument's list for both declaration and calling.
         *   Added operators of `==` and `!=` in Boolean class.
         *   Supported `String#isIntegerString`.

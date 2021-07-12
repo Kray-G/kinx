@@ -137,6 +137,18 @@ static void pop_package_version(const char *key)
     }
 }
 
+static int set_package_devmode(const char *pkgname, int pos)
+{
+    if (g_parse_ctx && g_parse_ctx->options.dev_mode) {
+        kx_strbuf[pos++] = '-';
+        kx_strbuf[pos++] = 'd';
+        kx_strbuf[pos++] = 'e';
+        kx_strbuf[pos++] = 'v';
+        kx_strbuf[pos] = 0;
+    }
+    return pos;
+}
+
 static int set_package_version(const char *pkgname, int pos)
 {
     khint_t k = kh_get(package, g_packages, pkgname);
@@ -295,12 +307,12 @@ static int process_using(void)
     while (pos < POSMAX && (kx_is_filechar(kx_lexinfo) || kx_lexinfo.ch == '*')) {
         if (is_package) {
             if (is_package_version == 0 && kx_lexinfo.ch == '.') {
-                kx_strbuf[pos] = 0;
+                pos = set_package_devmode(pkgname, pos);
                 pkgname = kx_const_str(g_parse_ctx, kx_strbuf + is_package_namepos);
                 pos = set_package_version(pkgname, pos);
                 is_package_version = 2;
             } else if (is_package_version == 0 && kx_lexinfo.ch == '(') {
-                kx_strbuf[pos] = 0;
+                pos = set_package_devmode(pkgname, pos);
                 pkgname = kx_const_str(g_parse_ctx, kx_strbuf + is_package_namepos);
                 is_package_version = 1;
                 kx_strbuf[pos++] = PATH_DELCH;

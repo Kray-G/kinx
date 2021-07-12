@@ -362,6 +362,10 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     private listRemotePackages(info, key) {
+        if (!info) {
+            Kip.errorln("No package(%{key}) found");
+            return;
+        }
         var list = getRemotePackages(info);
         Kip.info("* ", key) if (key);
         list.each {
@@ -488,7 +492,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         // Auto detaction of exec candidate.
         var candidates = [];
         Directory.walk(packagedir / "bin") { &(f)
-            if (f.extension() == ".kx") {
+            if (f.extension() == ".kx" && !f.stem().endsWith("-dev")) {
                 candidates.push(f.filename());
             }
         };
@@ -543,7 +547,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         var packagebase = $pkgpath / name;
         Directory.walk(packagebase) { &(packagedir)
             Directory.walk(packagedir / "bin") { &(f)
-                if (f.extension() == ".kx") {
+                if (f.extension() == ".kx" && !f.stem().endsWith("-dev")) {
                     var dst = $kinxpath / f.stem() + (exe ? ".exe" : "");
                     if (File.exists(dst)) {
                         if (removeFile(dst)) {

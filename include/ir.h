@@ -888,6 +888,7 @@ typedef struct kx_options_ {
     int exception_detail_info:1;
     int debug_mode:1;
     int debug_step:1;
+    int dev_mode:1;
     uint16_t case_threshold;
     uint16_t max_call_depth;
 } kx_options_t;

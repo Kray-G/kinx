@@ -373,6 +373,13 @@ DllExport int do_main(int ac, char **av)
                     goto END_OF_OPT;
                 }
                 break;
+            } else if (!strcmp(lname, "dev")) {
+                ctx->options.dev_mode = 1;
+                if (param[0]) {
+                    execname = param;
+                    goto END_OF_OPT;
+                }
+                break;
             }
             break;
         case 'q':
@@ -538,6 +545,8 @@ CLEANUP:
     }
 
     kx_trace(ctx, 0, "[cleanup] terminating the program...\n");
+    r = error_code >= 0 ? error_code : r;
+    kx_trace(ctx, 0, "[done:status] %d\n", r);
     g_terminated = 1;
     free_package_info();
     context_cleanup(ctx);
@@ -552,8 +561,6 @@ CLEANUP:
     #if defined(_WIN32) || defined(_WIN64)
     WSACleanup();
     #endif
-    r = error_code >= 0 ? error_code : r;
-    kx_trace(ctx, 0, "[done:status] %d\n", r);
     return r;
 }
 

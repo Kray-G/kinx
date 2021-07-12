@@ -1,0 +1,148 @@
+
+class DevelopPackageUpdater(pkgname, version) {
+
+    const DEF_FILE_NAME = "kxpackage.def";
+    var defFile_ = $pkgpath / DEF_FILE_NAME;
+    var root_ = $pkgpath / pkgname / version;
+    var candidates_;
+
+    private initialize() {
+        @root = root_;
+        System.println("$PKGPATH: ", root_);
+    }
+
+    private saveDef(data) {
+        File.open(defFile_, File.WRITE) { &(f: File)
+            data.keySet().each {
+                if (data[_1]) {
+                    f.println("%s = %s" % _1 % data[_1]);
+                }
+            };
+        };
+    }
+
+    private loadDef() {
+        return File.load(defFile_).split(/\r?\n/).map { => _1.split('=').map { => _1.trim() } }
+            .reduce({ &(r, e)
+                r[e[0]] = e[1];
+                return r;
+            }, {});
+    }
+
+    private removeFile(file) {
+        System.try({ => File.remove(file) }).else({ => System.println("Failed to remove: %s" % file) });
+        return !File.exists(file);
+    }
+
+    private removeDir(dir) {
+        var success = true;
+        Directory.walk(dir) { &(f)
+            if (File.isDirectory(f)) {
+                removeDir(f);
+            }
+            if (!removeFile(f)) {
+                success = false;
+            }
+        };
+        if (!removeFile(dir)) {
+            success = false;
+        }
+        return success;
+    }
+
+    public dircopy(file1, file2) {
+        if (File.isDirectory(file1)) {
+            if (file1 == "dev") {
+                file2 = file2.parentPath() / "bin";
+            }
+            System.println("Copying a directory : ", file1);
+            if (!File.exists(file2)) {
+                File.mkdir(file2);
+            }
+            Directory.walk(file1) {
+                dircopy(_1, file2 / _1.filename());
+            };
+        } else {
+            System.println("Copying a file : ", file1);
+            File.copy(file1, file2);
+        }
+    }
+
+    private isExecutable(file) {
+        if (File.isDirectory(file)) {
+            return false;
+        }
+        if (file.extension() == ".sh") {
+            return true;
+        }
+        var header = File.read(file, 4);
+        return header == <0x7f, 0x45, 0x4c, 0x46>;
+    }
+
+    private makeExecutableCandidates() {
+        var candidates;
+        if (File.exists(root_ / "bin")) {
+            candidates = [];
+            Directory.walk(root_ / "bin") { &(f)
+                if (f.extension() == ".kx" && f.stem().endsWith("-dev")) {
+                    candidates.push(f.filename());
+                }
+            };
+        }
+        return candidates;
+    }
+
+    private removeExecutableCandidates() {
+        candidates_ = makeExecutableCandidates();
+        if (candidates_.isDefined) {
+            var exe = File.exists($kinxpath / "kxrepl.exe");
+            candidates_.each {
+                var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
+                if (File.exists(dst) && removeFile(dst)) {
+                    System.println("Removed an executable of %{dst.filename().bold().yellow()}");
+                }
+            };
+        }
+    }
+
+    private makeDevExecutable() {
+        candidates_ = makeExecutableCandidates();
+        if (candidates_.isDefined) {
+            Directory.recursiveWalk(root_ / "bin") { &(f)
+                if (isExecutable(f)) {
+                    File.chmod(f, 755);
+                    System.println("Made the file of %{_1.filename().bold().yellow()} executable");
+                }
+            };
+            [ "kxrepl", "kxrepl.exe" ].each { &(exefile)
+                var src = $kinxpath / exefile;
+                var exe = exefile.extension() == ".exe";
+                if (File.exists(src)) {
+                    candidates_.each {
+                        var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
+                        if (File.exists(dst)) {
+                            removeFile(dst);
+                        }
+                        File.copy(src.replace("\\", "/"), dst.replace("\\", "/"));
+                        File.chmod(dst, 755);
+                        System.println("Generated a command of %{dst.filename().bold().yellow()}");
+                    };
+                }
+            };
+        }
+    }
+
+    public update(code) {
+        removeExecutableCandidates();
+        if (File.exists(root_)) {
+            removeDir(root_);
+        }
+        code(this);
+        makeDevExecutable();
+
+        var def = loadDef();
+        def[pkgname] = version;
+        saveDef(def);
+    }
+
+}
