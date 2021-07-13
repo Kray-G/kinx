@@ -561,6 +561,19 @@ kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
     return kx_gen_expr_right_object(type, KXOP_ASSIGN, lhs, rhs);
 }
 
+kx_object_t *kx_gen_bassign_expr_right_object(int keytype, kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (!lhs->rhs || lhs->type != KXOP_ASSIGN) {
+        return kx_gen_bassign_object(KXOP_ASSIGN, lhs, kx_gen_bassign_object(keytype, lhs, rhs));
+    }
+    kx_object_t *p = lhs;
+    while (p->rhs->type == keytype || p->rhs->type == KXOP_ASSIGN) {
+        p = p->rhs;
+    }
+    p->rhs = kx_gen_bassign_object(KXOP_ASSIGN, p->rhs, kx_gen_bassign_object(keytype, p->rhs, rhs));
+    return lhs;
+}
+
 kx_object_t *kx_gen_case_expr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     return kx_gen_obj(KXOP_CASE, 0, kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(NULL, KX_UNKNOWN_T), lhs), rhs, ex);

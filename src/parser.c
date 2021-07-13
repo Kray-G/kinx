@@ -2229,43 +2229,43 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 111:
 #line 421 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_SHL, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_SHL, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 112:
 #line 422 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_SHR, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_SHR, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 113:
 #line 423 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_ADD, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_ADD, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 114:
 #line 424 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_SUB, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_SUB, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 115:
 #line 425 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_MUL, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_MUL, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 116:
 #line 426 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_DIV, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_DIV, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 117:
 #line 427 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_MOD, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_MOD, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 118:
 #line 428 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_AND, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_AND, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 119:
 #line 429 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_OR, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_OR, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 120:
 #line 430 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_XOR, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_XOR, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 121:
 #line 431 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_LAND, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_LAND, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 122:
 #line 432 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_LOR, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_LOR, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 123:
 #line 433 "src/kinx.y"
-{ yyval.obj = kx_gen_bassign_object(KXOP_ASSIGN, YYASP(1-3).obj, kx_gen_bassign_object(KXOP_LUNDEF, YYASP(1-3).obj, YYASP(3-3).obj)); } break;
+{ yyval.obj = kx_gen_bassign_expr_right_object(KXOP_LUNDEF, YYASP(1-3).obj, YYASP(3-3).obj); } break;
         case 126:
 #line 442 "src/kinx.y"
 { yyval.obj = kx_gen_uexpr_object_line(KXOP_MKOBJ, NULL, YYASP(1-2).intval); } break;

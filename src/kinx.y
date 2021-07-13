@@ -418,19 +418,19 @@ Modifier
 AssignExpression
     : CaseWhenExpression
     | AssignExpression '=' AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, $3); }
-    | AssignExpression SHLEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHL, $1, $3)); }
-    | AssignExpression SHREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHR, $1, $3)); }
-    | AssignExpression ADDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_ADD, $1, $3)); }
-    | AssignExpression SUBEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SUB, $1, $3)); }
-    | AssignExpression MULEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MUL, $1, $3)); }
-    | AssignExpression DIVEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_DIV, $1, $3)); }
-    | AssignExpression MODEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MOD, $1, $3)); }
-    | AssignExpression ANDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_AND, $1, $3)); }
-    | AssignExpression OREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_OR, $1, $3)); }
-    | AssignExpression XOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_XOR, $1, $3)); }
-    | AssignExpression LANDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LAND, $1, $3)); }
-    | AssignExpression LOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LOR, $1, $3)); }
-    | AssignExpression LUNDEFEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LUNDEF, $1, $3)); }
+    | AssignExpression SHLEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_SHL, $1, $3); }
+    | AssignExpression SHREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_SHR, $1, $3); }
+    | AssignExpression ADDEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_ADD, $1, $3); }
+    | AssignExpression SUBEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_SUB, $1, $3); }
+    | AssignExpression MULEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_MUL, $1, $3); }
+    | AssignExpression DIVEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_DIV, $1, $3); }
+    | AssignExpression MODEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_MOD, $1, $3); }
+    | AssignExpression ANDEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_AND, $1, $3); }
+    | AssignExpression OREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_OR, $1, $3); }
+    | AssignExpression XOREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_XOR, $1, $3); }
+    | AssignExpression LANDEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_LAND, $1, $3); }
+    | AssignExpression LOREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_LOR, $1, $3); }
+    | AssignExpression LUNDEFEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_LUNDEF, $1, $3); }
     ;
 
 AssignRightHandSide

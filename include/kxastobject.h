@@ -51,6 +51,7 @@ extern kx_object_t *kx_gen_enum_object(const char *name);
 extern kx_object_t *kx_gen_enum_object_with(const char *name, int val);
 extern kx_object_t *kx_gen_enum_reset(kx_object_t *node);
 extern kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs);
+extern kx_object_t *kx_gen_bassign_expr_right_object(int keytype, kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_import_object(const char *name);
 extern kx_object_t *kx_gen_regex_object(const char *pattern, int eq);
 extern kx_object_t *kx_gen_expr_right_object(int type, int keytype, kx_object_t *lhs, kx_object_t *rhs);
