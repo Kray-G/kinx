@@ -45,7 +45,8 @@
     *   #288: Incorrect message is displayed when `File.open` failed.
     *   #289: `File.setFiledate` does not work correctly.
     *   #293: Fixed a problem of a stack overflow with `=~` or `!~`.
-    *   #301: Fixed the prblem of using `ctx` after cleanup.
+    *   #301: Fixed a prblem of using `ctx` after cleanup.
+    *   #302: Fixed a prblem of the string optimization.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is 1st official release version.
