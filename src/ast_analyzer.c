@@ -1262,16 +1262,24 @@ LOOP_HEAD:;
         if (!actx->lvalue && node->lhs && node->rhs) {
             if (node->lhs->type == KXVL_STR && node->rhs->type == KXVL_INT) {
                 const char *str = node->lhs->value.s;
-                int len = strlen(str);
-                int index = node->rhs->value.i;
-                if (index < 0) {
-                    while (index < 0) index += len;
-                } else if (len <= index) {
-                    index %= len;
+                if (str) {
+                    int len = strlen(str);
+                    int value;
+                    if (len == 0) {
+                        value = 0;
+                    } else {
+                        int index = node->rhs->value.i;
+                        if (index < 0) {
+                            while (index < 0) index += len;
+                        } else if (len <= index) {
+                            index %= len;
+                        }
+                        value = (int64_t)str[index];
+                    }
+                    node->lhs->type = KXVL_INT;
+                    node->lhs->value.i = value;
+                    node->rhs = NULL;
                 }
-                node->lhs->type = KXVL_INT;
-                node->lhs->value.i = (int64_t)str[index];
-                node->rhs = NULL;
                 break;
             }
         }
