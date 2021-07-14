@@ -15,6 +15,13 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
   *  If you are interested in other platforms, **please check [here](#how-to-support-a-platform)**.
 *  **See [ChangeLog.md](ChangeLog.md)** about the history of this project.
 
+> ### Current Status
+> 
+> * I am preparing V1.1.0 to provide the update which is mainly including Package Manager featurein this branch.
+> And I am also preparing the main central repository for packages at https://github.com/Kray-G/kinx-package-repository.
+> Those will be published at the same time.
+> It will be comming soon and please wait for a while.
+
 ## Introduction
 
 Ruby is a major scripting language. Also Python is.
