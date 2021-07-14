@@ -1,5 +1,10 @@
 # Change Log
 
+## V1.0.3 (Current Development Version)
+
+*   Bug Fixed
+    *   #302: Fixed a prblem of the string optimization.
+
 ## V1.0.2 (Officially Released) - 2021/05/21
 
 *   Bug Fixed
