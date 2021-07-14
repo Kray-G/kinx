@@ -561,18 +561,37 @@ kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
     return kx_gen_expr_right_object(type, KXOP_ASSIGN, lhs, rhs);
 }
 
+#define KX_IS_ASSIGN_OPERAOR(type) \
+    ((type) == KXOP_ASSIGN) || \
+    ((type) == KXOP_SHL) || \
+    ((type) == KXOP_SHR) || \
+    ((type) == KXOP_ADD) || \
+    ((type) == KXOP_SUB) || \
+    ((type) == KXOP_MUL) || \
+    ((type) == KXOP_DIV) || \
+    ((type) == KXOP_MOD) || \
+    ((type) == KXOP_AND) || \
+    ((type) == KXOP_OR) || \
+    ((type) == KXOP_XOR) || \
+    ((type) == KXOP_LAND) || \
+    ((type) == KXOP_LOR) || \
+    ((type) == KXOP_LUNDEF) \
+/**/
+
 kx_object_t *kx_gen_bassign_expr_right_object(int keytype, kx_object_t *lhs, kx_object_t *rhs)
 {
     if (!lhs->rhs || lhs->type != KXOP_ASSIGN) {
         return kx_gen_bassign_object(KXOP_ASSIGN, lhs, kx_gen_bassign_object(keytype, lhs, rhs));
     }
     kx_object_t *p = lhs;
-    while (p->rhs->type == keytype || p->rhs->type == KXOP_ASSIGN) {
+    while (KX_IS_ASSIGN_OPERAOR(p->rhs->type)) {
         p = p->rhs;
     }
     p->rhs = kx_gen_bassign_object(KXOP_ASSIGN, p->rhs, kx_gen_bassign_object(keytype, p->rhs, rhs));
     return lhs;
 }
+
+#undef KX_IS_ASSIGN_OPERAOR
 
 kx_object_t *kx_gen_case_expr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
