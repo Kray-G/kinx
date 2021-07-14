@@ -1,5 +1,10 @@
 # Change Log
 
+## V1.0.3 (Current Development Version)
+
+*   Bug Fixed
+    *   #302: Fixed a prblem of the string optimization.
+
 ## V1.0.2 (Officially Released) - 2021/05/21
 
 *   Bug Fixed
@@ -24,7 +29,6 @@
     *   #258: There is a case that the bytecode is not outputted.
     *   #267: Can't use a variable name using an upper case in debugger.
     *   #269: Object item is removed by flatten().
-    *   #302: Fixed a prblem of the string optimization.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 
