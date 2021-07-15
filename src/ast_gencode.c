@@ -233,6 +233,9 @@ static int is_branch_expr(kx_object_t *node)
 
 static int is_same(kx_object_t *lhs, kx_object_t *rhs, int check_literal)
 {
+    if (!lhs || !rhs) {
+        return 0;
+    }
     if (lhs->type == KXOP_IDX && rhs->type == KXOP_IDX) {
         return is_same(lhs->lhs, rhs->lhs, 0) && is_same(lhs->rhs, rhs->rhs, 1);
     }
