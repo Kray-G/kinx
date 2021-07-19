@@ -2157,7 +2157,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_block_object(NULL); } break;
         case 84:
 #line 355 "src/kinx.y"
-{ yyval.obj = YYASP(2-2).obj; } break;
+{ yyval.obj = (YYASP(2-2).obj == NULL) ? kx_gen_block_object(NULL) : YYASP(2-2).obj; } break;
         case 85:
 #line 359 "src/kinx.y"
 { yyval.obj = kx_gen_modifier(YYASP(2-3).obj, kx_gen_break_object(KXST_BREAK, NULL)); } break;
