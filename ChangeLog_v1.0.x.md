@@ -4,6 +4,7 @@
 
 *   Bug Fixed
     *   #302: Fixed a prblem of the string optimization.
+    *   #305: Fixed a prblem of no POPC in try.
 
 ## V1.0.2 (Officially Released) - 2021/05/21
 
