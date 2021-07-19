@@ -2307,9 +2307,7 @@ LOOP_HEAD:;
         int block = ana->block;
         int try, catch, scatch, out, tryjmp;
         try = new_block_hook(ana);
-        if (node->ex) {
-            kv_push(kx_object_t*, *(ana->finallies), node->ex);
-        }
+        kv_push(kx_object_t*, *(ana->finallies), node->ex); /* ex should be NOT NULL */
 
         get_block(module, block)->tf[0] = try;
         ana->block = tryjmp = try;
@@ -2333,9 +2331,7 @@ LOOP_HEAD:;
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWA }));
         }
         catch = ana->block;
-        if (node->ex) {
-            kv_remove_last(*(ana->finallies));
-        }
+        kv_remove_last(*(ana->finallies));  /* ex should be NOT NULL */
 
         kv_A(get_block(module, tryjmp)->code, pushc).value1.i = get_block(module, scatch)->index;
         get_block(module, try)->tf[0] = out;

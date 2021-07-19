@@ -7,7 +7,7 @@
 #endif
 #define VER_MAJ     1
 #define VER_MIN     0
-#define VER_PAT     2
+#define VER_PAT     3
 #define VER_SUFFIX  ""
 
 #endif /* KX_VERSION_H */
