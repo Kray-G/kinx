@@ -391,7 +391,8 @@ LOOP_HEAD:;
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXST_EXPR:       /* lhs: expr */
-        display_ast(node->lhs, indent, 0);
+        printf("(expr)\n");
+        display_ast(node->lhs, indent + 1, 0);
         break;
     case KXST_EXPRSEQ:    /* lhs: expr1: rhs: expr2 */
         display_ast(node->lhs, indent, 0);

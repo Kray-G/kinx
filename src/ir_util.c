@@ -163,6 +163,9 @@ void print_value(kx_val_t *v, int recursive)
         } else {
             printf("(frm:%d, vars:%d)\n", frm->id, (int)kv_size(frm->v));
         }
+        if (frm->prv) {
+            printf("   [prv] frm:%d\n", frm->prv->id);
+        }
         if (recursive) {
             int len = kv_size(frm->v);
             for (int i = 0; i < len; ++i) {
@@ -203,7 +206,13 @@ void print_stack(kx_context_t *ctx, kx_frm_t *frmv, kx_frm_t *lexv)
     printf("exception size = %d.\n", size); fflush(stdout);
     for (int i = 0; i < size; ++i) {
         kx_exc_t *e = &kv_A(ctx->exception, i);
-        printf("[%2d] sp = %d, adr = %d\n", i, e->sp, e->code ? e->code->i : -1);
+        printf("[%2d] sp = %d", i, e->sp);
+        if (e->code) {
+            printf(": [%s:%d] %s\n", e->code->file, e->code->line, e->code->func);
+        } else {
+            printf("\n");
+
+        }
     }
     printf("print_stack done.\n"); fflush(stdout);
 }

@@ -24,7 +24,7 @@
     last_op(ana) == KX_STOREVX &&\
     (kv_last(get_block(module, ana->block)->code).value1.idx == l) && (kv_last(get_block(module, ana->block)->code).value2.idx == i))\
 /**/
-#define add_pop(ana) \
+#define add_pop_base(ana, elsepart) \
     if (code_size(module, ana) > 0) {\
         if (last_op(ana) == KX_STORE) {\
             last_op(ana) = KX_STOREX;\
@@ -41,7 +41,14 @@
                 kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));\
             }\
         }\
+    } else {\
+        elsepart\
     }\
+/**/
+#define add_pop(ana) add_pop_base(ana, {})
+#define add_force_pop(ana) add_pop_base(ana, {\
+    kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_POP }));\
+})\
 /**/
 #define KX_DEF_BINCHKCMD(CMD) \
     if (code_size(module, ana) == 0) {\
@@ -1909,7 +1916,7 @@ LOOP_HEAD:;
     }
 
     case KXOP_TER: {
-        int need_pop = node->init ? 1 : 0;
+        int need_pop = (node->init && node->init->type == KXST_EXPR) ? 1 : 0;
         int block = ana->block;
         int cond, th, el, out;
         cond = new_block_hook(ana);
@@ -1921,25 +1928,19 @@ LOOP_HEAD:;
             th = new_block_hook(ana);
             get_block(module, cond)->tf[0] = th;
             ana->block = th;
-            if (need_pop && is_branch_expr(node->rhs)) {
-                node->rhs->init = node; /* this means a parent node */
+            if (need_pop) {
+                add_force_pop(ana);
             }
             gencode_ast_hook(ctx, node->rhs, ana, 0);
-            if (need_pop) {
-                add_pop(ana);
-            }
             th = ana->block;
         }
         if (node->ex) {
             el = new_block_hook(ana);
             get_block(module, cond)->tf[1] = el;
             ana->block = el;
-            if (need_pop && is_branch_expr(node->ex)) {
-                node->ex->init = node; /* this means a parent node */
-            }
             gencode_ast_hook(ctx, node->ex, ana, 0);
             if (need_pop) {
-                add_pop(ana);
+                add_force_pop(ana);
             }
             el = ana->block;
         }
@@ -2369,9 +2370,7 @@ LOOP_HEAD:;
         int block = ana->block;
         int try, catch, scatch, out, tryjmp;
         try = new_block_hook(ana);
-        if (node->ex) {
-            kv_push(kx_object_t*, *(ana->finallies), node->ex);
-        }
+        kv_push(kx_object_t*, *(ana->finallies), node->ex); /* ex should be NOT NULL */
 
         get_block(module, block)->tf[0] = try;
         ana->block = tryjmp = try;
@@ -2395,9 +2394,7 @@ LOOP_HEAD:;
             kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_THROWA }));
         }
         catch = ana->block;
-        if (node->ex) {
-            kv_remove_last(*(ana->finallies));
-        }
+        kv_remove_last(*(ana->finallies));  /* ex should be NOT NULL */
 
         kv_A(get_block(module, tryjmp)->code, pushc).value1.i = get_block(module, scatch)->index;
         get_block(module, try)->tf[0] = out;
