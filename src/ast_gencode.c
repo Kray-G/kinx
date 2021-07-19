@@ -1928,10 +1928,10 @@ LOOP_HEAD:;
             th = new_block_hook(ana);
             get_block(module, cond)->tf[0] = th;
             ana->block = th;
+            gencode_ast_hook(ctx, node->rhs, ana, 0);
             if (need_pop) {
                 add_force_pop(ana);
             }
-            gencode_ast_hook(ctx, node->rhs, ana, 0);
             th = ana->block;
         }
         if (node->ex) {
