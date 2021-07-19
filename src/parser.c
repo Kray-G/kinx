@@ -2154,7 +2154,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_var_object_line_pos(YYASP(2-3).strinfo.name, KX_UNKNOWN_T, YYASP(2-3).strinfo.line, YYASP(2-3).strinfo.pos1, YYASP(2-3).strinfo.pos2); } break;
         case 83:
 #line 354 "src/kinx.y"
-{ yyval.obj = NULL; } break;
+{ yyval.obj = kx_gen_block_object(NULL); } break;
         case 84:
 #line 355 "src/kinx.y"
 { yyval.obj = YYASP(2-2).obj; } break;

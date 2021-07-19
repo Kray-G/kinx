@@ -351,8 +351,8 @@ CatchVariable
     ;
 
 FinallyStatement_Opt
-    : { $$ = NULL; }
-    | FINALLY BlockStatement { $$ = $2; }
+    : { $$ = kx_gen_block_object(NULL); }
+    | FINALLY BlockStatement { $$ = ($2 == NULL) ? kx_gen_block_object(NULL) : $2; }
     ;
 
 BreakStatement
