@@ -337,7 +337,7 @@ ForInVariable
     ;
 
 TryCatchStatement
-    : TRY BlockStatement CatchStatement_Opt FinallyStatement_Opt { $$ = kx_gen_stmt_object(KXST_TRY, $2, $3, $4); }
+    : TRY BlockStatement CatchStatement_Opt FinallyStatement_Opt { $$ = kx_gen_try_stmt_object($2, $3, $4); }
     ;
 
 CatchStatement_Opt
@@ -351,8 +351,8 @@ CatchVariable
     ;
 
 FinallyStatement_Opt
-    : { $$ = kx_gen_block_object(NULL); }
-    | FINALLY BlockStatement { $$ = ($2 == NULL) ? kx_gen_block_object(NULL) : $2; }
+    : { $$ = NULL; }
+    | FINALLY BlockStatement { $$ = $2; }
     ;
 
 BreakStatement

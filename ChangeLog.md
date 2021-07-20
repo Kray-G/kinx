@@ -22,6 +22,7 @@
     *   #272: Supported a binary mode in HTTP.
     *   #273: Supported `read`/`write` in `File`.
     *   #290: Supported `chmod` in `File`.
+    *   #308: Improvement of the stack usage.
     *   Small improvements and enhancements as follows without managing by issues.
         *   Supported SemanticVersion class with `using SemanticVersion;`.
         *   Supported putting a comma at the end of an argument's list for both declaration and calling.

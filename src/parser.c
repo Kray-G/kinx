@@ -2139,7 +2139,7 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_forin_object(YYASP(4-8).obj, YYASP(6-8).obj, YYASP(8-8).obj, 1); } break;
         case 78:
 #line 340 "src/kinx.y"
-{ yyval.obj = kx_gen_stmt_object(KXST_TRY, YYASP(2-4).obj, YYASP(3-4).obj, YYASP(4-4).obj); } break;
+{ yyval.obj = kx_gen_try_stmt_object(YYASP(2-4).obj, YYASP(3-4).obj, YYASP(4-4).obj); } break;
         case 79:
 #line 344 "src/kinx.y"
 { yyval.obj = NULL; } break;
@@ -2154,10 +2154,10 @@ int yyparse(YYPARSE_ARG)
 { yyval.obj = kx_gen_var_object_line_pos(YYASP(2-3).strinfo.name, KX_UNKNOWN_T, YYASP(2-3).strinfo.line, YYASP(2-3).strinfo.pos1, YYASP(2-3).strinfo.pos2); } break;
         case 83:
 #line 354 "src/kinx.y"
-{ yyval.obj = kx_gen_block_object(NULL); } break;
+{ yyval.obj = NULL; } break;
         case 84:
 #line 355 "src/kinx.y"
-{ yyval.obj = (YYASP(2-2).obj == NULL) ? kx_gen_block_object(NULL) : YYASP(2-2).obj; } break;
+{ yyval.obj = YYASP(2-2).obj; } break;
         case 85:
 #line 359 "src/kinx.y"
 { yyval.obj = kx_gen_modifier(YYASP(2-3).obj, kx_gen_break_object(KXST_BREAK, NULL)); } break;

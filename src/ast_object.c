@@ -628,6 +628,11 @@ kx_object_t *kx_gen_modifier(kx_object_t *modifier, kx_object_t *stmt)
     return stmt;
 }
 
+kx_object_t *kx_gen_try_stmt_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+{
+    return kx_gen_stmt_object(KXST_TRY, lhs, rhs, ex ? ex : kx_gen_block_object(NULL));
+}
+
 kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs)
 {
     return kx_gen_obj(KXST_CASE, optional, lhs, NULL, NULL);

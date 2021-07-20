@@ -2,6 +2,10 @@
 
 ## V1.0.3 (Current Development Version)
 
+*   Improvements
+    *   #308: Improvement of the stack usage.
+    *   Some feedbacks from V1.1.0.
+        *   Supported putting a comma at the end of an argument's list for both declaration and calling.
 *   Bug Fixed
     *   #302: Fixed a prblem of the string optimization.
     *   #305: Fixed a prblem of no POPC in try.
