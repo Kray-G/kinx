@@ -257,6 +257,22 @@ kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs)
     return lhs;
 }
 
+kx_object_t *kx_gen_exprlist(kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (!lhs) {
+        return rhs;
+    }
+    if (lhs->type != KXST_EXPRLIST) {
+        return kx_gen_bexpr_object(KXST_EXPRLIST, lhs, rhs);
+    }
+    kx_object_t *node = lhs->ex ? lhs->ex : lhs;
+    while (node->rhs && node->rhs->type == KXST_EXPRLIST) {
+        node = node->rhs;
+    }
+    lhs->ex = node->rhs = kx_gen_bexpr_object(KXST_EXPRLIST, node->rhs, rhs);
+    return lhs;
+}
+
 kx_object_t *kx_gen_range_object(kx_object_t *lhs, kx_object_t *end, int exclude_end)
 {
     return kx_gen_obj(KXOP_MKRANGE, exclude_end, lhs, end, NULL);
@@ -382,12 +398,14 @@ kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t
                 kx_gen_str_object(name)),
             kx_gen_var_object(name, KX_OBJ_T)
         );
-        blk = kx_gen_bexpr_object(KXST_STMTLIST, nassign, blk);
+        blk = kx_gen_bexpr_object(KXST_STMTLIST, kx_gen_stmt_object(KXST_EXPR, nassign, NULL, NULL), blk);
     }
-    blk = kx_gen_bexpr_object(KXOP_CALL,
-        kx_gen_func_object(KXST_FUNCTION, internal ? KXFT_SYSFUNC : KXFT_FUNCTION, (arytype_t){ .type = KX_UNKNOWN_T }, NULL, NULL, blk, NULL),
-        NULL
-    );
+    blk = kx_gen_stmt_object(KXST_EXPR,
+        kx_gen_bexpr_object(KXOP_CALL,
+            kx_gen_func_object(KXST_FUNCTION, internal ? KXFT_SYSFUNC : KXFT_FUNCTION, (arytype_t){ .type = KX_UNKNOWN_T }, NULL, NULL, blk, NULL),
+            NULL
+        ),
+    NULL, NULL);
     kx_object_t *namevar = kx_gen_var_object(name, KX_OBJ_T);
     kx_object_t *assign;
     if (last) {
@@ -404,7 +422,7 @@ kx_object_t *kx_gen_namespace_object(int internal, const char *name, kx_object_t
             kx_gen_bassign_object(KXOP_LUNDEF, namevar, kx_gen_uexpr_object(KXOP_MKOBJ, NULL))
         );
     }
-    kx_object_t *stmt = kx_gen_bexpr_object(KXST_STMTLIST, assign, blk);
+    kx_object_t *stmt = kx_gen_bexpr_object(KXST_STMTLIST, kx_gen_stmt_object(KXST_EXPR, assign, NULL, NULL), blk);
     kv_pop(ns_stack);
     return stmt;
 }
@@ -545,6 +563,38 @@ kx_object_t *kx_gen_bassign_object(int type, kx_object_t *lhs, kx_object_t *rhs)
     return kx_gen_expr_right_object(type, KXOP_ASSIGN, lhs, rhs);
 }
 
+#define KX_IS_ASSIGN_OPERAOR(type) \
+    ((type) == KXOP_ASSIGN) || \
+    ((type) == KXOP_SHL) || \
+    ((type) == KXOP_SHR) || \
+    ((type) == KXOP_ADD) || \
+    ((type) == KXOP_SUB) || \
+    ((type) == KXOP_MUL) || \
+    ((type) == KXOP_DIV) || \
+    ((type) == KXOP_MOD) || \
+    ((type) == KXOP_AND) || \
+    ((type) == KXOP_OR) || \
+    ((type) == KXOP_XOR) || \
+    ((type) == KXOP_LAND) || \
+    ((type) == KXOP_LOR) || \
+    ((type) == KXOP_LUNDEF) \
+/**/
+
+kx_object_t *kx_gen_bassign_expr_right_object(int keytype, kx_object_t *lhs, kx_object_t *rhs)
+{
+    if (!lhs->rhs || lhs->type != KXOP_ASSIGN) {
+        return kx_gen_bassign_object(KXOP_ASSIGN, lhs, kx_gen_bassign_object(keytype, lhs, rhs));
+    }
+    kx_object_t *p = lhs;
+    while (KX_IS_ASSIGN_OPERAOR(p->rhs->type)) {
+        p = p->rhs;
+    }
+    p->rhs = kx_gen_bassign_object(KXOP_ASSIGN, p->rhs, kx_gen_bassign_object(keytype, p->rhs, rhs));
+    return lhs;
+}
+
+#undef KX_IS_ASSIGN_OPERAOR
+
 kx_object_t *kx_gen_case_expr_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
 {
     return kx_gen_obj(KXOP_CASE, 0, kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object(NULL, KX_UNKNOWN_T), lhs), rhs, ex);
@@ -576,6 +626,11 @@ kx_object_t *kx_gen_modifier(kx_object_t *modifier, kx_object_t *stmt)
         }
     }
     return stmt;
+}
+
+kx_object_t *kx_gen_try_stmt_object(kx_object_t *lhs, kx_object_t *rhs, kx_object_t *ex)
+{
+    return kx_gen_stmt_object(KXST_TRY, lhs, rhs, ex ? ex : kx_gen_block_object(NULL));
 }
 
 kx_object_t *kx_gen_case_stmt_object(int optional, kx_object_t *lhs)
@@ -690,9 +745,6 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, arytype_t *r
         }
     }
     kx_object_t *obj = kx_gen_obj(type, (type != KXST_NATIVE) ? optional : KXFT_ANONYMOUS, lhs, rhs, ex);
-    if (inherit) {
-        obj->typename = inherit;
-    }
     obj->line2 = obj->line;
     if (line > 0) {
         obj->line = line;
@@ -719,17 +771,21 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, arytype_t *r
             assign = kx_gen_bassign_object(KXOP_DECL, assign, obj);
             assign = kx_gen_bexpr_object(KXST_STMTLIST,
                 assign,
-                kx_gen_bassign_object(KXOP_ASSIGN,
-                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object_line(name, KX_OBJ_T, line), kx_gen_str_object("_className")),
-                    kx_gen_str_object(name)
-                )
+                kx_gen_stmt_object(KXST_EXPR,
+                    kx_gen_bassign_object(KXOP_ASSIGN,
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object_line(name, KX_OBJ_T, line), kx_gen_str_object("_className")),
+                        kx_gen_str_object(name)
+                    ),
+                NULL, NULL)
             );
             assign = kx_gen_bexpr_object(KXST_STMTLIST,
                 assign,
-                kx_gen_bassign_object(KXOP_ASSIGN,
-                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object_line(name, KX_OBJ_T, line), kx_gen_str_object("_classid")),
-                    kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object("_classid", KX_UNKNOWN_T), kx_gen_int_object(classid))
-                )
+                kx_gen_stmt_object(KXST_EXPR,
+                    kx_gen_bassign_object(KXOP_ASSIGN,
+                        kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object_line(name, KX_OBJ_T, line), kx_gen_str_object("_classid")),
+                        kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object("_classid", KX_UNKNOWN_T), kx_gen_int_object(classid))
+                    ),
+                NULL, NULL)
             );
         } else {
             kx_object_t *v = kx_gen_var_object_line(name, KX_FNC_T, line);
@@ -767,7 +823,7 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, arytype_t *r
                     kx_gen_str_object(pname)),
                 kx_gen_var_object(pname, KX_OBJ_T)
             );
-            stmt = kx_gen_bexpr_object(KXST_STMTLIST, stmt, cassign);
+            stmt = kx_gen_bexpr_object(KXST_STMTLIST, stmt, kx_gen_stmt_object(KXST_EXPR, cassign, NULL, NULL));
         }
     }
 

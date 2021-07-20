@@ -337,7 +337,7 @@ ForInVariable
     ;
 
 TryCatchStatement
-    : TRY BlockStatement CatchStatement_Opt FinallyStatement_Opt { $$ = kx_gen_stmt_object(KXST_TRY, $2, $3, $4); }
+    : TRY BlockStatement CatchStatement_Opt FinallyStatement_Opt { $$ = kx_gen_try_stmt_object($2, $3, $4); }
     ;
 
 CatchStatement_Opt
@@ -351,8 +351,8 @@ CatchVariable
     ;
 
 FinallyStatement_Opt
-    : { $$ = kx_gen_block_object(NULL); }
-    | FINALLY BlockStatement { $$ = ($2 == NULL) ? kx_gen_block_object(NULL) : $2; }
+    : { $$ = NULL; }
+    | FINALLY BlockStatement { $$ = $2; }
     ;
 
 BreakStatement
@@ -418,19 +418,19 @@ Modifier
 AssignExpression
     : CaseWhenExpression
     | AssignExpression '=' AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, $3); }
-    | AssignExpression SHLEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHL, $1, $3)); }
-    | AssignExpression SHREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SHR, $1, $3)); }
-    | AssignExpression ADDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_ADD, $1, $3)); }
-    | AssignExpression SUBEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_SUB, $1, $3)); }
-    | AssignExpression MULEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MUL, $1, $3)); }
-    | AssignExpression DIVEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_DIV, $1, $3)); }
-    | AssignExpression MODEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_MOD, $1, $3)); }
-    | AssignExpression ANDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_AND, $1, $3)); }
-    | AssignExpression OREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_OR, $1, $3)); }
-    | AssignExpression XOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_XOR, $1, $3)); }
-    | AssignExpression LANDEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LAND, $1, $3)); }
-    | AssignExpression LOREQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LOR, $1, $3)); }
-    | AssignExpression LUNDEFEQ AssignRightHandSide { $$ = kx_gen_bassign_object(KXOP_ASSIGN, $1, kx_gen_bassign_object(KXOP_LUNDEF, $1, $3)); }
+    | AssignExpression SHLEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_SHL, $1, $3); }
+    | AssignExpression SHREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_SHR, $1, $3); }
+    | AssignExpression ADDEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_ADD, $1, $3); }
+    | AssignExpression SUBEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_SUB, $1, $3); }
+    | AssignExpression MULEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_MUL, $1, $3); }
+    | AssignExpression DIVEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_DIV, $1, $3); }
+    | AssignExpression MODEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_MOD, $1, $3); }
+    | AssignExpression ANDEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_AND, $1, $3); }
+    | AssignExpression OREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_OR, $1, $3); }
+    | AssignExpression XOREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_XOR, $1, $3); }
+    | AssignExpression LANDEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_LAND, $1, $3); }
+    | AssignExpression LOREQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_LOR, $1, $3); }
+    | AssignExpression LUNDEFEQ AssignRightHandSide { $$ = kx_gen_bassign_expr_right_object(KXOP_LUNDEF, $1, $3); }
     ;
 
 AssignRightHandSide
@@ -473,7 +473,7 @@ WhenConditionRangeList
 WhenConditionRange
     : WhenAnonymousFunctionDeclExpression
     | WhenPostfixExpression
-    | '^' WhenPostfixExpression { $$ = $2; $$->optional = KXDC_CONST; }
+    | '^' WhenPostfixExpression { $$ = $2; $$->optional = KXDC_PIN; }
     | Array
     | Object
     | SimpleFuncCallFactor
@@ -800,7 +800,7 @@ CommaList
 
 ArrayItemListCore
     : AssignExpression
-    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_CONST; }
+    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_PIN; }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemListCore ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
     | ArrayItemListCore ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
@@ -821,7 +821,7 @@ AssignExpressionObjList
 
 KeyValueList
     : KeyValue
-    | KeyValueList ',' KeyValue { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | KeyValueList ',' KeyValue { $$ = kx_gen_exprlist($1, $3); }
     ;
 
 KeyValue
@@ -834,7 +834,7 @@ KeyValue
 
 ValueOfKeyValue
     : AssignExpression
-    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_CONST; }
+    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_PIN; }
     | ObjectSpecialSyntax
     ;
 
@@ -1034,9 +1034,9 @@ Inherit_Opt
                 .name = kx_check_the_name($3),
                 .stmt =
                     kx_gen_bexpr_object(KXST_STMTLIST,
-                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_UNKNOWN_T, $2),
+                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_OBJ_T, $2),
                             kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, $3, kx_gen_str_object("create")), $4)),
-                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("super", KX_UNKNOWN_T, $2),
+                        kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("super", KX_OBJ_T, $2),
                             kx_gen_bexpr_object(KXOP_CALL, kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("System", KX_UNKNOWN_T), kx_gen_str_object("makeSuper")), kx_gen_var_object("this", KX_UNKNOWN_T)))
                     ),
             };
@@ -1057,7 +1057,7 @@ ClassArgumentList_Opts
 
 ArgumentList_Opts
     : { $$ = NULL; }
-    | ArgumentList
+    | ArgumentList Comma_Opt
     ;
 
 ArgumentList
@@ -1097,7 +1097,7 @@ ClassCallArgumentList_Opts
 
 CallArgumentList_Opts
     : { $$ = NULL; }
-    | CallArgumentList
+    | CallArgumentList Comma_Opt
     ;
 
 CallArgumentList

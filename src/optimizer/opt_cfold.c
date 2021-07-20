@@ -475,8 +475,10 @@ static void opt_ast_constant_folding_impl(kx_context_t *ctx, kx_object_t *node, 
 int opt_ast_constant_folding(kx_context_t *ctx, kx_object_t *node)
 {
     folding_context_t cctx = {0};
-    cctx.anon_check = (node->type == KXST_STMTLIST && node->optional == 0);
-    ++node->optional;
+    if (node->type == KXST_STMTLIST) {
+        cctx.anon_check = (node->optional == 0);
+        ++node->optional;
+    }
     int changed = 0;
     do {
         cctx.changed = 0;
