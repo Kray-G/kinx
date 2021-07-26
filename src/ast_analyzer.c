@@ -59,7 +59,7 @@ static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node,
         for (int j = 1; j <= size; ++j) {
             kxana_symbol_t *sym = &kv_last_by(table->list, j);
             if (!strcmp(name, sym->name)) {
-                if (actx->decl) {
+                if (actx->decl && node->optional != KXDC_PIN) {
                     if (sym->depth < actx->depth) {
                         goto DECL_VAR;
                     }
@@ -89,7 +89,7 @@ DECL_VAR:
         ++(actx->func->local_vars);
         sym.lexical_index = 0;
         sym.base = node;
-        sym.optional = node->optional;
+        sym.optional = node->optional == KXDC_CONST ? KXDC_CONST : 0;
         sym.refdepth = node->refdepth;
         if (node->var_type == KX_UNKNOWN_T && actx->in_native) {
             node->var_type = KX_INT_T;  // automatically set it.
@@ -270,10 +270,10 @@ static void add_const(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *dec
     if (node->type == KXOP_VAR) {
         node->optional = decl->optional;
         node->init = node;  // dummy.
-        int decl = actx->decl;
+        int d = actx->decl;
         actx->decl = 1;
         search_symbol_table(ctx, node, node->value.s, actx);
-        actx->decl = decl;
+        actx->decl = d;
     }
 }
 
@@ -959,7 +959,7 @@ LOOP_HEAD:;
         }
         int decl = -1;
         if (node->lhs->type == KXOP_VAR) {
-            kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
+            kxana_symbol_t *sym = search_symbol_table(ctx, node->lhs, node->lhs->value.s, actx);
             if (sym && sym->base->optional == KXDC_CONST && !sym->base->init) {
                 node->lhs->init = sym->base->init = node->rhs;
                 decl = actx->decl;
@@ -971,7 +971,7 @@ LOOP_HEAD:;
         }
         if (decl < 0) {
             if (node->lhs && node->lhs->type == KXOP_VAR) {
-                kxana_symbol_t *sym = search_symbol_table(ctx, node, node->lhs->value.s, actx);
+                kxana_symbol_t *sym = search_symbol_table(ctx, node->lhs, node->lhs->value.s, actx);
                 if (sym && sym->optional == KXDC_CONST) {
                     kx_yyerror_line("Can not assign a value to the 'const' variable", node->lhs->file, node->lhs->line);
                     break;
@@ -1500,7 +1500,8 @@ LOOP_HEAD:;
     case KXST_EXPRSEQ:   /* lhs: expr1: rhs: expr2 */
     case KXST_EXPRLIST:   /* lhs: expr1: rhs: expr2 */
         analyze_ast(ctx, node->lhs, actx);
-        analyze_ast(ctx, node->rhs, actx);
+        node = node->rhs;
+        if (node) goto LOOP_HEAD;
         break;
     case KXST_STMTLIST:   /* lhs: stmt2: rhs: stmt1 */
         analyze_ast(ctx, node->lhs, actx);
