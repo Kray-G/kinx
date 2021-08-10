@@ -1,6 +1,6 @@
 # Change Log
 
-## V1.0.3 (Current Development Version)
+## V1.0.3 (Officially Released) - 2021/08/10
 
 *   Improvements
     *   #308: Improvement of the stack usage.
