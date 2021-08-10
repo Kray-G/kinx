@@ -20,7 +20,7 @@
     $ kip search|s <key>                        Searches a package from central repositories.
     $ kip install|i <key> [<ver>]               Installs a specified package with the latest version if not specified.
     $ kip uninstall|u <key> [<ver>]             Uninstalls a specified package with the version if specified.
-    $ kip update|up [<key>]                     Installs the latest version of a specified package.
+    # $ kip update|up [<key>]                     Installs the latest version of a specified package.
     $ kip list|ls                               Lists up an installed packages.
 */
 using SemanticVersion;
@@ -42,6 +42,12 @@ Kip.errorln = _function(...args) {
 };
 Kip.info = _function(...args) {
     System.println(...args);
+};
+Kip.verbose = _function(...args) {
+    var opts = args.shift();
+    if (opts.verbose) {
+        System.println("[" + new DateTime().toString().cyan() + "] ", ...args);
+    }
 };
 
 class KinxPackageManagerConfig(configFile_, defFile_) {
@@ -161,7 +167,6 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
         var http = new Net.Http();
         http.sslVerifyPeer(false);
         http.sslVerifyHost(false);
-        # http.textmode();
         http.addHeader("User-Agent", "Kinx Package Manager");
         if (config_.values["proxy.url"]) {
             http.setProxy(config_.values["proxy.url"]);
@@ -169,6 +174,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
                 http.setProxyUserPassword(config_.values["proxy.username"], config_.values["proxy.password"]);
             }
         }
+        Kip.verbose(this, "[http] " + url);
         var json = "";
         var res = http.get(url, &(data) => {
             json += data;
@@ -701,6 +707,10 @@ class KinxPackageManager {
     }
 
     private usage() {
+        Kip.info("Options");
+        Kip.info("    -h                        Display this help.");
+        Kip.info("    -v                        Verbose mode.");
+        Kip.info("");
         Kip.info("Configuration");
         Kip.info("    config set <name> <value> Sets a value to a name.");
         Kip.info("    config remove <name>      Removes a name and a value.");
@@ -715,11 +725,33 @@ class KinxPackageManager {
         Kip.info("    search <key>              Searches a package.");
         Kip.info("    install <key> [<ver>]     Installs a specified package.");
         Kip.info("    uninstall <key> [<ver>]   Uninstalls a specified package.");
-        Kip.info("    update [<key>]            Installs the latest version.");
-        Kip.info("    list                      Lists up an installed packages.");
+        # Kip.info("    update [<key>]            Installs the latest version.");
+        Kip.info("    list                      Lists up installed packages.");
+    }
+
+    private checkOptions(args) {
+        var list = [];
+        var opt;
+        while (opt = System.getopt(args, "vh")) {
+            switch (opt.type) {
+            case 'v':
+                config_.verbose = true;
+                break;
+            case 'h':
+                return;
+            case '-':
+                list.push(opt.arg);
+                break;
+            }
+        }
+        return list;
     }
 
     public work(args) {
+        args = checkOptions(args);
+        if (args.isUndefined) {
+            return usage();
+        }
         switch (args[1]) {
         when "config":
             if (!config(args)) {
