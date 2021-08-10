@@ -5,8 +5,8 @@
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/Kray-G/kinx/releases/download/v1.0.2/package_win64.zip",
-            "hash": "d317a2d52ffa00a955f14672ca95cf1ea3bd8b979f50e3049d418b8369bebe57"
+            "url": "https://github.com/Kray-G/kinx/releases/download/v1.0.3/package_win64.zip",
+            "hash": "103fbd229c7baed4c77bbc46f5b3111374bfdbcdaab235519b6528c3e5f3a705"
         }
     },
     "bin": [
