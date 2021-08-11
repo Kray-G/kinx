@@ -7,6 +7,7 @@
     *   Some feedbacks from V1.1.0.
         *   Supported putting a comma at the end of an argument's list for both declaration and calling.
 *   Bug Fixed
+    *   #274: No error for multiple const declaration for the same variable.
     *   #302: Fixed a prblem of the string optimization.
     *   #305: Fixed a prblem of no POPC in try.
 
