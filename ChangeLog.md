@@ -32,6 +32,7 @@
         *   Improved type analysis for the language server.
         *   SpecTest: Made a space wider of Test case number.
         *   Improved Array.keySet() for `Array` itself.
+        *   Improved a type check a little in assignment.
 *   Bug Fixed
     *   #235: Crash when using `_` outside a function.
     *   #236: Can't specify the class as a return type of function.

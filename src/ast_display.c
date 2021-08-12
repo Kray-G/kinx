@@ -112,7 +112,7 @@ LOOP_HEAD:;
                 printf("%c(fnc:%s)(%s) [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_ret_typename(node), node->lexical, node->index);
             } else {
                 if (node->refdepth > 0) {
-                    printf("%c(var:%s[depth:%d]):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
+                    printf("%c(var:%s[depth:%d]):%s[] [%d:%d]\n", lvalue ? '*' : '-', node->value.s, node->refdepth, get_short_typename(node->var_type), node->lexical, node->index);
                 } else {
                     printf("%c(var:%s):%s [%d:%d]\n", lvalue ? '*' : '-', node->value.s, get_disp_node_typename(node), node->lexical, node->index);
                 }
@@ -259,7 +259,11 @@ LOOP_HEAD:;
         display_ast(node->rhs, indent + 1, 0);
         break;
     case KXOP_IDX:
-        printf("(ref):%s, depth:%d\n", get_disp_node_typename(node), node->refdepth);
+        if (node->refdepth == 0 || node->refdepth == 1) {
+            printf("(ref):%s\n", get_disp_node_typename(node));
+        } else {
+            printf("(ref):%s[], depth:%d\n", get_disp_node_typename(node), node->refdepth);
+        }
         display_ast(node->lhs, indent + 1, 0);
         display_ast(node->rhs, indent + 1, lvalue);
         break;
@@ -391,7 +395,7 @@ LOOP_HEAD:;
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXST_EXPR:       /* lhs: expr */
-        printf("(expr)\n");
+        // printf("(expr)\n");
         display_ast(node->lhs, indent + 1, 0);
         break;
     case KXST_EXPRSEQ:    /* lhs: expr1: rhs: expr2 */
