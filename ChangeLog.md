@@ -49,6 +49,7 @@
     *   #301: Fixed a prblem of using `ctx` after cleanup.
     *   #302: Fixed a prblem of the string optimization.
     *   #305: Fixed a prblem of no POPC in try.
+    *   #314: Fixed a crash when accessing uninitialized object in native.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is 1st official release version.
