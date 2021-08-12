@@ -61,7 +61,7 @@ extern sljit_sw native_get_var_obj(sljit_sw *args);
 #define KX_REG1 SLJIT_S4
 #define KX_REG2 SLJIT_S5
 #define KX_SCRATCH_REGMAX (6)
-#if SLJIT_NUMBER_OF_REGISTERS == 13
+#if defined(_WIN32) || defined(_WIN64)
 #define KX_SAVED_REGMAX (7)
 #define KX_REG3 SLJIT_S6
 #else
@@ -83,7 +83,7 @@ extern sljit_sw native_get_var_obj(sljit_sw *args);
 #define KXN_I(opx) \
     SLJIT_IMM, (opx).iv \
 /**/
-#if SLJIT_NUMBER_OF_REGISTERS == 13
+#if defined(_WIN32) || defined(_WIN64)
 #define KXN_R(opx) \
     ((opx).r == 1 ? KX_REG1 : (opx).r == 2 ? KX_REG2 : (opx).r == 3 ? KX_REG3 : (SLJIT_MEM1(SLJIT_SP))), \
     (((opx).r == 1 || (opx).r == 2 || (opx).r == 3) ? 0 : (nctx->regtemp_base + ((opx).r * KXN_WDSZ))) \
