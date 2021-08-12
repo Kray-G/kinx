@@ -371,6 +371,9 @@ sljit_sw native_get_var_bin(sljit_sw *args)
     int64_t lex = (int64_t)args[1];
     int64_t index = (int64_t)args[2];
     kx_context_t *ctx = (kx_context_t *)info[0];
+    if (lex < 0) {
+        return (sljit_sw)(kx_bin_t *)allocate_bin(ctx);
+    }
     if (lex == 0) {
         return native_get_var_bin_of(info, ctx, (kx_frm_t *)info[1], index);
     } else if (lex == 1) {
@@ -645,6 +648,9 @@ sljit_sw native_get_var_obj(sljit_sw *args)
     int64_t lex = (int64_t)args[1];
     int64_t index = (int64_t)args[2];
     kx_context_t *ctx = (kx_context_t *)info[0];
+    if (lex < 0) {
+        return (sljit_sw)(kx_obj_t *)allocate_obj(ctx);
+    }
     if (lex == 0) {
         return native_get_var_obj_of(info, ctx, (kx_frm_t *)info[1], index);
     } else if (lex == 1) {

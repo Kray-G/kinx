@@ -376,6 +376,7 @@ static inline const char *get_typename(int type)
     case KX_CSTR_T: return "string";
     case KX_STR_T:  return "string";
     case KX_LVAL_T: return "-";
+    case KX_BIN_T:  return "binary";
     case KX_OBJ_T:  return "object";
     case KX_FNC_T:  return "function";
     case KX_FRM_T:  return "-";

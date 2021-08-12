@@ -421,14 +421,25 @@ static void natir_display_code(kxn_code_t *code, int addr)
         printf("%-23s ", "loadbin");
         natir_display_op(&(code->dst));
         printf(", ");
-        natir_display_op(&(code->op1));
+        int is_empty_obj = code->op1.type == KXNOP_VAR && code->op1.lex == -1;
+        if (is_empty_obj) {
+            printf("<>");
+        } else {
+            natir_display_op(&(code->op1));
+        }
         break;
-    case KXN_LOADOBJ:
+    case KXN_LOADOBJ: {
         printf("%-23s ", "loadobj");
         natir_display_op(&(code->dst));
         printf(", ");
-        natir_display_op(&(code->op1));
+        int is_empty_obj = code->op1.type == KXNOP_VAR && code->op1.lex == -1;
+        if (is_empty_obj) {
+            printf("[]");
+        } else {
+            natir_display_op(&(code->op1));
+        }
         break;
+    }
     case KXN_BOP:
         natir_display_bop(code);
         break;

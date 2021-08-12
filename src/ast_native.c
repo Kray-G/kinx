@@ -912,13 +912,25 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
         kx_yyerror_line("Not supported operation in native function", node->file, node->line);
         break;
     case KXOP_MKBIN:
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_LOADBIN, .var_type = KX_BIN_T,
+                .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
+                .op1 = { .type = KXNOP_VAR, .lex = -1, .idx = -1 }
+        }));
         break;
     case KXOP_MKARY:
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_LOADOBJ, .var_type = KX_OBJ_T,
+                .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
+                .op1 = { .type = KXNOP_VAR, .lex = -1, .idx = -1 }
+        }));
         break;
     case KXOP_MKOBJ:
-        kx_yyerror_line("Not supported operation in native function", node->file, node->line);
+        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+            .inst = KXN_LOADOBJ, .var_type = KX_OBJ_T,
+                .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
+                .op1 = { .type = KXNOP_VAR, .lex = -1, .idx = -1 }
+        }));
         break;
 
     case KXOP_DECL: {
@@ -941,6 +953,36 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
                 int vartype = node->refdepth > 0 ? KX_OBJ_T : node->var_type;
                 kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
                     .inst = KXN_UOP, .op = vartype == KX_DBL_T ? KXNOP_MOVF : KXNOP_MOV, .var_type = vartype,
+                        .dst = { .type = KXNOP_MEM, .r = a },
+                        .op1 = { .type = KXNOP_REG, .r = r }
+                }));
+            }
+        } else {
+            if (node->var_type == KX_OBJ_T || node->refdepth > 0) {
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = KXN_LOADOBJ, .var_type = KX_OBJ_T,
+                        .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
+                        .op1 = { .type = KXNOP_VAR, .lex = -1, .idx = -1 }
+                }));
+                int r = nctx->regno;
+                nativejit_ast(nctx, node->lhs, 1);
+                int a = nctx->regno;
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = KX_OBJ_T,
+                        .dst = { .type = KXNOP_MEM, .r = a },
+                        .op1 = { .type = KXNOP_REG, .r = r }
+                }));
+            } else if (node->var_type == KX_BIN_T) {
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = KXN_LOADBIN, .var_type = KX_BIN_T,
+                        .dst = { .type = KXNOP_REG, .r = get_register(nctx) },
+                        .op1 = { .type = KXNOP_VAR, .lex = -1, .idx = -1 }
+                }));
+                int r = nctx->regno;
+                nativejit_ast(nctx, node->lhs, 1);
+                int a = nctx->regno;
+                kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                    .inst = KXN_UOP, .op = KXNOP_MOV, .var_type = KX_OBJ_T,
                         .dst = { .type = KXNOP_MEM, .r = a },
                         .op1 = { .type = KXNOP_REG, .r = r }
                 }));
