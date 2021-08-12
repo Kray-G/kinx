@@ -369,3 +369,46 @@ System.println("Successful");
 ```
 Successful
 ```
+
+### Example 13. Crash in native.
+
+This bug's was caused by dereferencing uninitialized variable pointer.
+
+* Issue: [#314](https://github.com/Kray-G/kinx/issues/314)
+* Fixed: [1852462fb54d49de723e3c08df5619b7751b2689](https://github.com/Kray-G/kinx/commit/1852462fb54d49de723e3c08df5619b7751b2689)
+
+#### Code
+
+```javascript
+var mem = [];
+for (var i = 0; i < 10; ++i) {
+    mem[i] = i;
+}
+
+native func0(n:int):obj {
+    var r:int[];
+    for (var i = 0; i < n; ++i) {
+        r[i] = mem[i];
+    }
+    return r;
+}
+var res = func0(10);
+System.println(res);
+
+native func1(n:int):bin {
+    var r:bin;
+    for (var i = 0; i < n; ++i) {
+        r[i] = mem[i];
+    }
+    return r;
+}
+var res = func1(10);
+System.println(res);
+```
+
+#### Result
+
+```
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+<0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09>
+```
