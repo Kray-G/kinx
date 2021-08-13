@@ -23,3 +23,7 @@ This will help your understanding.
 ## Fractals
 
 *   [Mandelbrot Set](mandelbrot.md)
+
+## Others
+
+*   [SAT Solver](satsolver.md)
