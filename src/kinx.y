@@ -275,7 +275,9 @@ DefinitionStatement
     ;
 
 LabelStatement
-    : NAME ':' LabelledStatement { $$ = kx_gen_label_object(KXST_LABEL, $1.name, $3); }
+    : NAME ':' LabelledStatement { $$ = kx_gen_label_object(KXST_LABEL, $1.name, $3); } /* for backward compatible */
+    | NAME ':' ':' LabelledStatement { $$ = kx_gen_label_object(KXST_LABEL, $1.name, $4); }
+    | NAME ':' ':' BlockStatement { $$ = kx_gen_label_object(KXST_LABEL, $1.name, $4); }
     ;
 
 IfStatement
