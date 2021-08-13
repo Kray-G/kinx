@@ -7,12 +7,17 @@
     *   Support GUI library.
     *   Support OpenCV library.
     *   Support HTTP Server library.
+    *   Enhancement Plan
+        *   Package Maneger
+            *   Dependency check between packages.
+            *   Scan for the update.
+            *   Search packages with pattern matching.
 
 ## V1.1.0 (Current Development Version)
 
-*   Planned
-    *   #232: Support Package Manager.
 *   New Features
+    *   #232: Supported a Package Manager named as `Kip`.
+        *   1st version with no dependency check and no update check.
     *   #275: Supported SAT solver by picosat.
 *   Improvements/Enhancements
     *   #261: Separated binary modules in extlib to another repository & reduced a repository size.

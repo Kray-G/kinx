@@ -144,3 +144,38 @@ class DevelopPackageUpdater(pkgname, version) {
     }
 
 }
+
+class ReleasePackageArchiver(pkgname, version) {
+
+    var zip_ = new Zip($pwd / "package.zip", File.WRITE);
+
+    public dircopy(file1, file2) {
+        if (file1 != "dev" && File.isDirectory(file1)) {
+            System.println("Adding a directory : ", file1);
+            zip_.addFile(file1);
+        }
+    }
+
+    public update(code) {
+        code(this);
+    }
+
+}
+
+class PackageUpdater(args, pkgname, version) {
+
+    var opt, config;
+    while (opt = System.getopt(args, "d", { dev: 'd' })) {
+        switch (opt.type) {
+        case 'd':
+            config.dev = true;
+            break;
+        }
+    }
+
+    if (config.dev) {
+        return new DevelopPackageUpdater(pkgname, version);
+    }
+
+    return new ReleasePackageArchiver(pkgname, version);
+}

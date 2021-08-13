@@ -25,6 +25,7 @@
 */
 using SemanticVersion;
 using DateTime;
+using Process;
 
 const MAIN_PACKAGE_CENTRAL_REPO = "https://github.com/Kray-G/kinx-package-repository";
 
@@ -549,12 +550,13 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     private uninstallAll(name) {
+        var isDevelopmentMode = name.endsWith("-dev");
         var exe = File.exists($kinxpath / "kxrepl.exe");
         var packagebase = $pkgpath / name;
         Directory.walk(packagebase) { &(packagedir)
             Directory.walk(packagedir / "bin") { &(f)
                 if (f.extension() == ".kx" && !f.stem().endsWith("-dev")) {
-                    var dst = $kinxpath / f.stem() + (exe ? ".exe" : "");
+                    var dst = $kinxpath / f.stem() + (isDevelopmentMode ? "-dev" : "") + (exe ? ".exe" : "");
                     if (File.exists(dst)) {
                         if (removeFile(dst)) {
                             Kip.progressln("Removed an executable of %s" % dst.filename());
@@ -585,6 +587,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         }
 
         // Remove a specific binary.
+        var isDevelopmentMode = name.endsWith("-dev");
         var exe = File.exists($kinxpath / "kxrepl.exe");
         var packagebase = $pkgpath / name;
         var packagedir = packagebase / version;
@@ -599,7 +602,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         if (vers.length() == 1 && vers[0] == version) {
             Directory.walk(packagedir / "bin") { &(f)
                 if (f.extension() == ".kx") {
-                    var dst = $kinxpath / f.stem() + (exe ? ".exe" : "");
+                    var dst = $kinxpath / f.stem() + (isDevelopmentMode ? "-dev" : "") + (exe ? ".exe" : "");
                     if (File.exists(dst)) {
                         if (removeFile(dst)) {
                             Kip.progressln("Removed an executable of %s" % dst.filename());
@@ -636,6 +639,17 @@ class KinxPackageLibraryManager(repoMgr_) {
         return false;
     }
 
+    public devinstall() {
+        var buildkx = $pwd / "build/build.kx";
+        if (!File.exists(buildkx)) {
+            Kip.errorln("Not found: build/build.kx to install a developing package");
+            return false;
+        }
+        var kinx = $kinxpath / "kinx";
+        var p = new Process([kinx, buildkx, "--dev"], { out: $stdout, err: $stderr }).run();
+        p.wait();
+        return true;
+    }
 }
 
 class KinxPackageManager {
@@ -702,6 +716,9 @@ class KinxPackageManager {
         case "search": case "s":
             mgr.search(args[2]);
             return true;
+        case "devinstall":
+            mgr.devinstall();
+            return true;
         }
         return false;
     }
@@ -724,8 +741,9 @@ class KinxPackageManager {
         Kip.info("Packages Control");
         Kip.info("    search <key>              Searches a package.");
         Kip.info("    install <key> [<ver>]     Installs a specified package.");
-        Kip.info("    uninstall <key> [<ver>]   Uninstalls a specified package.");
+        Kip.info("    uninstall <key> <ver>|all Uninstalls a specified package.");
         # Kip.info("    update [<key>]            Installs the latest version.");
+        Kip.info("    devinstall                Installs a develping package.");
         Kip.info("    list                      Lists up installed packages.");
     }
 
