@@ -263,7 +263,7 @@ System.println(test(1.5));
 var n = 10000;
 var loop_while = &(n) => {
     var v = 0, i = 0;
-    LABEL:
+    LABEL::
     while (1) {
         while (i <= n) {
             if (i == 9) {
@@ -293,7 +293,7 @@ while(10000) = 46
 var n = 10000;
 var loop_for = &(n) => {
     var v = 0;
-    LABEL:
+    LABEL::
     while (1) {
         for (var i = 0; i <= n; ++i) {
             if (i == 9) continue;
@@ -320,7 +320,7 @@ for(10000) = 46
 var n = 10000;
 var loop_do_while = &(n) => {
     var v = 0, i = 0;
-    LABEL:
+    LABEL::
     while (1) {
         do {
             if (i == 9) {
