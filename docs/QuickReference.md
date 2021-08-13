@@ -1703,7 +1703,7 @@ A label is necessary to exit a block.
 
 ```javascript
 var a = 10;
-LABEL: {
+LABEL:: {
     a = 20;
     while (1) {
         break LABEL if (++a == 50);
@@ -1806,10 +1806,11 @@ The example above means that the variable `a` receives first argument and the va
 #### Label Statement
 
 Label statement is just defined the location on the source code.
+A label needs 2 colons after the label name.
 It will be used by `break` or `continue`.
 
 ```javascript
-SOME_LABEL:
+SOME_LABEL::
     /* ... */
 ```
 
@@ -1817,7 +1818,7 @@ You can go outside nested loop with using a label as below.
 
 ```javascript
 var a = 0, b = 0;
-LABEL:
+LABEL::
 while (1) {
     a = 0;
     while (a < 10) {
@@ -1842,7 +1843,7 @@ On the other hand, the label for `break` will always go to the end of block.
 Here is the example below.
 
 ```javascript
-LABEL:
+LABEL::
 for (var i = 0; i < 10; ++i) {
     System.println(i);
     if (i % 2 == 0) continue LABEL;
