@@ -99,11 +99,14 @@ Unnstall the package which you specified by the `<key>`.
 The `<ver>` is necessary to uninstall the package, and it uninstalls the specified version of the package only.
 If you want to uninstall all versions in the package, specify it as `all` instead of an actual version.
 
-#### `kip devinstall`
+#### `kip devinst`
 
-Install a developing package which you are developing in progress.
+Install a development package which you are developing in progress.
+You must move to the root of the package repository before running the `kip devinst`.
+And this command will search a `build/build.kx` file at first.
+Therefore, you must prepare `build/build.kx` file under the repository root in advance.
 
-You must move to the package repository root and you should prepare `build/build.kx` file in advance.
+This command will install the package as a development package, which means the files are directly copied under the Kinx library path.
 `build/build.kx` is the code to install the package like the following code for example.
 This code is the stuff prepared in the `typesetting` package.
 
@@ -116,26 +119,32 @@ var version = "0.0.2";
 new PackageUpdater($$, pkgname, version).update { &(util)
     Directory.change("src") {
         Directory.walk(".") {
+            // _1 will be `bin`, `etc` and `lib`.
             util.dircopy(_1, util.root / _1.filename());
         };
     };
-    Directory.walk("docs") {
-        util.dircopy(_1, util.root / _1);
-    };
+    util.dircopy("docs", util.root / "docs");
 };
 ```
 
 As you see, you can use `PackageUpdater` class and use `util.dircopy()` to install your developped components into the Kinx package directory.
-The package name will be `typesetting-dev` when you install it like this.
-The `-dev` postfix means this package is a developing package.
-Therefore you can not use a `-dev` postfix to any package name.
 
-By the way, you can uninstall it with normally `kip uninstall` command.
-You can use just `kip uninstall typesetting-dev all` and uninstall it correctly.
+By the way, the package directory will be marked as a development version.
+
+#### `kip devuninst`
+
+Uninstall a development package which version is specified by `build/build.kx`.
+
+You must move to the root of the package repository before running the `kip devuninst` command as well as when it's `kip devinst`.
+The command line will know the package name and the version which should be uninstalled automatically and try to uninstall it.
+
+This command can not uninstall it when it is not a development version.
+However, you can uninstall it if you use `kip uninstall <name> <version>` with the name and the version.
 
 #### `kip list`
 
 Show the list of installed packages with installed versions.
+It shows also a development version and you can also see that it is a development version.
 
 #### `kip update [<key>]`
 
