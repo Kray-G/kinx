@@ -271,11 +271,6 @@ const char *search_exec_file(kx_context_t *ctx, const char *execname)
     for (khint_t k = 0; k < kh_end(g_packages); ++k) {
         if (kh_exist(g_packages, k)) {
             const char *pkgname = kh_key(g_packages, k);
-            if (ctx->options.dev_mode) {
-                if (strstr(pkgname, "-dev") == NULL) {
-                    continue;
-                }
-            }
             package_t *p = kh_value(g_packages, k);
             ks_clear(ksv);
             ks_appendf(ksv, "%s%clib%cpackage%c%s%c%s%cbin%c%s.kx", get_kinx_path(), PATH_DELCH, PATH_DELCH, PATH_DELCH, pkgname, PATH_DELCH, p->vers, PATH_DELCH, PATH_DELCH, execname);
@@ -373,13 +368,6 @@ DllExport int do_main(int ac, char **av)
                 goto END_OF_OPT;
             #endif
             } else if (!strcmp(lname, "exec")) {
-                if (param[0]) {
-                    execname = param;
-                    goto END_OF_OPT;
-                }
-                break;
-            } else if (!strcmp(lname, "dev")) {
-                ctx->options.dev_mode = 1;
                 if (param[0]) {
                     execname = param;
                     goto END_OF_OPT;

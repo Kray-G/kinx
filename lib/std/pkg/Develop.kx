@@ -1,15 +1,14 @@
 
-class DevelopPackageUpdater(pkgname, version) {
+class DevelopPackageUpdater(pkgname, version, options_) {
 
+    const DEVELOP_FILE_NAME = "development.kip";
     const DEF_FILE_NAME = "kxpackage.def";
     var defFile_, root_, candidates_;
 
     private initialize() {
-        pkgname += "-dev";
         defFile_ = $pkgpath / DEF_FILE_NAME;
         root_ = $pkgpath / pkgname / version;
         @root = root_;
-        System.println("$PKGPATH: ", root_);
     }
 
     private saveDef(data) {
@@ -95,7 +94,7 @@ class DevelopPackageUpdater(pkgname, version) {
         if (candidates_.isDefined) {
             var exe = File.exists($kinxpath / "kxrepl.exe");
             candidates_.each {
-                var dst = $kinxpath / _1.stem() + "-dev" + (exe ? ".exe" : "");
+                var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
                 if (File.exists(dst) && removeFile(dst)) {
                     System.println("Removed an executable of %{dst.filename().bold().yellow()}");
                 }
@@ -117,7 +116,7 @@ class DevelopPackageUpdater(pkgname, version) {
                 var exe = exefile.extension() == ".exe";
                 if (File.exists(src)) {
                     candidates_.each {
-                        var dst = $kinxpath / _1.stem() + "-dev" + (exe ? ".exe" : "");
+                        var dst = $kinxpath / _1.stem() + (exe ? ".exe" : "");
                         if (File.exists(dst)) {
                             removeFile(dst);
                         }
@@ -131,11 +130,24 @@ class DevelopPackageUpdater(pkgname, version) {
     }
 
     public update(code) {
+        if (options_.version) {
+            System.println(pkgname + "\t" + version + "\n");
+            return;
+        }
+
+        if (!options_.force && File.exists(root_) && !File.exists(root_ / DEVELOP_FILE_NAME)) {
+            System.println("Found the directory for the release version.");
+            System.println("ERROR: Cancelled the installation.".bold().red());
+            return;
+        }
+
+        System.println("$PKGPATH: ", root_);
         removeExecutableCandidates();
         if (File.exists(root_)) {
             removeDir(root_);
         }
         code(this);
+        File.touch(root_ / DEVELOP_FILE_NAME);
         makeDevExecutable();
 
         var def = loadDef();
@@ -150,7 +162,7 @@ class ReleasePackageArchiver(pkgname, version) {
     var zip_ = new Zip($pwd / "package.zip", File.WRITE);
 
     public dircopy(file1, file2) {
-        if (file1 != "dev" && File.isDirectory(file1)) {
+        if (File.isDirectory(file1)) {
             System.println("Adding a directory : ", file1);
             zip_.addFile(file1);
         }
@@ -164,17 +176,25 @@ class ReleasePackageArchiver(pkgname, version) {
 
 class PackageUpdater(args, pkgname, version) {
 
-    var opt, config;
-    while (opt = System.getopt(args, "d", { dev: 'd' })) {
+    var opt, options = { release: true };
+    while (opt = System.getopt(args, "iv", { inst: 'i', version: 'v' })) {
         switch (opt.type) {
-        case 'd':
-            config.dev = true;
+        case 'i':
+            options.devinst = true;
+            options.release = false;
+            break;
+        case 'v':
+            options.version = true;
+            options.release = false;
+            break;
+        case 'f':
+            options.force = true;
             break;
         }
     }
 
-    if (config.dev) {
-        return new DevelopPackageUpdater(pkgname, version);
+    if (!options.release) {
+        return new DevelopPackageUpdater(pkgname, version, options);
     }
 
     return new ReleasePackageArchiver(pkgname, version);

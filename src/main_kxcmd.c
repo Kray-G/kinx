@@ -44,13 +44,8 @@ char *make_exec_name(const char *av0)
     int start = 0, end = 0, len = 0;
     MAKE_START_END_LEN(av0, start, end, len);
     char *cmdname = kx_calloc(len + (7/* --exec: */ + 2), sizeof(char));
-    if (ends_with(av0, "-dev") || ends_with(av0, "-dev.exe")) {
-        strcpy(cmdname, "--dev:");
-        strncpy(cmdname + 6, av0 + start, len - 4);
-    } else {
-        strcpy(cmdname, "--exec:");
-        strncpy(cmdname + 7, av0 + start, len);
-    }
+    strcpy(cmdname, "--exec:");
+    strncpy(cmdname + 7, av0 + start, len);
     return cmdname;
 }
 

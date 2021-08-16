@@ -80,3 +80,6 @@ File.open = _function(name, mode, func) {
         }
     }
 };
+File.touch = _function(name) {
+    File.open(name, File.TEXT|File.WRITE, &() => {});
+};

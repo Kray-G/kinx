@@ -310,6 +310,7 @@ class KinxPackageRepositoryManager(cfgMgr_) {
 
 class KinxPackageLibraryManager(repoMgr_) {
 
+    const DEVELOP_FILE_NAME = "development.kip";
     var cfgMgr_;
     var installed_;
 
@@ -406,6 +407,7 @@ class KinxPackageLibraryManager(repoMgr_) {
                 l.push({
                     latest: packdef && packdef == ver,
                     version: ver,
+                    development: File.exists(verpath / DEVELOP_FILE_NAME),
                 });
             };
         }
@@ -419,7 +421,10 @@ class KinxPackageLibraryManager(repoMgr_) {
                 if (pkgname.isUndefined || pkgname == name) {
                     var l = getVersionList(name);
                     System.print(name, ": ");
-                    Kip.info(l.map { => _1.latest ? _1.version.bold() : _1.version.yellow() });
+                    Kip.info(l.map { => _1.development
+                        ? (_1.latest ? _1.version.green().bold() : _1.version.green())
+                        : (_1.latest ? _1.version.bold() : _1.version.yellow())
+                    });
                 }
             }
         };
@@ -499,7 +504,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         // Auto detaction of exec candidate.
         var candidates = [];
         Directory.walk(packagedir / "bin") { &(f)
-            if (f.extension() == ".kx" && !f.stem().endsWith("-dev")) {
+            if (f.extension() == ".kx") {
                 candidates.push(f.filename());
             }
         };
@@ -549,14 +554,58 @@ class KinxPackageLibraryManager(repoMgr_) {
         return success;
     }
 
+    public uninstallVersion(name, version, isDevOnly) {
+        // Remove a specific binary.
+        var exe = File.exists($kinxpath / "kxrepl.exe");
+        var packagebase = $pkgpath / name;
+        var packagedir = packagebase / version;
+        if (!File.exists(packagedir)) {
+            Kip.errorln("No package of %s(%s)" % name % version);
+            return false;
+        }
+        if (isDevOnly && !File.exists(packagedir / DEVELOP_FILE_NAME)) {
+            Kip.errorln("Not a development package of %s(%s)" % name % version);
+            return false;
+        }
+        var vers = [];
+        Directory.walk(packagebase) { &(ver)
+            vers.push(ver.filename());
+        };
+        if (vers.length() == 1 && vers[0] == version) {
+            Directory.walk(packagedir / "bin") { &(f)
+                if (f.extension() == ".kx") {
+                    var dst = $kinxpath / f.stem() + (exe ? ".exe" : "");
+                    if (File.exists(dst)) {
+                        if (removeFile(dst)) {
+                            Kip.progressln("Removed an executable of %s" % dst.filename());
+                        }
+                    }
+                }
+            };
+        }
+        if (removeDir(packagedir)) {
+            Kip.progressln("%s(%s) is successfully uninstalled" % name % version);
+        }
+        var installed = getVersionList(name).map { => new SemanticVersion(_1.version)};
+        var latest = (installed.isArray && installed.length() > 0) ? installed.sort()[-1].version() : null;
+        cfgMgr_.setPackageDef(name, latest);
+        if (latest) {
+            Kip.progressln("Set the latest version of %s to %s" % name % latest);
+        } else {
+            if (removeDir(packagebase)) {
+                Kip.progressln("Removed all versions of %s" % name);
+            }
+        }
+        return true;
+    }
+
     private uninstallAll(name) {
-        var isDevelopmentMode = name.endsWith("-dev");
         var exe = File.exists($kinxpath / "kxrepl.exe");
         var packagebase = $pkgpath / name;
         Directory.walk(packagebase) { &(packagedir)
             Directory.walk(packagedir / "bin") { &(f)
-                if (f.extension() == ".kx" && !f.stem().endsWith("-dev")) {
-                    var dst = $kinxpath / f.stem() + (isDevelopmentMode ? "-dev" : "") + (exe ? ".exe" : "");
+                if (f.extension() == ".kx") {
+                    var dst = $kinxpath / f.stem() + (exe ? ".exe" : "");
                     if (File.exists(dst)) {
                         if (removeFile(dst)) {
                             Kip.progressln("Removed an executable of %s" % dst.filename());
@@ -586,45 +635,7 @@ class KinxPackageLibraryManager(repoMgr_) {
             return uninstallAll(name);
         }
 
-        // Remove a specific binary.
-        var isDevelopmentMode = name.endsWith("-dev");
-        var exe = File.exists($kinxpath / "kxrepl.exe");
-        var packagebase = $pkgpath / name;
-        var packagedir = packagebase / version;
-        if (!File.exists(packagedir)) {
-            Kip.errorln("No package of %s(%s)" % name % version);
-            return false;
-        }
-        var vers = [];
-        Directory.walk(packagebase) { &(ver)
-            vers.push(ver.filename());
-        };
-        if (vers.length() == 1 && vers[0] == version) {
-            Directory.walk(packagedir / "bin") { &(f)
-                if (f.extension() == ".kx") {
-                    var dst = $kinxpath / f.stem() + (isDevelopmentMode ? "-dev" : "") + (exe ? ".exe" : "");
-                    if (File.exists(dst)) {
-                        if (removeFile(dst)) {
-                            Kip.progressln("Removed an executable of %s" % dst.filename());
-                        }
-                    }
-                }
-            };
-        }
-        if (removeDir(packagedir)) {
-            Kip.progressln("%s(%s) is successfully uninstalled" % name % version);
-        }
-        var installed = getVersionList(name).map { => new SemanticVersion(_1.version)};
-        var latest = (installed.isArray && installed.length() > 0) ? installed.sort()[-1].version() : null;
-        cfgMgr_.setPackageDef(name, latest);
-        if (latest) {
-            Kip.progressln("Set the latest version of %s to %s" % name % latest);
-        } else {
-            if (removeDir(packagebase)) {
-                Kip.progressln("Removed all versions of %s" % name);
-            }
-        }
-        return true;
+        return uninstallVersion(name, version);
     }
 
     public update(name) {
@@ -639,16 +650,65 @@ class KinxPackageLibraryManager(repoMgr_) {
         return false;
     }
 
-    public devinstall() {
+    private flushProgressText(buf) {
+        if (buf.find("\n") >= 0) {
+            var txts = buf.split("\n");
+            buf = txts.pop();
+            txts.each {
+                if (_1 =~ /(?i)error/) {
+                    Kip.errorln(_1.replace(/(?i)error/, &(g) => g[0].string.bold().red()));
+                } else if (_1 =~ /(?i)(warning|warn)/) {
+                    Kip.warningln(_1.replace(/(?i)(warning|warn)/, &(g) => g[0].string.bold().yellow()));
+                } else {
+                    Kip.progressln(_1);
+                }
+            };
+        }
+        return buf;
+    }
+
+    private devinstimpl(buildopt, output) {
         var buildkx = $pwd / "build/build.kx";
         if (!File.exists(buildkx)) {
             Kip.errorln("Not found: build/build.kx to install a developing package");
-            return false;
+            return;
         }
         var kinx = $kinxpath / "kinx";
-        var p = new Process([kinx, buildkx, "--dev"], { out: $stdout, err: $stderr }).run();
-        p.wait();
+        var buf;
+        var [r1, w1] = new Pipe();
+        var p1 = new Process([kinx, buildkx, buildopt], { out: w1 }).run();
+        w1.close();
+        while (p1.isAlive() || r1.peek() > 0) {
+            buf += r1.read();
+            if (output && buf.length() > 0) {
+                buf = flushProgressText(buf);
+            }
+        }
+        if (output) {
+            flushProgressText(buf);
+        }
+        return buf;
+    }
+
+    public devinstall() {
+        var r = devinstimpl("--inst", true);
+        if (r.isUndefined) {
+            return false;
+        }
         return true;
+    }
+
+    public devuninstall() {
+        var namever = devinstimpl("--version");
+        if (namever.isUndefined) {
+            return false;
+        }
+        var [name, version] = namever.trim().split('\t');
+        if (name.isString && version.isString) {
+            Kip.progressln("Removing the versions(%s) of %s" % version % name);
+            return uninstallVersion(name, version, true);
+        }
+        return false;
     }
 }
 
@@ -716,8 +776,11 @@ class KinxPackageManager {
         case "search": case "s":
             mgr.search(args[2]);
             return true;
-        case "devinstall":
+        case "devinst":
             mgr.devinstall();
+            return true;
+        case "devuninst":
+            mgr.devuninstall();
             return true;
         }
         return false;
@@ -743,7 +806,8 @@ class KinxPackageManager {
         Kip.info("    install <key> [<ver>]     Installs a specified package.");
         Kip.info("    uninstall <key> <ver>|all Uninstalls a specified package.");
         # Kip.info("    update [<key>]            Installs the latest version.");
-        Kip.info("    devinstall                Installs a develping package.");
+        Kip.info("    devinst                   Installs a develpment package.");
+        Kip.info("    devuninst                 Uninstalls a develpment package.");
         Kip.info("    list                      Lists up installed packages.");
     }
 
