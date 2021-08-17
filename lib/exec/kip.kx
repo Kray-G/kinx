@@ -3,53 +3,50 @@
     Do not use this.
 */
 
-/*
-    Package Manager for Kinx
-
-    For configuration.
-    $ kip config set|s <name> <value>           Sets a value to a name in a configuration.
-    $ kip config remove|rm|r <name>             Removes a name from a configuration.
-    $ kip config show|sh|list|ls|l [<name>]     Lists up a name and a value in a configuration.
-
-    For a central repository access.
-    $ kip repo add|a <repo>                     Adds a central repository for packages.
-    $ kip repo remove|rm|r <repo>               Removes a central repository for packages.
-    $ kip repo list|ls|l                        Lists up a central repository list and its holding packages.
-
-    For installed packages.
-    $ kip search|s <key>                        Searches a package from central repositories.
-    $ kip install|i <key> [<ver>]               Installs a specified package with the latest version if not specified.
-    $ kip uninstall|u <key> [<ver>]             Uninstalls a specified package with the version if specified.
-    # $ kip update|up [<key>]                     Installs the latest version of a specified package.
-    $ kip list|ls                               Lists up an installed packages.
-*/
 using SemanticVersion;
 using DateTime;
 using Process;
+using pkg.Develop;
 
 const MAIN_PACKAGE_CENTRAL_REPO = "https://github.com/Kray-G/kinx-package-repository";
+const PACKAGE_BUILD_SCRIPT_FILE = "build/build.kx";
+const PACKAGE_INFO_FILE = "package.json";
+const DEVELOPMENT_VERSION = "99.99.99";
 
 Kip.progress = _function(...args) {
-    System.print("[" + new DateTime().toString().bold().green() + "] ", ...args);
+    var date = "[" + new DateTime().toString().bold().green() + "] ";
+    System.print(date, ...args);
 };
 Kip.progressln = _function(...args) {
-    System.println("[" + new DateTime().toString().bold().green() + "] ", ...args);
+    var date = "[" + new DateTime().toString().bold().green() + "] ";
+    System.println(date, ...args);
 };
 Kip.warningln = _function(...args) {
-    System.println("[" + new DateTime().toString().bold().yellow() + "] ", ...args);
+    var date = "[" + new DateTime().toString().bold().yellow() + "] ";
+    System.println(date, ...args);
 };
 Kip.errorln = _function(...args) {
-    System.println("[" + new DateTime().toString().bold().red() + "] ", ...args);
+    var date = "[" + new DateTime().toString().bold().red() + "] ";
+    System.println(date, ...args);
 };
 Kip.info = _function(...args) {
+    System.print(...args);
+};
+Kip.infoln = _function(...args) {
     System.println(...args);
 };
 Kip.verbose = _function(...args) {
     var opts = args.shift();
     if (opts.verbose) {
-        System.println("[" + new DateTime().toString().cyan() + "] ", ...args);
+        var date = "[" + new DateTime().toString().cyan() + "] ";
+        System.println(date, ...args);
     }
 };
+
+PackageUpdater.print = Kip.progress;
+PackageUpdater.println = Kip.progressln;
+PackageUpdater.errorln = Kip.errorln;
+PackageUpdater.warningln = Kip.warningln;
 
 class KinxPackageManagerConfig(configFile_, defFile_) {
 
@@ -124,7 +121,7 @@ class KinxPackageManagerConfig(configFile_, defFile_) {
     public list() {
         if (config_.values) {
             config_.values.keySet().each {
-                Kip.info(_1, "=", config_.values[_1]);
+                Kip.infoln(_1, "=", config_.values[_1]);
             };
         }
         return true;
@@ -235,11 +232,11 @@ class KinxPackage(key_, info_, cfgMgr_) {
 
     public show() {
         if (info_.base) {
-            Kip.info("* ", info_.base);
+            Kip.infoln("* ", info_.base);
         }
-        Kip.info("  - %{key_.bold()} - %{info_.name.yellow()}");
+        Kip.infoln("  - %{key_.bold()} - %{info_.name.yellow()}");
         if (info_.url) {
-            Kip.info("    ", info_.url);
+            Kip.infoln("    ", info_.url);
         }
     }
 
@@ -283,14 +280,19 @@ class KinxPackageRepositoryManager(cfgMgr_) {
     public list(args) {
         var repolist = cfgMgr_.getRepository();
         repolist.each { &(access)
-            Kip.info("* ", access.url);
-            if (args[3] != "url") {
-                json = cfgMgr_.httpGet(access.jsonUrl);
-                if (json) {
+            json = cfgMgr_.httpGet(access.jsonUrl);
+            if (json) {
+                if (args[3] == "detail") {
+                    Kip.infoln("* ", access.url);
                     json.keySet().each { &(key)
                         new KinxPackage(key, json[key], cfgMgr_).show();
                     };
+                } else {
+                    var count = json.keySet().length();
+                    Kip.infoln("* ", access.url.bold(), (" (%{count} package%{count > 1 ? 's' : ''})").green());
                 }
+            } else {
+                Kip.infoln("* ", access.url);
             }
         };
         return true;
@@ -375,11 +377,11 @@ class KinxPackageLibraryManager(repoMgr_) {
             return;
         }
         var list = getRemotePackages(info);
-        Kip.info("* ", key) if (key);
+        Kip.infoln("* ", key) if (key);
         list.each {
             var version = _1.version.string;
             var installed = isInstalled(key, version);
-            Kip.info("    - %{version.bold()} (%{makeSizeString(_1.size)}) ",
+            Kip.infoln("    - %{version.bold()} (%{makeSizeString(_1.size)}) ",
                 (_1.prerelease ? "[Pre-release]" : "").yellow(),
                 (installed ? " - Installed" : "").yellow().bold());
         };
@@ -397,21 +399,30 @@ class KinxPackageLibraryManager(repoMgr_) {
         return true;
     }
 
+    private getVersionString(ver) {
+        if (ver == DEVELOPMENT_VERSION) {
+            return ("<development>".bold().green()).toString();
+        }
+        return ver;
+    }
+
     private getVersionList(name) {
         var l = [];
         var dir = $pkgpath / name;
         if (File.isDirectory(dir)) {
             var packdef = name ? cfgMgr_.getPackageDef(name) : null;
             Directory.walk(dir) { &(verpath)
+                var isDevelopment = File.exists(verpath / DEVELOP_FILE_NAME);
                 var ver = verpath.filename();
                 l.push({
                     latest: packdef && packdef == ver,
                     version: ver,
-                    development: File.exists(verpath / DEVELOP_FILE_NAME),
+                    semanticVersion: new SemanticVersion(ver),
+                    development: isDevelopment,
                 });
             };
         }
-        return l;
+        return l.sort { => _1.semanticVersion <=> _2.semanticVersion };
     }
 
     public list(pkgname) {
@@ -420,11 +431,18 @@ class KinxPackageLibraryManager(repoMgr_) {
                 var name = path.filename();
                 if (pkgname.isUndefined || pkgname == name) {
                     var l = getVersionList(name);
-                    System.print(name, ": ");
-                    Kip.info(l.map { => _1.development
-                        ? (_1.latest ? _1.version.green().bold() : _1.version.green())
-                        : (_1.latest ? _1.version.bold() : _1.version.yellow())
-                    });
+                    var last = l.length() - 1;
+                    Kip.info(name, ": [");
+                    l.map { => _1.development
+                        ? getVersionString(_1.version)
+                        : (_1.latest ? getVersionString(_1.version).bold() : getVersionString(_1.version).yellow())
+                    }.each { &(e, i)
+                        Kip.info(_1);
+                        if (i != last) {
+                            Kip.info(", ");
+                        }
+                    };
+                    Kip.infoln("]");
                 }
             }
         };
@@ -453,7 +471,7 @@ class KinxPackageLibraryManager(repoMgr_) {
             verlist = getRemotePackages(packages[name]);
         }
         if (!verlist || verlist.length() == 0) {
-            Kip.info("No package found.");
+            Kip.infoln("No package found.");
             return false;
         }
         var semvlist = verlist.map({ => _1.version.semver });
@@ -464,7 +482,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         var installed = getVersionList(name);
         if (installed.isArray && installed.length() > 0) {
             if (installed.filter({ => _1.version == version }).length() > 0) {
-                Kip.info("The package %s(%s) has been already installed." % name.bold().underline().toString() % version);
+                Kip.infoln("The package %s(%s) has been already installed." % name.bold().underline().toString() % version);
                 return false;
             }
         }
@@ -496,10 +514,10 @@ class KinxPackageLibraryManager(repoMgr_) {
         Kip.progressln("");
 
         // Update .def file.
-        installed = getVersionList(name).map { => new SemanticVersion(_1.version)};
+        installed = getVersionList(name).map { => _1.semanticVersion };
         var latest = (installed.isArray && installed.length() > 0) ? installed.sort()[-1].version() : null;
         cfgMgr_.setPackageDef(name, latest);
-        Kip.progressln("Set the latest version of %s to %s" % name % latest);
+        Kip.progressln("Set the latest version of %s to %s" % name % getVersionString(latest));
 
         // Auto detaction of exec candidate.
         var candidates = [];
@@ -560,11 +578,11 @@ class KinxPackageLibraryManager(repoMgr_) {
         var packagebase = $pkgpath / name;
         var packagedir = packagebase / version;
         if (!File.exists(packagedir)) {
-            Kip.errorln("No package of %s(%s)" % name % version);
+            Kip.errorln("No package of %s(%s)" % name % getVersionString(version));
             return false;
         }
         if (isDevOnly && !File.exists(packagedir / DEVELOP_FILE_NAME)) {
-            Kip.errorln("Not a development package of %s(%s)" % name % version);
+            Kip.errorln("Not a development package of %s(%s)" % name % getVersionString(version));
             return false;
         }
         var vers = [];
@@ -584,13 +602,13 @@ class KinxPackageLibraryManager(repoMgr_) {
             };
         }
         if (removeDir(packagedir)) {
-            Kip.progressln("%s(%s) is successfully uninstalled" % name % version);
+            Kip.progressln("%s(%s) is successfully uninstalled" % name % getVersionString(version));
         }
-        var installed = getVersionList(name).map { => new SemanticVersion(_1.version)};
+        var installed = getVersionList(name).map { => _1.semanticVersion };
         var latest = (installed.isArray && installed.length() > 0) ? installed.sort()[-1].version() : null;
         cfgMgr_.setPackageDef(name, latest);
         if (latest) {
-            Kip.progressln("Set the latest version of %s to %s" % name % latest);
+            Kip.progressln("Set the latest version of %s to %s" % name % getVersionString(latest));
         } else {
             if (removeDir(packagebase)) {
                 Kip.progressln("Removed all versions of %s" % name);
@@ -656,9 +674,9 @@ class KinxPackageLibraryManager(repoMgr_) {
             buf = txts.pop();
             txts.each {
                 if (_1 =~ /(?i)error/) {
-                    Kip.errorln(_1.replace(/(?i)error/, &(g) => g[0].string.bold().red()));
+                    Kip.errorln(_1);
                 } else if (_1 =~ /(?i)(warning|warn)/) {
-                    Kip.warningln(_1.replace(/(?i)(warning|warn)/, &(g) => g[0].string.bold().yellow()));
+                    Kip.warningln(_1);
                 } else {
                     Kip.progressln(_1);
                 }
@@ -667,16 +685,33 @@ class KinxPackageLibraryManager(repoMgr_) {
         return buf;
     }
 
+    private devDefaultInstall() {
+        var pkginfo = JSON.parse(File.load(PACKAGE_INFO_FILE));
+        new PackageUpdater(["kip", "--inst"], pkginfo.name, DEVELOPMENT_VERSION).update { &(util)
+            if (File.exists("src") && File.isDirectory("src")) {
+                Directory.change("src") {
+                    Directory.walk(".") {
+                        // _1 will be `bin`, `etc` and `lib`.
+                        util.dircopy(_1, util.root / _1);
+                    };
+                };
+            }
+            if (File.exists("docs") && File.isDirectory("docs")) {
+                util.dircopy("docs", util.root / "docs");
+            }
+        };
+        return true;
+    }
+
     private devinstimpl(buildopt, output) {
-        var buildkx = "build/build.kx";
-        if (!File.exists(buildkx)) {
-            Kip.errorln("Not found: build/build.kx to install a developing package");
+        if (!File.exists(PACKAGE_BUILD_SCRIPT_FILE)) {
+            Kip.errorln("Not found: build/build.kx to install a development package");
             return;
         }
         var kinx = $kinxpath / "kinx";
         var buf;
         var [r1, w1] = new Pipe();
-        var p1 = new Process([kinx, buildkx, buildopt], { out: w1 }).run();
+        var p1 = new Process([kinx, PACKAGE_BUILD_SCRIPT_FILE, buildopt], { out: w1 }).run();
         w1.close();
         while (p1.isAlive() || r1.peek() > 0) {
             buf += r1.read();
@@ -691,6 +726,9 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     public devinstall() {
+        if (File.exists(PACKAGE_INFO_FILE)) {
+            return devDefaultInstall();
+        }
         var r = devinstimpl("--inst", true);
         if (r.isUndefined) {
             return false;
@@ -699,13 +737,20 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     public devuninstall() {
-        var namever = devinstimpl("--version");
-        if (namever.isUndefined) {
-            return false;
+        var name, version;
+        if (File.exists(PACKAGE_INFO_FILE)) {
+            var pkginfo = JSON.parse(File.load(PACKAGE_INFO_FILE));
+            name = pkginfo.name;
+            version = DEVELOPMENT_VERSION;
+        } else {
+            var namever = devinstimpl("--version");
+            if (namever.isUndefined) {
+                return false;
+            }
+            [name, version] = namever.trim().split('\t');
         }
-        var [name, version] = namever.trim().split('\t');
         if (name.isString && version.isString) {
-            Kip.progressln("Removing the versions(%s) of %s" % version % name);
+            Kip.progressln("Removing the versions(%s) of %s" % getVersionString(version) % name);
             return uninstallVersion(name, version, true);
         }
         return false;
@@ -787,28 +832,28 @@ class KinxPackageManager {
     }
 
     private usage() {
-        Kip.info("Options");
-        Kip.info("    -h                        Display this help.");
-        Kip.info("    -v                        Verbose mode.");
-        Kip.info("");
-        Kip.info("Configuration");
-        Kip.info("    config set <name> <value> Sets a value to a name.");
-        Kip.info("    config remove <name>      Removes a name and a value.");
-        Kip.info("    config show [<name>]      Lists up a name and a value.");
-        Kip.info("");
-        Kip.info("Central Repository Access");
-        Kip.info("    repo add <repo>           Adds a central repository.");
-        Kip.info("    repo remove <repo>        Removes a central repository.");
-        Kip.info("    repo list                 Lists up a central repository.");
-        Kip.info("");
-        Kip.info("Packages Control");
-        Kip.info("    search <key>              Searches a package.");
-        Kip.info("    install <key> [<ver>]     Installs a specified package.");
-        Kip.info("    uninstall <key> <ver>|all Uninstalls a specified package.");
-        # Kip.info("    update [<key>]            Installs the latest version.");
-        Kip.info("    devinst                   Installs a develpment package.");
-        Kip.info("    devuninst                 Uninstalls a develpment package.");
-        Kip.info("    list                      Lists up installed packages.");
+        Kip.infoln("Options");
+        Kip.infoln("    -h                        Display this help.");
+        Kip.infoln("    -v                        Verbose mode.");
+        Kip.infoln("");
+        Kip.infoln("Configuration");
+        Kip.infoln("    config set <name> <value> Sets a value to a name.");
+        Kip.infoln("    config remove <name>      Removes a name and a value.");
+        Kip.infoln("    config show [<name>]      Lists up a name and a value.");
+        Kip.infoln("");
+        Kip.infoln("Central Repository Access");
+        Kip.infoln("    repo add <repo>           Adds a central repository.");
+        Kip.infoln("    repo remove <repo>        Removes a central repository.");
+        Kip.infoln("    repo list                 Lists up a central repository.");
+        Kip.infoln("");
+        Kip.infoln("Packages Control");
+        Kip.infoln("    search <key>              Searches a package.");
+        Kip.infoln("    install <key> [<ver>]     Installs a specified package.");
+        Kip.infoln("    uninstall <key> <ver>|all Uninstalls a specified package.");
+        Kip.infoln("    devinst                   Installs a develpment package.");
+        Kip.infoln("    devuninst                 Uninstalls a develpment package.");
+        Kip.infoln("    list                      Lists up installed packages.");
+        # Kip.infoln("    update [<key>]            Updates packages to the latest version.");
     }
 
     private checkOptions(args) {

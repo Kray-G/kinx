@@ -16,7 +16,7 @@ This section describe about the package by a user perspective and a developper p
 #### How To Install/Uninstall Package
 
 To install the package you want to use, do it with `kip install` command.
-Here is the example of installing a `typesetting` package.
+Here is the example of installing the `typesetting` package.
 
 ```
 $ kip install typesetting
@@ -30,8 +30,8 @@ $ kip install typesetting
 [2021/08/07 14:23:42] Generated a command of kxkitty.exe
 ```
 
-To install the package you want to use, do it with `kip uninstall` command.
-Here is the example of uninstall a `typesetting` package.
+To uninstall the package, do it with `kip uninstall` command.
+Here is the example of uninstall the `typesetting` package.
 
 ```
 $ kip uninstall typesetting all
@@ -82,7 +82,7 @@ using @typesetting.Typesetting;
 ```
 
 Note that the latest version will be usually used if not specified the version.
-However, if you specify the version and the library code is including other library code by `using` directive without specifying the version, then the specified version will be used instead of the latest version.
+However, if you specify the version and a loaded library is using a `using` directive without the version inside, the library loader will search it under the same version's library directory.
 
 For example, when both the version 0.0.1 and 0.0.2 are installed, it will be as below.
 
@@ -105,36 +105,33 @@ using @typesetting.Logger; // => use Logger.kx of the version 0.0.1 which you sp
 #### Install Your Package To Develop
 
 You can use `kip devinst` command to instal your package as a development version.
-For that, you must prepare the `build/build.kx` file to make the files locate to the correct location.
+For that, you must prepare the `package.json` file to make the files locate to the correct location.
 
 Here is the example which is used in the `typesetting` package.
+The version will be fixed as `99.99.99` for the development, so the package will be installed to `$libpath/package/typesetting/99.99.99`.
 
 ```javascript
-using pkg.Develop;
-
-var pkgname = "typesetting";
-var version = "0.0.2";
-
-new PackageUpdater($$, pkgname, version).update { &(util)
-    Directory.change("src") {
-        Directory.walk(".") {
-            // _1 will be `bin`, `etc` and `lib`.
-            util.dircopy(_1, util.root / _1.filename());
-        };
-    };
-    util.dircopy("docs", util.root / "docs");
-};
+{
+    "name": "typesetting"
+}
 ```
 
-The callback function is receiving `util` object and you can use it.
-`util.root` is the root location of packages, which is located to `$libpath/package/typesetting/0.0.2` in this case.
-It means the root directory is automatically created by your package name and versions.
+`kip devinst` will copy the directories under `src` directory to the same name under the package path.
+Moreover, `docs` directory will be copied as is to the `docs` under the package path.
 
-In the `typesetting` package, the directories of `bin`, `etc`, and `lib` under `src` directory will be copied to the same name under the path under `uril.root`.
-Besides, `docs` directory will be copied as is to the `docs` under the path of `util.root`.
+Here is the example of the location copied by the package installation.
+It is the example of the case when the directories under `src` would be `bin`, `lib`, and `exc`.
 
-You can install it correctly by running just `kip devinst` at the root of the package repository which has a `build` directory.
-You can also uninstall it correctly by running just `kip devuninst` at the root of the package repository which has a `build` directory.
+```
+[SOURCE]                [PACKAGE]
+src/bin   ----------->  $libpath/package/typesetting/0.0.2/bin
+   /lib   ----------->                                    /lib
+   /etc   ----------->                                    /etc
+docs      ----------->                                    /docs
+```
+
+You can install it correctly by running just `kip devinst` at the root of the package repository which has a `package.json` file.
+You can also uninstall it correctly by running just `kip devuninst` at the root of the package repository which has a `package.json` file.
 
 #### Special Directory
 
@@ -142,9 +139,13 @@ You can also uninstall it correctly by running just `kip devuninst` at the root 
 
 If you locate the script file under the `bin` directory, the executable command will be automatically created to the same path as `kinx`.
 For example, if you put the `something.kx` under the `bin`, `something.exe` will be automatically created.
+In the `kip` world, this script file will be called a hook script.
 
 Note that it will be `something` without `.exe` on Linux.
 In this document, it is described as `something.exe` style because it is easy to understand.
+
+Moreover, if the `kip` installer find an executable file under the `bin` directory, the `kip` will automatically change the attribute of the file to the `executable` when it's on Linux.
+By the way, the `kip` will check if the file has the magic number of the ELF file format, or if the file extension is `.sh`.
 
 ##### `lib`
 

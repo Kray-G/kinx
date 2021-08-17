@@ -73,10 +73,10 @@ Remove the repository which you specified by `<url>`.
 Note that you can remove also a default central repository.
 If you removed it, you should add it again.
 
-#### `kip repo list`
+#### `kip repo list [detail]`
 
 Show the list of central repositories.
-Moreover, it shows also the list of packages registered to each repository.
+Moreover, if you use a `detail` option, it shows also the list of packages registered to each repository.
 
 ### Package Control
 
@@ -103,48 +103,30 @@ If you want to uninstall all versions in the package, specify it as `all` instea
 
 Install a development package which you are developing in progress.
 You must move to the root of the package repository before running the `kip devinst`.
-And this command will search a `build/build.kx` file at first.
-Therefore, you must prepare `build/build.kx` file under the repository root in advance.
+And this command will search a `package.json` file at first.
+Therefore, you must prepare `package.json` file under the repository root in advance.
 
 This command will install the package as a development package, which means the files are directly copied under the Kinx library path.
-`build/build.kx` is the code to install the package like the following code for example.
-This code is the stuff prepared in the `typesetting` package.
+`package.json` file has just a package name.
+The version will be automatically used as `99.99.99` for development.
 
 ```javascript
-using pkg.Develop;
-
-var pkgname = "typesetting";
-var version = "0.0.2";
-
-new PackageUpdater($$, pkgname, version).update { &(util)
-    Directory.change("src") {
-        Directory.walk(".") {
-            // _1 will be `bin`, `etc` and `lib`.
-            util.dircopy(_1, util.root / _1.filename());
-        };
-    };
-    util.dircopy("docs", util.root / "docs");
-};
+{
+    "name": "typesetting"
+}
 ```
-
-As you see, you can use `PackageUpdater` class and use `util.dircopy()` to install your developped components into the Kinx package directory.
-
-By the way, the package directory will be marked as a development version.
 
 #### `kip devuninst`
 
-Uninstall a development package which version is specified by `build/build.kx`.
+Uninstall a development package.
 
 You must move to the root of the package repository before running the `kip devuninst` command as well as when it's `kip devinst`.
-The command line will know the package name and the version which should be uninstalled automatically and try to uninstall it.
-
-This command can not uninstall it when it is not a development version.
-However, you can uninstall it if you use `kip uninstall <name> <version>` with the name and the version.
+The command line will know the package name by the `package.json` file and will automatically uninstall it.
 
 #### `kip list`
 
 Show the list of installed packages with installed versions.
-It shows also a development version and you can also see that it is a development version.
+It shows also a development version and you can also see that a development version is installed as a `<development>`.
 
 #### `kip update [<key>]`
 
