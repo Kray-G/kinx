@@ -296,10 +296,12 @@ static int process_using(void)
     while (pos < POSMAX && (kx_is_filechar(kx_lexinfo) || kx_lexinfo.ch == '*')) {
         if (is_package) {
             if (is_package_version == 0 && kx_lexinfo.ch == '.') {
+                kx_strbuf[pos] = 0;
                 pkgname = kx_const_str(g_parse_ctx, kx_strbuf + is_package_namepos);
                 pos = set_package_version(pkgname, pos);
                 is_package_version = 2;
             } else if (is_package_version == 0 && kx_lexinfo.ch == '(') {
+                kx_strbuf[pos] = 0;
                 pkgname = kx_const_str(g_parse_ctx, kx_strbuf + is_package_namepos);
                 is_package_version = 1;
                 kx_strbuf[pos++] = PATH_DELCH;
