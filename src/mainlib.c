@@ -273,7 +273,13 @@ const char *search_exec_file(kx_context_t *ctx, const char *execname)
             const char *pkgname = kh_key(g_packages, k);
             package_t *p = kh_value(g_packages, k);
             ks_clear(ksv);
-            ks_appendf(ksv, "%s%clib%cpackage%c%s%c%s%cbin%c%s.kx", get_kinx_path(), PATH_DELCH, PATH_DELCH, PATH_DELCH, pkgname, PATH_DELCH, p->vers, PATH_DELCH, PATH_DELCH, execname);
+            ks_appendf(ksv,
+                #if defined(KCC_WINDOWS)
+                "%s%clib%cpackage%c%s%c%s%cbin%c%s.kx",
+                #else
+                "%s%ckinxlib%cpackage%c%s%c%s%cbin%c%s.kx",
+                #endif
+                get_kinx_path(), PATH_DELCH, PATH_DELCH, PATH_DELCH, pkgname, PATH_DELCH, p->vers, PATH_DELCH, PATH_DELCH, execname);
             kx_trace(ctx, 0, "[exec:check] %s", ks_string(ksv));
             if (file_exists(ks_string(ksv))) {
                 execfile = kx_const_str(ctx, ks_string(ksv));
