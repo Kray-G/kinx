@@ -668,7 +668,7 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     private devinstimpl(buildopt, output) {
-        var buildkx = $pwd / "build/build.kx";
+        var buildkx = "build/build.kx";
         if (!File.exists(buildkx)) {
             Kip.errorln("Not found: build/build.kx to install a developing package");
             return;
