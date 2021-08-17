@@ -124,10 +124,10 @@ It is the example of the case when the directories under `src` would be `bin`, `
 
 ```
 [SOURCE]                [PACKAGE]
-src/bin   ----------->  $libpath/package/typesetting/0.0.2/bin
-   /lib   ----------->                                    /lib
-   /etc   ----------->                                    /etc
-docs      ----------->                                    /docs
+src/bin   ----------->  $libpath/package/typesetting/99.99.99/bin
+   /lib   ----------->                                       /lib
+   /etc   ----------->                                       /etc
+docs      ----------->                                       /docs
 ```
 
 You can install it correctly by running just `kip devinst` at the root of the package repository which has a `package.json` file.
