@@ -145,4 +145,5 @@ You can modify the automatically generated file as suited to your own package.
 #### `kip help <key> [<ver>]`
 
 Show the short help text about the package specified by the `<key>`.
+If you didn't specify the version number, it shows the help in the latest version.
 
