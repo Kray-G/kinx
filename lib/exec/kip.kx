@@ -5,11 +5,10 @@
 
 using SemanticVersion;
 using DateTime;
-using Process;
+using MarkdownConsole;
 using pkg.Develop;
 
 const MAIN_PACKAGE_CENTRAL_REPO = "https://github.com/Kray-G/kinx-package-repository";
-const PACKAGE_BUILD_SCRIPT_FILE = "build/build.kx";
 const PACKAGE_INFO_FILE = "package.json";
 const DEVELOPMENT_VERSION = "99.99.99";
 
@@ -703,57 +702,92 @@ class KinxPackageLibraryManager(repoMgr_) {
         return true;
     }
 
-    private devinstimpl(buildopt, output) {
-        if (!File.exists(PACKAGE_BUILD_SCRIPT_FILE)) {
-            Kip.errorln("Not found: build/build.kx to install a development package");
-            return;
-        }
-        var kinx = $kinxpath / "kinx";
-        var buf;
-        var [r1, w1] = new Pipe();
-        var p1 = new Process([kinx, PACKAGE_BUILD_SCRIPT_FILE, buildopt], { out: w1 }).run();
-        w1.close();
-        while (p1.isAlive() || r1.peek() > 0) {
-            buf += r1.read();
-            if (output && buf.length() > 0) {
-                buf = flushProgressText(buf);
-            }
-        }
-        if (output) {
-            flushProgressText(buf);
-        }
-        return buf;
-    }
-
     public devinstall() {
-        if (File.exists(PACKAGE_INFO_FILE)) {
-            return devDefaultInstall();
-        }
-        var r = devinstimpl("--inst", true);
-        if (r.isUndefined) {
+        if (!File.exists(PACKAGE_INFO_FILE)) {
+            Kip.errorln("No package.json file.");
             return false;
         }
-        return true;
+        return devDefaultInstall();
     }
 
     public devuninstall() {
-        var name, version;
-        if (File.exists(PACKAGE_INFO_FILE)) {
-            var pkginfo = JSON.parse(File.load(PACKAGE_INFO_FILE));
-            name = pkginfo.name;
-            version = DEVELOPMENT_VERSION;
-        } else {
-            var namever = devinstimpl("--version");
-            if (namever.isUndefined) {
-                return false;
-            }
-            [name, version] = namever.trim().split('\t');
+        if (!File.exists(PACKAGE_INFO_FILE)) {
+            Kip.errorln("No package.json file.");
+            return false;
         }
+        var pkginfo = JSON.parse(File.load(PACKAGE_INFO_FILE));
+        var [name, version] = [ pkginfo.name, DEVELOPMENT_VERSION ];
         if (name.isString && version.isString) {
             Kip.progressln("Removing the versions(%s) of %s" % getVersionString(version) % name);
             return uninstallVersion(name, version, true);
         }
         return false;
+    }
+
+    private createFile(filename, text) {
+        File.open(filename, File.WRITE) { => _1.println(text) };
+    }
+
+    private mkdir(dir, deffile, text, desc) {
+        File.mkdir(dir);
+        Kip.progressln("Created the directory of '%{dir}'.");
+        if (deffile.isString) {
+            deffile = dir / deffile;
+            createFile(deffile, text);
+            Kip.progressln("Created %{desc} of '%{deffile}'.");
+        }
+    }
+
+    public init(name) {
+        if (!name.isString) {
+            Kip.errorln("Needs a package name as a key.");
+            return false;
+        }
+        if (!File.exists(".git") || !File.isDirectory(".git")) {
+            Kip.errorln("Invalid location, it is not a git repository root here.");
+            return false;
+        }
+        if (File.exists("docs")) {
+            Kip.errorln("It seems to be already initialized. Do clean it up before init.");
+            return false;
+        }
+        createFile(PACKAGE_INFO_FILE, { name: name }.toJsonString(true));
+        var license = File.exists("LICENSE") ? ("```\n" + File.load("LICENSE").trim() + "\n```\n") : "You must";
+        mkdir("docs", "README.md",
+                "# Kacc\n\n"
+                "## Introduction\n\n"
+                "This is a directory of documents for the package `%{name}` such as materials below.\n\n"
+                "- Package Help - this `README.md` will be displayed by `kip help %{name}`\n"
+                "- User Guide\n"
+                "- API documents\n\n"
+                "Kindly provide the documents for users.\n\n"
+                "# License\n\n"
+                "This package is published under the following license.\n\n"
+                "%{license}",
+                "a default README file");
+        mkdir("src/bin", "%{name}.kx",
+                "# This is a sample hook script file. Feel free to modify this, and it'll be an executable automatically.\n"
+                'System.println("Welcome to the package of %{name}.");',
+                "a hook script file");
+        mkdir("src/lib", "%{name.toUpper(0,1)}.kx",
+                "# This is an auto generated library file for init, please feel free to modify it.",
+                "an initial library file");
+        mkdir("src/etc", "%{name}.json",
+                '{}',
+                "an initial setting file");
+        return true;
+    }
+
+    public help(name, version) {
+        if (version.isUndefined) {
+            var installed = getVersionList(name).map { => _1.semanticVersion };
+            version = (installed.isArray && installed.length() > 0) ? installed.sort()[-1].version() : null;
+        }
+        var path = $pkgpath / name / version;
+        var readme = path / "docs/README.md";
+        if (File.exists(readme)) {
+            new SmallMarkdown.MarkdownConsole(File.load(readme)).show();
+        }
     }
 }
 
@@ -827,6 +861,12 @@ class KinxPackageManager {
         case "devuninst":
             mgr.devuninstall();
             return true;
+        case "init":
+            mgr.init(args[2]);
+            return true;
+        case "help":
+            mgr.help(args[2], args[3]);
+            return true;
         }
         return false;
     }
@@ -846,13 +886,15 @@ class KinxPackageManager {
         Kip.infoln("    repo remove <repo>        Removes a central repository.");
         Kip.infoln("    repo list                 Lists up a central repository.");
         Kip.infoln("");
-        Kip.infoln("Packages Control");
+        Kip.infoln("Package Control");
         Kip.infoln("    search <key>              Searches a package.");
         Kip.infoln("    install <key> [<ver>]     Installs a specified package.");
         Kip.infoln("    uninstall <key> <ver>|all Uninstalls a specified package.");
         Kip.infoln("    devinst                   Installs a develpment package.");
         Kip.infoln("    devuninst                 Uninstalls a develpment package.");
         Kip.infoln("    list                      Lists up installed packages.");
+        Kip.infoln("    init <key>                Creates and initializes a package.");
+        Kip.infoln("    help <key>                Shows README.md of a package.");
         # Kip.infoln("    update [<key>]            Updates packages to the latest version.");
     }
 

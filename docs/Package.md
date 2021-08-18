@@ -9,7 +9,7 @@ The package system will make the Kinx more flexible, useful and extendable.
 
 ## Overview
 
-This section describe about the package by a user perspective and a developper perspective.
+This section describes about the package in a user perspective and a developper perspective.
 
 ### For Users
 
