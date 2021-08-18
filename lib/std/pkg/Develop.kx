@@ -181,7 +181,7 @@ class ReleasePackageArchiver(pkgname, version) {
 
 class PackageUpdater(args, pkgname, version) {
 
-    var getopt = new Fiber(new System.GetOpt().getopt).resume;
+    var getopt = System.GetOpt.getFunction();
     var opt, options = { release: true };
     while (opt = getopt(args, "iv", { inst: 'i', version: 'v' })) {
         switch (opt.type) {
