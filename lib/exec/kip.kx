@@ -894,7 +894,7 @@ class KinxPackageManager {
         Kip.infoln("    devuninst                 Uninstalls a develpment package.");
         Kip.infoln("    list                      Lists up installed packages.");
         Kip.infoln("    init <key>                Creates and initializes a package.");
-        Kip.infoln("    help <key>                Shows README.md of a package.");
+        Kip.infoln("    help <key> [<ver>]        Shows README.md of a package.");
         # Kip.infoln("    update [<key>]            Updates packages to the latest version.");
     }
 
