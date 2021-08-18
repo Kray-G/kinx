@@ -135,3 +135,14 @@ It shows also a development version and you can also see that a development vers
 Check if there are some updates, and update to the latest version if exists.
 
 > TODO: Supporting this feature.
+
+#### `kip init <key>`
+
+Create and initialize a basic folder structure as a package.
+This is done only for the first time when you start the development.
+You can modify the automatically generated file as suited to your own package.
+
+#### `kip help <key> [<ver>]`
+
+Show the short help text about the package specified by the `<key>`.
+
