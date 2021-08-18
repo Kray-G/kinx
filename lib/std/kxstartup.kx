@@ -50,8 +50,6 @@ var Xml, Net;
     _functional_compose2 = __functional_compose2;
     Range = _Range;
     System.setupRange(Range.create);
-    System.GetOpt = GetOpt;
-    System.getopt = new Fiber(new GetOpt().getopt).resume;
     Iconv = _Iconv;
     Clipboard = _Clipboard;
     $stdin = new File('<stdin>', File.READ);

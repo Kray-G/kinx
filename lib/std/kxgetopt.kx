@@ -93,3 +93,8 @@ _class GetOpt {
         }
     }
 }
+
+System.GetOpt.getFunction = _function() {
+    return new Fiber(new GetOpt().getopt).resume;
+};
+System.getopt = System.GetOpt.getFunction();
