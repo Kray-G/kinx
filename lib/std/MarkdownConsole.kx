@@ -1,0 +1,257 @@
+using MarkdownParser;
+
+namespace SmallMarkdown {
+
+class InlineText {
+    var keywordList_ = [
+        "break", "class", "catch", "case", "continue", "const", "do", "default", "else", "enum", ""
+        "function", "for", "finally", "false", "if", "in", "module", "mixin", "null", "new", "native", "namespace", ""
+        "public", "private", "protected", "return", "super", "switch", "this", "throw", "try", "true",
+        "using", "undefined", "var", "while", "yield", "on", "off"
+    ];
+    var keywords_ = "\\b(%{keywordList_.join('|')})\\b";
+    var stringLiteral = "(\"(?:\\\\\"|.)*?\"|'(?:\\\\'|.)*?')";
+    var numbers_ = "(0[0-7]*|[1-9][_0-9]*(?:\\.[0-9]+(?:[eE][-+][0-9]+)?)?|0x[0-9a-fA-F]+)";
+    var variables_ = "(\\.?[\\$_a-zA-Z][\\$_a-zA-Z0-9]*\\(?)";
+    var puncts_ = "(;|\\(|\\)|\\{|\\}|\\[|\\]|<|>|=|\\-|\\+|\\*|/)";
+    var re_ = new Regex("%{stringLiteral}|%{keywords_}|%{numbers_}|%{variables_}|%{puncts_}");
+
+    public makeInlineText(values) {
+        var str = '';
+        values.each { &(value)
+            if (this[value.name].isFunction) {
+                str += this[value.name](value);
+            }
+        };
+        return str.trim();
+    }
+    public makeInlineRawText(values) {
+        var str = '';
+        values.each { &(value)
+            str += value.value;
+        };
+        return str.trim();
+    }
+    public makeInlineCodeText(values) {
+        var str = '';
+        values.each { &(value)
+            var v = value.value;
+            v = v.replace(re_) { &(g)
+                if (g[1].string) {
+                    return g[1].string.yellow().toString();
+                                    }
+                if (g[2].string) {
+                    return g[2].string.yellow().bold().toString();
+                }
+                if (g[3].string) {
+                    return g[3].string.cyan().toString();
+                }
+                if (g[4].string) {
+                    var name = g[4].string;
+                    var isFunccall = name[-1] == '('[0];
+                    var endch = isFunccall ? ("(").black().bold().toString() : "";
+                    if (isFunccall) {
+                        name = name.subString(0, name.length()-1);
+                    }
+                    if (name[0] == '.'[0]) {
+                        return "." + name.subString(1).cyan().bold().toString() + endch;
+                    }
+                    if (name =~ /^[A-Z]/) {
+                        return name.green().bold().toString() + endch;
+                    }
+                    name = isFunccall
+                        ? name.cyan().bold().toString()
+                        : name.bold().toString();
+                    return name + endch;
+                }
+                if (g[5].string) {
+                    return g[5].string.black().bold().toString();
+                }
+                return g[0].string;
+            };
+            str += v;
+        };
+        return str.trim();
+    }
+
+    public text(value) {
+        return value.value;
+    }
+    public html(value) {
+        var m, v = value.value;
+        if ((m = v.match(/<br\s*\/>/)).isDefined) {
+            return "\n\n";
+        }
+        return value.value;
+    }
+    public htmlcomment(value) {
+        return '';
+    }
+    public em(value) {
+        return value.value.bold().toString();
+    }
+    public italic(value) {
+        return value.value.cyan().toString();
+    }
+    public emitalic(value) {
+        return value.value.cyan().bold().toString();
+    }
+    public strikethrough(value) {
+        return value.value.blue().toString();
+    }
+    public code(value) {
+        return value.value.yellow().toString();
+    }
+    public image(value) {
+        return '';
+    }
+    public link(value) {
+        return value.value.underline().toString();
+    }
+    public tag(value) {
+        return '';
+    }
+}
+
+class MarkdownConsole(mdtext_) {
+    var prev_, level_, count_;
+    var inline_ = new InlineText();
+
+    const romanKey_    = ["","c","cc","ccc","cd","d","dc","dcc","dccc","cm","","x","xx","xxx","xl","l","lx","lxx","lxxx","xc","","i","ii","iii","iv","v","vi","vii","viii","ix"];
+    const romanKeyCap_ = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM","","X","XX","XXX","XL","L","LX","LXX","LXXX","XC","","I","II","III","IV","V","VI","VII","VIII","IX"];
+    const bullet_      = ['*', '-', '+'];
+
+    public heading(item) {
+        System.println("");
+        var level = item.level;
+        var text = inline_.makeInlineText(item.values);
+        switch (level) {
+        case 1:
+            System.println(("# " + text + (" " * (74 - text.length()))).white(.blue).bold());
+            break;
+        case 2:
+            System.println(("# " + text).cyan().underline());
+            break;
+        }
+    }
+    public paragraph(item) {
+        System.println("");
+        System.println(inline_.makeInlineText(item.values));
+    }
+    private isList(p) {
+        return p == "list" || p == "orderedlist" || p == "checklist";
+    }
+    private clearCount(level) {
+        for (var i = level + 1; i < 6; ++i) {
+            count_[i] = 0;
+        }
+    }
+    public list(item) {
+        if (!isList(prev_)) {
+            count_ = [0, 0, 0, 0, 0, 0];
+            System.println("");
+        }
+        var level = item.level - 1;
+        clearCount(level);
+        var indent = item.level - 1;
+        System.print("  " + ("    " * indent) + (bullet_[indent % 3] || '-').green().bold() + " ");
+        System.println(inline_.makeInlineText(item.values));
+    }
+    private romanize(num) {
+        var digits = (""+num).split(""), roman = "", i = 3;
+        while (i--) {
+            roman = (romanKey_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
+        }
+        return ("M" * Integer.parseInt(digits.join(""))) + roman + ".";
+    };
+    private romanizeCap(num) {
+        var digits = (""+num).split(""), roman = "", i = 3;
+        while (i--) {
+            roman = (romanKeyCap_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
+        }
+        return ("M" * Integer.parseInt(digits.join(""))) + roman + ".";
+    };
+    public orderedlist(item) {
+        if (!isList(prev_)) {
+            count_ = [0, 0, 0, 0, 0, 0];
+            System.println("");
+        }
+        var level = item.level - 1;
+        clearCount(level);
+        var n;
+        switch (level) {
+        case 1:
+            if (count_[1] == 0) {
+                n = count_[1] = 'a';
+            } else {
+                n = count_[1] = count_[1].next();
+            }
+            n = ("%-3s" % ("(%{n})")).format();
+            break;
+        case 4:
+            if (count_[4] == 0) {
+                n = count_[4] = 'A';
+            } else {
+                n = count_[4] = count_[4].next();
+            }
+            n = ("%-3s" % (n + ".")).format();
+            break;
+        case 2:
+            n = ++count_[level];
+            n = ("%-4s" % romanize(n)).format();
+            break;
+        case 3:
+            n = ++count_[level];
+            n = ("%-4s" % romanizeCap(n)).format();
+            break;
+        default:
+            n = ++count_[level];
+            n = ("%3s" % (n + ".")).format();
+            break;
+        }
+        System.print(("  " + ("    " * level) + "%{n}").green().bold() + " ");
+        System.println(inline_.makeInlineText(item.values));
+    }
+    public checklist(item) {
+        if (!isList(prev_)) {
+            count_ = [0, 0, 0, 0, 0, 0];
+            System.println("");
+        }
+        var level = item.level - 1;
+        clearCount(level);
+    }
+    public blockquote(item) {
+        var level = item.level;
+        if (prev_ != "blockquote") {
+            System.println("");
+        } else if (level_ != level) {
+            System.println((" |  " * (level_ < level ? level_ : level)).magenta().bold());
+        }
+        System.println((" |  " * level).magenta().bold() + inline_.makeInlineText(item.values));
+    }
+    public code(item) {
+        var value;
+        if (item.syntax == "kinx") {
+            value = "  " + inline_.makeInlineCodeText(item.values).replace("\n", "\n  ");
+        } else {
+            value = inline_.makeInlineRawText(item.values).black().bold();
+        }
+        System.println("_" * 76 + "\n");
+        System.println(value);
+        System.println("_" * 76);
+    }
+    public horizontal(item) {
+        System.println("_" * 76);
+    }
+    public show() {
+        Markdown.BlockParser(mdtext_, &(a) => {
+            if (this[a.name].isFunction) {
+                this[a.name](a);
+                prev_ = a.name;
+                level_ = a.level;
+            }
+        });
+    }
+}
+
+} // namespace SmallMarkdown
