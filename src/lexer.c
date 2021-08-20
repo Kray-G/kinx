@@ -1144,8 +1144,9 @@ HEAD_OF_YYLEX:
                         kx_lex_next(kx_lexinfo);
                         break;
                     }
+                } else {
+                    kx_lex_next(kx_lexinfo);
                 }
-                kx_lex_next(kx_lexinfo);
             }
             goto HEAD_OF_YYLEX;
         }
