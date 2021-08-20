@@ -752,18 +752,15 @@ class KinxPackageLibraryManager(repoMgr_) {
             return false;
         }
         createFile(PACKAGE_INFO_FILE, { name: name }.toJsonString(true));
-        var license = File.exists("LICENSE") ? ("```\n" + File.load("LICENSE").trim() + "\n```\n") : "You must";
         mkdir("docs", "README.md",
+                "<!-- This is an auto-generated sample README file. Modify this as your own README file. -->\n"
                 "# Kacc\n\n"
                 "## Introduction\n\n"
                 "This is a directory of documents for the package `%{name}` such as materials below.\n\n"
                 "- Package Help - this `README.md` will be displayed by `kip help %{name}`\n"
                 "- User Guide\n"
                 "- API documents\n\n"
-                "Kindly provide the documents for users.\n\n"
-                "# License\n\n"
-                "This package is published under the following license.\n\n"
-                "%{license}",
+                "Kindly provide the documents for users.",
                 "a default README file");
         mkdir("src/bin", "%{name}.kx",
                 "# This is a sample hook script file. Feel free to modify this, and it'll be an executable automatically.\n"

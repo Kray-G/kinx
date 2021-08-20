@@ -120,9 +120,21 @@ class MarkdownConsole(mdtext_) {
     const romanKey_    = ["","c","cc","ccc","cd","d","dc","dcc","dccc","cm","","x","xx","xxx","xl","l","lx","lxx","lxxx","xc","","i","ii","iii","iv","v","vi","vii","viii","ix"];
     const romanKeyCap_ = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM","","X","XX","XXX","XL","L","LX","LXX","LXXX","XC","","I","II","III","IV","V","VI","VII","VIII","IX"];
     const bullet_      = ['*', '-', '+'];
+    var nl_ = 0;
+
+    private newline(cond) {
+        if (cond()) {
+            System.println("");
+            ++nl_;
+        } else {
+            nl_ = 0;
+        }
+    }
 
     public heading(item) {
-        System.println("");
+        if (newline({ => true })) {
+            System.println("");
+        }
         var level = item.level;
         var text = inline_.makeInlineText(item.values);
         switch (level) {
@@ -135,8 +147,14 @@ class MarkdownConsole(mdtext_) {
         }
     }
     public paragraph(item) {
-        System.println("");
-        System.println(inline_.makeInlineText(item.values));
+        var text = inline_.makeInlineText(item.values);
+        if (text.trim() == "") {
+            return;
+        }
+        if (newline({ => prev_ != "paragraph" })) {
+            System.println("");
+        }
+        System.println(text);
     }
     private isList(p) {
         return p == "list" || p == "orderedlist" || p == "checklist";
@@ -147,7 +165,7 @@ class MarkdownConsole(mdtext_) {
         }
     }
     public list(item) {
-        if (!isList(prev_)) {
+        if (newline({ => !isList(prev_) })) {
             count_ = [0, 0, 0, 0, 0, 0];
             System.println("");
         }
@@ -172,7 +190,7 @@ class MarkdownConsole(mdtext_) {
         return ("M" * Integer.parseInt(digits.join(""))) + roman + ".";
     };
     public orderedlist(item) {
-        if (!isList(prev_)) {
+        if (newline({ => !isList(prev_) })) {
             count_ = [0, 0, 0, 0, 0, 0];
             System.println("");
         }
@@ -213,7 +231,7 @@ class MarkdownConsole(mdtext_) {
         System.println(inline_.makeInlineText(item.values));
     }
     public checklist(item) {
-        if (!isList(prev_)) {
+        if (newline({ => !isList(prev_) })) {
             count_ = [0, 0, 0, 0, 0, 0];
             System.println("");
         }
