@@ -130,6 +130,19 @@ class MarkdownConsole(mdtext_) {
             nl_ = 0;
         }
     }
+    private dispText(level, words) {
+        var l = 0, max = 75 - (4 * level);
+        words.each { &(word)
+            var wl = word.replace(/\x1b\[[0-9]+[a-z]/, "").length();
+            l += wl + 1;
+            if (max < l) {
+                System.print("\n" + ("    " * (level - 1)));
+                l = 0;
+            }
+            System.print(word + " ");
+        };
+        System.println("");
+    }
 
     public heading(item) {
         if (newline({ => true })) {
@@ -154,7 +167,7 @@ class MarkdownConsole(mdtext_) {
         if (newline({ => prev_ != "paragraph" })) {
             System.println("");
         }
-        System.println(text);
+        dispText(0, text.split(/\s+/));
     }
     private isList(p) {
         return p == "list" || p == "orderedlist" || p == "checklist";
@@ -171,9 +184,9 @@ class MarkdownConsole(mdtext_) {
         }
         var level = item.level - 1;
         clearCount(level);
-        var indent = item.level - 1;
-        System.print("  " + ("    " * indent) + (bullet_[indent % 3] || '-').green().bold() + " ");
-        System.println(inline_.makeInlineText(item.values));
+        System.print("  " + ("    " * level) + (bullet_[level % 3] || '-').green().bold() + " ");
+        var s = inline_.makeInlineText(item.values).split(/\s+/);
+        dispText(item.level + 1, s);
     }
     private romanize(num) {
         var digits = (""+num).split(""), roman = "", i = 3;
@@ -228,7 +241,8 @@ class MarkdownConsole(mdtext_) {
             break;
         }
         System.print(("  " + ("    " * level) + "%{n}").green().bold() + " ");
-        System.println(inline_.makeInlineText(item.values));
+        var s = inline_.makeInlineText(item.values).split(/\s+/);
+        dispText(item.level + 1, s);
     }
     public checklist(item) {
         if (newline({ => !isList(prev_) })) {
