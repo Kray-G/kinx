@@ -846,7 +846,6 @@ static void line_directive(void)
     while (kx_lexinfo.ch != 0 && kx_lexinfo.ch != '\n') {
         kx_lex_next(kx_lexinfo);
     }
-printf("file = %s, line = %d\n", kx_lexinfo.file, kx_lexinfo.line);
 }
 
 #if defined(KX_LEX_DEBUG)
