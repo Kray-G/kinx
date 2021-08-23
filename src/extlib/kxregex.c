@@ -84,6 +84,34 @@ int Regex_reset(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Regex_setPosition(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (!obj) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid Regex object");
+    }
+    KX_REGEX_GET_RPACK(r, obj);
+    if (!r) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid Regex object");
+    }
+
+    int pos = (int)get_arg_int(2, args, ctx);
+    if (pos < 0) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "Invalid start position and it should be positive");
+    }
+    if (!r->source) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "No target string");
+    }
+    if (strlen(r->source) <= pos) {
+        KX_THROW_BLTIN_EXCEPTION("RegexException", "Longer than the target string");
+    }
+    r->start = pos;
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 1);
+    return 0;
+}
+
 kx_obj_t *make_group_object(kx_context_t *ctx, const char *str, regex_pack_t *r)
 {
     kstr_t *s = ks_new();
@@ -372,6 +400,7 @@ int Regex_create(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
         KEX_SET_METHOD("find_eq", obj, Regex_find_eq);
         KEX_SET_METHOD("find_ne", obj, Regex_find_ne);
         KEX_SET_METHOD("reset", obj, Regex_reset);
+        KEX_SET_METHOD("setPosition", obj, Regex_setPosition);
         KEX_SET_METHOD("splitOf", obj, Regex_splitOf);
         KEX_SET_METHOD("replaceOf", obj, Regex_replaceOf);
         KX_ADJST_STACK();
