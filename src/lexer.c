@@ -821,6 +821,34 @@ static int process_import(void)
     return ERROR;
 }
 
+static void line_directive(void)
+{
+    int line = 0;
+    kx_lex_next(kx_lexinfo);
+    while ('0' <= kx_lexinfo.ch && kx_lexinfo.ch <= '9') {
+        line = line * 10 + kx_lexinfo.ch - '0';
+        kx_lex_next(kx_lexinfo);
+    }
+    kx_lexinfo.line = line - 1;
+    while (kx_lexinfo.ch == ' ' || kx_lexinfo.ch == '\"') {
+        kx_lex_next(kx_lexinfo);
+    }
+
+    char strbuf[KX_BUF_MAX] = {0};
+    int pos = 0;
+    while (pos < POSMAX && kx_lexinfo.ch != 0 && kx_lexinfo.ch != '\"' && kx_lexinfo.ch != '\n') {
+        strbuf[pos++] = kx_lexinfo.ch;
+        kx_lex_next(kx_lexinfo);
+    }
+    if (pos > 0) {
+        kx_lexinfo.file = const_str(g_parse_ctx, strbuf);
+    }
+    while (kx_lexinfo.ch != 0 && kx_lexinfo.ch != '\n') {
+        kx_lex_next(kx_lexinfo);
+    }
+printf("file = %s, line = %d\n", kx_lexinfo.file, kx_lexinfo.line);
+}
+
 #if defined(KX_LEX_DEBUG)
 int kx_yylex_x();
 
@@ -1323,6 +1351,21 @@ HEAD_OF_YYLEX:
         break;
     case '#': {
         kx_lex_next(kx_lexinfo);
+        if (kx_lexinfo.ch == 'l') {
+            kx_lex_next(kx_lexinfo);
+            if (kx_lexinfo.ch == 'i') {
+                kx_lex_next(kx_lexinfo);
+                if (kx_lexinfo.ch == 'n') {
+                    kx_lex_next(kx_lexinfo);
+                    if (kx_lexinfo.ch == 'e') {
+                        kx_lex_next(kx_lexinfo);
+                        if (kx_lexinfo.ch == ' ') {
+                            line_directive();
+                        }
+                    }
+                }
+            }
+        }
         while (kx_lexinfo.ch != 0 && kx_lexinfo.ch != '\n') {
             kx_lex_next(kx_lexinfo);
         }
