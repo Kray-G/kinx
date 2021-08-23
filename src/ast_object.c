@@ -283,8 +283,32 @@ kx_object_t *kx_gen_case_when_object(kx_object_t *decl, kx_object_t *expr, kx_ob
     return kx_gen_obj(KXOP_WHEN, 0, decl, kx_gen_stmtlist(expr, kx_gen_break_object(KXST_BREAK, NULL)), modifier);
 }
 
-kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl)
+kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl, int is_object)
 {
+    kx_object_t *e1;
+    if (is_object) {
+        stmt = kx_gen_bexpr_object(KXST_STMTLIST,
+            kx_gen_stmt_object(KXST_EXPR, kx_gen_bassign_object(KXOP_ASSIGN, var, kx_gen_var_object("$$e", KX_OBJ_T)), NULL, NULL),
+            stmt
+        );
+        e1 = kx_gen_stmt_object(KXST_EXPR,
+            kx_gen_bassign_object(KXOP_ASSIGN, kx_gen_var_object("$$e", KX_OBJ_T),
+                kx_gen_bexpr_object(KXOP_CALL,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
+                )
+            ),
+            NULL, NULL
+        );
+    } else {
+        e1 = kx_gen_stmt_object(KXST_EXPR,
+            kx_gen_bassign_object(KXOP_ASSIGN, var,
+                kx_gen_bexpr_object(KXOP_CALL,
+                    kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
+                )
+            ),
+            NULL, NULL
+        );
+    }
     kx_object_t *base = kx_gen_bexpr_object(KXST_STMTLIST,
         kx_gen_bexpr_object(KXOP_DECL,
             kx_gen_var_object("$$it", KX_OBJ_T),
@@ -298,32 +322,21 @@ kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object
         ),
         kx_gen_stmt_object(KXST_FOR,
             kx_gen_stmt_object(KXST_FORCOND,
-                kx_gen_stmt_object(KXST_EXPR,
-                    kx_gen_bassign_object(KXOP_ASSIGN, var,
-                        kx_gen_bexpr_object(KXOP_CALL,
-                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
-                        )
-                    ),
-                    NULL, NULL
-                ),
+                e1,
                 kx_gen_uexpr_object(KXOP_NOT,
                     kx_gen_bexpr_object(KXOP_CALL,
                         kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("isEnded")), NULL
                     )
                 ),
-                kx_gen_stmt_object(KXST_EXPR,
-                    kx_gen_bassign_object(KXOP_ASSIGN, var,
-                        kx_gen_bexpr_object(KXOP_CALL,
-                            kx_gen_bexpr_object(KXOP_IDX, kx_gen_var_object("$$it", KX_OBJ_T), kx_gen_str_object("next")), NULL
-                        )
-                    ),
-                    NULL, NULL
-                )
+                e1
             ),
             stmt,
             NULL
         )
     );
+    if (is_object) {
+        base =  kx_gen_bexpr_object(KXST_STMTLIST, kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object("$$e", KX_OBJ_T), NULL), base);
+    }
     if (is_decl) {
         base =  kx_gen_bexpr_object(KXST_STMTLIST, kx_gen_bexpr_object(KXOP_DECL, var, NULL), base);
     }

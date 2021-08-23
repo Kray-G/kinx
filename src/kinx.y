@@ -327,15 +327,19 @@ ForStatement
                 $4,
                 $6 == NULL ? NULL : kx_gen_stmt_object(KXST_EXPR, $6, NULL, NULL)),
             $8, NULL); }
+    | FOR '(' VarName IN AssignExpressionList ')' Statement
+        { $$ = kx_gen_forin_object($3, $5, $7, 0, 0); }
+    | FOR '(' VAR VarName IN AssignExpressionList ')' Statement
+        { $$ = kx_gen_forin_object($4, $6, $8, 1, 0); }
     | FOR '(' ForInVariable IN AssignExpressionList ')' Statement
-        { $$ = kx_gen_forin_object($3, $5, $7, 0); }
+        { $$ = kx_gen_forin_object($3, $5, $7, 0, 1); }
     | FOR '(' VAR ForInVariable IN AssignExpressionList ')' Statement
-        { $$ = kx_gen_forin_object($4, $6, $8, 1); }
+        { $$ = kx_gen_forin_object($4, $6, $8, 1, 1); }
     ;
 
 ForInVariable
-    : VarName
-    | Array
+    : Array
+    | Object
     ;
 
 TryCatchStatement

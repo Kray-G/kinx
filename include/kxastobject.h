@@ -37,7 +37,7 @@ extern kx_object_t *kx_gen_stmtlist(kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_exprlist(kx_object_t *lhs, kx_object_t *rhs);
 extern kx_object_t *kx_gen_range_object(kx_object_t *start, kx_object_t *end, int include_end);
 extern kx_object_t *kx_gen_case_when_object(kx_object_t *decl, kx_object_t *expr, kx_object_t *modifier);
-extern kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl);
+extern kx_object_t *kx_gen_forin_object(kx_object_t *var, kx_object_t *range, kx_object_t *stmt, int is_decl, int is_object);
 extern const char *kx_gen_typestr_object(int t);
 extern const char *kx_gen_typeofstr_object(int t);
 extern kx_object_t *kx_gen_block_object(kx_object_t *lhs);
