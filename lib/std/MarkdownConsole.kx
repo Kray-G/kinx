@@ -130,6 +130,7 @@ class MarkdownConsole(mdtext_) {
             nl_ = 0;
         }
     }
+
     private dispText(level, words) {
         var l = 0, max = 75 - (4 * level);
         words.each { &(word)
@@ -159,6 +160,7 @@ class MarkdownConsole(mdtext_) {
             break;
         }
     }
+
     public paragraph(item) {
         var text = inline_.makeInlineText(item.values);
         if (text.trim() == "") {
@@ -169,14 +171,17 @@ class MarkdownConsole(mdtext_) {
         }
         dispText(0, text.split(/\s+/));
     }
+
     private isList(p) {
         return p == "list" || p == "orderedlist" || p == "checklist";
     }
+
     private clearCount(level) {
         for (var i = level + 1; i < 6; ++i) {
             count_[i] = 0;
         }
     }
+
     public list(item) {
         if (newline({ => !isList(prev_) })) {
             count_ = [0, 0, 0, 0, 0, 0];
@@ -188,20 +193,23 @@ class MarkdownConsole(mdtext_) {
         var s = inline_.makeInlineText(item.values).split(/\s+/);
         dispText(item.level + 1, s);
     }
+
     private romanize(num) {
         var digits = (""+num).split(""), roman = "", i = 3;
         while (i--) {
             roman = (romanKey_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
         }
         return ("M" * Integer.parseInt(digits.join(""))) + roman + ".";
-    };
+    }
+
     private romanizeCap(num) {
         var digits = (""+num).split(""), roman = "", i = 3;
         while (i--) {
             roman = (romanKeyCap_[Integer.parseInt(digits.pop()) + (i * 10)] || "") + roman;
         }
         return ("M" * Integer.parseInt(digits.join(""))) + roman + ".";
-    };
+    }
+
     public orderedlist(item) {
         if (newline({ => !isList(prev_) })) {
             count_ = [0, 0, 0, 0, 0, 0];
@@ -244,6 +252,7 @@ class MarkdownConsole(mdtext_) {
         var s = inline_.makeInlineText(item.values).split(/\s+/);
         dispText(item.level + 1, s);
     }
+
     public checklist(item) {
         if (newline({ => !isList(prev_) })) {
             count_ = [0, 0, 0, 0, 0, 0];
@@ -252,6 +261,7 @@ class MarkdownConsole(mdtext_) {
         var level = item.level - 1;
         clearCount(level);
     }
+
     public blockquote(item) {
         var level = item.level;
         if (prev_ != "blockquote") {
@@ -261,6 +271,7 @@ class MarkdownConsole(mdtext_) {
         }
         System.println((" |  " * level).magenta().bold() + inline_.makeInlineText(item.values));
     }
+
     public code(item) {
         var value;
         if (item.syntax == "kinx") {
@@ -272,9 +283,11 @@ class MarkdownConsole(mdtext_) {
         System.println(value);
         System.println("_" * 76);
     }
+
     public horizontal(item) {
         System.println("_" * 76);
     }
+
     public show() {
         Markdown.BlockParser(mdtext_, &(a) => {
             if (this[a.name].isFunction) {
@@ -284,6 +297,7 @@ class MarkdownConsole(mdtext_) {
             }
         });
     }
+
 }
 
 } // namespace SmallMarkdown
