@@ -116,6 +116,7 @@ class InlineText {
 class MarkdownConsole(mdtext_) {
     var prev_, level_, count_;
     var inline_ = new InlineText();
+    var blockquotes_;
 
     const romanKey_    = ["","c","cc","ccc","cd","d","dc","dcc","dccc","cm","","x","xx","xxx","xl","l","lx","lxx","lxxx","xc","","i","ii","iii","iv","v","vi","vii","viii","ix"];
     const romanKeyCap_ = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM","","X","XX","XXX","XL","L","LX","LXX","LXXX","XC","","I","II","III","IV","V","VI","VII","VIII","IX"];
@@ -132,15 +133,40 @@ class MarkdownConsole(mdtext_) {
     }
 
     private dispText(level, words) {
-        var l = 0, max = 75 - (4 * level);
+        var l = 0, max = 76 - (4 * level);
         words.each { &(word)
             var wl = word.replace(/\x1b\[[0-9]+[a-z]/, "").length();
             l += wl + 1;
             if (max < l) {
-                System.print("\n" + ("    " * (level - 1)));
-                l = 0;
+                System.print("\n" + ("    " * level));
+                l = wl + 1;
             }
             System.print(word + " ");
+        };
+        System.println("");
+    }
+
+    private flushBlockquotes() {
+        System.println("");
+        var plevel;
+        blockquotes_.each { &(item)
+            var level = item.level;
+            if (plevel.isDefined && plevel != level) {
+                System.println("\n" + (" |  " * (plevel < level ? plevel : level)).magenta().bold());
+            }
+            System.print((" |  " * level).magenta().bold());
+            plevel = level;
+            var words = inline_.makeInlineText(item.values).split(/\s+/);
+            var l = 0, max = 75 - (4 * level);
+            words.each { &(word)
+                var wl = word.replace(/\x1b\[[0-9]+[a-z]/, "").length();
+                l += wl + 1;
+                if (max < l) {
+                    System.print("\n" + (" |  " * level).magenta().bold());
+                    l = wl + 1;
+                }
+                System.print(word + " ");
+            };
         };
         System.println("");
     }
@@ -191,7 +217,7 @@ class MarkdownConsole(mdtext_) {
         clearCount(level);
         System.print("  " + ("    " * level) + (bullet_[level % 3] || '-').green().bold() + " ");
         var s = inline_.makeInlineText(item.values).split(/\s+/);
-        dispText(item.level + 1, s);
+        dispText(item.level, s);
     }
 
     private romanize(num) {
@@ -250,7 +276,7 @@ class MarkdownConsole(mdtext_) {
         }
         System.print(("  " + ("    " * level) + "%{n}").green().bold() + " ");
         var s = inline_.makeInlineText(item.values).split(/\s+/);
-        dispText(item.level + 1, s);
+        dispText(item.level, s);
     }
 
     public checklist(item) {
@@ -265,11 +291,15 @@ class MarkdownConsole(mdtext_) {
     public blockquote(item) {
         var level = item.level;
         if (prev_ != "blockquote") {
-            System.println("");
-        } else if (level_ != level) {
-            System.println((" |  " * (level_ < level ? level_ : level)).magenta().bold());
+            blockquotes_ = [item];
+        } else {
+            if (level_ == level) {
+                blockquotes_[-1].values += [{ isNode: 1, name: "text", type: "inline", value: " " }];
+                blockquotes_[-1].values += item.values;
+            } else {
+                blockquotes_.push(item);
+            }
         }
-        System.println((" |  " * level).magenta().bold() + inline_.makeInlineText(item.values));
     }
 
     public code(item) {
@@ -291,11 +321,18 @@ class MarkdownConsole(mdtext_) {
     public show() {
         Markdown.BlockParser(mdtext_, &(a) => {
             if (this[a.name].isFunction) {
+                if (a.name != "blockquote" && blockquotes_.isArray && blockquotes_.length() > 0) {
+                    flushBlockquotes();
+                    blockquotes_ = null;
+                }
                 this[a.name](a);
                 prev_ = a.name;
                 level_ = a.level;
             }
         });
+        if (blockquotes_.isArray && blockquotes_.length() > 0) {
+            flushBlockquotes();
+        }
     }
 
 }
