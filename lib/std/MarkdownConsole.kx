@@ -135,7 +135,7 @@ class MarkdownConsole(mdtext_) {
     private dispText(level, words) {
         var l = 0, max = 76 - (4 * level);
         words.each { &(word)
-            var wl = word.replace(/\x1b\[[0-9]+[a-z]/, "").length();
+            var wl = word.replace(/\x1b\[[0-9;]+[a-zA-Z]/, "").length();
             l += wl + 1;
             if (max < l) {
                 System.print("\n" + ("    " * level));
