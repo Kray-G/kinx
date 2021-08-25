@@ -311,7 +311,6 @@ class KinxPackageRepositoryManager(cfgMgr_) {
 
 class KinxPackageLibraryManager(repoMgr_) {
 
-    const DEVELOP_FILE_NAME = "development.kip";
     var cfgMgr_;
     var installed_;
 
@@ -411,8 +410,8 @@ class KinxPackageLibraryManager(repoMgr_) {
         if (File.isDirectory(dir)) {
             var packdef = name ? cfgMgr_.getPackageDef(name) : null;
             Directory.walk(dir) { &(verpath)
-                var isDevelopment = File.exists(verpath / DEVELOP_FILE_NAME);
                 var ver = verpath.filename();
+                var isDevelopment = (ver == DEVELOPMENT_VERSION);
                 l.push({
                     latest: packdef && packdef == ver,
                     version: ver,
@@ -580,7 +579,7 @@ class KinxPackageLibraryManager(repoMgr_) {
             Kip.errorln("No package of %s(%s)" % name % getVersionString(version));
             return false;
         }
-        if (isDevOnly && !File.exists(packagedir / DEVELOP_FILE_NAME)) {
+        if (isDevOnly && version != DEVELOPMENT_VERSION) {
             Kip.errorln("Not a development package of %s(%s)" % name % getVersionString(version));
             return false;
         }
@@ -776,6 +775,10 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     public help(name, version) {
+        if (name.isUndefined) {
+            Kip.errorln("Needs a package key.");
+            return false;
+        }
         if (version.isUndefined) {
             var installed = getVersionList(name).map { => _1.semanticVersion };
             version = (installed.isArray && installed.length() > 0) ? installed.sort()[-1].version() : null;
