@@ -130,6 +130,13 @@ namespace Markdown {
             }
         }
 
+        _class ImageTag(text, tag) : Node('imagetag', 'inline') {
+            private initialize() {
+                @text = text;
+                @tag = tag;
+            }
+        }
+
         _class Link(text) : Node('link', 'inline') {
             private initialize() {
                 const match = text.match(LINK_REGEX);
@@ -141,7 +148,14 @@ namespace Markdown {
             }
         }
 
-        _class Tag(text) : Node('tag', 'inline') {
+        _class LinkTag(text, tag) : Node('linktag', 'inline') {
+            private initialize() {
+                @text = text;
+                @tag = tag;
+            }
+        }
+
+        _class FootnoteTag(text) : Node('footnote', 'inline') {
             private initialize() {
                 @tag = text;
             }
@@ -478,44 +492,65 @@ namespace Markdown {
                     stack += *char;
                     break;
                 }
-                if (mode != MODE_IMAGE) {
+                if (mode == MODE_IMAGE) {
+                    stack += *char;
+                } else {
                     if (!helper.isEmpty(stack)) {
                         ast.push(new Nodes.Text(stack));
                     }
                     mode = MODE_LINK;
                     stack = *char;
-                    break;
                 }
-                stack += *char;
-                break;
-            case "]"[0]:
-                stack += *char;
-                if (mode == MODE_LINK) {
-                    var c = text[++i];
-                    if (c == '('[0]) {
-                        stack += *c;
-                    } else {
-                        # TODO: not supported a link tag.
-                        ast.push(new Nodes.Tag(stack));
-                        stack = *c;
-                        mode = MODE_DEFAULT;
+                for (++i; i < l; ++i) {
+                    const cx = text[i];
+                    stack += *cx;
+                    if (cx != ']'[0]) {
+                        continue;
                     }
-                }
-                break;
-            case ")"[0]:
-                if (mode == MODE_INLINE_CODE) {
-                    stack += *char;
+                    var cy = text[++i];
+                    while (i < (l-1) && cy == ' '[0]) {
+                        cy = text[++i];
+                    }
+                    if (cy == '('[0]) {
+                        stack += *cy;
+                        for (++i; i < l; ++i) {
+                            const cz = text[i];
+                            stack += *cz;
+                            if (cz == ")"[0]) {
+                                if (mode == MODE_IMAGE) {
+                                    ast.push(new Nodes.Image(stack));
+                                } else { // mode == MODE_LINK
+                                    ast.push(new Nodes.Link(stack));
+                                }
+                                stack = '';
+                                break;
+                            }
+                        }
+                    } else if (cy == "["[0]) {
+                        var txt = stack;
+                        stack = *cy;
+                        for (++i; i < l; ++i) {
+                            const cz = text[i];
+                            stack += *cz;
+                            if (cz == "]"[0]) {
+                                var tag = stack == "[]" ? txt : stack;
+                                if (mode == MODE_IMAGE) {
+                                    ast.push(new Nodes.ImageTag(txt.replace(/^\[|\]$/, ""), tag));
+                                } else { // mode == MODE_LINK
+                                    ast.push(new Nodes.LinkTag(txt.replace(/^\[|\]$/, ""), tag));
+                                }
+                                stack = '';
+                                break;
+                            }
+                        }
+                    } else if (stack.startsWith("[^")) {
+                        ast.push(new Nodes.FootnoteTag(stack));
+                        stack = *cy;
+                    } else {
+                        stack += *cy;
+                    }
+                    mode = MODE_DEFAULT;
                     break;
-                }
-                stack += *char;
-                if (mode == MODE_IMAGE) {
-                    ast.push(new Nodes.Image(stack));
-                    mode = MODE_DEFAULT;
-                    stack = '';
-                } else if (mode == MODE_LINK) {
-                    ast.push(new Nodes.Link(stack));
-                    mode = MODE_DEFAULT;
-                    stack = '';
                 }
                 break;
             case "\\"[0]:
