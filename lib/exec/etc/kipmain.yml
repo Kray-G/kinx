@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  package:
+    name: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: package
+        run: |
+          ref='${{ github.ref }}'
+          tag=$(echo $ref | perl -e "print pop @{[split '/', <>]}")
+
+          mkdir -p $tag/docs
+          cp -r ./src/* $tag/
+          cp -r ./docs/* $tag/docs/
+          cd $tag
+          zip -r ../package.zip *
+      - name: upload archive
+        uses: actions/upload-artifact@v1
+        with:
+          name: package
+          path: package.zip
+
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    outputs:
+      release_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+
+  upload-assets:
+    name: upload assets
+    needs:
+      - release
+      - package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job: [package]
+        include:
+          - job: package
+            jobname: package
+            download_name: package
+            asset_path: package.zip
+            asset_name: package.zip
+            content_type: application/zip
+    steps:
+      - name: download archive
+        id: download_archive
+        uses: actions/download-artifact@v1
+        with:
+          name: ${{ matrix.download_name }}
+          path: ./
+      - name: display structure of downloaded files
+        run: ls -R
+      - name: upload asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release_url }}
+          asset_path: ${{ matrix.asset_path }}
+          asset_name: ${{ matrix.asset_name }}
+          asset_content_type: ${{ matrix.content_type }}

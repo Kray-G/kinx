@@ -1,8 +1,3 @@
-/*
-    Currently under development.
-    Do not use this.
-*/
-
 using SemanticVersion;
 using DateTime;
 using MarkdownConsole;
@@ -728,7 +723,12 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     private mkdir(dir, deffile, text, desc) {
-        File.mkdir(dir);
+        if (!File.exists(dir)) {
+            File.mkdir(dir);
+        }
+        if (!File.isDirectory(dir)) {
+            throw RuntimeException("Not a directory: %{dir}");
+        }
         Kip.progressln("Created the directory of '%{dir}'.");
         if (deffile.isString) {
             deffile = dir / deffile;
@@ -771,6 +771,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         mkdir("src/etc", "%{name}.json",
                 '{}',
                 "an initial setting file");
+        mkdir(".github/workflows", "main.yml", File.load(__FILE__.parentPath() / "etc/kipmain.yml"), "a default CI file");
         return true;
     }
 
