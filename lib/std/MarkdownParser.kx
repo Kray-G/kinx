@@ -228,8 +228,26 @@ namespace Markdown {
         }
 
         _class Table(_rows) : Node('table', 'block') {
+            private splitCols(line) {
+                var code = false;
+                var p = 0, pos = 0;
+                var l = line.length();
+                var cols = [];
+                for ( ; pos <= l; ++pos) {
+                    if (!code && line[pos] == '|'[0]) {
+                        cols.push(line.subString(p, pos-p));
+                        p = pos + 1;
+                    } else if (line[pos] == '`'[0]) {
+                        code = !code;
+                    }
+                }
+                if (p != pos) {
+                    cols.push(line.subString(p, pos-p));
+                }
+                return cols;
+            }
             private initialize() {
-                var [heading, separator, ...rows] = _rows.map({ &(line) => line.subString(1, line.length() - 2).split('|') });
+                var [heading, separator, ...rows] = _rows.map({ &(line) => splitCols(line.subString(1, line.length() - 2)) });
                 @headings = heading.map(&(cell) => inlineParser(cell.trim()));
                 @aligns = separator.map(&(cell) => {
                     cell = cell.trim();
