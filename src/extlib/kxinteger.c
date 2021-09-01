@@ -115,6 +115,14 @@ int Integer_parseInt(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object to convert to integer");
 }
 
+static void Integer_toBinaryString(kstr_t *sv, int64_t iv)
+{
+    if (iv >= 2) {
+        Integer_toBinaryString(sv, iv / 2);
+    }
+    ks_append(sv, (iv % 2 == 0 ? "0" : "1"));
+}
+
 int Integer_toString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     if (args > 0) {
@@ -123,10 +131,19 @@ int Integer_toString(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx
         int rdx = (rdxval && rdxval->type == KX_INT_T) ? (int)rdxval->value.iv : 10;
         kx_val_t val = kv_last_by(*stack, 1);
         kstr_t *sv = allocate_str(ctx);
-        if (val.type == KX_INT_T) {
-            ks_appendf(sv, rdx == 16 ? "%"PRIx64 : "%"PRId64, val.value.iv);
-        } else if (val.type == KX_DBL_T) {
-            ks_appendf(sv, rdx == 16 ? "%"PRIx64 : "%"PRId64, (int64_t)val.value.dv);
+        if (val.type == KX_INT_T || val.type == KX_DBL_T) {
+            int64_t iv = val.type == KX_INT_T ? val.value.iv : (int64_t)val.value.dv;
+            if (iv < 0 || !(rdx == 10 || rdx == 16 || rdx == 2)) {
+                BigZ bg = BzFromInteger(iv);
+                char *buf = BzToString(bg, rdx, 0);
+                ks_append(sv, buf);
+                BzFreeString(buf);
+                BzFree(bg);
+            } else if (rdx == 2) {
+                Integer_toBinaryString(sv, iv);
+            } else {
+                ks_appendf(sv, rdx == 16 ? "%"PRIx64 : "%"PRId64, iv);
+            }
         } else if (val.type == KX_BIG_T) {
             char *buf = BzToString(val.value.bz, rdx, 0);
             ks_append(sv, buf);
