@@ -1260,7 +1260,11 @@ HEAD_OF_YYLEX:
                 kx_lexinfo.restart = kx_lexinfo.tempbuf;
                 kx_lexinfo.ch = '.';
                 kx_strbuf[pos] = 0;
-                kx_yylval.intval = strtoll(kx_strbuf, NULL, 16);
+                kx_yylval.intval = strtoll(kx_strbuf, NULL, 0);
+                if (errno == ERANGE) {
+                    kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
+                    return BIGINT;
+                }
                 return INT;
             }
             kx_strbuf[pos++] = '.';
@@ -1325,6 +1329,10 @@ HEAD_OF_YYLEX:
                     kx_lexinfo.ch = '.';
                     kx_strbuf[pos] = 0;
                     kx_yylval.intval = strtoll(kx_strbuf, NULL, 0);
+                    if (errno == ERANGE) {
+                        kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
+                        return BIGINT;
+                    }
                     return INT;
                 }
                 kx_strbuf[pos++] = '.';
