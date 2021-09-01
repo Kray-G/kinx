@@ -39,6 +39,7 @@ kx.tab.h
 /TEST.md
 /*.pdf
 /*.json
+/docs/userguide/*.json
 
 # Ignore build files
 /build/licenses

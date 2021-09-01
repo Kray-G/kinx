@@ -29,6 +29,7 @@
     *   #290: Supported `chmod` in `File`.
     *   #308: Improvement of the stack usage.
     *   #316: Changed a specification of a label to be with 2 colons.
+    *   #332: Supported any radix on the `Integer.toString()` method.
     *   Small improvements and enhancements as follows without managing by issues.
         *   Supported SemanticVersion class with `using SemanticVersion;`.
         *   Supported putting a comma at the end of an argument's list for both declaration and calling.
@@ -57,6 +58,7 @@
     *   #302: Fixed a prblem of the string optimization.
     *   #305: Fixed a prblem of no POPC in try.
     *   #314: Fixed a crash when accessing uninitialized object in native.
+    *   #331: Fixed an incorrect handling of a big integer literal in lexer.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is 1st official release version.
