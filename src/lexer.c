@@ -633,13 +633,13 @@ static int kx_lex_make_string(char quote)
             case 'u': {
                 KX_LEXER_4BYTE_READ(cp1);
                 if (0xD800 <= cp1 && cp1 <= 0xDBFF) {
-                    kx_lex_next(kx_lexinfo); \
+                    kx_lex_next(kx_lexinfo);
                     if (kx_lexinfo.ch != '\\') {
                         kx_yywarning("Invalid surrogate pair in string literal");
                         move_next = 0;
                         break;
                     }
-                    kx_lex_next(kx_lexinfo); \
+                    kx_lex_next(kx_lexinfo);
                     if (kx_lexinfo.ch != 'u') {
                         kx_yywarning("Invalid surrogate pair in string literal");
                         move_next = 0;
