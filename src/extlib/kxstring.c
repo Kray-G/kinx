@@ -46,6 +46,32 @@ int String_utf8Length(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ct
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be a string");
 }
 
+int String_getStringFromCode(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    if (obj) {
+        int len = kv_size(obj->ary);
+        kx_val_t *cp1v = len > 0 ? &kv_A(obj->ary, 0) : NULL;
+        kx_val_t *cp2v = len > 1 ? &kv_A(obj->ary, 1) : NULL;
+        int64_t cp1 = (cp1v && cp1v->type == KX_INT_T) ? cp1v->value.iv : 0;
+        int64_t cp2 = (cp2v && cp2v->type == KX_INT_T) ? cp2v->value.iv : 0;
+        if (cp1 > 0) {
+            if ((0xD800 <= cp1 && cp1 <= 0xDBFF) && (0xDC00 <= cp2 && cp2 <= 0xDFFF)) {
+                cp1 = surrogatepair2codepoint(cp1, cp2);
+            }
+            unsigned char code[16] = {0};
+            codepoint2utf8(code, cp1);
+            kstr_t *s = allocate_str(ctx);
+            ks_append(s, code);
+            KX_ADJST_STACK();
+            push_sv(ctx->stack, s);
+            return 0;
+        }
+    }
+
+    KX_THROW_BLTIN_EXCEPTION("SystemException", "Invalid object, it must be an array");
+}
+
 int String_quote(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     const char *str = get_arg_str(1, args, ctx);
@@ -773,6 +799,7 @@ int String_toLower(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 static kx_bltin_def_t kx_bltin_info[] = {
     { "length", String_length },
     { "utf8Length", String_utf8Length },
+    { "getStringFromCode", String_getStringFromCode },
     { "quote", String_quote },
     { "trim", String_trim },
     { "trimLeft", String_trimLeft },
