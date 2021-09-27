@@ -680,7 +680,7 @@ namespace Markdown {
                     if (line.startsWith('    ')) {
                         stack += "%{line.subString(4)}\n";
                     } else {
-                        ast.push(new Nodes.Code(stack, "text"));
+                        ast.push(new Nodes.Code(stack));
                         stack = line != '' ? "%{line}\n" : '\n';
                         syntax = null;
                         mode = MODE_DEFAULT;
