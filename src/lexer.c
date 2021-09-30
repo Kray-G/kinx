@@ -415,7 +415,8 @@ static int get_keyword_token(const char *val)
         break;
     case 'o':
         /* type */
-        if (strcmp(val, "obj") == 0)           { kx_yylval.intval = KX_OBJ_T; return TYPE; }
+        if (strcmp(val, "obj") == 0)            { kx_yylval.intval = KX_OBJ_T; return TYPE; }
+        if (strcmp(val, "otherwise") == 0)      return OTHERWISE;
         break;
     case 'p':
         if (strcmp(val, "public") == 0)         return PUBLIC;

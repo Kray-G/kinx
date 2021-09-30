@@ -32,7 +32,7 @@ function example(y) {
                 // so 50000 will be returned to the case expression itself
                 // and it is just assigned to the variable `x`.
         }
-        else: -1
+        otherwise: -1
     ;
     return x + 1;
 }
@@ -53,7 +53,7 @@ This code shows the following result.
 
 #### Without Colon
 
-You can omit the colon `:` when the `when` body is a block, there is a modifier, or it is `else` clause.
+You can omit the colon `:` when the `when` body is a block, there is a modifier, or it is `otherwise` clause.
 This example uses an `if-modifier` and a pattern matching by `v`,
 but a modifier and a pattern matching will be described later.
 
@@ -72,7 +72,7 @@ function example(y) {
         }
         when v if (v == 7)
             7000000
-        else -1
+        otherwise -1
     ;
     return x + 1;
 }
@@ -108,8 +108,8 @@ System.println(x);  // => 4
 
 No fallthrough mechanism in `case-when`.
 Just one condition is selected and do it.
-If not matching to any cases, it selects `else` clause.
-And if no `else` clause, the exception of `NoMatchingPatternException` will be raised.
+If not matching to any cases, it selects `otherwise` clause.
+And if no `otherwise` clause, the exception of `NoMatchingPatternException` will be raised.
 
 ```javascript
 function example(y) {
@@ -122,7 +122,7 @@ function example(y) {
         when 5: {
             return 50000;
         }
-        // no else clause...
+        // no otherwise clause...
     ;
 }
 7.times { => System.println(example(_)) };
@@ -299,7 +299,7 @@ function example(y) {
                 // so 50000 will be returned to the case expression itself
                 // and it is just assigned to the variable `x`.
         }
-        else: -1
+        otherwise: -1
     ;
     return x + 1;
 }
@@ -337,7 +337,7 @@ function example(y) {
         }
         when v if (v == 7)
             7000000
-        else -1
+        otherwise -1
     ;
     return x + 1;
 }
@@ -373,7 +373,7 @@ function example(y) {
         when 5: {
             return 50000;
         }
-        // no else clause...
+        // no otherwise clause...
     ;
 }
 
@@ -478,7 +478,7 @@ function func(n) {
     } when (DateTime("2000/1/11")..) {
         System.print("range 3 - ");
         System.println(n);
-    } else {
+    } otherwise {
         System.print("not matched - ");
         System.println(n);
     };
@@ -531,7 +531,7 @@ function func(n) {
     } when 5..7 | 10...15 {
         System.print("range 3 - ");
         System.println(n);
-    } else {
+    } otherwise {
         System.print("not matched - ");
         System.println(n);
     };
@@ -580,7 +580,7 @@ function test(y, m, n) {
             v + 42
         when v if (v == n):
             v + 58
-        else:
+        otherwise:
             -1
     ;
 }
@@ -622,7 +622,7 @@ function test([y, z, i, j, k, x]) {
             v + m + n[0] + 42
         when [v, 50, ...a] if (v == x):
             v + 58
-        else:
+        otherwise:
             -1
     ;
     return val;
@@ -663,7 +663,7 @@ function test([y, z, i, j, k, x]) {
             v + 58
         when [2..10, a, b, ...x]:
             a + b + 10
-        else:
+        otherwise:
             -1
     ;
     return val;

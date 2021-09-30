@@ -39,13 +39,13 @@ when 2:
 
 ### Else case
 
-It is not necessary to put `else` case at the bottom.
+It is not necessary to put `otherwise` case at the bottom.
 
 ```javascript
 switch (x) {
 when 1:
     /* ... */
-else: /* fallthrough */
+otherwise: /* fallthrough */
     fallthrough;
 when 2:
     /* ... */
@@ -83,7 +83,7 @@ function test(a) {
     when 2: r = a * 4;
     when 3: r = a * 8;
     when 4: r = a * 16;
-    else:
+    otherwise:
     }
     return r ?? -1;
 }
@@ -111,10 +111,10 @@ function test(a) {
 ```javascript
 function test(count) {
     switch (count) {
-    else: do {  System.println("%d" % count); count++; fallthrough;
-    when 0:     System.println("%d" % count); count++; fallthrough;
-    when 1:     System.println("%d" % count); count++; fallthrough;
-    when 2:     System.println("%d" % count); count++; fallthrough;
+    otherwise: do {  System.println("%d" % count); count++; fallthrough;
+    when 0:          System.println("%d" % count); count++; fallthrough;
+    when 1:          System.println("%d" % count); count++; fallthrough;
+    when 2:          System.println("%d" % count); count++; fallthrough;
             } while (count < 8);
     }
 }
@@ -150,7 +150,7 @@ function test(a) {
     when x[-2]:    r = 4;
     when x[3]+"3": r = 8;
     when f():      r = 16;
-    else:
+    otherwise:
     }
     return r ?? -1;
 }
@@ -188,7 +188,7 @@ function switchTest(n) {
     when 7:     System.println(n);
     when 8:     System.println(n);
 
-    else:
+    otherwise:
         System.print("default - ");
         fallthrough;
     when 100:
