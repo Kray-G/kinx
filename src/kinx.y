@@ -35,7 +35,7 @@ static inline void yy_restart(int token)
 }
 
 %token ERROR
-%token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN ENUM FALLTHROUGH
+%token IF ELSE WHILE DO FOR IN TRY CATCH FINALLY BREAK CONTINUE SWITCH CASE DEFAULT WHEN OTHERWISE ENUM FALLTHROUGH
 %token NEW VAR CONST RETURN THROW YIELD MIXIN
 %token EQEQ NEQ LE GE LGE LOR LAND INC DEC SHL SHR POW LUNDEF PIPEOPL2R PIPEOPR2L FCOMPOSL2R FCOMPOSR2L
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ ANDEQ OREQ XOREQ LANDEQ LOREQ LUNDEFEQ SHLEQ SHREQ REGEQ REGNE
@@ -303,6 +303,7 @@ CaseStatement
     | DEFAULT ':' { $$ = kx_gen_case_stmt_object(KXCS_DEFAULT, NULL); }
     | WHEN AssignExpression ':' { $$ = kx_gen_case_stmt_object(KXCS_WHEN, $2); }
     | ELSE ':' { $$ = kx_gen_case_stmt_object(KXCS_ELSE, NULL); }
+    | OTHERWISE ':' { $$ = kx_gen_case_stmt_object(KXCS_ELSE, NULL); }
     ;
 
 ForStatement
@@ -526,6 +527,7 @@ WhenCondition
 CaseElseClause
     : /* empty */ { $$ = NULL; }
     | ELSE Colon_Opt WhenClauseBody { $$ = kx_gen_stmtlist($3, kx_gen_break_object(KXST_BREAK, NULL)); }
+    | OTHERWISE Colon_Opt WhenClauseBody { $$ = kx_gen_stmtlist($3, kx_gen_break_object(KXST_BREAK, NULL)); }
     ;
 
 WhenClauseBody
@@ -716,6 +718,7 @@ PropertyName
     | TYPE { $$ = kx_gen_str_object(kx_gen_typestr_object($1)); }
     | IF { $$ = kx_gen_str_object("if"); }
     | ELSE { $$ = kx_gen_str_object("else"); }
+    | OTHERWISE { $$ = kx_gen_str_object("otherwise"); }
     | WHILE { $$ = kx_gen_str_object("while"); }
     | DO { $$ = kx_gen_str_object("do"); }
     | FOR { $$ = kx_gen_str_object("for"); }
@@ -884,6 +887,7 @@ KeySpecialName
 ClassFunctionSpecialName
     : IF { $$ = "if"; }
     | ELSE { $$ = "else"; }
+    | OTHERWISE { $$ = "otherwise"; }
     | WHILE { $$ = "while"; }
     | DO { $$ = "do"; }
     | FOR { $$ = "for"; }

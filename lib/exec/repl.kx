@@ -5,8 +5,8 @@ Signal.trap(Signal.SIGINT, &() => {
 
 class ReplHelper {
     var keywordList_ = [
-        "break", "class", "catch", "case", "continue", "const", "do", "default", "else", "enum", ""
-        "function", "for", "finally", "false", "if", "in", "module", "mixin", "null", "new", "native", "namespace", ""
+        "break", "class", "catch", "case", "continue", "const", "do", "default", "else", "enum", "function",
+        "for", "finally", "false", "if", "in", "module", "mixin", "null", "new", "native", "namespace", "otherwise",
         "public", "private", "protected", "return", "super", "switch", "this", "throw", "try", "true",
         "using", "undefined", "var", "while", "yield", "on", "off"
     ];
