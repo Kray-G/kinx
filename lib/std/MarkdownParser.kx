@@ -303,7 +303,8 @@ namespace Markdown {
         var dquotep = 0;
         var quotep = 0;
 
-        for (var i = 0, l = text.length(); i < l; ++i) {
+        var l = text.length();
+        for (var i = 0, tl = l - 1; i < l; ++i) {
             const char = text[i];
 
             if (escapeSequence) {
@@ -475,11 +476,18 @@ namespace Markdown {
                     }
                     stack = '';
                 }
+                var quoted = false;
                 var c = char;
                 do {
+                    if (c == '"'[0]) {
+                        quoted = !quoted;
+                    }
                     stack += *c;
+                    if (tl <= i) {
+                        break;
+                    }
                     c = text[++i];
-                } while (c != ">"[0]);
+                } while (quoted || c != ">"[0]);
                 stack += *c;
                 if (stack.length() > 2 && stack[-2] == '/'[0]) {
                     ast.push(new Nodes.Html(stack));
