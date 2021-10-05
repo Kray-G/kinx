@@ -44,7 +44,7 @@ var result = "hello" |> doubleSayThenCapitalizeThenExclaim;
 System.println(result); // => "Hello, hello!"
 ```
 
-If you want to use multiple arguments with pipeline, use a lambda as a spot.
+If you want to use a function with multiple arguments in function composition, use a lambda as a spot.
 
 ```javascript
 function double(x) { return x + x; }
