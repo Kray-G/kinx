@@ -6251,11 +6251,19 @@ kx_fnc_t *kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
 
 #define KX_POW_POW_I(v1, val) { \
     if ((v1)->type == KX_INT_T) { \
-        BigZ b1 = BzFromInteger((v1)->value.iv); \
-        (v1)->value.bz = make_big_alive(ctx, BzPow(b1, val)); \
-        (v1)->type = KX_BIG_T; \
-        BzFree(b1); \
-        KX_BIGINT_CHKINT(v1); \
+        if (val == 0) { \
+            (v1)->value.iv = 1; \
+            (v1)->type = KX_INT_T; \
+        } else if (val < 0) { \
+            (v1)->value.dv = pow((double)(v1)->value.iv, (double)val); \
+            (v1)->type = KX_DBL_T; \
+        } else { \
+            BigZ b1 = BzFromInteger((v1)->value.iv); \
+            (v1)->value.bz = make_big_alive(ctx, BzPow(b1, val)); \
+            (v1)->type = KX_BIG_T; \
+            BzFree(b1); \
+            KX_BIGINT_CHKINT(v1); \
+        } \
     } else switch ((v1)->type) { \
     case KX_UND_T: { \
         (v1)->value.iv = 1; \
@@ -6263,8 +6271,16 @@ kx_fnc_t *kx_try_xor_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         break; \
     } \
     case KX_BIG_T: { \
-        (v1)->value.bz = make_big_alive(ctx, BzPow((v1)->value.bz, val)); \
-        KX_BIGINT_CHKINT(v1); \
+        if (val == 0) { \
+            (v1)->value.iv = 1; \
+            (v1)->type = KX_INT_T; \
+        } else if (val < 0) { \
+            (v1)->value.dv = pow(BzToDouble((v1)->value.bz), val); \
+            (v1)->type = KX_DBL_T; \
+        } else { \
+            (v1)->value.bz = make_big_alive(ctx, BzPow((v1)->value.bz, val)); \
+            KX_BIGINT_CHKINT(v1); \
+        } \
         break; \
     } \
     case KX_DBL_T: { \
