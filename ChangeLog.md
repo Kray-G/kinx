@@ -59,6 +59,8 @@
     *   #305: Fixed a prblem of no POPC in try.
     *   #314: Fixed a crash when accessing uninitialized object in native.
     *   #331: Fixed an incorrect handling of a big integer literal in lexer.
+    *   #341: Fixed a problem that it crashes in destructuring assignment.
+    *   #342: Fixed a problem that a pin operator in not avaiable at 2nd item or later in array.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is 1st official release version.
