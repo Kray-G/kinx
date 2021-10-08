@@ -480,7 +480,7 @@ WhenConditionRangeList
 WhenConditionRange
     : WhenAnonymousFunctionDeclExpression
     | WhenPostfixExpression
-    | '^' WhenPostfixExpression { $$ = $2; $$->optional = KXDC_PIN; }
+    | '^' WhenPostfixExpression { $2->optional = KXDC_PIN; $$ = $2; }
     | Array
     | Object
     | SimpleFuncCallFactor
@@ -809,10 +809,11 @@ CommaList
 
 ArrayItemListCore
     : AssignExpression
-    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_PIN; }
+    | '^' AssignExpression { $2->optional = KXDC_PIN; $$ = $2; }
     | DOTS3 AssignRightHandSide { $$ = kx_gen_uexpr_object(KXOP_SPREAD, $2); }
     | ArrayItemListCore ',' { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_var_object(NULL, KX_UND_T)); }
     | ArrayItemListCore ',' AssignExpression { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $3); }
+    | ArrayItemListCore ',' '^' AssignExpression { $4->optional = KXDC_PIN; $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, $4); }
     | ArrayItemListCore ',' DOTS3 AssignRightHandSide { $$ = kx_gen_bexpr_object(KXST_EXPRLIST, $1, kx_gen_uexpr_object(KXOP_SPREAD, $4)); }
     ;
 
@@ -843,7 +844,7 @@ KeyValue
 
 ValueOfKeyValue
     : AssignExpression
-    | '^' AssignExpression { $$ = $2; $$->optional = KXDC_PIN; }
+    | '^' AssignExpression { $2->optional = KXDC_PIN; $$ = $2; }
     | ObjectSpecialSyntax
     ;
 
