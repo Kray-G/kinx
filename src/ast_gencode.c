@@ -484,7 +484,7 @@ static int apply_getval(kx_context_t *ctx, kx_object_t *node, kx_analyze_t *ana,
                     KX_CHECK_PATTERN_JMP(jmpblk, nested);
                 } else {
                     // "_" is a special meaning for case-when.
-                    if (strcmp(node->value.s, "_") != 0) {
+                    if (node->type != KXOP_VAR || strcmp(node->value.s, "_") != 0) {
                         gencode_ast_hook(ctx, node, ana, 1);
                         kv_push(kx_code_t, get_block(module, ana->block)->code, ((kx_code_t){ FILELINE(ana), .op = KX_GETARYV, .value1.i = index }));
                     }
