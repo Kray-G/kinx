@@ -9,6 +9,9 @@
 
 #define LIBNAME_BUFSIZE (512)
 #define POSMAX ((KX_BUF_MAX)-128)
+#define is_number_ex(info, l, u) (kx_is_number(info) || info.ch == l || info.ch == u)
+#define is_number_e(info) (kx_is_number(info) || info.ch == 'e' || info.ch == 'E')
+#define is_number_p(info) (kx_is_hex_number(info) || info.ch == 'p' || info.ch == 'P')
 static char kx_strbuf[KX_BUF_MAX] = {0};
 static int g_import = 0;
 static int g_binmode = 0;
@@ -543,6 +546,73 @@ uint64_t cp; { \
     } \
 } \
 /**/
+
+static int kx_lex_check_int_or_bigint(int pos, int is_hex)
+{
+    if (!kx_is_number_core(kx_lexinfo)) {
+        if (!is_hex || !(('a' <= kx_lexinfo.ch && kx_lexinfo.ch <= 'z') || ('A' <= kx_lexinfo.ch && kx_lexinfo.ch <= 'Z'))) {
+            kx_lexinfo.tempbuf[0] = kx_lexinfo.ch;
+            kx_lexinfo.tempbuf[1] = 0;
+            kx_lexinfo.restart = kx_lexinfo.tempbuf;
+            kx_lexinfo.ch = '.';
+            kx_strbuf[pos] = 0;
+            kx_yylval.intval = strtoll(kx_strbuf, NULL, 0);
+            if (errno == ERANGE) {
+                kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
+                return BIGINT;
+            }
+            return INT;
+        }
+    }
+    return -1;
+}
+
+static int kx_lex_make_exponent(int pos)
+{
+    kx_strbuf[pos++] = kx_lexinfo.ch;
+    kx_lex_next(kx_lexinfo);
+    if (kx_lexinfo.ch == '+' || kx_lexinfo.ch == '-') {
+        kx_strbuf[pos++] = kx_lexinfo.ch;
+        kx_lex_next(kx_lexinfo);
+    }
+    while (pos < POSMAX && kx_is_number(kx_lexinfo)) {
+        if (kx_lexinfo.ch != '_') {
+            kx_strbuf[pos++] = kx_lexinfo.ch;
+        }
+        kx_lex_next(kx_lexinfo);
+    }
+    kx_strbuf[pos] = 0;
+    kx_yylval.dblval = strtod(kx_strbuf, NULL);
+    return DBL;
+}
+
+static int kx_lex_make_double(int pos, int is_hex)
+{
+    if (is_hex) {
+        while (pos < POSMAX && is_number_p(kx_lexinfo)) {
+            if (kx_lexinfo.ch == 'p' || kx_lexinfo.ch == 'P') {
+                return kx_lex_make_exponent(pos);
+            }
+            if (kx_lexinfo.ch != '_') {
+                kx_strbuf[pos++] = kx_lexinfo.ch;
+            }
+            kx_lex_next(kx_lexinfo);
+        }
+    } else {
+        while (pos < POSMAX && is_number_e(kx_lexinfo)) {
+            if (kx_lexinfo.ch == 'e' || kx_lexinfo.ch == 'E') {
+                return kx_lex_make_exponent(pos);
+            }
+            if (kx_lexinfo.ch != '_') {
+                kx_strbuf[pos++] = kx_lexinfo.ch;
+            }
+            kx_lex_next(kx_lexinfo);
+        }
+    }
+    kx_strbuf[pos] = 0;
+    kx_yylval.dblval = strtod(kx_strbuf, NULL);
+    return DBL;
+}
 
 static int kx_lex_make_string(char quote)
 {
@@ -1250,41 +1320,41 @@ HEAD_OF_YYLEX:
         is_zero = 1;
         /* fall through */
     case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '8': case '9':
+    case '5': case '6': case '7': case '8': case '9': {
         kx_strbuf[pos++] = kx_lexinfo.ch;
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == '.') {
             kx_lex_next(kx_lexinfo);
-            if (!kx_is_number_core(kx_lexinfo)) {
-                kx_lexinfo.tempbuf[0] = kx_lexinfo.ch;
-                kx_lexinfo.tempbuf[1] = 0;
-                kx_lexinfo.restart = kx_lexinfo.tempbuf;
-                kx_lexinfo.ch = '.';
-                kx_strbuf[pos] = 0;
-                kx_yylval.intval = strtoll(kx_strbuf, NULL, 0);
-                if (errno == ERANGE) {
-                    kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
-                    return BIGINT;
-                }
-                return INT;
+            int r = kx_lex_check_int_or_bigint(pos, 0);
+            if (r > 0) {
+                return r;
             }
             kx_strbuf[pos++] = '.';
-            while (pos < POSMAX && kx_is_number(kx_lexinfo)) {
-                if (kx_lexinfo.ch != '_') {
-                    kx_strbuf[pos++] = kx_lexinfo.ch;
-                }
-                kx_lex_next(kx_lexinfo);
-            }
-            kx_strbuf[pos] = 0;
-            kx_yylval.dblval = strtod(kx_strbuf, NULL);
-            return DBL;
+            return kx_lex_make_double(pos, 0);
         } else if (is_zero) {
+            if (kx_lexinfo.ch == 'e' || kx_lexinfo.ch == 'E') {
+                return kx_lex_make_exponent(pos);
+            }
             if (kx_lexinfo.ch == 'x') {
                 kx_strbuf[pos++] = kx_lexinfo.ch;
                 kx_lex_next(kx_lexinfo);
-                while (pos < POSMAX && kx_is_hex_number(kx_lexinfo)) {
-                    kx_strbuf[pos++] = kx_lexinfo.ch;
+                while (pos < POSMAX && is_number_p(kx_lexinfo)) {
+                    if (kx_lexinfo.ch == 'p' || kx_lexinfo.ch == 'P') {
+                        return kx_lex_make_exponent(pos);
+                    }
+                    if (kx_lexinfo.ch != '_') {
+                        kx_strbuf[pos++] = kx_lexinfo.ch;
+                    }
                     kx_lex_next(kx_lexinfo);
+                }
+                if (kx_lexinfo.ch == '.') {
+                    kx_lex_next(kx_lexinfo);
+                    int r = kx_lex_check_int_or_bigint(pos, 1);
+                    if (r > 0) {
+                        return r;
+                    }
+                    kx_strbuf[pos++] = '.';
+                    return kx_lex_make_double(pos, 1);
                 }
                 kx_strbuf[pos] = 0;
                 errno = 0;
@@ -1315,7 +1385,10 @@ HEAD_OF_YYLEX:
                 return INT;
             }
         } else {
-            while (pos < POSMAX && kx_is_number(kx_lexinfo)) {
+            while (pos < POSMAX && is_number_e(kx_lexinfo)) {
+                if (kx_lexinfo.ch == 'e' || kx_lexinfo.ch == 'E') {
+                    return kx_lex_make_exponent(pos);
+                }
                 if (kx_lexinfo.ch != '_') {
                     kx_strbuf[pos++] = kx_lexinfo.ch;
                 }
@@ -1323,29 +1396,12 @@ HEAD_OF_YYLEX:
             }
             if (kx_lexinfo.ch == '.') {
                 kx_lex_next(kx_lexinfo);
-                if (!kx_is_number_core(kx_lexinfo)) {
-                    kx_lexinfo.tempbuf[0] = kx_lexinfo.ch;
-                    kx_lexinfo.tempbuf[1] = 0;
-                    kx_lexinfo.restart = kx_lexinfo.tempbuf;
-                    kx_lexinfo.ch = '.';
-                    kx_strbuf[pos] = 0;
-                    kx_yylval.intval = strtoll(kx_strbuf, NULL, 0);
-                    if (errno == ERANGE) {
-                        kx_yylval.strval = const_str(g_parse_ctx, kx_strbuf);
-                        return BIGINT;
-                    }
-                    return INT;
+                int r = kx_lex_check_int_or_bigint(pos, 0);
+                if (r > 0) {
+                    return r;
                 }
                 kx_strbuf[pos++] = '.';
-                while (pos < POSMAX && kx_is_number(kx_lexinfo)) {
-                    if (kx_lexinfo.ch != '_') {
-                        kx_strbuf[pos++] = kx_lexinfo.ch;
-                    }
-                    kx_lex_next(kx_lexinfo);
-                }
-                kx_strbuf[pos] = 0;
-                kx_yylval.dblval = strtod(kx_strbuf, NULL);
-                return DBL;
+                return kx_lex_make_double(pos, 0);
             }
             kx_strbuf[pos] = 0;
             errno = 0;
@@ -1357,6 +1413,7 @@ HEAD_OF_YYLEX:
             return INT;
         }
         break;
+    }
     case '#': {
         kx_lex_next(kx_lexinfo);
         if (kx_lexinfo.ch == 'l') {
