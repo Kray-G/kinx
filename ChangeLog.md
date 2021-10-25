@@ -62,6 +62,7 @@
     *   #331: Fixed an incorrect handling of a big integer literal in lexer.
     *   #341: Fixed a problem that it crashes in destructuring assignment.
     *   #342: Fixed a problem that a pin operator in not avaiable at 2nd item or later in array.
+    *   #345: Fixed to block the unsupported type conversion in native.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is 1st official release version.

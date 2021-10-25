@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <kinx.h>
+#include <kxastobject.h>
 #include <kxnative.h>
 #include <jit.h>
 
@@ -681,6 +682,30 @@ static void nativejit_gen_casejmp(kx_native_context_t *nctx, kx_switch_t *sw, in
     }
 
     KXNJP(nctx, nctx->block) = out;
+}
+
+static int check_conversion(int op1iv, int op2iv)
+{
+    if (op2iv == KX_DBL_T && op1iv == KX_INT_T) {
+        return 1;
+    } else if (op2iv == KX_INT_T && op1iv == KX_DBL_T) {
+        return 1;
+    } else if (op2iv == KX_INT_T && op1iv == KX_STR_T) {
+        return 1;
+    } else if (op2iv == KX_DBL_T && op1iv == KX_STR_T) {
+        return 1;
+    } else if (op2iv == KX_CSTR_T && op1iv == KX_STR_T) {
+        return 1;
+    } else if (op2iv == KX_INT_T && op1iv == KX_BIG_T) {
+        return 1;
+    } else if (op2iv == KX_BIG_T && op1iv == KX_INT_T) {
+        return 1;
+    } else if (op2iv == KX_BIG_T && op1iv == KX_DBL_T) {
+        return 1;
+    } else if (op2iv == KX_BIG_T && op1iv == KX_STR_T) {
+        return 1;
+    }
+    return 0;
 }
 
 static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lvalue)
@@ -1481,12 +1506,18 @@ static void nativejit_ast(kx_native_context_t *nctx, kx_object_t *node, int lval
 
     case KXOP_CAST: {
         nativejit_ast(nctx, node->lhs, 0);
-        kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
-            .inst = KXN_CAST, .var_type = node->var_type,
-                .dst = { .type = KXNOP_REG, .r = nctx->regno },
-                .op1 = { .type = KXNOP_IMM, .iv = node->value.i },
-                .op2 = { .type = KXNOP_IMM, .iv = node->optional },
-        }));
+        int op1iv = node->value.i;
+        int op2iv = node->optional;
+        if (!check_conversion(op1iv, op2iv)) {
+            kx_yyerror_line_fmt("Not supported in native to convert from (%s) to (%s)", node->file, node->line, get_var_typename(op2iv), get_var_typename(op1iv));
+        } else {
+            kv_push(kxn_code_t, KXNBLK(nctx)->code, ((kxn_code_t){
+                .inst = KXN_CAST, .var_type = node->var_type,
+                    .dst = { .type = KXNOP_REG, .r = nctx->regno },
+                    .op1 = { .type = KXNOP_IMM, .iv = op1iv },
+                    .op2 = { .type = KXNOP_IMM, .iv = op2iv },
+            }));
+        }
         break;
     }
     case KXOP_ENUM: {

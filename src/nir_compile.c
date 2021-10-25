@@ -1294,6 +1294,8 @@ static int natir_compile_code(kx_native_context_t *nctx, kxn_block_t *block, kxn
             sljit_emit_op1(nctx->C, SLJIT_MOV, SLJIT_R1, 0, KXN_R(code->dst));
             sljit_emit_icall(nctx->C, SLJIT_CALL, SLJIT_RET(SW) | SLJIT_ARG1(SW) | SLJIT_ARG2(SW), SLJIT_IMM, SLJIT_FUNC_OFFSET(native_cast_big_to_str));
             sljit_emit_op1(nctx->C, SLJIT_MOV, KXN_R(code->dst), SLJIT_RETURN_REG, 0);
+        } else {
+            kx_yyerror("Conversion not supported.");
         }
         break;
     case KXN_RET:
