@@ -31,6 +31,7 @@
     *   #316: Changed a specification of a label to be with 2 colons.
     *   #332: Supported any radix on the `Integer.toString()` method.
     *   #343: Supported an exponent representation for a real number literal.
+    *   #346: Supported an assignment of inherit class instance to the variable having the base class type.
     *   Small improvements and enhancements as follows without managing by issues.
         *   Supported SemanticVersion class with `using SemanticVersion;`.
         *   Supported putting a comma at the end of an argument's list for both declaration and calling.

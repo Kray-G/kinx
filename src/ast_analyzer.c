@@ -59,7 +59,7 @@ static kxana_symbol_t *search_symbol_table(kx_context_t *ctx, kx_object_t *node,
         for (int j = 1; j <= size; ++j) {
             kxana_symbol_t *sym = &kv_last_by(table->list, j);
             if (!strcmp(name, sym->name)) {
-                if (actx->decl && node->optional != KXDC_PIN) {
+                if (actx->decl && node && node->optional != KXDC_PIN) {
                     if (sym->depth < actx->depth) {
                         goto DECL_VAR;
                     }
@@ -455,7 +455,7 @@ static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx
                         kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(lhs), get_node_typename(rhs));
                     } else if (!rhs->typename && rhs->var_type != KX_UNKNOWN_T) {
                         kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(lhs), get_node_typename(rhs));
-                    } else if (lhs->typename && rhs->typename && strcmp(lhs->typename, rhs->typename) != 0) {
+                    } else if (lhs->typename && rhs->typename && !is_inherit_class(ctx, actx, lhs->typename, rhs->typename)) {
                         kx_yyerror_line_fmt("Type mismatch%s in assignment (%s, %s)", lhs->file, lhs->line, name, get_node_typename(lhs), get_node_typename(rhs));
                     }
                 }
@@ -610,6 +610,39 @@ static void set_class_method_return_type(kx_context_t *ctx, kxana_context_t *act
         }
     }
     actx->lvalue = lvalue;
+}
+
+static int is_inherit_class(kx_context_t *ctx, kxana_context_t *actx, const char *base, const char *classname)
+{
+    if (!classname || !base) {
+        return 0;
+    }
+    if (strcmp(base, classname) == 0) {
+        return 1;
+    }
+    kxana_symbol_t *s = search_symbol_table(ctx, NULL, classname, actx);
+    if (s && s->base) {
+        kx_object_t *l = s->base->ex;
+        while (l) {
+            const char *basename = l->ex->value.s;
+            if (strcmp(base, basename) == 0) {
+                return 1;
+            }
+            l = l->methods;
+        }
+    }
+    return 0;
+}
+
+static inline const char *get_classname(kx_object_t *node)
+{
+    if (node->typename) {
+        return node->typename;
+    }
+    if (node->ex && node->ex->typename) {
+        return node->ex->typename;
+    }
+    return NULL;
 }
 
 static void analyze_ast(kx_context_t *ctx, kx_object_t *node, kxana_context_t *actx)
@@ -1752,15 +1785,26 @@ LOOP_HEAD:;
         lvalue = actx->lvalue;
         actx->lvalue = 0;
         kxana_symbol_t *s = search_symbol_table(ctx, node, node->value.s, actx);
-        if (s && s->base) {
-            kxana_symbol_t *inh = search_symbol_table(ctx, node, node->typename, actx);
-            if (inh && inh->base) {
-                kx_object_t *l = s->base;
-                while (l->methods) {
-                    l = l->methods;
+        if (s && s->base && node->ex && node->ex->typename) {
+            if (strcmp(node->value.s, node->ex->typename) != 0) {
+                kxana_symbol_t *inh = search_symbol_table(ctx, node, node->ex->typename, actx);
+                if (inh && inh->base) {
+                    kx_object_t *l = s->base;
+                    while (l->methods) {
+                        l = l->methods;
+                    }
+                    l->methods = inh->base->methods;
                 }
-                l->methods = inh->base->methods;
             }
+            // /* This is example of listing class methods. */
+            // {
+            //     printf("class: %s\n", node->value.s);
+            //     kx_object_t *l = s->base;
+            //     while (l) {
+            //         printf("    method: %s of %s\n", l->value.s, l->ex->value.s);
+            //         l = l->methods;
+            //     }
+            // }
         }
         actx->lvalue = lvalue;
         break;
@@ -1768,6 +1812,7 @@ LOOP_HEAD:;
     case KXST_COROUTINE:  /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_FUNCTION: /* s: name, lhs: arglist, rhs: block: optional: public/private/protected */
     case KXST_NATIVE: { /* s: name, lhs: arglist, rhs: block: ret_type: return type */
+        /* If it is a public method, `ex` is linked to a class node including this method. */
         int depth = actx->depth;
         ++actx->depth;
         if (node->type == KXST_NATIVE) {
@@ -1872,6 +1917,7 @@ LOOP_HEAD:;
             kx_object_t *cn = actx->class_node;
             kxana_symbol_t *sym = search_symbol_table(ctx, cn, cn->value.s, actx);
             if (sym && sym->base) {
+                node->ex = cn;
                 node->methods = sym->base->methods;
                 sym->base->methods = node;
             }

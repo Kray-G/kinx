@@ -745,6 +745,9 @@ static kx_object_t *kx_gen_func_object_impl(int type, int optional, arytype_t *r
         ret->optional = 1; // auto return at the end of function.
         rhs = kx_gen_bexpr_object(KXST_STMTLIST, rhs, ret);
     }
+    if (ex && inherit) {
+        ex->typename = inherit;
+    }
     if (!ex && (type == KXST_CLASS || type == KXST_SYSCLASS) && optional == KXFT_CLASS) {
         ex = kx_gen_bexpr_object(KXOP_DECL, kx_gen_var_object_line("this", KX_OBJ_T, line), kx_gen_uexpr_object(KXOP_MKOBJ, NULL));
     }
