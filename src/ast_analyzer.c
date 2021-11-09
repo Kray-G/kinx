@@ -397,6 +397,28 @@ static const char *get_ret_typename_or_null(kx_object_t *node)
     return NULL;
 }
 
+static int is_inherit_class(kx_context_t *ctx, kxana_context_t *actx, const char *base, const char *classname)
+{
+    if (!classname || !base) {
+        return 0;
+    }
+    if (strcmp(base, classname) == 0) {
+        return 1;
+    }
+    kxana_symbol_t *s = search_symbol_table(ctx, NULL, classname, actx);
+    if (s && s->base) {
+        kx_object_t *l = s->base->ex;
+        while (l) {
+            const char *basename = l->ex->value.s;
+            if (strcmp(base, basename) == 0) {
+                return 1;
+            }
+            l = l->methods;
+        }
+    }
+    return 0;
+}
+
 static void propagate_node_typename(kx_context_t *ctx, kxana_context_t *actx, kx_object_t *lhs, kx_object_t *rhs)
 {
     if (lhs->type == KXOP_VAR && strcmp(lhs->value.s, "this") == 0) {
@@ -610,28 +632,6 @@ static void set_class_method_return_type(kx_context_t *ctx, kxana_context_t *act
         }
     }
     actx->lvalue = lvalue;
-}
-
-static int is_inherit_class(kx_context_t *ctx, kxana_context_t *actx, const char *base, const char *classname)
-{
-    if (!classname || !base) {
-        return 0;
-    }
-    if (strcmp(base, classname) == 0) {
-        return 1;
-    }
-    kxana_symbol_t *s = search_symbol_table(ctx, NULL, classname, actx);
-    if (s && s->base) {
-        kx_object_t *l = s->base->ex;
-        while (l) {
-            const char *basename = l->ex->value.s;
-            if (strcmp(base, basename) == 0) {
-                return 1;
-            }
-            l = l->methods;
-        }
-    }
-    return 0;
 }
 
 static inline const char *get_classname(kx_object_t *node)
