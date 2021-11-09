@@ -31,6 +31,7 @@
     *   #316: Changed a specification of a label to be with 2 colons.
     *   #332: Supported any radix on the `Integer.toString()` method.
     *   #343: Supported an exponent representation for a real number literal.
+    *   #346: Supported an assignment of inherit class instance to the variable having the base class type.
     *   Small improvements and enhancements as follows without managing by issues.
         *   Supported SemanticVersion class with `using SemanticVersion;`.
         *   Supported putting a comma at the end of an argument's list for both declaration and calling.
@@ -62,6 +63,7 @@
     *   #331: Fixed an incorrect handling of a big integer literal in lexer.
     *   #341: Fixed a problem that it crashes in destructuring assignment.
     *   #342: Fixed a problem that a pin operator in not avaiable at 2nd item or later in array.
+    *   #345: Fixed to block the unsupported type conversion in native.
 
 ## V1.0.0 (Official Release) - 2021/03/16
 This is 1st official release version.
