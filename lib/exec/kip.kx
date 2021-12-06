@@ -338,15 +338,13 @@ class KinxPackageLibraryManager(repoMgr_) {
     }
 
     private isInstalled(name, version) {
-        if (installed_.isUndefined) {
-            installed_ = [];
-            var dir = $pkgpath / name;
-            if (File.isDirectory(dir)) {
-                Directory.walk(dir) { &(verpath)
-                    var ver = verpath.filename();
-                    installed_[name][ver] = true;
-                };
-            }
+        installed_ ??= [];
+        var dir = $pkgpath / name;
+        if (File.isDirectory(dir)) {
+            Directory.walk(dir) { &(verpath)
+                var ver = verpath.filename();
+                installed_[name][ver] = true;
+            };
         }
         return installed_[name][version];
     }
@@ -753,7 +751,7 @@ class KinxPackageLibraryManager(repoMgr_) {
         createFile(PACKAGE_INFO_FILE, { name: name }.toJsonString(true));
         mkdir("docs", "README.md",
                 "<!-- This is an auto-generated sample README file. Modify this as your own README file. -->\n"
-                "# Kacc\n\n"
+                "# %{name.toUpper(0, 1)}\n\n"
                 "## Introduction\n\n"
                 "This is a directory of documents for the package `%{name}` such as materials below.\n\n"
                 "- Package Help - this `README.md` will be displayed by `kip help %{name}`\n"
