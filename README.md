@@ -10,17 +10,12 @@ Looks like JavaScript, feels like Ruby, and it is a script language fitting in C
 
 ## Topics
 
-* **Official Release 1.0.3 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+* **Official Release 1.1.0 is now available!** See <a href="https://github.com/Kray-G/kinx/releases">Releases</a>.<br />
+  * Package Manager has been supported since the version 1.1.0.
+  * The main central repository for packages at https://github.com/Kray-G/kinx-package-repository.
 * Now the Kinx is supporting the platform of **x86-64 Windows and Linux only**,  because I have no environment.
   *  If you are interested in other platforms, **please check [here](#how-to-support-a-platform)**.
 *  **See [ChangeLog.md](ChangeLog.md)** about the history of this project.
-
-> ### Current Status
-> 
-> * I am preparing V1.1.0 to provide the update which is mainly including Package Manager featurein this branch.
-> And I am also preparing the main central repository for packages at https://github.com/Kray-G/kinx-package-repository.
-> Those will be published at the same time.
-> It will be comming soon and please wait for a while.
 
 ## Introduction
 
@@ -53,6 +48,7 @@ Mainly there are features below.
 *   **[REPL](docs/utility/repl.md)** is provided by default.
 *   **[Debugger](docs/utility/debugger.md)** is available and embedded in Kinx. Use the option `--debug` and you can run a script with debugger.
 *   Useful Testing System named as **[SpecTest](docs/index.md)**. It is designed to not only for Kinx but also for any other products.
+*   **Package Manager** has been officially supported since the version 1.1.0.
 
 #### Standard Libraries
 
