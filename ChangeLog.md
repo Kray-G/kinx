@@ -13,7 +13,9 @@
             *   Scan for the update.
             *   Search packages with pattern matching.
 
-## V1.1.0 (Current Development Version)
+## V1.2.0 (Current Development Version)
+
+## V1.1.0 (Official Release) - 2021/12/06
 
 *   New Features
     *   #232: Supported a Package Manager named as `Kip`.
