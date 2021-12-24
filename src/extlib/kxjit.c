@@ -7,9 +7,123 @@
 #include <jit.h>
 #ifndef _WIN32
 #include <sys/mman.h>
+#include <dlfcn.h>
+#if defined(__unix__) || defined(__APPLE__)
+#include <sys/stat.h>
+#endif
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 
 KX_DECL_MEM_ALLOCATORS();
+
+typedef struct lib {
+  char *name;
+  void *handler;
+} lib_t;
+
+#if defined(__unix__)
+#if UINTPTR_MAX == 0xffffffff
+static lib_t std_libs[] = {
+    {"/lib/libc.so.6", NULL},   {"/lib32/libc.so.6", NULL},     {"/lib/libm.so.6", NULL},
+    {"/lib32/libm.so.6", NULL}, {"/lib/libpthread.so.0", NULL}, {"/lib32/libpthread.so.0", NULL}
+};
+#elif UINTPTR_MAX == 0xffffffffffffffff
+#if defined(__x86_64__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},           {"/lib/x86_64-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},           {"/lib/x86_64-linux-gnu/libm.so.6", NULL},
+    {"/usr/lib64/libpthread.so.0", NULL}, {"/lib/x86_64-linux-gnu/libpthread.so.0", NULL}
+};
+#elif (__aarch64__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},       {"/lib/aarch64-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},       {"/lib/aarch64-linux-gnu/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL}, {"/lib/aarch64-linux-gnu/libpthread.so.0", NULL}
+};
+#elif (__PPC64__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL},
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    {"/lib/powerpc64le-linux-gnu/libc.so.6", NULL},
+    {"/lib/powerpc64le-linux-gnu/libm.so.6", NULL},
+    {"/lib/powerpc64le-linux-gnu/libpthread.so.0", NULL},
+#else
+    {"/lib/powerpc64-linux-gnu/libc.so.6", NULL},
+    {"/lib/powerpc64-linux-gnu/libm.so.6", NULL},
+    {"/lib/powerpc64-linux-gnu/libpthread.so.0", NULL},
+#endif
+};
+#elif (__s390x__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},       {"/lib/s390x-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},       {"/lib/s390x-linux-gnu/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL}, {"/lib/s390x-linux-gnu/libpthread.so.0", NULL}
+};
+#elif (__riscv)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},       {"/lib/riscv64-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},       {"/lib/riscv64-linux-gnu/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL}, {"/lib/riscv64-linux-gnu/libpthread.so.0", NULL}
+};
+#else
+#error cannot recognize 32- or 64-bit target
+#endif
+#endif
+#endif
+
+#ifdef _WIN32
+static lib_t std_libs[] = {
+    {"C:\\Windows\\System32\\msvcrt.dll", NULL},
+    {"C:\\Windows\\System32\\kernel32.dll", NULL},
+    {"C:\\Windows\\System32\\ucrtbase.dll", NULL}
+};
+#define dlopen(n, f) LoadLibrary(n)
+#define dlclose(h) FreeLibrary(h)
+#define dlsym(h, s) GetProcAddress(h, s)
+#endif
+
+static void close_std_libs(void)
+{
+    for (int i = 0; i < sizeof(std_libs) / sizeof(lib_t); i++) {
+        if (std_libs[i].handler != NULL) {
+            dlclose(std_libs[i].handler);
+        }
+    }
+}
+
+static void open_std_libs(void)
+{
+    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
+        std_libs[i].handler = dlopen(std_libs[i].name, RTLD_LAZY);
+    }
+}
+
+static void *load_function(const char *name)
+{
+    void *handler, *sym = NULL;
+
+    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
+        if ((handler = std_libs[i].handler) != NULL && (sym = dlsym(handler, name)) != NULL) {
+            break;
+        }
+    }
+
+    return sym;
+}
+
+void jit_initialize(void)
+{
+    open_std_libs();
+}
+
+void jit_finalize(void)
+{
+    close_std_libs();
+}
 
 #define KX_ARGTYPE_SW_SW_SW ((1 << 4) | (1 << 8) | (1 << 12))
 #define KX_ARGTYPE_SW_SW_UW ((1 << 4) | (1 << 8) | (2 << 12))
@@ -1206,6 +1320,22 @@ KX_JIT_FOP2(Jit_fsub, SLJIT_SUB_F64);
 KX_JIT_FOP2(Jit_fmul, SLJIT_MUL_F64);
 KX_JIT_FOP2(Jit_fdiv, SLJIT_DIV_F64);
 
+int Jit_load(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args != 2) {
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
+    }
+    const char *name = get_arg_str(2, args, ctx);
+    uint64_t addr = (uint64_t)load_function(name);
+    if (!addr) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", static_format("Function not found (%s)", name));
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)addr);
+    return 0;
+}
+
 /* putc, putn */
 static sljit_sw Jit_putc(sljit_sw a, sljit_sw b, sljit_sw c)
 {
@@ -1395,6 +1525,7 @@ int Jit_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_PROP_INT(r, "putc", SLJIT_FUNC_OFFSET(Jit_putc));
     KEX_SET_PROP_INT(r, "putn", SLJIT_FUNC_OFFSET(Jit_putn));
     KEX_SET_PROP_INT(r, "print", SLJIT_FUNC_OFFSET(Jit_print));
+    KEX_SET_METHOD("load", r, Jit_load);
     KEX_SET_PROP_OBJ(obj, "Clib", r);
 
     KX_ADJST_STACK();
@@ -1410,4 +1541,4 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "frunBinary", Jit_frun_bin },
 };
 
-KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
+KX_DLL_DECL_FNCTIONS(kx_bltin_info, jit_initialize, jit_finalize);
