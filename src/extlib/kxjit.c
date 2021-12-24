@@ -39,9 +39,11 @@ KX_DECL_MEM_ALLOCATORS();
 #define KX_ARGTYPE_FP_FP_UW ((6 << 4) | (6 << 8) | (2 << 12))
 #define KX_ARGTYPE_FP_FP_FP ((6 << 4) | (6 << 8) | (6 << 12))
 
+typedef char *char_p;
 typedef struct sljit_const slconst_t;
 typedef struct sljit_jump sljump_t;
 typedef struct sljit_label sllabel_t;
+kvec_init_t(char_p);
 kvec_init_pt(slconst_t);
 kvec_init_pt(sllabel_t);
 kvec_init_pt(sljump_t);
@@ -53,9 +55,19 @@ typedef struct kx_jit_context_ {
     int len;
     int entries;
     kvec_pt(slconst_t) consts;
+    kvec_t(char_p) strs;
     kvec_pt(sllabel_t) labels;
     kvec_pt(sljump_t) jumps;
 } kx_jit_context_t;
+
+static inline const char *make_const_str(kx_jit_context_t *jtx, const char *str)
+{
+    int len = strlen(str);
+    char_p cvalue = (char_p)kx_calloc(len + 1, sizeof(char));
+    strcpy(cvalue, str);
+    kv_push(char_p, jtx->strs, cvalue);
+    return cvalue;
+}
 
 static inline int is_int(int n, int args, kx_context_t *ctx)
 {
@@ -333,7 +345,7 @@ int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 } \
 /**/
 
-int disasm_hex(struct ud* u) 
+int disasm_hex(struct ud* u)
 {
     int count = 0;
     if (!u->error) {
@@ -376,6 +388,13 @@ static void kx_jit_free(void *p)
         if (jtx->code) {
             sljit_free_code(jtx->code);
         }
+        int l = kv_size(jtx->strs);
+        for (int i = 0; i < l; ++i) {
+            char_p val = kv_A(jtx->strs, i);
+            kx_free(val);
+        }
+
+        kv_destroy(jtx->strs);
         kv_destroy(jtx->consts);
         kv_destroy(jtx->labels);
         kv_destroy(jtx->jumps);
@@ -607,6 +626,27 @@ int Jit_setConstDbl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     slconst_t *cvalx = kv_A(jtx->consts, targetid);
     union { uint64_t i; double d; } conv = { .d = value };
     sljit_set_const(sljit_get_const_addr(cvalx), conv.i, sljit_get_executable_offset(jtx->C));
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int Jit_setConstStr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+
+    int targetid = get_arg_int(2, args, ctx);
+    const char *str = get_arg_str(3, args, ctx);
+    if (targetid >= kv_size(jtx->consts)) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid target or label to set target");
+    }
+
+    const char *cvalue = make_const_str(jtx, str);
+    slconst_t *cvalx = kv_A(jtx->consts, targetid);
+    sljit_set_const(sljit_get_const_addr(cvalx), (sljit_sw)cvalue, sljit_get_executable_offset(jtx->C));
 
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);
@@ -1083,6 +1123,27 @@ KX_JIT_OP0(Jit_sig_div, SLJIT_DIV_SW);
 KX_JIT_OP0(Jit_divmod, SLJIT_DIVMOD_UW);
 KX_JIT_OP0(Jit_sig_divmod, SLJIT_DIVMOD_SW);
 
+int Jit_movs(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args != 3) {
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
+    }
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+    int dst1; int64_t dst2;
+    KX_GET_OP(args, ctx, obj, jtx, dst1, dst2, 2);
+    const char *str = get_arg_str(3, args, ctx);
+    const char *cvalue = make_const_str(jtx, str);
+    sljit_emit_op1(jtx->C, SLJIT_MOV, dst1, dst2, SLJIT_IMM, (sljit_sw)cvalue);
+    if (jtx->C->error != SLJIT_SUCCESS) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT");
+    }
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 /* op1 */
 KX_JIT_OP1(Jit_mov, SLJIT_MOV);
 KX_JIT_OP1(Jit_not, SLJIT_NOT);
@@ -1146,19 +1207,25 @@ KX_JIT_FOP2(Jit_fmul, SLJIT_MUL_F64);
 KX_JIT_FOP2(Jit_fdiv, SLJIT_DIV_F64);
 
 /* putc, putn */
-sljit_sw Jit_putc(sljit_sw a, sljit_sw b, sljit_sw c)
+static sljit_sw Jit_putc(sljit_sw a, sljit_sw b, sljit_sw c)
 {
     return printf("%c", (char)(a & 0xff));
 }
 
-sljit_sw Jit_putn(sljit_sw a, sljit_sw b, sljit_sw c)
+static sljit_sw Jit_putn(sljit_sw a, sljit_sw b, sljit_sw c)
 {
     return printf("%"PRId64, a);
+}
+
+static sljit_sw Jit_print(sljit_sw a, sljit_sw b, sljit_sw c)
+{
+    return printf("%s", (const char *)a);
 }
 
 int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_jit_context_t *jtx = kx_calloc(1, sizeof(kx_jit_context_t));
+    kv_init(jtx->strs);
     kv_init(jtx->consts);
     kv_init(jtx->labels);
     kv_init(jtx->jumps);
@@ -1177,6 +1244,7 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("setConstByLabel", obj, Jit_setConstByLabel);
     KEX_SET_METHOD("setConstInt", obj, Jit_setConstInt);
     KEX_SET_METHOD("setConstDbl", obj, Jit_setConstDbl);
+    KEX_SET_METHOD("setConstStr", obj, Jit_setConstStr);
     KEX_SET_METHOD("makeConst", obj, Jit_makeConst);
     KEX_SET_METHOD("makeConstDbl", obj, Jit_makeConstDbl);
     KEX_SET_METHOD("getLocalAddress", obj, Jit_getLocalAddress);
@@ -1214,6 +1282,9 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("sig_div", obj, Jit_sig_div);
     KEX_SET_METHOD("divmod", obj, Jit_divmod);
     KEX_SET_METHOD("sig_divmod", obj, Jit_sig_divmod);
+
+    /* op mov string */
+    KEX_SET_METHOD("movs", obj, Jit_movs);
 
     /* op1 */
     KEX_SET_METHOD("mov", obj, Jit_mov);
@@ -1323,6 +1394,7 @@ int Jit_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     r = allocate_obj(ctx);
     KEX_SET_PROP_INT(r, "putc", SLJIT_FUNC_OFFSET(Jit_putc));
     KEX_SET_PROP_INT(r, "putn", SLJIT_FUNC_OFFSET(Jit_putn));
+    KEX_SET_PROP_INT(r, "print", SLJIT_FUNC_OFFSET(Jit_print));
     KEX_SET_PROP_OBJ(obj, "Clib", r);
 
     KX_ADJST_STACK();

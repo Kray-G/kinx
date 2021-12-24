@@ -98,6 +98,8 @@ const Jit;
                 c_.setConstInt(i_, value);
             } else if (value.isDouble) {
                 c_.setConstDbl(i_, value);
+            } else if (value.isString) {
+                c_.setConstStr(i_, value);
             } else {
                 throw RuntimeException("Unsupported type of constant value");
             }
@@ -286,6 +288,8 @@ const Jit;
             } else if (isMEM(dst)) {
                 if (isFP(op1) || isImmFP(op1)) {
                     operate1("fmov", dst, op1);
+                } else if (op1.isString) {
+                    operate1("movs", dst, op1);
                 } else {
                     operate1("mov", dst, op1);
                 }
@@ -295,6 +299,8 @@ const Jit;
                 } else if (isImmFP(op1)) {
                     op1[1] = Integer.parseInt(op1[1]);
                     operate1("mov", dst, op1);
+                } else if (op1.isString) {
+                    operate1("movs", dst, op1);
                 } else {
                     operate1("mov", dst, op1);
                 }
