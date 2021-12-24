@@ -19,9 +19,11 @@
 KX_DECL_MEM_ALLOCATORS();
 
 typedef struct lib {
-  char *name;
+  const char *name;
   void *handler;
 } lib_t;
+kvec_init_pt(lib_t);
+static kvec_pt(lib_t) alibs;
 
 #if defined(__unix__)
 #if UINTPTR_MAX == 0xffffffff
@@ -73,6 +75,12 @@ static lib_t std_libs[] = {
 #error cannot recognize 32- or 64-bit target
 #endif
 #endif
+static const char *lib_suffix = ".so";
+#endif
+
+#if defined(__APPLE__)
+static lib_t std_libs[] = {{"/usr/lib/libc.dylib", NULL}, {"/usr/lib/libm.dylib", NULL}};
+static const char *lib_suffix = ".dylib";
 #endif
 
 #ifdef _WIN32
@@ -84,23 +92,8 @@ static lib_t std_libs[] = {
 #define dlopen(n, f) LoadLibrary(n)
 #define dlclose(h) FreeLibrary(h)
 #define dlsym(h, s) GetProcAddress(h, s)
+static const char *lib_suffix = ".dll";
 #endif
-
-static void close_std_libs(void)
-{
-    for (int i = 0; i < sizeof(std_libs) / sizeof(lib_t); i++) {
-        if (std_libs[i].handler != NULL) {
-            dlclose(std_libs[i].handler);
-        }
-    }
-}
-
-static void open_std_libs(void)
-{
-    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
-        std_libs[i].handler = dlopen(std_libs[i].name, RTLD_LAZY);
-    }
-}
 
 static void *load_function(const char *name)
 {
@@ -111,18 +104,51 @@ static void *load_function(const char *name)
             break;
         }
     }
+    if (!sym) {
+        int l = kv_size(alibs);
+        for (int i = 0; i < l; ++i) {
+            lib_t *val = kv_A(alibs, i);
+            if ((handler = val->handler) != NULL && (sym = dlsym(handler, name)) != NULL) {
+                break;
+            }
+        }
+    }
 
     return sym;
 }
 
+/* JIT test function */
+DllExport void jit_test(const char *msg)
+{
+    if (!msg) {
+        printf("<no message>: jit test.\n");
+    } else {
+        printf("%s\n", msg);
+    }
+}
+
 void jit_initialize(void)
 {
-    open_std_libs();
+    kv_init(alibs);
+    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
+        std_libs[i].handler = dlopen(std_libs[i].name, RTLD_LAZY);
+    }
 }
 
 void jit_finalize(void)
 {
-    close_std_libs();
+    for (int i = 0; i < sizeof(std_libs) / sizeof(lib_t); i++) {
+        if (std_libs[i].handler != NULL) {
+            dlclose(std_libs[i].handler);
+        }
+    }
+    int l = kv_size(alibs);
+    for (int i = 0; i < l; ++i) {
+        lib_t *val = kv_A(alibs, i);
+        dlclose(val->handler);
+        kx_free(val);
+    }
+    kv_destroy(alibs);
 }
 
 #define KX_ARGTYPE_SW_SW_SW ((1 << 4) | (1 << 8) | (1 << 12))
@@ -1336,6 +1362,30 @@ int Jit_load(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     return 0;
 }
 
+int Jit_addlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args != 2) {
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
+    }
+    const char *name = get_arg_str(2, args, ctx);
+    char file[1024] = {0};
+    snprintf(file, 1000, "%s%s", name, lib_suffix);
+    char *buf = conv_utf82acp_alloc(file);
+    lib_t *info = (lib_t *)kx_calloc(1, sizeof(lib_t));
+    kv_push(lib_t*, alibs, info);
+    info->name = kx_const_str(ctx, buf);
+    info->handler = dlopen(info->name, RTLD_LAZY);
+    conv_free(buf);
+
+    if (!info->handler) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", static_format("Llibrary not found (%s)", name));
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 /* putc, putn */
 static sljit_sw Jit_putc(sljit_sw a, sljit_sw b, sljit_sw c)
 {
@@ -1526,6 +1576,7 @@ int Jit_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     KEX_SET_PROP_INT(r, "putn", SLJIT_FUNC_OFFSET(Jit_putn));
     KEX_SET_PROP_INT(r, "print", SLJIT_FUNC_OFFSET(Jit_print));
     KEX_SET_METHOD("load", r, Jit_load);
+    KEX_SET_METHOD("addlib", r, Jit_addlib);
     KEX_SET_PROP_OBJ(obj, "Clib", r);
 
     KX_ADJST_STACK();

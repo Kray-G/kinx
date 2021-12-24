@@ -32,5 +32,25 @@ function jit2() {
     System.println(" ... ret:%x" % r);
 }
 
+function jit3() {
+    Jit.Clib.addlib("kxjit");
+    var jit_test = Jit.Clib.load("jit_test");
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.S1, Jit.IMM(jit_test));
+        c.mov(Jit.R0, Jit.IMM(0));
+        c.icall(Jit.S1);
+        c.mov(Jit.R0, "This is a message.");
+        c.icall(Jit.S1);
+        c.ret(Jit.R0);
+
+    var code = c.generate();
+    code.dump();
+
+    var r = code.run();
+    System.println(" ... ret:%x" % r);
+}
+
 jit1();
 jit2();
+jit3();
