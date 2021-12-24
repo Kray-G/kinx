@@ -7,9 +7,149 @@
 #include <jit.h>
 #ifndef _WIN32
 #include <sys/mman.h>
+#include <dlfcn.h>
+#if defined(__unix__) || defined(__APPLE__)
+#include <sys/stat.h>
+#endif
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 
 KX_DECL_MEM_ALLOCATORS();
+
+typedef struct lib {
+  const char *name;
+  void *handler;
+} lib_t;
+kvec_init_pt(lib_t);
+static kvec_pt(lib_t) alibs;
+
+#if defined(__unix__)
+#if UINTPTR_MAX == 0xffffffff
+static lib_t std_libs[] = {
+    {"/lib/libc.so.6", NULL},   {"/lib32/libc.so.6", NULL},     {"/lib/libm.so.6", NULL},
+    {"/lib32/libm.so.6", NULL}, {"/lib/libpthread.so.0", NULL}, {"/lib32/libpthread.so.0", NULL}
+};
+#elif UINTPTR_MAX == 0xffffffffffffffff
+#if defined(__x86_64__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},           {"/lib/x86_64-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},           {"/lib/x86_64-linux-gnu/libm.so.6", NULL},
+    {"/usr/lib64/libpthread.so.0", NULL}, {"/lib/x86_64-linux-gnu/libpthread.so.0", NULL}
+};
+#elif (__aarch64__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},       {"/lib/aarch64-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},       {"/lib/aarch64-linux-gnu/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL}, {"/lib/aarch64-linux-gnu/libpthread.so.0", NULL}
+};
+#elif (__PPC64__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL},
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    {"/lib/powerpc64le-linux-gnu/libc.so.6", NULL},
+    {"/lib/powerpc64le-linux-gnu/libm.so.6", NULL},
+    {"/lib/powerpc64le-linux-gnu/libpthread.so.0", NULL},
+#else
+    {"/lib/powerpc64-linux-gnu/libc.so.6", NULL},
+    {"/lib/powerpc64-linux-gnu/libm.so.6", NULL},
+    {"/lib/powerpc64-linux-gnu/libpthread.so.0", NULL},
+#endif
+};
+#elif (__s390x__)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},       {"/lib/s390x-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},       {"/lib/s390x-linux-gnu/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL}, {"/lib/s390x-linux-gnu/libpthread.so.0", NULL}
+};
+#elif (__riscv)
+static lib_t std_libs[] = {
+    {"/lib64/libc.so.6", NULL},       {"/lib/riscv64-linux-gnu/libc.so.6", NULL},
+    {"/lib64/libm.so.6", NULL},       {"/lib/riscv64-linux-gnu/libm.so.6", NULL},
+    {"/lib64/libpthread.so.0", NULL}, {"/lib/riscv64-linux-gnu/libpthread.so.0", NULL}
+};
+#else
+#error cannot recognize 32- or 64-bit target
+#endif
+#endif
+static const char *lib_suffix = ".so";
+#endif
+
+#if defined(__APPLE__)
+static lib_t std_libs[] = {{"/usr/lib/libc.dylib", NULL}, {"/usr/lib/libm.dylib", NULL}};
+static const char *lib_suffix = ".dylib";
+#endif
+
+#ifdef _WIN32
+static lib_t std_libs[] = {
+    {"C:\\Windows\\System32\\msvcrt.dll", NULL},
+    {"C:\\Windows\\System32\\kernel32.dll", NULL},
+    {"C:\\Windows\\System32\\ucrtbase.dll", NULL}
+};
+#define dlopen(n, f) LoadLibrary(n)
+#define dlclose(h) FreeLibrary(h)
+#define dlsym(h, s) GetProcAddress(h, s)
+static const char *lib_suffix = ".dll";
+#endif
+
+static void *load_function(const char *name)
+{
+    void *handler, *sym = NULL;
+
+    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
+        if ((handler = std_libs[i].handler) != NULL && (sym = dlsym(handler, name)) != NULL) {
+            break;
+        }
+    }
+    if (!sym) {
+        int l = kv_size(alibs);
+        for (int i = 0; i < l; ++i) {
+            lib_t *val = kv_A(alibs, i);
+            if ((handler = val->handler) != NULL && (sym = dlsym(handler, name)) != NULL) {
+                break;
+            }
+        }
+    }
+
+    return sym;
+}
+
+/* JIT test function */
+DllExport void jit_test(const char *msg)
+{
+    if (!msg) {
+        printf("<no message>: jit test.\n");
+    } else {
+        printf("%s\n", msg);
+    }
+}
+
+void jit_initialize(void)
+{
+    kv_init(alibs);
+    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
+        std_libs[i].handler = dlopen(std_libs[i].name, RTLD_LAZY);
+    }
+}
+
+void jit_finalize(void)
+{
+    for (int i = 0; i < sizeof(std_libs) / sizeof(lib_t); i++) {
+        if (std_libs[i].handler != NULL) {
+            dlclose(std_libs[i].handler);
+        }
+    }
+    int l = kv_size(alibs);
+    for (int i = 0; i < l; ++i) {
+        lib_t *val = kv_A(alibs, i);
+        dlclose(val->handler);
+        kx_free(val);
+    }
+    kv_destroy(alibs);
+}
 
 #define KX_ARGTYPE_SW_SW_SW ((1 << 4) | (1 << 8) | (1 << 12))
 #define KX_ARGTYPE_SW_SW_UW ((1 << 4) | (1 << 8) | (2 << 12))
@@ -39,9 +179,11 @@ KX_DECL_MEM_ALLOCATORS();
 #define KX_ARGTYPE_FP_FP_UW ((6 << 4) | (6 << 8) | (2 << 12))
 #define KX_ARGTYPE_FP_FP_FP ((6 << 4) | (6 << 8) | (6 << 12))
 
+typedef char *char_p;
 typedef struct sljit_const slconst_t;
 typedef struct sljit_jump sljump_t;
 typedef struct sljit_label sllabel_t;
+kvec_init_t(char_p);
 kvec_init_pt(slconst_t);
 kvec_init_pt(sllabel_t);
 kvec_init_pt(sljump_t);
@@ -53,9 +195,19 @@ typedef struct kx_jit_context_ {
     int len;
     int entries;
     kvec_pt(slconst_t) consts;
+    kvec_t(char_p) strs;
     kvec_pt(sllabel_t) labels;
     kvec_pt(sljump_t) jumps;
 } kx_jit_context_t;
+
+static inline const char *make_const_str(kx_jit_context_t *jtx, const char *str)
+{
+    int len = strlen(str);
+    char_p cvalue = (char_p)kx_calloc(len + 1, sizeof(char));
+    strcpy(cvalue, str);
+    kv_push(char_p, jtx->strs, cvalue);
+    return cvalue;
+}
 
 static inline int is_int(int n, int args, kx_context_t *ctx)
 {
@@ -333,7 +485,7 @@ int func(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx) \
 } \
 /**/
 
-int disasm_hex(struct ud* u) 
+int disasm_hex(struct ud* u)
 {
     int count = 0;
     if (!u->error) {
@@ -376,6 +528,13 @@ static void kx_jit_free(void *p)
         if (jtx->code) {
             sljit_free_code(jtx->code);
         }
+        int l = kv_size(jtx->strs);
+        for (int i = 0; i < l; ++i) {
+            char_p val = kv_A(jtx->strs, i);
+            kx_free(val);
+        }
+
+        kv_destroy(jtx->strs);
         kv_destroy(jtx->consts);
         kv_destroy(jtx->labels);
         kv_destroy(jtx->jumps);
@@ -607,6 +766,27 @@ int Jit_setConstDbl(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     slconst_t *cvalx = kv_A(jtx->consts, targetid);
     union { uint64_t i; double d; } conv = { .d = value };
     sljit_set_const(sljit_get_const_addr(cvalx), conv.i, sljit_get_executable_offset(jtx->C));
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
+int Jit_setConstStr(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+
+    int targetid = get_arg_int(2, args, ctx);
+    const char *str = get_arg_str(3, args, ctx);
+    if (targetid >= kv_size(jtx->consts)) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid target or label to set target");
+    }
+
+    const char *cvalue = make_const_str(jtx, str);
+    slconst_t *cvalx = kv_A(jtx->consts, targetid);
+    sljit_set_const(sljit_get_const_addr(cvalx), (sljit_sw)cvalue, sljit_get_executable_offset(jtx->C));
 
     KX_ADJST_STACK();
     push_i(ctx->stack, 0);
@@ -1083,6 +1263,27 @@ KX_JIT_OP0(Jit_sig_div, SLJIT_DIV_SW);
 KX_JIT_OP0(Jit_divmod, SLJIT_DIVMOD_UW);
 KX_JIT_OP0(Jit_sig_divmod, SLJIT_DIVMOD_SW);
 
+int Jit_movs(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args != 3) {
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
+    }
+    kx_jit_context_t *jtx = NULL;
+    kx_obj_t *obj = get_arg_obj(1, args, ctx);
+    KX_GET_JIT_CTX(jtx, obj);
+    int dst1; int64_t dst2;
+    KX_GET_OP(args, ctx, obj, jtx, dst1, dst2, 2);
+    const char *str = get_arg_str(3, args, ctx);
+    const char *cvalue = make_const_str(jtx, str);
+    sljit_emit_op1(jtx->C, SLJIT_MOV, dst1, dst2, SLJIT_IMM, (sljit_sw)cvalue);
+    if (jtx->C->error != SLJIT_SUCCESS) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", "Invalid parameter in JIT");
+    }
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
+}
+
 /* op1 */
 KX_JIT_OP1(Jit_mov, SLJIT_MOV);
 KX_JIT_OP1(Jit_not, SLJIT_NOT);
@@ -1145,20 +1346,66 @@ KX_JIT_FOP2(Jit_fsub, SLJIT_SUB_F64);
 KX_JIT_FOP2(Jit_fmul, SLJIT_MUL_F64);
 KX_JIT_FOP2(Jit_fdiv, SLJIT_DIV_F64);
 
+int Jit_load(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args != 2) {
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
+    }
+    const char *name = get_arg_str(2, args, ctx);
+    uint64_t addr = (uint64_t)load_function(name);
+    if (!addr) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", static_format("Function not found (%s)", name));
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, (int64_t)addr);
+    return 0;
+}
+
+int Jit_addlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    if (args != 2) {
+        KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
+    }
+    const char *name = get_arg_str(2, args, ctx);
+    char file[1024] = {0};
+    snprintf(file, 1000, "%s%s", name, lib_suffix);
+    char *buf = conv_utf82acp_alloc(file);
+    lib_t *info = (lib_t *)kx_calloc(1, sizeof(lib_t));
+    kv_push(lib_t*, alibs, info);
+    info->name = kx_const_str(ctx, buf);
+    info->handler = dlopen(info->name, RTLD_LAZY);
+    conv_free(buf);
+
+    if (!info->handler) {
+        KX_THROW_BLTIN_EXCEPTION("JitException", static_format("Llibrary not found (%s)", name));
+    }
+
+    KX_ADJST_STACK();
+    push_i(ctx->stack, 0);
+    return 0;
+}
+
 /* putc, putn */
-sljit_sw Jit_putc(sljit_sw a, sljit_sw b, sljit_sw c)
+static sljit_sw Jit_putc(sljit_sw a, sljit_sw b, sljit_sw c)
 {
     return printf("%c", (char)(a & 0xff));
 }
 
-sljit_sw Jit_putn(sljit_sw a, sljit_sw b, sljit_sw c)
+static sljit_sw Jit_putn(sljit_sw a, sljit_sw b, sljit_sw c)
 {
     return printf("%"PRId64, a);
+}
+
+static sljit_sw Jit_print(sljit_sw a, sljit_sw b, sljit_sw c)
+{
+    return printf("%s", (const char *)a);
 }
 
 int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 {
     kx_jit_context_t *jtx = kx_calloc(1, sizeof(kx_jit_context_t));
+    kv_init(jtx->strs);
     kv_init(jtx->consts);
     kv_init(jtx->labels);
     kv_init(jtx->jumps);
@@ -1177,6 +1424,7 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("setConstByLabel", obj, Jit_setConstByLabel);
     KEX_SET_METHOD("setConstInt", obj, Jit_setConstInt);
     KEX_SET_METHOD("setConstDbl", obj, Jit_setConstDbl);
+    KEX_SET_METHOD("setConstStr", obj, Jit_setConstStr);
     KEX_SET_METHOD("makeConst", obj, Jit_makeConst);
     KEX_SET_METHOD("makeConstDbl", obj, Jit_makeConstDbl);
     KEX_SET_METHOD("getLocalAddress", obj, Jit_getLocalAddress);
@@ -1214,6 +1462,9 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("sig_div", obj, Jit_sig_div);
     KEX_SET_METHOD("divmod", obj, Jit_divmod);
     KEX_SET_METHOD("sig_divmod", obj, Jit_sig_divmod);
+
+    /* op mov string */
+    KEX_SET_METHOD("movs", obj, Jit_movs);
 
     /* op1 */
     KEX_SET_METHOD("mov", obj, Jit_mov);
@@ -1323,6 +1574,9 @@ int Jit_setup(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     r = allocate_obj(ctx);
     KEX_SET_PROP_INT(r, "putc", SLJIT_FUNC_OFFSET(Jit_putc));
     KEX_SET_PROP_INT(r, "putn", SLJIT_FUNC_OFFSET(Jit_putn));
+    KEX_SET_PROP_INT(r, "print", SLJIT_FUNC_OFFSET(Jit_print));
+    KEX_SET_METHOD("load", r, Jit_load);
+    KEX_SET_METHOD("addlib", r, Jit_addlib);
     KEX_SET_PROP_OBJ(obj, "Clib", r);
 
     KX_ADJST_STACK();
@@ -1338,4 +1592,4 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "frunBinary", Jit_frun_bin },
 };
 
-KX_DLL_DECL_FNCTIONS(kx_bltin_info, NULL, NULL);
+KX_DLL_DECL_FNCTIONS(kx_bltin_info, jit_initialize, jit_finalize);
