@@ -121,9 +121,9 @@ static void *load_function(const char *name)
 DllExport void jit_test(const char *msg)
 {
     if (!msg) {
-        printf("<no message>: jit test.\n");
+        printf("jit test - <no message>\n");
     } else {
-        printf("%s\n", msg);
+        printf("jit test received: %s\n", msg);
     }
 }
 
