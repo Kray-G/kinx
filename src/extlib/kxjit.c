@@ -1268,6 +1268,10 @@ KX_JIT_CMP(Jit_sig_gt, SLJIT_SIG_GREATER);
 KX_JIT_CMP(Jit_sig_ge, SLJIT_SIG_GREATER_EQUAL);
 
 /* op0 */
+KX_JIT_OP0(Jit_div32, SLJIT_DIV_U32);
+KX_JIT_OP0(Jit_sig_div32, SLJIT_DIV_S32);
+KX_JIT_OP0(Jit_divmod32, SLJIT_DIVMOD_U32);
+KX_JIT_OP0(Jit_sig_divmod32, SLJIT_DIVMOD_S32);
 KX_JIT_OP0(Jit_div, SLJIT_DIV_UW);
 KX_JIT_OP0(Jit_sig_div, SLJIT_DIV_SW);
 KX_JIT_OP0(Jit_divmod, SLJIT_DIVMOD_UW);
@@ -1515,6 +1519,10 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("sig_ge", obj, Jit_sig_ge);
 
     /* op0 */
+    KEX_SET_METHOD("div32", obj, Jit_div32);
+    KEX_SET_METHOD("sig_div32", obj, Jit_sig_div32);
+    KEX_SET_METHOD("divmod32", obj, Jit_divmod32);
+    KEX_SET_METHOD("sig_divmod32", obj, Jit_sig_divmod32);
     KEX_SET_METHOD("div", obj, Jit_div);
     KEX_SET_METHOD("sig_div", obj, Jit_sig_div);
     KEX_SET_METHOD("divmod", obj, Jit_divmod);
