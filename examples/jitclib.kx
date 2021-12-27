@@ -51,6 +51,40 @@ function jit3() {
     System.println(" ... ret:%x" % r);
 }
 
+function jit4() {
+    var c = new Jit.Compiler();
+    c.enter();
+        var cx = c.makeConst(Jit.VAR(0));
+        c.mov(Jit.R0, Jit.VAR(0));
+        c.icall(Jit.Clib.print);
+        c.ret(Jit.R0);
+
+    var code = c.generate();
+    cx.setValue(<..."Help me!\n">);
+    code.dump();
+
+    var r = code.run();
+    System.println(" ... ret:%x" % r);
+}
+
+function jit5() {
+    var printf = Jit.Clib.load("printf");
+    var c = new Jit.Compiler();
+    c.enter();
+        c.mov(Jit.R1, 100);
+        c.mov(Jit.R0, <..."Don't help me! %d\n">);
+        c.icall(printf);
+        c.ret(Jit.R0);
+
+    var code = c.generate();
+    code.dump();
+
+    var r = code.run();
+    System.println(" ... ret:%x" % r);
+}
+
 jit1();
 jit2();
 jit3();
+jit4();
+jit5();
