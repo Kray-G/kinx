@@ -271,14 +271,71 @@ const Jit;
         }
         public f2i(dst, op1) {
             if (isNotFP(dst) && isFP(op1)) {
-                operate1("f2sw", dst, op1);
+                operate1("conv_f64_sw", dst, op1);
             } else {
                 throw RuntimeException("Type mismatch");
             }
         }
         public i2f(dst, op1) {
             if (isFP(dst) && isNotFP(op1)) {
-                operate1("sw2f", dst, op1);
+                operate1("conv_sw_f64", dst, op1);
+            } else {
+                throw RuntimeException("Type mismatch");
+            }
+        }
+        private fmovX(dst, op1, fm, conv) {
+            op1 = makeLiteral(op1);
+            if (isFP(dst)) {
+                if (isMEM(op1) || isFP(op1)) {
+                    operate1(fm, dst, op1);
+                } else {
+                    operate1(conv, dst, op1);
+                }
+            } else {
+                throw RuntimeException("Type mismatch");
+            }
+        }
+        public fmov32(dst, op1) {
+            return fmovX(dst, op1, "fmov32", "conv_s64_f32");
+        }
+        public fmov(dst, op1) {
+            return fmovX(dst, op1, "fmov", "conv_sw_f64");
+        }
+        public movX(dst, op1, mv) {
+            op1 = makeLiteral(op1);
+            if (!isFP(dst)) {
+                if (!isFP(op1)) {
+                    operate1(mv, dst, op1);
+                } else {
+                    throw RuntimeException("Type mismatch");
+                }
+            } else {
+                throw RuntimeException("Type mismatch");
+            }
+        }
+        public mov8s(dst, op1) {
+            return movX(dst, op1, "mov8s");
+        }
+        public mov16s(dst, op1) {
+            return movX(dst, op1, "mov16s");
+        }
+        public mov32s(dst, op1) {
+            return movX(dst, op1, "mov32s");
+        }
+        public mov8(dst, op1) {
+            return movX(dst, op1, "mov8");
+        }
+        public mov16(dst, op1) {
+            return movX(dst, op1, "mov16");
+        }
+        public mov32(dst, op1) {
+            op1 = makeLiteral(op1);
+            if (!isFP(dst)) {
+                if (isFP(op1)) {
+                    operate1("conv_f64_s32", dst, op1);
+                } else {
+                    operate1("mov32", dst, op1);
+                }
             } else {
                 throw RuntimeException("Type mismatch");
             }
@@ -291,7 +348,7 @@ const Jit;
                 } else if (isImmFP(op1)) {
                     operate1("fmovimm", dst, op1);
                 } else {
-                    operate1("sw2f", dst, op1);
+                    operate1("conv_sw_f64", dst, op1);
                 }
             } else if (isMEM(dst)) {
                 if (isFP(op1) || isImmFP(op1)) {
@@ -303,7 +360,7 @@ const Jit;
                 }
             } else {
                 if (isFP(op1)) {
-                    operate1("f2sw", dst, op1);
+                    operate1("conv_f64_sw", dst, op1);
                 } else if (isImmFP(op1)) {
                     op1[1] = Integer.parseInt(op1[1]);
                     operate1("mov", dst, op1);
@@ -314,119 +371,104 @@ const Jit;
                 }
             }
         }
-        public not(dst, op1) {
+        private op1convX(dst, op1, conv, s) {
             checkIsDstNotFP(dst);
             if (isFP(op1)) {
-                operate1("f2sw", dst, op1);
-                operate1("not", dst, dst);
-            } else {
-                operate1("not", dst, op1);
+                operate1(conv, dst, op1);
             }
+            operate1(s, dst, dst);
+        }
+        public not32(dst, op1) {
+            return op1convX(dst, op1, "conv_f64_s32", "not32");
+        }
+        public neg32(dst, op1) {
+            return op1convX(dst, op1, "conv_f64_s32", "neg32");
+        }
+        public clz32(dst, op1) {
+            return op1convX(dst, op1, "conv_f64_s32", "clz32");
+        }
+        public not(dst, op1) {
+            return op1convX(dst, op1, "conv_f64_sw", "not");
         }
         public neg(dst, op1) {
-            checkIsDstNotFP(dst);
-            if (isFP(op1)) {
-                operate1("f2sw", dst, op1);
-                operate1("neg", dst, dst);
-            } else {
-                operate1("neg", dst, op1);
-            }
+            return op1convX(dst, op1, "conv_f64_sw", "neg");
         }
         public clz(dst, op1) {
-            checkIsDstNotFP(dst);
-            if (isFP(op1)) {
-                operate1("f2sw", dst, op1);
-                operate1("clz", dst, dst);
+            return op1convX(dst, op1, "conv_f64_sw", "clz");
+        }
+        private op2x(dst, op1, op2, f, s) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
+            if (isFP(dst, op1, op2)) {
+                operate2(f, dst, op1, op2);
+            } else if (isNotFP(dst, op1, op2)) {
+                operate2(s, dst, op1, op2);
             } else {
-                operate1("clz", dst, op1);
+                throw RuntimeException("Type mismatch");
             }
+        }
+        private op1x(dst, op1, op2, s) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
+            if (isNotFP(dst, op1, op2)) {
+                operate2(s, dst, op1, op2);
+            } else {
+                throw RuntimeException("Type mismatch");
+            }
+        }
+        public add32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "fadd32", "add32");
+        }
+        public sub32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "fsub32", "sub32");
+        }
+        public mul32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "fmul32", "mul32");
+        }
+        public and32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "and32");
+        }
+        public or32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "or32");
+        }
+        public xor32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "xor32");
+        }
+        public shl32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "shl32");
+        }
+        public lshr32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "lshr32");
+        }
+        public ashr32(dst, op1, op2) {
+            return op2x(dst, op1, op2, "ashr32");
         }
         public add(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isFP(dst, op1, op2)) {
-                operate2("fadd", dst, op1, op2);
-            } else if (isNotFP(dst, op1, op2)) {
-                operate2("add", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "fadd", "add");
         }
         public sub(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isFP(dst, op1, op2)) {
-                operate2("fsub", dst, op1, op2);
-            } else if (isNotFP(dst, op1, op2)) {
-                operate2("sub", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "fsub", "sub");
         }
         public mul(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isFP(dst, op1, op2)) {
-                operate2("fmul", dst, op1, op2);
-            } else if (isNotFP(dst, op1, op2)) {
-                operate2("mul", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "fmul", "mul");
         }
         public and(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(dst, op1, op2)) {
-                operate2("and", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "and");
         }
         public or(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(dst, op1, op2)) {
-                operate2("or", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "or");
         }
         public xor(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(dst, op1, op2)) {
-                operate2("xor", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "xor");
         }
         public shl(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(dst, op1, op2)) {
-                operate2("shl", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "shl");
         }
         public lshr(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(dst, op1, op2)) {
-                operate2("lshr", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "lshr");
         }
         public ashr(dst, op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(dst, op1, op2)) {
-                operate2("ashr", dst, op1, op2);
-            } else {
-                throw RuntimeException("Type mismatch");
-            }
+            return op2x(dst, op1, op2, "ashr");
         }
         public call(label) {
             inst_.push(_function() { c_.call(label); });
@@ -455,107 +497,84 @@ const Jit;
             checkRegister(op2);
             inst_.push(_function() { c_[intf](op1, op2); });
         }
-        public eq(op1, op2) {
+        private operateCmpX(op1, op2, s, f) {
             op1 = makeLiteral(op1);
             op2 = makeLiteral(op2);
             if (isNotFP(op1, op2)) {
-                operateCmp("eq", op1, op2);
+                operateCmp(s, op1, op2);
             } else {
                 if (isImmFP(op2)) {
                     throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
                 }
-                operateCmp("feq", op1, op2);
+                operateCmp(f, op1, op2);
             }
             return new JumpTarget(c_, repl_, jump_++);
+        }
+        private operateCmpSX(op1, op2, s) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
+            operateCmp(s, op1, op2);
+            return new JumpTarget(c_, repl_, jump_++);
+        }
+        public eq32(op1, op2) {
+            return operateCmpX(op1, op2, "eq32", "feq32");
+        }
+        public neq32(op1, op2) {
+            return operateCmpX(op1, op2, "neq32", "fneq32");
+        }
+        public lt32(op1, op2) {
+            return operateCmpX(op1, op2, "lt32", "flt32");
+        }
+        public le32(op1, op2) {
+            return operateCmpX(op1, op2, "le32", "fle32");
+        }
+        public gt32(op1, op2) {
+            return operateCmpX(op1, op2, "gt32", "fgt32");
+        }
+        public ge32(op1, op2) {
+            return operateCmpX(op1, op2, "ge32", "fge32");
+        }
+        public slt32(op1, op2) {
+            return operateCmpSX(op1, op2, "sig_lt32");
+        }
+        public sle32(op1, op2) {
+            return operateCmpSX(op1, op2, "sig_le32");
+        }
+        public sgt32(op1, op2) {
+            return operateCmpSX(op1, op2, "sig_gt32");
+        }
+        public sge32(op1, op2) {
+            return operateCmpSX(op1, op2, "sig_ge32");
+        }
+        public eq(op1, op2) {
+            return operateCmpX(op1, op2, "eq", "feq");
         }
         public neq(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(op1, op2)) {
-                operateCmp("neq", op1, op2);
-            } else {
-                if (isImmFP(op2)) {
-                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
-                }
-                operateCmp("fneq", op1, op2);
-            }
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpX(op1, op2, "neq", "fneq");
         }
         public lt(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(op1, op2)) {
-                operateCmp("lt", op1, op2);
-            } else {
-                if (isImmFP(op2)) {
-                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
-                }
-                operateCmp("flt", op1, op2);
-            }
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpX(op1, op2, "lt", "flt");
         }
         public le(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(op1, op2)) {
-                operateCmp("le", op1, op2);
-            } else {
-                if (isImmFP(op2)) {
-                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
-                }
-                operateCmp("fle", op1, op2);
-            }
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpX(op1, op2, "le", "fle");
         }
         public gt(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(op1)) {
-                operateCmp("gt", op1, op2);
-            } else {
-                if (isImmFP(op2)) {
-                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
-                }
-                operateCmp("fgt", op1, op2);
-            }
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpX(op1, op2, "gt", "fgt");
         }
         public ge(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            if (isNotFP(op1)) {
-                operateCmp("ge", op1, op2);
-            } else {
-                if (isImmFP(op2)) {
-                    throw RuntimeException("Immediate value cannot be used with Floating point comparison, assign it to the register first.");
-                }
-                operateCmp("fge", op1, op2);
-            }
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpX(op1, op2, "ge", "fge");
         }
         public slt(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            operateCmp("sig_lt", op1, op2);
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpSX(op1, op2, "sig_lt");
         }
         public sle(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            operateCmp("sig_le", op1, op2);
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpSX(op1, op2, "sig_le");
         }
         public sgt(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            operateCmp("sig_gt", op1, op2);
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpSX(op1, op2, "sig_gt");
         }
         public sge(op1, op2) {
-            op1 = makeLiteral(op1);
-            op2 = makeLiteral(op2);
-            operateCmp("sig_ge", op1, op2);
-            return new JumpTarget(c_, repl_, jump_++);
+            return operateCmpSX(op1, op2, "sig_ge");
         }
         public generate() {
             func_.each(function(f) {

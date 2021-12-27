@@ -1246,6 +1246,16 @@ int Jit_getBinary(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 }
 
 /* cmp */
+KX_JIT_CMP(Jit_eq32, SLJIT_EQUAL32);
+KX_JIT_CMP(Jit_neq32, SLJIT_NOT_EQUAL32);
+KX_JIT_CMP(Jit_lt32, SLJIT_LESS32);
+KX_JIT_CMP(Jit_le32, SLJIT_LESS_EQUAL32);
+KX_JIT_CMP(Jit_gt32, SLJIT_GREATER32);
+KX_JIT_CMP(Jit_ge32, SLJIT_GREATER_EQUAL32);
+KX_JIT_CMP(Jit_sig_lt32, SLJIT_SIG_LESS32);
+KX_JIT_CMP(Jit_sig_le32, SLJIT_SIG_LESS_EQUAL32);
+KX_JIT_CMP(Jit_sig_gt32, SLJIT_SIG_GREATER32);
+KX_JIT_CMP(Jit_sig_ge32, SLJIT_SIG_GREATER_EQUAL32);
 KX_JIT_CMP(Jit_eq, SLJIT_EQUAL);
 KX_JIT_CMP(Jit_neq, SLJIT_NOT_EQUAL);
 KX_JIT_CMP(Jit_lt, SLJIT_LESS);
@@ -1285,12 +1295,30 @@ int Jit_movs(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 }
 
 /* op1 */
+KX_JIT_OP1(Jit_mov8s, SLJIT_MOV_S8);
+KX_JIT_OP1(Jit_mov8, SLJIT_MOV_U8);
+KX_JIT_OP1(Jit_mov16s, SLJIT_MOV_S16);
+KX_JIT_OP1(Jit_mov16, SLJIT_MOV_U16);
+KX_JIT_OP1(Jit_mov32s, SLJIT_MOV_S32);
+KX_JIT_OP1(Jit_mov32, SLJIT_MOV_U32);
 KX_JIT_OP1(Jit_mov, SLJIT_MOV);
+KX_JIT_OP1(Jit_not32, SLJIT_NOT32);
+KX_JIT_OP1(Jit_neg32, SLJIT_NEG32);
+KX_JIT_OP1(Jit_clz32, SLJIT_CLZ32);
 KX_JIT_OP1(Jit_not, SLJIT_NOT);
 KX_JIT_OP1(Jit_neg, SLJIT_NEG);
 KX_JIT_OP1(Jit_clz, SLJIT_CLZ);
 
 /* op2 */
+KX_JIT_OP2(Jit_add32, SLJIT_ADD32);
+KX_JIT_OP2(Jit_sub32, SLJIT_SUB32);
+KX_JIT_OP2(Jit_mul32, SLJIT_MUL32);
+KX_JIT_OP2(Jit_and32, SLJIT_AND32);
+KX_JIT_OP2(Jit_or32,  SLJIT_OR32);
+KX_JIT_OP2(Jit_xor32, SLJIT_XOR32);
+KX_JIT_OP2(Jit_shl32, SLJIT_SHL32);
+KX_JIT_OP2(Jit_lshr32, SLJIT_LSHR32);
+KX_JIT_OP2(Jit_ashr32, SLJIT_ASHR32);
 KX_JIT_OP2(Jit_add, SLJIT_ADD);
 KX_JIT_OP2(Jit_sub, SLJIT_SUB);
 KX_JIT_OP2(Jit_mul, SLJIT_MUL);
@@ -1302,6 +1330,12 @@ KX_JIT_OP2(Jit_lshr, SLJIT_LSHR);
 KX_JIT_OP2(Jit_ashr, SLJIT_ASHR);
 
 /* fcmp */
+KX_JIT_FCMP(Jit_feq32, SLJIT_EQUAL_F32);
+KX_JIT_FCMP(Jit_fneq32, SLJIT_NOT_EQUAL_F32);
+KX_JIT_FCMP(Jit_flt32, SLJIT_LESS_F32);
+KX_JIT_FCMP(Jit_fle32, SLJIT_LESS_EQUAL_F32);
+KX_JIT_FCMP(Jit_fgt32, SLJIT_GREATER_F32);
+KX_JIT_FCMP(Jit_fge32, SLJIT_GREATER_EQUAL_F32);
 KX_JIT_FCMP(Jit_feq, SLJIT_EQUAL_F64);
 KX_JIT_FCMP(Jit_fneq, SLJIT_NOT_EQUAL_F64);
 KX_JIT_FCMP(Jit_flt, SLJIT_LESS_F64);
@@ -1310,9 +1344,18 @@ KX_JIT_FCMP(Jit_fgt, SLJIT_GREATER_F64);
 KX_JIT_FCMP(Jit_fge, SLJIT_GREATER_EQUAL_F64);
 
 /* fop1 */
+KX_JIT_FOP1(Jit_fmov32, SLJIT_MOV_F32);
 KX_JIT_FOP1(Jit_fmov, SLJIT_MOV_F64);
+KX_JIT_FOP1(Jit_f32_2_s32, SLJIT_CONV_S32_FROM_F32);
+KX_JIT_FOP1(Jit_s32_2_f32, SLJIT_CONV_F32_FROM_S32);
+KX_JIT_FOP1(Jit_f32_2_sw, SLJIT_CONV_SW_FROM_F32);
+KX_JIT_FOP1(Jit_sw_2_f32, SLJIT_CONV_F32_FROM_SW);
+KX_JIT_FOP1(Jit_f64_2_s32, SLJIT_CONV_S32_FROM_F64);
+KX_JIT_FOP1(Jit_s32_2_f64, SLJIT_CONV_F64_FROM_S32);
 KX_JIT_FOP1(Jit_f64_2_sw, SLJIT_CONV_SW_FROM_F64);
 KX_JIT_FOP1(Jit_sw_2_f64, SLJIT_CONV_F64_FROM_SW);
+KX_JIT_FOP1(Jit_fneg32, SLJIT_NEG_F32);
+KX_JIT_FOP1(Jit_fabs32, SLJIT_ABS_F32);
 KX_JIT_FOP1(Jit_fneg, SLJIT_NEG_F64);
 KX_JIT_FOP1(Jit_fabs, SLJIT_ABS_F64);
 
@@ -1341,6 +1384,10 @@ int Jit_fmovimm(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 /**/
 
 /* fop2 */
+KX_JIT_FOP2(Jit_fadd32, SLJIT_ADD_F32);
+KX_JIT_FOP2(Jit_fsub32, SLJIT_SUB_F32);
+KX_JIT_FOP2(Jit_fmul32, SLJIT_MUL_F32);
+KX_JIT_FOP2(Jit_fdiv32, SLJIT_DIV_F32);
 KX_JIT_FOP2(Jit_fadd, SLJIT_ADD_F64);
 KX_JIT_FOP2(Jit_fsub, SLJIT_SUB_F64);
 KX_JIT_FOP2(Jit_fmul, SLJIT_MUL_F64);
@@ -1446,6 +1493,16 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("runCodeDouble", obj, Jit_frun);
 
     /* cmp */
+    KEX_SET_METHOD("eq32", obj, Jit_eq32);
+    KEX_SET_METHOD("neq32", obj, Jit_neq32);
+    KEX_SET_METHOD("lt32", obj, Jit_lt32);
+    KEX_SET_METHOD("le32", obj, Jit_le32);
+    KEX_SET_METHOD("gt32", obj, Jit_gt32);
+    KEX_SET_METHOD("ge32", obj, Jit_ge32);
+    KEX_SET_METHOD("sig_lt32", obj, Jit_sig_lt32);
+    KEX_SET_METHOD("sig_le32", obj, Jit_sig_le32);
+    KEX_SET_METHOD("sig_gt32", obj, Jit_sig_gt32);
+    KEX_SET_METHOD("sig_ge32", obj, Jit_sig_ge32);
     KEX_SET_METHOD("eq", obj, Jit_eq);
     KEX_SET_METHOD("neq", obj, Jit_neq);
     KEX_SET_METHOD("lt", obj, Jit_lt);
@@ -1467,12 +1524,30 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("movs", obj, Jit_movs);
 
     /* op1 */
+    KEX_SET_METHOD("mov8s", obj, Jit_mov8s);
+    KEX_SET_METHOD("mov16s", obj, Jit_mov16s);
+    KEX_SET_METHOD("mov32s", obj, Jit_mov32s);
+    KEX_SET_METHOD("mov8", obj, Jit_mov8);
+    KEX_SET_METHOD("mov16", obj, Jit_mov16);
+    KEX_SET_METHOD("mov32", obj, Jit_mov32);
     KEX_SET_METHOD("mov", obj, Jit_mov);
+    KEX_SET_METHOD("not32", obj, Jit_not32);
+    KEX_SET_METHOD("neg32", obj, Jit_neg32);
+    KEX_SET_METHOD("clz32", obj, Jit_clz32);
     KEX_SET_METHOD("not", obj, Jit_not);
     KEX_SET_METHOD("neg", obj, Jit_neg);
     KEX_SET_METHOD("clz", obj, Jit_clz);
 
     /* op2 */
+    KEX_SET_METHOD("add32", obj, Jit_add32);
+    KEX_SET_METHOD("sub32", obj, Jit_sub32);
+    KEX_SET_METHOD("mul32", obj, Jit_mul32);
+    KEX_SET_METHOD("and32", obj, Jit_and32);
+    KEX_SET_METHOD("or32", obj, Jit_or32);
+    KEX_SET_METHOD("xor32", obj, Jit_xor32);
+    KEX_SET_METHOD("shl32", obj, Jit_shl32);
+    KEX_SET_METHOD("lshr32", obj, Jit_lshr32);
+    KEX_SET_METHOD("ashr32", obj, Jit_ashr32);
     KEX_SET_METHOD("add", obj, Jit_add);
     KEX_SET_METHOD("sub", obj, Jit_sub);
     KEX_SET_METHOD("mul", obj, Jit_mul);
@@ -1484,6 +1559,12 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("ashr", obj, Jit_ashr);
 
     /* fcmp */
+    KEX_SET_METHOD("feq32", obj, Jit_feq32);
+    KEX_SET_METHOD("fneq32", obj, Jit_fneq32);
+    KEX_SET_METHOD("flt32", obj, Jit_flt32);
+    KEX_SET_METHOD("fle32", obj, Jit_fle32);
+    KEX_SET_METHOD("fgt32", obj, Jit_fgt32);
+    KEX_SET_METHOD("fge32", obj, Jit_fge32);
     KEX_SET_METHOD("feq", obj, Jit_feq);
     KEX_SET_METHOD("fneq", obj, Jit_fneq);
     KEX_SET_METHOD("flt", obj, Jit_flt);
@@ -1492,14 +1573,27 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("fge", obj, Jit_fge);
 
     /* fop1 */
+    KEX_SET_METHOD("fmov32", obj, Jit_fmov32);
     KEX_SET_METHOD("fmov", obj, Jit_fmov);
     KEX_SET_METHOD("fmovimm", obj, Jit_fmovimm);
-    KEX_SET_METHOD("f2sw", obj, Jit_f64_2_sw);
-    KEX_SET_METHOD("sw2f", obj, Jit_sw_2_f64);
+    KEX_SET_METHOD("conv_f32_s32", obj, Jit_f32_2_s32);
+    KEX_SET_METHOD("conv_s32_f32", obj, Jit_s32_2_f32);
+    KEX_SET_METHOD("conv_f64_s32", obj, Jit_f64_2_s32);
+    KEX_SET_METHOD("conv_s32_f64", obj, Jit_s32_2_f64);
+    KEX_SET_METHOD("conv_f32_sw", obj, Jit_f64_2_sw);
+    KEX_SET_METHOD("conv_sw_f32", obj, Jit_sw_2_f32);
+    KEX_SET_METHOD("conv_f64_sw", obj, Jit_f64_2_sw);
+    KEX_SET_METHOD("conv_sw_f64", obj, Jit_sw_2_f64);
+    KEX_SET_METHOD("fneg32", obj, Jit_fneg32);
+    KEX_SET_METHOD("fabs32", obj, Jit_fabs32);
     KEX_SET_METHOD("fneg", obj, Jit_fneg);
     KEX_SET_METHOD("fabs", obj, Jit_fabs);
 
     /* fop2 */
+    KEX_SET_METHOD("fadd32", obj, Jit_fadd32);
+    KEX_SET_METHOD("fsub32", obj, Jit_fsub32);
+    KEX_SET_METHOD("fmul32", obj, Jit_fmul32);
+    KEX_SET_METHOD("fdiv32", obj, Jit_fdiv32);
     KEX_SET_METHOD("fadd", obj, Jit_fadd);
     KEX_SET_METHOD("fsub", obj, Jit_fsub);
     KEX_SET_METHOD("fmul", obj, Jit_fmul);
