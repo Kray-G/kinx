@@ -13,7 +13,13 @@
             *   Scan for the update.
             *   Search packages with pattern matching.
 
-## V1.2.0 (Current Development Version)
+### Enhancements/BugFixes since 1.1.0 that will be merged into 1.2.0.
+
+*   Improvements/Enhancements
+    *   #352: JIT library enhancement.
+        * [x] Support a string.
+        * [x] Load a C function and use it.
+        * [x] Direct write of a literal without Jit.IMM.
 
 ## V1.1.0 (Official Release) - 2021/12/06
 
