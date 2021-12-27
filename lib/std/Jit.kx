@@ -170,6 +170,12 @@ const Jit;
                 }
             }
         }
+        private makeLiteral(op1) {
+            if (op1.isInteger || op1.isDouble) {
+                op1 = Jit.IMM(op1);
+            }
+            return op1;
+        }
         public label() {
             inst_.push(_function() { c_.label(); });
             return label_++;
@@ -210,6 +216,7 @@ const Jit;
             return chk_.entry;
         }
         public ret(val) {
+            val = makeLiteral(val);
             checkRegister(val);
             if (chk_.fast) {
                 if (isFP(val)) {
@@ -277,6 +284,7 @@ const Jit;
             }
         }
         public mov(dst, op1) {
+            op1 = makeLiteral(op1);
             if (isFP(dst)) {
                 if (isMEM(op1) || isFP(op1)) {
                     operate1("fmov", dst, op1);
@@ -334,6 +342,8 @@ const Jit;
             }
         }
         public add(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isFP(dst, op1, op2)) {
                 operate2("fadd", dst, op1, op2);
             } else if (isNotFP(dst, op1, op2)) {
@@ -343,6 +353,8 @@ const Jit;
             }
         }
         public sub(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isFP(dst, op1, op2)) {
                 operate2("fsub", dst, op1, op2);
             } else if (isNotFP(dst, op1, op2)) {
@@ -352,6 +364,8 @@ const Jit;
             }
         }
         public mul(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isFP(dst, op1, op2)) {
                 operate2("fmul", dst, op1, op2);
             } else if (isNotFP(dst, op1, op2)) {
@@ -361,6 +375,8 @@ const Jit;
             }
         }
         public and(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(dst, op1, op2)) {
                 operate2("and", dst, op1, op2);
             } else {
@@ -368,6 +384,8 @@ const Jit;
             }
         }
         public or(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(dst, op1, op2)) {
                 operate2("or", dst, op1, op2);
             } else {
@@ -375,6 +393,8 @@ const Jit;
             }
         }
         public xor(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(dst, op1, op2)) {
                 operate2("xor", dst, op1, op2);
             } else {
@@ -382,6 +402,8 @@ const Jit;
             }
         }
         public shl(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(dst, op1, op2)) {
                 operate2("shl", dst, op1, op2);
             } else {
@@ -389,6 +411,8 @@ const Jit;
             }
         }
         public lshr(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(dst, op1, op2)) {
                 operate2("lshr", dst, op1, op2);
             } else {
@@ -396,6 +420,8 @@ const Jit;
             }
         }
         public ashr(dst, op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(dst, op1, op2)) {
                 operate2("ashr", dst, op1, op2);
             } else {
@@ -415,10 +441,12 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public ijmp(dst) {
+            dst = makeLiteral(dst);
             checkRegister(dst);
             inst_.push(_function() { c_.ijump(dst); });
         }
         public icall(dst) {
+            dst = makeLiteral(dst);
             checkRegister(dst);
             inst_.push(_function() { c_.icall(dst); });
         }
@@ -428,6 +456,8 @@ const Jit;
             inst_.push(_function() { c_[intf](op1, op2); });
         }
         public eq(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(op1, op2)) {
                 operateCmp("eq", op1, op2);
             } else {
@@ -439,6 +469,8 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public neq(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(op1, op2)) {
                 operateCmp("neq", op1, op2);
             } else {
@@ -450,6 +482,8 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public lt(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(op1, op2)) {
                 operateCmp("lt", op1, op2);
             } else {
@@ -461,6 +495,8 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public le(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(op1, op2)) {
                 operateCmp("le", op1, op2);
             } else {
@@ -472,6 +508,8 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public gt(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(op1)) {
                 operateCmp("gt", op1, op2);
             } else {
@@ -483,6 +521,8 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public ge(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             if (isNotFP(op1)) {
                 operateCmp("ge", op1, op2);
             } else {
@@ -494,18 +534,26 @@ const Jit;
             return new JumpTarget(c_, repl_, jump_++);
         }
         public slt(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             operateCmp("sig_lt", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
         public sle(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             operateCmp("sig_le", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
         public sgt(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             operateCmp("sig_gt", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
         public sge(op1, op2) {
+            op1 = makeLiteral(op1);
+            op2 = makeLiteral(op2);
             operateCmp("sig_ge", op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
         }
