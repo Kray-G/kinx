@@ -12,16 +12,16 @@ function jit_001() {
     c.enter();
         c.add(Jit.VAR(0), Jit.S0, Jit.S1);
         c.add(Jit.VAR(0), Jit.VAR(0), Jit.S2);
-        c.add(Jit.VAR(0), Jit.VAR(0), Jit.IMM(100));
-        c.mov(Jit.R0, Jit.IMM(1));
-        c.mov(Jit.R1, Jit.IMM(2));
-        c.mov(Jit.R2, Jit.IMM(3));
+        c.add(Jit.VAR(0), Jit.VAR(0), 100);
+        c.mov(Jit.R0, 1);
+        c.mov(Jit.R1, 2);
+        c.mov(Jit.R2, 3);
         var call1 = c.call();
         c.add(Jit.VAR(0), Jit.VAR(0), Jit.R0);
         c.ret(Jit.VAR(0));
 
     var entry1 = c.enter();
-        c.ret(Jit.IMM(100));
+        c.ret(100);
 
     var entry2 = c.enter();
         c.add(Jit.R1, Jit.S0, Jit.S1);
@@ -38,10 +38,10 @@ function jit_001() {
 function jit_002() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R0, Jit.IMM(100));
-        c.mov(Jit.R1, Jit.IMM(110));
-        c.mov(Jit.R2, Jit.IMM(120));
-        c.mov(Jit.R3, Jit.IMM(130));
+        c.mov(Jit.R0, 100);
+        c.mov(Jit.R1, 110);
+        c.mov(Jit.R2, 120);
+        c.mov(Jit.R3, 130);
         var c1 = c.fastCall();
         c.ret(Jit.R0);
 
@@ -59,11 +59,11 @@ function jit_002() {
 function jit_003() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R0, Jit.IMM(100));
+        c.mov(Jit.R0, 100);
         var j1 = c.jmp();
         c.ret(Jit.R0);
         var l1 = c.label();
-        c.mov(Jit.R1, Jit.IMM(101));
+        c.mov(Jit.R1, 101);
         c.ret(Jit.R1);
 
     j1.setLabel(l1);
@@ -74,7 +74,7 @@ function jit_003() {
 function jit_004_1() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R0, Jit.IMM(100.0));
+        c.mov(Jit.R0, 100.0);
         var const1 = c.makeConst(Jit.R1);
         c.ijmp(Jit.R1);
         c.ret(Jit.R0);
@@ -94,8 +94,8 @@ function jit_004_1() {
 function jit_004_2() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R0, Jit.IMM('a'[0]));
-        c.icall(Jit.IMM(Jit.Clib.putc));
+        c.mov(Jit.R0, 'a'[0]);
+        c.icall(Jit.Clib.putc);
         c.ret(Jit.R0);
 
     var code = c.generate();
@@ -108,8 +108,8 @@ function jit_004_2() {
 function jit_004_3() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R0, Jit.IMM('a'[0]));
-        c.icall(Jit.IMM(Jit.Clib.putn));
+        c.mov(Jit.R0, 'a'[0]);
+        c.icall(Jit.Clib.putn);
         c.ret(Jit.R0);
 
     var code = c.generate();
@@ -122,9 +122,9 @@ function jit_004_3() {
 function jit_005() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R1, Jit.IMM(-1));
-        var jump0 = c.slt(Jit.S0, Jit.IMM(0));
-        var jump1 = c.sgt(Jit.S0, Jit.IMM(3));
+        c.mov(Jit.R1, -1);
+        var jump0 = c.slt(Jit.S0, 0);
+        var jump1 = c.sgt(Jit.S0, 3);
         var const0 = c.makeConst(Jit.VAR(0));
         var const1 = c.makeConst(Jit.VAR(1));
         var const2 = c.makeConst(Jit.VAR(2));
@@ -133,16 +133,16 @@ function jit_005() {
         c.mov(Jit.R0, Jit.MEM1(Jit.R0));
         c.ijmp(Jit.R0);
         var l0 = c.label();
-        c.mov(Jit.R1, Jit.IMM(102));
+        c.mov(Jit.R1, 102);
         c.ret(Jit.R1);
         var l1 = c.label();
-        c.mov(Jit.R1, Jit.IMM(103));
+        c.mov(Jit.R1, 103);
         c.ret(Jit.R1);
         var l2 = c.label();
-        c.mov(Jit.R1, Jit.IMM(104));
+        c.mov(Jit.R1, 104);
         c.ret(Jit.R1);
         var l3 = c.label();
-        c.mov(Jit.R1, Jit.IMM(105));
+        c.mov(Jit.R1, 105);
         var l4 = c.label();
         c.ret(Jit.R1);
 
@@ -165,24 +165,24 @@ function jit_005() {
 function jit_006() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.VAR(4), Jit.IMM(0));
-        var jump0 = c.eq(Jit.S0, Jit.IMM(0));
-        var jump1 = c.eq(Jit.S0, Jit.IMM(1));
-        var jump2 = c.eq(Jit.S0, Jit.IMM(2));
-        var jump3 = c.eq(Jit.S0, Jit.IMM(3));
-        c.mov(Jit.R1, Jit.IMM(-1));
+        c.mov(Jit.VAR(4), 0);
+        var jump0 = c.eq(Jit.S0, 0);
+        var jump1 = c.eq(Jit.S0, 1);
+        var jump2 = c.eq(Jit.S0, 2);
+        var jump3 = c.eq(Jit.S0, 3);
+        c.mov(Jit.R1, -1);
         var jump4 = c.jmp();
         var l0 = c.label();
-        c.mov(Jit.R1, Jit.IMM(102));
+        c.mov(Jit.R1, 102);
         c.ret(Jit.R1);
         var l1 = c.label();
-        c.mov(Jit.R1, Jit.IMM(103));
+        c.mov(Jit.R1, 103);
         c.ret(Jit.R1);
         var l2 = c.label();
-        c.mov(Jit.R1, Jit.IMM(104));
+        c.mov(Jit.R1, 104);
         c.ret(Jit.R1);
         var l3 = c.label();
-        c.mov(Jit.R1, Jit.IMM(105));
+        c.mov(Jit.R1, 105);
         var l4 = c.label();
         c.ret(Jit.R1);
 
@@ -204,13 +204,13 @@ function jit_006() {
 function jit_007() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R0, Jit.IMM(100));
+        c.mov(Jit.R0, 100);
         var jump1 = c.sge(Jit.S0, Jit.R0);
-        c.ret(Jit.IMM(0));
+        c.ret(0);
         var l1 = c.label();
-        c.mov(Jit.R0, Jit.IMM(9));
+        c.mov(Jit.R0, 9);
         c.neg(Jit.R0, Jit.R0);
-        c.mov(Jit.R1, Jit.IMM(2));
+        c.mov(Jit.R1, 2);
         c.divmod();
         c.ret(Jit.R1);
 
@@ -228,11 +228,11 @@ function jit_007() {
 function jit_008() {
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.FR1, Jit.IMM(100));
-        c.add(Jit.S0, Jit.S0, Jit.IMM(100));
+        c.mov(Jit.FR1, 100);
+        c.add(Jit.S0, Jit.S0, 100);
         c.i2f(Jit.FR2, Jit.S0);
         var jump1 = c.lt(Jit.FR1, Jit.FR2);
-        c.ret(Jit.IMM(-1));
+        c.ret(-1);
         var l1 = c.label();
         c.mov(Jit.R1, Jit.S0);
         c.f2i(Jit.R2, Jit.FR1);
@@ -267,13 +267,13 @@ function jit_fib() {
     # Fibonacci.
     var c = new Jit.Compiler();
     var entry1 = c.enter();
-        var jump0 = c.ge(Jit.S0, Jit.IMM(3));
+        var jump0 = c.ge(Jit.S0, 3);
         c.ret(Jit.S0);
         var l1 = c.label();
-        c.sub(Jit.R0, Jit.S0, Jit.IMM(2));
+        c.sub(Jit.R0, Jit.S0, 2);
         c.call(entry1);
         c.mov(Jit.S1, Jit.R0);
-        c.sub(Jit.R0, Jit.S0, Jit.IMM(1));
+        c.sub(Jit.R0, Jit.S0, 1);
         c.call(entry1);
         c.add(Jit.R0, Jit.R0, Jit.S1);
         c.ret(Jit.R0);
@@ -295,9 +295,9 @@ function jit_fib2() {
     var c = new Jit.Compiler();
     var entry1 = c.enter();
         c.mov(Jit.VAR(0), Jit.S0);
-        c.mov(Jit.VAR(1), Jit.IMM(3));
-        c.mov(Jit.VAR(2), Jit.IMM(2));
-        c.mov(Jit.VAR(3), Jit.IMM(1));
+        c.mov(Jit.VAR(1), 3);
+        c.mov(Jit.VAR(2), 2);
+        c.mov(Jit.VAR(3), 1);
         c.localp(Jit.R0);
         var call1 = c.call();
         c.ret(Jit.R0);
@@ -309,17 +309,17 @@ function jit_fib2() {
         var l1 = c.label();
         c.sub(Jit.R3, Jit.S0, Jit.MEM1(Jit.R1, 16));
         c.mov(Jit.VAR(0), Jit.R3);
-        c.mov(Jit.VAR(1), Jit.IMM(3));
-        c.mov(Jit.VAR(2), Jit.IMM(2));
-        c.mov(Jit.VAR(3), Jit.IMM(1));
+        c.mov(Jit.VAR(1), 3);
+        c.mov(Jit.VAR(2), 2);
+        c.mov(Jit.VAR(3), 1);
         c.localp(Jit.R0);
         c.call(entry2);
         c.mov(Jit.S1, Jit.R0);
         c.sub(Jit.R3, Jit.S0, Jit.MEM1(Jit.R1, 24));
         c.mov(Jit.VAR(0), Jit.R3);
-        c.mov(Jit.VAR(1), Jit.IMM(3));
-        c.mov(Jit.VAR(2), Jit.IMM(2));
-        c.mov(Jit.VAR(3), Jit.IMM(1));
+        c.mov(Jit.VAR(1), 3);
+        c.mov(Jit.VAR(2), 2);
+        c.mov(Jit.VAR(3), 1);
         c.localp(Jit.R0);
         c.call(entry2);
         c.add(Jit.R0, Jit.R0, Jit.S1);
@@ -342,15 +342,15 @@ function jit_fib_fp() {
     # Fibonacci with floating point.
     var c = new Jit.Compiler();
     var entry1 = c.enter(Jit.ArgType.FP);
-        c.mov(Jit.FR0, Jit.IMM(0.3));
+        c.mov(Jit.FR0, 0.3);
         var jump0 = c.ge(Jit.FS0, Jit.FR0);
         c.ret(Jit.FS0);
         var l1 = c.label();
-        c.mov(Jit.FR0, Jit.IMM(0.2));
+        c.mov(Jit.FR0, 0.2);
         c.sub(Jit.FR0, Jit.FS0, Jit.FR0);
         c.call(entry1);
         c.mov(Jit.FS1, Jit.FR0);
-        c.mov(Jit.FR0, Jit.IMM(0.1));
+        c.mov(Jit.FR0, 0.1);
         c.sub(Jit.FR0, Jit.FS0, Jit.FR0);
         c.call(entry1);
         c.add(Jit.FR0, Jit.FR0, Jit.FS1);

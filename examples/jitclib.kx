@@ -5,7 +5,7 @@ function jit1() {
     c.enter();
         var cx = c.makeConst(Jit.VAR(0));
         c.mov(Jit.R0, Jit.VAR(0));
-        c.icall(Jit.IMM(Jit.Clib.print));
+        c.icall(Jit.Clib.print);
         c.ret(Jit.R0);
 
     var code = c.generate();
@@ -20,9 +20,9 @@ function jit2() {
     var printf = Jit.Clib.load("printf");
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.R1, Jit.IMM(100));
+        c.mov(Jit.R1, 100);
         c.mov(Jit.R0, "Don't help me! %d\n");
-        c.icall(Jit.IMM(printf));
+        c.icall(printf);
         c.ret(Jit.R0);
 
     var code = c.generate();
@@ -37,8 +37,8 @@ function jit3() {
     var jit_test = Jit.Clib.load("jit_test");
     var c = new Jit.Compiler();
     c.enter();
-        c.mov(Jit.S1, Jit.IMM(jit_test));
-        c.mov(Jit.R0, Jit.IMM(0));
+        c.mov(Jit.S1, jit_test);
+        c.mov(Jit.R0, 0);
         c.icall(Jit.S1);
         c.mov(Jit.R0, "This is a message.");
         c.icall(Jit.S1);
