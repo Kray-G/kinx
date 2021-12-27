@@ -100,6 +100,8 @@ const Jit;
                 c_.setConstDbl(i_, value);
             } else if (value.isString) {
                 c_.setConstStr(i_, value);
+            } else if (value.isBinary) {
+                c_.setConstBin(i_, value);
             } else {
                 throw RuntimeException("Unsupported type of constant value");
             }
@@ -377,6 +379,8 @@ const Jit;
                     operate1("fmov", dst, op1);
                 } else if (op1.isString) {
                     operate1("movs", dst, op1);
+                } else if (op1.isBinary) {
+                    operate1("movb", dst, op1);
                 } else {
                     operate1("mov", dst, op1);
                 }
@@ -388,6 +392,8 @@ const Jit;
                     operate1("mov", dst, op1);
                 } else if (op1.isString) {
                     operate1("movs", dst, op1);
+                } else if (op1.isBinary) {
+                    operate1("movb", dst, op1);
                 } else {
                     operate1("mov", dst, op1);
                 }
