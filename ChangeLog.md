@@ -17,7 +17,7 @@
 
 *   Improvements/Enhancements
     *   #352: JIT library enhancement.
-        * [x] Support a string.
+        * [x] Support a string and a binary.
         * [x] Load a C function and use it.
         * [x] Direct write of a literal without Jit.IMM.
         * [x] Support mov8, mov16, mov32, fmov, and fmov32 for more flexible.
