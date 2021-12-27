@@ -247,6 +247,28 @@ const Jit;
             checkRegister(op2);
             inst_.push(_function() { c_[intf](dst, op1, op2); });
         }
+        public div32(dst, op1, op2) {
+            if (dst.isUndefined && op1.isUndefined && op2.isUndefined) {
+                # (unsigned) Jit.R0 / Jit.R1 => Jit.R0
+                inst_.push(_function() { c_.div32(); });
+            } else if (isFP(dst, op1, op2)) {
+                operate2("fdiv32", dst, op1, op2);
+            } else {
+                throw RuntimeException("Type mismatch");
+            }
+        }
+        public sdiv32() {
+            # (signed) Jit.R0 / Jit.R1 => Jit.R0
+            inst_.push(_function() { c_.sig_div32(); });
+        }
+        public divmod32() {
+            # (unsigned) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
+            inst_.push(_function() { c_.divmod32(); });
+        }
+        public sdivmod32() {
+            # (signed) Jit.R0 / Jit.R1 => Jit.R0 ... Jit.R1
+            inst_.push(_function() { c_.sig_divmod32(); });
+        }
         public div(dst, op1, op2) {
             if (dst.isUndefined && op1.isUndefined && op2.isUndefined) {
                 # (unsigned) Jit.R0 / Jit.R1 => Jit.R0
