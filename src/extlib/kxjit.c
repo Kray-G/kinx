@@ -1284,16 +1284,6 @@ int Jit_getBinary(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
 }
 
 /* cmp */
-KX_JIT_CMP(Jit_eq32, SLJIT_EQUAL32);
-KX_JIT_CMP(Jit_neq32, SLJIT_NOT_EQUAL32);
-KX_JIT_CMP(Jit_lt32, SLJIT_LESS32);
-KX_JIT_CMP(Jit_le32, SLJIT_LESS_EQUAL32);
-KX_JIT_CMP(Jit_gt32, SLJIT_GREATER32);
-KX_JIT_CMP(Jit_ge32, SLJIT_GREATER_EQUAL32);
-KX_JIT_CMP(Jit_sig_lt32, SLJIT_SIG_LESS32);
-KX_JIT_CMP(Jit_sig_le32, SLJIT_SIG_LESS_EQUAL32);
-KX_JIT_CMP(Jit_sig_gt32, SLJIT_SIG_GREATER32);
-KX_JIT_CMP(Jit_sig_ge32, SLJIT_SIG_GREATER_EQUAL32);
 KX_JIT_CMP(Jit_eq, SLJIT_EQUAL);
 KX_JIT_CMP(Jit_neq, SLJIT_NOT_EQUAL);
 KX_JIT_CMP(Jit_lt, SLJIT_LESS);
@@ -1558,16 +1548,6 @@ int Jit_jitCreateCompiler(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KEX_SET_METHOD("runCodeDouble", obj, Jit_frun);
 
     /* cmp */
-    KEX_SET_METHOD("eq32", obj, Jit_eq32);
-    KEX_SET_METHOD("neq32", obj, Jit_neq32);
-    KEX_SET_METHOD("lt32", obj, Jit_lt32);
-    KEX_SET_METHOD("le32", obj, Jit_le32);
-    KEX_SET_METHOD("gt32", obj, Jit_gt32);
-    KEX_SET_METHOD("ge32", obj, Jit_ge32);
-    KEX_SET_METHOD("sig_lt32", obj, Jit_sig_lt32);
-    KEX_SET_METHOD("sig_le32", obj, Jit_sig_le32);
-    KEX_SET_METHOD("sig_gt32", obj, Jit_sig_gt32);
-    KEX_SET_METHOD("sig_ge32", obj, Jit_sig_ge32);
     KEX_SET_METHOD("eq", obj, Jit_eq);
     KEX_SET_METHOD("neq", obj, Jit_neq);
     KEX_SET_METHOD("lt", obj, Jit_lt);

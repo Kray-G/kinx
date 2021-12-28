@@ -116,7 +116,7 @@ const Jit;
             return v[2] == 'm'[0] || v[2] == 'l'[0];
         }
         private isImmFP(v) {
-            return v[1].isDouble && v[0] == 0x40 && v[2] == 'c'[0];
+            return v.isArray && v[1].isDouble && v[0] == 0x40 && v[2] == 'c'[0];
         }
         private isFP(...a) {
             for (var i = 0, l = a.length(); i < l; ++i) {
@@ -195,6 +195,9 @@ const Jit;
         public localp(dst, offset) {
             checkIsDstNotFP(dst);
             checkRegister(dst);
+            if (offset.isInteger && chk_.local <= offset) {
+                chk_.local = offset + 1;
+            }
             if (offset.isUndefined || offset.isInteger) {
                 inst_.push(_function() { c_.getLocalAddress(dst, offset ?? 0); });
             } else {
@@ -375,23 +378,23 @@ const Jit;
                     operate1("conv_sw_f64", dst, op1);
                 }
             } else if (isMEM(dst)) {
-                if (isFP(op1) || isImmFP(op1)) {
-                    operate1("fmov", dst, op1);
-                } else if (op1.isString) {
+                if (op1.isString) {
                     operate1("movs", dst, op1);
+                } else if (isFP(op1) || isImmFP(op1)) {
+                    operate1("fmov", dst, op1);
                 } else if (op1.isBinary) {
                     operate1("movb", dst, op1);
                 } else {
                     operate1("mov", dst, op1);
                 }
             } else {
-                if (isFP(op1)) {
+                if (op1.isString) {
+                    operate1("movs", dst, op1);
+                } else if (isFP(op1)) {
                     operate1("conv_f64_sw", dst, op1);
                 } else if (isImmFP(op1)) {
                     op1[1] = Integer.parseInt(op1[1]);
                     operate1("mov", dst, op1);
-                } else if (op1.isString) {
-                    operate1("movs", dst, op1);
                 } else if (op1.isBinary) {
                     operate1("movb", dst, op1);
                 } else {
@@ -543,36 +546,6 @@ const Jit;
             op2 = makeLiteral(op2);
             operateCmp(s, op1, op2);
             return new JumpTarget(c_, repl_, jump_++);
-        }
-        public eq32(op1, op2) {
-            return operateCmpX(op1, op2, "eq32", "feq32");
-        }
-        public neq32(op1, op2) {
-            return operateCmpX(op1, op2, "neq32", "fneq32");
-        }
-        public lt32(op1, op2) {
-            return operateCmpX(op1, op2, "lt32", "flt32");
-        }
-        public le32(op1, op2) {
-            return operateCmpX(op1, op2, "le32", "fle32");
-        }
-        public gt32(op1, op2) {
-            return operateCmpX(op1, op2, "gt32", "fgt32");
-        }
-        public ge32(op1, op2) {
-            return operateCmpX(op1, op2, "ge32", "fge32");
-        }
-        public slt32(op1, op2) {
-            return operateCmpSX(op1, op2, "sig_lt32");
-        }
-        public sle32(op1, op2) {
-            return operateCmpSX(op1, op2, "sig_le32");
-        }
-        public sgt32(op1, op2) {
-            return operateCmpSX(op1, op2, "sig_gt32");
-        }
-        public sge32(op1, op2) {
-            return operateCmpSX(op1, op2, "sig_ge32");
         }
         public eq(op1, op2) {
             return operateCmpX(op1, op2, "eq", "feq");
