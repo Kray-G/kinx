@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #define KX_DLL
 #include <kinx.h>
+#include <fileutil.h>
 #include <kxthread.h>
 #include <jit.h>
 #ifndef _WIN32
@@ -31,6 +32,7 @@ static lib_t std_libs[] = {
     {"/lib/libc.so.6", NULL},   {"/lib32/libc.so.6", NULL},     {"/lib/libm.so.6", NULL},
     {"/lib32/libm.so.6", NULL}, {"/lib/libpthread.so.0", NULL}, {"/lib32/libpthread.so.0", NULL}
 };
+static const char *std_lib_dirs[] = {"/lib", "/lib32", "/usr/bin/kinxlib"};
 #elif UINTPTR_MAX == 0xffffffffffffffff
 #if defined(__x86_64__)
 static lib_t std_libs[] = {
@@ -38,12 +40,14 @@ static lib_t std_libs[] = {
     {"/lib64/libm.so.6", NULL},           {"/lib/x86_64-linux-gnu/libm.so.6", NULL},
     {"/usr/lib64/libpthread.so.0", NULL}, {"/lib/x86_64-linux-gnu/libpthread.so.0", NULL}
 };
+static const char *std_lib_dirs[] = {"/lib64", "/lib/x86_64-linux-gnu", "/usr/bin/kinxlib"};
 #elif (__aarch64__)
 static lib_t std_libs[] = {
     {"/lib64/libc.so.6", NULL},       {"/lib/aarch64-linux-gnu/libc.so.6", NULL},
     {"/lib64/libm.so.6", NULL},       {"/lib/aarch64-linux-gnu/libm.so.6", NULL},
     {"/lib64/libpthread.so.0", NULL}, {"/lib/aarch64-linux-gnu/libpthread.so.0", NULL}
 };
+static const char *std_lib_dirs[] = {"/lib64", "/lib/aarch64-linux-gnu", "/usr/bin/kinxlib"};
 #elif (__PPC64__)
 static lib_t std_libs[] = {
     {"/lib64/libc.so.6", NULL},
@@ -59,18 +63,29 @@ static lib_t std_libs[] = {
     {"/lib/powerpc64-linux-gnu/libpthread.so.0", NULL},
 #endif
 };
+static const char *std_lib_dirs[] = {
+    "/lib64",
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    "/lib/powerpc64le-linux-gnu",
+#else
+    "/lib/powerpc64-linux-gnu",
+#endif
+    "/usr/bin/kinxlib",
+};
 #elif (__s390x__)
 static lib_t std_libs[] = {
     {"/lib64/libc.so.6", NULL},       {"/lib/s390x-linux-gnu/libc.so.6", NULL},
     {"/lib64/libm.so.6", NULL},       {"/lib/s390x-linux-gnu/libm.so.6", NULL},
     {"/lib64/libpthread.so.0", NULL}, {"/lib/s390x-linux-gnu/libpthread.so.0", NULL}
 };
+static const char *std_lib_dirs[] = {"/lib64", "/lib/s390x-linux-gnu", "/usr/bin/kinxlib"};
 #elif (__riscv)
 static lib_t std_libs[] = {
     {"/lib64/libc.so.6", NULL},       {"/lib/riscv64-linux-gnu/libc.so.6", NULL},
     {"/lib64/libm.so.6", NULL},       {"/lib/riscv64-linux-gnu/libm.so.6", NULL},
     {"/lib64/libpthread.so.0", NULL}, {"/lib/riscv64-linux-gnu/libpthread.so.0", NULL}
 };
+static const char *std_lib_dirs[] = {"/lib64", "/lib/riscv64-linux-gnu", "/usr/bin/kinxlib"};
 #else
 #error cannot recognize 32- or 64-bit target
 #endif
@@ -80,6 +95,7 @@ static const char *lib_suffix = ".so";
 
 #if defined(__APPLE__)
 static lib_t std_libs[] = {{"/usr/lib/libc.dylib", NULL}, {"/usr/lib/libm.dylib", NULL}};
+static const char *std_lib_dirs[] = {"/usr/lib", "/usr/bin/kinxlib"};
 static const char *lib_suffix = ".dylib";
 #endif
 
@@ -89,6 +105,7 @@ static lib_t std_libs[] = {
     {"C:\\Windows\\System32\\kernel32.dll", NULL},
     {"C:\\Windows\\System32\\ucrtbase.dll", NULL}
 };
+static const char *std_lib_dirs[] = {"C:\\Windows\\System32"};
 #define dlopen(n, f) LoadLibrary(n)
 #define dlclose(h) FreeLibrary(h)
 #define dlsym(h, s) GetProcAddress(h, s)
@@ -99,7 +116,7 @@ static void *load_function(const char *name)
 {
     void *handler, *sym = NULL;
 
-    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
+    for (int i = 0; i < sizeof(std_libs) / sizeof(lib_t); i++) {
         if ((handler = std_libs[i].handler) != NULL && (sym = dlsym(handler, name)) != NULL) {
             break;
         }
@@ -130,7 +147,7 @@ DllExport void jit_test(const char *msg)
 void jit_initialize(void)
 {
     kv_init(alibs);
-    for (int i = 0; i < sizeof(std_libs) / sizeof(struct lib); i++) {
+    for (int i = 0; i < sizeof(std_libs) / sizeof(lib_t); i++) {
         std_libs[i].handler = dlopen(std_libs[i].name, RTLD_LAZY);
     }
 }
@@ -1467,15 +1484,32 @@ int Jit_addlib(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     if (args != 2) {
         KX_THROW_BLTIN_EXCEPTION("ArgumentException", "Too few aruguments");
     }
+    lib_t *info = (lib_t *)kx_calloc(1, sizeof(lib_t));
+    kv_push(lib_t*, alibs, info);
+
     const char *name = get_arg_str(2, args, ctx);
     char file[1024] = {0};
     snprintf(file, 1000, "%s%s", name, lib_suffix);
     char *buf = conv_utf82acp_alloc(file);
-    lib_t *info = (lib_t *)kx_calloc(1, sizeof(lib_t));
-    kv_push(lib_t*, alibs, info);
-    info->name = kx_const_str(ctx, buf);
-    info->handler = dlopen(info->name, RTLD_LAZY);
+    info->handler = dlopen(buf, RTLD_LAZY);
+    if (info->handler) {
+        info->name = kx_const_str(ctx, buf);
+    }
     conv_free(buf);
+
+    for (int i = 0; !info->handler && i < sizeof(std_lib_dirs) / sizeof(std_lib_dirs[0]); ++i) {
+        const char *p = std_lib_dirs[i];
+        if (!p) {
+            break;
+        }
+        snprintf(file, 1000, "%s%c%s%s", p, PATH_DELCH, name, lib_suffix);
+        char *buf = conv_utf82acp_alloc(file);
+        info->handler = dlopen(buf, RTLD_LAZY);
+        if (info->handler) {
+            info->name = kx_const_str(ctx, buf);
+        }
+        conv_free(buf);
+    }
 
     if (!info->handler) {
         KX_THROW_BLTIN_EXCEPTION("JitException", static_format("Llibrary not found (%s)", name));
