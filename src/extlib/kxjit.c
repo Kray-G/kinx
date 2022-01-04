@@ -917,8 +917,15 @@ int Jit_getLocalAddressBy(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t
     KX_GET_OP(args, ctx, obj, jtx, src2, src2w, 3);
 
     sljit_get_local_base(jtx->C, src1, src1w, 0);
-    sljit_emit_op2(jtx->C, SLJIT_MUL, src2, src2w, src2, src2w, SLJIT_IMM, 8);
-    sljit_emit_op2(jtx->C, SLJIT_ADD, src1, src1w, src1, src1w, src2, src2w);
+    if (SLJIT_S9 <= src2 && src2 <= SLJIT_S0) {
+        int src3 = (src1 == SLJIT_R0) ? SLJIT_R1 : SLJIT_R0;
+        sljit_emit_op1(jtx->C, SLJIT_MOV, src3, 0, src2, src2w);
+        sljit_emit_op2(jtx->C, SLJIT_SHL, src3, 0, src3, 0, SLJIT_IMM, 3);
+        sljit_emit_op2(jtx->C, SLJIT_ADD, src1, src1w, src1, src1w, src3, 0);
+    } else {
+        sljit_emit_op2(jtx->C, SLJIT_SHL, src2, src2w, src2, src2w, SLJIT_IMM, 3);
+        sljit_emit_op2(jtx->C, SLJIT_ADD, src1, src1w, src1, src1w, src2, src2w);
+    }
 
     KX_ADJST_STACK();
     push_obj(ctx->stack, obj);
