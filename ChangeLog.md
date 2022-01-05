@@ -22,6 +22,7 @@
         * [x] Direct write of a literal without Jit.IMM.
         * [x] Support mov8, mov16, mov32, fmov, and fmov32 for more flexible.
 *   Bug fixes
+    *   #360: Operator `<<` doesn't work for a string in a variable..
     *   #358: String doesn't work in JIT lib.
 
 ## V1.1.0 (Official Release) - 2021/12/06

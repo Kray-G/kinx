@@ -3,6 +3,7 @@
 ## V1.1.2 (Current Development Version)
 
 *   Bug fixes
+    *   #360: Operator `<<` doesn't work for a string in a variable..
     *   #358: String doesn't work in JIT lib.
 
 ## V1.1.1 (Official Release) - 2021/12/27
