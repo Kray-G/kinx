@@ -5410,6 +5410,14 @@ kx_fnc_t *kx_try_mod_i2(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *ex
         KX_SHL_SHL_I(v1, (int64_t)v2->value.dv); \
         break; \
     } \
+    case KX_CSTR_T: { \
+        KX_SHL_SHL_S(v1, (v2)->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_SHL_SHL_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
     case KX_BIN_T: { \
         fn = kx_get_special_object_function(ctx, v1, KX_SHL_OP_NAME); \
         if (!fn) { \
@@ -5535,6 +5543,14 @@ kx_fnc_t *kx_try_shl_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_DBL_T: { \
         KX_SHR_SHR_I(v1, (int64_t)v2->value.dv); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        KX_SHR_SHR_S(v1, (v2)->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_SHR_SHR_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
     case KX_BIN_T: { \
@@ -5750,6 +5766,14 @@ kx_fnc_t *kx_try_shr_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
     } \
     case KX_DBL_T: { \
         KX_AND_AND_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        KX_AND_AND_S(v1, (v2)->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_AND_AND_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
     case KX_BIN_T: { \
@@ -5971,6 +5995,14 @@ kx_fnc_t *kx_try_and_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc
         KX_OR_OR_D(v1, v2->value.dv); \
         break; \
     } \
+    case KX_CSTR_T: { \
+        KX_OR_OR_S(v1, (v2)->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_OR_OR_S(v1, ks_string((v2)->value.sv)); \
+        break; \
+    } \
     case KX_BIN_T: { \
         fn = kx_get_special_object_function(ctx, v1, KX_OR_OP_NAME); \
         if (!fn) { \
@@ -6188,6 +6220,14 @@ kx_fnc_t *kx_try_or_s(kx_context_t *ctx, kx_code_t *cur, kx_val_t *v1, int *exc)
     } \
     case KX_DBL_T: { \
         KX_XOR_XOR_D(v1, v2->value.dv); \
+        break; \
+    } \
+    case KX_CSTR_T: { \
+        KX_XOR_XOR_S(v1, (v2)->value.pv); \
+        break; \
+    } \
+    case KX_STR_T: { \
+        KX_XOR_XOR_S(v1, ks_string((v2)->value.sv)); \
         break; \
     } \
     case KX_BIN_T: { \
