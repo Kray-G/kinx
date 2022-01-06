@@ -9,6 +9,7 @@
 #include <kxutf8.h>
 #include <kxthread.h>
 #include <kxiconv.h>
+#include <version.h>
 #include "kc-json/dist/kc-json.h"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -442,6 +443,18 @@ int JSON_parse(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
     }
 
     KX_THROW_BLTIN_EXCEPTION("SystemException", "Needs a string value to parse");
+}
+
+int System_getVersion(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
+{
+    kx_obj_t *obj = allocate_obj(ctx);
+    KEX_SET_PROP_INT(obj, "major", VER_MAJ);
+    KEX_SET_PROP_INT(obj, "minor", VER_MIN);
+    KEX_SET_PROP_INT(obj, "patch", VER_PAT);
+    KEX_SET_PROP_CSTR(obj, "suffix", VER_SUFFIX);
+    KX_ADJST_STACK();
+    push_obj(ctx->stack, obj);
+    return 0;
 }
 
 int System_getPlatform(int args, kx_frm_t *frmv, kx_frm_t *lexv, kx_context_t *ctx)
@@ -2579,6 +2592,7 @@ static kx_bltin_def_t kx_bltin_info[] = {
     { "_throwExceptionHook", System_throwExceptionHook },
     { "_setTrueFalse", System_setTrueFalse },
     { "_printStack", System_printStack },
+    { "getVersion", System_getVersion },
     { "getPlatform", System_getPlatform },
     { "makeSuper", System_makeSuper },
     { "exec", System_exec },

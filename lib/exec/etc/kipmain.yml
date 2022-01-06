@@ -18,6 +18,7 @@ jobs:
           mkdir -p $tag/docs
           cp -r ./src/* $tag/
           cp -r ./docs/* $tag/docs/
+          cp ./package.json %$tag/lib
           cd $tag
           zip -r ../package.zip *
       - name: upload archive

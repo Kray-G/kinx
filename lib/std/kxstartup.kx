@@ -1,4 +1,4 @@
-const STDIN, STDOUT, STDERR, $exepath, $kinxpath, $libpath, $pkgpath;
+const STDIN, STDOUT, STDERR, $kinxver, $exepath, $kinxpath, $libpath, $pkgpath;
 const System, Signal, String, Binary, Array, Integer, Double, Math, Regex, File, Directory, Clib, Iconv, Clipboard, Duktape, Debugger;
 const Isolate, Enumerable, Enumerator, Range, Colorize;
 const SQLite, Database, Zip, JSON, SystemTimer, Fiber;
@@ -65,6 +65,8 @@ var Xml, Net;
     False = System._setTrueFalse(0, new _BooleanClass(false));
     SystemTimer.create = System.SystemTimer_create;
 
+    $kinxver = System.getVersion();
+    $kinxver.string = $kinxver.major + "." + $kinxver.minor + "." + $kinxver.patch + $kinxver.suffix;
     $exepath = System.exepath();
     $kinxpath = System.kinxpath();
     var libpath = $kinxpath / "kinxlib";
@@ -76,6 +78,7 @@ var Xml, Net;
     }
     $libpath = libpath;
     $pkgpath = (libpath / "package").replace(/\/[^\/]+\/\.\./, "");
+    System.isWindows = System.PLATFORM.endsWith("-WIN");
 })();
 
 const KX_KEY_ESC        = 0x1b;

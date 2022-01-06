@@ -1,0 +1,69 @@
+using SemanticVersion;
+
+const pkg;
+
+_class PackageChecker(file_) {
+
+    const DEF_FILE_NAME = "kxpackage.def";
+    var def_, pkg_;
+
+    private pkgname(name) {
+        return "the package(%{name})";
+    }
+
+    private getPackagePath(file) {
+        var pkglibpath = file.replace("\\", "/").replace(new Regex("^" + $pkgpath.replace("\\", "/") + "/*"), "");
+        var [ name, version ] = pkglibpath.split("/");
+        var path = $pkgpath.replace("\\", "/") / name / version;
+        var bin = path / "bin";
+        var lib = path / "lib";
+        var etc = path / "etc";
+        return { name, version, path, bin, lib, etc };
+    };
+
+    private checkVersion(name, reqver, tgtver) {
+        var version = new SemanticVersion(tgtver);
+        if (!version.match(reqver)) {
+            throw RuntimeException("Version(%{name}@%{tgtver}) not sufficient, it should be %{reqver}.");
+        }
+        return true;
+    }
+
+    private initialize() {
+        var defFile = $pkgpath / DEF_FILE_NAME;
+        def_ = File.load(defFile).split(/\r?\n/).map { => _1.split('=').map { => _1.trim() } }
+            .reduce({ &(r, e)
+                r[e[0]] = e[1];
+                return r;
+            }, {});
+        def_.kinx = $kinxver.string;
+    }
+
+    public check() {
+        pkg_ = getPackagePath(file_);
+        pkg.extend(pkg_);
+        var pkgjsonfile = pkg_.path / "package.json";
+        if (File.exists(pkgjsonfile)) {
+            var pkginfo = JSON.parse(File.load(pkgjsonfile));
+            var deps = pkginfo.dependencies;
+            deps.keySet().each { &(name)
+                var reqver = deps[name];
+                if (!reqver) {
+                    throw RuntimeException("%{pkgname(name).toUpper(0, 1)} not found.");
+                }
+                var tgtver = def_[name];
+                if (!tgtver) {
+                    throw RuntimeException("%{pkgname(name).toUpper(0, 1)} not found.");
+                }
+                checkVersion(name, reqver, tgtver);
+            };
+        }
+        return true;
+    }
+
+}
+
+pkg.check = _function(file) {
+    var checker = new PackageChecker(file);
+    checker.check();
+};

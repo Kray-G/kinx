@@ -690,6 +690,9 @@ class KinxPackageLibraryManager(repoMgr_) {
             if (File.exists("docs") && File.isDirectory("docs")) {
                 util.dircopy("docs", util.root / "docs");
             }
+            if (File.exists("package.json")) {
+                File.copy("package.json", util.root / "package.json");
+            }
         };
         return true;
     }
@@ -798,7 +801,14 @@ class KinxPackageManager {
 
     private initialize() {
         if (!File.exists($pkgpath)) {
-            File.mkdir($pkgpath);
+            if (System.isWindows && $pkgpath.find("/scoop/") > 0) {
+                Directory.change($pkgpath.parentPath()) {
+                    System.exec("mkdir ..\\..\\lib\\package");
+                    System.exec("mklink /j package ..\\..\\lib\\package");
+                };
+            } else {
+                File.mkdir($pkgpath);
+            }
         }
         var configFile = $pkgpath / CONFIG_FILE_NAME;
         var defFile = $pkgpath / DEF_FILE_NAME;
