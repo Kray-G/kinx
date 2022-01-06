@@ -1,0 +1,107 @@
+using Jit;
+using Utils;
+
+# var printf = Jit.Clib.load("printf");
+var putchar = Jit.Clib.load("putchar");
+var memset = Jit.Clib.load("memset");
+var memory = Jit.S0;
+var dataptr = Jit.S1;
+
+# function printCur(c, instruction) {
+#     c.add(Jit.S2, memory, dataptr);
+#     c.mov(Jit.R0, *instruction + ": Counter[%d] = %d\n");
+#     c.mov(Jit.R1, Jit.S1);
+#     c.mov8(Jit.R2, Jit.MEM1(Jit.S2));
+#     c.icall(printf);
+# }
+
+function simplejit(p, verbose) {
+    var label, target, jumptarget;
+    var open_bracket_stack = [];
+    var c = new Jit.Compiler();
+
+    var tg = new SystemTimer();
+    c.enter();
+    c.localp(memory, 0);
+    c.mov(Jit.VAR(100), 0);
+    c.mov(Jit.R0, memory);
+    c.mov(Jit.R1, 0);
+    c.mov(Jit.R2, 100);
+    c.icall(memset);
+    c.mov(dataptr, 0);
+
+    # printCur(c);
+
+    for (var pc = 0, last = p.length(); pc < last; ++pc) {
+        var instruction = p[pc];
+        switch (instruction) {
+        case '>'[0]:
+            c.add(dataptr, dataptr, 1);
+            # printCur(c, instruction);
+            break;
+        case '<'[0]:
+            c.sub(dataptr, dataptr, 1);
+            # printCur(c, instruction);
+            break;
+        case '+'[0]:
+            c.add(Jit.R0, memory, dataptr);
+            c.mov8(Jit.R1, Jit.MEM1(Jit.R0));
+            c.add(Jit.R1, Jit.R1, 1);
+            c.mov8(Jit.MEM1(Jit.R0), Jit.R1);
+            # printCur(c, instruction);
+            break;
+        case '-'[0]:
+            c.add(Jit.R0, memory, dataptr);
+            c.mov8(Jit.R1, Jit.MEM1(Jit.R0));
+            c.sub(Jit.R1, Jit.R1, 1);
+            c.mov8(Jit.MEM1(Jit.R0), Jit.R1);
+            # printCur(c, instruction);
+            break;
+        case '.'[0]:
+            c.add(Jit.R0, memory, dataptr);
+            c.mov8(Jit.R0, Jit.MEM1(Jit.R0));
+            c.icall(putchar);
+            # printCur(c, instruction);
+            break;
+        case ','[0]:
+            # throw RuntimeException("The operation of ',' is not supported now.");
+            break;
+
+        case '['[0]:
+            # printCur(c, instruction);
+            c.add(Jit.R0, memory, dataptr);
+            c.mov8(Jit.R0, Jit.MEM1(Jit.R0));
+            target = c.eq(Jit.R0, 0);
+            label = c.label();
+            open_bracket_stack.push({ label, target });
+            break;
+        case ']'[0]:
+            if (open_bracket_stack.length() == 0) {
+                DIE << "unmatched closing ']' at pc=" << pc << END;
+            }
+            { label, target } = open_bracket_stack.pop();
+            # printCur(c, instruction);
+            c.add(Jit.R0, memory, dataptr);
+            c.mov8(Jit.R0, Jit.MEM1(Jit.R0));
+            jumptarget = c.neq(Jit.R0, 0);
+            jumptarget.setLabel(label);
+            target.setLabel(c.label());
+            break;
+        default:
+            { DIE << "bad char '" << *instruction << "' at pc=" << pc << END; }
+        }
+    }
+    c.ret(Jit.R0);
+
+    var code = c.generate();
+    COUT << "Generating took: " << tg.elapsed() << "s\n";
+    if (verbose) {
+        code.dump();
+    }
+
+    var tx = new SystemTimer();
+    code.run();
+    COUT << "Running took: " << tx.elapsed() << "s\n";
+}
+
+return main($$, simplejit);

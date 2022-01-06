@@ -1,0 +1,111 @@
+using Utils;
+
+function computeJumptable(p) {
+    var pc = 0;
+    var program_size = p.length();
+    var jumptable = [];
+
+    while (pc < program_size) {
+        var instruction = p[pc];
+        if (instruction == '['[0]) {
+            var bracket_nesting = 1;
+            var seek = pc;
+
+            while (bracket_nesting && ++seek < program_size) {
+                if (p[seek] == ']'[0]) {
+                    bracket_nesting--;
+                } else if (p[seek] == '['[0]) {
+                    bracket_nesting++;
+                }
+            }
+
+            if (!bracket_nesting) {
+                jumptable[pc] = seek;
+                jumptable[seek] = pc;
+            } else {
+                DIE << "unmatched '[' at pc=" << pc << END;
+            }
+        }
+        pc++;
+    }
+
+    return jumptable;
+}
+
+function optinterp(p, verbose) {
+    var memory = [];
+    var pc = 0;
+    var dataptr = 0;
+
+    var t1 = new SystemTimer();
+    var jumptable = computeJumptable(p);
+
+    if (verbose) {
+        COUT << "* jumptable [elapsed " << t1.elapsed() << "s]: ";
+        for (var i = 0, l = jumptable.length(); i < l; ++i) {
+            if (jumptable[i]) {
+                COUT << "[" << i << "]=" << jumptable[i] << " ";
+            }
+        }
+        COUT << "\n";
+    }
+
+    var program_size = p.length();
+    while (pc < program_size) {
+        var instruction = p[pc];
+        switch (instruction) {
+        case '>'[0]:
+            dataptr++;
+            break;
+        case '<'[0]:
+            dataptr--;
+            break;
+        case '+'[0]:
+            memory[dataptr]++;
+            break;
+        case '-'[0]:
+            memory[dataptr]--;
+            break;
+        case '.'[0]:
+            System.print(*memory[dataptr]);
+            break;
+        case ','[0]:
+            memory[dataptr] = getNumber();
+            break;
+        case '['[0]:
+            if (memory[dataptr] == 0) {
+                pc = jumptable[pc];
+            }
+            break;
+        case ']'[0]:
+            if (memory[dataptr] != 0) {
+                pc = jumptable[pc];
+            }
+            break;
+        default:
+            { DIE << "bad char '" << instruction << "' at pc=" << pc << END; }
+        }
+
+        pc++;
+    }
+
+    // Done running the program. Dump state if verbose.
+    if (verbose) {
+        COUT << "* pc=" << pc << "\n";
+        COUT << "* dataptr=" << dataptr << "\n";
+        COUT << "* Memory nonzero locations:\n";
+
+        for (var i = 0, pcount = 0; i < memory.length(); ++i) {
+            if (memory[i]) {
+                COUT << ("[%3d] = %3d, " % i % memory[i]);
+                pcount++;
+                if (pcount > 0 && pcount % 4 == 0) {
+                    COUT << "\n";
+                }
+            }
+        }
+        COUT << "\n";
+    }
+}
+
+return main($$, optinterp);

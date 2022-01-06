@@ -1,0 +1,94 @@
+
+var END = { isEndOfMessage: true };
+
+class FatalLogMessage {
+    public <<(msg) {
+        if (msg.isEndOfMessage) {
+            System.println("");
+            System.abort(0);
+        }
+        System.print(msg);
+        return this;
+    }
+}
+
+class Console {
+    public <<(msg) {
+        System.print(msg);
+        return this;
+    }
+}
+
+function parseCommandLine(args) {
+    var verbose = false;
+    var bfFilePath;
+    var opt;
+    while (opt = System.getopt(args, "h", { help: 'h', verbose: null })) {
+        switch (opt.type) {
+        case 'h':
+            break;
+        case 'verbose':
+            verbose = true;
+            break;
+        case '-':
+            bfFilePath = opt.arg;
+            break;
+        }
+    }
+    return [verbose, bfFilePath];
+}
+
+function getNumber() {
+    var number = 0;
+    while (true) {
+        n = $stdin.getch();
+        System.print(n);
+        if (n == '\r' || n == '\n') {
+            break;
+        }
+        if ('0'[0] <= n[0] && n[0] <= '9'[0]) {
+            number = number * 10 + (n[0] - '0'[0]);
+        }
+    }
+    return number;
+}
+
+var DIE = new FatalLogMessage();
+var COUT = new Console();
+
+function parseFromText(text) {
+    var program = [];
+    for (var i = 0, l = text.length(); i < l; ++i) {
+        var c = text[i];
+        if (c == '>'[0] || c == '<'[0] || c == '+'[0] || c == '-'[0] || c == '.'[0] || c == ','[0] || c == '['[0] || c == ']'[0]) {
+            program.push(c);
+        }
+    }
+    return program;
+}
+
+function main(args, func) {
+    var [verbose, file] = parseCommandLine(args);
+
+    var t1 = new SystemTimer();
+    if (!File.exists(file)) {
+        DIE << "unable to open file " << file << END;
+    }
+    var program = parseFromText(File.load(file));
+    COUT << "Parsing took: " << t1.elapsed() << "s\n";
+
+    if (verbose) {
+        COUT << "Length of program: " << program.length() << "\n";
+        COUT << "Program:\n" << program << "\n";
+    }
+
+    if (verbose) {
+        COUT << "[>] Running optinterp3:\n";
+    }
+
+    var t2 = new SystemTimer();
+    func(program, verbose);
+    COUT << "[<] Done (elapsed: " << t2.elapsed() << "s)\n";
+
+    return 0;
+}

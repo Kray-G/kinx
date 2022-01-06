@@ -1,0 +1,97 @@
+using Utils;
+
+function simpleinterp(p, verbose) {
+    var memory = [];
+    var pc = 0;
+    var dataptr = 0;
+
+    while (pc < p.length()) {
+        var instruction = p[pc];
+        switch (instruction) {
+        case '>'[0]:
+            dataptr++;
+            break;
+        case '<'[0]:
+            dataptr--;
+            break;
+        case '+'[0]:
+            memory[dataptr]++;
+            break;
+        case '-'[0]:
+            memory[dataptr]--;
+            break;
+        case '.'[0]:
+            System.print(*memory[dataptr]);
+            break;
+        case ','[0]:
+            memory[dataptr] = getNumber();
+            break;
+
+        case '['[0]:
+            if (memory[dataptr] == 0) {
+                var bracket_nesting = 1;
+                var saved_pc = pc;
+
+                while (bracket_nesting && ++pc < p.length()) {
+                    if (p[pc] == ']'[0]) {
+                        bracket_nesting--;
+                    } else if (p[pc] == '['[0]) {
+                        bracket_nesting++;
+                    }
+                }
+
+                if (!bracket_nesting) {
+                    break;
+                } else {
+                    DIE << "unmatched '[' at pc=" << saved_pc << END;
+                }
+            }
+            break;
+
+        case ']'[0]:
+            if (memory[dataptr] != 0) {
+                var bracket_nesting = 1;
+                var saved_pc = pc;
+
+                while (bracket_nesting && pc > 0) {
+                    pc--;
+                    if (p[pc] == '['[0]) {
+                        bracket_nesting--;
+                    } else if (p[pc] == ']'[0]) {
+                        bracket_nesting++;
+                    }
+                }
+
+                if (!bracket_nesting) {
+                    break;
+                } else {
+                    DIE << "unmatched ']' at pc=" << saved_pc << END;
+                }
+            }
+            break;
+        default:
+            { DIE << "bad char '" << *instruction << "' at pc=" << pc << END; }
+        }
+        pc++;
+    }
+
+    // Done running the program. Dump state if verbose.
+    if (verbose) {
+        COUT << "* pc=" << pc << "\n";
+        COUT << "* dataptr=" << dataptr << "\n";
+        COUT << "* Memory nonzero locations:\n";
+
+        for (var i = 0, pcount = 0; i < memory.length(); ++i) {
+            if (memory[i]) {
+                COUT << ("[%3d] = %3d, " % i % memory[i]);
+                pcount++;
+                if (pcount > 0 && pcount % 4 == 0) {
+                    COUT << "\n";
+                }
+            }
+        }
+        COUT << "\n";
+    }
+}
+
+return main($$, simpleinterp);

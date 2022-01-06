@@ -1,0 +1,202 @@
+using Utils;
+
+enum {
+    INVALID_OP = 0,
+    INC_PTR,
+    DEC_PTR,
+    INC_DATA,
+    DEC_DATA,
+    READ_STDIN,
+    WRITE_STDOUT,
+    JUMP_IF_DATA_ZERO,
+    JUMP_IF_DATA_NOT_ZERO
+};
+
+function BfOpKind_name(kind) {
+    switch (kind) {
+    case INC_PTR:
+        return ">";
+    case DEC_PTR:
+        return "<";
+    case INC_DATA:
+        return "+";
+    case DEC_DATA:
+        return "-";
+    case READ_STDIN:
+        return ",";
+    case WRITE_STDOUT:
+        return ".";
+    case JUMP_IF_DATA_ZERO:
+        return "[";
+    case JUMP_IF_DATA_NOT_ZERO:
+        return "]";
+    case INVALID_OP:
+        return "x";
+    }
+    return "";
+}
+
+function BfOp(kind, argument) {
+    return { kind, argument };
+}
+
+function translateProgram(p) {
+    var pc = 0;
+    var program_size = p.length();
+    var ops = [];
+
+    // Throughout the translation loop, this stack contains offsets (in the ops
+    // vector) of open brackets (JUMP_IF_DATA_ZERO ops) waiting for a closing
+    // bracket. Since brackets nest, these naturally form a stack. The
+    // JUMP_IF_DATA_ZERO ops get added to ops with their argument set to 0 until a
+    // matching closing bracket is encountered, at which point the argument can be
+    // back-patched.
+    var open_bracket_stack = [];
+
+    while (pc < program_size) {
+        var instruction = p[pc];
+        if (instruction == '['[0]) {
+            // Place a jump op with a placeholder 0 offset. It will be patched-up to
+            // the right offset when the matching ']' is found.
+            open_bracket_stack.push(ops.length());
+            ops.push(BfOp(JUMP_IF_DATA_ZERO, 0));
+            pc++;
+        } else if (instruction == ']'[0]) {
+            if (open_bracket_stack.empty()) {
+                DIE << "unmatched closing ']' at pc=" << pc << END;
+            }
+            var open_bracket_offset = open_bracket_stack.pop();
+
+            // Now we have the offset of the matching '['. We can use it to create a
+            // new jump op for the ']' we're handling, as well as patch up the offset
+            // of the matching '['.
+            ops[open_bracket_offset].argument = ops.length();
+            ops.push(BfOp(JUMP_IF_DATA_NOT_ZERO, open_bracket_offset));
+            pc++;
+        } else {
+            // Not a jump; all the other ops can be repeated, so find where the repeat
+            // ends.
+            var start = pc++;
+            while (pc < program_size && p[pc] == instruction) {
+                pc++;
+            }
+            // Here pc points to the first new instruction encountered, or to the end
+            // of the program.
+            var num_repeats = pc - start;
+
+            // Figure out which op kind the instruction represents and add it to the
+            // ops.
+            var kind = INVALID_OP;
+            switch (instruction) {
+            case '>'[0]:
+                kind = INC_PTR;
+                break;
+            case '<'[0]:
+                kind = DEC_PTR;
+                break;
+            case '+'[0]:
+                kind = INC_DATA;
+                break;
+            case '-'[0]:
+                kind = DEC_DATA;
+                break;
+            case ','[0]:
+                kind = READ_STDIN;
+                break;
+            case '.'[0]:
+                kind = WRITE_STDOUT;
+                break;
+            default:
+                { DIE << "bad var '" << instruction << "' at pc=" << start << END; }
+            }
+
+            ops.push(BfOp(kind, num_repeats));
+        }
+    }
+
+    return ops;
+}
+
+function optinterp2(p, verbose) {
+    var memory = [];
+    var pc = 0;
+    var dataptr = 0;
+
+    var t1 = new SystemTimer();
+    var ops = translateProgram(p);
+
+    if (verbose) {
+        COUT << "* translation [elapsed " << t1.elapsed() << "s]:\n";
+        for (var i = 0; i < ops.length(); ++i) {
+            COUT << " [" << i << "] "
+                << BfOpKind_name(ops[i].kind)
+                << " "
+                << ops[i].argument
+                << "\n";
+        }
+    }
+
+    var ops_size = ops.length();
+    while (pc < ops_size) {
+        var op = ops[pc];
+        var kind = op.kind;
+        switch (kind) {
+        case INC_PTR:
+            dataptr += op.argument;
+            break;
+        case DEC_PTR:
+            dataptr -= op.argument;
+            break;
+        case INC_DATA:
+            memory[dataptr] += op.argument;
+            break;
+        case DEC_DATA:
+            memory[dataptr] -= op.argument;
+            break;
+        case READ_STDIN:
+            for (var i = 0; i < op.argument; ++i) {
+                memory[dataptr] = getNumber();
+            }
+            break;
+        case WRITE_STDOUT:
+            for (var i = 0; i < op.argument; ++i) {
+                System.print(*memory[dataptr]);
+            }
+            break;
+        case JUMP_IF_DATA_ZERO:
+            if (memory[dataptr] == 0) {
+                pc = op.argument;
+            }
+            break;
+        case JUMP_IF_DATA_NOT_ZERO:
+            if (memory[dataptr] != 0) {
+                pc = op.argument;
+            }
+            break;
+        case INVALID_OP:
+            DIE << "INVALID_OP encountered on pc=" << pc << END;
+        }
+
+        pc++;
+    }
+
+    // Done running the program. Dump state if verbose.
+    if (verbose) {
+        COUT << "* pc=" << pc << "\n";
+        COUT << "* dataptr=" << dataptr << "\n";
+        COUT << "* Memory nonzero locations:\n";
+
+        for (var i = 0, pcount = 0; i < memory.length(); ++i) {
+            if (memory[i]) {
+                COUT << ("[%3d] = %3d, " % i % memory[i]);
+                pcount++;
+                if (pcount > 0 && pcount % 4 == 0) {
+                    COUT << "\n";
+                }
+            }
+        }
+        COUT << "\n";
+    }
+}
+
+return main($$, optinterp2);
