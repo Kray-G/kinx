@@ -224,7 +224,7 @@ libkinx.so: $(SRCDIR)/optimizer.c $(SRCDIR)/parser.c $(INCDIR)/parser.tab.h libo
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $(OBJS) $(DISASM) -ldl -lm
 	ar rcs libkx.a fileutil.o
 
-kxsystem.so: $(INCDIR)/version.h $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h kc-json.o duktape.o picosat.o libclipboard.a $(PICOBJS)
+kxsystem.so: $(SRCDIR)/extlib/kxsystem.c $(SRCDIR)/extlib/kc-json/dist/kc-json.h kc-json.o duktape.o picosat.o libclipboard.a $(PICOBJS)
 	$(CC) $(CFLAGS) -fPIC -o $@ -shared $< $(PICOBJS) kc-json.o duktape.o picosat.o libclipboard.a -lm -lxcb
 
 kxstring.so: $(SRCDIR)/extlib/kxstring.c $(PICOBJS)
@@ -364,6 +364,7 @@ depend: $(DEPFILE)
 $(DEPFILE): $(SRCS)
 	$(CC) $(CFLAGS) -MM $(SRCS) > $(DEPFILE)
 
+kxsystem.o: $(INCDIR)/version.h
 allocator.o: $(SRCDIR)/allocator.c $(INCDIR)/dbg.h $(INCDIR)/kinx.h $(INCDIR)/kvec.h \
  $(INCDIR)/ir.h $(INCDIR)/khash.h $(INCDIR)/klist.h $(INCDIR)/kstr.h \
  $(INCDIR)/bigz.h $(INCDIR)/bign.h $(INCDIR)/jit.h \
