@@ -3,6 +3,11 @@
     <img src="http://img.shields.io/badge/Platform-Currently_x86--64_only-brightgreen.svg?style=flat"/>
     <img src="http://img.shields.io/badge/License-MIT-blue.svg?style=flat"/>
 </p>
+
+**Note: Now this Kinx is a little pending the development. A near future this could be freezed, but I am still sitting on the fence.**
+**As a sccessor, [Kilite](https://github.com/Kray-G/kilite) is available but it's under construction so far.**
+**You can see the new product of [Kilite here](https://github.com/Kray-G/kilite), and check it out.**
+
 <p align="center"><img src="docs/kinxlogo.png" height="84px" /></p>
 <p align="center">
 Looks like JavaScript, feels like Ruby, and it is a script language fitting in C programmers.
